@@ -33,7 +33,7 @@ const GET_VIEWER_OWN_CIRCLES = `
 `
 
 const PUT_CIRCLE = /* GraphQL */ `
-  mutation($input: PutCircleInput!) {
+  mutation ($input: PutCircleInput!) {
     putCircle(input: $input) {
       id
       name
@@ -51,7 +51,7 @@ const PUT_CIRCLE = /* GraphQL */ `
 `
 
 const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleFollowCircle(input: $input) {
       id
       followers(input: { first: null }) {
@@ -69,7 +69,7 @@ const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
-  mutation($input: PutCircleArticlesInput!) {
+  mutation ($input: PutCircleArticlesInput!) {
     putCircleArticles(input: $input) {
       id
       works(input: { first: null }) {
@@ -93,7 +93,7 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
-  mutation($input: PutCommentInput!) {
+  mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
       id
     }
@@ -101,7 +101,7 @@ const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
 `
 
 const TOGGLE_PIN_COMMENT = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     togglePinComment(input: $input) {
       id
       pinned
@@ -110,7 +110,7 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
-  query($input: CircleInput!) {
+  query ($input: CircleInput!) {
     circle(input: $input) {
       id
       discussion(input: { first: null }) {
@@ -226,7 +226,7 @@ const CIRCLE_INVITE = /* GraphQL*/ `
 `
 
 const SUBSCRIBE_CIRCLE = /* GraphQL */ `
-  mutation($input: SubscribeCircleInput!) {
+  mutation ($input: SubscribeCircleInput!) {
     subscribeCircle(input: $input) {
       circle {
         id

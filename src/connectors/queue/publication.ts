@@ -138,13 +138,11 @@ class PublicationQueue extends BaseQueue {
          *
          * @see {@url https://github.com/thematters/matters-server/pull/1510}
          */
-        const [
-          { id: draftEntityTypeId },
-          { id: articleEntityTypeId },
-        ] = await Promise.all([
-          this.systemService.baseFindEntityTypeId('draft'),
-          this.systemService.baseFindEntityTypeId('article'),
-        ])
+        const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
+          await Promise.all([
+            this.systemService.baseFindEntityTypeId('draft'),
+            this.systemService.baseFindEntityTypeId('article'),
+          ])
 
         // Remove unused assets
         await this.deleteUnusedAssets({ draftEntityTypeId, draft })
@@ -312,7 +310,7 @@ class PublicationQueue extends BaseQueue {
         .filter((t) => !!t)
 
       // create tag records, return tag record if already exists
-      const dbTags = ((await Promise.all(
+      const dbTags = (await Promise.all(
         tags.map((tag: string) =>
           this.tagService.create({
             content: tag,
@@ -321,7 +319,7 @@ class PublicationQueue extends BaseQueue {
             owner: article.authorId,
           })
         )
-      )) as unknown) as [{ id: string; content: string }]
+      )) as unknown as [{ id: string; content: string }]
 
       // create article_tag record
       await this.tagService.createArticleTags({

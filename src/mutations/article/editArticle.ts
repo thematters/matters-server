@@ -150,7 +150,7 @@ const resolver: MutationToEditArticleResolver = async (
       .filter((t) => !!t)
 
     // create tag records
-    const dbTags = ((await Promise.all(
+    const dbTags = (await Promise.all(
       tags.map((tag: string) =>
         tagService.create({
           content: tag,
@@ -159,7 +159,7 @@ const resolver: MutationToEditArticleResolver = async (
           owner: article.authorId,
         })
       )
-    )) as unknown) as [{ id: string; content: string }]
+    )) as unknown as [{ id: string; content: string }]
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
     const oldIds = (

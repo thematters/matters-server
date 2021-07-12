@@ -8,16 +8,14 @@ const articleService = new ArticleService()
 // })
 
 test('publish', async () => {
-  const {
-    mediaHash,
-    contentHash: dataHash,
-  } = await articleService.publishToIPFS({
-    authorId: '1',
-    title: 'test',
-    cover: '1',
-    summary: 'test-summary',
-    content: '<div>test-html-string</div>',
-  })
+  const { mediaHash, contentHash: dataHash } =
+    await articleService.publishToIPFS({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      summary: 'test-summary',
+      content: '<div>test-html-string</div>',
+    })
   const articlePublished = await articleService.createArticle({
     draftId: '1',
     authorId: '1',

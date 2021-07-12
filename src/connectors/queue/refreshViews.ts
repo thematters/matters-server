@@ -202,21 +202,23 @@ class RefreshViewsQueue extends BaseQueue {
     )
   }
 
-  private handleRefreshView = (
-    view: MaterializedView
-  ): Queue.ProcessCallbackFunction<unknown> => async (job, done) => {
-    try {
-      logger.info(`[schedule job] refreshing view ${view}`)
-      await refreshView(view)
-      job.progress(100)
-      done(null)
-    } catch (e) {
-      logger.error(
-        `[schedule job] error in refreshing view ${view}: ${JSON.stringify(e)}`
-      )
-      done(e)
+  private handleRefreshView =
+    (view: MaterializedView): Queue.ProcessCallbackFunction<unknown> =>
+    async (job, done) => {
+      try {
+        logger.info(`[schedule job] refreshing view ${view}`)
+        await refreshView(view)
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        logger.error(
+          `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
+            e
+          )}`
+        )
+        done(e)
+      }
     }
-  }
 }
 
 export const refreshViewsQueue = new RefreshViewsQueue()

@@ -22,7 +22,7 @@ const mutationScopes = [
 const mutationLevel3Scope = [`${SCOPE_PREFIX.mutation}:level3`]
 
 const VIEWER_SCOPED_PRIVATE = /* GraphQL */ `
-  query($input: UserInput!) {
+  query ($input: UserInput!) {
     viewer {
       id
       displayName
@@ -50,7 +50,7 @@ const VIEWER_NO_SCOPED_PRIVATE = /* GraphQL */ `
 `
 
 const VIEWER_SCOPED_WITH_OTHER_PRIVATE = /* GraphQL */ `
-  query($input: UserInput!) {
+  query ($input: UserInput!) {
     viewer {
       info {
         email

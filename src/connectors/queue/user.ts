@@ -101,9 +101,8 @@ class UserQueue extends BaseQueue {
    */
   private deleteUnpublishedDrafts = async (authorId: string) => {
     const drafts = await this.draftService.findUnpublishedByAuthor(authorId)
-    const {
-      id: draftEntityTypeId,
-    } = await this.systemService.baseFindEntityTypeId('draft')
+    const { id: draftEntityTypeId } =
+      await this.systemService.baseFindEntityTypeId('draft')
 
     // delete assets
     await Promise.all(
@@ -156,34 +155,33 @@ class UserQueue extends BaseQueue {
   /**
    * Activate onboarding users
    */
-  private activateOnboardingUsers: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
-    try {
-      const activatableUsers = await this.userService.findActivatableUsers()
-      const activatedUsers: Array<string | number> = []
+  private activateOnboardingUsers: Queue.ProcessCallbackFunction<unknown> =
+    async (job, done) => {
+      try {
+        const activatableUsers = await this.userService.findActivatableUsers()
+        const activatedUsers: Array<string | number> = []
 
-      await Promise.all(
-        activatableUsers.map(async (user, index) => {
-          try {
-            await this.userService.activate({ id: user.id })
-            this.notificationService.trigger({
-              event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated,
-              recipientId: user.id,
-            })
-            activatedUsers.push(user.id)
-            job.progress(((index + 1) / activatableUsers.length) * 100)
-          } catch (e) {
-            logger.error(e)
-          }
-        })
-      )
+        await Promise.all(
+          activatableUsers.map(async (user, index) => {
+            try {
+              await this.userService.activate({ id: user.id })
+              this.notificationService.trigger({
+                event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated,
+                recipientId: user.id,
+              })
+              activatedUsers.push(user.id)
+              job.progress(((index + 1) / activatableUsers.length) * 100)
+            } catch (e) {
+              logger.error(e)
+            }
+          })
+        )
 
-      done(null, activatedUsers)
-    } catch (e) {
-      done(e)
+        done(null, activatedUsers)
+      } catch (e) {
+        done(e)
+      }
     }
-  }
 
   /**
    * Unban users.

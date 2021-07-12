@@ -15,7 +15,6 @@ import {
   getUserContext,
   registerUser,
   testClient,
-  updateUserState,
 } from './utils'
 
 let userService: any
@@ -34,7 +33,7 @@ const USER_LOGIN = /* GraphQL */ `
 `
 
 const TOGGLE_FOLLOW_USER = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleFollowUser(input: $input) {
       id
       isFollowee
@@ -43,7 +42,7 @@ const TOGGLE_FOLLOW_USER = /* GraphQL */ `
 `
 
 const TOGGLE_BLOCK_USER = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleBlockUser(input: $input) {
       id
       isBlocked
@@ -80,7 +79,7 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
   }
 `
 const GET_USER_BY_USERNAME = /* GraphQL */ `
-  query($input: UserInput!) {
+  query ($input: UserInput!) {
     user(input: $input) {
       id
       userName
@@ -104,7 +103,7 @@ const GET_VIEWER_INFO = /* GraphQL */ `
   }
 `
 const GET_VIEW_ARTICLES = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       articles(input: $input) {
         edges {
@@ -130,7 +129,7 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
 `
 
 const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       subscriptions(input: $input) {
         edges {
@@ -143,7 +142,7 @@ const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
         edges {
@@ -156,7 +155,7 @@ const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followees(input: $input) {
         edges {
@@ -169,7 +168,7 @@ const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       following {
         circles(input: $input) {
@@ -673,25 +672,5 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
-  })
-})
-
-describe('frozen user do mutations', () => {
-  // frozen user shared settings
-  // const frozenUser = { isAuth: true, isFrozen: true }
-  // const errorPath = 'errors.0.extensions.code'
-
-  // make sure user state in db is correct
-  beforeAll(async () => {
-    await updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'frozen',
-    })
-  })
-  afterAll(async () => {
-    await updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'active',
-    })
   })
 })

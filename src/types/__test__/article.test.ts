@@ -16,7 +16,7 @@ const mediaHash = 'someIpfsMediaHash1'
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
 const GET_ARTICLES = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     oss {
       articles(input: $input) {
         edges {
@@ -30,7 +30,7 @@ const GET_ARTICLES = /* GraphQL */ `
 `
 
 const GET_ARTICLE_TAGS = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
         id
@@ -43,7 +43,7 @@ const GET_ARTICLE_TAGS = /* GraphQL */ `
 `
 
 const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
         appreciationsReceivedTotal
@@ -53,7 +53,7 @@ const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
 `
 
 const APPRECIATE_ARTICLE = /* GraphQL */ `
-  mutation($input: AppreciateArticleInput!) {
+  mutation ($input: AppreciateArticleInput!) {
     appreciateArticle(input: $input) {
       appreciationsReceivedTotal
     }
@@ -61,7 +61,7 @@ const APPRECIATE_ARTICLE = /* GraphQL */ `
 `
 
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
       subscribed
     }
@@ -69,7 +69,7 @@ const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
 `
 
 const EDIT_ARTICLE = /* GraphQL */ `
-  mutation($input: EditArticleInput!) {
+  mutation ($input: EditArticleInput!) {
     editArticle(input: $input) {
       id
       summary
@@ -100,7 +100,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
 `
 
 const GET_RELATED_ARTICLES = /* GraphQL */ `
-  query($input: ArticleInput!) {
+  query ($input: ArticleInput!) {
     article(input: $input) {
       relatedArticles(input: {}) {
         edges {
@@ -232,21 +232,19 @@ describe('frozen user do muations to article', () => {
   const frozenUser = { isAuth: true, isFrozen: true }
   const errorPath = 'errors.0.extensions.code'
 
-  // make sure user state in db is correct
-  beforeAll(async () => {
-    await updateUserState({
+  const frozeUser = async () =>
+    updateUserState({
       id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'frozen',
     })
-  })
-  afterAll(async () => {
-    await updateUserState({
+  const activateUser = async () =>
+    updateUserState({
       id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'active',
     })
-  })
 
   test('subscribe article', async () => {
+    await frozeUser()
     const { mutate } = await testClient(frozenUser)
     const result = await mutate({
       mutation: TOGGLE_SUBSCRIBE_ARTICLE,
@@ -258,9 +256,11 @@ describe('frozen user do muations to article', () => {
       },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+    await activateUser()
   })
 
   test('unsubscribe article', async () => {
+    await frozeUser()
     const { mutate } = await testClient(frozenUser)
     const result = await mutate({
       mutation: TOGGLE_SUBSCRIBE_ARTICLE,
@@ -272,9 +272,11 @@ describe('frozen user do muations to article', () => {
       },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+    await activateUser()
   })
 
   test('create draft', async () => {
+    await frozeUser()
     const result = await putDraft({
       draft: {
         title: Math.random().toString(),
@@ -283,6 +285,7 @@ describe('frozen user do muations to article', () => {
       client: { isFrozen: true },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+    await activateUser()
   })
 })
 
