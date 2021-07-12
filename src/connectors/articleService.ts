@@ -127,13 +127,8 @@ export class ArticleService extends BaseService {
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
-    const {
-      avatar,
-      description,
-      displayName,
-      userName,
-      paymentPointer,
-    } = author
+    const { avatar, description, displayName, userName, paymentPointer } =
+      author
     const userImg = avatar && (await systemService.findAssetUrl(avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))
 
@@ -189,29 +184,33 @@ export class ArticleService extends BaseService {
     const directoryName = 'article'
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
     console.log('bundle to ipfs', bundle)
-    const result = await this.ipfs.client.add(
+
+    const results = []
+    for await (const result of this.ipfs.client.addAll(
       bundle.map((file) =>
         file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
       )
-    )
+    )) {
+      results.push(result)
+    }
 
     // filter out the hash for the bundle
-    let entry = result.filter(
+    let entry = results.filter(
       ({ path }: { path: string }) => path === directoryName
     )
 
     // FIXME: fix missing bundle path and remove fallback logic
     // fallback to index file when no bundle path is matched
     if (entry.length === 0) {
-      console.log('fallback to index.html', result)
-      entry = result.filter(({ path }: { path: string }) =>
+      console.log('fallback to index.html', results)
+      entry = results.filter(({ path }: { path: string }) =>
         path.endsWith('index.html')
       )
     } else {
-      console.log('use directory hash', result)
+      console.log('use directory hash', results)
     }
 
-    const [{ hash: contentHash }] = entry
+    const contentHash = entry[0].cid.toString()
 
     // add meta data to ipfs
     const articleInfo = {

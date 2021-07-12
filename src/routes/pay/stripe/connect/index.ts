@@ -1,5 +1,5 @@
 import bodyParser from 'body-parser'
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
@@ -19,7 +19,7 @@ const stripeRouter = Router()
  *
  * @see {@url https://stripe.com/docs/webhooks}
  */
-stripeRouter.use(bodyParser.raw({ type: 'application/json' }))
+stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 
 stripeRouter.post('/', async (req, res) => {
   const slack = new SlackService()

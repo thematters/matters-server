@@ -2,7 +2,7 @@ import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import bodyParser from 'body-parser'
-import { Express, Request, Response } from 'express'
+import { RequestHandler } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
@@ -42,10 +42,13 @@ const PLAYGROUND_ENDPOINT = '/playground'
 
 class ProtectedApolloServer extends ApolloServer {
   async createGraphQLServerOptions(
-    req: Request,
-    res: Response
+    req: any,
+    res: any
   ): Promise<GraphQLOptions> {
-    const options = await super.createGraphQLServerOptions(req, res)
+    const options = await super.createGraphQLServerOptions(
+      req as any,
+      res as any
+    )
     const maximumCost = GRAPHQL_COST_LIMIT
 
     return {
@@ -130,8 +133,8 @@ const server = new ProtectedApolloServer({
   playground: false, // enabled below
 })
 
-export const graphql = (app: Express) => {
-  app.use(API_ENDPOINT, bodyParser.json({ limit: '512kb' }))
+export const graphql = (app: any) => {
+  app.use(API_ENDPOINT, bodyParser.json({ limit: '512kb' }) as RequestHandler)
 
   // API
   server.applyMiddleware({
@@ -145,8 +148,8 @@ export const graphql = (app: Express) => {
     PLAYGROUND_ENDPOINT,
     expressPlayground({
       endpoint: API_ENDPOINT,
+      // @ts-ignore
       settings: {
-        // @ts-ignore
         'schema.polling.enable': false,
       },
     })

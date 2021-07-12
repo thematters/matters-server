@@ -42,7 +42,7 @@ beforeAll(async () => {
 })
 
 const GET_USER = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on User {
         id
@@ -51,7 +51,7 @@ const GET_USER = /* GraphQL */ `
   }
 `
 const GET_ARTICLE = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
         id
@@ -61,7 +61,7 @@ const GET_ARTICLE = /* GraphQL */ `
   }
 `
 const GET_COMMENT = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on Comment {
         id
@@ -71,7 +71,7 @@ const GET_COMMENT = /* GraphQL */ `
   }
 `
 const SEARCH = /* GraphQL */ `
-  query($input: SearchInput!) {
+  query ($input: SearchInput!) {
     search(input: $input) {
       edges {
         node {
@@ -108,7 +108,7 @@ const QUERY_FEATURES = /* GraphQL */ `
 `
 
 const SET_FEATURE = /* GraphQL */ `
-  mutation($input: SetFeatureInput!) {
+  mutation ($input: SetFeatureInput!) {
     setFeature(input: $input) {
       name
       enabled
