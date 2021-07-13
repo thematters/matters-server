@@ -7,6 +7,7 @@ import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
+import { graphqlUploadExpress } from 'graphql-upload'
 import _ from 'lodash'
 import 'module-alias/register'
 
@@ -104,10 +105,7 @@ const server = new ProtectedApolloServer({
     oauthService: new OAuthService(),
     paymentService: new PaymentService(),
   }),
-  uploads: {
-    maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
-    maxFiles: UPLOAD_FILE_COUNT_LIMIT,
-  },
+  uploads: false,
   debug: !isProd,
   validationRules: [depthLimit(15)],
   cache,
@@ -134,7 +132,14 @@ const server = new ProtectedApolloServer({
 })
 
 export const graphql = (app: any) => {
-  app.use(API_ENDPOINT, bodyParser.json({ limit: '512kb' }) as RequestHandler)
+  app.use(
+    API_ENDPOINT,
+    graphqlUploadExpress({
+      maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
+      maxFiles: UPLOAD_FILE_COUNT_LIMIT,
+    }),
+    bodyParser.json({ limit: '512kb' }) as RequestHandler
+  )
 
   // API
   server.applyMiddleware({

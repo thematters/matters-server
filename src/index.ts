@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
-import express from 'express'
+import express, { RequestHandler } from 'express'
 import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
 import http from 'http'
@@ -37,7 +37,7 @@ app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
  * Middlewares
  */
 
-app.use(helmet())
+app.use(helmet() as RequestHandler)
 app.use(requestIp.mw())
 app.use(cors(CORS_OPTIONS))
 

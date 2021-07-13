@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { FileUpload } from 'graphql-upload'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -30,9 +31,10 @@ const getFileName = (disposition: string, url: string) => {
 
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
-  { input: { type, file, url, entityType, entityId } },
+  { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
+  const file = fileUpload.file as FileUpload
   url = resolveUrl(url)
 
   const isImageType =
