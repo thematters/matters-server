@@ -513,7 +513,9 @@ export class TagService extends BaseService {
     const query = this.knex.select(fields).from((knex: any) => {
       const source = knex
         .select()
-        .from(oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized)
+        .from(
+          oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
+        )
         .whereNotIn('id', curation)
         .orderByRaw('tag_score DESC NULLS LAST')
         .orderBy('count', 'desc')
