@@ -229,11 +229,14 @@ class PublicationQueue extends BaseQueue {
       return
     }
 
-    // create collection records
-    await this.articleService.createCollection({
+    const items = draft.collection.map((articleId: string, index: number) => ({
       entranceId: article.id,
-      articleIds: draft.collection,
-    })
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }))
+    await this.articleService.baseBatchCreate(items, 'collection')
 
     // trigger notifications
     draft.collection.forEach(async (id: string) => {

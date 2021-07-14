@@ -22,6 +22,7 @@ import {
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPES,
+  VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -1130,8 +1131,8 @@ export class UserService extends BaseService {
     switch (type) {
       case GQLAuthorsType.default: {
         const table = oss
-          ? 'user_reader_view'
-          : MATERIALIZED_VIEW.userReaderMaterialized
+          ? VIEW.user_reader_view
+          : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .where({ state: USER_STATE.active })
           .whereNotIn('id', notIn)
@@ -1158,7 +1159,6 @@ export class UserService extends BaseService {
         return parseInt(result ? (result.count as string) : '0', 10)
       }
     }
-    return 0
   }
 
   recommendAuthor = async ({
@@ -1177,8 +1177,8 @@ export class UserService extends BaseService {
     switch (type) {
       case GQLAuthorsType.default: {
         const table = oss
-          ? 'user_reader_view'
-          : MATERIALIZED_VIEW.userReaderMaterialized
+          ? VIEW.user_reader_view
+          : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .select()
           .orderByRaw('author_score DESC NULLS LAST')
@@ -1210,7 +1210,6 @@ export class UserService extends BaseService {
         return result
       }
     }
-    return []
   }
 
   findBoost = async (userId: string) => {
@@ -1239,66 +1238,6 @@ export class UserService extends BaseService {
       .where({ id: userId })
       .first()
     return author.authorScore || 0
-  }
-
-  recommendItems = async ({
-    userId,
-    itemIndex,
-    first = 20,
-    offset = 0,
-    notIn = [],
-  }: {
-    userId: string
-    itemIndex: string
-    first?: number
-    offset?: number
-    notIn?: string[]
-  }) => {
-    // get user vector score
-    const scoreResult = await this.es.client.get({
-      index: this.table,
-      id: userId,
-    })
-
-    const factors = _.get(scoreResult.body, '_source.embedding_vector')
-
-    if (!factors) {
-      return []
-    }
-
-    const searchBody = bodybuilder()
-      .query('script_score', {
-        query: {
-          bool: {
-            must: [
-              {
-                exists: {
-                  field: 'embedding_vector',
-                },
-              },
-            ],
-          },
-        },
-        script: {
-          source:
-            "cosineSimilarity(params.query_vector, 'embedding_vector') + 1.0",
-          params: {
-            query_vector: factors,
-          },
-        },
-      })
-      .filter('term', { state: ARTICLE_STATE.active })
-      .notFilter('ids', { values: notIn })
-      .from(offset)
-      .size(first)
-      .build()
-
-    const { body } = await this.es.client.search({
-      index: itemIndex,
-      body: searchBody,
-    })
-    // add recommendation
-    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   recommendTags = ({ limit = 5, offset = 0 }) =>

@@ -28,7 +28,7 @@ import {
 import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
+import { BaseService, ipfs, SystemService, UserService } from 'connectors'
 import { GQLSearchExclude, GQLSearchInput, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
@@ -283,12 +283,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Find article by media hash
-   */
-  findByMediaHash = async (mediaHash: string) =>
-    this.knex.select().from(this.table).where({ mediaHash }).first()
-
-  /**
    * Find article by title
    */
   findByTitle = async ({
@@ -314,18 +308,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Find article by draft id
-   */
-  findByDraftId = async (draftId: string) =>
-    this.knex.select().from(this.table).where({ draftId }).first()
-
-  /**
-   * Find article by which set as sticky.
-   */
-  findBySticky = async (authorId: string, sticky: boolean) =>
-    this.knex.select('id').from(this.table).where({ authorId, sticky: true })
-
-  /**
    * Find articles by which commented by author.
    */
   findByCommentedAuthor = async (authorId: string) =>
@@ -340,63 +322,6 @@ export class ArticleService extends BaseService {
       })
       .groupBy('article.id')
       .orderBy('_comment_id_', 'desc')
-
-  /**
-   * Count articles by a given authorId (user).
-   */
-  countByAuthor = async (authorId: string, activeOnly: boolean = true) => {
-    let qs = this.knex(this.table).where({ authorId }).count().first()
-
-    if (activeOnly) {
-      qs = qs.where({ state: ARTICLE_STATE.active })
-    }
-
-    const result = await qs
-
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  /**
-   * Sum up word counts by a given authorId (user).
-   */
-  sumWordCountByAuthor = async (
-    authorId: string,
-    activeOnly: boolean = true
-  ) => {
-    let query = this.knex(this.table)
-      .sum('word_count')
-      .where({ authorId })
-      .first()
-
-    if (activeOnly) {
-      query = query.where({ state: ARTICLE_STATE.active })
-    }
-
-    const result = await query
-    return (
-      parseInt(result && result.sum ? (result.sum as string) : '0', 10) || 0
-    )
-  }
-
-  /**
-   * Count articles by given ids and author.
-   *
-   */
-  countByIdsAndAuthor = async ({
-    authorId,
-    ids,
-  }: {
-    authorId: string
-    ids: string[]
-  }) => {
-    const result = await this.knex(this.table)
-      .whereIn('id', ids)
-      .andWhere({ authorId })
-      .count()
-      .first()
-
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 
   /*********************************
    *                               *
@@ -602,65 +527,6 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  makeRecommendByValueQuery = ({
-    limit,
-    offset,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    // use view when oss for real time update
-    // use materialized in other cases
-    const table = oss
-      ? VIEW.articleValue
-      : MATERIALIZED_VIEW.articleValueMaterialized
-
-    let qs = this.knex(`${table} as view`)
-      .select('view.id', 'setting.in_hottest', 'article.*')
-      .rightJoin('article', 'view.id', 'article.id')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'view.id',
-        'setting.article_id'
-      )
-      .orderByRaw('score desc nulls last')
-      .orderBy([{ column: 'view.id', order: 'desc' }])
-      .where({ 'article.state': ARTICLE_STATE.active, ...where })
-
-    if (limit) {
-      qs = qs.limit(limit)
-    }
-
-    if (offset) {
-      qs = qs.offset(offset)
-    }
-
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inHottest: true }).orWhereNull('in_hottest')
-      })
-    }
-
-    return qs
-  }
-
-  recommendByValue = (params: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    return this.makeRecommendByValueQuery({
-      ...params,
-      limit: params.limit || BATCH_SIZE,
-      offset: params.offset || 0,
-    })
-  }
-
   makeRecommendByHottestQuery = ({
     limit,
     offset,
@@ -675,8 +541,8 @@ export class ArticleService extends BaseService {
     // use view when oss for real time update
     // use materialized in other cases
     const table = oss
-      ? VIEW.articleHottest
-      : MATERIALIZED_VIEW.articleHottestMaterialized
+      ? VIEW.article_hottest_view
+      : MATERIALIZED_VIEW.article_hottest_materialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -753,63 +619,6 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  recommendIcymi = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
-      .join('matters_choice as c', 'c.article_id', 'article.id')
-      .orderBy('chose_at', 'desc')
-      .where({ state: ARTICLE_STATE.active })
-      .offset(offset)
-      .limit(limit)
-
-  recommendTopics = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    const table = oss
-      ? VIEW.articleCount
-      : MATERIALIZED_VIEW.articleCountMaterialized
-
-    return this.knex(`${table} as view`)
-      .select('view.score', 'article.*')
-      .join('article', 'view.id', 'article.id')
-      .orderByRaw('score DESC NULLS LAST')
-      .orderBy('view.id', 'desc')
-      .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
-  }
-
-  recommendByInterest = async ({
-    userId,
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    userId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex(`article_interest_materialized as interests`)
-      .select('*')
-      .join('article', 'interests.id', 'article.id')
-      .orderBy('score', 'desc')
-      .where({ 'article.state': ARTICLE_STATE.active, userId })
-      .limit(limit)
-      .offset(offset)
-
   related = async ({
     id,
     size,
@@ -871,66 +680,15 @@ export class ArticleService extends BaseService {
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
-  /*********************************
-   *                               *
-   *           Translate           *
-   *                               *
-   *********************************/
-
-  translate = ({ content, target }: { content: string; target: string }) =>
-    gcp.translate({ content, target })
-
-  detectLanguage = (content: string) => gcp.detectLanguage(content)
-
-  /**
-   * Find One
-   */
-
-  findRecommendIcymi = async (articleId: string) =>
-    this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
-      .join('matters_choice as c', 'c.article_id', 'article.id')
-      .orderBy('chose_at', 'desc')
-      .where({ articleId })
-      .first()
-
   /**
    * Count
    */
-  countRecommendIcymi = async () => {
-    const result = await this.knex('article')
-      .join('matters_choice as c', 'c.article_id', 'article.id')
-      .where({ state: ARTICLE_STATE.active })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  countRecommendInterest = async ({ userId }: { userId: string }) => {
-    const result = await this.knex('article_interest_materialized')
-      .where({ userId })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   countRecommendHottest = async (params: {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
     const result = await this.knex()
       .from(this.makeRecommendByHottestQuery(params).as('view'))
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  countRecommendValue = async (params: {
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    const result = await this.knex()
-      .from(this.makeRecommendByValueQuery(params).as('view'))
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -966,72 +724,11 @@ export class ArticleService extends BaseService {
   /**
    * Boost & Score
    */
-  findBoost = async (articleId: string) => {
-    const articleBoost = await this.knex('article_boost')
-      .select()
-      .where({ articleId })
-      .first()
-
-    if (!articleBoost) {
-      return 1
-    }
-
-    return articleBoost.boost
-  }
-
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { articleId: id },
       data: { articleId: id, boost, updatedAt: new Date() },
       table: 'article_boost',
-    })
-
-  findScore = async (articleId: string) => {
-    const article = await this.knex('article_count_view')
-      .select()
-      .where({ id: articleId })
-      .first()
-    return article?.score || 0
-  }
-
-  /**
-   * Find or Update recommendation
-   */
-
-  addRecommendIcymi = async (articleId: string) =>
-    this.baseFindOrCreate({
-      where: { articleId },
-      data: { articleId },
-      table: 'matters_choice',
-    })
-
-  removeRecommendIcymi = async (articleId: string) =>
-    this.knex('matters_choice').where({ articleId }).del()
-
-  findRecommendSetting = async (articleId: string) => {
-    const setting = await this.knex('article_recommend_setting')
-      .select()
-      .where({ articleId })
-      .first()
-
-    if (!setting) {
-      return { inHottest: true, inNewest: true }
-    }
-
-    return setting
-  }
-
-  updateRecommendSetting = async ({
-    articleId,
-    data,
-  }: {
-    articleId: string
-    data: { [key in 'inHottest' | 'inNewest']?: boolean }
-  }) =>
-    this.baseUpdateOrCreate({
-      where: { articleId },
-      data: { ...data, articleId },
-      table: 'article_recommend_setting',
     })
 
   /*********************************
@@ -1056,29 +753,6 @@ export class ArticleService extends BaseService {
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
-  }
-
-  /**
-   * Count an article's appreciations by a given articleId.
-   */
-  countAppreciations = async (referenceId: string) => {
-    const result = await this.knex
-      .select()
-      .from((knex: any) => {
-        const source = knex
-          .select('reference_id', 'sender_id')
-          .from('appreciation')
-          .where({
-            referenceId,
-            purpose: APPRECIATION_PURPOSE.appreciate,
-          })
-          .groupBy('sender_id', 'reference_id')
-        source.as('source')
-      })
-      .count()
-      .first()
-
-    return parseInt(result.count || '0', 10)
   }
 
   /**
@@ -1127,21 +801,6 @@ export class ArticleService extends BaseService {
     const total = _.get(appreciations, '0.total', 0)
 
     return Math.max(ARTICLE_APPRECIATE_LIMIT - total, 0)
-  }
-
-  hasAppreciate = async ({
-    userId: senderId,
-    articleId,
-  }: {
-    userId: string
-    articleId: string
-  }) => {
-    const result = await this.knex('appreciation').select().where({
-      senderId,
-      referenceId: articleId,
-      purpose: APPRECIATION_PURPOSE.appreciate,
-    })
-    return result.length > 0
   }
 
   /**
@@ -1204,43 +863,6 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  /**
-   * Super Like
-   */
-  superlike = async ({
-    articleId,
-    senderId,
-    recipientId,
-    amount,
-    type,
-  }: {
-    articleId: string
-    senderId: string
-    recipientId: string
-    amount: number
-    type: string
-  }) => {
-    const appreciation = {
-      senderId,
-      recipientId,
-      referenceId: articleId,
-      purpose: APPRECIATION_PURPOSE.superlike,
-      type,
-    }
-
-    const uuid = v4()
-    const result = await this.knex('appreciation')
-      .insert({
-        ...appreciation,
-        uuid,
-        amount,
-      })
-      .into('appreciation')
-      .returning('*')
-
-    return result
-  }
-
   /*********************************
    *                               *
    *              Tag              *
@@ -1288,67 +910,6 @@ export class ArticleService extends BaseService {
 
     return limit ? query.limit(limit) : query
   }
-
-  countSubscriptions = async (id: string) => {
-    const result = await this.knex('action_article')
-      .where({ targetId: id, action: USER_ACTION.subscribe })
-      .countDistinct('user_id')
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  isSubscribed = async ({
-    userId,
-    targetId,
-  }: {
-    userId: string
-    targetId: string
-  }) => {
-    const result = await this.knex
-      .select()
-      .from('action_article')
-      .where({ userId, targetId, action: USER_ACTION.subscribe })
-    return result.length > 0
-  }
-
-  /**
-   * User subscribe an article
-   */
-  subscribe = async (targetId: string, userId: string) => {
-    const data = {
-      targetId,
-      userId,
-      action: USER_ACTION.subscribe,
-    }
-    return this.baseUpdateOrCreate({
-      where: data,
-      data: { updatedAt: new Date(), ...data },
-      table: 'action_article',
-    })
-  }
-
-  /**
-   * User unsubscribe an article
-   */
-  unsubscribe = async (targetId: string, userId: string) =>
-    this.knex
-      .from('action_article')
-      .where({
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe,
-      })
-      .del()
-
-  findUserSubscribe = async (targetId: string, userId: string) =>
-    this.knex
-      .from('action_article')
-      .where({
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe,
-      })
-      .first()
 
   /*********************************
    *                               *
@@ -1460,109 +1021,6 @@ export class ArticleService extends BaseService {
    *          Collection           *
    *                               *
    *********************************/
-
-  /**
-   * Create a collection for article
-   */
-  createCollection = async ({
-    entranceId,
-    articleIds,
-  }: {
-    articleIds: string[]
-    entranceId: string
-  }) => {
-    const items = articleIds.map((articleId, index) => ({
-      entranceId,
-      articleId,
-      order: index,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }))
-    return this.baseBatchCreate(items, 'collection')
-  }
-
-  /**
-   * Insert a single record to collection for article
-   */
-  insertCollection = async ({
-    entranceId,
-    articleId,
-    order,
-  }: {
-    entranceId: string
-    articleId: string
-    order: number
-  }) =>
-    this.baseCreate(
-      {
-        entranceId,
-        articleId,
-        order,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      'collection'
-    )
-
-  /**
-   * Update a collection order by given entrance id and article id.
-   */
-  updateCollectionOrder = async ({
-    entranceId,
-    articleId,
-    order,
-  }: {
-    entranceId: string
-    articleId: string
-    order: number
-  }) => {
-    const [updatedItem] = await this.knex('collection')
-      .where({ entranceId, articleId })
-      .update({ order })
-      .returning('*')
-    return updatedItem
-  }
-
-  /**
-   * Delete a collection for article
-   */
-  deleteCollection = async ({ entranceId }: { entranceId: string }) => {
-    const table = 'collection'
-    const items = await this.knex('collection')
-      .select('id')
-      .where({ entranceId })
-    const ids = items.map(({ id }: { id: string }) => id)
-
-    return this.baseBatchDelete(ids, table)
-  }
-
-  /**
-   * Delete record of a collection by given entrance id and an array of article id.
-   */
-  deleteCollectionByArticleIds = async ({
-    entranceId,
-    articleIds,
-  }: {
-    entranceId: string
-    articleIds: string[]
-  }) =>
-    this.knex('collection')
-      .where({ entranceId })
-      .whereIn('articleId', articleIds)
-      .del()
-
-  /**
-   * Find single collection by given entrance id and article id.
-   */
-  findCollection = async ({
-    entranceId,
-    articleId,
-  }: {
-    entranceId: string | number
-    articleId: string
-  }) =>
-    this.knex('collection').select().where({ entranceId, articleId }).first()
-
   /**
    * Find an article's collections by a given article id.
    */
@@ -1587,47 +1045,6 @@ export class ArticleService extends BaseService {
     }
 
     return query
-  }
-
-  /**
-   * Find an article is collected by which articles.
-   */
-  findCollectedBy = async ({
-    articleId,
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    articleId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('collection')
-      .select('entrance_id')
-      .where({ articleId })
-      .limit(limit)
-      .offset(offset)
-
-  /**
-   * Count collections by a given article id.
-   */
-  countCollections = async (id: string) => {
-    const result = await this.knex('collection')
-      .countDistinct('article_id', 'state')
-      .innerJoin('article', 'article.id', 'article_id')
-      .where({ entranceId: id, state: ARTICLE_STATE.active })
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  /**
-   * Count an article is collect by how many articles.
-   */
-  countCollectedBy = async (id: string) => {
-    const result = await this.knex('collection')
-      .where({ articleId: id })
-      .countDistinct('entrance_id')
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -1991,34 +1408,6 @@ export class ArticleService extends BaseService {
     })
 
     return query.orderBy('score').limit(limit).offset(offset)
-  }
-
-  /**
-   * Whether the user donated to the specified article
-   */
-  isDonator = async ({
-    articleId,
-    userId,
-  }: {
-    articleId: string
-    userId: string
-  }) => {
-    const { id: entityTypeId } = await this.baseFindEntityTypeId(
-      TRANSACTION_TARGET_TYPE.article
-    )
-
-    const result = await this.knex('transaction')
-      .select()
-      .where({
-        targetId: articleId,
-        targetType: entityTypeId,
-        senderId: userId,
-        state: TRANSACTION_STATE.succeeded,
-        purpose: TRANSACTION_PURPOSE.donation,
-      })
-      .first()
-
-    return !!result
   }
 
   /*********************************

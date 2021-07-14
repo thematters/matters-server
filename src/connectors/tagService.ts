@@ -7,6 +7,7 @@ import {
   BATCH_SIZE,
   MATERIALIZED_VIEW,
   TAG_ACTION,
+  VIEW,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -486,7 +487,7 @@ export class TagService extends BaseService {
   }) => {
     const query = this.knex
       .select(fields)
-      .from(MATERIALIZED_VIEW.curationTagMaterialized)
+      .from(MATERIALIZED_VIEW.curation_tag_materialized)
       .orderBy('uuid')
 
     if (limit) {
@@ -512,7 +513,9 @@ export class TagService extends BaseService {
     const query = this.knex.select(fields).from((knex: any) => {
       const source = knex
         .select()
-        .from(oss ? 'tag_count_view' : MATERIALIZED_VIEW.tagCountMaterialized)
+        .from(
+          oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
+        )
         .whereNotIn('id', curation)
         .orderByRaw('tag_score DESC NULLS LAST')
         .orderBy('count', 'desc')

@@ -65,10 +65,10 @@ const resolver: MutationToAddArticlesTagsResolver = async (
   {
     viewer,
     dataSources: {
+      atomService,
       articleService,
       notificationService,
       tagService,
-      userService,
     },
   }
 ) => {
@@ -112,11 +112,11 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 
   // not-maintainer can only add his/her own articles
   if (!isMaintainer) {
-    const count = await articleService.countByIdsAndAuthor({
-      ids: addIds,
-      authorId: viewer.id,
+    const count = await atomService.count({
+      table: 'article',
+      where: { authorId: viewer.id },
+      whereIn: ['id', addIds],
     })
-
     if (count !== addIds.length) {
       throw new ForbiddenError('not allow add tag to article')
     }

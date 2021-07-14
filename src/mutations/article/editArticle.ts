@@ -115,8 +115,11 @@ const resolver: MutationToEditArticleResolver = async (
     // reset if there are some sticky articles.
     if (sticky === true) {
       const stickyIds = (
-        await articleService.findBySticky(viewer.id, true)
-      ).map(({ id: articleId }) => articleId)
+        await atomService.findMany({
+          table: 'article',
+          where: { authorId: viewer.id, sticky: true },
+        })
+      ).map(({ id: articleId }: { id: string }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
         updatedAt: new Date(),
@@ -277,8 +280,13 @@ const resolver: MutationToEditArticleResolver = async (
       ).filter((articleId): articleId is string => !!articleId)
     )
 
-    const addItems: any[] = []
-    const updateItems: any[] = []
+    interface Item {
+      entranceId: string
+      articleId: string
+      order: number
+    }
+    const addItems: Item[] = []
+    const updateItems: Item[] = []
     const diff = difference(newIds, oldIds)
 
     // gather data
@@ -294,16 +302,30 @@ const resolver: MutationToEditArticleResolver = async (
 
     // add and update
     await Promise.all([
-      ...addItems.map((data: any) => articleService.insertCollection(data)),
-      ...updateItems.map((data: any) =>
-        articleService.updateCollectionOrder(data)
+      ...addItems.map((item) =>
+        atomService.create({
+          table: 'collection',
+          data: {
+            ...item,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        })
+      ),
+      ...updateItems.map((item) =>
+        atomService.update({
+          table: 'collection',
+          where: { entranceId: item.entranceId, articleId: item.articleId },
+          data: { order: item.order },
+        })
       ),
     ])
 
     // delete unwanted
-    await articleService.deleteCollectionByArticleIds({
-      entranceId: article.id,
-      articleIds: difference(oldIds, newIds),
+    await atomService.deleteMany({
+      table: 'collection',
+      where: { entranceId: article.id },
+      whereIn: ['article_id', difference(oldIds, newIds)],
     })
 
     // trigger notifications
@@ -328,7 +350,10 @@ const resolver: MutationToEditArticleResolver = async (
       })
     })
   } else if (resetCollection) {
-    await articleService.deleteCollection({ entranceId: article.id })
+    await atomService.deleteMany({
+      table: 'collection',
+      where: { entranceId: article.id },
+    })
   }
 
   /**
