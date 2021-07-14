@@ -13,7 +13,7 @@ const resolver: ArticleToCollectionResolver = async (
 ) => {
   const { after, first } = input
   const offset = cursorToIndex(after) + 1
-  const [totalCountResult, collections] = await Promise.all([
+  const [countRecord, collections] = await Promise.all([
     knex('collection')
       .countDistinct('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
@@ -27,7 +27,7 @@ const resolver: ArticleToCollectionResolver = async (
   ])
 
   const totalCount = parseInt(
-    totalCountResult ? (totalCountResult.count as string) : '0',
+    countRecord ? (countRecord.count as string) : '0',
     10
   )
 

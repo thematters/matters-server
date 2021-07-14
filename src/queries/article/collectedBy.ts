@@ -14,7 +14,7 @@ const resolver: ArticleToCollectedByResolver = async (
   const { after, first } = input
   const offset = cursorToIndex(after) + 1
 
-  const [totalCountResult, collections] = await Promise.all([
+  const [countRecord, collections] = await Promise.all([
     knex('collection')
       .where({ articleId })
       .countDistinct('entrance_id')
@@ -22,13 +22,13 @@ const resolver: ArticleToCollectedByResolver = async (
     atomService.findMany({
       table: 'collection',
       where: { articleId },
-      skip: offset || 0,
+      skip: offset,
       take: first || BATCH_SIZE,
     }),
   ])
 
   const totalCount = parseInt(
-    totalCountResult ? (totalCountResult.count as string) : '0',
+    countRecord ? (countRecord.count as string) : '0',
     10
   )
 

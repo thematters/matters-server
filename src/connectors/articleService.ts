@@ -17,13 +17,11 @@ import {
   BATCH_SIZE,
   CIRCLE_STATE,
   COMMENT_TYPE,
-  MATERIALIZED_VIEW,
   MINUTE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_ACTION,
-  VIEW,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
@@ -527,98 +525,6 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  makeRecommendByHottestQuery = ({
-    limit,
-    offset,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    // use view when oss for real time update
-    // use materialized in other cases
-    const table = oss
-      ? VIEW.article_hottest_view
-      : MATERIALIZED_VIEW.article_hottest_materialized
-
-    let qs = this.knex(`${table} as view`)
-      .select('view.id', 'setting.in_hottest', 'article.*')
-      .rightJoin('article', 'view.id', 'article.id')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'view.id',
-        'setting.article_id'
-      )
-      .orderByRaw('score desc nulls last')
-      .orderBy([{ column: 'view.id', order: 'desc' }])
-      .where({ 'article.state': ARTICLE_STATE.active, ...where })
-
-    if (limit) {
-      qs = qs.limit(limit)
-    }
-
-    if (offset) {
-      qs = qs.offset(offset)
-    }
-
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inHottest: true }).orWhereNull('in_hottest')
-      })
-    }
-
-    return qs
-  }
-
-  recommendByHottest = (params: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    return this.makeRecommendByHottestQuery({
-      ...params,
-      limit: params.limit || BATCH_SIZE,
-      offset: params.offset || 0,
-    })
-  }
-
-  recommendNewest = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    let qs = this.knex('article')
-      .select('article.*', 'setting.in_newest')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'article.id',
-        'setting.article_id'
-      )
-      .orderBy('id', 'desc')
-      .where(where)
-      .limit(limit)
-      .offset(offset)
-
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inNewest: true }).orWhereNull('in_newest')
-      })
-    }
-
-    const result = await qs
-    return result
-  }
-
   related = async ({
     id,
     size,
@@ -678,47 +584,6 @@ export class ArticleService extends BaseService {
     })
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
-  }
-
-  /**
-   * Count
-   */
-  countRecommendHottest = async (params: {
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    const result = await this.knex()
-      .from(this.makeRecommendByHottestQuery(params).as('view'))
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  countRecommendNewest = async ({
-    where = {},
-    oss = false,
-  }: {
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    let qs = this.knex('article')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'article.id',
-        'setting.article_id'
-      )
-      .where(where)
-      .count()
-      .first()
-
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inNewest: true }).orWhereNull('in_newest')
-      })
-    }
-
-    const result = await qs
-    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
