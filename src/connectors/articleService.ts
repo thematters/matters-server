@@ -602,65 +602,6 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  makeRecommendByValueQuery = ({
-    limit,
-    offset,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    // use view when oss for real time update
-    // use materialized in other cases
-    const table = oss
-      ? VIEW.articleValue
-      : MATERIALIZED_VIEW.articleValueMaterialized
-
-    let qs = this.knex(`${table} as view`)
-      .select('view.id', 'setting.in_hottest', 'article.*')
-      .rightJoin('article', 'view.id', 'article.id')
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'view.id',
-        'setting.article_id'
-      )
-      .orderByRaw('score desc nulls last')
-      .orderBy([{ column: 'view.id', order: 'desc' }])
-      .where({ 'article.state': ARTICLE_STATE.active, ...where })
-
-    if (limit) {
-      qs = qs.limit(limit)
-    }
-
-    if (offset) {
-      qs = qs.offset(offset)
-    }
-
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inHottest: true }).orWhereNull('in_hottest')
-      })
-    }
-
-    return qs
-  }
-
-  recommendByValue = (params: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    return this.makeRecommendByValueQuery({
-      ...params,
-      limit: params.limit || BATCH_SIZE,
-      offset: params.offset || 0,
-    })
-  }
-
   makeRecommendByHottestQuery = ({
     limit,
     offset,
@@ -768,48 +709,6 @@ export class ArticleService extends BaseService {
       .offset(offset)
       .limit(limit)
 
-  recommendTopics = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    where = {},
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    const table = oss
-      ? VIEW.articleCount
-      : MATERIALIZED_VIEW.articleCountMaterialized
-
-    return this.knex(`${table} as view`)
-      .select('view.score', 'article.*')
-      .join('article', 'view.id', 'article.id')
-      .orderByRaw('score DESC NULLS LAST')
-      .orderBy('view.id', 'desc')
-      .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
-  }
-
-  recommendByInterest = async ({
-    userId,
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    userId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex(`article_interest_materialized as interests`)
-      .select('*')
-      .join('article', 'interests.id', 'article.id')
-      .orderBy('score', 'desc')
-      .where({ 'article.state': ARTICLE_STATE.active, userId })
-      .limit(limit)
-      .offset(offset)
-
   related = async ({
     id,
     size,
@@ -906,31 +805,12 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  countRecommendInterest = async ({ userId }: { userId: string }) => {
-    const result = await this.knex('article_interest_materialized')
-      .where({ userId })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   countRecommendHottest = async (params: {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
     const result = await this.knex()
       .from(this.makeRecommendByHottestQuery(params).as('view'))
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  countRecommendValue = async (params: {
-    where?: { [key: string]: any }
-    oss?: boolean
-  }) => {
-    const result = await this.knex()
-      .from(this.makeRecommendByValueQuery(params).as('view'))
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)

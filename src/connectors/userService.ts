@@ -1241,66 +1241,6 @@ export class UserService extends BaseService {
     return author.authorScore || 0
   }
 
-  recommendItems = async ({
-    userId,
-    itemIndex,
-    first = 20,
-    offset = 0,
-    notIn = [],
-  }: {
-    userId: string
-    itemIndex: string
-    first?: number
-    offset?: number
-    notIn?: string[]
-  }) => {
-    // get user vector score
-    const scoreResult = await this.es.client.get({
-      index: this.table,
-      id: userId,
-    })
-
-    const factors = _.get(scoreResult.body, '_source.embedding_vector')
-
-    if (!factors) {
-      return []
-    }
-
-    const searchBody = bodybuilder()
-      .query('script_score', {
-        query: {
-          bool: {
-            must: [
-              {
-                exists: {
-                  field: 'embedding_vector',
-                },
-              },
-            ],
-          },
-        },
-        script: {
-          source:
-            "cosineSimilarity(params.query_vector, 'embedding_vector') + 1.0",
-          params: {
-            query_vector: factors,
-          },
-        },
-      })
-      .filter('term', { state: ARTICLE_STATE.active })
-      .notFilter('ids', { values: notIn })
-      .from(offset)
-      .size(first)
-      .build()
-
-    const { body } = await this.es.client.search({
-      index: itemIndex,
-      body: searchBody,
-    })
-    // add recommendation
-    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
-  }
-
   recommendTags = ({ limit = 5, offset = 0 }) =>
     this.knex('tag')
       .select('*')

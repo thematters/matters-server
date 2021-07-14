@@ -631,11 +631,6 @@ export interface GQLRecommendation {
   icymi: GQLArticleConnection
 
   /**
-   * Global articles sort by appreciate, donation and subscription.
-   */
-  valued: GQLArticleConnection
-
-  /**
    * Global tag list, sort by activities in recent 14 days.
    */
   tags: GQLTagConnection
@@ -651,24 +646,9 @@ export interface GQLRecommendation {
   selectedTags: GQLTagConnection
 
   /**
-   * Gloabl article list, sort by activities in recent 72 hours.
-   */
-  topics: GQLArticleConnection
-
-  /**
    * Global user list, sort by activities in recent 6 month.
    */
   authors: GQLUserConnection
-
-  /**
-   * Personalized recommendation based on interaction with tags.
-   */
-  interest: GQLArticleConnection
-
-  /**
-   * Recommend articles with collaborative filtering
-   */
-  recommendArticles: GQLArticleConnection
 
   /**
    * Global circles sort by created time.
@@ -5235,14 +5215,10 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
-  valued?: RecommendationToValuedResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   hottestTags?: RecommendationToHottestTagsResolver<TParent>
   selectedTags?: RecommendationToSelectedTagsResolver<TParent>
-  topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
-  interest?: RecommendationToInterestResolver<TParent>
-  recommendArticles?: RecommendationToRecommendArticlesResolver<TParent>
   newestCircles?: RecommendationToNewestCirclesResolver<TParent>
   hottestCircles?: RecommendationToHottestCirclesResolver<TParent>
 }
@@ -5358,18 +5334,6 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface RecommendationToValuedArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: RecommendationToValuedArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface RecommendationToTagsArgs {
   input: GQLRecommendInput
 }
@@ -5412,18 +5376,6 @@ export interface RecommendationToSelectedTagsResolver<
   ): TResult
 }
 
-export interface RecommendationToTopicsArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: RecommendationToTopicsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface RecommendationToAuthorsArgs {
   input: GQLRecommendInput
 }
@@ -5431,36 +5383,6 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToInterestArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToInterestResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToInterestArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToRecommendArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToRecommendArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToRecommendArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

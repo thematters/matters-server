@@ -1715,9 +1715,6 @@ type Recommendation {
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
 
-  """Global articles sort by appreciate, donation and subscription."""
-  valued(input: ConnectionArgs!): ArticleConnection!
-
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
@@ -1727,17 +1724,8 @@ type Recommendation {
   """Selected tag list"""
   selectedTags(input: RecommendInput!): TagConnection!
 
-  """Gloabl article list, sort by activities in recent 72 hours."""
-  topics(input: ConnectionArgs!): ArticleConnection!
-
   """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
-
-  """Personalized recommendation based on interaction with tags."""
-  interest(input: ConnectionArgs!): ArticleConnection!
-
-  """Recommend articles with collaborative filtering"""
-  recommendArticles(input: ConnectionArgs!): ArticleConnection!
 
   """Global circles sort by created time."""
   newestCircles(input: ConnectionArgs!): CircleConnection!

@@ -24,28 +24,28 @@ class RefreshViewsQueue extends BaseQueue {
    */
   addRepeatJobs = async () => {
     // refresh refreshArticleValueMaterialized every 2 minutes, for hottest recommendation
-    this.q.add(
-      QUEUE_JOB.refreshArticleValueView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 1.9, // every 1.9 minutes
-        },
-      }
-    )
+    // this.q.add(
+    //   QUEUE_JOB.refreshArticleValueView,
+    //   {},
+    //   {
+    //     priority: QUEUE_PRIORITY.MEDIUM,
+    //     repeat: {
+    //       every: MINUTE * 1.9, // every 1.9 minutes
+    //     },
+    //   }
+    // )
 
     // refresh articleCountMaterialized every 3.1 minutes, for topics recommendation
-    this.q.add(
-      QUEUE_JOB.refreshArticleCountView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 3.1, // every 3.1 minutes
-        },
-      }
-    )
+    // this.q.add(
+    //   QUEUE_JOB.refreshArticleCountView,
+    //   {},
+    //   {
+    //     priority: QUEUE_PRIORITY.MEDIUM,
+    //     repeat: {
+    //       every: MINUTE * 3.1, // every 3.1 minutes
+    //     },
+    //   }
+    // )
 
     // refresh featuredCommentMaterialized every 2.1 hours, for featured comments
     this.q.add(
@@ -94,14 +94,14 @@ class RefreshViewsQueue extends BaseQueue {
     )
 
     // refresh articleInterestMaterialized every day at 2am
-    this.q.add(
-      QUEUE_JOB.refreshArticleInterestView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 2 * * *', tz: 'Asia/Hong_Kong' },
-      }
-    )
+    // this.q.add(
+    //   QUEUE_JOB.refreshArticleInterestView,
+    //   {},
+    //   {
+    //     priority: QUEUE_PRIORITY.MEDIUM,
+    //     repeat: { cron: '0 2 * * *', tz: 'Asia/Hong_Kong' },
+    //   }
+    // )
 
     // refresh articleHottestMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
@@ -156,14 +156,14 @@ class RefreshViewsQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    this.q.process(
-      QUEUE_JOB.refreshArticleValueView,
-      this.handleRefreshView('article_value_materialized')
-    )
-    this.q.process(
-      QUEUE_JOB.refreshArticleCountView,
-      this.handleRefreshView('article_count_materialized')
-    )
+    // this.q.process(
+    //   QUEUE_JOB.refreshArticleValueView,
+    //   this.handleRefreshView('article_value_materialized')
+    // )
+    // this.q.process(
+    //   QUEUE_JOB.refreshArticleCountView,
+    //   this.handleRefreshView('article_count_materialized')
+    // )
     this.q.process(
       QUEUE_JOB.refreshFeaturedCommentView,
       this.handleRefreshView('featured_comment_materialized')
@@ -176,10 +176,10 @@ class RefreshViewsQueue extends BaseQueue {
       QUEUE_JOB.refreshUserReaderView,
       this.handleRefreshView('user_reader_materialized')
     )
-    this.q.process(
-      QUEUE_JOB.refreshArticleInterestView,
-      this.handleRefreshView('article_interest_materialized')
-    )
+    // this.q.process(
+    //   QUEUE_JOB.refreshArticleInterestView,
+    //   this.handleRefreshView('article_interest_materialized')
+    // )
     this.q.process(
       QUEUE_JOB.refreshCurationTagMaterialView,
       this.handleRefreshView('curation_tag_materialized')
