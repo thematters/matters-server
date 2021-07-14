@@ -1,5 +1,10 @@
 export enum VIEW {
+  tag_count_view = 'tag_count_view',
+  user_reader_view = 'user_reader_view',
+  article_count_view = 'article_count_view',
   article_hottest_view = 'article_hottest_view',
+  transaction_delta_view = 'transaction_delta_view',
+  article_value_view = 'article_value_view',
 }
 
 export enum MATERIALIZED_VIEW {

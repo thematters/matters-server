@@ -588,6 +588,8 @@ describe('user recommendations', () => {
   })
 
   test('retrive tags from tags', async () => {
+    await refreshView(MATERIALIZED_VIEW.curation_tag_materialized)
+
     const { query: queryNew } = await testClient({
       isAuth: true,
     })
@@ -601,6 +603,8 @@ describe('user recommendations', () => {
   })
 
   test('retrive users from authors', async () => {
+    await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
+
     const { query: queryNew } = await testClient({
       isAuth: true,
     })

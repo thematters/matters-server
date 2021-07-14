@@ -22,6 +22,7 @@ import {
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPES,
+  VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -1130,7 +1131,7 @@ export class UserService extends BaseService {
     switch (type) {
       case GQLAuthorsType.default: {
         const table = oss
-          ? 'user_reader_view'
+          ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .where({ state: USER_STATE.active })
@@ -1176,7 +1177,7 @@ export class UserService extends BaseService {
     switch (type) {
       case GQLAuthorsType.default: {
         const table = oss
-          ? 'user_reader_view'
+          ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .select()
