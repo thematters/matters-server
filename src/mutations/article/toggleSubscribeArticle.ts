@@ -53,15 +53,16 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
 
   // run action
   if (action === 'subscribe') {
-    const where = {
+    const data = {
       targetId: article.id,
       userId: viewer.id,
       action: USER_ACTION.subscribe,
     }
-    await atomService.update({
+    await atomService.upsert({
       table: 'action_article',
-      where,
-      data: { ...where, updatedAt: new Date() },
+      where: data,
+      create: data,
+      update: { ...data, updatedAt: new Date() },
     })
 
     // trigger notifications
