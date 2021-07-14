@@ -94,6 +94,7 @@ export type BasicTableName =
   | 'action_article'
   | 'action_tag'
   | 'transaction'
+  | 'appreciation'
   | 'asset'
   | 'asset_map'
   | 'article'
@@ -150,6 +151,8 @@ export type BasicTableName =
   | 'feature_flag'
   | 'seeding_user'
 
+export type View = 'article_count_view'
+
 export type MaterializedView =
   | 'article_count_materialized'
   | 'tag_count_materialized'
@@ -163,7 +166,7 @@ export type MaterializedView =
   | 'most_appreciated_author_materialized'
   | 'most_trendy_author_materialized'
 
-export type TableName = BasicTableName | MaterializedView
+export type TableName = BasicTableName | View | MaterializedView
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

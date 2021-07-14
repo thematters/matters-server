@@ -1,4 +1,4 @@
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
+import { DB_NOTICE_TYPE, USER_ACTION, USER_STATE } from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -10,7 +10,15 @@ import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 const resolver: MutationToToggleSubscribeArticleResolver = async (
   root,
   { input: { id, enabled } },
-  { viewer, dataSources: { articleService, draftService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      articleService,
+      draftService,
+      notificationService,
+    },
+  }
 ) => {
   // checks
   if (!viewer.id) {
@@ -30,10 +38,14 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
   // determine action
   let action: 'subscribe' | 'unsubscribe'
   if (enabled === undefined) {
-    const userSubscribe = await articleService.findUserSubscribe(
-      article.id,
-      viewer.id
-    )
+    const userSubscribe = await atomService.findFirst({
+      table: 'action_article',
+      where: {
+        targetId: article.id,
+        userId: viewer.id,
+        action: USER_ACTION.subscribe,
+      },
+    })
     action = !!userSubscribe ? 'unsubscribe' : 'subscribe'
   } else {
     action = enabled ? 'subscribe' : 'unsubscribe'
@@ -41,7 +53,16 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
 
   // run action
   if (action === 'subscribe') {
-    await articleService.subscribe(article.id, viewer.id)
+    const where = {
+      targetId: article.id,
+      userId: viewer.id,
+      action: USER_ACTION.subscribe,
+    }
+    await atomService.update({
+      table: 'action_article',
+      where,
+      data: { ...where, updatedAt: new Date() },
+    })
 
     // trigger notifications
     notificationService.trigger({
@@ -57,7 +78,14 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
       ],
     })
   } else {
-    await articleService.unsubscribe(article.id, viewer.id)
+    await atomService.deleteMany({
+      table: 'action_article',
+      where: {
+        targetId: article.id,
+        userId: viewer.id,
+        action: USER_ACTION.subscribe,
+      },
+    })
   }
 
   const node = await draftService.baseFindById(article.draftId)

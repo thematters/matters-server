@@ -33,11 +33,6 @@ test('publish', async () => {
   expect(articlePublished.state).toBe('active')
 })
 
-test('countByAuthor', async () => {
-  const count = await articleService.countByAuthor('1')
-  expect(count).toBeDefined()
-})
-
 test('sumAppreciation', async () => {
   const appreciation = await articleService.sumAppreciation('1')
   expect(appreciation).toBeDefined()

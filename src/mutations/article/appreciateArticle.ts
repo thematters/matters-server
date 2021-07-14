@@ -1,6 +1,8 @@
 import slugify from '@matters/slugify'
+import { v4 } from 'uuid'
 
 import {
+  APPRECIATION_PURPOSE,
   APPRECIATION_TYPES,
   ARTICLE_ACCESS_TYPE,
   USER_STATE,
@@ -26,6 +28,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   {
     viewer,
     dataSources: {
+      atomService,
       userService,
       articleService,
       draftService,
@@ -131,12 +134,16 @@ const resolver: MutationToAppreciateArticleResolver = async (
     })
 
     // insert record
-    await articleService.superlike({
-      articleId: article.id,
+    const appreciation = {
       senderId: viewer.id,
       recipientId: article.authorId,
-      amount: 1,
+      referenceId: article.id,
+      purpose: APPRECIATION_PURPOSE.superlike,
       type: APPRECIATION_TYPES.like,
+    }
+    await atomService.create({
+      table: 'appreciation',
+      data: { ...appreciation, uuid: v4(), amount },
     })
 
     return node
