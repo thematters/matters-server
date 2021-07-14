@@ -2,6 +2,7 @@ import Queue from 'bull'
 
 import {
   HOUR,
+  MATERIALIZED_VIEW,
   MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -23,30 +24,6 @@ class RefreshViewsQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // refresh refreshArticleValueMaterialized every 2 minutes, for hottest recommendation
-    // this.q.add(
-    //   QUEUE_JOB.refreshArticleValueView,
-    //   {},
-    //   {
-    //     priority: QUEUE_PRIORITY.MEDIUM,
-    //     repeat: {
-    //       every: MINUTE * 1.9, // every 1.9 minutes
-    //     },
-    //   }
-    // )
-
-    // refresh articleCountMaterialized every 3.1 minutes, for topics recommendation
-    // this.q.add(
-    //   QUEUE_JOB.refreshArticleCountView,
-    //   {},
-    //   {
-    //     priority: QUEUE_PRIORITY.MEDIUM,
-    //     repeat: {
-    //       every: MINUTE * 3.1, // every 3.1 minutes
-    //     },
-    //   }
-    // )
-
     // refresh featuredCommentMaterialized every 2.1 hours, for featured comments
     this.q.add(
       QUEUE_JOB.refreshFeaturedCommentView,
@@ -92,16 +69,6 @@ class RefreshViewsQueue extends BaseQueue {
         repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' },
       }
     )
-
-    // refresh articleInterestMaterialized every day at 2am
-    // this.q.add(
-    //   QUEUE_JOB.refreshArticleInterestView,
-    //   {},
-    //   {
-    //     priority: QUEUE_PRIORITY.MEDIUM,
-    //     repeat: { cron: '0 2 * * *', tz: 'Asia/Hong_Kong' },
-    //   }
-    // )
 
     // refresh articleHottestMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
@@ -156,49 +123,39 @@ class RefreshViewsQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    // this.q.process(
-    //   QUEUE_JOB.refreshArticleValueView,
-    //   this.handleRefreshView('article_value_materialized')
-    // )
-    // this.q.process(
-    //   QUEUE_JOB.refreshArticleCountView,
-    //   this.handleRefreshView('article_count_materialized')
-    // )
     this.q.process(
       QUEUE_JOB.refreshFeaturedCommentView,
-      this.handleRefreshView('featured_comment_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.featured_comment_materialized)
     )
     this.q.process(
       QUEUE_JOB.refreshTagCountMaterialView,
-      this.handleRefreshView('tag_count_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.tag_count_materialized)
     )
     this.q.process(
       QUEUE_JOB.refreshUserReaderView,
-      this.handleRefreshView('user_reader_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.user_reader_materialized)
     )
-    // this.q.process(
-    //   QUEUE_JOB.refreshArticleInterestView,
-    //   this.handleRefreshView('article_interest_materialized')
-    // )
     this.q.process(
       QUEUE_JOB.refreshCurationTagMaterialView,
-      this.handleRefreshView('curation_tag_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.curation_tag_materialized)
     )
     this.q.process(
       QUEUE_JOB.refreshArticleHottestView,
-      this.handleRefreshView('article_hottest_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.article_hottest_materialized)
     )
     this.q.process(
       QUEUE_JOB.refreshMostActiveAuthorView,
-      this.handleRefreshView('most_active_author_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.most_active_author_materialized)
     )
     this.q.process(
       QUEUE_JOB.refreshMostAppreciatedAuthorView,
-      this.handleRefreshView('most_appreciated_author_materialized')
+      this.handleRefreshView(
+        MATERIALIZED_VIEW.most_appreciated_author_materialized
+      )
     )
     this.q.process(
       QUEUE_JOB.refreshMostTrendyAuthorView,
-      this.handleRefreshView('most_trendy_author_materialized')
+      this.handleRefreshView(MATERIALIZED_VIEW.most_trendy_author_materialized)
     )
   }
 

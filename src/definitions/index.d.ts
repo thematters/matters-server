@@ -151,7 +151,13 @@ export type BasicTableName =
   | 'feature_flag'
   | 'seeding_user'
 
-export type View = 'article_count_view'
+export type View =
+  | 'tag_count_view'
+  | 'user_reader_view'
+  | 'article_count_view'
+  | 'article_hottest_view'
+  | 'transaction_delta_view'
+  | 'article_value_view'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -159,7 +165,6 @@ export type MaterializedView =
   | 'user_reader_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'
-  | 'article_interest_materialized'
   | 'curation_tag_materialized'
   | 'article_hottest_materialized'
   | 'most_active_author_materialized'

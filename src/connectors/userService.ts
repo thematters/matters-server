@@ -1131,7 +1131,7 @@ export class UserService extends BaseService {
       case GQLAuthorsType.default: {
         const table = oss
           ? 'user_reader_view'
-          : MATERIALIZED_VIEW.userReaderMaterialized
+          : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .where({ state: USER_STATE.active })
           .whereNotIn('id', notIn)
@@ -1158,7 +1158,6 @@ export class UserService extends BaseService {
         return parseInt(result ? (result.count as string) : '0', 10)
       }
     }
-    return 0
   }
 
   recommendAuthor = async ({
@@ -1178,7 +1177,7 @@ export class UserService extends BaseService {
       case GQLAuthorsType.default: {
         const table = oss
           ? 'user_reader_view'
-          : MATERIALIZED_VIEW.userReaderMaterialized
+          : MATERIALIZED_VIEW.user_reader_materialized
         const result = await this.knex(table)
           .select()
           .orderByRaw('author_score DESC NULLS LAST')
@@ -1210,7 +1209,6 @@ export class UserService extends BaseService {
         return result
       }
     }
-    return []
   }
 
   findBoost = async (userId: string) => {

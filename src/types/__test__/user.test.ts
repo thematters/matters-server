@@ -8,7 +8,6 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
-import { MaterializedView } from 'definitions'
 
 import {
   defaultTestUser,
@@ -568,21 +567,10 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, icymi, topics, followeeArticles, newest and valued', async () => {
-    await Promise.all(
-      _values(MATERIALIZED_VIEW).map((view) =>
-        refreshView(view as MaterializedView)
-      )
-    )
+  test('retrive articles from hottest, newest and icymi', async () => {
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
 
-    const lists = [
-      'hottest',
-      'icymi',
-      'topics',
-      'followeeArticles',
-      'newest',
-      'valued',
-    ]
+    const lists = ['hottest', 'newest', 'icymi']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true,

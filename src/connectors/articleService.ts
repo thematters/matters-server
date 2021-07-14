@@ -541,8 +541,8 @@ export class ArticleService extends BaseService {
     // use view when oss for real time update
     // use materialized in other cases
     const table = oss
-      ? VIEW.articleHottest
-      : MATERIALIZED_VIEW.articleHottestMaterialized
+      ? VIEW.article_hottest_view
+      : MATERIALIZED_VIEW.article_hottest_materialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')

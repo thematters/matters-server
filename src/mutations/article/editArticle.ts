@@ -116,7 +116,7 @@ const resolver: MutationToEditArticleResolver = async (
     // reset if there are some sticky articles.
     if (sticky === true) {
       const stickyIds = (
-        await atomService.findFirst({
+        await atomService.findMany({
           table: 'article',
           where: { authorId: viewer.id, sticky: true },
         })
