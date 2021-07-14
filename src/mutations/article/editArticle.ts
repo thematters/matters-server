@@ -27,7 +27,6 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
-  NotAllowAddOfficialTagError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -169,13 +168,14 @@ const resolver: MutationToEditArticleResolver = async (
       await tagService.findByArticleId({ articleId: article.id })
     ).map(({ id: tagId }: { id: string }) => tagId)
 
-    // check if add tags include matty's tag
-    const mattyTagId = environment.mattyChoiceTagId || ''
-    const isMatty = environment.mattyId === viewer.id
-    const addIds = difference(newIds, oldIds)
-    if (addIds.includes(mattyTagId) && !isMatty) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
-    }
+    // TODO: uncomment if following feed is ready
+    // // check if add tags include matty's tag
+    // const mattyTagId = environment.mattyChoiceTagId || ''
+    // const isMatty = environment.mattyId === viewer.id
+    // const addIds = difference(newIds, oldIds)
+    // if (addIds.includes(mattyTagId) && !isMatty) {
+    //   throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    // }
 
     // add
     await tagService.createArticleTags({
