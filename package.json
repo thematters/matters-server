@@ -62,7 +62,7 @@
     "express": "4.17.1",
     "fastest-levenshtein": "^1.0.12",
     "firebase-admin": "^9.10.0",
-    "get-stream": "^5.1.0",
+    "get-stream": "^6.0.1",
     "graphql": "^14.7.0",
     "graphql-cost-analysis": "^1.0.3",
     "graphql-depth-limit": "^1.1.0",
