@@ -9,7 +9,7 @@ const resolver: ArticleToSubscribersResolver = async (
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const [totalCountResult, actions] = await Promise.all([
+  const [countRecord, actions] = await Promise.all([
     knex('action_article')
       .where({ targetId: articleId, action: USER_ACTION.subscribe })
       .countDistinct('user_id')
@@ -18,7 +18,7 @@ const resolver: ArticleToSubscribersResolver = async (
   ])
 
   const totalCount = parseInt(
-    totalCountResult ? (totalCountResult.count as string) : '0',
+    countRecord ? (countRecord.count as string) : '0',
     10
   )
 

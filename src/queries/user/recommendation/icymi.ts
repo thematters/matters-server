@@ -10,30 +10,36 @@ export const icymi: RecommendationToIcymiResolver = async (
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
 
-  const [totalCountResult, articles] = await Promise.all([
-    knex('article')
-      .join('matters_choice as c', 'c.article_id', 'article.id')
+  const MAX_ITEM_COUNT = BATCH_SIZE * 50
+  const makeICYMIQuery = () =>
+    knex
+      .select('article.draft_id')
+      .from(
+        knex
+          .select()
+          .from('matters_choice')
+          .orderBy('updated_at', 'desc')
+          .limit(MAX_ITEM_COUNT)
+          .as('choice')
+      )
+      .leftJoin('article', 'choice.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
-      .count()
-      .first(),
-    knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
-      .join('matters_choice as c', 'c.article_id', 'article.id')
-      .orderBy('chose_at', 'desc')
-      .where({ state: ARTICLE_STATE.active })
+      .as('icymi')
+
+  const [countRecord, articles] = await Promise.all([
+    knex.select().from(makeICYMIQuery()).count().first(),
+    makeICYMIQuery()
       .offset(offset)
       .limit(first || BATCH_SIZE),
   ])
 
   const totalCount = parseInt(
-    totalCountResult ? (totalCountResult.count as string) : '0',
+    countRecord ? (countRecord.count as string) : '0',
     10
   )
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )
