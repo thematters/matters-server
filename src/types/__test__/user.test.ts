@@ -89,7 +89,7 @@ const GET_USER_BY_USERNAME = /* GraphQL */ `
 const GET_VIEWER_INFO = /* GraphQL */ `
   query {
     viewer {
-      uuid
+      id
       avatar
       displayName
       info {

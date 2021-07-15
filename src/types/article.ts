@@ -293,7 +293,6 @@ export default /* GraphQL */ `
 
   input ArticleInput {
     mediaHash: String
-    uuid: UUID
   }
 
   input PublishArticleInput {

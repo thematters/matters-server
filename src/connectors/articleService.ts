@@ -47,16 +47,6 @@ export class ArticleService extends BaseService {
       return result
     })
 
-    this.uuidLoader = new DataLoader(async (uuids: readonly string[]) => {
-      const result = await this.baseFindByUUIDs(uuids)
-
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new ArticleNotFoundError('Cannot find article')
-      }
-
-      return result
-    })
-
     this.draftLoader = new DataLoader(async (ids: readonly string[]) => {
       const items = await this.baseFindByIds(ids)
 

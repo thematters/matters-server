@@ -4,7 +4,6 @@ export default /* GraphQL */ `
   scalar DateTime
   scalar JSON
   scalar Upload
-  scalar UUID
   scalar Email
   scalar URL
   scalar NonPositiveInt

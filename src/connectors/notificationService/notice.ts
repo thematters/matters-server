@@ -255,7 +255,6 @@ class Notice extends BaseService {
     let query = this.knex
       .select([
         'notice.id',
-        'notice.uuid',
         'notice.unread',
         'notice.deleted',
         'notice.updated_at',
