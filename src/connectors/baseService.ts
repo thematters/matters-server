@@ -13,7 +13,6 @@ export class BaseService extends DataSource {
   aws: typeof aws
   knex: Knex
   dataloader: DataLoader<string, Item>
-  uuidLoader: DataLoader<string, Item>
   table: TableName
 
   constructor(table: TableName) {
@@ -235,25 +234,6 @@ export class BaseService extends DataSource {
       .update(data)
       .into(table || this.table)
       .returning('*')
-
-  /**
-   * Update an item by a given UUID.
-   */
-  baseUpdateByUUID = async (
-    uuid: string,
-    data: ItemData,
-    table?: TableName
-  ) => {
-    const [updatedItem] = await this.knex
-      .where('uuid', uuid)
-      .update(data)
-      .into(table || this.table)
-      .returning('*')
-
-    logger.info(`Updated uuid ${uuid} in ${table || this.table}`)
-
-    return updatedItem
-  }
 
   /**
    * Delete an item by a given id.

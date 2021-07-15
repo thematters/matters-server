@@ -72,9 +72,6 @@ export default /* GraphQL */ `
     "Global id of an user."
     id: ID!
 
-    "UUID of an user, for backward compatibility."
-    uuid: UUID!
-
     "Global unique user name of a user."
     userName: String
 

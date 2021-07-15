@@ -439,7 +439,6 @@ export type NoticeData = {
 
 export type NoticeDetail = {
   id: string
-  uuid: string
   unread: boolean
   deleted: boolean
   updatedAt: Date

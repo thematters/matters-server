@@ -56,7 +56,6 @@ export class UserService extends BaseService {
     this.likecoin = likecoin
     this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /*********************************

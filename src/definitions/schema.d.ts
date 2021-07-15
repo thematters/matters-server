@@ -28,10 +28,7 @@ export interface GQLQuery {
 
 export interface GQLArticleInput {
   mediaHash?: string
-  uuid?: GQLUUID
 }
-
-export type GQLUUID = any
 
 /**
  * This type contains metadata, content, hash and related data of an article. If you
@@ -316,11 +313,6 @@ export interface GQLUser extends GQLNode {
    * Global id of an user.
    */
   id: string
-
-  /**
-   * UUID of an user, for backward compatibility.
-   */
-  uuid: GQLUUID
 
   /**
    * Global unique user name of a user.
@@ -2347,7 +2339,7 @@ export interface GQLSkippedListItemEdge {
 
 export interface GQLSkippedListItem {
   id: string
-  uuid: GQLUUID
+  uuid: string
   type: GQLSkippedListItemType
   value: string
   archived: boolean
@@ -3699,7 +3691,6 @@ export interface GQLVerifyEmailInput {
  */
 export interface GQLResolver {
   Query?: GQLQueryTypeResolver
-  UUID?: GraphQLScalarType
   Article?: GQLArticleTypeResolver
   Node?: {
     __resolveType: GQLNodeTypeResolver
@@ -4541,7 +4532,6 @@ export interface GQLNodeTypeResolver<TParent = any> {
 }
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
-  uuid?: UserToUuidResolver<TParent>
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
@@ -4575,15 +4565,6 @@ export interface GQLUserTypeResolver<TParent = any> {
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToUuidResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

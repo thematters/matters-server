@@ -123,7 +123,7 @@ export default /* GraphQL */ `
 
   type SkippedListItem {
     id: ID!
-    uuid: UUID!
+    uuid: ID!
     type: SkippedListItemType!
     value: String!
     archived: Boolean!

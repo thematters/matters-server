@@ -29,15 +29,6 @@ export class CommentService extends BaseService {
       }
       return result
     })
-    this.uuidLoader = new DataLoader(async (uuids: readonly string[]) => {
-      const result = await this.baseFindByUUIDs(uuids)
-
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new CommentNotFoundError('Cannot find comment')
-      }
-
-      return result
-    })
   }
 
   /**
