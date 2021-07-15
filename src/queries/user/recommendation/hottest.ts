@@ -27,6 +27,7 @@ export const hottest: RecommendationToHottestResolver = async (
         knex
           .select()
           .from(MATERIALIZED_VIEW.article_hottest_materialized)
+          .orderByRaw('score desc nulls last')
           .limit(MAX_ITEM_COUNT)
           .as('view')
       )
