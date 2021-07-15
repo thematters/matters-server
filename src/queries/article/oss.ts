@@ -55,7 +55,7 @@ export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver =
     })
 
     if (!setting) {
-      return { inHottest: true, inNewest: true }
+      return true
     }
 
     return setting.inHottest
@@ -72,7 +72,7 @@ export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
   })
 
   if (!setting) {
-    return { inHottest: true, inNewest: true }
+    return true
   }
 
   return setting.inNewest
