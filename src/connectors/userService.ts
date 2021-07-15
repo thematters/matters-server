@@ -140,7 +140,7 @@ export class UserService extends BaseService {
 
     await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
+    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
       expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
     })
 
