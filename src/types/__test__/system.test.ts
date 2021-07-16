@@ -311,7 +311,7 @@ describe('manage feature flag', () => {
     const features = (queryData?.official?.features || []).reduce(reducer, {})
     expect(features.circle_management).toBe(false)
 
-    const { data: queryData2 } = await server.executeOperation({
+    const { data: queryData2 } = await serverAdmin.executeOperation({
       query: QUERY_FEATURES,
     })
     const features2 = (queryData2?.official?.features || []).reduce(reducer, {})
@@ -324,7 +324,7 @@ describe('manage feature flag', () => {
     })
     expect(_get(updateData3, 'data.setFeature.enabled')).toBe(true)
 
-    const { data: queryData3 } = await serverAdmin.executeOperation({
+    const { data: queryData3 } = await server.executeOperation({
       query: QUERY_FEATURES,
     })
     const features3 = (queryData3?.official?.features || []).reduce(reducer, {})
@@ -343,7 +343,7 @@ describe('manage feature flag', () => {
     })
     expect(_get(updateData4, 'data.setFeature.enabled')).toBe(true)
 
-    const { data: queryData5 } = await serverAdmin.executeOperation({
+    const { data: queryData5 } = await server.executeOperation({
       query: QUERY_FEATURES,
     })
     const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
