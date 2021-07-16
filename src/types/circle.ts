@@ -34,10 +34,10 @@ export default /* GraphQL */ `
     id: ID!
 
     "Circle avatar's link."
-    avatar: URL
+    avatar: String @constraint(format: "uri")
 
     "Circle cover's link."
-    cover: URL
+    cover: String @constraint(format: "uri")
 
     "Slugified name of this Circle."
     name: String!
@@ -207,7 +207,7 @@ export default /* GraphQL */ `
   }
 
   type Person {
-    email: Email!
+    email: String! @constraint(format: "email")
   }
 
   union Invitee = Person | User

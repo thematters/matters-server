@@ -45,7 +45,7 @@ export default /* GraphQL */ `
     stripeAccount: StripeAccount
 
     "URL of Stripe Dashboard to manage subscription invoice and payment method"
-    customerPortal: URL
+    customerPortal: String @constraint(format: "uri")
 
     "The last four digits of the card."
     cardLast4: String
@@ -132,7 +132,7 @@ export default /* GraphQL */ `
     transaction: Transaction!
 
     "Only available when paying with LIKE."
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   # Add Credit
@@ -161,11 +161,11 @@ export default /* GraphQL */ `
 
   type StripeAccount {
     id: ID!
-    loginUrl: URL! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    loginUrl: String! @constraint(format: "uri") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   type ConnectStripeAccountResult {
-    redirectUrl: URL!
+    redirectUrl: String! @constraint(format: "uri")
   }
 
   enum StripeAccountCountry {

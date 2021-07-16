@@ -1,4 +1,5 @@
 import { RedisCache } from 'apollo-server-cache-redis'
+import Redis from 'ioredis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'
@@ -94,12 +95,12 @@ export class CacheService {
 
     const key = this.genKey(keys)
 
-    let data = await this.redis.client.get(key)
-    data = JSON.parse(data)
+    let data = await (this.redis.client as Redis.Redis).get(key)
+    data = JSON.parse(data || '""')
 
     // get the data if there is none
     if (isNil(data) && getter) {
-      data = await getter()
+      data = (await getter()) as string
 
       if (!isNil(data)) {
         this.storeObject({

@@ -1,9 +1,9 @@
+import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import {
   defaultFieldResolver,
   GraphQLField,
   responsePathAsArray,
 } from 'graphql'
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
 import { ForbiddenError } from 'common/errors'

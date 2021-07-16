@@ -10,7 +10,6 @@ export * from './getFileName'
 export * from './getLanguage'
 export * from './getViewer'
 export * from './globalId'
-export * from './initSubscriptions'
 export * from './connections'
 export * from './validator'
 export * from './notice'
@@ -65,9 +64,6 @@ export const extractAssetDataFromHtml = (
 
 export const generatePasswordhash = (password: string) =>
   hash(password, BCRYPT_ROUNDS)
-
-// https://github.com/Urigo/graphql-scalars#url
-export const resolveUrl = (url: any) => _.get(url, 'href')
 
 /**
  * Generate redirect link for registeration

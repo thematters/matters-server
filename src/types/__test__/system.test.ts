@@ -167,10 +167,9 @@ const TOGGLE_USERS_BADGE = `
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
-    const { query } = await testClient()
-    const result = await query({
+    const server = await testClient()
+    const result = await server.executeOperation({
       query: GET_USER,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const { data } = result
@@ -180,10 +179,9 @@ describe('query nodes of different type', () => {
 
   test('query article node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-    const { query } = await testClient()
-    const { data } = await query({
+    const server = await testClient()
+    const { data } = await server.executeOperation({
       query: GET_ARTICLE,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const node = data && data.node
@@ -192,10 +190,9 @@ describe('query nodes of different type', () => {
 
   test('query comment node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
-    const { query } = await testClient()
-    const { data } = await query({
+    const server = await testClient()
+    const { data } = await server.executeOperation({
       query: GET_COMMENT,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const node = data && data.node
@@ -206,11 +203,10 @@ describe('query nodes of different type', () => {
 // TODO: fix search tests
 describe.skip('Search', () => {
   test('search article', async () => {
-    const { query } = await testClient()
+    const server = await testClient()
 
-    const result = await query({
+    const result = await server.executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: draft.title,
@@ -225,11 +221,10 @@ describe.skip('Search', () => {
   })
 
   test('search tag', async () => {
-    const { query } = await testClient()
+    const server = await testClient()
 
-    const result = await query({
+    const result = await server.executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: draft.tags[0],
@@ -245,11 +240,10 @@ describe.skip('Search', () => {
 
   test('search user', async () => {
     await delay(1000)
-    const { query } = await testClient()
+    const server = await testClient()
 
-    const result = await query({
+    const result = await server.executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: userDescription,
@@ -280,8 +274,8 @@ describe('manage feature flag', () => {
   })
 
   test('query feature flag', async () => {
-    const { query } = await testClient(userClient)
-    const { data } = await query({ query: QUERY_FEATURES })
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({ query: QUERY_FEATURES })
 
     const features = (data?.official?.features || []).reduce(reducer, {})
 
@@ -295,83 +289,93 @@ describe('manage feature flag', () => {
   })
 
   test('update feature flag', async () => {
-    const { query, mutate } = await testClient(userClient)
+    const server = await testClient(userClient)
 
-    const updateData = await mutate({
-      mutation: SET_FEATURE,
+    const updateData = await server.executeOperation({
+      query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'off' } },
     })
     expect(_get(updateData, errorPath)).toBe('FORBIDDEN')
 
     // set feature off
-    const { query: adminQuery, mutate: adminMutate } = await testClient(
-      adminClient
-    )
-    const updateData2 = await adminMutate({
-      mutation: SET_FEATURE,
+    const serverAdmin = await testClient(adminClient)
+    const updateData2 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'off' } },
     })
     expect(_get(updateData2, 'data.setFeature.enabled')).toBe(false)
 
-    const { data: queryData } = await query({ query: QUERY_FEATURES })
+    const { data: queryData } = await server.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features = (queryData?.official?.features || []).reduce(reducer, {})
     expect(features.circle_management).toBe(false)
 
-    const { data: queryData2 } = await adminQuery({ query: QUERY_FEATURES })
+    const { data: queryData2 } = await serverAdmin.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features2 = (queryData2?.official?.features || []).reduce(reducer, {})
     expect(features2.circle_management).toBe(false)
 
     // set feature as admin
-    const updateData3 = await adminMutate({
-      mutation: SET_FEATURE,
+    const updateData3 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'admin' } },
     })
     expect(_get(updateData3, 'data.setFeature.enabled')).toBe(true)
 
-    const { data: queryData3 } = await query({ query: QUERY_FEATURES })
+    const { data: queryData3 } = await server.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features3 = (queryData3?.official?.features || []).reduce(reducer, {})
     expect(features3.circle_management).toBe(false)
 
-    const { data: queryData4 } = await adminQuery({ query: QUERY_FEATURES })
+    const { data: queryData4 } = await serverAdmin.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features4 = (queryData4?.official?.features || []).reduce(reducer, {})
     expect(features4.circle_management).toBe(true)
 
     // set feature as seeding
-    const updateData4 = await adminMutate({
-      mutation: SET_FEATURE,
+    const updateData4 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'seeding' } },
     })
     expect(_get(updateData4, 'data.setFeature.enabled')).toBe(true)
 
-    const { data: queryData5 } = await query({ query: QUERY_FEATURES })
+    const { data: queryData5 } = await server.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
     expect(features5.circle_management).toBe(true)
 
-    const { data: queryData6 } = await adminQuery({ query: QUERY_FEATURES })
+    const { data: queryData6 } = await serverAdmin.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
     expect(features6.circle_management).toBe(true)
 
-    const { query: otherQuery } = await testClient({
+    const serverOther = await testClient({
       isAuth: true,
       isOnboarding: true,
     })
-    const { data: queryData7 } = await otherQuery({ query: QUERY_FEATURES })
+    const { data: queryData7 } = await serverOther.executeOperation({
+      query: QUERY_FEATURES,
+    })
     const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
     expect(features7.circle_management).toBe(false)
 
     // reset feature as on
-    const updateData5 = await adminMutate({
-      mutation: SET_FEATURE,
+    const updateData5 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'on' } },
     })
     expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
   })
 
   test('manage seeding user', async () => {
-    const { query: adminQuery, mutate: adminMutate } = await testClient(
-      adminClient
-    )
-    const { data } = await adminQuery({
+    const serverAdmin = await testClient(adminClient)
+    const { data } = await serverAdmin.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
     })
@@ -379,39 +383,37 @@ describe('manage feature flag', () => {
 
     // remove existing seeding user
     const seedingUser = _get(data, 'oss.seedingUsers.edges[0].node')
-    await adminMutate({
-      mutation: TOGGLE_SEEDING_USERS,
+    await serverAdmin.executeOperation({
+      query: TOGGLE_SEEDING_USERS,
       variables: { input: { ids: [seedingUser.id], enabled: false } },
     })
-    const { data: data2 } = await adminQuery({
+    const { data: data2 } = await serverAdmin.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
     })
     expect(_get(data2, 'oss.seedingUsers.totalCount')).toBe(0)
 
     // re-add seeding user
-    await adminMutate({
-      mutation: TOGGLE_SEEDING_USERS,
+    await serverAdmin.executeOperation({
+      query: TOGGLE_SEEDING_USERS,
       variables: { input: { ids: [seedingUser.id], enabled: true } },
     })
-    const { data: data3 } = await adminQuery({
+    const { data: data3 } = await serverAdmin.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
     })
     expect(_get(data3, 'oss.seedingUsers.totalCount')).toBe(1)
 
     // check user couldn't query and mutate
-    const { query: userQuery, mutate: userMutate } = await testClient(
-      userClient
-    )
-    const result = await userQuery({
+    const serverUser = await testClient(userClient)
+    const result = await serverUser.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN')
 
-    const updateData3 = await userMutate({
-      mutation: TOGGLE_SEEDING_USERS,
+    const updateData3 = await serverUser.executeOperation({
+      query: TOGGLE_SEEDING_USERS,
       variables: { input: { ids: [seedingUser.id], enabled: false } },
     })
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
@@ -427,51 +429,47 @@ describe('manage user badges', () => {
     const badgeType = 'golden_motor'
     const userId = toGlobalId({ type: NODE_TYPES.User, id: '1' })
 
-    const { query: adminQuery, mutate: adminMutate } = await testClient(
-      adminClient
-    )
-    const { data } = await adminQuery({
+    const serverAdmin = await testClient(adminClient)
+    const { data } = await serverAdmin.executeOperation({
       query: QUERY_BADGED_USERS,
       variables: { input: { first: null, type: badgeType } },
     })
     expect(_get(data, 'oss.badgedUsers.totalCount')).toBe(0)
 
     // remove existing badged user
-    await adminMutate({
-      mutation: TOGGLE_USERS_BADGE,
+    await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
       variables: { input: { ids: [userId], type: badgeType, enabled: true } },
     })
-    const { data: data2 } = await adminQuery({
+    const { data: data2 } = await serverAdmin.executeOperation({
       query: QUERY_BADGED_USERS,
       variables: { input: { first: null, type: badgeType } },
     })
     expect(_get(data2, 'oss.badgedUsers.totalCount')).toBe(1)
 
     // re-disable badged user
-    await adminMutate({
-      mutation: TOGGLE_USERS_BADGE,
+    await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
       variables: {
         input: { ids: [userId], type: badgeType, enabled: false },
       },
     })
-    const { data: data3 } = await adminQuery({
+    const { data: data3 } = await serverAdmin.executeOperation({
       query: QUERY_BADGED_USERS,
       variables: { input: { first: null, type: badgeType } },
     })
     expect(_get(data3, 'oss.badgedUsers.totalCount')).toBe(0)
 
     // check user couldn't query and mutate
-    const { query: userQuery, mutate: userMutate } = await testClient(
-      userClient
-    )
-    const result = await userQuery({
+    const serverUser = await testClient(userClient)
+    const result = await serverUser.executeOperation({
       query: QUERY_BADGED_USERS,
       variables: { input: { first: null, type: badgeType } },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN')
 
-    const updateData3 = await userMutate({
-      mutation: TOGGLE_USERS_BADGE,
+    const updateData3 = await serverUser.executeOperation({
+      query: TOGGLE_USERS_BADGE,
       variables: {
         input: { ids: [userId], type: badgeType, enabled: false },
       },

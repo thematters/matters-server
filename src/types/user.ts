@@ -85,7 +85,7 @@ export default /* GraphQL */ `
     liker: Liker!
 
     "URL for user avatar."
-    avatar: URL
+    avatar: String @constraint(format: "uri")
 
     "User information."
     info: UserInfo!
@@ -217,7 +217,7 @@ export default /* GraphQL */ `
     description: String
 
     "User email."
-    email: Email @auth(mode: "${AUTH_MODE.oauth}")
+    email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
@@ -226,7 +226,7 @@ export default /* GraphQL */ `
     agreeOn: DateTime
 
     "Cover of profile page."
-    profileCover: URL
+    profileCover: String @constraint(format: "uri")
 
     "Type of group."
     group: UserGroup!
@@ -505,7 +505,7 @@ export default /* GraphQL */ `
   }
 
   input SendVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     token: String
 
@@ -513,11 +513,11 @@ export default /* GraphQL */ `
     Redirect URL embedded in the verification email,
     use code instead if not provided.
     """
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   input ConfirmVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     code: String!
   }
@@ -529,9 +529,9 @@ export default /* GraphQL */ `
   }
 
   input ChangeEmailInput {
-    oldEmail: Email!
+    oldEmail: String! @constraint(format: "email")
     oldEmailCodeId: ID!
-    newEmail: Email!
+    newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }
 
@@ -540,7 +540,7 @@ export default /* GraphQL */ `
   }
 
   input UserRegisterInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     userName: String
     displayName: String!
     password: String!
@@ -549,7 +549,7 @@ export default /* GraphQL */ `
   }
 
   input UserLoginInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     password: String!
   }
 

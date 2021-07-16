@@ -1,15 +1,15 @@
+import { makeExecutableSchema } from '@graphql-tools/schema'
 import {
   LogCacheDirective,
   PurgeCacheDirective,
 } from '@matters/apollo-response-cache'
-import { makeExecutableSchema } from 'graphql-tools'
+import { constraintDirective } from 'graphql-constraint-directive'
 import { merge } from 'lodash'
 
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 
 import mutations from './mutations'
 import queries from './queries'
-import subscriptions from './subscriptions'
 import typeDefs from './types'
 import {
   AuthDirective,
@@ -45,6 +45,7 @@ const idResolver = (type: string, result: any) => {
 
 const schema = makeExecutableSchema({
   typeDefs,
+  schemaTransforms: [constraintDirective()],
   schemaDirectives: {
     deprecated: DeprecatedDirective,
 
@@ -62,7 +63,7 @@ const schema = makeExecutableSchema({
       extraNodesPath: CACHE_KEYWORD,
     }),
   },
-  resolvers: merge(queries, mutations, subscriptions),
+  resolvers: merge(queries, mutations),
 })
 
 export default schema

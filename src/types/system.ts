@@ -27,10 +27,6 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
-  extend type Subscription {
-    nodeEdited(input: NodeEditedInput!): Node!
-  }
-
   interface Node {
     id: ID!
   }
@@ -151,10 +147,6 @@ export default /* GraphQL */ `
     first: Int
   }
 
-  input NodeEditedInput {
-    id: ID!
-  }
-
   input SearchInput {
     "search keyword"
     key: String!
@@ -183,7 +175,7 @@ export default /* GraphQL */ `
   input SingleFileUploadInput {
     type: AssetType!
     file: Upload
-    url: URL
+    url: String @constraint(format: "uri")
     entityType: EntityType!
     entityId: ID
   }
@@ -287,7 +279,7 @@ export default /* GraphQL */ `
     admin
   }
 
-  enum CacheScope {
+  enum CacheControlScope {
     PUBLIC
     PRIVATE
   }
@@ -325,10 +317,30 @@ export default /* GraphQL */ `
     max: Int
   }
 
+  directive @constraint(
+    # String constraints
+    minLength: Int
+    maxLength: Int
+    startsWith: String
+    endsWith: String
+    contains: String
+    notContains: String
+    pattern: String
+    format: String
+    # Number constraints
+    min: Int
+    max: Int
+    exclusiveMin: Int
+    exclusiveMax: Int
+    multipleOf: Int
+    uniqueTypeName: String
+  ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
   directive @cacheControl(
     maxAge: Int
-    scope: CacheScope
-  ) on OBJECT | FIELD | FIELD_DEFINITION
+    scope: CacheControlScope
+    inheritMaxAge: Boolean
+  ) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
   directive @cost(
     multipliers: [String]

@@ -7,7 +7,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   { dataSources: { userService } }
 ) => {
   const { email: rawEmail } = input
-  const email = rawEmail ? rawEmail.toLowerCase() : null
+  const email = rawEmail.toLowerCase()
   const [code] = await userService.findVerificationCodes({
     where: { ...input, email, status: 'active' },
   })

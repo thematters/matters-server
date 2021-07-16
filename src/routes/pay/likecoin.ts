@@ -69,7 +69,7 @@ likecoinRouter.get('/', async (req, res) => {
     // get pending transaction
     const tx = (
       await paymentService.findTransactions({
-        providerTxId: state,
+        providerTxId: state as string,
       })
     )[0]
 
@@ -81,7 +81,7 @@ likecoinRouter.get('/', async (req, res) => {
     // check like chain tx state
     const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
-      hash: tx_hash,
+      hash: tx_hash as string,
     })
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
     const cosmosState =

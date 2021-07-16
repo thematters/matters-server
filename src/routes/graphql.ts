@@ -1,8 +1,12 @@
 import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { RedisCache } from 'apollo-server-cache-redis'
+import {
+  ApolloServerPluginCacheControl,
+  ApolloServerPluginLandingPageDisabled,
+} from 'apollo-server-core'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import bodyParser from 'body-parser'
-import { RequestHandler } from 'express'
+import { Express, RequestHandler } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
@@ -21,7 +25,7 @@ import {
 import { environment, isProd } from 'common/environment'
 import { ActionLimitExceededError } from 'common/errors'
 import logger from 'common/logger'
-import { initSubscriptions, makeContext } from 'common/utils'
+import { makeContext } from 'common/utils'
 import {
   ArticleService,
   AtomService,
@@ -87,10 +91,6 @@ const composedSchema = applyMiddleware(schema, sentryMiddleware)
 const server = new ProtectedApolloServer({
   schema: composedSchema,
   context: makeContext,
-  engine: {
-    apiKey: environment.apiKey,
-  },
-  subscriptions: initSubscriptions(),
   dataSources: () => ({
     atomService: new AtomService(),
 
@@ -105,19 +105,18 @@ const server = new ProtectedApolloServer({
     oauthService: new OAuthService(),
     paymentService: new PaymentService(),
   }),
-  uploads: false,
   debug: !isProd,
   validationRules: [depthLimit(15)],
   cache,
   persistedQueries: {
     cache,
   },
-  cacheControl: {
-    calculateHttpHeaders: false,
-    defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
-    stripFormattedExtensions: isProd,
-  },
   plugins: [
+    ApolloServerPluginLandingPageDisabled(),
+    ApolloServerPluginCacheControl({
+      calculateHttpHeaders: false,
+      defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
+    }),
     responseCachePlugin({
       sessionId: ({ context }) => {
         const viewerId = _.get(context, 'viewer.id', '')
@@ -128,10 +127,11 @@ const server = new ProtectedApolloServer({
     }),
   ],
   introspection: true,
-  playground: false, // enabled below
 })
 
-export const graphql = (app: any) => {
+export const graphql = async (app: Express) => {
+  await server.start()
+
   app.use(
     API_ENDPOINT,
     graphqlUploadExpress({
