@@ -34,8 +34,6 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const file = fileUpload.file as FileUpload
-
   const isImageType =
     [
       ASSET_TYPE.avatar,
@@ -49,8 +47,12 @@ const resolver: MutationToSingleFileUploadResolver = async (
     ].indexOf(type) >= 0
   const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 
-  if ((!file && !url) || (file && url)) {
+  if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
+  }
+
+  if (fileUpload && !fileUpload.file) {
+    throw new UserInputError('file object is incorrect.')
   }
 
   if (url && !isImageType) {
@@ -98,6 +100,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
       throw new UnableToUploadFromUrl(`Unable to upload from url: ${err}`)
     }
   } else {
+    const file = fileUpload.file as FileUpload
     upload = await file
   }
 
