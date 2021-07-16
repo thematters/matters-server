@@ -33,7 +33,7 @@ export default /* GraphQL */ `
     secret: String! @auth(mode: "${AUTH_MODE.admin}")
 
     "Redirect URIs"
-    redirectURIs: [String!] @auth(mode: "${AUTH_MODE.admin}") @constraint(format: "uri")
+    redirectURIs: [String!] @auth(mode: "${AUTH_MODE.admin}")
 
     "Grant Types"
     grantTypes: [GrantType!] @auth(mode: "${AUTH_MODE.admin}")
@@ -68,7 +68,7 @@ export default /* GraphQL */ `
     scope: [String!]
     avatar: ID
     secret: String
-    redirectURIs: [String!] @constraint(format: "uri")
+    redirectURIs: [String!]
     grantTypes: [GrantType!]
     user: ID
   }

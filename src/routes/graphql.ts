@@ -6,7 +6,7 @@ import {
 } from 'apollo-server-core'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import bodyParser from 'body-parser'
-import { RequestHandler } from 'express'
+import { Express, RequestHandler } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
@@ -129,7 +129,9 @@ const server = new ProtectedApolloServer({
   introspection: true,
 })
 
-export const graphql = (app: any) => {
+export const graphql = async (app: Express) => {
+  await server.start()
+
   app.use(
     API_ENDPOINT,
     graphqlUploadExpress({

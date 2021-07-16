@@ -2077,21 +2077,13 @@ export type GQLDateTime = any
 
 export type GQLUpload = any
 
-export type GQLNonPositiveInt = any
-
 export type GQLPositiveInt = any
 
 export type GQLNonNegativeInt = any
 
-export type GQLNegativeInt = any
-
-export type GQLNonPositiveFloat = any
-
 export type GQLPositiveFloat = any
 
 export type GQLNonNegativeFloat = any
-
-export type GQLNegativeFloat = any
 
 export interface GQLNode {
   id: string
@@ -3727,14 +3719,10 @@ export interface GQLResolver {
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
   Upload?: GraphQLScalarType
-  NonPositiveInt?: GraphQLScalarType
   PositiveInt?: GraphQLScalarType
   NonNegativeInt?: GraphQLScalarType
-  NegativeInt?: GraphQLScalarType
-  NonPositiveFloat?: GraphQLScalarType
   PositiveFloat?: GraphQLScalarType
   NonNegativeFloat?: GraphQLScalarType
-  NegativeFloat?: GraphQLScalarType
   Node?: {
     __resolveType: GQLNodeTypeResolver
   }
