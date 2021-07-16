@@ -297,10 +297,10 @@ describe('register and login functionarlities', () => {
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       context,
     })
-    const newUserResult = await executeOperation({
+    const newUserResult = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
     const displayName = _get(newUserResult, 'data.viewer.displayName')
@@ -312,9 +312,9 @@ describe('register and login functionarlities', () => {
   test('auth fail when password is incorrect', async () => {
     const email = 'test1@matters.news'
     const password = 'wrongPassword'
-    const { executeOperation } = await testClient()
+    const server = await testClient()
 
-    const result = await executeOperation({
+    const result = await server.executeOperation({
       query: USER_LOGIN,
       variables: { input: { email, password } },
     })
@@ -327,8 +327,8 @@ describe('register and login functionarlities', () => {
     const email = 'test1@matters.news'
     const password = '12345678'
 
-    const { executeOperation } = await testClient()
-    const result = await executeOperation({
+    const server = await testClient()
+    const result = await server.executeOperation({
       query: USER_LOGIN,
       variables: { input: { email, password } },
     })
@@ -336,10 +336,10 @@ describe('register and login functionarlities', () => {
   })
 
   test('retrive user info after login', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
     const info = _get(data, 'viewer.info')
@@ -350,18 +350,18 @@ describe('register and login functionarlities', () => {
 describe('user query fields', () => {
   test('get user by username', async () => {
     const userName = 'test1'
-    const { executeOperation } = await testClient()
-    const { data } = await executeOperation({
+    const server = await testClient()
+    const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
       variables: { input: { userName } },
     })
     expect(_get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const result = await executeOperation({
+    const result = await server.executeOperation({
       query: GET_VIEW_ARTICLES,
       variables: { input: { first: 1 } },
     })
@@ -372,10 +372,10 @@ describe('user query fields', () => {
   })
 
   test('retrive UserSettings', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const res = await executeOperation({
+    const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
     const { data } = res
@@ -385,10 +385,10 @@ describe('user query fields', () => {
   })
 
   test('retrive subscriptions', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_SUBSCRIPTIONS,
       variables: { input: {} },
     })
@@ -397,10 +397,10 @@ describe('user query fields', () => {
   })
 
   test('retrive followers', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWERS,
       variables: { input: {} },
     })
@@ -409,10 +409,10 @@ describe('user query fields', () => {
   })
 
   test('retrive followees', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWEES,
       variables: { input: {} },
     })
@@ -421,10 +421,10 @@ describe('user query fields', () => {
   })
 
   test('retrive following', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWINGS,
       variables: { input: {} },
     })
@@ -437,10 +437,10 @@ describe('user query fields', () => {
   })
 
   test('retrive UserStatus', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
     const status = _get(data, 'viewer.status')
@@ -451,8 +451,8 @@ describe('user query fields', () => {
 describe('mutations on User object', () => {
   test('follow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const { executeOperation } = await testClient({ isAuth: true })
-    const result = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
       query: TOGGLE_FOLLOW_USER,
       variables: {
         input: {
@@ -466,8 +466,8 @@ describe('mutations on User object', () => {
 
   test('unfollow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const { executeOperation } = await testClient({ isAuth: true })
-    const { data } = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
       query: TOGGLE_FOLLOW_USER,
       variables: {
         input: {
@@ -481,8 +481,8 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const { executeOperation } = await testClient({ isAuth: true })
-    const result = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
       query: TOGGLE_BLOCK_USER,
       variables: {
         input: {
@@ -496,8 +496,8 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const { executeOperation } = await testClient({ isAuth: true })
-    const result = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
       query: TOGGLE_BLOCK_USER,
       variables: {
         input: {
@@ -511,10 +511,10 @@ describe('mutations on User object', () => {
 
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
@@ -524,10 +524,10 @@ describe('mutations on User object', () => {
 
   test('updateUserInfoAvatar', async () => {
     const avatarAssetUUID = '00000000-0000-0000-0000-000000000001'
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: UPDATE_USER_INFO_AVATAR,
       variables: { input: { avatar: avatarAssetUUID } },
     })
@@ -536,10 +536,10 @@ describe('mutations on User object', () => {
   })
 
   test('updateNotificationSetting', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
       variables: { input: { type: 'enable', enabled: false } },
     })
@@ -557,11 +557,11 @@ describe('user recommendations', () => {
 
     const lists = ['hottest', 'newest', 'icymi']
     for (const list of lists) {
-      const { executeOperation: executeOperationNew } = await testClient({
+      const serverNew = await testClient({
         isAuth: true,
       })
 
-      const result = await executeOperationNew({
+      const result = await serverNew.executeOperation({
         query: GET_VIEWER_RECOMMENDATION(list),
         variables: { input: { first: 1 } },
       })
@@ -575,10 +575,10 @@ describe('user recommendations', () => {
     await refreshView(MATERIALIZED_VIEW.curation_tag_materialized)
     await refreshView(MATERIALIZED_VIEW.tag_count_materialized)
 
-    const { executeOperation: executeOperationNew } = await testClient({
+    const serverNew = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperationNew({
+    const { data } = await serverNew.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_TAGS,
       variables: { input: { first: 1 } },
     })
@@ -589,10 +589,10 @@ describe('user recommendations', () => {
   test('retrive users from authors', async () => {
     await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
 
-    const { executeOperation: executeOperationNew } = await testClient({
+    const serverNew = await testClient({
       isAuth: true,
     })
-    const result = await executeOperationNew({
+    const result = await serverNew.executeOperation({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
       variables: { input: { first: 1 } },
     })
@@ -604,10 +604,10 @@ describe('user recommendations', () => {
 
 describe('badges', () => {
   test('get user badges', async () => {
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_BADGES,
       variables: {},
     })
@@ -621,8 +621,8 @@ describe('verification code', () => {
 
   test('send verification code', async () => {
     // send
-    const { executeOperation } = await testClient()
-    const result = await executeOperation({
+    const server = await testClient()
+    const result = await server.executeOperation({
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
     })
@@ -632,8 +632,8 @@ describe('verification code', () => {
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // confirm
-    const { executeOperation: confirmMutate } = await testClient()
-    const confirmedResult = await confirmMutate({
+    const serverMutate = await testClient()
+    const confirmedResult = await serverMutate.executeOperation({
       query: CONFIRM_VERIFICATION_CODE,
       variables: { input: { type, email, code: code.code } },
     })

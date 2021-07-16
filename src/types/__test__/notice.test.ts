@@ -26,8 +26,8 @@ const GET_NOTICES = /* GraphQL */ `
 `
 
 test('query notices', async () => {
-  const { executeOperation } = await testClient({ isAuth: true })
-  const { data } = await executeOperation({
+  const server = await testClient({ isAuth: true })
+  const { data } = await server.executeOperation({
     query: GET_NOTICES,
     variables: {
       nodeInput: { id: USER_ID },

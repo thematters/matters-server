@@ -94,8 +94,8 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const getCommentVotes = async (commentId: string) => {
-  const { executeOperation } = await testClient()
-  const { data } = await executeOperation({
+  const server = await testClient()
+  const { data } = await server.executeOperation({
     query: GET_COMMENT,
     variables: {
       input: { id: commentId },
@@ -107,8 +107,8 @@ const getCommentVotes = async (commentId: string) => {
 describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
-    const { executeOperation } = await testClient()
-    const result = await executeOperation({
+    const server = await testClient()
+    const result = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
         nodeInput: { id: ARTICLE_ID },
@@ -122,8 +122,8 @@ describe('query comment list on article', () => {
   })
 
   test('sort comments by newest', async () => {
-    const { executeOperation } = await testClient()
-    const { data } = await executeOperation({
+    const server = await testClient()
+    const { data } = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
         nodeInput: { id: ARTICLE_ID },
@@ -144,9 +144,9 @@ describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
   test('create a article comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true })
 
-    const result = await executeOperation({
+    const result = await server.executeOperation({
       query: PUT_COMMENT,
       variables: {
         input: {
@@ -165,11 +165,11 @@ describe('mutations on comment', () => {
   })
 
   test('upvote a comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true })
     const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
-    const { data } = await executeOperation({
+    const { data } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: commentId, vote: 'up' },
@@ -180,13 +180,13 @@ describe('mutations on comment', () => {
 
   test('onboarding user vote a comment', async () => {
     const onboardingCommentId = toGlobalId({ type: NODE_TYPES.Comment, id: 6 })
-    const { executeOperation } = await testClient({
+    const server = await testClient({
       isAuth: true,
       isOnboarding: true,
     })
 
     // upvote
-    const upvoteResult = await executeOperation({
+    const upvoteResult = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: commentId, vote: 'up' },
@@ -197,7 +197,7 @@ describe('mutations on comment', () => {
     )
 
     // upvote comment that article published by viewer
-    const upvoteSuccuessResult = await executeOperation({
+    const upvoteSuccuessResult = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
@@ -206,7 +206,7 @@ describe('mutations on comment', () => {
     expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
 
     // downvote
-    const downvoteResult = await executeOperation({
+    const downvoteResult = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: commentId, vote: 'down' },
@@ -217,7 +217,7 @@ describe('mutations on comment', () => {
     )
 
     // downvote comment that article published by viewer
-    const downvoteSuccuessResult = await executeOperation({
+    const downvoteSuccuessResult = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
@@ -229,9 +229,9 @@ describe('mutations on comment', () => {
   })
 
   test('downvote a comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)
-    const { data: downvoteData } = await executeOperation({
+    const { data: downvoteData } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
         input: { id: commentId, vote: 'down' },
@@ -242,9 +242,9 @@ describe('mutations on comment', () => {
   })
 
   test('unvote a comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)
-    const { data: unvoteData } = await executeOperation({
+    const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
       variables: {
         input: { id: commentId },
@@ -255,8 +255,8 @@ describe('mutations on comment', () => {
   })
 
   test('delete comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
-    const { data } = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
       query: DELETE_COMMENT,
       variables: {
         input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
@@ -266,8 +266,8 @@ describe('mutations on comment', () => {
   })
 
   test('pin a comment', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
-    const result = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {
@@ -280,8 +280,8 @@ describe('mutations on comment', () => {
   })
 
   test('unpin a comment ', async () => {
-    const { executeOperation } = await testClient({ isAuth: true })
-    const { data } = await executeOperation({
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {

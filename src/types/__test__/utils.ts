@@ -152,11 +152,11 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     }
   `
 
-  const { executeOperation } = await testClient({
+  const server = await testClient({
     isAuth: true,
   })
 
-  const result = await executeOperation({
+  const result = await server.executeOperation({
     query: PUBLISH_ARTICLE,
     variables: { input },
   })
@@ -197,11 +197,11 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
     }
   `
 
-  const { executeOperation } = await testClient({
+  const server = await testClient({
     isAuth: true,
     ...client,
   })
-  const result = await executeOperation({
+  const result = await server.executeOperation({
     query: PUT_DRAFT,
     variables: { input: draft },
   })
@@ -225,8 +225,8 @@ export const registerUser = async (user: GQLUserRegisterInput) => {
     }
   `
 
-  const { executeOperation } = await testClient()
-  return executeOperation({
+  const server = await testClient()
+  return server.executeOperation({
     query: USER_REGISTER,
     variables: { input: user },
   })
@@ -254,10 +254,10 @@ export const updateUserDescription = async ({
     _email = email
   }
   const context = await getUserContext({ email: _email })
-  const { executeOperation } = await testClient({
+  const server = await testClient({
     context,
   })
-  return executeOperation({
+  return server.executeOperation({
     query: UPDATE_USER_INFO_DESCRIPTION,
     variables: { input: { description } },
   })
@@ -281,8 +281,8 @@ export const updateUserState = async ({
     }
   `
 
-  const { executeOperation } = await testClient({ isAdmin: true })
-  return executeOperation({
+  const server = await testClient({ isAdmin: true })
+  return server.executeOperation({
     query: UPDATE_USER_STATE,
     variables: { input: { id, state } },
   })
@@ -302,8 +302,8 @@ export const setFeature = async ({
       }
     }
   `
-  const { executeOperation } = await testClient({ isAdmin, isAuth, isMatty })
-  const result = await executeOperation({
+  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await server.executeOperation({
     query: SET_FEATURE_FLAG,
     variables: { input },
   })
