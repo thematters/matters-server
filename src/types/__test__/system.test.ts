@@ -170,7 +170,6 @@ describe('query nodes of different type', () => {
     const { executeOperation } = await testClient()
     const result = await executeOperation({
       query: GET_USER,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const { data } = result
@@ -183,7 +182,6 @@ describe('query nodes of different type', () => {
     const { executeOperation } = await testClient()
     const { data } = await executeOperation({
       query: GET_ARTICLE,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const node = data && data.node
@@ -195,7 +193,6 @@ describe('query nodes of different type', () => {
     const { executeOperation } = await testClient()
     const { data } = await executeOperation({
       query: GET_COMMENT,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const node = data && data.node
@@ -210,7 +207,6 @@ describe.skip('Search', () => {
 
     const result = await executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: draft.title,
@@ -229,7 +225,6 @@ describe.skip('Search', () => {
 
     const result = await executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: draft.tags[0],
@@ -249,7 +244,6 @@ describe.skip('Search', () => {
 
     const result = await executeOperation({
       query: SEARCH,
-      // @ts-ignore
       variables: {
         input: {
           key: userDescription,

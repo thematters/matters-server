@@ -153,7 +153,6 @@ export const putTag = async ({
   const { executeOperation } = await testClient({ isAdmin, isAuth, isMatty })
   const result = await executeOperation({
     query: PUT_TAG,
-    // @ts-ignore
     variables: { input: tag },
   })
   const data = result?.data?.putTag
@@ -201,7 +200,6 @@ describe('put tag', () => {
     })
     const queryResult = await executeOperation({
       query: QUERY_TAG,
-      // @ts-ignore
       variables: { input: { id: createTagId } },
     })
     expect(_get(queryResult, 'data.node.content')).toBe(content)

@@ -97,7 +97,6 @@ const getCommentVotes = async (commentId: string) => {
   const { executeOperation } = await testClient()
   const { data } = await executeOperation({
     query: GET_COMMENT,
-    // @ts-ignore
     variables: {
       input: { id: commentId },
     },
@@ -111,7 +110,6 @@ describe('query comment list on article', () => {
     const { executeOperation } = await testClient()
     const result = await executeOperation({
       query: GET_ARTILCE_COMMENTS,
-      // @ts-ignore
       variables: {
         nodeInput: { id: ARTICLE_ID },
         commentsInput: { filter: { author: authorId } },
@@ -127,7 +125,6 @@ describe('query comment list on article', () => {
     const { executeOperation } = await testClient()
     const { data } = await executeOperation({
       query: GET_ARTILCE_COMMENTS,
-      // @ts-ignore
       variables: {
         nodeInput: { id: ARTICLE_ID },
         commentsInput: { sort: 'newest' },
@@ -151,7 +148,6 @@ describe('mutations on comment', () => {
 
     const result = await executeOperation({
       query: PUT_COMMENT,
-      // @ts-ignore
       variables: {
         input: {
           comment: {
@@ -175,7 +171,6 @@ describe('mutations on comment', () => {
     // upvote
     const { data } = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'up' },
       },
@@ -193,7 +188,6 @@ describe('mutations on comment', () => {
     // upvote
     const upvoteResult = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'up' },
       },
@@ -205,7 +199,6 @@ describe('mutations on comment', () => {
     // upvote comment that article published by viewer
     const upvoteSuccuessResult = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
       },
@@ -215,7 +208,6 @@ describe('mutations on comment', () => {
     // downvote
     const downvoteResult = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'down' },
       },
@@ -227,7 +219,6 @@ describe('mutations on comment', () => {
     // downvote comment that article published by viewer
     const downvoteSuccuessResult = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
       },
@@ -242,7 +233,6 @@ describe('mutations on comment', () => {
     const { upvotes, downvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await executeOperation({
       query: VOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'down' },
       },
@@ -256,7 +246,6 @@ describe('mutations on comment', () => {
     const { upvotes, downvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await executeOperation({
       query: UNVOTE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: commentId },
       },
@@ -269,7 +258,6 @@ describe('mutations on comment', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const { data } = await executeOperation({
       query: DELETE_COMMENT,
-      // @ts-ignore
       variables: {
         input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
       },
@@ -281,7 +269,6 @@ describe('mutations on comment', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const result = await executeOperation({
       query: TOGGLE_PIN_COMMENT,
-      // @ts-ignore
       variables: {
         input: {
           id: COMMENT_ID,
@@ -296,7 +283,6 @@ describe('mutations on comment', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const { data } = await executeOperation({
       query: TOGGLE_PIN_COMMENT,
-      // @ts-ignore
       variables: {
         input: {
           id: COMMENT_ID,

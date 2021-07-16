@@ -134,6 +134,8 @@ export const testClient = async (
     }),
   })
 
+  await server.start()
+
   return server
 }
 
@@ -156,7 +158,6 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
 
   const result = await executeOperation({
     query: PUBLISH_ARTICLE,
-    // @ts-ignore
     variables: { input },
   })
 
@@ -202,7 +203,6 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
   })
   const result = await executeOperation({
     query: PUT_DRAFT,
-    // @ts-ignore
     variables: { input: draft },
   })
 
@@ -228,7 +228,6 @@ export const registerUser = async (user: GQLUserRegisterInput) => {
   const { executeOperation } = await testClient()
   return executeOperation({
     query: USER_REGISTER,
-    // @ts-ignore
     variables: { input: user },
   })
 }
@@ -260,7 +259,6 @@ export const updateUserDescription = async ({
   })
   return executeOperation({
     query: UPDATE_USER_INFO_DESCRIPTION,
-    // @ts-ignore
     variables: { input: { description } },
   })
 }
@@ -307,7 +305,6 @@ export const setFeature = async ({
   const { executeOperation } = await testClient({ isAdmin, isAuth, isMatty })
   const result = await executeOperation({
     query: SET_FEATURE_FLAG,
-    // @ts-ignore
     variables: { input },
   })
   const data = result?.data?.setFeature

@@ -316,7 +316,6 @@ describe('register and login functionarlities', () => {
 
     const result = await executeOperation({
       query: USER_LOGIN,
-      // @ts-ignore
       variables: { input: { email, password } },
     })
     expect(_get(result, 'errors.0.extensions.code')).toBe(
@@ -331,7 +330,6 @@ describe('register and login functionarlities', () => {
     const { executeOperation } = await testClient()
     const result = await executeOperation({
       query: USER_LOGIN,
-      // @ts-ignore
       variables: { input: { email, password } },
     })
     expect(_get(result, 'data.userLogin.auth')).toBe(true)
@@ -355,7 +353,6 @@ describe('user query fields', () => {
     const { executeOperation } = await testClient()
     const { data } = await executeOperation({
       query: GET_USER_BY_USERNAME,
-      // @ts-ignore
       variables: { input: { userName } },
     })
     expect(_get(data, 'user.userName')).toBe(userName)
@@ -366,7 +363,6 @@ describe('user query fields', () => {
     })
     const result = await executeOperation({
       query: GET_VIEW_ARTICLES,
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const { data } = result
@@ -394,7 +390,6 @@ describe('user query fields', () => {
     })
     const { data } = await executeOperation({
       query: GET_VIEWER_SUBSCRIPTIONS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const subscriptions = _get(data, 'viewer.subscriptions.edges')
@@ -407,7 +402,6 @@ describe('user query fields', () => {
     })
     const { data } = await executeOperation({
       query: GET_VIEWER_FOLLOWERS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const followers = _get(data, 'viewer.followers.edges')
@@ -420,7 +414,6 @@ describe('user query fields', () => {
     })
     const { data } = await executeOperation({
       query: GET_VIEWER_FOLLOWEES,
-      // @ts-ignore
       variables: { input: {} },
     })
     const followees = _get(data, 'viewer.followees.edges')
@@ -433,7 +426,6 @@ describe('user query fields', () => {
     })
     const { data } = await executeOperation({
       query: GET_VIEWER_FOLLOWINGS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const circles = _get(data, 'viewer.following.circles.edges')
@@ -462,7 +454,6 @@ describe('mutations on User object', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const result = await executeOperation({
       query: TOGGLE_FOLLOW_USER,
-      // @ts-ignore
       variables: {
         input: {
           id: followeeId,
@@ -478,7 +469,6 @@ describe('mutations on User object', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const { data } = await executeOperation({
       query: TOGGLE_FOLLOW_USER,
-      // @ts-ignore
       variables: {
         input: {
           id: followeeId,
@@ -494,7 +484,6 @@ describe('mutations on User object', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const result = await executeOperation({
       query: TOGGLE_BLOCK_USER,
-      // @ts-ignore
       variables: {
         input: {
           id: blockUserId,
@@ -510,7 +499,6 @@ describe('mutations on User object', () => {
     const { executeOperation } = await testClient({ isAuth: true })
     const result = await executeOperation({
       query: TOGGLE_BLOCK_USER,
-      // @ts-ignore
       variables: {
         input: {
           id: blockUserId,
@@ -528,7 +516,6 @@ describe('mutations on User object', () => {
     })
     const { data } = await executeOperation({
       query: UPDATE_USER_INFO_DESCRIPTION,
-      // @ts-ignore
       variables: { input: { description } },
     })
     const info = _get(data, 'updateUserInfo.info')
@@ -542,7 +529,6 @@ describe('mutations on User object', () => {
     })
     const { data } = await executeOperation({
       query: UPDATE_USER_INFO_AVATAR,
-      // @ts-ignore
       variables: { input: { avatar: avatarAssetUUID } },
     })
     const avatar = _get(data, 'updateUserInfo.avatar')
@@ -555,7 +541,6 @@ describe('mutations on User object', () => {
     })
     const { data } = await executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
-      // @ts-ignore
       variables: { input: { type: 'enable', enabled: false } },
     })
     const enable = _get(
@@ -578,7 +563,6 @@ describe('user recommendations', () => {
 
       const result = await executeOperationNew({
         query: GET_VIEWER_RECOMMENDATION(list),
-        // @ts-ignore
         variables: { input: { first: 1 } },
       })
       const { data } = result
@@ -596,7 +580,6 @@ describe('user recommendations', () => {
     })
     const { data } = await executeOperationNew({
       query: GET_VIEWER_RECOMMENDATION_TAGS,
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
@@ -611,7 +594,6 @@ describe('user recommendations', () => {
     })
     const result = await executeOperationNew({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const { data } = result
@@ -627,7 +609,6 @@ describe('badges', () => {
     })
     const { data } = await executeOperation({
       query: GET_VIEWER_BADGES,
-      // @ts-ignore
       variables: {},
     })
     expect(_get(data, 'viewer.info.badges.0.type')).toBe('seed')
@@ -643,7 +624,6 @@ describe('verification code', () => {
     const { executeOperation } = await testClient()
     const result = await executeOperation({
       query: SEND_VERIFICATION_CODE,
-      // @ts-ignore
       variables: { input: { type, email, token: 'some-test-token' } },
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
@@ -655,7 +635,6 @@ describe('verification code', () => {
     const { executeOperation: confirmMutate } = await testClient()
     const confirmedResult = await confirmMutate({
       query: CONFIRM_VERIFICATION_CODE,
-      // @ts-ignore
       variables: { input: { type, email, code: code.code } },
     })
     expect(

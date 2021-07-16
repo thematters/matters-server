@@ -119,7 +119,6 @@ export const getArticleAppreciationsReceivedTotal = async (
   const { executeOperation } = await testClient()
   const { data } = await executeOperation({
     query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
-    // @ts-ignore
     variables: { input },
   })
   const { appreciationsReceivedTotal } = data && data.node && data.node
@@ -132,7 +131,6 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   })
   const result = await executeOperation({
     query: APPRECIATE_ARTICLE,
-    // @ts-ignore
     variables: { input },
   })
 
@@ -152,7 +150,6 @@ describe('query article', () => {
     })
     const result = await executeOperation({
       query: GET_ARTICLES,
-      // @ts-ignore
       variables: { input: {} },
     })
     expect(_get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
@@ -162,7 +159,6 @@ describe('query article', () => {
     const { executeOperation } = await testClient()
     const result = await executeOperation({
       query: GET_RELATED_ARTICLES,
-      // @ts-ignore
       variables: { input: { mediaHash } },
     })
     expect(_get(result, 'data.article.relatedArticles.edges')).toBeDefined()
@@ -175,7 +171,6 @@ describe('query tag on article', () => {
     const { executeOperation } = await testClient()
     const { data } = await executeOperation({
       query: GET_ARTICLE_TAGS,
-      // @ts-ignore
       variables: { input: { id } },
     })
     const tags = data && data.node && data.node.tags
@@ -206,7 +201,6 @@ describe('toggle article state', () => {
     })
     const { data } = await executeOperation({
       query: TOGGLE_SUBSCRIBE_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -224,7 +218,6 @@ describe('toggle article state', () => {
     })
     const { data } = await executeOperation({
       query: TOGGLE_SUBSCRIBE_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -307,7 +300,6 @@ describe('edit article', () => {
     })
     const result = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -321,7 +313,6 @@ describe('edit article', () => {
     // reset summary
     const resetResult1 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -336,7 +327,6 @@ describe('edit article', () => {
 
     const resetResult2 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -355,7 +345,6 @@ describe('edit article', () => {
     })
     const result = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -370,7 +359,6 @@ describe('edit article', () => {
     // reset tags
     const resetResult1 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -382,7 +370,6 @@ describe('edit article', () => {
 
     const resetResult2 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -404,7 +391,6 @@ describe('edit article', () => {
     })
     const result = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -423,7 +409,6 @@ describe('edit article', () => {
     // reset collection
     const resetResult1 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -435,7 +420,6 @@ describe('edit article', () => {
 
     const resetResult2 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -453,7 +437,6 @@ describe('edit article', () => {
     })
     const enableResult = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -465,7 +448,6 @@ describe('edit article', () => {
 
     const disableResult = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -483,7 +465,6 @@ describe('edit article', () => {
     })
     const result = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -499,7 +480,6 @@ describe('edit article', () => {
     const errorPath = 'errors.0.extensions.code'
     const forbidResult = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -512,7 +492,6 @@ describe('edit article', () => {
     // reset license
     const resetResult1 = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -533,7 +512,6 @@ describe('edit article', () => {
     })
     const result = await executeOperation({
       query: EDIT_ARTICLE,
-      // @ts-ignore
       variables: {
         input: {
           id: ARTICLE_ID,

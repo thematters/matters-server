@@ -29,7 +29,6 @@ test('query notices', async () => {
   const { executeOperation } = await testClient({ isAuth: true })
   const { data } = await executeOperation({
     query: GET_NOTICES,
-    // @ts-ignore
     variables: {
       nodeInput: { id: USER_ID },
     },
