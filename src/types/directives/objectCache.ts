@@ -1,5 +1,5 @@
+import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField, GraphQLObjectType } from 'graphql'
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { CacheService } from 'connectors'

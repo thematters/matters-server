@@ -36,7 +36,6 @@ app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
 /**
  * Middlewares
  */
-
 app.use(helmet() as RequestHandler)
 app.use(requestIp.mw())
 app.use(cors(CORS_OPTIONS))
@@ -44,13 +43,9 @@ app.use(cors(CORS_OPTIONS))
 /**
  * Routes
  *
- * @see {@url https://www.apollographql.com/docs/apollo-server
- * /features/subscriptions/#subscriptions-with-additional-middleware}
  */
-
 // GraphQL
 const server = routes.graphql(app)
-server.installSubscriptionHandlers(httpServer)
 
 // OAuth
 app.use('/oauth', routes.oauth)
@@ -61,9 +56,6 @@ app.use('/pay', routes.pay)
 httpServer.listen(PORT, () => {
   console.log(
     `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-  )
-  console.log(
-    `🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`
   )
 })
 httpServer.setTimeout(SERVER_TIMEOUT)

@@ -1,8 +1,5 @@
 import {
-  DateResolver,
   DateTimeResolver,
-  EmailAddressResolver,
-  JSONResolver,
   NegativeFloatResolver,
   NegativeIntResolver,
   NonNegativeFloatResolver,
@@ -11,19 +8,12 @@ import {
   NonPositiveIntResolver,
   PositiveFloatResolver,
   PositiveIntResolver,
-  TimeResolver,
-  URLResolver,
 } from 'graphql-scalars'
 import * as GraphQLUpload from 'graphql-upload'
 
 export default {
-  Date: DateResolver,
-  Time: TimeResolver,
   DateTime: DateTimeResolver,
-  JSON: JSONResolver,
   Upload: GraphQLUpload,
-  Email: EmailAddressResolver,
-  URL: URLResolver,
   NonPositiveInt: NonPositiveIntResolver,
   PositiveInt: PositiveIntResolver,
   NonNegativeInt: NonNegativeIntResolver,

@@ -116,8 +116,8 @@ const GET_RELATED_ARTICLES = /* GraphQL */ `
 export const getArticleAppreciationsReceivedTotal = async (
   input: GQLNodeInput
 ) => {
-  const { query } = await testClient()
-  const { data } = await query({
+  const { executeOperation } = await testClient()
+  const { data } = await executeOperation({
     query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
     // @ts-ignore
     variables: { input },
@@ -127,11 +127,11 @@ export const getArticleAppreciationsReceivedTotal = async (
 }
 
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
-  const { mutate } = await testClient({
+  const { executeOperation } = await testClient({
     isAuth: true,
   })
-  const result = await mutate({
-    mutation: APPRECIATE_ARTICLE,
+  const result = await executeOperation({
+    query: APPRECIATE_ARTICLE,
     // @ts-ignore
     variables: { input },
   })
@@ -146,8 +146,11 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
 
 describe('query article', () => {
   test('query articles', async () => {
-    const { query } = await testClient({ isAuth: true, isAdmin: true })
-    const result = await query({
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const result = await executeOperation({
       query: GET_ARTICLES,
       // @ts-ignore
       variables: { input: {} },
@@ -156,8 +159,8 @@ describe('query article', () => {
   })
 
   test('query related articles', async () => {
-    const { query } = await testClient()
-    const result = await query({
+    const { executeOperation } = await testClient()
+    const result = await executeOperation({
       query: GET_RELATED_ARTICLES,
       // @ts-ignore
       variables: { input: { mediaHash } },
@@ -169,8 +172,8 @@ describe('query article', () => {
 describe('query tag on article', () => {
   test('query tag on article', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-    const { query } = await testClient()
-    const { data } = await query({
+    const { executeOperation } = await testClient()
+    const { data } = await executeOperation({
       query: GET_ARTICLE_TAGS,
       // @ts-ignore
       variables: { input: { id } },
@@ -197,9 +200,12 @@ describe('publish article', () => {
 
 describe('toggle article state', () => {
   test('subscribe an article', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await executeOperation({
+      query: TOGGLE_SUBSCRIBE_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -212,9 +218,12 @@ describe('toggle article state', () => {
   })
 
   test('unsubscribe an article ', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await executeOperation({
+      query: TOGGLE_SUBSCRIBE_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -245,9 +254,9 @@ describe('frozen user do muations to article', () => {
 
   test('subscribe article', async () => {
     await frozeUser()
-    const { mutate } = await testClient(frozenUser)
-    const result = await mutate({
-      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+    const { executeOperation } = await testClient(frozenUser)
+    const result = await executeOperation({
+      query: TOGGLE_SUBSCRIBE_ARTICLE,
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -261,9 +270,9 @@ describe('frozen user do muations to article', () => {
 
   test('unsubscribe article', async () => {
     await frozeUser()
-    const { mutate } = await testClient(frozenUser)
-    const result = await mutate({
-      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+    const { executeOperation } = await testClient(frozenUser)
+    const result = await executeOperation({
+      query: TOGGLE_SUBSCRIBE_ARTICLE,
       variables: {
         input: {
           id: ARTICLE_ID,
@@ -292,9 +301,12 @@ describe('frozen user do muations to article', () => {
 describe('edit article', () => {
   test('edit article summary', async () => {
     const summary = 'my customized summary'
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const result = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -307,8 +319,8 @@ describe('edit article', () => {
     expect(_get(result, 'data.editArticle.summaryCustomized')).toBe(true)
 
     // reset summary
-    const resetResult1 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult1 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -322,8 +334,8 @@ describe('edit article', () => {
     ).toBeGreaterThan(0)
     expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
 
-    const resetResult2 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult2 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -337,9 +349,12 @@ describe('edit article', () => {
 
   test('edit article tags', async () => {
     const tags = ['abc', '123']
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const result = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -353,8 +368,8 @@ describe('edit article', () => {
     expect(_get(result, 'data.editArticle.tags.1.content')).toBe(tags[1])
 
     // reset tags
-    const resetResult1 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult1 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -365,8 +380,8 @@ describe('edit article', () => {
     })
     expect(_get(resetResult1, 'data.editArticle.tags.length')).toBe(0)
 
-    const resetResult2 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult2 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -383,9 +398,12 @@ describe('edit article', () => {
       toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
     ]
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const result = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -403,8 +421,8 @@ describe('edit article', () => {
     ).toEqual(collection.sort())
 
     // reset collection
-    const resetResult1 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult1 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -415,8 +433,8 @@ describe('edit article', () => {
     })
     expect(_get(resetResult1, 'data.editArticle.collection.totalCount')).toBe(0)
 
-    const resetResult2 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult2 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -429,9 +447,12 @@ describe('edit article', () => {
   })
 
   test('toggle article sticky', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const enableResult = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const enableResult = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -442,8 +463,8 @@ describe('edit article', () => {
     })
     expect(_get(enableResult, 'data.editArticle.sticky')).toBe(true)
 
-    const disableResult = await mutate({
-      mutation: EDIT_ARTICLE,
+    const disableResult = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -456,9 +477,12 @@ describe('edit article', () => {
   })
 
   test('edit license', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const result = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -473,8 +497,8 @@ describe('edit article', () => {
 
     // forbid to ARR if it's not a paywalled article
     const errorPath = 'errors.0.extensions.code'
-    const forbidResult = await mutate({
-      mutation: EDIT_ARTICLE,
+    const forbidResult = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -486,8 +510,8 @@ describe('edit article', () => {
     expect(_get(forbidResult, errorPath)).toBe('FORBIDDEN')
 
     // reset license
-    const resetResult1 = await mutate({
-      mutation: EDIT_ARTICLE,
+    const resetResult1 = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {
@@ -503,9 +527,12 @@ describe('edit article', () => {
   })
 
   test('archive article', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
-    const result = await mutate({
-      mutation: EDIT_ARTICLE,
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await executeOperation({
+      query: EDIT_ARTICLE,
       // @ts-ignore
       variables: {
         input: {

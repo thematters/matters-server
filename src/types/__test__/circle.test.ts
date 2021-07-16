@@ -245,7 +245,7 @@ describe('circle CRUD', () => {
 
   test('create circle', async () => {
     const path = 'data.putCircle'
-    const { mutate } = await testClient(userClient)
+    const { executeOperation } = await testClient(userClient)
     const input: Record<string, any> = {
       name: 'very_long_circle_name',
       displayName: 'very long circle name',
@@ -253,39 +253,39 @@ describe('circle CRUD', () => {
     }
 
     // test long circle name
-    const data1 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data1 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data1, errorPath)).toBe('NAME_INVALID')
 
     // test circle name with symbol
     input.name = 'circle-name'
-    const data2 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data2 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data2, errorPath)).toBe('NAME_INVALID')
 
     // test long circle display name
     input.name = 'circle1'
-    const data3 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data3 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data3, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     // test invalid display name
     input.displayName = '，'
-    const data4 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data4 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data4, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = 'Circle 1'
-    const data5 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data5 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
 
@@ -295,16 +295,18 @@ describe('circle CRUD', () => {
     expect(_get(data5, `${path}.prices[0].currency`)).toBe('HKD')
 
     // test create multiple circles
-    const data6 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data6 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data6, errorPath)).toBe('CIRCLE_CREATION_REACH_LIMIT')
 
     // test create a duplicate circle
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const data7 = await adminMutate({
-      mutation: PUT_CIRCLE,
+    const { executeOperation: executeOperationAdmin } = await testClient(
+      adminClient
+    )
+    const data7 = await executeOperationAdmin({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data7, errorPath)).toBe('NAME_EXISTS')
@@ -312,8 +314,8 @@ describe('circle CRUD', () => {
 
   test('update circle', async () => {
     const path = 'data.putCircle'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -323,22 +325,22 @@ describe('circle CRUD', () => {
     }
 
     // test cricle name
-    const updatedData1 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData1 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData1, errorPath)).toBe('NAME_INVALID')
 
     input.name = 'circle1'
-    const updatedData2 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData2 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData2, errorPath)).toBe('DUPLICATE_CIRCLE')
 
     input.name = 'circle2'
-    const updatedData3 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData3 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData3, `${path}.name`)).toBe('circle2')
@@ -346,22 +348,22 @@ describe('circle CRUD', () => {
     // test circle display name
     delete input.name
     input.displayName = 'very long circle name'
-    const updatedData4 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData4 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData4, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = '，'
-    const updatedData5 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData5 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData5, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = 'Circle 2'
-    const updatedData6 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData6 = await executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData6, `${path}.displayName`)).toBe('Circle 2')
@@ -369,23 +371,25 @@ describe('circle CRUD', () => {
 
   test('toggle follow circle', async () => {
     const path = 'data.toggleFollowCircle'
-    const { query } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // test follow circle
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const updatedData1 = await adminMutate({
-      mutation: TOGGLE_FOLLOW_CIRCLE,
+    const { executeOperation: executeOperationAdmin } = await testClient(
+      adminClient
+    )
+    const updatedData1 = await executeOperationAdmin({
+      query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: true } },
     })
     expect(_get(updatedData1, `${path}.followers.edges`).length).toBe(1)
 
     // test unfollow circle
-    const updatedData2 = await adminMutate({
-      mutation: TOGGLE_FOLLOW_CIRCLE,
+    const updatedData2 = await executeOperationAdmin({
+      query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: false } },
     })
     expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
@@ -393,8 +397,8 @@ describe('circle CRUD', () => {
 
   test('add article to circle with public access, then removes from circle', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -408,8 +412,8 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.public,
       license: ARTICLE_LICENSE_TYPE.cc_0,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
@@ -427,8 +431,8 @@ describe('circle CRUD', () => {
     )
 
     // remove public article from circle
-    const removedData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const removedData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: {
         input: {
           ...publicInput,
@@ -441,8 +445,8 @@ describe('circle CRUD', () => {
 
   test('add article to circle with public access, then turns to paywall access', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({ query: GET_VIEWER_OWN_CIRCLES })
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({ query: GET_VIEWER_OWN_CIRCLES })
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[0].node')
 
@@ -453,8 +457,8 @@ describe('circle CRUD', () => {
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
@@ -479,8 +483,8 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.paywall,
       license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPaywallData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
@@ -498,8 +502,8 @@ describe('circle CRUD', () => {
     )
 
     // remove from circle
-    const removedData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const removedData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: {
         input: {
           ...paywallInput,
@@ -512,8 +516,8 @@ describe('circle CRUD', () => {
 
   test('add article to circle with paywall access, then turns to public access', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -527,8 +531,8 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.paywall,
       license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPaywallData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
@@ -553,8 +557,8 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.public,
       license: ARTICLE_LICENSE_TYPE.cc_0,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
@@ -564,15 +568,15 @@ describe('circle CRUD', () => {
   })
 
   test('add and retrieve discussion', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // add
-    const addedData = await mutate({
-      mutation: PUT_CIRCLE_COMMENT,
+    const addedData = await executeOperation({
+      query: PUT_CIRCLE_COMMENT,
       variables: {
         input: {
           comment: {
@@ -588,7 +592,7 @@ describe('circle CRUD', () => {
     expect(commentId).toBeTruthy()
 
     // retrieve
-    const retrieveData = await query({
+    const retrieveData = await executeOperation({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
         input: { name: circle.name },
@@ -604,15 +608,15 @@ describe('circle CRUD', () => {
   })
 
   test('add, pin and retrieve broadcast', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data } = await executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // add
-    const addedData = await mutate({
-      mutation: PUT_CIRCLE_COMMENT,
+    const addedData = await executeOperation({
+      query: PUT_CIRCLE_COMMENT,
       variables: {
         input: {
           comment: {
@@ -627,8 +631,8 @@ describe('circle CRUD', () => {
     expect(commentId).toBeTruthy()
 
     // pin
-    const pinnedData = await mutate({
-      mutation: TOGGLE_PIN_COMMENT,
+    const pinnedData = await executeOperation({
+      query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {
           id: commentId,
@@ -639,7 +643,7 @@ describe('circle CRUD', () => {
     expect(_get(pinnedData, 'data.togglePinComment.pinned')).toBe(true)
 
     // retrieve
-    const retrieveData = await query({
+    const retrieveData = await executeOperation({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
         input: { name: circle.name },
@@ -677,8 +681,8 @@ describe('circle invitation management', () => {
   ]
 
   test('create invitation', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data: pendingInvites } = await query({
+    const { executeOperation } = await testClient(userClient)
+    const { data: pendingInvites } = await executeOperation({
       query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
 
@@ -687,8 +691,8 @@ describe('circle invitation management', () => {
     expect(circle.invites.pending.totalCount).toBe(0)
 
     // invite users
-    const inviteData1 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData1 = await executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
@@ -708,8 +712,8 @@ describe('circle invitation management', () => {
     )
 
     // re-invite users with different duration
-    const inviteData2 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData2 = await executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees: [...invitees, { id: null, email: 'someone2@matters.news' }],
@@ -727,8 +731,8 @@ describe('circle invitation management', () => {
     )
 
     // test validator
-    const inviteData3 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData3 = await executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
@@ -739,8 +743,8 @@ describe('circle invitation management', () => {
     })
     expect(_get(inviteData3, errorPath)).toBe('BAD_USER_INPUT')
 
-    const inviteData4 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData4 = await executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees: [],
@@ -751,9 +755,11 @@ describe('circle invitation management', () => {
     })
     expect(_get(inviteData4, errorPath)).toBe('BAD_USER_INPUT')
 
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const inviteData5 = await adminMutate({
-      mutation: CIRCLE_INVITE,
+    const { executeOperation: executeOperationAdmin } = await testClient(
+      adminClient
+    )
+    const inviteData5 = await executeOperationAdmin({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
@@ -766,11 +772,15 @@ describe('circle invitation management', () => {
   })
 
   test('accept invitation', async () => {
-    const { query } = await testClient(userClient)
-    const { mutate } = await testClient(adminClient)
+    const { executeOperation: executeOperationUser } = await testClient(
+      userClient
+    )
+    const { executeOperation: executeOperationAdmin } = await testClient(
+      adminClient
+    )
 
     // check init state of invitations
-    const { data: ivtData } = await query({
+    const { data: ivtData } = await executeOperationUser({
       query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
     const circle = _get(ivtData, 'viewer.ownCircles.0')
@@ -788,8 +798,8 @@ describe('circle invitation management', () => {
     })
 
     // subscribe invited circle
-    const subscribeResult = await mutate({
-      mutation: SUBSCRIBE_CIRCLE,
+    const subscribeResult = await executeOperationAdmin({
+      query: SUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id, password: '123456' } },
     })
     expect(_get(subscribeResult, 'data.subscribeCircle.circle.id')).toBe(
@@ -800,7 +810,7 @@ describe('circle invitation management', () => {
     )
 
     // check if it's accepted
-    const { data: newIvtData } = await query({
+    const { data: newIvtData } = await executeOperationUser({
       query: QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES,
     })
     const newIvtEdges = _get(

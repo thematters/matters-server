@@ -21,19 +21,19 @@ export default /* GraphQL */ `
     description: String
 
     "URL for oauth client's official website"
-    website: URL
+    website: String @constraint(format: "uri")
 
     "Scopes"
     scope: [String!]
 
     "URL for oauth client's avatar."
-    avatar: URL
+    avatar: String @constraint(format: "uri")
 
     "Client secret"
     secret: String! @auth(mode: "${AUTH_MODE.admin}")
 
     "Redirect URIs"
-    redirectURIs: [URL!] @auth(mode: "${AUTH_MODE.admin}")
+    redirectURIs: [String!] @auth(mode: "${AUTH_MODE.admin}") @constraint(format: "uri")
 
     "Grant Types"
     grantTypes: [GrantType!] @auth(mode: "${AUTH_MODE.admin}")
@@ -42,7 +42,7 @@ export default /* GraphQL */ `
     user: User @logCache(type: "${NODE_TYPES.User}")
 
     "Creation Date"
-    createdAt: Date!
+    createdAt: DateTime!
   }
 
   type OAuthClientConnection implements Connection {
@@ -64,11 +64,11 @@ export default /* GraphQL */ `
     id: ID
     name: String
     description: String
-    website: URL
+    website: String @constraint(format: "uri")
     scope: [String!]
     avatar: ID
     secret: String
-    redirectURIs: [URL!]
+    redirectURIs: [String!] @constraint(format: "uri")
     grantTypes: [GrantType!]
     user: ID
   }

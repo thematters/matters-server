@@ -89,7 +89,7 @@ export default /* GraphQL */ `
     title: String!
 
     "Article cover's link."
-    cover: URL
+    cover: String @constraint(format: "uri")
 
     "List of assets are belonged to this article."
     assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -204,7 +204,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Tag's cover link."
-    cover: URL
+    cover: String @constraint(format: "uri")
 
     "Description of this tag."
     description: String

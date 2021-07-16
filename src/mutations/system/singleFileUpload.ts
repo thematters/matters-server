@@ -10,7 +10,7 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { fromGlobalId, resolveUrl } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {
@@ -35,7 +35,6 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   const file = fileUpload.file as FileUpload
-  url = resolveUrl(url)
 
   const isImageType =
     [

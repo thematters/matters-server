@@ -94,8 +94,8 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const getCommentVotes = async (commentId: string) => {
-  const { query } = await testClient()
-  const { data } = await query({
+  const { executeOperation } = await testClient()
+  const { data } = await executeOperation({
     query: GET_COMMENT,
     // @ts-ignore
     variables: {
@@ -108,8 +108,8 @@ const getCommentVotes = async (commentId: string) => {
 describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
-    const { query } = await testClient()
-    const result = await query({
+    const { executeOperation } = await testClient()
+    const result = await executeOperation({
       query: GET_ARTILCE_COMMENTS,
       // @ts-ignore
       variables: {
@@ -124,8 +124,8 @@ describe('query comment list on article', () => {
   })
 
   test('sort comments by newest', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
+    const { executeOperation } = await testClient()
+    const { data } = await executeOperation({
       query: GET_ARTILCE_COMMENTS,
       // @ts-ignore
       variables: {
@@ -147,10 +147,10 @@ describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
   test('create a article comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
+    const { executeOperation } = await testClient({ isAuth: true })
 
-    const result = await mutate({
-      mutation: PUT_COMMENT,
+    const result = await executeOperation({
+      query: PUT_COMMENT,
       // @ts-ignore
       variables: {
         input: {
@@ -169,12 +169,12 @@ describe('mutations on comment', () => {
   })
 
   test('upvote a comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
+    const { executeOperation } = await testClient({ isAuth: true })
     const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
-    const { data } = await mutate({
-      mutation: VOTE_COMMENT,
+    const { data } = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'up' },
@@ -185,11 +185,14 @@ describe('mutations on comment', () => {
 
   test('onboarding user vote a comment', async () => {
     const onboardingCommentId = toGlobalId({ type: NODE_TYPES.Comment, id: 6 })
-    const { mutate } = await testClient({ isAuth: true, isOnboarding: true })
+    const { executeOperation } = await testClient({
+      isAuth: true,
+      isOnboarding: true,
+    })
 
     // upvote
-    const upvoteResult = await mutate({
-      mutation: VOTE_COMMENT,
+    const upvoteResult = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'up' },
@@ -200,8 +203,8 @@ describe('mutations on comment', () => {
     )
 
     // upvote comment that article published by viewer
-    const upvoteSuccuessResult = await mutate({
-      mutation: VOTE_COMMENT,
+    const upvoteSuccuessResult = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
@@ -210,8 +213,8 @@ describe('mutations on comment', () => {
     expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
 
     // downvote
-    const downvoteResult = await mutate({
-      mutation: VOTE_COMMENT,
+    const downvoteResult = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'down' },
@@ -222,8 +225,8 @@ describe('mutations on comment', () => {
     )
 
     // downvote comment that article published by viewer
-    const downvoteSuccuessResult = await mutate({
-      mutation: VOTE_COMMENT,
+    const downvoteSuccuessResult = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: onboardingCommentId, vote: 'up' },
@@ -235,10 +238,10 @@ describe('mutations on comment', () => {
   })
 
   test('downvote a comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
+    const { executeOperation } = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)
-    const { data: downvoteData } = await mutate({
-      mutation: VOTE_COMMENT,
+    const { data: downvoteData } = await executeOperation({
+      query: VOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId, vote: 'down' },
@@ -249,10 +252,10 @@ describe('mutations on comment', () => {
   })
 
   test('unvote a comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
+    const { executeOperation } = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)
-    const { data: unvoteData } = await mutate({
-      mutation: UNVOTE_COMMENT,
+    const { data: unvoteData } = await executeOperation({
+      query: UNVOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId },
@@ -263,9 +266,9 @@ describe('mutations on comment', () => {
   })
 
   test('delete comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const { data } = await mutate({
-      mutation: DELETE_COMMENT,
+    const { executeOperation } = await testClient({ isAuth: true })
+    const { data } = await executeOperation({
+      query: DELETE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
@@ -275,9 +278,9 @@ describe('mutations on comment', () => {
   })
 
   test('pin a comment', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: TOGGLE_PIN_COMMENT,
+    const { executeOperation } = await testClient({ isAuth: true })
+    const result = await executeOperation({
+      query: TOGGLE_PIN_COMMENT,
       // @ts-ignore
       variables: {
         input: {
@@ -290,9 +293,9 @@ describe('mutations on comment', () => {
   })
 
   test('unpin a comment ', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_PIN_COMMENT,
+    const { executeOperation } = await testClient({ isAuth: true })
+    const { data } = await executeOperation({
+      query: TOGGLE_PIN_COMMENT,
       // @ts-ignore
       variables: {
         input: {

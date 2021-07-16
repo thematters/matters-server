@@ -71,7 +71,6 @@ jobs:
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres
           MATTERS_PG_DATABASE: matters-test
-          MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
           MATTERS_MATTY_ID: 6

@@ -316,7 +316,7 @@ export default /* GraphQL */ `
     message: String!
 
     "The link to a specific page if provided."
-    link: URL
+    link: String @constraint(format: "uri")
   }
 
 `
