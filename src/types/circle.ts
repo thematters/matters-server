@@ -34,10 +34,10 @@ export default /* GraphQL */ `
     id: ID!
 
     "Circle avatar's link."
-    avatar: String @constraint(format: "uri")
+    avatar: String
 
     "Circle cover's link."
-    cover: String @constraint(format: "uri")
+    cover: String
 
     "Slugified name of this Circle."
     name: String!

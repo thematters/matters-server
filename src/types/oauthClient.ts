@@ -21,13 +21,13 @@ export default /* GraphQL */ `
     description: String
 
     "URL for oauth client's official website"
-    website: String @constraint(format: "uri")
+    website: String
 
     "Scopes"
     scope: [String!]
 
     "URL for oauth client's avatar."
-    avatar: String @constraint(format: "uri")
+    avatar: String
 
     "Client secret"
     secret: String! @auth(mode: "${AUTH_MODE.admin}")

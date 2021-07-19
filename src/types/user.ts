@@ -85,7 +85,7 @@ export default /* GraphQL */ `
     liker: Liker!
 
     "URL for user avatar."
-    avatar: String @constraint(format: "uri")
+    avatar: String
 
     "User information."
     info: UserInfo!
@@ -227,7 +227,7 @@ export default /* GraphQL */ `
     agreeOn: DateTime
 
     "Cover of profile page."
-    profileCover: String @constraint(format: "uri")
+    profileCover: String
 
     "Type of group."
     group: UserGroup!

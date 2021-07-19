@@ -47,7 +47,7 @@ export default /* GraphQL */ `
     tags: [String!]
 
     "Draft's cover link."
-    cover: String @constraint(format: "uri")
+    cover: String
 
     "State of draft during publihsing."
     publishState: PublishState!
