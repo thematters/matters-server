@@ -248,12 +248,6 @@ export class CommentService extends BaseService {
 
   /*********************************
    *                               *
-   *           Featured            *
-   *                               *
-   *********************************/
-
-  /*********************************
-   *                               *
    *              Pin              *
    *                               *
    *********************************/
@@ -267,19 +261,19 @@ export class CommentService extends BaseService {
     articleId: string
     activeOnly?: boolean
   }) => {
-    let qs = this.knex(this.table)
+    const query = this.knex(this.table)
       .count()
       .where({ targetId: articleId, pinned: true })
       .first()
 
     if (activeOnly) {
-      qs = qs.where({
+      query.where({
         state: COMMENT_STATE.active,
         type: COMMENT_TYPE.article,
       })
     }
 
-    const result = await qs
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 

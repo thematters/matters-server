@@ -12,10 +12,6 @@ if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
 
   try {
     firebaseCert = require(filePath)
-    console.log(
-      new Date(),
-      `Succeeded to load firebase credentials on ${filePath}`
-    )
   } catch (e) {
     console.error(
       new Date(),
@@ -33,7 +29,6 @@ if (process.env.MATTERS_OICD_PRIVATE_KEY) {
 
   try {
     OICDPrivateKey = fs.readFileSync(filePath, { encoding: 'utf8' })
-    console.log(new Date(), `Succeeded to load OICD private key on ${filePath}`)
   } catch (e) {
     console.error(new Date(), `Failed to load OICD private key on ${filePath}`)
   }

@@ -3,6 +3,7 @@ import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFolloweeDonatedArticlesResolver } from 'definitions'
 
@@ -16,6 +17,8 @@ export const followeeDonatedArticles: RecommendationToFolloweeDonatedArticlesRes
       return connectionFromArray([], input)
     }
 
+    const { take } = fromConnectionArgs(input)
+
     const { id: type } = await userService.baseFindEntityTypeId(
       TRANSACTION_TARGET_TYPE.article
     )
@@ -25,8 +28,8 @@ export const followeeDonatedArticles: RecommendationToFolloweeDonatedArticlesRes
       userService.countDedupedFolloweeDonationsByEntity({ id, type }),
       userService.findDedupedFolloweeDonationsByEntity({
         id,
-        after: keys.idCursor,
-        limit: input.first,
+        skip: keys.idCursor,
+        take,
         type,
       }),
     ])

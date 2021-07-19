@@ -220,7 +220,6 @@ const CIRCLE_INVITE = /* GraphQL*/ `
         id
       }
       freePeriod
-      accepted
     }
   }
 `

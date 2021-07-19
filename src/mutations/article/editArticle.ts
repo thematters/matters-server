@@ -236,7 +236,6 @@ const resolver: MutationToEditArticleResolver = async (
     const oldIds = (
       await articleService.findCollections({
         entranceId: article.id,
-        limit: null,
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
 
@@ -501,7 +500,7 @@ const resolver: MutationToEditArticleResolver = async (
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(dbId), // fetch latest article
-      articleService.findCollections({ entranceId: article.id, limit: null }),
+      articleService.findCollections({ entranceId: article.id }),
       tagService.findByArticleId({ articleId: article.id }),
       articleService.findArticleCircle(article.id),
     ])

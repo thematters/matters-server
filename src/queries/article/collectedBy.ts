@@ -1,7 +1,7 @@
-import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
   loadManyFilterError,
 } from 'common/utils'
 import { ArticleToCollectedByResolver } from 'definitions'
@@ -11,8 +11,7 @@ const resolver: ArticleToCollectedByResolver = async (
   { input },
   { dataSources: { atomService, articleService, draftService }, knex }
 ) => {
-  const { after, first } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const [countRecord, collections] = await Promise.all([
     knex('collection')
@@ -22,8 +21,8 @@ const resolver: ArticleToCollectedByResolver = async (
     atomService.findMany({
       table: 'collection',
       where: { articleId },
-      skip: offset,
-      take: first || BATCH_SIZE,
+      skip,
+      take,
     }),
   ])
 

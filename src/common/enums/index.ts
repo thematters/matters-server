@@ -23,7 +23,7 @@ export const GRAPHQL_COST_LIMIT = 500
 
 export const BCRYPT_ROUNDS = 12
 
-export const BATCH_SIZE = 10
+export const DEFAULT_TAKE_PER_PAGE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 

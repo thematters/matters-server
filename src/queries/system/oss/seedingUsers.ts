@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToSeedingUsersResolver } from 'definitions'
 
 export const seedingUsers: OSSToSeedingUsersResolver = async (
@@ -6,8 +6,7 @@ export const seedingUsers: OSSToSeedingUsersResolver = async (
   { input },
   { viewer, dataSources: { atomService, userService } }
 ) => {
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const table = 'seeding_user'
   const countQuery = atomService.count({ table, where: {} })

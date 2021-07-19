@@ -1,6 +1,7 @@
 import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
 
+import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { Item } from 'definitions'
 
 export type ConnectionCursor = string
@@ -184,4 +185,25 @@ export function connectionFromArrayWithKeys(
     ...connections,
     totalCount: data.length,
   }
+}
+
+export const fromConnectionArgs = (
+  input: { first?: number | null; after?: string },
+  options?: { allowFirstNull?: boolean; defaultTake?: number }
+) => {
+  const { first, after } = input
+  const { allowFirstNull = false, defaultTake = DEFAULT_TAKE_PER_PAGE } =
+    options || {}
+
+  let take = first as number
+  if (first === null && !allowFirstNull) {
+    take = defaultTake
+  }
+  if (first === undefined) {
+    take = defaultTake
+  }
+
+  const skip = cursorToIndex(after) + 1
+
+  return { take, skip }
 }

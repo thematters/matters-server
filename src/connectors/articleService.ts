@@ -14,7 +14,6 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
-  BATCH_SIZE,
   CIRCLE_STATE,
   COMMENT_TYPE,
   MINUTE,
@@ -27,7 +26,7 @@ import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchExclude, GQLSearchInput, Item } from 'definitions'
+import { GQLSearchExclude, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -402,18 +401,21 @@ export class ArticleService extends BaseService {
 
   search = async ({
     key,
-    first = 20,
-    offset,
+    take,
+    skip,
     oss = false,
     filter,
     exclude,
     viewerId,
-  }: GQLSearchInput & {
+  }: {
+    key: string
     author?: string
-    offset: number
+    take: number
+    skip: number
     oss?: boolean
     filter?: Record<string, any>
     viewerId?: string | null
+    exclude?: GQLSearchExclude
   }) => {
     const searchBody = bodybuilder()
       .query('multi_match', {
@@ -428,8 +430,8 @@ export class ArticleService extends BaseService {
         ],
         type: 'most_fields',
       })
-      .from(offset)
-      .size(first)
+      .from(skip)
+      .size(take)
 
     // only return active if not in oss
     if (!oss) {
@@ -474,7 +476,7 @@ export class ArticleService extends BaseService {
 
       // take the condition that searching for exact article title into consideration
       const idsByTitle = []
-      if (key.length >= 5 && offset === 0) {
+      if (key.length >= 5 && skip === 0) {
         const articles = await this.findByTitle({ title: key, oss, filter })
         for (const article of articles) {
           idsByTitle.push(article.id)
@@ -611,14 +613,14 @@ export class ArticleService extends BaseService {
    */
   findAppreciations = async ({
     referenceId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     referenceId: string
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
   }) => {
-    const result = await this.knex('appreciation')
+    const query = this.knex('appreciation')
       .select('reference_id', 'sender_id')
       .where({
         referenceId,
@@ -628,10 +630,15 @@ export class ArticleService extends BaseService {
       .sum('amount as amount')
       .max('created_at as created_at')
       .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
 
-    return result
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
   }
 
   appreciateLeftByUser = async ({
@@ -745,21 +752,27 @@ export class ArticleService extends BaseService {
    */
   findSubscriptions = async ({
     id: targetId,
-    limit,
-    offset = 0,
+    take,
+    skip,
   }: {
     id: string
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
   }) => {
     const query = this.knex
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
-      .offset(offset)
 
-    return limit ? query.limit(limit) : query
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
   }
 
   /*********************************
@@ -877,22 +890,24 @@ export class ArticleService extends BaseService {
    */
   findCollections = async ({
     entranceId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     entranceId: string
-    limit?: number | null
-    offset?: number
+    take?: number
+    skip?: number
   }) => {
     const query = this.knex('collection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
-      .offset(offset)
       .orderBy('order', 'asc')
 
-    if (limit) {
-      query.limit(limit)
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
     }
 
     return query
@@ -1119,22 +1134,22 @@ export class ArticleService extends BaseService {
    * Find an article's transactions by a given articleId.
    */
   findTransactions = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
     purpose = TRANSACTION_PURPOSE.donation,
     state = TRANSACTION_STATE.succeeded,
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
   }: {
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
     purpose?: TRANSACTION_PURPOSE
     state?: TRANSACTION_STATE
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-    const result = await this.knex('transaction')
+    const query = this.knex('transaction')
       .select('sender_id', 'target_id')
       .where({
         purpose,
@@ -1146,10 +1161,15 @@ export class ArticleService extends BaseService {
       .sum('amount as amount')
       .max('created_at as created_at')
       .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
 
-    return result
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
   }
 
   /**
@@ -1240,13 +1260,13 @@ export class ArticleService extends BaseService {
   findRelatedDonations = async ({
     articleId,
     notIn,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     articleId: string
     notIn: string[]
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(
       TRANSACTION_TARGET_TYPE.article
@@ -1258,7 +1278,14 @@ export class ArticleService extends BaseService {
       notIn,
     })
 
-    return query.orderBy('score').limit(limit).offset(offset)
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query.orderBy('score')
   }
 
   /*********************************

@@ -1,7 +1,7 @@
 import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
   loadManyFilterError,
 } from 'common/utils'
 import { ArticleToCollectionResolver } from 'definitions'
@@ -11,8 +11,8 @@ const resolver: ArticleToCollectionResolver = async (
   { input },
   { dataSources: { articleService }, knex }
 ) => {
-  const { after, first } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [countRecord, collections] = await Promise.all([
     knex('collection')
       .countDistinct('article_id', 'state')
@@ -21,8 +21,8 @@ const resolver: ArticleToCollectionResolver = async (
       .first(),
     articleService.findCollections({
       entranceId: articleId,
-      limit: first,
-      offset,
+      take,
+      skip,
     }),
   ])
 

@@ -181,7 +181,7 @@ export default /* GraphQL */ `
 
   input SetBoostInput {
     id: ID!
-    boost: Float!
+    boost: Float! @constraint(min: 0)
     type: BoostTypes!
   }
 
