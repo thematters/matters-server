@@ -96,7 +96,7 @@ export class CacheService {
     const key = this.genKey(keys)
 
     let data = await (this.redis.client as Redis.Redis).get(key)
-    data = JSON.parse(data || '""')
+    data = JSON.parse(data as string)
 
     // get the data if there is none
     if (isNil(data) && getter) {
