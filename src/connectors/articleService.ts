@@ -171,7 +171,6 @@ export class ArticleService extends BaseService {
     // make bundle and add content to ipfs
     const directoryName = 'article'
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
-    console.log('bundle to ipfs', bundle)
 
     const results = []
     for await (const result of this.ipfs.client.addAll(
@@ -190,12 +189,9 @@ export class ArticleService extends BaseService {
     // FIXME: fix missing bundle path and remove fallback logic
     // fallback to index file when no bundle path is matched
     if (entry.length === 0) {
-      console.log('fallback to index.html', results)
       entry = results.filter(({ path }: { path: string }) =>
         path.endsWith('index.html')
       )
-    } else {
-      console.log('use directory hash', results)
     }
 
     const contentHash = entry[0].cid.toString()
