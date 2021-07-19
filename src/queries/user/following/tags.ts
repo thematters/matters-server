@@ -15,7 +15,8 @@ const resolver: FollowingToTagsResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { take, skip } = fromConnectionArgs(input)
+  // TODO: turn off `allowTakeAll` once new following feed is deployed
+  const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
   const [totalCount, actions] = await Promise.all([
     atomService.count({

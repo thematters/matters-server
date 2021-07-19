@@ -293,18 +293,36 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by which commented by author.
    */
-  findByCommentedAuthor = async (authorId: string) =>
-    this.knex
+  findByCommentedAuthor = async ({
+    id,
+    skip,
+    take,
+  }: {
+    id: string
+    skip?: number
+    take?: number
+  }) => {
+    const query = this.knex
       .select('article.*')
       .max('comment.id', { as: '_comment_id_' })
       .from('comment')
       .innerJoin(this.table, 'comment.target_id', 'article.id')
       .where({
-        'comment.author_id': authorId,
+        'comment.author_id': id,
         'comment.type': COMMENT_TYPE.article,
       })
       .groupBy('article.id')
       .orderBy('_comment_id_', 'desc')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   /*********************************
    *                               *

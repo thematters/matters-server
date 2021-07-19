@@ -189,14 +189,14 @@ export function connectionFromArrayWithKeys(
 
 export const fromConnectionArgs = (
   input: { first?: number | null; after?: string },
-  options?: { allowFirstNull?: boolean; defaultTake?: number }
+  options?: { allowTakeAll?: boolean; defaultTake?: number }
 ) => {
   const { first, after } = input
-  const { allowFirstNull = false, defaultTake = DEFAULT_TAKE_PER_PAGE } =
+  const { allowTakeAll = false, defaultTake = DEFAULT_TAKE_PER_PAGE } =
     options || {}
 
   let take = first as number
-  if (first === null && !allowFirstNull) {
+  if (first === null && !allowTakeAll) {
     take = defaultTake
   }
   if (first === undefined) {

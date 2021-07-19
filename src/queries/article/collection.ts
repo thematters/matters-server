@@ -11,7 +11,7 @@ const resolver: ArticleToCollectionResolver = async (
   { input },
   { dataSources: { articleService }, knex }
 ) => {
-  const { take, skip } = fromConnectionArgs(input)
+  const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
   const [countRecord, collections] = await Promise.all([
     knex('collection')

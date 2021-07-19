@@ -53,7 +53,13 @@ export class CommentService extends BaseService {
     id,
     author,
     sort,
-  }: GQLCommentCommentsInput & { id: string }) => {
+    skip,
+    take,
+  }: GQLCommentCommentsInput & {
+    id: string
+    skip?: number
+    take?: number
+  }) => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
     }
@@ -72,6 +78,13 @@ export class CommentService extends BaseService {
       query = sortCreatedAt('desc')
     } else {
       query = sortCreatedAt('desc')
+    }
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
     }
 
     return query
