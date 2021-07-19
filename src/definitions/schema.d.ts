@@ -490,7 +490,7 @@ export interface GQLArticle extends GQLNode {
   /**
    * Cumulative reading time in seconds
    */
-  readTime: GQLNonNegativeFloat
+  readTime: number
 
   /**
    * Drafts linked to this article.
@@ -652,8 +652,8 @@ export interface GQLArticleAccess {
 }
 
 export interface GQLArticleOSS {
-  boost: GQLNonNegativeFloat
-  score: GQLNonNegativeFloat
+  boost: number
+  score: number
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewest: boolean
@@ -665,8 +665,8 @@ export interface GQLArticleTranslation {
 }
 
 export interface GQLTagOSS {
-  boost: GQLNonNegativeFloat
-  score: GQLNonNegativeFloat
+  boost: number
+  score: number
   selected: boolean
 }
 
@@ -692,14 +692,8 @@ export interface GQLTagEdge {
   node: GQLTag
 }
 
-export interface GQLTagsInput {
-  after?: string
-  first?: number
-  sort?: GQLTagsSort
-}
-
 export interface GQLArticleInput {
-  mediaHash?: string
+  mediaHash: string
 }
 
 export interface GQLPublishArticleInput {
@@ -726,7 +720,7 @@ export interface GQLEditArticleInput {
 
 export interface GQLAppreciateArticleInput {
   id: string
-  amount: GQLPositiveInt
+  amount: number
   token?: string
   superLike?: boolean
 }
@@ -825,7 +819,7 @@ export interface GQLRelatedDonationArticlesInput {
   /**
    * index of article list, min: 0, max: 49
    */
-  random?: GQLNonNegativeInt
+  random?: number
 }
 
 /**
@@ -861,15 +855,6 @@ export const enum GQLRecommendTypes {
   icymi = 'icymi',
   hottest = 'hottest',
   newest = 'newest',
-}
-
-/**
- * Enums for sorting tags.
- */
-export const enum GQLTagsSort {
-  newest = 'newest',
-  oldest = 'oldest',
-  hottest = 'hottest',
 }
 
 export const enum GQLUpdateTagSettingType {
@@ -1035,7 +1020,7 @@ export interface GQLPrice {
   /**
    * Amount of Price.
    */
-  amount: GQLNonNegativeFloat
+  amount: number
 
   /**
    * Current Price belongs to whcih Circle.
@@ -1130,7 +1115,7 @@ export interface GQLInvitation {
   /**
    * Free period of this invitation.
    */
-  freePeriod: GQLPositiveInt
+  freePeriod: number
 
   /**
    * Created time.
@@ -1146,12 +1131,6 @@ export interface GQLInvitation {
    * Accepted time.
    */
   acceptedAt?: GQLDateTime
-
-  /**
-   * Determine it is accepted or not.
-   * @deprecated No longer use
-   */
-  accepted: boolean
 
   /**
    * Determine it's specific state.
@@ -1226,7 +1205,7 @@ export interface GQLPutCircleInput {
   /**
    * Circle's subscription fee.
    */
-  amount?: GQLNonNegativeFloat
+  amount?: number
 }
 
 export interface GQLToggleCircleMemberInput {
@@ -1294,7 +1273,7 @@ export interface GQLPutCircleArticlesInput {
 
 export interface GQLInviteCircleInput {
   invitees: Array<GQLInviteCircleInvitee>
-  freePeriod: GQLPositiveInt
+  freePeriod: number
   circleId: string
 }
 
@@ -2077,14 +2056,6 @@ export type GQLDateTime = any
 
 export type GQLUpload = any
 
-export type GQLPositiveInt = any
-
-export type GQLNonNegativeInt = any
-
-export type GQLPositiveFloat = any
-
-export type GQLNonNegativeFloat = any
-
 export interface GQLNode {
   id: string
 }
@@ -2227,6 +2198,12 @@ export interface GQLSearchResultEdge {
   node: GQLNode
 }
 
+export interface GQLTagsInput {
+  after?: string
+  first?: number
+  sort?: GQLTagsSort
+}
+
 export interface GQLSkippedListItemsInput {
   after?: string
   first?: number
@@ -2266,13 +2243,6 @@ export interface GQLNodeInput {
 
 export interface GQLNodesInput {
   ids: Array<string>
-}
-
-export interface GQLReportsInput {
-  article: boolean
-  comment: boolean
-  after?: string
-  first?: number
 }
 
 export interface GQLFrequentSearchInput {
@@ -2324,7 +2294,7 @@ export interface GQLSingleFileUploadInput {
 
 export interface GQLSetBoostInput {
   id: string
-  boost: GQLNonNegativeFloat
+  boost: number
   type: GQLBoostTypes
 }
 
@@ -2396,6 +2366,15 @@ export const enum GQLLogRecordTypes {
 }
 
 /**
+ * Enums for sorting tags.
+ */
+export const enum GQLTagsSort {
+  newest = 'newest',
+  oldest = 'oldest',
+  hottest = 'hottest',
+}
+
+/**
  * Enums for asset types.
  */
 export const enum GQLAssetType {
@@ -2427,11 +2406,6 @@ export const enum GQLRole {
   admin = 'admin',
 }
 
-export const enum GQLCacheControlScope {
-  PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE',
-}
-
 export const enum GQLSkippedListItemType {
   agent_hash = 'agent_hash',
   email = 'email',
@@ -2458,6 +2432,16 @@ export const enum GQLFeatureFlag {
 
 export const enum GQLSearchExclude {
   blocked = 'blocked',
+}
+
+/**
+ * ###################
+ *     Directives    #
+ * ###################
+ */
+export const enum GQLCacheControlScope {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
 }
 
 export interface GQLCostComplexity {
@@ -2705,7 +2689,7 @@ export interface GQLFilterInput {
   /**
    * index of list, min: 0, max: 49
    */
-  random?: GQLNonNegativeInt
+  random?: number
   followed?: boolean
 }
 
@@ -2861,17 +2845,17 @@ export interface GQLLiker {
   /**
    * Total LIKE left in wallet.
    */
-  total: GQLNonNegativeFloat
+  total: number
 
   /**
    * Rate of LikeCoin/USD
    */
-  rateUSD?: GQLNonNegativeFloat
+  rateUSD?: number
 }
 
 export interface GQLUserOSS {
-  boost: GQLNonNegativeFloat
-  score: GQLNonNegativeFloat
+  boost: number
+  score: number
 }
 
 export interface GQLAppreciation {
@@ -3211,7 +3195,7 @@ export interface GQLUpdateUserStateInput {
   id?: string
   emails?: Array<string>
   state: GQLUserState
-  banDays?: GQLPositiveInt
+  banDays?: number
   password?: string
 }
 
@@ -3406,7 +3390,7 @@ export interface GQLTransaction {
   state: GQLTransactionState
   purpose: GQLTransactionPurpose
   amount: number
-  fee: GQLNonNegativeFloat
+  fee: number
   currency: GQLTransactionCurrency
 
   /**
@@ -3495,11 +3479,11 @@ export interface GQLPayToResult {
  * Add Credit
  */
 export interface GQLAddCreditInput {
-  amount: GQLPositiveFloat
+  amount: number
 }
 
 export interface GQLPayToInput {
-  amount: GQLPositiveFloat
+  amount: number
   currency: GQLTransactionCurrency
   purpose: GQLTransactionPurpose
   recipientId: string
@@ -3508,7 +3492,7 @@ export interface GQLPayToInput {
 }
 
 export interface GQLPayoutInput {
-  amount: GQLPositiveFloat
+  amount: number
   password: string
 }
 
@@ -3719,10 +3703,6 @@ export interface GQLResolver {
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
   Upload?: GraphQLScalarType
-  PositiveInt?: GraphQLScalarType
-  NonNegativeInt?: GraphQLScalarType
-  PositiveFloat?: GraphQLScalarType
-  NonNegativeFloat?: GraphQLScalarType
   Node?: {
     __resolveType: GQLNodeTypeResolver
   }
@@ -6474,7 +6454,6 @@ export interface GQLInvitationTypeResolver<TParent = any> {
   createdAt?: InvitationToCreatedAtResolver<TParent>
   sentAt?: InvitationToSentAtResolver<TParent>
   acceptedAt?: InvitationToAcceptedAtResolver<TParent>
-  accepted?: InvitationToAcceptedResolver<TParent>
   state?: InvitationToStateResolver<TParent>
 }
 
@@ -6542,15 +6521,6 @@ export interface InvitationToSentAtResolver<TParent = any, TResult = any> {
 }
 
 export interface InvitationToAcceptedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

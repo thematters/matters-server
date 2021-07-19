@@ -28,7 +28,7 @@ export default /* GraphQL */ `
     before: String
     includeAfter: Boolean
     includeBefore: Boolean
-    first: Int
+    first: Int @constraint(min: 0)
     articleOnly: Boolean
   }
 

@@ -341,7 +341,7 @@ type Article implements Node {
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
   """Cumulative reading time in seconds"""
-  readTime: NonNegativeFloat!
+  readTime: Float!
 
   """Drafts linked to this article."""
   drafts: [Draft!]
@@ -449,8 +449,8 @@ type ArticleAccess {
 }
 
 type ArticleOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
+  boost: Float!
+  score: Float!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
@@ -462,8 +462,8 @@ type ArticleTranslation {
 }
 
 type TagOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
+  boost: Float!
+  score: Float!
   selected: Boolean!
 }
 
@@ -489,14 +489,8 @@ type TagEdge {
   node: Tag!
 }
 
-input TagsInput {
-  after: String
-  first: Int
-  sort: TagsSort
-}
-
 input ArticleInput {
-  mediaHash: String
+  mediaHash: String!
 }
 
 input PublishArticleInput {
@@ -521,7 +515,7 @@ input EditArticleInput {
 
 input AppreciateArticleInput {
   id: ID!
-  amount: PositiveInt!
+  amount: Int!
   token: String
   superLike: Boolean
 }
@@ -618,7 +612,7 @@ input RelatedDonationArticlesInput {
   oss: Boolean
 
   """index of article list, min: 0, max: 49"""
-  random: NonNegativeInt
+  random: Int
 }
 
 """Enums for an article state."""
@@ -646,13 +640,6 @@ enum RecommendTypes {
   icymi
   hottest
   newest
-}
-
-"""Enums for sorting tags."""
-enum TagsSort {
-  newest
-  oldest
-  hottest
 }
 
 enum UpdateTagSettingType {
@@ -758,7 +745,7 @@ type Price {
   id: ID!
 
   """Amount of Price."""
-  amount: NonNegativeFloat!
+  amount: Float!
 
   """Current Price belongs to whcih Circle."""
   circle: Circle!
@@ -827,7 +814,7 @@ type Invitation {
   circle: Circle!
 
   """Free period of this invitation."""
-  freePeriod: PositiveInt!
+  freePeriod: Int!
 
   """Created time."""
   createdAt: DateTime!
@@ -837,9 +824,6 @@ type Invitation {
 
   """Accepted time."""
   acceptedAt: DateTime
-
-  """Determine it is accepted or not."""
-  accepted: Boolean! @deprecated(reason: "No longer use")
 
   """Determine it's specific state."""
   state: InvitationState!
@@ -887,7 +871,7 @@ input PutCircleInput {
   description: String
 
   """Circle's subscription fee."""
-  amount: NonNegativeFloat
+  amount: Float
 }
 
 input ToggleCircleMemberInput {
@@ -933,7 +917,7 @@ input PutCircleArticlesInput {
 
 input InviteCircleInput {
   invitees: [InviteCircleInvitee!]!
-  freePeriod: PositiveInt!
+  freePeriod: Int!
   circleId: ID!
 }
 
@@ -1514,14 +1498,6 @@ scalar DateTime
 
 scalar Upload
 
-scalar PositiveInt
-
-scalar NonNegativeInt
-
-scalar PositiveFloat
-
-scalar NonNegativeFloat
-
 interface Node {
   id: ID!
 }
@@ -1586,6 +1562,12 @@ type SearchResultEdge {
   node: Node!
 }
 
+input TagsInput {
+  after: String
+  first: Int
+  sort: TagsSort
+}
+
 input SkippedListItemsInput {
   after: String
   first: Int
@@ -1627,13 +1609,6 @@ input NodesInput {
   ids: [ID!]!
 }
 
-input ReportsInput {
-  article: Boolean!
-  comment: Boolean!
-  after: String
-  first: Int
-}
-
 input FrequentSearchInput {
   key: String
   first: Int
@@ -1673,7 +1648,7 @@ input SingleFileUploadInput {
 
 input SetBoostInput {
   id: ID!
-  boost: NonNegativeFloat!
+  boost: Float!
   type: BoostTypes!
 }
 
@@ -1742,6 +1717,13 @@ enum LogRecordTypes {
   ReadResponseInfoPopUp
 }
 
+"""Enums for sorting tags."""
+enum TagsSort {
+  newest
+  oldest
+  hottest
+}
+
 """Enums for asset types."""
 enum AssetType {
   avatar
@@ -1770,11 +1752,6 @@ enum Role {
   admin
 }
 
-enum CacheControlScope {
-  PUBLIC
-  PRIVATE
-}
-
 enum SkippedListItemType {
   agent_hash
   email
@@ -1801,6 +1778,16 @@ enum FeatureFlag {
 
 enum SearchExclude {
   blocked
+}
+
+"""
+###################
+    Directives    #
+###################
+"""
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
 }
 
 input CostComplexity {
@@ -1957,7 +1944,7 @@ input RecommendInput {
 
 input FilterInput {
   """index of list, min: 0, max: 49"""
-  random: NonNegativeInt
+  random: Int
   followed: Boolean
 }
 
@@ -2055,15 +2042,15 @@ type Liker {
   civicLiker: Boolean!
 
   """Total LIKE left in wallet."""
-  total: NonNegativeFloat!
+  total: Float!
 
   """Rate of LikeCoin/USD"""
-  rateUSD: NonNegativeFloat
+  rateUSD: Float
 }
 
 type UserOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
+  boost: Float!
+  score: Float!
 }
 
 type Appreciation {
@@ -2337,7 +2324,7 @@ input UpdateUserStateInput {
   id: ID
   emails: [String!]
   state: UserState!
-  banDays: PositiveInt
+  banDays: Int
   password: String
 }
 
@@ -2504,7 +2491,7 @@ type Transaction {
   state: TransactionState!
   purpose: TransactionPurpose!
   amount: Float!
-  fee: NonNegativeFloat!
+  fee: Float!
   currency: TransactionCurrency!
 
   """Timestamp of transaction."""
@@ -2577,11 +2564,11 @@ type PayToResult {
 
 """Add Credit"""
 input AddCreditInput {
-  amount: PositiveFloat!
+  amount: Float!
 }
 
 input PayToInput {
-  amount: PositiveFloat!
+  amount: Float!
   currency: TransactionCurrency!
   purpose: TransactionPurpose!
   recipientId: ID!
@@ -2590,7 +2577,7 @@ input PayToInput {
 }
 
 input PayoutInput {
-  amount: PositiveFloat!
+  amount: Float!
   password: String!
 }
 

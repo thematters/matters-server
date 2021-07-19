@@ -63,7 +63,7 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
 
     amount: Float!
-    fee: NonNegativeFloat!
+    fee: Float!
 
     currency: TransactionCurrency!
 
@@ -96,7 +96,7 @@ export default /* GraphQL */ `
 
   input TransactionsArgs {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     id: ID
     states: [TransactionState!]
   }
@@ -137,11 +137,11 @@ export default /* GraphQL */ `
 
   # Add Credit
   input AddCreditInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
   }
 
   input PayToInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
     currency: TransactionCurrency!
     purpose: TransactionPurpose!
     recipientId: ID!
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
   }
 
   input PayoutInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
     password: String!
   }
 

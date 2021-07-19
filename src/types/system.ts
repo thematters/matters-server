@@ -94,15 +94,21 @@ export default /* GraphQL */ `
     node: Node! @logCache(type: "${NODE_TYPES.Node}")
   }
 
+  input TagsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: TagsSort
+  }
+
   input SkippedListItemsInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     type: SkippedListItemType
   }
 
   input BadgedUsersInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     type: BadgeType
   }
 
@@ -135,16 +141,9 @@ export default /* GraphQL */ `
     ids: [ID!]!
   }
 
-  input ReportsInput {
-    article: Boolean!
-    comment: Boolean!
-    after: String
-    first: Int
-  }
-
   input FrequentSearchInput {
     key: String
-    first: Int
+    first: Int @constraint(min: 0)
   }
 
   input SearchInput {
@@ -155,7 +154,7 @@ export default /* GraphQL */ `
     type: SearchTypes!
 
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
 
     "extra query filter for searching"
     filter: SearchFilter
@@ -182,7 +181,7 @@ export default /* GraphQL */ `
 
   input SetBoostInput {
     id: ID!
-    boost: NonNegativeFloat!
+    boost: Float!
     type: BoostTypes!
   }
 
@@ -205,7 +204,7 @@ export default /* GraphQL */ `
 
   input ConnectionArgs {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
   }
 
@@ -251,6 +250,13 @@ export default /* GraphQL */ `
     ReadResponseInfoPopUp
   }
 
+  "Enums for sorting tags."
+  enum TagsSort {
+    newest
+    oldest
+    hottest
+  }
+
   "Enums for asset types."
   enum AssetType {
     avatar
@@ -279,11 +285,6 @@ export default /* GraphQL */ `
     admin
   }
 
-  enum CacheControlScope {
-    PUBLIC
-    PRIVATE
-  }
-
   enum SkippedListItemType {
     agent_hash
     email
@@ -310,6 +311,15 @@ export default /* GraphQL */ `
 
   enum SearchExclude {
     blocked
+  }
+
+
+  ####################
+  #    Directives    #
+  ####################
+  enum CacheControlScope {
+    PUBLIC
+    PRIVATE
   }
 
   input CostComplexity {

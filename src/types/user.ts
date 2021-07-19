@@ -194,7 +194,7 @@ export default /* GraphQL */ `
 
   input RecommendInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
     filter: FilterInput
     type: AuthorsType
@@ -202,7 +202,8 @@ export default /* GraphQL */ `
 
   input FilterInput {
     "index of list, min: 0, max: 49"
-    random: NonNegativeInt
+    random: Int @constraint(min: 0, max: 49)
+
     followed: Boolean
   }
 
@@ -291,15 +292,15 @@ export default /* GraphQL */ `
     civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat! @auth(mode: "${AUTH_MODE.oauth}")
+    total: Float! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: NonNegativeFloat @objectCache(maxAge: ${CACHE_TTL.LONG})
+    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG})
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
+    boost: Float!
+    score: Float!
   }
 
   type Appreciation {
@@ -574,7 +575,7 @@ export default /* GraphQL */ `
     id: ID
     emails: [String!]
     state: UserState!
-    banDays: PositiveInt
+    banDays: Int @constraint(exclusiveMin: 0)
     password: String
   }
 
