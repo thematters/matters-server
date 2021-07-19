@@ -15,7 +15,6 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
-import circle from './circle'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -23,8 +22,8 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
-import live from './live'
 import * as articleOSS from './oss'
+import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
@@ -41,6 +40,7 @@ import tagCreator from './tag/creator'
 import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
+import tagIsOfficial from './tag/isOfficial'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
@@ -82,7 +82,6 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    live,
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,
@@ -98,9 +97,9 @@ export default {
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
+    readTime,
     createdAt,
     revisedAt,
-    circle,
     access: (root: any) => root,
     revisionCount,
     license: ({ license }: { license: any }) =>
@@ -114,6 +113,7 @@ export default {
     editors: tagEditors,
     owner: tagOwner,
     isFollower: tagIsFollower,
+    isOfficial: tagIsOfficial,
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,

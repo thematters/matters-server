@@ -33,7 +33,7 @@ const GET_VIEWER_OWN_CIRCLES = `
 `
 
 const PUT_CIRCLE = /* GraphQL */ `
-  mutation($input: PutCircleInput!) {
+  mutation ($input: PutCircleInput!) {
     putCircle(input: $input) {
       id
       name
@@ -51,7 +51,7 @@ const PUT_CIRCLE = /* GraphQL */ `
 `
 
 const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleFollowCircle(input: $input) {
       id
       followers(input: { first: null }) {
@@ -69,7 +69,7 @@ const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
-  mutation($input: PutCircleArticlesInput!) {
+  mutation ($input: PutCircleArticlesInput!) {
     putCircleArticles(input: $input) {
       id
       works(input: { first: null }) {
@@ -93,7 +93,7 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
-  mutation($input: PutCommentInput!) {
+  mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
       id
     }
@@ -101,7 +101,7 @@ const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
 `
 
 const TOGGLE_PIN_COMMENT = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     togglePinComment(input: $input) {
       id
       pinned
@@ -110,7 +110,7 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
-  query($input: CircleInput!) {
+  query ($input: CircleInput!) {
     circle(input: $input) {
       id
       discussion(input: { first: null }) {
@@ -129,36 +129,6 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
         edges {
           node {
             id
-          }
-        }
-      }
-    }
-  }
-`
-
-const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
-  query {
-    viewer {
-      ownCircles {
-        id
-        invitations(input: { first: null }) {
-          totalCount
-          edges {
-            node {
-              id
-              invitee {
-                ... on User {
-                  id
-                }
-                ... on Person {
-                  email
-                }
-              }
-              inviter {
-                id
-              }
-              accepted
-            }
           }
         }
       }
@@ -256,7 +226,7 @@ const CIRCLE_INVITE = /* GraphQL*/ `
 `
 
 const SUBSCRIBE_CIRCLE = /* GraphQL */ `
-  mutation($input: SubscribeCircleInput!) {
+  mutation ($input: SubscribeCircleInput!) {
     subscribeCircle(input: $input) {
       circle {
         id
@@ -708,14 +678,6 @@ describe('circle invitation management', () => {
 
   test('create invitation', async () => {
     const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
-    })
-
-    // check current invitations
-    const deprecatedCircle = _get(data, 'viewer.ownCircles.0')
-    expect(deprecatedCircle.invitations.totalCount).toBe(0)
-
     const { data: pendingInvites } = await query({
       query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
@@ -806,23 +768,6 @@ describe('circle invitation management', () => {
   test('accept invitation', async () => {
     const { query } = await testClient(userClient)
     const { mutate } = await testClient(adminClient)
-
-    // check init state of invitations
-    const { data: deprecatedIvtData } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
-    })
-    const deprecatedIvtEdges = _get(
-      deprecatedIvtData,
-      'viewer.ownCircles.0.invitations.edges',
-      []
-    )
-    deprecatedIvtEdges.forEach((edge: any) => {
-      const inviteeId = _get(edge, 'node.invitee.id')
-
-      if (inviteeId === ADMIN_USER_GLOBAL_ID) {
-        expect(_get(edge, 'node.accepted')).toBe(false)
-      }
-    })
 
     // check init state of invitations
     const { data: ivtData } = await query({

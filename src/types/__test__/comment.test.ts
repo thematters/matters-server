@@ -16,7 +16,7 @@ const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const COMMENT_ID = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
 
 const GET_ARTILCE_COMMENTS = /* GraphQL */ `
-  query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
+  query ($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
     node(input: $nodeInput) {
       ... on Article {
         id
@@ -38,7 +38,7 @@ const GET_ARTILCE_COMMENTS = /* GraphQL */ `
 `
 
 const VOTE_COMMENT = /* GraphQL */ `
-  mutation($input: VoteCommentInput!) {
+  mutation ($input: VoteCommentInput!) {
     voteComment(input: $input) {
       upvotes
       downvotes
@@ -47,7 +47,7 @@ const VOTE_COMMENT = /* GraphQL */ `
 `
 
 const UNVOTE_COMMENT = /* GraphQL */ `
-  mutation($input: UnvoteCommentInput!) {
+  mutation ($input: UnvoteCommentInput!) {
     unvoteComment(input: $input) {
       upvotes
       downvotes
@@ -56,7 +56,7 @@ const UNVOTE_COMMENT = /* GraphQL */ `
 `
 
 const DELETE_COMMENT = /* GraphQL */ `
-  mutation($input: DeleteCommentInput!) {
+  mutation ($input: DeleteCommentInput!) {
     deleteComment(input: $input) {
       state
     }
@@ -64,7 +64,7 @@ const DELETE_COMMENT = /* GraphQL */ `
 `
 
 const GET_COMMENT = /* GraphQL */ `
-  query($input: NodeInput!) {
+  query ($input: NodeInput!) {
     node(input: $input) {
       ... on Comment {
         upvotes
@@ -75,7 +75,7 @@ const GET_COMMENT = /* GraphQL */ `
 `
 
 const PUT_COMMENT = /* GraphQL */ `
-  mutation($input: PutCommentInput!) {
+  mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
       replyTo {
         id
@@ -85,7 +85,7 @@ const PUT_COMMENT = /* GraphQL */ `
 `
 
 const TOGGLE_PIN_COMMENT = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     togglePinComment(input: $input) {
       id
       pinned

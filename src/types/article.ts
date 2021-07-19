@@ -50,7 +50,6 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}") @deprecated(reason: "No longer in use")
     toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
@@ -82,9 +81,6 @@ export default /* GraphQL */ `
 
     "State of this article."
     state: ArticleState!
-
-    "This value determines if this article is under Subscription or not."
-    live: Boolean! @deprecated(reason: "No longer in use")
 
     "Author of this article."
     author: User! @logCache(type: "${NODE_TYPES.User}")
@@ -167,14 +163,14 @@ export default /* GraphQL */ `
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Cumulative reading time in seconds"
+    readTime: NonNegativeFloat!
+
     "Drafts linked to this article."
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
 
     "Revision Count"
     revisionCount: Int!
-
-    "Current article belongs to which Circle."
-    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: ArticleAccess!
@@ -230,6 +226,9 @@ export default /* GraphQL */ `
 
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
+    "This value determines if it is official."
+    isOfficial: Boolean
 
     ##############
     #     OSS    #
@@ -294,7 +293,6 @@ export default /* GraphQL */ `
 
   input ArticleInput {
     mediaHash: String
-    uuid: UUID
   }
 
   input PublishArticleInput {

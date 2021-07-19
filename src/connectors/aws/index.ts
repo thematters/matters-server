@@ -1,9 +1,9 @@
 import * as AWS from 'aws-sdk'
+import getStream from 'get-stream'
 import mime from 'mime-types'
 
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
-import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 import { GQLAssetType } from 'definitions'
 
 export class AWSService {
@@ -64,7 +64,7 @@ export class AWSService {
   ): Promise<string> => {
     const { createReadStream, mimetype } = upload
     const stream = createReadStream()
-    const buffer = await makeStreamToBuffer(stream)
+    const buffer = await getStream.buffer(stream)
 
     const extension = mime.extension(mimetype)
 

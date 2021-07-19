@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { FileUpload } from 'graphql-upload'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -30,7 +31,7 @@ const getFileName = (disposition: string, url: string) => {
 
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
-  { input: { type, file, url, entityType, entityId } },
+  { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
   url = resolveUrl(url)
@@ -48,8 +49,12 @@ const resolver: MutationToSingleFileUploadResolver = async (
     ].indexOf(type) >= 0
   const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 
-  if ((!file && !url) || (file && url)) {
+  if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
+  }
+
+  if (fileUpload && !fileUpload.file) {
+    throw new UserInputError('file object is incorrect.')
   }
 
   if (url && !isImageType) {
@@ -97,6 +102,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
       throw new UnableToUploadFromUrl(`Unable to upload from url: ${err}`)
     }
   } else {
+    const file = fileUpload.file as FileUpload
     upload = await file
   }
 

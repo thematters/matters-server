@@ -43,36 +43,36 @@ class StripeQueue extends BaseQueue {
     )
   }
 
-  private syncDeliveryFailedEvents: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
-    try {
-      logger.info('[schedule job] sync delivery failed events')
+  private syncDeliveryFailedEvents: Queue.ProcessCallbackFunction<unknown> =
+    async (job, done) => {
+      try {
+        logger.info('[schedule job] sync delivery failed events')
 
-      // query recent delivery failed events
-      const result = await this.paymentService.stripe.getDeliveryFailedEvents()
-      job.progress(30)
+        // query recent delivery failed events
+        const result =
+          await this.paymentService.stripe.getDeliveryFailedEvents()
+        job.progress(30)
 
-      if (result && result.length > 0) {
-        // send message to Slack
-        result.map(async (event) => {
-          this.slackService.sendStripeAlert({
-            data: {
-              id: event.id,
-              type: event.type,
-              pending_webhooks: event.pending_webhooks,
-            },
-            message: 'Delivery failed event',
+        if (result && result.length > 0) {
+          // send message to Slack
+          result.map(async (event) => {
+            this.slackService.sendStripeAlert({
+              data: {
+                id: event.id,
+                type: event.type,
+                pending_webhooks: event.pending_webhooks,
+              },
+              message: 'Delivery failed event',
+            })
           })
-        })
-      }
+        }
 
-      job.progress(100)
-      done(null, 'Syncing completed')
-    } catch (error) {
-      done(error)
+        job.progress(100)
+        done(null, 'Syncing completed')
+      } catch (error) {
+        done(error)
+      }
     }
-  }
 }
 
 export const stripeQueue = new StripeQueue()

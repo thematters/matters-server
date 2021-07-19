@@ -18,7 +18,6 @@ export * from './getViewer'
 export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
-export * from './makeStreamToBuffer'
 export * from './content'
 export * from './scope'
 export * from './payment'
@@ -54,7 +53,7 @@ export const extractAssetDataFromHtml = (
   }
 
   return $(selector)
-    .map((index: number, element: CheerioElement) => {
+    .map((index, element) => {
       const uuid = $(element).attr('data-asset-id')
 
       if (uuid) {

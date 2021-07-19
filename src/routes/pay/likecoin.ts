@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
@@ -38,7 +38,7 @@ const invalidateCache = async ({
   }
 }
 
-likecoinRouter.use(bodyParser.json())
+likecoinRouter.use(bodyParser.json() as RequestHandler)
 
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`

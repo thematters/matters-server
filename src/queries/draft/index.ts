@@ -8,7 +8,6 @@ import * as draftAccess from './access'
 import article from './article'
 import articleDrafts from './article/drafts'
 import assets from './assets'
-import circle from './circle'
 import collection from './collection'
 import draftContent from './content'
 import draftCover from './cover'
@@ -33,7 +32,6 @@ export default {
     collection,
     assets,
     article,
-    circle,
     access: (root: any) => root,
     license: ({ license }: { license: any }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,

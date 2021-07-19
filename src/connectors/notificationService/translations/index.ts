@@ -98,8 +98,7 @@ export default {
   user_activiated: i18n({
     zh_hant: '恭喜！你已解鎖評論權限，快去參與討論吧。謝謝你喜歡 Matters 💗',
     zh_hans: '恭喜！你已解锁评论权限，快去参与讨论吧。谢谢你喜欢 Matters 💗',
-    en:
-      'Congratulations! You have unlocked comment feature, and can now participate in the discussion. Thank you for enjoying Matters 💗',
+    en: 'Congratulations! You have unlocked comment feature, and can now participate in the discussion. Thank you for enjoying Matters 💗',
   }),
   user_banned: i18n<{ banDays?: number }>({
     zh_hant: ({ banDays }) =>

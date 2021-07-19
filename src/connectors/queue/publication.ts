@@ -138,13 +138,11 @@ class PublicationQueue extends BaseQueue {
          *
          * @see {@url https://github.com/thematters/matters-server/pull/1510}
          */
-        const [
-          { id: draftEntityTypeId },
-          { id: articleEntityTypeId },
-        ] = await Promise.all([
-          this.systemService.baseFindEntityTypeId('draft'),
-          this.systemService.baseFindEntityTypeId('article'),
-        ])
+        const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
+          await Promise.all([
+            this.systemService.baseFindEntityTypeId('draft'),
+            this.systemService.baseFindEntityTypeId('article'),
+          ])
 
         // Remove unused assets
         await this.deleteUnusedAssets({ draftEntityTypeId, draft })
@@ -231,11 +229,14 @@ class PublicationQueue extends BaseQueue {
       return
     }
 
-    // create collection records
-    await this.articleService.createCollection({
+    const items = draft.collection.map((articleId: string, index: number) => ({
       entranceId: article.id,
-      articleIds: draft.collection,
-    })
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }))
+    await this.articleService.baseBatchCreate(items, 'collection')
 
     // trigger notifications
     draft.collection.forEach(async (id: string) => {
@@ -312,7 +313,7 @@ class PublicationQueue extends BaseQueue {
         .filter((t) => !!t)
 
       // create tag records, return tag record if already exists
-      const dbTags = ((await Promise.all(
+      const dbTags = (await Promise.all(
         tags.map((tag: string) =>
           this.tagService.create({
             content: tag,
@@ -321,7 +322,7 @@ class PublicationQueue extends BaseQueue {
             owner: article.authorId,
           })
         )
-      )) as unknown) as [{ id: string; content: string }]
+      )) as unknown as [{ id: string; content: string }]
 
       // create article_tag record
       await this.tagService.createArticleTags({

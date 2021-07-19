@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
-import express from 'express'
+import express, { RequestHandler } from 'express'
 import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
 import http from 'http'
@@ -8,7 +8,7 @@ import 'module-alias/register'
 import requestIp from 'request-ip'
 
 import { CORS_OPTIONS, SERVER_TIMEOUT } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 
 import * as routes from './routes'
 
@@ -37,7 +37,11 @@ app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
  * Middlewares
  */
 
-app.use(helmet())
+app.use(
+  helmet({
+    contentSecurityPolicy: isProd ? undefined : false,
+  }) as RequestHandler
+)
 app.use(requestIp.mw())
 app.use(cors(CORS_OPTIONS))
 

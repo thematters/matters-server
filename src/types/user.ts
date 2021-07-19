@@ -72,9 +72,6 @@ export default /* GraphQL */ `
     "Global id of an user."
     id: ID!
 
-    "UUID of an user, for backward compatibility."
-    uuid: UUID!
-
     "Global unique user name of a user."
     userName: String
 
@@ -152,17 +149,17 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    "Activities based on user's following, sort by creation time."
+    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
+
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles has been added into followed tags."
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
@@ -176,9 +173,6 @@ export default /* GraphQL */ `
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
-    "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
@@ -188,17 +182,8 @@ export default /* GraphQL */ `
     "Selected tag list"
     selectedTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
-    "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
     "Global user list, sort by activities in recent 6 month."
     authors(input: RecommendInput!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
-
-    "Personalized recommendation based on interaction with tags."
-    interest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Recommend articles with collaborative filtering"
-    recommendArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Global circles sort by created time."
     newestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
@@ -406,6 +391,92 @@ export default /* GraphQL */ `
     cursor: String!
     node: Appreciation!
   }
+
+  type FollowingActivityConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [FollowingActivityEdge!]
+  }
+
+  type FollowingActivityEdge {
+    cursor: String!
+    node: FollowingActivity!
+  }
+
+  union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+
+  type UserPublishArticleActivity {
+    actor: User!
+
+    "Article published by actor"
+    node: Article!
+  }
+
+  type UserBroadcastCircleActivity {
+    actor: User!
+
+    "Comment boardcast by actor"
+    node: Comment!
+
+    "Circle that comment belongs to"
+    target: Circle!
+  }
+
+  type UserCreateCircleActivity {
+    actor: User!
+
+    "Circle created by actor"
+    node: Circle!
+  }
+
+  type UserCollectArticleActivity {
+    actor: User!
+
+    "Article created by actor"
+    node: Article!
+
+    "Article that collected by"
+    target: Article!
+  }
+
+  type UserSubscribeCircleActivity {
+    actor: User!
+
+    "Circle subscribed by actor"
+    node: Circle!
+  }
+
+  type UserFollowUserActivity {
+    actor: User!
+
+    "User followed by actor"
+    node: User!
+  }
+
+  type UserDonateArticleActivity {
+    actor: User!
+
+    "Article donated by actor"
+    node: Article!
+  }
+
+  type UserBookmarkArticleActivity {
+    actor: User!
+
+    "Article bookmarked by actor"
+    node: Article!
+  }
+
+  type UserAddArticleTagActivity {
+    actor: User!
+
+    "Article added to tag"
+    node: Article!
+
+    "Tag added by article"
+    target: Tag!
+  }
+
 
   type FolloweeDonatedArticleConnection implements Connection {
     totalCount: Int!

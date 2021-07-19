@@ -1,4 +1,3 @@
-import { GraphQLUUID } from 'graphql-custom-types'
 import {
   DateResolver,
   DateTimeResolver,
@@ -23,7 +22,6 @@ export default {
   DateTime: DateTimeResolver,
   JSON: JSONResolver,
   Upload: GraphQLUpload,
-  UUID: GraphQLUUID,
   Email: EmailAddressResolver,
   URL: URLResolver,
   NonPositiveInt: NonPositiveIntResolver,

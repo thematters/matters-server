@@ -7,7 +7,7 @@ import { testClient } from './utils'
 
 const USER_ID = toGlobalId({ type: NODE_TYPES.User, id: 1 })
 const GET_NOTICES = /* GraphQL */ `
-  query($nodeInput: NodeInput!) {
+  query ($nodeInput: NodeInput!) {
     node(input: $nodeInput) {
       ... on User {
         notices(input: { first: 100 }) {

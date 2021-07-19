@@ -160,6 +160,25 @@ const resolver: MutationToPutDraftResolver = async (
   }
   checkLicense(accessType)
 
+  // TODO: uncomment if the following feed is ready
+  // // check if tags includes matty's tag
+  // const isMatty = viewer.id === environment.mattyId
+  // const mattyTagId = environment.mattyChoiceTagId
+  // if (mattyTagId && !isMatty) {
+  //   const mattyTag = await atomService.findUnique({
+  //     table: 'tag',
+  //     where: { id: mattyTagId },
+  //   })
+  //   if (
+  //     mattyTag &&
+  //     tags &&
+  //     tags.length > 0 &&
+  //     tags.includes(mattyTag.content)
+  //   ) {
+  //     throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  //   }
+  // }
+
   // assemble data
   const resetSummary = summary === null || summary === ''
   const resetCover = cover === null
