@@ -51,6 +51,7 @@ export const newest: RecommendationToNewestResolver = async (
   const [countRecord, articles] = await Promise.all([
     knex.select().from(makeNewestQuery()).count().first(),
     makeNewestQuery()
+      .orderBy('article_set.id', 'desc')
       .offset(offset)
       .limit(first || BATCH_SIZE),
   ])
