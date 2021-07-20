@@ -27,7 +27,10 @@ export const icymi: RecommendationToIcymiResolver = async (
 
   const [countRecord, articles] = await Promise.all([
     knex.select().from(makeICYMIQuery()).count().first(),
-    makeICYMIQuery().offset(skip).limit(take),
+    makeICYMIQuery()
+      .orderBy('choice.updated_at', 'desc')
+      .offset(skip)
+      .limit(take),
   ])
 
   const totalCount = parseInt(
