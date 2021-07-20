@@ -1,6 +1,6 @@
 import { chunk } from 'lodash'
 
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToSelectedTagsResolver } from 'definitions'
 
 export const selectedTags: RecommendationToSelectedTagsResolver = async (
@@ -8,17 +8,18 @@ export const selectedTags: RecommendationToSelectedTagsResolver = async (
   { input },
   { dataSources: { tagService } }
 ) => {
-  const { first, after, filter } = input
+  const { filter } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   /**
    * Pick randomly
    */
   if (typeof filter?.random === 'number') {
     const MAX_RANDOM_INDEX = 50
-    const randomDraw = first || 5
+    const randomDraw = input.first || 5
 
     const tagPool = await tagService.selected({
-      limit: MAX_RANDOM_INDEX * randomDraw,
+      take: MAX_RANDOM_INDEX * randomDraw,
     })
 
     const chunks = chunk(tagPool, randomDraw)
@@ -28,14 +29,9 @@ export const selectedTags: RecommendationToSelectedTagsResolver = async (
     return connectionFromArray(pickedTags, input, tagPool.length)
   }
 
-  const offset = cursorToIndex(after) + 1
-
   const [totalCount, tags] = await Promise.all([
     tagService.countSelectedTags(),
-    tagService.selected({
-      offset,
-      limit: first,
-    }),
+    tagService.selected({ skip, take }),
   ])
   return connectionFromArray(tags, input, totalCount)
 }

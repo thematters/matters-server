@@ -65,122 +65,164 @@ class RevisionQueue extends BaseQueue {
   /**
    * Publish revised article
    */
-  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
-    const { draftId } = job.data as RevisedArticleData
+  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
+    async (job, done) => {
+      const { draftId } = job.data as RevisedArticleData
 
-    const draft = await this.draftService.baseFindById(draftId)
+      const draft = await this.draftService.baseFindById(draftId)
 
-    // Step 1: checks
-    if (!draft) {
-      job.progress(100)
-      done(null, `Revision draft ${draftId} not found`)
-      return
-    }
-    if (draft.publishState !== PUBLISH_STATE.pending) {
-      job.progress(100)
-      done(null, `Revision draft ${draftId} isn\'t in pending state.`)
-      return
-    }
-    const article = await this.articleService.baseFindById(draft.articleId)
-    if (!article) {
-      job.progress(100)
-      done(null, `Revised article ${draft.articleId} not found`)
-      return
-    }
-    if (article.state !== ARTICLE_STATE.active) {
-      job.progress(100)
-      done(null, `Revised article ${draft.articleId} is not active`)
-      return
-    }
-    const preDraft = await this.draftService.baseFindById(article.draftId)
-    job.progress(10)
-
-    try {
-      const summary = draft.summary || makeSummary(draft.content)
-      const wordCount = countWords(draft.content)
-
-      // Step 2: publish content to IPFS
-      const revised = { ...draft, summary }
-
-      const {
-        contentHash: dataHash,
-        mediaHash,
-        key,
-      } = await this.articleService.publishToIPFS(revised)
-      job.progress(30)
-
-      // Step 3: update draft
-      await this.draftService.baseUpdate(draft.id, {
-        dataHash,
-        mediaHash,
-        archived: true,
-        publishState: PUBLISH_STATE.published,
-        pinState: PIN_STATE.pinned,
-        updatedAt: new Date(),
-      })
-      job.progress(40)
-
-      // Step 4: update secret
-      if (draft.circleId) {
-        const secret =
-          draft.access === GQLArticleAccessType.paywall ? key : null
-        await this.handleCircle({ article, circleId: draft.circleId, secret })
+      // Step 1: checks
+      if (!draft) {
+        job.progress(100)
+        done(null, `Revision draft ${draftId} not found`)
+        return
       }
-      job.progress(45)
+      if (draft.publishState !== PUBLISH_STATE.pending) {
+        job.progress(100)
+        done(null, `Revision draft ${draftId} isn\'t in pending state.`)
+        return
+      }
+      const article = await this.articleService.baseFindById(draft.articleId)
+      if (!article) {
+        job.progress(100)
+        done(null, `Revised article ${draft.articleId} not found`)
+        return
+      }
+      if (article.state !== ARTICLE_STATE.active) {
+        job.progress(100)
+        done(null, `Revised article ${draft.articleId} is not active`)
+        return
+      }
+      const preDraft = await this.draftService.baseFindById(article.draftId)
+      job.progress(10)
 
-      // Step 5: update back to article
-      const revisionCount = (article.revisionCount || 0) + 1
-      const updatedArticle = await this.articleService.baseUpdate(article.id, {
-        draftId: draft.id,
-        dataHash,
-        mediaHash,
-        summary,
-        wordCount,
-        revisionCount,
-        slug: slugify(draft.title),
-        updatedAt: new Date(),
-      })
-      job.progress(50)
-
-      // Note: the following steps won't affect the publication.
       try {
-        // Step 6: copy previous draft asset maps for current draft
-        // Note: collection and tags are handled in edit resolver.
-        // @see src/mutations/article/editArticle.ts
+        const summary = draft.summary || makeSummary(draft.content)
+        const wordCount = countWords(draft.content)
+
+        // Step 2: publish content to IPFS
+        const revised = { ...draft, summary }
+
         const {
-          id: entityTypeId,
-        } = await this.systemService.baseFindEntityTypeId('draft')
-        await this.systemService.copyAssetMapEntities({
-          source: preDraft.id,
-          target: draft.id,
-          entityTypeId,
-        })
-        job.progress(60)
+          contentHash: dataHash,
+          mediaHash,
+          key,
+        } = await this.articleService.publishToIPFS(revised)
+        job.progress(30)
 
-        // Step 7: add to search
-        const author = await this.userService.baseFindById(article.authorId)
-        const { userName, displayName } = author
-        await this.articleService.addToSearch({
-          ...article,
-          content: draft.content,
-          userName,
-          displayName,
+        // Step 3: update draft
+        await this.draftService.baseUpdate(draft.id, {
+          dataHash,
+          mediaHash,
+          archived: true,
+          publishState: PUBLISH_STATE.published,
+          pinState: PIN_STATE.pinned,
+          updatedAt: new Date(),
         })
-        job.progress(70)
+        job.progress(40)
 
-        // Step 8: handle newly added mentions
-        await this.handleMentions({
-          article: updatedArticle,
-          preDraftContent: preDraft.content,
-          content: draft.content,
+        // Step 4: update secret
+        if (draft.circleId) {
+          const secret =
+            draft.access === GQLArticleAccessType.paywall ? key : null
+          await this.handleCircle({ article, circleId: draft.circleId, secret })
+        }
+        job.progress(45)
+
+        // Step 5: update back to article
+        const revisionCount = (article.revisionCount || 0) + 1
+        const updatedArticle = await this.articleService.baseUpdate(
+          article.id,
+          {
+            draftId: draft.id,
+            dataHash,
+            mediaHash,
+            summary,
+            wordCount,
+            revisionCount,
+            slug: slugify(draft.title),
+            updatedAt: new Date(),
+          }
+        )
+        job.progress(50)
+
+        // Note: the following steps won't affect the publication.
+        try {
+          // Step 6: copy previous draft asset maps for current draft
+          // Note: collection and tags are handled in edit resolver.
+          // @see src/mutations/article/editArticle.ts
+          const { id: entityTypeId } =
+            await this.systemService.baseFindEntityTypeId('draft')
+          await this.systemService.copyAssetMapEntities({
+            source: preDraft.id,
+            target: draft.id,
+            entityTypeId,
+          })
+          job.progress(60)
+
+          // Step 7: add to search
+          const author = await this.userService.baseFindById(article.authorId)
+          const { userName, displayName } = author
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          job.progress(70)
+
+          // Step 8: handle newly added mentions
+          await this.handleMentions({
+            article: updatedArticle,
+            preDraftContent: preDraft.content,
+            content: draft.content,
+          })
+          job.progress(90)
+
+          // Step 9: trigger notifications
+          this.notificationService.trigger({
+            event: DB_NOTICE_TYPE.revised_article_published,
+            recipientId: article.authorId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'article',
+                entity: article,
+              },
+            ],
+          })
+          job.progress(95)
+
+          // Step 10: invalidate article and user cache
+          await Promise.all([
+            invalidateFQC({
+              node: { type: NODE_TYPES.User, id: article.authorId },
+              redis: this.cacheService.redis,
+            }),
+            invalidateFQC({
+              node: { type: NODE_TYPES.Article, id: article.id },
+              redis: this.cacheService.redis,
+            }),
+          ])
+          job.progress(100)
+        } catch (e) {
+          // ignore errors caused by these steps
+          logger.error(e)
+        }
+
+        done(null, {
+          articleId: article.id,
+          draftId: draft.id,
+          dataHash,
+          mediaHash,
         })
-        job.progress(90)
+      } catch (e) {
+        await this.draftService.baseUpdate(draft.id, {
+          publishState: PUBLISH_STATE.error,
+        })
 
-        // Step 9: trigger notifications
         this.notificationService.trigger({
-          event: DB_NOTICE_TYPE.revised_article_published,
+          event: DB_NOTICE_TYPE.revised_article_not_published,
           recipientId: article.authorId,
           entities: [
             {
@@ -190,51 +232,10 @@ class RevisionQueue extends BaseQueue {
             },
           ],
         })
-        job.progress(95)
 
-        // Step 10: invalidate article and user cache
-        await Promise.all([
-          invalidateFQC({
-            node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: this.cacheService.redis,
-          }),
-          invalidateFQC({
-            node: { type: NODE_TYPES.Article, id: article.id },
-            redis: this.cacheService.redis,
-          }),
-        ])
-        job.progress(100)
-      } catch (e) {
-        // ignore errors caused by these steps
-        logger.error(e)
+        done(e)
       }
-
-      done(null, {
-        articleId: article.id,
-        draftId: draft.id,
-        dataHash,
-        mediaHash,
-      })
-    } catch (e) {
-      await this.draftService.baseUpdate(draft.id, {
-        publishState: PUBLISH_STATE.error,
-      })
-
-      this.notificationService.trigger({
-        event: DB_NOTICE_TYPE.revised_article_not_published,
-        recipientId: article.authorId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
-
-      done(e)
     }
-  }
 
   private handleCircle = async ({
     article,

@@ -58,121 +58,120 @@ class CircleQueue extends BaseQueue {
     )
   }
 
-  private transferTrialEndSubscriptions: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
-    try {
-      logger.info('[schedule job] transfer trial end subscriptions')
-      const knex = this.atomService.knex
+  private transferTrialEndSubscriptions: Queue.ProcessCallbackFunction<unknown> =
+    async (job, done) => {
+      try {
+        logger.info('[schedule job] transfer trial end subscriptions')
+        const knex = this.atomService.knex
 
-      // obtain trial end subscription items from the past 7 days
-      const trialEndSubItems = await knex
-        .select(
-          'csi.id',
-          'csi.subscription_id',
-          'csi.user_id',
-          'csi.price_id',
-          'circle_price.provider_price_id',
-          'circle_price.circle_id',
-          'expired_ivts.id as invitation_id'
-        )
-        .from(
-          knex('circle_invitation')
-            .select(
-              '*',
-              knex.raw(
-                `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
-              )
-            )
-            .where({ state: INVITATION_STATE.accepted })
-            .whereNotNull('subscription_item_id')
-            .as('expired_ivts')
-        )
-        .leftJoin(
-          'circle_subscription_item as csi',
-          'csi.id',
-          'expired_ivts.subscription_item_id'
-        )
-        .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
-        .where({
-          'csi.provider': PAYMENT_PROVIDER.matters,
-          'csi.archived': false,
-          'circle_price.state': PRICE_STATE.active,
-        })
-        .andWhere('ended_at', '>', knex.raw(`now() - interval '1 months'`))
-        .andWhere('ended_at', '<=', knex.raw(`now()`))
-      job.progress(30)
-
-      const succeedItemIds = []
-      const failedItemIds = []
-      for (const item of trialEndSubItems) {
-        try {
-          // archive Matters subscription item
-          await this.archiveMattersSubItem({
-            subscriptionId: item.subscriptionId,
-            subscriptionItemId: item.id,
-          })
-
-          // create Stripe subscription item
-          await this.createStripeSubItem({
-            userId: item.userId,
-            subscriptionItemId: item.id,
-            priceId: item.priceId,
-            providerPriceId: item.providerPriceId,
-          })
-
-          // mark invitation as `transfer_succeeded`
-          await this.markInvitationAs({
-            invitationId: item.invitationId,
-            state: INVITATION_STATE.transfer_succeeded,
-          })
-
-          succeedItemIds.push(item.id)
-          logger.info(
-            `[schedule job] Matters subscription item ${item.id} moved to Stripe.`
+        // obtain trial end subscription items from the past 7 days
+        const trialEndSubItems = await knex
+          .select(
+            'csi.id',
+            'csi.subscription_id',
+            'csi.user_id',
+            'csi.price_id',
+            'circle_price.provider_price_id',
+            'circle_price.circle_id',
+            'expired_ivts.id as invitation_id'
           )
-        } catch (error) {
-          // mark invitation as `transfer_failed`
-          await this.markInvitationAs({
-            invitationId: item.invitationId,
-            state: INVITATION_STATE.transfer_failed,
+          .from(
+            knex('circle_invitation')
+              .select(
+                '*',
+                knex.raw(
+                  `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
+                )
+              )
+              .where({ state: INVITATION_STATE.accepted })
+              .whereNotNull('subscription_item_id')
+              .as('expired_ivts')
+          )
+          .leftJoin(
+            'circle_subscription_item as csi',
+            'csi.id',
+            'expired_ivts.subscription_item_id'
+          )
+          .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
+          .where({
+            'csi.provider': PAYMENT_PROVIDER.matters,
+            'csi.archived': false,
+            'circle_price.state': PRICE_STATE.active,
           })
+          .andWhere('ended_at', '>', knex.raw(`now() - interval '1 months'`))
+          .andWhere('ended_at', '<=', knex.raw(`now()`))
+        job.progress(30)
 
-          failedItemIds.push(item.id)
-          logger.error(error)
+        const succeedItemIds = []
+        const failedItemIds = []
+        for (const item of trialEndSubItems) {
+          try {
+            // archive Matters subscription item
+            await this.archiveMattersSubItem({
+              subscriptionId: item.subscriptionId,
+              subscriptionItemId: item.id,
+            })
+
+            // create Stripe subscription item
+            await this.createStripeSubItem({
+              userId: item.userId,
+              subscriptionItemId: item.id,
+              priceId: item.priceId,
+              providerPriceId: item.providerPriceId,
+            })
+
+            // mark invitation as `transfer_succeeded`
+            await this.markInvitationAs({
+              invitationId: item.invitationId,
+              state: INVITATION_STATE.transfer_succeeded,
+            })
+
+            succeedItemIds.push(item.id)
+            logger.info(
+              `[schedule job] Matters subscription item ${item.id} moved to Stripe.`
+            )
+          } catch (error) {
+            // mark invitation as `transfer_failed`
+            await this.markInvitationAs({
+              invitationId: item.invitationId,
+              state: INVITATION_STATE.transfer_failed,
+            })
+
+            failedItemIds.push(item.id)
+            logger.error(error)
+          }
+
+          // invalidate user & circle
+          invalidateFQC({
+            node: { type: NODE_TYPES.User, id: item.userId },
+            redis: this.cacheService.redis,
+          })
+          invalidateFQC({
+            node: { type: NODE_TYPES.Circle, id: item.circleId },
+            redis: this.cacheService.redis,
+          })
         }
 
-        // invalidate user & circle
-        invalidateFQC({
-          node: { type: NODE_TYPES.User, id: item.userId },
-          redis: this.cacheService.redis,
-        })
-        invalidateFQC({
-          node: { type: NODE_TYPES.Circle, id: item.circleId },
-          redis: this.cacheService.redis,
-        })
-      }
-
-      job.progress(100)
-      if (trialEndSubItems.length >= 1) {
+        job.progress(100)
+        if (trialEndSubItems.length >= 1) {
+          this.slackService.sendQueueMessage({
+            data: { succeedItemIds, failedItemIds },
+            title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
+            message: `Completed handling ${trialEndSubItems.length} trial ended subscription items.`,
+            state: SLACK_MESSAGE_STATE.successful,
+          })
+        }
+        done(null, { succeedItemIds, failedItemIds })
+      } catch (error) {
+        logger.error(error)
         this.slackService.sendQueueMessage({
-          data: { succeedItemIds, failedItemIds },
           title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
-          message: `Completed handling ${trialEndSubItems.length} trial ended subscription items.`,
-          state: SLACK_MESSAGE_STATE.successful,
+          message: `Failed to process cron job`,
+          state: SLACK_MESSAGE_STATE.failed,
         })
+        done(error)
       }
-      done(null, { succeedItemIds, failedItemIds })
-    } catch (error) {
-      logger.error(error)
-      this.slackService.sendQueueMessage({
-        title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
-        message: `Failed to process cron job`,
-        state: SLACK_MESSAGE_STATE.failed,
-      })
-      done(error)
     }
-  }
 
   private archiveMattersSubItem = async ({
     subscriptionId,

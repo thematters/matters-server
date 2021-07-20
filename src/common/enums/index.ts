@@ -23,7 +23,7 @@ export const GRAPHQL_COST_LIMIT = 500
 
 export const BCRYPT_ROUNDS = 12
 
-export const BATCH_SIZE = 10
+export const DEFAULT_TAKE_PER_PAGE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
@@ -183,7 +183,8 @@ export const APPRECIATION_TYPES = {
 }
 
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
-export const SEARCH_ARTICLE_URL_REGEX = /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
+export const SEARCH_ARTICLE_URL_REGEX =
+  /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',

@@ -72,9 +72,6 @@ export default /* GraphQL */ `
     "Global id of an user."
     id: ID!
 
-    "UUID of an user, for backward compatibility."
-    uuid: UUID!
-
     "Global unique user name of a user."
     userName: String
 
@@ -88,7 +85,7 @@ export default /* GraphQL */ `
     liker: Liker!
 
     "URL for user avatar."
-    avatar: URL
+    avatar: String
 
     "User information."
     info: UserInfo!
@@ -176,9 +173,6 @@ export default /* GraphQL */ `
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
-    "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
@@ -188,17 +182,8 @@ export default /* GraphQL */ `
     "Selected tag list"
     selectedTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
-    "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
     "Global user list, sort by activities in recent 6 month."
     authors(input: RecommendInput!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
-
-    "Personalized recommendation based on interaction with tags."
-    interest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Recommend articles with collaborative filtering"
-    recommendArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Global circles sort by created time."
     newestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
@@ -209,7 +194,7 @@ export default /* GraphQL */ `
 
   input RecommendInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
     filter: FilterInput
     type: AuthorsType
@@ -217,7 +202,8 @@ export default /* GraphQL */ `
 
   input FilterInput {
     "index of list, min: 0, max: 49"
-    random: NonNegativeInt
+    random: Int @constraint(min: 0, max: 49)
+
     followed: Boolean
   }
 
@@ -232,7 +218,7 @@ export default /* GraphQL */ `
     description: String
 
     "User email."
-    email: Email @auth(mode: "${AUTH_MODE.oauth}")
+    email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
@@ -241,7 +227,7 @@ export default /* GraphQL */ `
     agreeOn: DateTime
 
     "Cover of profile page."
-    profileCover: URL
+    profileCover: String
 
     "Type of group."
     group: UserGroup!
@@ -306,15 +292,15 @@ export default /* GraphQL */ `
     civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat! @auth(mode: "${AUTH_MODE.oauth}")
+    total: Float! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: NonNegativeFloat @objectCache(maxAge: ${CACHE_TTL.LONG})
+    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG})
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
+    boost: Float!
+    score: Float!
   }
 
   type Appreciation {
@@ -529,7 +515,7 @@ export default /* GraphQL */ `
   }
 
   input SendVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     token: String
 
@@ -537,11 +523,11 @@ export default /* GraphQL */ `
     Redirect URL embedded in the verification email,
     use code instead if not provided.
     """
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   input ConfirmVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     code: String!
   }
@@ -553,9 +539,9 @@ export default /* GraphQL */ `
   }
 
   input ChangeEmailInput {
-    oldEmail: Email!
+    oldEmail: String! @constraint(format: "email")
     oldEmailCodeId: ID!
-    newEmail: Email!
+    newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }
 
@@ -564,7 +550,7 @@ export default /* GraphQL */ `
   }
 
   input UserRegisterInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     userName: String
     displayName: String!
     password: String!
@@ -573,7 +559,7 @@ export default /* GraphQL */ `
   }
 
   input UserLoginInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     password: String!
   }
 
@@ -598,7 +584,7 @@ export default /* GraphQL */ `
     id: ID
     emails: [String!]
     state: UserState!
-    banDays: PositiveInt
+    banDays: Int @constraint(exclusiveMin: 0)
     password: String
   }
 

@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { CommentToCommentsResolver } from 'definitions'
 
 const resolver: CommentToCommentsResolver = (
@@ -6,8 +6,12 @@ const resolver: CommentToCommentsResolver = (
   { input: { author, sort, ...connectionArgs } },
   { dataSources: { commentService } }
 ) => {
+  const { take, skip } = fromConnectionArgs(connectionArgs, {
+    allowTakeAll: true,
+  })
+
   return connectionFromPromisedArray(
-    commentService.findByParent({ id, author, sort }),
+    commentService.findByParent({ id, author, sort, skip, take }),
     connectionArgs
   )
 }

@@ -40,7 +40,6 @@ const resolver: MutationToMigrationResolver = async (
 
       const stream = createReadStream()
       const buffer = await getStream.buffer(stream, {
-        encoding: 'utf8',
         maxBuffer: UPLOAD_MIGRATION_SIZE_LIMIT,
       })
       totalSize = totalSize + buffer.byteLength

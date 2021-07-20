@@ -1,4 +1,24 @@
-directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
+directive @constraint(
+  """String constraints"""
+  minLength: Int
+  maxLength: Int
+  startsWith: String
+  endsWith: String
+  contains: String
+  notContains: String
+  pattern: String
+  format: String
+
+  """Number constraints"""
+  min: Int
+  max: Int
+  exclusiveMin: Int
+  exclusiveMax: Int
+  multipleOf: Int
+  uniqueTypeName: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+directive @cacheControl(maxAge: Int, scope: CacheControlScope, inheritMaxAge: Boolean) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
@@ -15,1105 +35,18 @@ directive @logCache(type: String!) on FIELD_DEFINITION
 
 directive @purgeCache(type: String!) on FIELD_DEFINITION
 
-input AddArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  selected: Boolean
-}
-
-"""Add Credit"""
-input AddCreditInput {
-  amount: PositiveFloat!
-}
-
-type AddCreditResult {
-  transaction: Transaction!
-
-  """The client secret of this PaymentIntent."""
-  client_secret: String!
-}
-
-input AppreciateArticleInput {
-  id: ID!
-  amount: PositiveInt!
-  token: String
-  superLike: Boolean
-}
-
-type Appreciation {
-  amount: Int!
-  purpose: AppreciationPurpose!
-  content: String!
-
-  """Timestamp of appreciation."""
-  createdAt: DateTime!
-
-  """Recipient of appreciation."""
-  recipient: User!
-
-  """Sender of appreciation."""
-  sender: User
-
-  """Object that appreciation is meant for."""
-  target: Article
-}
-
-type AppreciationConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [AppreciationEdge!]
-}
-
-type AppreciationEdge {
-  cursor: String!
-  node: Appreciation!
-}
-
-enum AppreciationPurpose {
-  appreciate
-  appreciateComment
-  appreciateSubsidy
-  invitationAccepted
-  joinByInvitation
-  joinByTask
-  firstPost
-  systemSubsidy
-}
-
-"""
-This type contains metadata, content, hash and related data of an article. If you
-want information about article's comments. Please check Comment type.
-"""
-type Article implements Node {
-  """Unique ID of this article"""
-  id: ID!
-
-  """The number represents how popular is this article."""
-  topicScore: Int
-
-  """Slugified article title."""
-  slug: String!
-
-  """Time of this article was created."""
-  createdAt: DateTime!
-
-  """Time of this article was revised."""
-  revisedAt: DateTime
-
-  """State of this article."""
-  state: ArticleState!
-
-  """Author of this article."""
-  author: User!
-
-  """Article title."""
-  title: String!
-
-  """Article cover's link."""
-  cover: URL
-
-  """List of assets are belonged to this article."""
-  assets: [Asset!]!
-
-  """A short summary for this article."""
-  summary: String!
-
-  """This value determines if the summary is customized or not."""
-  summaryCustomized: Boolean!
-
-  """Tags attached to this article."""
-  tags: [Tag!]
-
-  """Word count of this article."""
-  wordCount: Int
-
-  """IPFS hash of this article."""
-  dataHash: String!
-
-  """Media hash, composed of cid encoding, of this article."""
-  mediaHash: String!
-
-  """Content of this article."""
-  content: String!
-
-  """Original language of content"""
-  language: String
-
-  """List of articles which added this article into their collections."""
-  collectedBy(input: ConnectionArgs!): ArticleConnection!
-
-  """List of articles added into this article' collection."""
-  collection(input: ConnectionArgs!): ArticleConnection!
-
-  """Related articles to this article."""
-  relatedArticles(input: ConnectionArgs!): ArticleConnection!
-
-  """Donation-related articles to this article."""
-  relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
-
-  """Appreciations history of this article."""
-  appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
-
-  """Total number of appreciations recieved of this article."""
-  appreciationsReceivedTotal: Int!
-
-  """Subscribers of this article."""
-  subscribers(input: ConnectionArgs!): UserConnection!
-
-  """Limit the nuhmber of appreciate per user."""
-  appreciateLimit: Int!
-
-  """Number represents how many times per user can appreciate this article."""
-  appreciateLeft: Int!
-
-  """This value determines if current viewer has appreciated or not."""
-  hasAppreciate: Boolean!
-
-  """This value determines if current viewer can SuperLike or not."""
-  canSuperLike: Boolean!
-
-  """This value determines if current Viewer has subscribed of not."""
-  subscribed: Boolean!
-
-  """
-  This value determines if this article is an author selected article or not.
-  """
-  sticky: Boolean!
-
-  """Translation of article title and content."""
-  translation(input: TranslationArgs): ArticleTranslation
-
-  """Transactions history of this article."""
-  transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
-
-  """Cumulative reading time in seconds"""
-  readTime: NonNegativeFloat!
-
-  """Drafts linked to this article."""
-  drafts: [Draft!]
-
-  """Revision Count"""
-  revisionCount: Int!
-
-  """Access related fields on circle"""
-  access: ArticleAccess!
-
-  """License Type"""
-  license: ArticleLicenseType!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
-  oss: ArticleOSS!
-  remark: String
-
-  """The counting number of comments."""
-  commentCount: Int!
-
-  """The number determines how many pinned comments can be set."""
-  pinCommentLimit: Int!
-
-  """The number determines how many comments can be set as pinned comment."""
-  pinCommentLeft: Int!
-
-  """List of pinned comments."""
-  pinnedComments: [Comment!]
-
-  """List of featured comments of this article."""
-  featuredComments(input: FeaturedCommentsInput!): CommentConnection!
-
-  """List of comments of this article."""
-  comments(input: CommentsInput!): CommentConnection!
-
-  """The counting number of this article."""
-  responseCount: Int!
-
-  """List of responses of a article."""
-  responses(input: ResponsesInput!): ResponseConnection!
-}
-
-type ArticleAccess {
-  type: ArticleAccessType!
-  secret: String
-  circle: Circle
-}
-
-"""Enums for types of article access"""
-enum ArticleAccessType {
-  public
-  paywall
-}
-
-type ArticleArticleNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: ArticleArticleNoticeType!
-  target: Article!
-  article: Article!
-}
-
-enum ArticleArticleNoticeType {
-  ArticleNewCollected
-}
-
-type ArticleConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [ArticleEdge!]
-}
-
-type ArticleEdge {
-  cursor: String!
-  node: Article!
-}
-
-input ArticleInput {
-  mediaHash: String
-  uuid: UUID
-}
-
-"""Enums for types of article license"""
-enum ArticleLicenseType {
-  cc_0
-  cc_by_nc_nd_2
-  arr
-}
-
-"""
-################################
-                               #
-           Article             #
-                               #
-################################
-"""
-type ArticleNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: ArticleNoticeType!
-  target: Article!
-}
-
-enum ArticleNoticeType {
-  ArticlePublished
-  ArticleMentionedYou
-  ArticleNewSubscriber
-  ArticleNewAppreciation
-  RevisedArticlePublished
-  RevisedArticleNotPublished
-  CircleNewArticle
-}
-
-type ArticleOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
-  inRecommendIcymi: Boolean!
-  inRecommendHottest: Boolean!
-  inRecommendNewest: Boolean!
-}
-
-"""Enums for an article state."""
-enum ArticleState {
-  active
-  archived
-  banned
-}
-
-"""
-################################
-                               #
-             Tag               #
-                               #
-################################
-"""
-type ArticleTagNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: ArticleTagNoticeType!
-  target: Article!
-  tag: Tag!
-}
-
-enum ArticleTagNoticeType {
-  ArticleTagAdded
-  ArticleTagRemoved
-  ArticleTagUnselected @deprecated(reason: "No longer in use")
-}
-
-type ArticleTranslation {
-  title: String
-  content: String
-}
-
-"""This type contains type, link and related data of an asset."""
-type Asset {
-  """Unique ID of this Asset."""
-  id: ID!
-
-  """Types of this asset."""
-  type: AssetType!
-
-  """Link of this asset."""
-  path: String!
-
-  """Time of this asset was created."""
-  createdAt: DateTime!
-}
-
-"""Enums for asset types."""
-enum AssetType {
-  avatar
-  cover
-  embed
-  embedaudio
-  profileCover
-  oauthClientAvatar
-  tagCover
-  circleAvatar
-  circleCover
-}
-
-enum AuthorsType {
-  active
-  appreciated
-  default
-  trendy
-}
-
-type AuthResult {
-  auth: Boolean!
-  token: String
-}
-
-type Badge {
-  type: BadgeType!
-}
-
-input BadgedUsersInput {
-  after: String
-  first: Int
-  type: BadgeType
-}
-
-enum BadgeType {
-  seed
-  golden_motor
-  architect
-}
-
-type Balance {
-  HKD: Float!
-}
-
-enum BoostTypes {
-  Article
-  User
-  Tag
-}
-
-enum CacheScope {
-  PUBLIC
-  PRIVATE
-}
-
-input ChangeEmailInput {
-  oldEmail: Email!
-  oldEmailCodeId: ID!
-  newEmail: Email!
-  newEmailCodeId: ID!
-}
-
-type Circle implements Node {
-  """Unique ID."""
-  id: ID!
-
-  """Circle avatar's link."""
-  avatar: URL
-
-  """Circle cover's link."""
-  cover: URL
-
-  """Slugified name of this Circle."""
-  name: String!
-
-  """Human readable name of this Circle."""
-  displayName: String!
-
-  """A short description of this Circle."""
-  description: String
-
-  """Prices offered by this Circle."""
-  prices: [Price!]
-
-  """Circle owner."""
-  owner: User!
-
-  """List of Circle member."""
-  members(input: ConnectionArgs!): MemberConnection!
-
-  """List of Circle follower."""
-  followers(input: ConnectionArgs!): UserConnection!
-
-  """List of works belong to this Circle."""
-  works(input: ConnectionArgs!): ArticleConnection!
-
-  """State of this Circle."""
-  state: CircleState!
-
-  """Created time."""
-  createdAt: DateTime!
-
-  """Updated time."""
-  updatedAt: DateTime!
-
-  """This value determines if current viewer is following Circle or not."""
-  isFollower: Boolean!
-
-  """This value determines if current viewer is Member or not."""
-  isMember: Boolean!
-
-  """Setting of this Circle."""
-  setting: CircleSetting!
-
-  """Invitations belonged to this Circle."""
-  invites: Invites!
-
-  """Invitation used by current viewer."""
-  invitedBy: Invitation
-
-  """Comments broadcasted by Circle owner."""
-  broadcast(input: ConnectionArgs!): CommentConnection!
-
-  """Pinned comments broadcasted by Circle owner."""
-  pinnedBroadcast: [Comment!]
-
-  """Comments made by Circle member."""
-  discussion(input: ConnectionArgs!): CommentConnection!
-
-  """Discussion (exclude replies) count of this circle."""
-  discussionThreadCount: Int!
-
-  """Discussion (include replies) count of this circle."""
-  discussionCount: Int!
-}
-
-type CircleConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [CircleEdge!]
-}
-
-type CircleEdge {
-  cursor: String!
-  node: Circle!
-}
-
-input CircleInput {
-  """Slugified name of a Circle."""
-  name: String!
-}
-
-"""
-################################
-                               #
-            Circle             #
-                               #
-################################
-"""
-type CircleNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CircleNoticeType!
-  target: Circle!
-}
-
-enum CircleNoticeType {
-  CircleNewFollower
-  CircleNewSubscriber
-  CircleNewUnsubscriber
-  CircleInvitation
-}
-
-type CircleSetting {
-  """Whether broadcast is enabled or not."""
-  enableBroadcast: Boolean!
-
-  """Whther discussion is enabled or not."""
-  enableDiscussion: Boolean!
-}
-
-enum CircleState {
-  active
-  archived
-}
-
-input ClearReadHistoryInput {
-  id: ID!
-}
-
-"""
-This type contains content, author, descendant comments and related data of a comment.
-"""
-type Comment implements Node {
-  """Unique ID of this comment."""
-  id: ID!
-
-  """State of this comment."""
-  state: CommentState!
-
-  """Time of this comment was created."""
-  createdAt: DateTime!
-
-  """Content of this comment."""
-  content: String
-
-  """Author of this comment."""
-  author: User!
-
-  """This value determines this comment is pinned or not."""
-  pinned: Boolean!
-
-  """This value determines this comment is from article donator or not."""
-  fromDonator: Boolean!
-
-  """The counting number of upvotes."""
-  upvotes: Int!
-
-  """The counting number of downvotes."""
-  downvotes: Int!
-
-  """The value determines current user's vote."""
-  myVote: Vote
-
-  """Descendant comments of this comment."""
-  comments(input: CommentCommentsInput!): CommentConnection!
-
-  """Parent comment of this comment."""
-  parentComment: Comment
-
-  """A Comment that this comment replied to."""
-  replyTo: Comment
-  remark: String
-
-  """Current comment belongs to which Node."""
-  node: Node!
-}
-
-type CommentCommentNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CommentCommentNoticeType!
-  target: Comment!
-  comment: Comment!
-}
-
-enum CommentCommentNoticeType {
-  CommentNewReply
-}
-
-input CommentCommentsInput {
-  author: ID
-  sort: CommentSort
-  after: String
-  first: Int
-}
-
-type CommentConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [CommentEdge!]
-}
-
-type CommentEdge {
-  cursor: String!
-  node: Comment!
-}
-
-input CommentInput {
-  content: String!
-  replyTo: ID
-  parentId: ID
-  mentions: [ID!]
-  type: CommentType!
-
-  """one of the following ids is required"""
-  articleId: ID
-  circleId: ID
-}
-
-"""
-################################
-                               #
-           Comment             #
-                               #
-################################
-"""
-type CommentNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CommentNoticeType!
-  target: Comment!
-}
-
-enum CommentNoticeType {
-  CommentPinned
-  CommentMentionedYou
-  ArticleNewComment
-  SubscribedArticleNewComment
-  CircleNewBroadcast
-}
-
-input CommentsFilter {
-  parentComment: ID
-  state: CommentState
-  author: ID
-}
-
-input CommentsInput {
-  sort: CommentSort
-  after: String
-  before: String
-  includeAfter: Boolean
-  includeBefore: Boolean
-  first: Int
-  filter: CommentsFilter
-}
-
-"""Enums for sorting comments by time."""
-enum CommentSort {
-  oldest
-  newest
-}
-
-"""Enums for comment state."""
-enum CommentState {
-  active
-  archived
-  banned
-  collapsed
-}
-
-enum CommentType {
-  article
-  circleDiscussion
-  circleBroadcast
-}
-
-input ConfirmVerificationCodeInput {
-  email: Email!
-  type: VerificationCodeType!
-  code: String!
-}
-
-interface Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-}
-
-input ConnectionArgs {
-  after: String
-  first: Int
-  oss: Boolean
-}
-
-"""Stripe Account"""
-input ConnectStripeAccountInput {
-  country: StripeAccountCountry!
-}
-
-type ConnectStripeAccountResult {
-  redirectUrl: URL!
-}
-
-input CostComplexity {
-  min: Int = 1
-  max: Int
-}
-
-scalar Date
-
-scalar DateTime
-
-input DeleteArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-}
-
-input DeleteCommentInput {
-  id: ID!
-}
-
-input DeleteDraftInput {
-  id: ID!
-}
-
-input DeleteTagsInput {
-  ids: [ID!]!
-}
-
-"""
-This type contains content, collections, assets and related data of a draft.
-"""
-type Draft implements Node {
-  """Unique ID of this draft."""
-  id: ID!
-
-  """Media hash, composed of cid encoding, of this draft."""
-  mediaHash: String
-
-  """Draft title."""
-  title: String
-
-  """Slugified draft title."""
-  slug: String!
-
-  """Summary of this draft."""
-  summary: String
-
-  """This value determines if the summary is customized or not."""
-  summaryCustomized: Boolean!
-
-  """Content of this draft."""
-  content: String
-
-  """Time of this draft was created."""
-  createdAt: DateTime!
-
-  """Last time of this draft was upadted."""
-  updatedAt: DateTime!
-
-  """The counting number of words in this draft."""
-  wordCount: Int!
-
-  """Tags are attached to this draft."""
-  tags: [String!]
-
-  """Draft's cover link."""
-  cover: URL
-
-  """State of draft during publihsing."""
-  publishState: PublishState!
-
-  """List of assets are belonged to this draft."""
-  assets: [Asset!]!
-
-  """Published article"""
-  article: Article
-
-  """Collection list of this draft."""
-  collection(input: ConnectionArgs!): ArticleConnection!
-
-  """Access related fields on circle"""
-  access: DraftAccess!
-
-  """License Type"""
-  license: ArticleLicenseType!
-}
-
-type DraftAccess {
-  type: ArticleAccessType!
-  circle: Circle
-}
-
-type DraftConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [DraftEdge!]
-}
-
-type DraftEdge {
-  cursor: String!
-  node: Draft!
-}
-
-input EditArticleInput {
-  id: ID!
-  state: ArticleState
-  sticky: Boolean
-  summary: String
-  tags: [String!]
-  content: String
-  cover: ID
-  collection: [ID!]
-  circle: ID
-  accessType: ArticleAccessType
-
-  """License Type, `ARR` is only for paywalled article"""
-  license: ArticleLicenseType
-}
-
-scalar Email
-
-enum EntityType {
-  article
-  draft
-  tag
-  user
-  circle
-}
-
-type Feature {
-  name: FeatureName!
-  enabled: Boolean!
-}
-
-input FeaturedCommentsInput {
-  sort: CommentSort
-  after: String
-  first: Int
-}
-
-enum FeatureFlag {
-  on
-  off
-  admin
-  seeding
-}
-
-enum FeatureName {
-  add_credit
-  payment
-  payout
-  verify_appreciate
-  fingerprint
-  tag_adoption
-  circle_management
-  circle_interact
-}
-
-input FilterInput {
-  """index of list, min: 0, max: 49"""
-  random: NonNegativeInt
-  followed: Boolean
-}
-
-type FolloweeDonatedArticle {
-  article: Article!
-  followee: User!
-}
-
-type FolloweeDonatedArticleConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [FolloweeDonatedArticleEdge!]
-}
-
-type FolloweeDonatedArticleEdge {
-  cursor: String!
-  node: FolloweeDonatedArticle!
-}
-
-type Following {
-  circles(input: ConnectionArgs!): CircleConnection!
-  tags(input: ConnectionArgs!): TagConnection!
-  users(input: ConnectionArgs!): UserConnection!
-}
-
-union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
-
-type FollowingActivityConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [FollowingActivityEdge!]
-}
-
-type FollowingActivityEdge {
-  cursor: String!
-  node: FollowingActivity!
-}
-
-input FrequentSearchInput {
-  key: String
-  first: Int
-}
-
-enum GrantType {
-  authorization_code
-  refresh_token
-}
-
-type Invitation {
-  """Unique ID."""
-  id: ID!
-
-  """Target person of this invitation."""
-  invitee: Invitee!
-
-  """Creator of this invitation."""
-  inviter: User!
-
-  """Invitation of current Circle."""
-  circle: Circle!
-
-  """Free period of this invitation."""
-  freePeriod: PositiveInt!
-
-  """Created time."""
-  createdAt: DateTime!
-
-  """Sent time."""
-  sentAt: DateTime!
-
-  """Accepted time."""
-  acceptedAt: DateTime
-
-  """Determine it is accepted or not."""
-  accepted: Boolean! @deprecated(reason: "No longer use")
-
-  """Determine it's specific state."""
-  state: InvitationState!
-}
-
-type InvitationConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [InvitationEdge!]
-}
-
-type InvitationEdge {
-  cursor: String!
-  node: Invitation!
-}
-
-enum InvitationState {
-  accepted
-  pending
-  transfer_succeeded
-  transfer_failed
-}
-
-input InviteCircleInput {
-  invitees: [InviteCircleInvitee!]!
-  freePeriod: PositiveInt!
-  circleId: ID!
-}
-
-input InviteCircleInvitee {
-  id: ID
-  email: String
-}
-
-union Invitee = Person | User
-
-type Invites {
-  """Accepted invitation list"""
-  accepted(input: ConnectionArgs!): InvitationConnection!
-
-  """Pending invitation list"""
-  pending(input: ConnectionArgs!): InvitationConnection!
-}
-
-scalar JSON
-
-type Liker {
-  """Liker ID of LikeCoin"""
-  likerId: String
-
-  """Whether liker is a civic liker"""
-  civicLiker: Boolean!
-
-  """Total LIKE left in wallet."""
-  total: NonNegativeFloat!
-
-  """Rate of LikeCoin/USD"""
-  rateUSD: NonNegativeFloat
-}
-
-input LogRecordInput {
-  type: LogRecordTypes!
-}
-
-enum LogRecordTypes {
-  ReadFolloweeArticles
-  ReadResponseInfoPopUp
-}
-
-type Member {
-  """User who join to a Circle."""
-  user: User!
-
-  """Price chosen by user when joining a Circle."""
-  price: Price!
-}
-
-type MemberConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [MemberEdge!]
-}
-
-type MemberEdge {
-  cursor: String!
-  node: Member!
-}
-
-input MergeTagsInput {
-  ids: [ID!]!
-  content: String!
-}
-
-input MigrationInput {
-  type: MigrationType
-  files: [Upload]!
-}
-
-enum MigrationType {
-  medium
+type Query {
+  article(input: ArticleInput!): Article
+  circle(input: CircleInput!): Circle
+  node(input: NodeInput!): Node
+  nodes(input: NodesInput!): [Node!]
+  frequentSearch(input: FrequentSearchInput!): [String!]
+  search(input: SearchInput!): SearchResultConnection!
+  official: Official!
+  oss: OSS!
+  viewer: User
+  user(input: UserInput!): User
+  oauthClient(input: OAuthClientInput!): OAuthClient
 }
 
 type Mutation {
@@ -1301,709 +234,158 @@ type Mutation {
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
 
-scalar NegativeFloat
-
-scalar NegativeInt
-
-interface Node {
-  id: ID!
-}
-
-input NodeEditedInput {
-  id: ID!
-}
-
-input NodeInput {
-  id: ID!
-}
-
-input NodesInput {
-  ids: [ID!]!
-}
-
-scalar NonNegativeFloat
-
-scalar NonNegativeInt
-
-scalar NonPositiveFloat
-
-scalar NonPositiveInt
-
-"""This interface contains common fields of a notice."""
-interface Notice {
-  """Unique ID of this notice."""
+"""
+This type contains metadata, content, hash and related data of an article. If you
+want information about article's comments. Please check Comment type.
+"""
+type Article implements Node {
+  """Unique ID of this article"""
   id: ID!
 
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
+  """The number represents how popular is this article."""
+  topicScore: Int
 
-  """Time of this notice was created."""
-  createdAt: DateTime!
-}
+  """Slugified article title."""
+  slug: String!
 
-type NoticeConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [NoticeEdge!]
-}
-
-type NoticeEdge {
-  cursor: String!
-  node: Notice!
-}
-
-type NotificationSetting {
-  enable: Boolean!
-  email: Boolean!
-  mention: Boolean!
-  userNewFollower: Boolean!
-  articleNewComment: Boolean!
-  articleNewAppreciation: Boolean!
-  articleNewSubscription: Boolean!
-  articleSubscribedNewComment: Boolean!
-  articleCommentPinned: Boolean!
-  circleNewFollower: Boolean!
-  circleNewDiscussion: Boolean!
-}
-
-enum NotificationSettingType {
-  enable
-  email
-  mention
-  userNewFollower
-  articleNewComment
-  articleNewAppreciation
-  articleNewSubscription
-  articleSubscribedNewComment
-  articleCommentPinned
-  circleNewFollower
-  circleNewDiscussion
-}
-
-type OAuthClient {
-  """Unique Client ID of this OAuth Client."""
-  id: ID!
-
-  """App name"""
-  name: String!
-
-  """App Description"""
-  description: String
-
-  """URL for oauth client's official website"""
-  website: URL
-
-  """Scopes"""
-  scope: [String!]
-
-  """URL for oauth client's avatar."""
-  avatar: URL
-
-  """Client secret"""
-  secret: String!
-
-  """Redirect URIs"""
-  redirectURIs: [URL!]
-
-  """Grant Types"""
-  grantTypes: [GrantType!]
-
-  """Linked Developer Account"""
-  user: User
-
-  """Creation Date"""
-  createdAt: Date!
-}
-
-type OAuthClientConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [OAuthClientEdge!]
-}
-
-type OAuthClientEdge {
-  cursor: String!
-  node: OAuthClient!
-}
-
-input OAuthClientInput {
-  id: ID!
-}
-
-"""This type contains system-wise settings."""
-type Official {
-  """Feature flag"""
-  features: [Feature!]!
-}
-
-"""The notice type contains info about official announcement."""
-type OfficialAnnouncementNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
+  """Time of this article was created."""
   createdAt: DateTime!
 
-  """The message content."""
-  message: String!
+  """Time of this article was revised."""
+  revisedAt: DateTime
 
-  """The link to a specific page if provided."""
-  link: URL
-}
+  """State of this article."""
+  state: ArticleState!
 
-type OSS {
-  users(input: ConnectionArgs!): UserConnection!
-  comments(input: ConnectionArgs!): CommentConnection!
-  articles(input: ConnectionArgs!): ArticleConnection!
-  tags(input: TagsInput!): TagConnection!
-  oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-  skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
-  seedingUsers(input: ConnectionArgs!): UserConnection!
-  badgedUsers(input: BadgedUsersInput!): UserConnection!
-}
+  """Author of this article."""
+  author: User!
 
-type PageInfo {
-  startCursor: String
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-}
+  """Article title."""
+  title: String!
 
-input PayoutInput {
-  amount: PositiveFloat!
-  password: String!
-}
+  """Article cover's link."""
+  cover: String
 
-input PayToInput {
-  amount: PositiveFloat!
-  currency: TransactionCurrency!
-  purpose: TransactionPurpose!
-  recipientId: ID!
-  targetId: ID
-  password: String
-}
+  """List of assets are belonged to this article."""
+  assets: [Asset!]!
 
-type PayToResult {
-  transaction: Transaction!
+  """A short summary for this article."""
+  summary: String!
 
-  """Only available when paying with LIKE."""
-  redirectUrl: URL
-}
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
 
-type Person {
-  email: Email!
-}
+  """Tags attached to this article."""
+  tags: [Tag!]
 
-input PinCommentInput {
-  id: ID!
-}
+  """Word count of this article."""
+  wordCount: Int
 
-scalar PositiveFloat
+  """IPFS hash of this article."""
+  dataHash: String!
 
-scalar PositiveInt
+  """Media hash, composed of cid encoding, of this article."""
+  mediaHash: String!
 
-type Price {
-  """Unique ID."""
-  id: ID!
-
-  """Amount of Price."""
-  amount: NonNegativeFloat!
-
-  """Current Price belongs to whcih Circle."""
-  circle: Circle!
-
-  """Currency of Price."""
-  currency: TransactionCurrency!
-
-  """State of Price."""
-  state: PriceState!
-
-  """Created time."""
-  createdAt: DateTime!
-
-  """Updated time."""
-  updatedAt: DateTime!
-}
-
-enum PriceState {
-  active
-  archived
-}
-
-input PublishArticleInput {
-  id: ID!
-}
-
-"""Enums for publishing state."""
-enum PublishState {
-  unpublished
-  pending
-  error
-  published
-}
-
-input PutCircleArticlesInput {
-  """Circle ID"""
-  id: ID!
-
-  """Article Ids"""
-  articles: [ID!]
-
-  """Action Type"""
-  type: PutCircleArticlesType!
-
-  """Access Type, `public` or `paywall` only."""
-  accessType: ArticleAccessType!
-
-  """License Type, `ARR` is only for paywalled article"""
-  license: ArticleLicenseType
-}
-
-enum PutCircleArticlesType {
-  add
-  remove
-}
-
-input PutCircleInput {
-  """Unique ID."""
-  id: ID
-
-  """Unique ID of a Circle's avatar."""
-  avatar: ID
-
-  """Unique ID of a Circle's cover."""
-  cover: ID
-
-  """Slugified name of a Circle."""
-  name: String
-
-  """Human readable name of this Circle."""
-  displayName: String
-
-  """A short description of this Circle."""
-  description: String
-
-  """Circle's subscription fee."""
-  amount: NonNegativeFloat
-}
-
-input PutCommentInput {
-  comment: CommentInput!
-
-  """edit comment if id is provided"""
-  id: ID
-}
-
-input PutDraftInput {
-  id: ID
-  title: String
-  summary: String
-  content: String
-  tags: [String]
-  cover: ID
-  collection: [ID]
-  circle: ID
-  accessType: ArticleAccessType
-
-  """License Type, `ARR` is only for paywalled article"""
-  license: ArticleLicenseType
-}
-
-input PutOAuthClientInput {
-  id: ID
-  name: String
-  description: String
-  website: URL
-  scope: [String!]
-  avatar: ID
-  secret: String
-  redirectURIs: [URL!]
-  grantTypes: [GrantType!]
-  user: ID
-}
-
-input PutRemarkInput {
-  id: ID!
-  remark: String!
-  type: RemarkTypes!
-}
-
-input PutSkippedListItemInput {
-  id: ID
-  type: SkippedListItemType
-  value: String
-  archived: Boolean
-}
-
-input PutTagInput {
-  id: ID
-  content: String
-  cover: ID
-  description: String
-}
-
-type Query {
-  article(input: ArticleInput!): Article
-  circle(input: CircleInput!): Circle
-  node(input: NodeInput!): Node
-  nodes(input: NodesInput!): [Node!]
-  frequentSearch(input: FrequentSearchInput!): [String!]
-  search(input: SearchInput!): SearchResultConnection!
-  official: Official!
-  oss: OSS!
-  viewer: User
-  user(input: UserInput!): User
-  oauthClient(input: OAuthClientInput!): OAuthClient
-}
-
-input ReadArticleInput {
-  id: ID!
-}
-
-type ReadHistory {
-  article: Article!
-  readAt: DateTime!
-}
-
-type ReadHistoryConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [ReadHistoryEdge!]
-}
-
-type ReadHistoryEdge {
-  cursor: String!
-  node: ReadHistory!
-}
-
-type RecentSearchConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [RecentSearchEdge!]
-}
-
-type RecentSearchEdge {
-  cursor: String!
-  node: String!
-}
-
-type Recommendation {
-  """Activities based on user's following, sort by creation time."""
-  following(input: ConnectionArgs!): FollowingActivityConnection!
-
-  """Articles published by user's followees."""
-  followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Comments published by user's followees."""
-  followeeComments(input: ConnectionArgs!): CommentConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Articles that followee donated"""
-  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Articles has been added into followed tags."""
-  followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
-
-  """Global articles sort by publish time."""
-  newest(input: ConnectionArgs!): ArticleConnection!
-
-  """Global articles sort by latest activity time."""
-  hottest(input: ConnectionArgs!): ArticleConnection!
-
-  """'In case you missed it' recommendation."""
-  icymi(input: ConnectionArgs!): ArticleConnection!
-
-  """Global articles sort by appreciate, donation and subscription."""
-  valued(input: ConnectionArgs!): ArticleConnection!
-
-  """Global tag list, sort by activities in recent 14 days."""
-  tags(input: RecommendInput!): TagConnection!
-
-  """Hottest tag list"""
-  hottestTags(input: RecommendInput!): TagConnection!
-
-  """Selected tag list"""
-  selectedTags(input: RecommendInput!): TagConnection!
-
-  """Gloabl article list, sort by activities in recent 72 hours."""
-  topics(input: ConnectionArgs!): ArticleConnection!
-
-  """Global user list, sort by activities in recent 6 month."""
-  authors(input: RecommendInput!): UserConnection!
-
-  """Personalized recommendation based on interaction with tags."""
-  interest(input: ConnectionArgs!): ArticleConnection!
-
-  """Recommend articles with collaborative filtering"""
-  recommendArticles(input: ConnectionArgs!): ArticleConnection!
-
-  """Global circles sort by created time."""
-  newestCircles(input: ConnectionArgs!): CircleConnection!
-
-  """Global circles sort by latest activity time."""
-  hottestCircles(input: ConnectionArgs!): CircleConnection!
-}
-
-input RecommendInput {
-  after: String
-  first: Int
-  oss: Boolean
-  filter: FilterInput
-  type: AuthorsType
-}
-
-"""Enums for types of recommend articles."""
-enum RecommendTypes {
-  icymi
-  hottest
-  newest
-}
-
-input RelatedDonationArticlesInput {
-  after: String
-  first: Int
-  oss: Boolean
-
-  """index of article list, min: 0, max: 49"""
-  random: NonNegativeInt
-}
-
-enum RemarkTypes {
-  Article
-  User
-  Tag
-  Comment
-  Report
-  Feedback
-}
-
-input RenameTagInput {
-  id: ID!
+  """Content of this article."""
   content: String!
-}
 
-input ReportsInput {
-  article: Boolean!
-  comment: Boolean!
-  after: String
-  first: Int
-}
+  """Original language of content"""
+  language: String
 
-input ResetPasswordInput {
-  password: String!
-  codeId: ID!
-  type: ResetPasswordType
-}
+  """List of articles which added this article into their collections."""
+  collectedBy(input: ConnectionArgs!): ArticleConnection!
 
-enum ResetPasswordType {
-  account
-  payment
-}
+  """List of articles added into this article' collection."""
+  collection(input: ConnectionArgs!): ArticleConnection!
 
-union Response = Article | Comment
+  """Related articles to this article."""
+  relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-type ResponseConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [ResponseEdge!]
-}
+  """Donation-related articles to this article."""
+  relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
 
-type ResponseEdge {
-  cursor: String!
-  node: Response!
-}
+  """Appreciations history of this article."""
+  appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
-input ResponsesInput {
-  sort: ResponseSort
-  after: String
-  before: String
-  includeAfter: Boolean
-  includeBefore: Boolean
-  first: Int
-  articleOnly: Boolean
-}
+  """Total number of appreciations recieved of this article."""
+  appreciationsReceivedTotal: Int!
 
-"""Enums for sorting responses."""
-enum ResponseSort {
-  oldest
-  newest
-}
+  """Subscribers of this article."""
+  subscribers(input: ConnectionArgs!): UserConnection!
 
-"""Enums for user roles."""
-enum Role {
-  vistor
-  user
-  admin
-}
+  """Limit the nuhmber of appreciate per user."""
+  appreciateLimit: Int!
 
-enum SearchExclude {
-  blocked
-}
+  """Number represents how many times per user can appreciate this article."""
+  appreciateLeft: Int!
 
-input SearchFilter {
-  authorId: ID
-}
+  """This value determines if current viewer has appreciated or not."""
+  hasAppreciate: Boolean!
 
-input SearchInput {
-  """search keyword"""
-  key: String!
+  """This value determines if current viewer can SuperLike or not."""
+  canSuperLike: Boolean!
 
-  """types of search target"""
-  type: SearchTypes!
-  after: String
-  first: Int
-
-  """extra query filter for searching"""
-  filter: SearchFilter
-
-  """specific condition for rule data out"""
-  exclude: SearchExclude
-
-  """whether this search operation should be recorded in search history"""
-  record: Boolean
-  oss: Boolean
-}
-
-type SearchResultConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [SearchResultEdge!]
-}
-
-type SearchResultEdge {
-  cursor: String!
-  node: Node!
-}
-
-enum SearchTypes {
-  Article
-  User
-  Tag
-}
-
-input SendVerificationCodeInput {
-  email: Email!
-  type: VerificationCodeType!
-  token: String
+  """This value determines if current Viewer has subscribed of not."""
+  subscribed: Boolean!
 
   """
-  Redirect URL embedded in the verification email,
-  use code instead if not provided.
+  This value determines if this article is an author selected article or not.
   """
-  redirectUrl: URL
-}
+  sticky: Boolean!
 
-input SetBoostInput {
-  id: ID!
-  boost: NonNegativeFloat!
-  type: BoostTypes!
-}
+  """Translation of article title and content."""
+  translation(input: TranslationArgs): ArticleTranslation
 
-input SetFeatureInput {
-  name: FeatureName!
-  flag: FeatureFlag!
-}
+  """Transactions history of this article."""
+  transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-input SingleFileUploadInput {
-  type: AssetType!
-  file: Upload
-  url: URL
-  entityType: EntityType!
-  entityId: ID
-}
+  """Cumulative reading time in seconds"""
+  readTime: Float!
 
-type SkippedListItem {
-  id: ID!
-  uuid: UUID!
-  type: SkippedListItemType!
-  value: String!
-  archived: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
+  """Drafts linked to this article."""
+  drafts: [Draft!]
 
-type SkippedListItemEdge {
-  cursor: String!
-  node: SkippedListItem
-}
+  """Revision Count"""
+  revisionCount: Int!
 
-type SkippedListItemsConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [SkippedListItemEdge!]
-}
+  """Access related fields on circle"""
+  access: ArticleAccess!
 
-input SkippedListItemsInput {
-  after: String
-  first: Int
-  type: SkippedListItemType
-}
+  """License Type"""
+  license: ArticleLicenseType!
 
-enum SkippedListItemType {
-  agent_hash
-  email
-  domain
-}
+  """
+  #############
+       OSS    #
+  #############
+  """
+  oss: ArticleOSS!
+  remark: String
 
-type StripeAccount {
-  id: ID!
-  loginUrl: URL!
-}
+  """The counting number of comments."""
+  commentCount: Int!
 
-enum StripeAccountCountry {
-  Australia
-  Austria
-  Belgium
-  Bulgaria
-  Canada
-  Cyprus
-  Denmark
-  Estonia
-  Finland
-  France
-  Germany
-  Greece
-  HongKong
-  Ireland
-  Italy
-  Latvia
-  Lithuania
-  Luxembourg
-  Malta
-  Netherlands
-  NewZealand
-  Norway
-  Poland
-  Portugal
-  Romania
-  Singapore
-  Slovakia
-  Slovenia
-  Spain
-  Sweden
-  UnitedKingdom
-  UnitedStates
-}
+  """The number determines how many pinned comments can be set."""
+  pinCommentLimit: Int!
 
-input SubscribeCircleInput {
-  """Unique ID."""
-  id: ID!
+  """The number determines how many comments can be set as pinned comment."""
+  pinCommentLeft: Int!
 
-  """Wallet password."""
-  password: String
-}
+  """List of pinned comments."""
+  pinnedComments: [Comment!]
 
-type SubscribeCircleResult {
-  circle: Circle!
+  """List of featured comments of this article."""
+  featuredComments(input: FeaturedCommentsInput!): CommentConnection!
 
-  """client secret for SetupIntent."""
-  client_secret: String
-}
+  """List of comments of this article."""
+  comments(input: CommentsInput!): CommentConnection!
 
-type Subscription {
-  nodeEdited(input: NodeEditedInput!): Node!
+  """The counting number of this article."""
+  responseCount: Int!
+
+  """List of responses of a article."""
+  responses(input: ResponsesInput!): ResponseConnection!
 }
 
 """This type contains content, count and related data of an article tag."""
@@ -2024,7 +406,7 @@ type Tag implements Node {
   createdAt: DateTime!
 
   """Tag's cover link."""
-  cover: URL
+  cover: String
 
   """Description of this tag."""
   description: String
@@ -2060,11 +442,40 @@ type Tag implements Node {
   deleted: Boolean!
 }
 
-input TagArticlesInput {
-  after: String
-  first: Int
-  oss: Boolean
-  selected: Boolean
+type ArticleAccess {
+  type: ArticleAccessType!
+  secret: String
+  circle: Circle
+}
+
+type ArticleOSS {
+  boost: Float!
+  score: Float!
+  inRecommendIcymi: Boolean!
+  inRecommendHottest: Boolean!
+  inRecommendNewest: Boolean!
+}
+
+type ArticleTranslation {
+  title: String
+  content: String
+}
+
+type TagOSS {
+  boost: Float!
+  score: Float!
+  selected: Boolean!
+}
+
+type ArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ArticleEdge!]
+}
+
+type ArticleEdge {
+  cursor: String!
+  node: Article!
 }
 
 type TagConnection implements Connection {
@@ -2078,9 +489,910 @@ type TagEdge {
   node: Tag!
 }
 
+input ArticleInput {
+  mediaHash: String!
+}
+
+input PublishArticleInput {
+  id: ID!
+}
+
+input EditArticleInput {
+  id: ID!
+  state: ArticleState
+  sticky: Boolean
+  summary: String
+  tags: [String!]
+  content: String
+  cover: ID
+  collection: [ID!]
+  circle: ID
+  accessType: ArticleAccessType
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
+}
+
+input AppreciateArticleInput {
+  id: ID!
+  amount: Int!
+  token: String
+  superLike: Boolean
+}
+
+input ReadArticleInput {
+  id: ID!
+}
+
+input ToggleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes
+}
+
+input UpdateArticleStateInput {
+  id: ID!
+  state: ArticleState!
+}
+
+input DeleteTagsInput {
+  ids: [ID!]!
+}
+
+input RenameTagInput {
+  id: ID!
+  content: String!
+}
+
+input MergeTagsInput {
+  ids: [ID!]!
+  content: String!
+}
+
+input PutTagInput {
+  id: ID
+  content: String
+  cover: ID
+  description: String
+}
+
+input UpdateTagSettingInput {
+  id: ID!
+  type: UpdateTagSettingType!
+  editors: [ID!]
+}
+
+input AddArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+  selected: Boolean
+}
+
+input UpdateArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+  isSelected: Boolean!
+}
+
+input DeleteArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+}
+
+input TagArticlesInput {
+  after: String
+  first: Int
+  oss: Boolean
+  selected: Boolean
+}
+
+input TagSelectedInput {
+  id: ID
+  mediaHash: String
+}
+
 input TagEditorsInput {
   excludeAdmin: Boolean
   excludeOwner: Boolean
+}
+
+input TransactionsReceivedByArgs {
+  after: String
+  first: Int
+  purpose: TransactionPurpose!
+}
+
+input TranslationArgs {
+  language: UserLanguage!
+}
+
+input RelatedDonationArticlesInput {
+  after: String
+  first: Int
+  oss: Boolean
+
+  """index of article list, min: 0, max: 49"""
+  random: Int
+}
+
+"""Enums for an article state."""
+enum ArticleState {
+  active
+  archived
+  banned
+}
+
+"""Enums for types of article access"""
+enum ArticleAccessType {
+  public
+  paywall
+}
+
+"""Enums for types of article license"""
+enum ArticleLicenseType {
+  cc_0
+  cc_by_nc_nd_2
+  arr
+}
+
+"""Enums for types of recommend articles."""
+enum RecommendTypes {
+  icymi
+  hottest
+  newest
+}
+
+enum UpdateTagSettingType {
+  adopt
+  leave
+  add_editor
+  remove_editor
+  leave_editor
+}
+
+type Circle implements Node {
+  """Unique ID."""
+  id: ID!
+
+  """Circle avatar's link."""
+  avatar: String
+
+  """Circle cover's link."""
+  cover: String
+
+  """Slugified name of this Circle."""
+  name: String!
+
+  """Human readable name of this Circle."""
+  displayName: String!
+
+  """A short description of this Circle."""
+  description: String
+
+  """Prices offered by this Circle."""
+  prices: [Price!]
+
+  """Circle owner."""
+  owner: User!
+
+  """List of Circle member."""
+  members(input: ConnectionArgs!): MemberConnection!
+
+  """List of Circle follower."""
+  followers(input: ConnectionArgs!): UserConnection!
+
+  """List of works belong to this Circle."""
+  works(input: ConnectionArgs!): ArticleConnection!
+
+  """State of this Circle."""
+  state: CircleState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+
+  """This value determines if current viewer is following Circle or not."""
+  isFollower: Boolean!
+
+  """This value determines if current viewer is Member or not."""
+  isMember: Boolean!
+
+  """Setting of this Circle."""
+  setting: CircleSetting!
+
+  """Invitations belonged to this Circle."""
+  invites: Invites!
+
+  """Invitation used by current viewer."""
+  invitedBy: Invitation
+
+  """Comments broadcasted by Circle owner."""
+  broadcast(input: ConnectionArgs!): CommentConnection!
+
+  """Pinned comments broadcasted by Circle owner."""
+  pinnedBroadcast: [Comment!]
+
+  """Comments made by Circle member."""
+  discussion(input: ConnectionArgs!): CommentConnection!
+
+  """Discussion (exclude replies) count of this circle."""
+  discussionThreadCount: Int!
+
+  """Discussion (include replies) count of this circle."""
+  discussionCount: Int!
+}
+
+type CircleSetting {
+  """Whether broadcast is enabled or not."""
+  enableBroadcast: Boolean!
+
+  """Whther discussion is enabled or not."""
+  enableDiscussion: Boolean!
+}
+
+type Member {
+  """User who join to a Circle."""
+  user: User!
+
+  """Price chosen by user when joining a Circle."""
+  price: Price!
+}
+
+type Price {
+  """Unique ID."""
+  id: ID!
+
+  """Amount of Price."""
+  amount: Float!
+
+  """Current Price belongs to whcih Circle."""
+  circle: Circle!
+
+  """Currency of Price."""
+  currency: TransactionCurrency!
+
+  """State of Price."""
+  state: PriceState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+}
+
+type CircleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CircleEdge!]
+}
+
+type CircleEdge {
+  cursor: String!
+  node: Circle!
+}
+
+type MemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MemberEdge!]
+}
+
+type MemberEdge {
+  cursor: String!
+  node: Member!
+}
+
+type SubscribeCircleResult {
+  circle: Circle!
+
+  """client secret for SetupIntent."""
+  client_secret: String
+}
+
+type Invites {
+  """Accepted invitation list"""
+  accepted(input: ConnectionArgs!): InvitationConnection!
+
+  """Pending invitation list"""
+  pending(input: ConnectionArgs!): InvitationConnection!
+}
+
+type Invitation {
+  """Unique ID."""
+  id: ID!
+
+  """Target person of this invitation."""
+  invitee: Invitee!
+
+  """Creator of this invitation."""
+  inviter: User!
+
+  """Invitation of current Circle."""
+  circle: Circle!
+
+  """Free period of this invitation."""
+  freePeriod: Int!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Sent time."""
+  sentAt: DateTime!
+
+  """Accepted time."""
+  acceptedAt: DateTime
+
+  """Determine it's specific state."""
+  state: InvitationState!
+}
+
+type Person {
+  email: String!
+}
+
+union Invitee = Person | User
+
+type InvitationConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [InvitationEdge!]
+}
+
+type InvitationEdge {
+  cursor: String!
+  node: Invitation!
+}
+
+input CircleInput {
+  """Slugified name of a Circle."""
+  name: String!
+}
+
+input PutCircleInput {
+  """Unique ID."""
+  id: ID
+
+  """Unique ID of a Circle's avatar."""
+  avatar: ID
+
+  """Unique ID of a Circle's cover."""
+  cover: ID
+
+  """Slugified name of a Circle."""
+  name: String
+
+  """Human readable name of this Circle."""
+  displayName: String
+
+  """A short description of this Circle."""
+  description: String
+
+  """Circle's subscription fee."""
+  amount: Float
+}
+
+input ToggleCircleMemberInput {
+  """Unique ID."""
+  id: ID!
+
+  """Toggle value."""
+  enabled: Boolean!
+
+  """Unique ID of target user."""
+  targetId: ID!
+}
+
+input SubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+
+  """Wallet password."""
+  password: String
+}
+
+input UnsubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+}
+
+input PutCircleArticlesInput {
+  """Circle ID"""
+  id: ID!
+
+  """Article Ids"""
+  articles: [ID!]
+
+  """Action Type"""
+  type: PutCircleArticlesType!
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType!
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
+}
+
+input InviteCircleInput {
+  invitees: [InviteCircleInvitee!]!
+  freePeriod: Int!
+  circleId: ID!
+}
+
+input InviteCircleInvitee {
+  id: ID
+  email: String
+}
+
+enum CircleState {
+  active
+  archived
+}
+
+enum PriceState {
+  active
+  archived
+}
+
+enum PutCircleArticlesType {
+  add
+  remove
+}
+
+enum InvitationState {
+  accepted
+  pending
+  transfer_succeeded
+  transfer_failed
+}
+
+"""
+This type contains content, author, descendant comments and related data of a comment.
+"""
+type Comment implements Node {
+  """Unique ID of this comment."""
+  id: ID!
+
+  """State of this comment."""
+  state: CommentState!
+
+  """Time of this comment was created."""
+  createdAt: DateTime!
+
+  """Content of this comment."""
+  content: String
+
+  """Author of this comment."""
+  author: User!
+
+  """This value determines this comment is pinned or not."""
+  pinned: Boolean!
+
+  """This value determines this comment is from article donator or not."""
+  fromDonator: Boolean!
+
+  """The counting number of upvotes."""
+  upvotes: Int!
+
+  """The counting number of downvotes."""
+  downvotes: Int!
+
+  """The value determines current user's vote."""
+  myVote: Vote
+
+  """Descendant comments of this comment."""
+  comments(input: CommentCommentsInput!): CommentConnection!
+
+  """Parent comment of this comment."""
+  parentComment: Comment
+
+  """A Comment that this comment replied to."""
+  replyTo: Comment
+  remark: String
+
+  """Current comment belongs to which Node."""
+  node: Node!
+}
+
+type CommentConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CommentEdge!]
+}
+
+type CommentEdge {
+  cursor: String!
+  node: Comment!
+}
+
+input PutCommentInput {
+  comment: CommentInput!
+
+  """edit comment if id is provided"""
+  id: ID
+}
+
+input CommentInput {
+  content: String!
+  replyTo: ID
+  parentId: ID
+  mentions: [ID!]
+  type: CommentType!
+
+  """one of the following ids is required"""
+  articleId: ID
+  circleId: ID
+}
+
+input CommentCommentsInput {
+  author: ID
+  sort: CommentSort
+  after: String
+  first: Int
+}
+
+input CommentsInput {
+  sort: CommentSort
+  after: String
+  before: String
+  includeAfter: Boolean
+  includeBefore: Boolean
+  first: Int
+  filter: CommentsFilter
+}
+
+input FeaturedCommentsInput {
+  sort: CommentSort
+  after: String
+  first: Int
+}
+
+input CommentsFilter {
+  parentComment: ID
+  state: CommentState
+  author: ID
+}
+
+"""Enums for sorting comments by time."""
+enum CommentSort {
+  oldest
+  newest
+}
+
+input PinCommentInput {
+  id: ID!
+}
+
+input UnpinCommentInput {
+  id: ID!
+}
+
+input DeleteCommentInput {
+  id: ID!
+}
+
+input VoteCommentInput {
+  vote: Vote!
+  id: ID!
+}
+
+input UnvoteCommentInput {
+  id: ID!
+}
+
+input UpdateCommentsStateInput {
+  ids: [ID!]!
+  state: CommentState!
+}
+
+"""Enums for vote types."""
+enum Vote {
+  up
+  down
+}
+
+"""Enums for comment state."""
+enum CommentState {
+  active
+  archived
+  banned
+  collapsed
+}
+
+enum CommentType {
+  article
+  circleDiscussion
+  circleBroadcast
+}
+
+"""
+This type contains content, collections, assets and related data of a draft.
+"""
+type Draft implements Node {
+  """Unique ID of this draft."""
+  id: ID!
+
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
+
+  """Draft title."""
+  title: String
+
+  """Slugified draft title."""
+  slug: String!
+
+  """Summary of this draft."""
+  summary: String
+
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
+
+  """Content of this draft."""
+  content: String
+
+  """Time of this draft was created."""
+  createdAt: DateTime!
+
+  """Last time of this draft was upadted."""
+  updatedAt: DateTime!
+
+  """The counting number of words in this draft."""
+  wordCount: Int!
+
+  """Tags are attached to this draft."""
+  tags: [String!]
+
+  """Draft's cover link."""
+  cover: String
+
+  """State of draft during publihsing."""
+  publishState: PublishState!
+
+  """List of assets are belonged to this draft."""
+  assets: [Asset!]!
+
+  """Published article"""
+  article: Article
+
+  """Collection list of this draft."""
+  collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Access related fields on circle"""
+  access: DraftAccess!
+
+  """License Type"""
+  license: ArticleLicenseType!
+}
+
+type DraftConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [DraftEdge!]
+}
+
+type DraftEdge {
+  cursor: String!
+  node: Draft!
+}
+
+type DraftAccess {
+  type: ArticleAccessType!
+  circle: Circle
+}
+
+input PutDraftInput {
+  id: ID
+  title: String
+  summary: String
+  content: String
+  tags: [String]
+  cover: ID
+  collection: [ID]
+  circle: ID
+  accessType: ArticleAccessType
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
+}
+
+input DeleteDraftInput {
+  id: ID!
+}
+
+"""Enums for publishing state."""
+enum PublishState {
+  unpublished
+  pending
+  error
+  published
+}
+
+"""This interface contains common fields of a notice."""
+interface Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+}
+
+type NoticeConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [NoticeEdge!]
+}
+
+type NoticeEdge {
+  cursor: String!
+  node: Notice!
+}
+
+"""
+################################
+                               #
+             User              #
+                               #
+################################
+"""
+type UserNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: UserNoticeType!
+  target: User!
+}
+
+enum UserNoticeType {
+  UserNewFollower
+}
+
+"""
+################################
+                               #
+           Article             #
+                               #
+################################
+"""
+type ArticleNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: ArticleNoticeType!
+  target: Article!
+}
+
+enum ArticleNoticeType {
+  ArticlePublished
+  ArticleMentionedYou
+  ArticleNewSubscriber
+  ArticleNewAppreciation
+  RevisedArticlePublished
+  RevisedArticleNotPublished
+  CircleNewArticle
+}
+
+type ArticleArticleNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: ArticleArticleNoticeType!
+  target: Article!
+  article: Article!
+}
+
+enum ArticleArticleNoticeType {
+  ArticleNewCollected
+}
+
+"""
+################################
+                               #
+           Comment             #
+                               #
+################################
+"""
+type CommentNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CommentNoticeType!
+  target: Comment!
+}
+
+enum CommentNoticeType {
+  CommentPinned
+  CommentMentionedYou
+  ArticleNewComment
+  SubscribedArticleNewComment
+  CircleNewBroadcast
+}
+
+type CommentCommentNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CommentCommentNoticeType!
+  target: Comment!
+  comment: Comment!
+}
+
+enum CommentCommentNoticeType {
+  CommentNewReply
+}
+
+"""
+################################
+                               #
+             Tag               #
+                               #
+################################
+"""
+type ArticleTagNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: ArticleTagNoticeType!
+  target: Article!
+  tag: Tag!
+}
+
+enum ArticleTagNoticeType {
+  ArticleTagAdded
+  ArticleTagRemoved
+  ArticleTagUnselected @deprecated(reason: "No longer in use")
 }
 
 type TagNotice implements Notice {
@@ -2104,106 +1416,6 @@ enum TagNoticeType {
   TagLeave
   TagAddEditor
   TagLeaveEditor
-}
-
-type TagOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
-  selected: Boolean!
-}
-
-input TagSelectedInput {
-  id: ID
-  mediaHash: String
-}
-
-input TagsInput {
-  after: String
-  first: Int
-  sort: TagsSort
-}
-
-"""Enums for sorting tags."""
-enum TagsSort {
-  newest
-  oldest
-  hottest
-}
-
-scalar Time
-
-input ToggleCircleMemberInput {
-  """Unique ID."""
-  id: ID!
-
-  """Toggle value."""
-  enabled: Boolean!
-
-  """Unique ID of target user."""
-  targetId: ID!
-}
-
-"""Common input to toggle single item for `toggleXXX` mutations"""
-input ToggleItemInput {
-  id: ID!
-  enabled: Boolean
-}
-
-input ToggleRecommendInput {
-  id: ID!
-  enabled: Boolean!
-  type: RecommendTypes
-}
-
-input ToggleSeedingUsersInput {
-  ids: [ID!]
-  enabled: Boolean!
-}
-
-input ToggleUsersBadgeInput {
-  ids: [ID!]
-  type: BadgeType!
-  enabled: Boolean!
-}
-
-type Transaction {
-  id: ID!
-  state: TransactionState!
-  purpose: TransactionPurpose!
-  amount: Float!
-  fee: NonNegativeFloat!
-  currency: TransactionCurrency!
-
-  """Timestamp of transaction."""
-  createdAt: DateTime!
-
-  """Recipient of transaction."""
-  recipient: User
-
-  """Sender of transaction."""
-  sender: User
-
-  """Related target article or transaction."""
-  target: TransactionTarget
-
-  """Message for end user, including reason of failure."""
-  message: String
-}
-
-type TransactionConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TransactionEdge!]
-}
-
-enum TransactionCurrency {
-  HKD
-  LIKE
-}
-
-type TransactionEdge {
-  cursor: String!
-  node: Transaction!
 }
 
 """
@@ -2234,123 +1446,358 @@ enum TransactionNoticeType {
   PaymentPayout
 }
 
-enum TransactionPurpose {
-  donation
-  addCredit
-  refund
-  payout
-  subscriptionSplit
-}
-
-input TransactionsArgs {
-  after: String
-  first: Int
-  id: ID
-  states: [TransactionState!]
-}
-
-input TransactionsReceivedByArgs {
-  after: String
-  first: Int
-  purpose: TransactionPurpose!
-}
-
-enum TransactionState {
-  pending
-  succeeded
-  failed
-  canceled
-}
-
-union TransactionTarget = Article | Circle | Transaction
-
-input TranslationArgs {
-  language: UserLanguage!
-}
-
-input UnpinCommentInput {
+"""
+################################
+                               #
+            Circle             #
+                               #
+################################
+"""
+type CircleNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CircleNoticeType!
+  target: Circle!
 }
 
-input UnsubscribeCircleInput {
-  """Unique ID."""
+enum CircleNoticeType {
+  CircleNewFollower
+  CircleNewSubscriber
+  CircleNewUnsubscriber
+  CircleInvitation
+}
+
+"""The notice type contains info about official announcement."""
+type OfficialAnnouncementNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The message content."""
+  message: String!
+
+  """The link to a specific page if provided."""
+  link: String
 }
 
-input UnvoteCommentInput {
-  id: ID!
-}
-
-input UpdateArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  isSelected: Boolean!
-}
-
-input UpdateArticleStateInput {
-  id: ID!
-  state: ArticleState!
-}
-
-input UpdateCommentsStateInput {
-  ids: [ID!]!
-  state: CommentState!
-}
-
-input UpdateNotificationSettingInput {
-  type: NotificationSettingType!
-  enabled: Boolean!
-}
-
-input UpdateTagSettingInput {
-  id: ID!
-  type: UpdateTagSettingType!
-  editors: [ID!]
-}
-
-enum UpdateTagSettingType {
-  adopt
-  leave
-  add_editor
-  remove_editor
-  leave_editor
-}
-
-input UpdateUserInfoInput {
-  displayName: String
-  userName: String
-  avatar: ID
-  description: String
-  language: UserLanguage
-  agreeOn: Boolean
-  profileCover: ID
-  paymentPassword: String
-  paymentPointer: String
-}
-
-input UpdateUserRoleInput {
-  id: ID!
-  role: UserRole!
-}
-
-input UpdateUserStateInput {
-  id: ID
-  emails: [String!]
-  state: UserState!
-  banDays: PositiveInt
-  password: String
-}
+scalar DateTime
 
 scalar Upload
 
-scalar URL
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  startCursor: String
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+interface Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+}
+
+"""This type contains system-wise settings."""
+type Official {
+  """Feature flag"""
+  features: [Feature!]!
+}
+
+type Feature {
+  name: FeatureName!
+  enabled: Boolean!
+}
+
+type OSS {
+  users(input: ConnectionArgs!): UserConnection!
+  comments(input: ConnectionArgs!): CommentConnection!
+  articles(input: ConnectionArgs!): ArticleConnection!
+  tags(input: TagsInput!): TagConnection!
+  oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+  skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
+  seedingUsers(input: ConnectionArgs!): UserConnection!
+  badgedUsers(input: BadgedUsersInput!): UserConnection!
+}
+
+"""This type contains type, link and related data of an asset."""
+type Asset {
+  """Unique ID of this Asset."""
+  id: ID!
+
+  """Types of this asset."""
+  type: AssetType!
+
+  """Link of this asset."""
+  path: String!
+
+  """Time of this asset was created."""
+  createdAt: DateTime!
+}
+
+type SearchResultConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SearchResultEdge!]
+}
+
+type SearchResultEdge {
+  cursor: String!
+  node: Node!
+}
+
+input TagsInput {
+  after: String
+  first: Int
+  sort: TagsSort
+}
+
+input SkippedListItemsInput {
+  after: String
+  first: Int
+  type: SkippedListItemType
+}
+
+input BadgedUsersInput {
+  after: String
+  first: Int
+  type: BadgeType
+}
+
+type SkippedListItemsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SkippedListItemEdge!]
+}
+
+type SkippedListItemEdge {
+  cursor: String!
+  node: SkippedListItem
+}
+
+type SkippedListItem {
+  id: ID!
+  uuid: ID!
+  type: SkippedListItemType!
+  value: String!
+  archived: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input NodeInput {
+  id: ID!
+}
+
+input NodesInput {
+  ids: [ID!]!
+}
+
+input FrequentSearchInput {
+  key: String
+  first: Int
+}
+
+input SearchInput {
+  """search keyword"""
+  key: String!
+
+  """types of search target"""
+  type: SearchTypes!
+  after: String
+  first: Int
+
+  """extra query filter for searching"""
+  filter: SearchFilter
+
+  """specific condition for rule data out"""
+  exclude: SearchExclude
+
+  """whether this search operation should be recorded in search history"""
+  record: Boolean
+  oss: Boolean
+}
+
+input SearchFilter {
+  authorId: ID
+}
+
+input SingleFileUploadInput {
+  type: AssetType!
+  file: Upload
+  url: String
+  entityType: EntityType!
+  entityId: ID
+}
+
+input SetBoostInput {
+  id: ID!
+  boost: Float!
+  type: BoostTypes!
+}
+
+input PutRemarkInput {
+  id: ID!
+  remark: String!
+  type: RemarkTypes!
+}
+
+input PutSkippedListItemInput {
+  id: ID
+  type: SkippedListItemType
+  value: String
+  archived: Boolean
+}
+
+input LogRecordInput {
+  type: LogRecordTypes!
+}
+
+input ConnectionArgs {
+  after: String
+  first: Int
+  oss: Boolean
+}
+
+"""Common input to toggle single item for `toggleXXX` mutations"""
+input ToggleItemInput {
+  id: ID!
+  enabled: Boolean
+}
+
+input SetFeatureInput {
+  name: FeatureName!
+  flag: FeatureFlag!
+}
+
+input ToggleSeedingUsersInput {
+  ids: [ID!]
+  enabled: Boolean!
+}
+
+enum SearchTypes {
+  Article
+  User
+  Tag
+}
+
+enum BoostTypes {
+  Article
+  User
+  Tag
+}
+
+enum RemarkTypes {
+  Article
+  User
+  Tag
+  Comment
+  Report
+  Feedback
+}
+
+enum LogRecordTypes {
+  ReadFolloweeArticles
+  ReadResponseInfoPopUp
+}
+
+"""Enums for sorting tags."""
+enum TagsSort {
+  newest
+  oldest
+  hottest
+}
+
+"""Enums for asset types."""
+enum AssetType {
+  avatar
+  cover
+  embed
+  embedaudio
+  profileCover
+  oauthClientAvatar
+  tagCover
+  circleAvatar
+  circleCover
+}
+
+enum EntityType {
+  article
+  draft
+  tag
+  user
+  circle
+}
+
+"""Enums for user roles."""
+enum Role {
+  vistor
+  user
+  admin
+}
+
+enum SkippedListItemType {
+  agent_hash
+  email
+  domain
+}
+
+enum FeatureName {
+  add_credit
+  payment
+  payout
+  verify_appreciate
+  fingerprint
+  tag_adoption
+  circle_management
+  circle_interact
+}
+
+enum FeatureFlag {
+  on
+  off
+  admin
+  seeding
+}
+
+enum SearchExclude {
+  blocked
+}
+
+"""
+###################
+    Directives    #
+###################
+"""
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+input CostComplexity {
+  min: Int = 1
+  max: Int
+}
 
 type User implements Node {
   """Global id of an user."""
   id: ID!
-
-  """UUID of an user, for backward compatibility."""
-  uuid: UUID!
 
   """Global unique user name of a user."""
   userName: String
@@ -2365,7 +1812,7 @@ type User implements Node {
   liker: Liker!
 
   """URL for user avatar."""
-  avatar: URL
+  avatar: String
 
   """User information."""
   info: UserInfo!
@@ -2443,6 +1890,98 @@ type User implements Node {
   paymentPointer: String
 }
 
+type Recommendation {
+  """Activities based on user's following, sort by creation time."""
+  following(input: ConnectionArgs!): FollowingActivityConnection!
+
+  """Articles published by user's followees."""
+  followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
+
+  """Comments published by user's followees."""
+  followeeComments(input: ConnectionArgs!): CommentConnection! @deprecated(reason: "Merged into `Recommendation.following`")
+
+  """Articles that followee donated"""
+  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
+
+  """Articles has been added into followed tags."""
+  followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Global articles sort by publish time."""
+  newest(input: ConnectionArgs!): ArticleConnection!
+
+  """Global articles sort by latest activity time."""
+  hottest(input: ConnectionArgs!): ArticleConnection!
+
+  """'In case you missed it' recommendation."""
+  icymi(input: ConnectionArgs!): ArticleConnection!
+
+  """Global tag list, sort by activities in recent 14 days."""
+  tags(input: RecommendInput!): TagConnection!
+
+  """Hottest tag list"""
+  hottestTags(input: RecommendInput!): TagConnection!
+
+  """Selected tag list"""
+  selectedTags(input: RecommendInput!): TagConnection!
+
+  """Global user list, sort by activities in recent 6 month."""
+  authors(input: RecommendInput!): UserConnection!
+
+  """Global circles sort by created time."""
+  newestCircles(input: ConnectionArgs!): CircleConnection!
+
+  """Global circles sort by latest activity time."""
+  hottestCircles(input: ConnectionArgs!): CircleConnection!
+}
+
+input RecommendInput {
+  after: String
+  first: Int
+  oss: Boolean
+  filter: FilterInput
+  type: AuthorsType
+}
+
+input FilterInput {
+  """index of list, min: 0, max: 49"""
+  random: Int
+  followed: Boolean
+}
+
+type UserInfo {
+  """Timestamp of registration."""
+  createdAt: DateTime
+
+  """Is user name editable."""
+  userNameEditable: Boolean!
+
+  """User desciption."""
+  description: String
+
+  """User email."""
+  email: String
+
+  """User badges."""
+  badges: [Badge!]
+
+  """Timestamp of user agreement."""
+  agreeOn: DateTime
+
+  """Cover of profile page."""
+  profileCover: String
+
+  """Type of group."""
+  group: UserGroup!
+}
+
+type UserSettings {
+  """User language setting."""
+  language: UserLanguage!
+
+  """Notification settings."""
+  notification: NotificationSetting!
+}
+
 type UserActivity {
   """User reading history."""
   history(input: ConnectionArgs!): ReadHistoryConnection!
@@ -2461,206 +2000,6 @@ type UserActivity {
 
   """Total number of appreciation current user received."""
   appreciationsReceivedTotal: Int!
-}
-
-type UserAddArticleTagActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article added to tag"""
-  node: Article!
-
-  """Tag added by article"""
-  target: Tag!
-}
-
-type UserBookmarkArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article bookmarked by actor"""
-  node: Article!
-}
-
-type UserBroadcastCircleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Comment boardcast by actor"""
-  node: Comment!
-
-  """Circle that comment belongs to"""
-  target: Circle!
-}
-
-type UserCollectArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article created by actor"""
-  node: Article!
-
-  """Article that collected by"""
-  target: Article!
-}
-
-type UserConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [UserEdge!]
-}
-
-type UserCreateCircleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Circle created by actor"""
-  node: Circle!
-}
-
-type UserDonateArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article donated by actor"""
-  node: Article!
-}
-
-type UserEdge {
-  cursor: String!
-  node: User!
-}
-
-type UserFollowUserActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """User followed by actor"""
-  node: User!
-}
-
-enum UserGroup {
-  a
-  b
-}
-
-type UserInfo {
-  """Timestamp of registration."""
-  createdAt: DateTime
-
-  """Is user name editable."""
-  userNameEditable: Boolean!
-
-  """User desciption."""
-  description: String
-
-  """User email."""
-  email: Email
-
-  """User badges."""
-  badges: [Badge!]
-
-  """Timestamp of user agreement."""
-  agreeOn: DateTime
-
-  """Cover of profile page."""
-  profileCover: URL
-
-  """Type of group."""
-  group: UserGroup!
-}
-
-enum UserInfoFields {
-  displayName
-  avatar
-  description
-  email
-  agreeOn
-}
-
-input UserInput {
-  userName: String!
-}
-
-enum UserLanguage {
-  en
-  zh_hans
-  zh_hant
-}
-
-input UserLoginInput {
-  email: Email!
-  password: String!
-}
-
-"""
-################################
-                               #
-             User              #
-                               #
-################################
-"""
-type UserNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: UserNoticeType!
-  target: User!
-}
-
-enum UserNoticeType {
-  UserNewFollower
-}
-
-type UserOSS {
-  boost: NonNegativeFloat!
-  score: NonNegativeFloat!
-}
-
-type UserPublishArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article published by actor"""
-  node: Article!
-}
-
-input UserRegisterInput {
-  email: Email!
-  userName: String
-  displayName: String!
-  password: String!
-  description: String
-  codeId: ID!
-}
-
-enum UserRole {
-  user
-  admin
-}
-
-type UserSettings {
-  """User language setting."""
-  language: UserLanguage!
-
-  """Notification settings."""
-  notification: NotificationSetting!
-}
-
-enum UserState {
-  active
-  onboarding
-  banned
-  archived
-  frozen
 }
 
 type UserStatus {
@@ -2695,6 +2034,166 @@ type UserStatus {
   receivedDonationCount: Int!
 }
 
+type Liker {
+  """Liker ID of LikeCoin"""
+  likerId: String
+
+  """Whether liker is a civic liker"""
+  civicLiker: Boolean!
+
+  """Total LIKE left in wallet."""
+  total: Float!
+
+  """Rate of LikeCoin/USD"""
+  rateUSD: Float
+}
+
+type UserOSS {
+  boost: Float!
+  score: Float!
+}
+
+type Appreciation {
+  amount: Int!
+  purpose: AppreciationPurpose!
+  content: String!
+
+  """Timestamp of appreciation."""
+  createdAt: DateTime!
+
+  """Recipient of appreciation."""
+  recipient: User!
+
+  """Sender of appreciation."""
+  sender: User
+
+  """Object that appreciation is meant for."""
+  target: Article
+}
+
+type NotificationSetting {
+  enable: Boolean!
+  email: Boolean!
+  mention: Boolean!
+  userNewFollower: Boolean!
+  articleNewComment: Boolean!
+  articleNewAppreciation: Boolean!
+  articleNewSubscription: Boolean!
+  articleSubscribedNewComment: Boolean!
+  articleCommentPinned: Boolean!
+  circleNewFollower: Boolean!
+  circleNewDiscussion: Boolean!
+}
+
+type ReadHistory {
+  article: Article!
+  readAt: DateTime!
+}
+
+type Badge {
+  type: BadgeType!
+}
+
+type AuthResult {
+  auth: Boolean!
+  token: String
+}
+
+type UserConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [UserEdge!]
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type ReadHistoryConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ReadHistoryEdge!]
+}
+
+type ReadHistoryEdge {
+  cursor: String!
+  node: ReadHistory!
+}
+
+type RecentSearchConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [RecentSearchEdge!]
+}
+
+type RecentSearchEdge {
+  cursor: String!
+  node: String!
+}
+
+type AppreciationConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [AppreciationEdge!]
+}
+
+type AppreciationEdge {
+  cursor: String!
+  node: Appreciation!
+}
+
+type FollowingActivityConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [FollowingActivityEdge!]
+}
+
+type FollowingActivityEdge {
+  cursor: String!
+  node: FollowingActivity!
+}
+
+union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+
+type UserPublishArticleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article published by actor"""
+  node: Article!
+}
+
+type UserBroadcastCircleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Comment boardcast by actor"""
+  node: Comment!
+
+  """Circle that comment belongs to"""
+  target: Circle!
+}
+
+type UserCreateCircleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Circle created by actor"""
+  node: Circle!
+}
+
+type UserCollectArticleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article created by actor"""
+  node: Article!
+
+  """Article that collected by"""
+  target: Article!
+}
+
 type UserSubscribeCircleActivity {
   actor: User!
   createdAt: DateTime!
@@ -2703,7 +2202,166 @@ type UserSubscribeCircleActivity {
   node: Circle!
 }
 
-scalar UUID
+type UserFollowUserActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """User followed by actor"""
+  node: User!
+}
+
+type UserDonateArticleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article donated by actor"""
+  node: Article!
+}
+
+type UserBookmarkArticleActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article bookmarked by actor"""
+  node: Article!
+}
+
+type UserAddArticleTagActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article added to tag"""
+  node: Article!
+
+  """Tag added by article"""
+  target: Tag!
+}
+
+type FolloweeDonatedArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [FolloweeDonatedArticleEdge!]
+}
+
+type FolloweeDonatedArticleEdge {
+  cursor: String!
+  node: FolloweeDonatedArticle!
+}
+
+type FolloweeDonatedArticle {
+  article: Article!
+  followee: User!
+}
+
+type Following {
+  circles(input: ConnectionArgs!): CircleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
+  users(input: ConnectionArgs!): UserConnection!
+}
+
+input UserInput {
+  userName: String!
+}
+
+input SendVerificationCodeInput {
+  email: String!
+  type: VerificationCodeType!
+  token: String
+
+  """
+  Redirect URL embedded in the verification email,
+  use code instead if not provided.
+  """
+  redirectUrl: String
+}
+
+input ConfirmVerificationCodeInput {
+  email: String!
+  type: VerificationCodeType!
+  code: String!
+}
+
+input ResetPasswordInput {
+  password: String!
+  codeId: ID!
+  type: ResetPasswordType
+}
+
+input ChangeEmailInput {
+  oldEmail: String!
+  oldEmailCodeId: ID!
+  newEmail: String!
+  newEmailCodeId: ID!
+}
+
+input VerifyEmailInput {
+  codeId: ID!
+}
+
+input UserRegisterInput {
+  email: String!
+  userName: String
+  displayName: String!
+  password: String!
+  description: String
+  codeId: ID!
+}
+
+input UserLoginInput {
+  email: String!
+  password: String!
+}
+
+input UpdateNotificationSettingInput {
+  type: NotificationSettingType!
+  enabled: Boolean!
+}
+
+input UpdateUserInfoInput {
+  displayName: String
+  userName: String
+  avatar: ID
+  description: String
+  language: UserLanguage
+  agreeOn: Boolean
+  profileCover: ID
+  paymentPassword: String
+  paymentPointer: String
+}
+
+input UpdateUserStateInput {
+  id: ID
+  emails: [String!]
+  state: UserState!
+  banDays: Int
+  password: String
+}
+
+input UpdateUserRoleInput {
+  id: ID!
+  role: UserRole!
+}
+
+input ToggleUsersBadgeInput {
+  ids: [ID!]
+  type: BadgeType!
+  enabled: Boolean!
+}
+
+input ClearReadHistoryInput {
+  id: ID!
+}
+
+input MigrationInput {
+  type: MigrationType
+  files: [Upload]!
+}
+
+enum BadgeType {
+  seed
+  golden_motor
+  architect
+}
 
 enum VerificationCodeType {
   register
@@ -2713,20 +2371,109 @@ enum VerificationCodeType {
   payment_password_reset
 }
 
-input VerifyEmailInput {
-  codeId: ID!
+enum ResetPasswordType {
+  account
+  payment
 }
 
-"""Enums for vote types."""
-enum Vote {
-  up
-  down
+enum UserInfoFields {
+  displayName
+  avatar
+  description
+  email
+  agreeOn
 }
 
-input VoteCommentInput {
-  vote: Vote!
-  id: ID!
+enum UserLanguage {
+  en
+  zh_hans
+  zh_hant
 }
+
+enum NotificationSettingType {
+  enable
+  email
+  mention
+  userNewFollower
+  articleNewComment
+  articleNewAppreciation
+  articleNewSubscription
+  articleSubscribedNewComment
+  articleCommentPinned
+  circleNewFollower
+  circleNewDiscussion
+}
+
+enum UserState {
+  active
+  onboarding
+  banned
+  archived
+  frozen
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum UserGroup {
+  a
+  b
+}
+
+enum AppreciationPurpose {
+  appreciate
+  appreciateComment
+  appreciateSubsidy
+  invitationAccepted
+  joinByInvitation
+  joinByTask
+  firstPost
+  systemSubsidy
+}
+
+enum MigrationType {
+  medium
+}
+
+enum AuthorsType {
+  active
+  appreciated
+  default
+  trendy
+}
+
+union Response = Article | Comment
+
+type ResponseConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ResponseEdge!]
+}
+
+type ResponseEdge {
+  cursor: String!
+  node: Response!
+}
+
+input ResponsesInput {
+  sort: ResponseSort
+  after: String
+  before: String
+  includeAfter: Boolean
+  includeBefore: Boolean
+  first: Int
+  articleOnly: Boolean
+}
+
+"""Enums for sorting responses."""
+enum ResponseSort {
+  oldest
+  newest
+}
+
+union TransactionTarget = Article | Circle | Transaction
 
 type Wallet {
   balance: Balance!
@@ -2738,8 +2485,224 @@ type Wallet {
   """
   URL of Stripe Dashboard to manage subscription invoice and payment method
   """
-  customerPortal: URL
+  customerPortal: String
 
   """The last four digits of the card."""
   cardLast4: String
+}
+
+type Balance {
+  HKD: Float!
+}
+
+type Transaction {
+  id: ID!
+  state: TransactionState!
+  purpose: TransactionPurpose!
+  amount: Float!
+  fee: Float!
+  currency: TransactionCurrency!
+
+  """Timestamp of transaction."""
+  createdAt: DateTime!
+
+  """Recipient of transaction."""
+  recipient: User
+
+  """Sender of transaction."""
+  sender: User
+
+  """Related target article or transaction."""
+  target: TransactionTarget
+
+  """Message for end user, including reason of failure."""
+  message: String
+}
+
+type TransactionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TransactionEdge!]
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+input TransactionsArgs {
+  after: String
+  first: Int
+  id: ID
+  states: [TransactionState!]
+}
+
+enum TransactionState {
+  pending
+  succeeded
+  failed
+  canceled
+}
+
+enum TransactionPurpose {
+  donation
+  addCredit
+  refund
+  payout
+  subscriptionSplit
+}
+
+enum TransactionCurrency {
+  HKD
+  LIKE
+}
+
+type AddCreditResult {
+  transaction: Transaction!
+
+  """The client secret of this PaymentIntent."""
+  client_secret: String!
+}
+
+type PayToResult {
+  transaction: Transaction!
+
+  """Only available when paying with LIKE."""
+  redirectUrl: String
+}
+
+"""Add Credit"""
+input AddCreditInput {
+  amount: Float!
+}
+
+input PayToInput {
+  amount: Float!
+  currency: TransactionCurrency!
+  purpose: TransactionPurpose!
+  recipientId: ID!
+  targetId: ID
+  password: String
+}
+
+input PayoutInput {
+  amount: Float!
+  password: String!
+}
+
+"""Stripe Account"""
+input ConnectStripeAccountInput {
+  country: StripeAccountCountry!
+}
+
+type StripeAccount {
+  id: ID!
+  loginUrl: String!
+}
+
+type ConnectStripeAccountResult {
+  redirectUrl: String!
+}
+
+enum StripeAccountCountry {
+  Australia
+  Austria
+  Belgium
+  Bulgaria
+  Canada
+  Cyprus
+  Denmark
+  Estonia
+  Finland
+  France
+  Germany
+  Greece
+  HongKong
+  Ireland
+  Italy
+  Latvia
+  Lithuania
+  Luxembourg
+  Malta
+  Netherlands
+  NewZealand
+  Norway
+  Poland
+  Portugal
+  Romania
+  Singapore
+  Slovakia
+  Slovenia
+  Spain
+  Sweden
+  UnitedKingdom
+  UnitedStates
+}
+
+type OAuthClient {
+  """Unique Client ID of this OAuth Client."""
+  id: ID!
+
+  """App name"""
+  name: String!
+
+  """App Description"""
+  description: String
+
+  """URL for oauth client's official website"""
+  website: String
+
+  """Scopes"""
+  scope: [String!]
+
+  """URL for oauth client's avatar."""
+  avatar: String
+
+  """Client secret"""
+  secret: String!
+
+  """Redirect URIs"""
+  redirectURIs: [String!]
+
+  """Grant Types"""
+  grantTypes: [GrantType!]
+
+  """Linked Developer Account"""
+  user: User
+
+  """Creation Date"""
+  createdAt: DateTime!
+}
+
+type OAuthClientConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [OAuthClientEdge!]
+}
+
+type OAuthClientEdge {
+  cursor: String!
+  node: OAuthClient!
+}
+
+input OAuthClientInput {
+  id: ID!
+}
+
+input PutOAuthClientInput {
+  id: ID
+  name: String
+  description: String
+  website: String
+  scope: [String!]
+  avatar: ID
+  secret: String
+  redirectURIs: [String!]
+  grantTypes: [GrantType!]
+  user: ID
+}
+
+enum GrantType {
+  authorization_code
+  refresh_token
 }

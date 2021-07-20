@@ -106,7 +106,7 @@ export class Medium {
    * Get real content of post. Also fetch and upload images embeded in post.
    *
    */
-  getContent = async ($: CheerioStatic) => {
+  getContent = async ($: cheerio.CheerioAPI) => {
     // purge unnecessary elements
     $(`${this.section} > div`).each((index, element) => {
       const dom = $(element)
@@ -125,7 +125,7 @@ export class Medium {
    * Get post title.
    *
    */
-  getTitle = ($: CheerioStatic) => {
+  getTitle = ($: cheerio.CheerioAPI) => {
     return $('header > h1').text()
   }
 
@@ -133,7 +133,7 @@ export class Medium {
    * Replace `\n` due to Medium does not change it to HTML tag.
    *
    */
-  processBreakInText = (dom: Cheerio) => {
+  processBreakInText = (dom: cheerio.Cheerio<cheerio.Element>) => {
     dom.find('br').replaceWith('<br class="smart">')
     return (dom.html() || '').replace(/\n/g, '<br class="smart">')
   }
@@ -142,7 +142,7 @@ export class Medium {
    * Restructure HTML elements in order to fit our formats.
    *
    */
-  restructureContent = async ($: CheerioStatic) => {
+  restructureContent = async ($: cheerio.CheerioAPI) => {
     const assets: Array<Record<string, any>> = []
     const contents: string[] = []
     const elements = $(this.section).children().toArray()

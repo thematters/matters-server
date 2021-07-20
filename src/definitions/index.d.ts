@@ -94,6 +94,7 @@ export type BasicTableName =
   | 'action_article'
   | 'action_tag'
   | 'transaction'
+  | 'appreciation'
   | 'asset'
   | 'asset_map'
   | 'article'
@@ -150,13 +151,20 @@ export type BasicTableName =
   | 'feature_flag'
   | 'seeding_user'
 
+export type View =
+  | 'tag_count_view'
+  | 'user_reader_view'
+  | 'article_count_view'
+  | 'article_hottest_view'
+  | 'transaction_delta_view'
+  | 'article_value_view'
+
 export type MaterializedView =
   | 'article_count_materialized'
   | 'tag_count_materialized'
   | 'user_reader_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'
-  | 'article_interest_materialized'
   | 'curation_tag_materialized'
   | 'article_hottest_materialized'
   | 'most_active_author_materialized'
@@ -165,7 +173,7 @@ export type MaterializedView =
   | 'user_activity_materialized'
   | 'user_activity_long_materialized'
 
-export type TableName = BasicTableName | MaterializedView
+export type TableName = BasicTableName | View | MaterializedView
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

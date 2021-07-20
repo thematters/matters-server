@@ -6,9 +6,6 @@ const resolver: RecommendationToHottestCirclesResolver = async (
   { input },
   { viewer, dataSources: { atomService }, knex }
 ) => {
-  // const { first: take, after } = input
-  // const skip = cursorToIndex(after) + 1
-
   // TODO: add business logic
   return connectionFromArray([], input, 0)
 }

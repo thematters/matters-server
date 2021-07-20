@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToUsersResolver } from 'definitions'
 
 export const users: OSSToUsersResolver = async (
@@ -6,15 +6,12 @@ export const users: OSSToUsersResolver = async (
   { input },
   { viewer, dataSources: { userService } }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const totalCount = await userService.baseCount()
 
   return connectionFromPromisedArray(
-    userService.baseFind({
-      offset,
-      limit: first,
-    }),
+    userService.baseFind({ skip, take }),
     input,
     totalCount
   )

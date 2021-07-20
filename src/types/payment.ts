@@ -45,7 +45,7 @@ export default /* GraphQL */ `
     stripeAccount: StripeAccount
 
     "URL of Stripe Dashboard to manage subscription invoice and payment method"
-    customerPortal: URL
+    customerPortal: String
 
     "The last four digits of the card."
     cardLast4: String
@@ -63,7 +63,7 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
 
     amount: Float!
-    fee: NonNegativeFloat!
+    fee: Float!
 
     currency: TransactionCurrency!
 
@@ -96,7 +96,7 @@ export default /* GraphQL */ `
 
   input TransactionsArgs {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     id: ID
     states: [TransactionState!]
   }
@@ -132,16 +132,16 @@ export default /* GraphQL */ `
     transaction: Transaction!
 
     "Only available when paying with LIKE."
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   # Add Credit
   input AddCreditInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
   }
 
   input PayToInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
     currency: TransactionCurrency!
     purpose: TransactionPurpose!
     recipientId: ID!
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
   }
 
   input PayoutInput {
-    amount: PositiveFloat!
+    amount: Float! @constraint(exclusiveMin: 0)
     password: String!
   }
 
@@ -161,11 +161,11 @@ export default /* GraphQL */ `
 
   type StripeAccount {
     id: ID!
-    loginUrl: URL! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    loginUrl: String! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   type ConnectStripeAccountResult {
-    redirectUrl: URL!
+    redirectUrl: String!
   }
 
   enum StripeAccountCountry {

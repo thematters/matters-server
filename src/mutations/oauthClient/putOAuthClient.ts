@@ -8,7 +8,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { fromGlobalId, resolveUrl } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { MutationToPutOAuthClientResolver } from 'definitions'
 
 const resolver: MutationToPutOAuthClientResolver = async (
@@ -39,9 +39,9 @@ const resolver: MutationToPutOAuthClientResolver = async (
     name,
     description,
     scope,
-    websiteUrl: resolveUrl(website),
+    websiteUrl: website,
     grantTypes,
-    redirectUri: redirectURIs?.map((r) => resolveUrl(r)),
+    redirectUri: redirectURIs,
     userId: user ? fromGlobalId(user).id : user,
   }
 

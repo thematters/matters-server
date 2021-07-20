@@ -2,6 +2,7 @@ import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
+  fromConnectionArgs,
 } from 'common/utils'
 import { UserToFollowersResolver } from 'definitions'
 
@@ -14,11 +15,12 @@ const resolver: UserToFollowersResolver = async (
     return connectionFromArray([], input)
   }
 
+  const { take } = fromConnectionArgs(input)
   const keys = cursorToKeys(input.after)
-  const params = { targetId: id, after: keys.idCursor, limit: input.first }
+
   const [count, actions] = await Promise.all([
     userService.countFollowers(id),
-    userService.findFollowers(params),
+    userService.findFollowers({ targetId: id, skip: keys.idCursor, take }),
   ])
   const cursors = actions.reduce(
     (map, action) => ({ ...map, [action.userId]: action.id }),

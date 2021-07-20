@@ -8,7 +8,6 @@ import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -66,10 +65,10 @@ const resolver: MutationToAddArticlesTagsResolver = async (
   {
     viewer,
     dataSources: {
+      atomService,
       articleService,
       notificationService,
       tagService,
-      userService,
     },
   }
 ) => {
@@ -101,9 +100,10 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     throw new ForbiddenError('not allow add tag to article')
   }
 
-  if (!isMatty && tag.id === environment.mattyChoiceTagId) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
-  }
+  // TODO: uncomment if the following feed is ready
+  // if (!isMatty && tag.id === environment.mattyChoiceTagId) {
+  //   throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  // }
 
   // compare new and old article ids that have this tag (dedupe)
   const oldIds = await tagService.findArticleIdsByTagIds([dbId])
@@ -112,11 +112,11 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 
   // not-maintainer can only add his/her own articles
   if (!isMaintainer) {
-    const count = await articleService.countByIdsAndAuthor({
-      ids: addIds,
-      authorId: viewer.id,
+    const count = await atomService.count({
+      table: 'article',
+      where: { authorId: viewer.id },
+      whereIn: ['id', addIds],
     })
-
     if (count !== addIds.length) {
       throw new ForbiddenError('not allow add tag to article')
     }

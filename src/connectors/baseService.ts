@@ -3,7 +3,6 @@ import DataLoader from 'dataloader'
 import Knex from 'knex'
 import _ from 'lodash'
 
-import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
 import { aws, es, knex } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
@@ -13,7 +12,6 @@ export class BaseService extends DataSource {
   aws: typeof aws
   knex: Knex
   dataloader: DataLoader<string, Item>
-  uuidLoader: DataLoader<string, Item>
   table: TableName
 
   constructor(table: TableName) {
@@ -25,15 +23,15 @@ export class BaseService extends DataSource {
   }
 
   baseCount = async (where?: { [key: string]: any }, table?: TableName) => {
-    let qs = this.knex(table || this.table)
+    const query = this.knex(table || this.table)
       .count()
       .first()
 
     if (where) {
-      qs = qs.where(where)
+      query.where(where)
     }
 
-    const result = await qs
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -104,32 +102,32 @@ export class BaseService extends DataSource {
    * Find items by given "where", "offset" and "limit"
    */
   baseFind = async ({
-    where,
-    offset = 0,
-    limit = BATCH_SIZE,
     table,
+    where,
+    skip,
+    take,
   }: {
-    where?: { [key: string]: any }
-    offset?: number
-    limit?: number
     table?: TableName
+    where?: { [key: string]: any }
+    skip?: number
+    take?: number
   }) => {
-    let qs = this.knex
+    const query = this.knex
       .select()
       .from(table || this.table)
       .orderBy('id', 'desc')
 
     if (where) {
-      qs = qs.where(where)
+      query.where(where)
     }
-    if (limit) {
-      qs = qs.limit(limit)
+    if (skip) {
+      query.offset(skip)
     }
-    if (offset) {
-      qs = qs.offset(offset)
+    if (take) {
+      query.limit(take)
     }
 
-    return qs
+    return query
   }
 
   /**
@@ -235,25 +233,6 @@ export class BaseService extends DataSource {
       .update(data)
       .into(table || this.table)
       .returning('*')
-
-  /**
-   * Update an item by a given UUID.
-   */
-  baseUpdateByUUID = async (
-    uuid: string,
-    data: ItemData,
-    table?: TableName
-  ) => {
-    const [updatedItem] = await this.knex
-      .where('uuid', uuid)
-      .update(data)
-      .into(table || this.table)
-      .returning('*')
-
-    logger.info(`Updated uuid ${uuid} in ${table || this.table}`)
-
-    return updatedItem
-  }
 
   /**
    * Delete an item by a given id.

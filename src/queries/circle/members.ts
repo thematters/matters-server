@@ -1,5 +1,5 @@
 import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { CircleToMembersResolver } from 'definitions'
 
 const resolver: CircleToMembersResolver = async (
@@ -11,8 +11,7 @@ const resolver: CircleToMembersResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const where = {
     'circle_price.circle_id': id,

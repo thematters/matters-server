@@ -8,14 +8,12 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
-import { MaterializedView } from 'definitions'
 
 import {
   defaultTestUser,
   getUserContext,
   registerUser,
   testClient,
-  updateUserState,
 } from './utils'
 
 let userService: any
@@ -34,7 +32,7 @@ const USER_LOGIN = /* GraphQL */ `
 `
 
 const TOGGLE_FOLLOW_USER = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleFollowUser(input: $input) {
       id
       isFollowee
@@ -43,7 +41,7 @@ const TOGGLE_FOLLOW_USER = /* GraphQL */ `
 `
 
 const TOGGLE_BLOCK_USER = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleBlockUser(input: $input) {
       id
       isBlocked
@@ -80,7 +78,7 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
   }
 `
 const GET_USER_BY_USERNAME = /* GraphQL */ `
-  query($input: UserInput!) {
+  query ($input: UserInput!) {
     user(input: $input) {
       id
       userName
@@ -91,7 +89,7 @@ const GET_USER_BY_USERNAME = /* GraphQL */ `
 const GET_VIEWER_INFO = /* GraphQL */ `
   query {
     viewer {
-      uuid
+      id
       avatar
       displayName
       info {
@@ -104,7 +102,7 @@ const GET_VIEWER_INFO = /* GraphQL */ `
   }
 `
 const GET_VIEW_ARTICLES = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       articles(input: $input) {
         edges {
@@ -130,7 +128,7 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
 `
 
 const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       subscriptions(input: $input) {
         edges {
@@ -143,7 +141,7 @@ const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
         edges {
@@ -156,7 +154,7 @@ const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followees(input: $input) {
         edges {
@@ -169,7 +167,7 @@ const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
   }
 `
 const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
-  query($input: ConnectionArgs!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       following {
         circles(input: $input) {
@@ -299,10 +297,10 @@ describe('register and login functionarlities', () => {
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
-    const { query } = await testClient({
+    const server = await testClient({
       context,
     })
-    const newUserResult = await query({
+    const newUserResult = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
     const displayName = _get(newUserResult, 'data.viewer.displayName')
@@ -314,11 +312,10 @@ describe('register and login functionarlities', () => {
   test('auth fail when password is incorrect', async () => {
     const email = 'test1@matters.news'
     const password = 'wrongPassword'
-    const { mutate } = await testClient()
+    const server = await testClient()
 
-    const result = await mutate({
-      mutation: USER_LOGIN,
-      // @ts-ignore
+    const result = await server.executeOperation({
+      query: USER_LOGIN,
       variables: { input: { email, password } },
     })
     expect(_get(result, 'errors.0.extensions.code')).toBe(
@@ -330,20 +327,19 @@ describe('register and login functionarlities', () => {
     const email = 'test1@matters.news'
     const password = '12345678'
 
-    const { mutate } = await testClient()
-    const result = await mutate({
-      mutation: USER_LOGIN,
-      // @ts-ignore
+    const server = await testClient()
+    const result = await server.executeOperation({
+      query: USER_LOGIN,
       variables: { input: { email, password } },
     })
     expect(_get(result, 'data.userLogin.auth')).toBe(true)
   })
 
   test('retrive user info after login', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
     const info = _get(data, 'viewer.info')
@@ -354,21 +350,19 @@ describe('register and login functionarlities', () => {
 describe('user query fields', () => {
   test('get user by username', async () => {
     const userName = 'test1'
-    const { query } = await testClient()
-    const { data } = await query({
+    const server = await testClient()
+    const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
-      // @ts-ignore
       variables: { input: { userName } },
     })
     expect(_get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const result = await query({
+    const result = await server.executeOperation({
       query: GET_VIEW_ARTICLES,
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const { data } = result
@@ -378,10 +372,10 @@ describe('user query fields', () => {
   })
 
   test('retrive UserSettings', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const res = await query({
+    const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
     const { data } = res
@@ -391,12 +385,11 @@ describe('user query fields', () => {
   })
 
   test('retrive subscriptions', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_SUBSCRIPTIONS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const subscriptions = _get(data, 'viewer.subscriptions.edges')
@@ -404,12 +397,11 @@ describe('user query fields', () => {
   })
 
   test('retrive followers', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWERS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const followers = _get(data, 'viewer.followers.edges')
@@ -417,12 +409,11 @@ describe('user query fields', () => {
   })
 
   test('retrive followees', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWEES,
-      // @ts-ignore
       variables: { input: {} },
     })
     const followees = _get(data, 'viewer.followees.edges')
@@ -430,12 +421,11 @@ describe('user query fields', () => {
   })
 
   test('retrive following', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWINGS,
-      // @ts-ignore
       variables: { input: {} },
     })
     const circles = _get(data, 'viewer.following.circles.edges')
@@ -447,10 +437,10 @@ describe('user query fields', () => {
   })
 
   test('retrive UserStatus', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
     const status = _get(data, 'viewer.status')
@@ -461,10 +451,9 @@ describe('user query fields', () => {
 describe('mutations on User object', () => {
   test('follow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: TOGGLE_FOLLOW_USER,
-      // @ts-ignore
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
+      query: TOGGLE_FOLLOW_USER,
       variables: {
         input: {
           id: followeeId,
@@ -477,10 +466,9 @@ describe('mutations on User object', () => {
 
   test('unfollow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const { mutate } = await testClient({ isAuth: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_FOLLOW_USER,
-      // @ts-ignore
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: TOGGLE_FOLLOW_USER,
       variables: {
         input: {
           id: followeeId,
@@ -493,10 +481,9 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: TOGGLE_BLOCK_USER,
-      // @ts-ignore
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
+      query: TOGGLE_BLOCK_USER,
       variables: {
         input: {
           id: blockUserId,
@@ -509,10 +496,9 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: TOGGLE_BLOCK_USER,
-      // @ts-ignore
+    const server = await testClient({ isAuth: true })
+    const result = await server.executeOperation({
+      query: TOGGLE_BLOCK_USER,
       variables: {
         input: {
           id: blockUserId,
@@ -525,12 +511,11 @@ describe('mutations on User object', () => {
 
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
-    const { mutate } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await mutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
-      // @ts-ignore
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     const info = _get(data, 'updateUserInfo.info')
@@ -539,12 +524,11 @@ describe('mutations on User object', () => {
 
   test('updateUserInfoAvatar', async () => {
     const avatarAssetUUID = '00000000-0000-0000-0000-000000000001'
-    const { mutate } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await mutate({
-      mutation: UPDATE_USER_INFO_AVATAR,
-      // @ts-ignore
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO_AVATAR,
       variables: { input: { avatar: avatarAssetUUID } },
     })
     const avatar = _get(data, 'updateUserInfo.avatar')
@@ -552,12 +536,11 @@ describe('mutations on User object', () => {
   })
 
   test('updateNotificationSetting', async () => {
-    const { mutate } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await mutate({
-      mutation: UPDATE_NOTIFICARION_SETTINGS,
-      // @ts-ignore
+    const { data } = await server.executeOperation({
+      query: UPDATE_NOTIFICARION_SETTINGS,
       variables: { input: { type: 'enable', enabled: false } },
     })
     const enable = _get(
@@ -569,29 +552,17 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, icymi, topics, followeeArticles, newest and valued', async () => {
-    await Promise.all(
-      _values(MATERIALIZED_VIEW).map((view) =>
-        refreshView(view as MaterializedView)
-      )
-    )
+  test('retrive articles from hottest, newest and icymi', async () => {
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
 
-    const lists = [
-      'hottest',
-      'icymi',
-      'topics',
-      'followeeArticles',
-      'newest',
-      'valued',
-    ]
+    const lists = ['hottest', 'newest', 'icymi']
     for (const list of lists) {
-      const { query: queryNew } = await testClient({
+      const serverNew = await testClient({
         isAuth: true,
       })
 
-      const result = await queryNew({
+      const result = await serverNew.executeOperation({
         query: GET_VIEWER_RECOMMENDATION(list),
-        // @ts-ignore
         variables: { input: { first: 1 } },
       })
       const { data } = result
@@ -601,12 +572,14 @@ describe('user recommendations', () => {
   })
 
   test('retrive tags from tags', async () => {
-    const { query: queryNew } = await testClient({
+    await refreshView(MATERIALIZED_VIEW.curation_tag_materialized)
+    await refreshView(MATERIALIZED_VIEW.tag_count_materialized)
+
+    const serverNew = await testClient({
       isAuth: true,
     })
-    const { data } = await queryNew({
+    const { data } = await serverNew.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_TAGS,
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
@@ -614,12 +587,13 @@ describe('user recommendations', () => {
   })
 
   test('retrive users from authors', async () => {
-    const { query: queryNew } = await testClient({
+    await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
+
+    const serverNew = await testClient({
       isAuth: true,
     })
-    const result = await queryNew({
+    const result = await serverNew.executeOperation({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
-      // @ts-ignore
       variables: { input: { first: 1 } },
     })
     const { data } = result
@@ -630,12 +604,11 @@ describe('user recommendations', () => {
 
 describe('badges', () => {
   test('get user badges', async () => {
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_BADGES,
-      // @ts-ignore
       variables: {},
     })
     expect(_get(data, 'viewer.info.badges.0.type')).toBe('seed')
@@ -648,10 +621,9 @@ describe('verification code', () => {
 
   test('send verification code', async () => {
     // send
-    const { mutate } = await testClient()
-    const result = await mutate({
-      mutation: SEND_VERIFICATION_CODE,
-      // @ts-ignore
+    const server = await testClient()
+    const result = await server.executeOperation({
+      query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
@@ -660,10 +632,9 @@ describe('verification code', () => {
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // confirm
-    const { mutate: confirmMutate } = await testClient()
-    const confirmedResult = await confirmMutate({
-      mutation: CONFIRM_VERIFICATION_CODE,
-      // @ts-ignore
+    const serverMutate = await testClient()
+    const confirmedResult = await serverMutate.executeOperation({
+      query: CONFIRM_VERIFICATION_CODE,
       variables: { input: { type, email, code: code.code } },
     })
     expect(
@@ -673,25 +644,5 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
-  })
-})
-
-describe('frozen user do mutations', () => {
-  // frozen user shared settings
-  // const frozenUser = { isAuth: true, isFrozen: true }
-  // const errorPath = 'errors.0.extensions.code'
-
-  // make sure user state in db is correct
-  beforeAll(async () => {
-    await updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'frozen',
-    })
-  })
-  afterAll(async () => {
-    await updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'active',
-    })
   })
 })

@@ -30,12 +30,9 @@ export const QUEUE_JOB = {
   sendDailySummaryEmails: 'sendDailySummaryEmails',
 
   // Refresh Views
-  refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
-  refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
-  refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
   refreshArticleHottestView: 'refreshArticleHottestView',
   refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',

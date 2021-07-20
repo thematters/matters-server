@@ -53,13 +53,13 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2.1.4
+        uses: actions/setup-node@v2
         with:
-          node-version: '12.16'
+          node-version: '16'
 
       - name: Cache Dependencies
         id: cache
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -83,7 +83,6 @@ jobs:
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres
           MATTERS_PG_DATABASE: matters-test
-          MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
           MATTERS_MATTY_ID: 6
