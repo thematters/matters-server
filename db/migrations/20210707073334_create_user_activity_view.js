@@ -33,7 +33,7 @@ exports.up = async (knex) => {
       article_bookmark_period AS (SELECT * FROM action_article WHERE action = 'subscribe' AND created_at >= now() - interval '${period}' day),
 
       /* UserAddArticleTagActivity */
-      article_tag_period AS (SELECT * FROM article_tag WHERE created_at >= now() - interval '${period}' day)
+      article_tag_period AS (SELECT * FROM article_tag WHERE selected = TRUE and created_at >= now() - interval '${period}' day)
 
       SELECT row_number() over (order by created_at desc) AS id, * FROM (
         SELECT
