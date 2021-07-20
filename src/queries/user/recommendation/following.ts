@@ -1,10 +1,10 @@
 import _last from 'lodash/last'
 
-import { BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
+import { MATERIALIZED_VIEW } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFollowingResolver } from 'definitions'
 
@@ -32,8 +32,7 @@ const resolver: RecommendationToFollowingResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   /**
    * Retrieve activities
@@ -84,17 +83,17 @@ const resolver: RecommendationToFollowingResolver = async (
     )
 
   const countQuery = makeFollowingQuery({
-    viewName: MATERIALIZED_VIEW.userActivityMaterialized,
+    viewName: MATERIALIZED_VIEW.user_activity_materialized,
   })
     .count()
     .first()
 
   const followingQuery = makeFollowingQuery({
-    viewName: MATERIALIZED_VIEW.userActivityMaterialized,
+    viewName: MATERIALIZED_VIEW.user_activity_materialized,
   })
     .orderBy('created_at', 'desc')
     .offset(skip)
-    .limit(take || BATCH_SIZE)
+    .limit(take)
 
   const [count, activities] = await Promise.all([countQuery, followingQuery])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
