@@ -50,7 +50,7 @@
     "apollo-datasource": "^3.0.0",
     "apollo-server-cache-redis": "^3.0.0",
     "apollo-server-core": "^3.0.0",
-    "apollo-server-express": "^3.0.0",
+    "apollo-server-express": "^3.0.2",
     "aws-sdk": "^2.947.0",
     "axios": "^0.21.1",
     "bcrypt": "^5.0.1",
