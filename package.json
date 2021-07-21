@@ -131,7 +131,7 @@
     "@types/uuid": "^8.3.1",
     "@types/validator": "^13.6.3",
     "@types/winston": "^2.4.4",
-    "@types/ws": "^7.4.6",
+    "@types/ws": "^7.4.7",
     "chokidar": "^3.5.2",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.8.3",
