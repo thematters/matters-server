@@ -1,5 +1,4 @@
 exports.up = async (knex) => {
-
   // get matty
   const matty = await knex('user')
     .select('id')
