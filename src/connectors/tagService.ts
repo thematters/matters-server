@@ -4,14 +4,15 @@ import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
-  BATCH_SIZE,
+  DEFAULT_TAKE_PER_PAGE,
   MATERIALIZED_VIEW,
   TAG_ACTION,
+  VIEW,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { GQLSearchInput, ItemData } from 'definitions'
+import { ItemData } from 'definitions'
 
 export class TagService extends BaseService {
   constructor() {
@@ -23,12 +24,12 @@ export class TagService extends BaseService {
    * Find tags
    */
   find = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+    skip,
+    take,
     sort,
   }: {
-    limit?: number
-    offset?: number
+    skip?: number
+    take?: number
     sort?: 'newest' | 'oldest' | 'hottest'
   }) => {
     let query = null
@@ -52,7 +53,14 @@ export class TagService extends BaseService {
       query = sortCreatedAt('desc')
     }
 
-    return query.limit(limit).offset(offset)
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
   }
 
   /**
@@ -209,13 +217,13 @@ export class TagService extends BaseService {
    */
   findParticipants = async ({
     id,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
     exclude,
   }: {
     id: string
-    offset?: number
-    limit?: number
+    skip?: number
+    take?: number
     exclude?: string[]
   }) => {
     const subquery = this.knex.raw(`(
@@ -240,12 +248,11 @@ export class TagService extends BaseService {
       query.whereNotIn('author_id', exclude)
     }
 
-    if (limit) {
-      query.limit(limit)
+    if (take) {
+      query.limit(take)
     }
-
-    if (offset) {
-      query.offset(offset)
+    if (skip) {
+      query.offset(skip)
     }
 
     return query
@@ -296,23 +303,26 @@ export class TagService extends BaseService {
    */
   findFollowers = async ({
     targetId,
-    limit = BATCH_SIZE,
-    after,
+    skip,
+    take,
   }: {
     targetId: string
-    limit?: number
-    after?: number
+    skip?: number
+    take?: number
   }) => {
     const query = this.knex
       .select()
       .from('action_tag')
       .where({ targetId, action: TAG_ACTION.follow })
       .orderBy('id', 'desc')
-      .limit(limit)
 
-    if (after) {
-      query.andWhere('id', '<', after)
+    if (skip) {
+      query.offset(skip)
     }
+    if (take) {
+      query.limit(take)
+    }
+
     return query
   }
 
@@ -409,14 +419,18 @@ export class TagService extends BaseService {
 
   search = async ({
     key,
-    first = 20,
-    offset,
-    oss = false,
-  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
+    take,
+    skip,
+  }: {
+    key: string
+    author?: string
+    take: number
+    skip: number
+  }) => {
     const body = bodybuilder()
       .query('match', 'content', key)
-      .from(offset)
-      .size(first)
+      .from(skip)
+      .size(take)
       .build()
 
     try {
@@ -478,20 +492,21 @@ export class TagService extends BaseService {
   findCurationTags = ({
     mattyId,
     fields = ['*'],
-    limit,
+    take,
   }: {
     mattyId: string
     fields?: any[]
-    limit?: number
+    take?: number
   }) => {
     const query = this.knex
       .select(fields)
-      .from(MATERIALIZED_VIEW.curationTagMaterialized)
+      .from(MATERIALIZED_VIEW.curation_tag_materialized)
       .orderBy('uuid')
 
-    if (limit) {
-      query.limit(limit)
+    if (take) {
+      query.limit(take)
     }
+
     return query
   }
 
@@ -512,7 +527,9 @@ export class TagService extends BaseService {
     const query = this.knex.select(fields).from((knex: any) => {
       const source = knex
         .select()
-        .from(oss ? 'tag_count_view' : MATERIALIZED_VIEW.tagCountMaterialized)
+        .from(
+          oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
+        )
         .whereNotIn('id', curation)
         .orderByRaw('tag_score DESC NULLS LAST')
         .orderBy('count', 'desc')
@@ -527,13 +544,13 @@ export class TagService extends BaseService {
    */
   findArrangedTags = async ({
     mattyId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
     oss = false,
   }: {
     mattyId: string
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
     oss?: boolean
   }) => {
     const curation = this.findCurationTags({
@@ -550,8 +567,14 @@ export class TagService extends BaseService {
       .from(curation.as('curation'))
       .unionAll([nonCuration])
       .orderBy('type')
-      .limit(limit)
-      .offset(offset)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
     return query
   }
 
@@ -559,20 +582,21 @@ export class TagService extends BaseService {
    *
    * query, add and remove tag recommendation
    */
-
-  selected = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('tag')
+  selected = async ({ take, skip }: { take?: number; skip?: number }) => {
+    const query = this.knex('tag')
       .select('tag.*', 'c.updated_at as chose_at')
       .join('matters_choice_tag as c', 'c.tag_id', 'tag.id')
       .orderBy('chose_at', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   countSelectedTags = async () => {
     const result = await this.knex('matters_choice_tag').count().first()
@@ -665,17 +689,17 @@ export class TagService extends BaseService {
    */
   findArticleIds = async ({
     id: tagId,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
     selected,
   }: {
     id: string
-    offset?: number
-    limit?: number
+    skip?: number
+    take?: number
     filter?: { [key: string]: any }
     selected?: boolean
   }) => {
-    const result = await this.knex
+    const query = this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
@@ -684,9 +708,16 @@ export class TagService extends BaseService {
         state: ARTICLE_STATE.active,
         ...(selected === true ? { selected } : {}),
       })
-      .limit(limit)
-      .offset(offset)
       .orderBy('article_tag.id', 'desc')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    const result = await query
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }
@@ -755,7 +786,7 @@ export class TagService extends BaseService {
         tagId: id,
         state: ARTICLE_STATE.active,
       })
-      .limit(BATCH_SIZE)
+      .limit(DEFAULT_TAKE_PER_PAGE)
       .orderBy('article_tag.id', 'asc')
 
   /*********************************

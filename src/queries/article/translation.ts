@@ -1,16 +1,17 @@
+import { gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const resolver: ArticleToTranslationResolver = async (
   { content: originContent, title: originTitle },
   { input },
-  { dataSources: { articleService }, viewer }
+  { viewer }
 ) => {
-  const title = await articleService.translate({
+  const title = await gcp.translate({
     content: originTitle,
     target: input ? input.language : viewer.language,
   })
 
-  const content = await articleService.translate({
+  const content = await gcp.translate({
     content: originContent,
     target: input ? input.language : viewer.language,
   })

@@ -75,13 +75,8 @@ class AppreciationQueue extends BaseQueue {
     done
   ) => {
     try {
-      const {
-        amount,
-        articleId,
-        senderId,
-        senderIP,
-        userAgent,
-      } = job.data as AppreciationParams
+      const { amount, articleId, senderId, senderIP, userAgent } =
+        job.data as AppreciationParams
 
       if (!articleId || !senderId) {
         throw new Error('appreciation job has no required data')

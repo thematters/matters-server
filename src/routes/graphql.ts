@@ -1,11 +1,17 @@
 import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { RedisCache } from 'apollo-server-cache-redis'
+import {
+  ApolloServerPluginCacheControl,
+  ApolloServerPluginLandingPageDisabled,
+} from 'apollo-server-core'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
-import { Express, Request, Response } from 'express'
+import bodyParser from 'body-parser'
+import { Express, RequestHandler } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
+import { graphqlUploadExpress } from 'graphql-upload'
 import _ from 'lodash'
 import 'module-alias/register'
 
@@ -19,7 +25,7 @@ import {
 import { environment, isProd } from 'common/environment'
 import { ActionLimitExceededError } from 'common/errors'
 import logger from 'common/logger'
-import { initSubscriptions, makeContext } from 'common/utils'
+import { makeContext } from 'common/utils'
 import {
   ArticleService,
   AtomService,
@@ -34,7 +40,6 @@ import {
 } from 'connectors'
 import { sentryMiddleware } from 'middlewares/sentry'
 
-import costMap from '../costMap'
 import schema from '../schema'
 
 const API_ENDPOINT = '/graphql'
@@ -42,10 +47,13 @@ const PLAYGROUND_ENDPOINT = '/playground'
 
 class ProtectedApolloServer extends ApolloServer {
   async createGraphQLServerOptions(
-    req: Request,
-    res: Response
+    req: any,
+    res: any
   ): Promise<GraphQLOptions> {
-    const options = await super.createGraphQLServerOptions(req, res)
+    const options = await super.createGraphQLServerOptions(
+      req as any,
+      res as any
+    )
     const maximumCost = GRAPHQL_COST_LIMIT
 
     return {
@@ -56,7 +64,6 @@ class ProtectedApolloServer extends ApolloServer {
           variables: req.body.variables,
           maximumCost,
           defaultCost: 1,
-          costMap,
           createError: (max: number, actual: number) => {
             const err = new ActionLimitExceededError(
               `GraphQL query exceeds maximum complexity,` +
@@ -84,10 +91,6 @@ const composedSchema = applyMiddleware(schema, sentryMiddleware)
 const server = new ProtectedApolloServer({
   schema: composedSchema,
   context: makeContext,
-  engine: {
-    apiKey: environment.apiKey,
-  },
-  subscriptions: initSubscriptions(),
   dataSources: () => ({
     atomService: new AtomService(),
 
@@ -102,22 +105,18 @@ const server = new ProtectedApolloServer({
     oauthService: new OAuthService(),
     paymentService: new PaymentService(),
   }),
-  uploads: {
-    maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
-    maxFiles: UPLOAD_FILE_COUNT_LIMIT,
-  },
   debug: !isProd,
   validationRules: [depthLimit(15)],
   cache,
   persistedQueries: {
     cache,
   },
-  cacheControl: {
-    calculateHttpHeaders: false,
-    defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
-    stripFormattedExtensions: isProd,
-  },
   plugins: [
+    ApolloServerPluginLandingPageDisabled(),
+    ApolloServerPluginCacheControl({
+      calculateHttpHeaders: false,
+      defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
+    }),
     responseCachePlugin({
       sessionId: ({ context }) => {
         const viewerId = _.get(context, 'viewer.id', '')
@@ -128,10 +127,20 @@ const server = new ProtectedApolloServer({
     }),
   ],
   introspection: true,
-  playground: false, // enabled below
 })
 
-export const graphql = (app: Express) => {
+export const graphql = async (app: Express) => {
+  await server.start()
+
+  app.use(
+    API_ENDPOINT,
+    graphqlUploadExpress({
+      maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
+      maxFiles: UPLOAD_FILE_COUNT_LIMIT,
+    }),
+    bodyParser.json({ limit: '512kb' }) as RequestHandler
+  )
+
   // API
   server.applyMiddleware({
     app,
@@ -144,8 +153,8 @@ export const graphql = (app: Express) => {
     PLAYGROUND_ENDPOINT,
     expressPlayground({
       endpoint: API_ENDPOINT,
+      // @ts-ignore
       settings: {
-        // @ts-ignore
         'schema.polling.enable': false,
       },
     })

@@ -1,5 +1,5 @@
 import { CIRCLE_STATE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToNewestCirclesResolver } from 'definitions'
 
 const resolver: RecommendationToNewestCirclesResolver = async (
@@ -7,8 +7,7 @@ const resolver: RecommendationToNewestCirclesResolver = async (
   { input },
   { viewer, dataSources: { atomService }, knex }
 ) => {
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, circles] = await Promise.all([
     atomService.count({

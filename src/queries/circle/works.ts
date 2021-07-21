@@ -1,8 +1,8 @@
-import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { CircleToWorksResolver } from 'definitions'
 
@@ -15,8 +15,7 @@ const resolver: CircleToWorksResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const countQuery = knex
     .from('article_circle')
@@ -32,7 +31,7 @@ const resolver: CircleToWorksResolver = async (
     .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
     .orderBy('article_circle.updated_at', 'desc')
     .offset(skip)
-    .limit(take || BATCH_SIZE)
+    .limit(take)
 
   const [count, articles] = await Promise.all([countQuery, articlesQuery])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)

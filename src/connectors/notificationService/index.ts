@@ -10,7 +10,6 @@ import {
 
 import { mail } from './mail'
 import { notice } from './notice'
-import { pubsub } from './pubsub'
 import { push } from './push'
 import trans from './translations'
 
@@ -18,14 +17,12 @@ export class NotificationService extends BaseService {
   mail: typeof mail
   push: typeof push
   notice: typeof notice
-  pubsub: typeof pubsub
 
   constructor() {
     super('noop')
     this.mail = mail
     this.push = push
     this.notice = notice
-    this.pubsub = pubsub
   }
 
   trigger = async (params: NotificationPrarms) => {
@@ -75,7 +72,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
-      case DB_NOTICE_TYPE.article_tag_has_been_unselected:
       case DB_NOTICE_TYPE.payment_received_donation:
       case DB_NOTICE_TYPE.tag_adoption:
       case DB_NOTICE_TYPE.tag_leave:
@@ -224,16 +220,5 @@ export class NotificationService extends BaseService {
       noticeParams,
       recipient,
     })
-
-    /**
-     * Publish a PubSub event
-     */
-    // this.pubsub.publish(
-    //   toGlobalId({
-    //     type: 'User',
-    //     id: noticeParams.recipientId,
-    //   }),
-    //   recipient
-    // )
   }
 }

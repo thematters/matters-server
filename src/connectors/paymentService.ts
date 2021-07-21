@@ -4,8 +4,8 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  BATCH_SIZE,
   HOUR,
+  INVITATION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -71,40 +71,40 @@ export class PaymentService extends BaseService {
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
   }) => {
-    let qs = this.knex('transaction_delta_view').select()
+    const query = this.knex('transaction_delta_view').select()
 
     if (userId) {
-      qs = qs.where({ userId })
+      query.where({ userId })
     }
 
     if (id) {
-      qs = qs.where({ id })
+      query.where({ id })
     }
 
     if (providerTxId) {
-      qs = qs.where({ providerTxId })
+      query.where({ providerTxId })
     }
 
     if (states) {
-      qs = qs.whereIn('state', states)
+      query.whereIn('state', states)
     }
 
     if (excludeCanceledLIKE) {
-      let subQs = this.knex('transaction_delta_view').where({
+      const subQuery = this.knex('transaction_delta_view').where({
         userId,
       })
 
       if (id) {
-        subQs = subQs.where({ id })
+        subQuery.where({ id })
       }
 
       if (states) {
-        subQs = subQs.whereIn('state', states)
+        subQuery.whereIn('state', states)
       }
 
-      qs = qs
+      query
         .leftJoin(
-          subQs
+          subQuery
             .select('id as tx_id')
             .where('state', TRANSACTION_STATE.canceled)
             .andWhere('currency', PAYMENT_CURRENCY.LIKE)
@@ -116,10 +116,10 @@ export class PaymentService extends BaseService {
     }
 
     if (notIn) {
-      qs.whereNotIn(...notIn)
+      query.whereNotIn(...notIn)
     }
 
-    return qs
+    return query
   }
 
   // count transactions by given conditions
@@ -130,16 +130,16 @@ export class PaymentService extends BaseService {
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
   }) => {
-    const qs = this.makeTransactionsQuery(params)
-    const result = await qs.count()
+    const query = this.makeTransactionsQuery(params)
+    const result = await query.count()
 
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
   // find transactions by given conditions
   findTransactions = ({
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
     ...restParams
   }: {
     userId?: string
@@ -148,12 +148,19 @@ export class PaymentService extends BaseService {
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
-    offset?: number
-    limit?: number
+    skip?: number
+    take?: number
   }) => {
-    const qs = this.makeTransactionsQuery(restParams)
+    const query = this.makeTransactionsQuery(restParams)
 
-    return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query.orderBy('created_at', 'desc')
   }
 
   createTransaction = async ({
@@ -307,17 +314,17 @@ export class PaymentService extends BaseService {
       throw new ServerError('userId/customerId is required')
     }
 
-    let qs = this.knex('customer')
+    const query = this.knex('customer')
 
     if (userId) {
-      qs = qs.where({ userId })
+      query.where({ userId })
     }
 
     if (customerId) {
-      qs = qs.where({ customerId })
+      query.where({ customerId })
     }
 
-    return qs.del()
+    return query.del()
   }
 
   /*********************************
@@ -483,30 +490,34 @@ export class PaymentService extends BaseService {
     id,
     userId,
     providerInvoiceId,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
   }: {
     id?: number
     userId?: number
     providerInvoiceId?: string
-    offset?: number
-    limit?: number
+    skip?: number
+    take?: number
   }) => {
-    let qs = this.knex('circle_invoice').select()
+    const query = this.knex('circle_invoice').select()
 
     if (userId) {
-      qs = qs.where({ userId })
+      query.where({ userId })
     }
-
     if (id) {
-      qs = qs.where({ id })
+      query.where({ id })
     }
-
     if (providerInvoiceId) {
-      qs = qs.where({ providerInvoiceId })
+      query.where({ providerInvoiceId })
+    }
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
     }
 
-    return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+    return query.orderBy('created_at', 'desc')
   }
 
   createInvoiceWithTransactions = async ({
@@ -869,7 +880,7 @@ export class PaymentService extends BaseService {
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
       .where({
         'cp.id': params.priceId,
-        accepted: false,
+        'ci.state': INVITATION_STATE.pending,
       })
       .andWhere(function () {
         this.where('ci.user_id', params.userId).orWhere('ci.email', user.email)
@@ -886,7 +897,7 @@ export class PaymentService extends BaseService {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({
-        accepted: true,
+        state: INVITATION_STATE.accepted,
         accepted_at: this.knex.fn.now(),
         subscriptionItemId,
       })

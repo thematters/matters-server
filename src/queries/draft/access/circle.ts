@@ -1,6 +1,6 @@
-import { DraftToCircleResolver } from 'definitions'
+import { DraftAccessToCircleResolver } from 'definitions'
 
-export const circle: DraftToCircleResolver = (
+export const circle: DraftAccessToCircleResolver = (
   { circleId },
   _,
   { dataSources: { atomService } }

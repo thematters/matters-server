@@ -5,7 +5,6 @@ import {
   ARTICLE_ACCESS_TYPE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
-  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -189,15 +188,7 @@ const resolver: MutationToPutCommentResolver = async (
   // only allow the author, members,
   // or within free limited period to comment on article
   if (article && !isTargetAuthor) {
-    const articleCircle = await knex
-      .select('article_circle.*')
-      .from('article_circle')
-      .join('circle', 'article_circle.circle_id', 'circle.id')
-      .where({
-        'article_circle.article_id': article.id,
-        'circle.state': CIRCLE_STATE.active,
-      })
-      .first()
+    const articleCircle = await articleService.findArticleCircle(article.id)
 
     if (articleCircle) {
       const isCircleMember = await paymentService.isCircleMember({
@@ -228,6 +219,21 @@ const resolver: MutationToPutCommentResolver = async (
     data.mentionedUserIds = mentions.map(
       (userId: string) => fromGlobalId(userId).id
     )
+
+    // check if mentioned user blocked viewer
+    const anyBlocked = _.some(
+      await Promise.all(
+        data.mentionedUserIds.map((mentionUserId: string) =>
+          userService.blocked({
+            userId: mentionUserId,
+            targetId: viewer.id,
+          })
+        )
+      )
+    )
+    if (anyBlocked) {
+      throw new ForbiddenError('mentioned user blocked viewer')
+    }
   }
 
   /**

@@ -116,7 +116,6 @@ const notice: {
     },
   },
   UserNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.user_new_follower:
@@ -131,7 +130,6 @@ const notice: {
     },
   },
   ArticleNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_published:
@@ -154,7 +152,6 @@ const notice: {
       draftService.dataloader.load(entities.target.draftId),
   },
   ArticleArticleNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_new_collected:
@@ -171,7 +168,6 @@ const notice: {
     },
   },
   ArticleTagNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_tag_has_been_added:
@@ -187,7 +183,6 @@ const notice: {
     tag: ({ entities }) => entities.tag,
   },
   TagNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.tag_adoption:
@@ -203,7 +198,6 @@ const notice: {
     target: ({ entities }) => entities.target,
   },
   CommentNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
@@ -235,7 +229,6 @@ const notice: {
     },
   },
   CommentCommentNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_new_reply:
@@ -255,7 +248,6 @@ const notice: {
     },
   },
   TransactionNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.payment_received_donation:
@@ -267,7 +259,6 @@ const notice: {
     target: ({ entities }) => entities.target,
   },
   CircleNotice: {
-    id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.circle_new_follower:
@@ -291,7 +282,6 @@ const notice: {
     },
   },
   OfficialAnnouncementNotice: {
-    id: ({ uuid }) => uuid,
     link: ({ data }: { data: any }) => data && data.link,
   },
 }

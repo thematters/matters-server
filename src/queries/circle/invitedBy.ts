@@ -1,3 +1,4 @@
+import { INVITATION_STATE } from 'common/enums'
 import { CircleToInvitedByResolver } from 'definitions'
 
 const resolver: CircleToInvitedByResolver = async (
@@ -12,7 +13,7 @@ const resolver: CircleToInvitedByResolver = async (
   const invitation = await knex
     .select()
     .from('circle_invitation')
-    .where({ circleId: id, accepted: false })
+    .where({ circleId: id, state: INVITATION_STATE.pending })
     .andWhere(function () {
       this.where('user_id', viewer.id).orWhere('email', viewer.email)
     })

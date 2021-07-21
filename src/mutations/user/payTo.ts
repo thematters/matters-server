@@ -104,7 +104,7 @@ const resolver: MutationToPayToResolver = async (
       )
     }
 
-    const verified = await compare(password, viewer.paymentPasswordHash)
+    const verified = await compare(password || '', viewer.paymentPasswordHash)
     if (!verified) {
       throw new PasswordInvalidError('password is incorrect, pay failed.')
     }
@@ -137,11 +137,8 @@ const resolver: MutationToPayToResolver = async (
         providerTxId: pendingTxId,
       })
 
-      const {
-        likecoinPayURL,
-        likecoinPayCallbackURL,
-        likecoinPayLikerId,
-      } = environment
+      const { likecoinPayURL, likecoinPayCallbackURL, likecoinPayLikerId } =
+        environment
       const params = new URLSearchParams()
       params.append('to', recipient.likerId)
       params.append('amount', amount.toString())

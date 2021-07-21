@@ -7,7 +7,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    notices(input: ConnectionArgs!): NoticeConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   """
@@ -206,7 +206,7 @@ export default /* GraphQL */ `
   enum ArticleTagNoticeType {
     ArticleTagAdded
     ArticleTagRemoved
-    ArticleTagUnselected
+    ArticleTagUnselected @deprecated(reason: "No longer in use")
   }
 
   type TagNotice implements Notice {
@@ -316,7 +316,7 @@ export default /* GraphQL */ `
     message: String!
 
     "The link to a specific page if provided."
-    link: URL
+    link: String
   }
 
 `

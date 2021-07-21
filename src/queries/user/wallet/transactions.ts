@@ -6,7 +6,11 @@ import {
   TRANSACTION_STATE,
   TransactionRemarkText,
 } from 'common/enums'
-import { connectionFromArray, cursorToIndex, fromGlobalId } from 'common/utils'
+import {
+  connectionFromArray,
+  fromConnectionArgs,
+  fromGlobalId,
+} from 'common/utils'
 import { WalletToTransactionsResolver } from 'definitions'
 
 const resolver: WalletToTransactionsResolver = async (
@@ -15,14 +19,14 @@ const resolver: WalletToTransactionsResolver = async (
   { dataSources: { paymentService }, viewer },
   { cacheControl }
 ) => {
-  const { first, after, id, states } = input
+  const { id, states } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   let txId
   if (id) {
     txId = fromGlobalId(id).id
   }
 
-  const offset = after ? cursorToIndex(after) + 1 : 0
   const totalCount = await paymentService.totalTransactionCount({
     userId,
     id: txId,
@@ -45,8 +49,8 @@ const resolver: WalletToTransactionsResolver = async (
     states: states as any,
     excludeCanceledLIKE: true,
     notIn: ['purpose', [TRANSACTION_PURPOSE.subscription]],
-    limit: first,
-    offset,
+    skip,
+    take,
   })
 
   // get message text

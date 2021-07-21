@@ -2,7 +2,6 @@ import { v4 } from 'uuid'
 
 import {
   ASSET_TYPE,
-  BATCH_SIZE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
@@ -186,16 +185,16 @@ export class SystemService extends BaseService {
     entityId: string
     assetType?: keyof typeof ASSET_TYPE
   }) => {
-    let qs = this.knex('asset_map')
+    const query = this.knex('asset_map')
       .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
 
     if (assetType) {
-      qs = qs.andWhere({ type: assetType })
+      query.andWhere({ type: assetType })
     }
 
-    return qs
+    return query
   }
 
   /**
@@ -286,18 +285,26 @@ export class SystemService extends BaseService {
    *********************************/
   findSkippedItems = async ({
     types,
-    limit = BATCH_SIZE,
-    offset = 0,
+    skip,
+    take,
   }: {
     types: string[]
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('blocklist')
+    skip?: number
+    take?: number
+  }) => {
+    const query = this.knex('blocklist')
       .whereIn('type', types)
-      .limit(limit)
-      .offset(offset)
       .orderBy('id', 'desc')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   findSkippedItem = async (type: SkippedListItemType, value: string) => {
     return this.knex('blocklist').where({ type, value }).first()

@@ -1,6 +1,6 @@
 import { chunk } from 'lodash'
 
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (
@@ -8,7 +8,8 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
   { input },
   { dataSources: { articleService, draftService } }
 ) => {
-  const { first, after, random } = input
+  const { random } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   const notIn = [articleId]
 
@@ -17,12 +18,12 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
    */
   if (typeof random === 'number') {
     const MAX_RANDOM_INDEX = 50
-    const randomDraw = first || 5
+    const randomDraw = input.first || 5
 
     const articlePool = await articleService.findRelatedDonations({
       articleId,
       notIn,
-      limit: MAX_RANDOM_INDEX * randomDraw,
+      take: MAX_RANDOM_INDEX * randomDraw,
     })
 
     const chunks = chunk(articlePool, randomDraw)
@@ -38,14 +39,13 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     )
   }
 
-  const offset = cursorToIndex(after) + 1
   const [totalCount, articles] = await Promise.all([
     articleService.countRelatedDonations({ articleId, notIn }),
     articleService.findRelatedDonations({
       articleId,
-      offset,
       notIn,
-      limit: first,
+      take,
+      skip,
     }),
   ])
 

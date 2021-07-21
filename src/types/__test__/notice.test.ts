@@ -7,7 +7,7 @@ import { testClient } from './utils'
 
 const USER_ID = toGlobalId({ type: NODE_TYPES.User, id: 1 })
 const GET_NOTICES = /* GraphQL */ `
-  query($nodeInput: NodeInput!) {
+  query ($nodeInput: NodeInput!) {
     node(input: $nodeInput) {
       ... on User {
         notices(input: { first: 100 }) {
@@ -26,10 +26,9 @@ const GET_NOTICES = /* GraphQL */ `
 `
 
 test('query notices', async () => {
-  const { query } = await testClient({ isAuth: true })
-  const { data } = await query({
+  const server = await testClient({ isAuth: true })
+  const { data } = await server.executeOperation({
     query: GET_NOTICES,
-    // @ts-ignore
     variables: {
       nodeInput: { id: USER_ID },
     },

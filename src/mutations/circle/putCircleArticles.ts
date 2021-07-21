@@ -2,6 +2,8 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -25,11 +27,11 @@ import {
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
+import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
-  { input: { id, articles, type: actionType, accessType } },
+  { input: { id, articles, type: actionType, accessType, license } },
   {
     viewer,
     dataSources: {
@@ -69,7 +71,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   const [circle, targetArticles] = await Promise.all([
     atomService.findFirst({
       table: 'circle',
-      where: { id: circleId, state: CIRCLE_STATE.active },
+      where: { id: circleId, owner: viewer.id, state: CIRCLE_STATE.active },
     }),
     atomService.findMany({
       table: 'article',
@@ -80,19 +82,12 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       },
     }),
   ])
-  const targetArticleIds = targetArticles.map((a) => a.id)
 
   if (!circle) {
     throw new CircleNotFoundError(`circle ${id} not found`)
   }
   if (!targetArticles || targetArticles.length <= 0) {
     throw new ArticleNotFoundError('articles not found')
-  }
-
-  // check ownership
-  const isOwner = circle.owner === viewer.id
-  if (!isOwner) {
-    throw new ForbiddenError('only circle owner has the access')
   }
 
   const republish = async (article: any) => {
@@ -113,17 +108,9 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(article.id), // fetch latest article
-      articleService.findCollections({ entranceId: article.id, limit: null }),
+      articleService.findCollections({ entranceId: article.id }),
       tagService.findByArticleId({ articleId: article.id }),
-      knex
-        .select('article_circle.*')
-        .from('article_circle')
-        .join('circle', 'article_circle.circle_id', 'circle.id')
-        .where({
-          'article_circle.article_id': article.id,
-          'circle.state': CIRCLE_STATE.active,
-        })
-        .first(),
+      articleService.findArticleCircle(article.id),
     ])
     const currTagContents = currTags.map((currTag) => currTag.content)
     const currCollectionIds = currCollections.map(
@@ -132,7 +119,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
     // create draft linked to this article
     const pipe = _.flow(sanitize, correctHtml)
-    const data: ItemData = {
+    const data: Record<string, any> = {
       uuid: v4(),
       authorId: currDraft.authorId,
       articleId: currArticle.id,
@@ -147,6 +134,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      license: currDraft?.license,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -157,6 +145,29 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       draftId: revisedDraft.id,
     })
   }
+
+  const editLicense = async (draftId: string) => {
+    const isARR = license === ARTICLE_LICENSE_TYPE.arr
+    const isPaywall = accessType === ARTICLE_ACCESS_TYPE.paywall
+
+    if (isARR && !isPaywall) {
+      throw new ForbiddenError(
+        'ARR (All Right Reserved) license can only be used by paywalled content.'
+      )
+    }
+
+    await atomService.update({
+      table: 'draft',
+      where: { id: draftId },
+      data: {
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  // add or remove articles from circle
+  const targetArticleIds = targetArticles.map((a) => a.id)
 
   // add articles to circle
   if (actionType === 'add') {
@@ -185,10 +196,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     ])
 
     for (const article of targetArticles) {
-      const data = {
-        articleId: article.id,
-        circleId: circle.id,
-      }
+      const data = { articleId: article.id, circleId: circle.id }
       await atomService.upsert({
         table: 'article_circle',
         where: data,
@@ -196,6 +204,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
+      await editLicense(article.draftId)
       await republish(article)
 
       // notify
@@ -223,6 +232,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     })
 
     for (const article of targetArticles) {
+      await editLicense(article.draftId)
       await republish(article)
     }
   }

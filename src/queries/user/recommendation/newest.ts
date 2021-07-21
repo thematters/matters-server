@@ -1,12 +1,12 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToNewestResolver } from 'definitions'
 
 export const newest: RecommendationToNewestResolver = async (
-  { id },
+  _,
   { input },
-  { viewer, dataSources: { articleService, draftService } }
+  { viewer, dataSources: { draftService }, knex }
 ) => {
   const { oss = false } = input
 
@@ -16,19 +16,52 @@ export const newest: RecommendationToNewestResolver = async (
     }
   }
 
-  const where = { state: ARTICLE_STATE.active } as { [key: string]: any }
+  const { take, skip } = fromConnectionArgs(input)
 
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
-  const [totalCount, articles] = await Promise.all([
-    articleService.countRecommendNewest({ where, oss }),
-    articleService.recommendNewest({ offset, limit: first, where, oss }),
+  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+  const makeNewestQuery = () => {
+    const query = knex
+      .select('article_set.draft_id')
+      .from(
+        knex
+          .select()
+          .from('article')
+          .orderBy('id', 'desc')
+          .limit(MAX_ITEM_COUNT)
+          .as('article_set')
+      )
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article_set.id',
+        'setting.article_id'
+      )
+      .where({ state: ARTICLE_STATE.active })
+      .as('newest')
+
+    if (!oss) {
+      query.andWhere(function () {
+        this.where({ inNewest: true }).orWhereNull('in_newest')
+      })
+    }
+
+    return query
+  }
+
+  const [countRecord, articles] = await Promise.all([
+    knex.select().from(makeNewestQuery()).count().first(),
+    makeNewestQuery()
+      .orderBy('article_set.id', 'desc')
+      .offset(skip)
+      .limit(take),
   ])
 
+  const totalCount = parseInt(
+    countRecord ? (countRecord.count as string) : '0',
+    10
+  )
+
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

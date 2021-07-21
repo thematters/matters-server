@@ -3,9 +3,9 @@ import { DraftToArticleResolver } from 'definitions'
 const resolver: DraftToArticleResolver = (
   { id },
   _,
-  { dataSources: { articleService } }
+  { dataSources: { atomService } }
 ) => {
-  return articleService.findByDraftId(id)
+  return atomService.findFirst({ table: 'article', where: { draftId: id } })
 }
 
 export default resolver

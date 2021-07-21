@@ -15,6 +15,7 @@ const resolver: TagToEditorsResolver = (
   if (input?.excludeOwner === true) {
     ids = ids.filter((editor: string) => editor !== owner)
   }
+
   return userService.dataloader.loadMany(ids)
 }
 

@@ -14,8 +14,8 @@ import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import {
-  getUTC8NextMonday,
-  getUTC8NextMonthDayOne,
+  getUTCNextMonday,
+  getUTCNextMonthDayOne,
   toProviderAmount,
 } from 'common/utils'
 import SlackService from 'connectors/slack'
@@ -193,7 +193,12 @@ class StripeService {
         refresh_url: `${returnUrlPrefix}/failure?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
         return_url: `${returnUrlPrefix}/success`,
       })
-      return { accountId: account.id, onboardingUrl: url }
+      return {
+        accountId: account.id,
+        country: account.country,
+        currency: account.default_currency,
+        onboardingUrl: url,
+      }
     } catch (err) {
       this.handleError(err)
     }
@@ -289,9 +294,9 @@ class StripeService {
   }) => {
     try {
       const trialEndAt =
-        (isProd ? getUTC8NextMonthDayOne() : getUTC8NextMonday()) / 1000
+        (isProd ? getUTCNextMonthDayOne() : getUTCNextMonday()) / 1000
 
-      return this.stripeAPI.subscriptions.create({
+      return await this.stripeAPI.subscriptions.create({
         trial_end: trialEndAt,
         customer,
         items: [{ price }],
@@ -374,7 +379,7 @@ class StripeService {
       let hasMore = true
 
       const now = Date.now()
-      const week = DAY * 7
+      const threeDays = DAY * 3
       const events: Array<Record<string, any>> = []
 
       while (hasMore && fetch) {
@@ -389,7 +394,7 @@ class StripeService {
         const data = batch?.data || []
         data.map((event: Record<string, any>) => {
           const time = (event?.created || 0) * 1000
-          if (now - time < week) {
+          if (now - time < threeDays) {
             events.push(event)
           } else {
             fetch = false

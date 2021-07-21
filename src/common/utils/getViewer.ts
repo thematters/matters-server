@@ -75,8 +75,13 @@ const getUser = async (token: string, agentHash: string) => {
 
   try {
     // get general user
-    const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
-    const user = await userService.baseFindByUUID(source.uuid)
+    const source = jwt.verify(token, environment.jwtSecret) as {
+      uuid?: string
+      id: string
+    }
+    const user = source.uuid
+      ? await userService.baseFindByUUID(source.uuid)
+      : await userService.dataloader.load(source.id)
 
     if (user.state === USER_STATE.archived) {
       if (agentHash) {
