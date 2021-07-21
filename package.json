@@ -31,6 +31,8 @@
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
     "gen": "npm run gen:schema && npm run gen:types",
+    "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
+    "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
     "search:init": "ts-node --files src/common/utils/initSearchIndices.ts",
     "prepare": "husky install"
   },
@@ -102,6 +104,7 @@
     "xss": "^1.0.9"
   },
   "devDependencies": {
+    "@apollo/rover": "^0.1.8",
     "@types/bcrypt": "^5.0.0",
     "@types/bull": "^3.15.2",
     "@types/cookie": "^0.4.1",
