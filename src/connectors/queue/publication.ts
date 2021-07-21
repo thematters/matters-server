@@ -8,6 +8,7 @@ import { trim, uniq } from 'lodash'
 import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
+  PIN_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -82,6 +83,7 @@ class PublicationQueue extends BaseQueue {
       const {
         contentHash: dataHash,
         mediaHash,
+        key,
       } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
@@ -106,6 +108,7 @@ class PublicationQueue extends BaseQueue {
         mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
+        pinState: PIN_STATE.pinned,
         updatedAt: new Date(),
       })
       job.progress(30)
@@ -116,7 +119,7 @@ class PublicationQueue extends BaseQueue {
         await this.handleCollection({ draft, article })
         job.progress(40)
 
-        await this.handleCircle({ draft, article })
+        await this.handleCircle({ draft, article, secret: key })
         job.progress(45)
 
         const tags = await this.handleTags({ draft, article })
@@ -135,13 +138,11 @@ class PublicationQueue extends BaseQueue {
          *
          * @see {@url https://github.com/thematters/matters-server/pull/1510}
          */
-        const [
-          { id: draftEntityTypeId },
-          { id: articleEntityTypeId },
-        ] = await Promise.all([
-          this.systemService.baseFindEntityTypeId('draft'),
-          this.systemService.baseFindEntityTypeId('article'),
-        ])
+        const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
+          await Promise.all([
+            this.systemService.baseFindEntityTypeId('draft'),
+            this.systemService.baseFindEntityTypeId('article'),
+          ])
 
         // Remove unused assets
         await this.deleteUnusedAssets({ draftEntityTypeId, draft })
@@ -228,11 +229,14 @@ class PublicationQueue extends BaseQueue {
       return
     }
 
-    // create collection records
-    await this.articleService.createCollection({
+    const items = draft.collection.map((articleId: string, index: number) => ({
       entranceId: article.id,
-      articleIds: draft.collection,
-    })
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }))
+    await this.articleService.baseBatchCreate(items, 'collection')
 
     // trigger notifications
     draft.collection.forEach(async (id: string) => {
@@ -260,15 +264,21 @@ class PublicationQueue extends BaseQueue {
   private handleCircle = async ({
     draft,
     article,
+    secret,
   }: {
     draft: any
     article: any
+    secret: any
   }) => {
     if (!draft.circleId || !draft.access) {
       return
     }
 
-    const data = { articleId: article.id, circleId: draft.circleId }
+    const data = {
+      articleId: article.id,
+      circleId: draft.circleId,
+      secret,
+    }
 
     await this.atomService.upsert({
       table: 'article_circle',
@@ -303,7 +313,7 @@ class PublicationQueue extends BaseQueue {
         .filter((t) => !!t)
 
       // create tag records, return tag record if already exists
-      const dbTags = ((await Promise.all(
+      const dbTags = (await Promise.all(
         tags.map((tag: string) =>
           this.tagService.create({
             content: tag,
@@ -312,7 +322,7 @@ class PublicationQueue extends BaseQueue {
             owner: article.authorId,
           })
         )
-      )) as unknown) as [{ id: string; content: string }]
+      )) as unknown as [{ id: string; content: string }]
 
       // create article_tag record
       await this.tagService.createArticleTags({

@@ -53,32 +53,6 @@ export const trans = {
     zh_hant: '搬家完成啦，立刻回到 Matters 進行宇宙傳輸吧！',
     zh_hans: '搬家完成啦，立刻回到 Matters 进行宇宙传输吧！',
   }),
-  churn: {
-    newRegisterCommentable: i18n<{ displayName: string }>({
-      zh_hant: ({ displayName }) =>
-        `${displayName}，上萬名作者正在 Matters 期待你的讚賞與討論！`,
-      zh_hans: ({ displayName }) =>
-        `${displayName}，上万名作者正在 Matters 期待你的赞赏与讨论！`,
-    }),
-    newRegisterUncommentable: i18n<{ displayName: string }>({
-      zh_hant: ({ displayName }) =>
-        `${displayName}，你即將解鎖評論權限，上萬名作者正在 Matters 等待你參與討論！`,
-      zh_hans: ({ displayName }) =>
-        `${displayName}，你即将解锁评论权限，上万名作者正在 Matters 等待你参与讨论！`,
-    }),
-    mediumTermHasFollowees: i18n<{ displayName: string }>({
-      zh_hant: ({ displayName }) =>
-        `${displayName}，你喜歡的作者回來了，還記得在 Matters 的舊時光嗎？`,
-      zh_hans: ({ displayName }) =>
-        `${displayName}，你喜欢的作者回来了，还记得在 Matters 的旧时光吗？`,
-    }),
-    mediumTermHasNotFollowees: i18n<{ displayName: string }>({
-      zh_hant: ({ displayName }) =>
-        `${displayName}，在你離開的日子裡，Matters 有很多話想和你說`,
-      zh_hans: ({ displayName }) =>
-        `${displayName}，在你离开的日子里，Matters 有很多话想和你说`,
-    }),
-  },
   payment: {
     passwordSet: i18n({
       zh_hant: 'Matters | 你的交易密碼已成功設定',
@@ -199,7 +173,7 @@ export const getCommentDigest = async (comment: any | undefined) => {
     globalId: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     content: content.length === comment.content ? content : `${content}…`,
     article: await getArticleDigest(
-      await articleService.baseFindById(comment.articleId)
+      await articleService.baseFindById(comment.targetId)
     ),
   }
 }

@@ -46,7 +46,7 @@
           },
           {
             "name": "internal:others",
-            "match": "^(common|connectors|definitions|middlewares|mutations|queries|routes|subscriptions|types)",
+            "match": "^(common|connectors|definitions|middlewares|mutations|queries|routes|types)",
             "order": 15
           },
           {

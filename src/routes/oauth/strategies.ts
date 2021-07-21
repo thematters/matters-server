@@ -64,9 +64,8 @@ export default () => {
               fromLiker.accountType === 'temporal' &&
               fromLiker.likerId !== likerId
             ) {
-              const newFromLikerAccessToken = await userService.likecoin.refreshToken(
-                { liker: fromLiker }
-              )
+              const newFromLikerAccessToken =
+                await userService.likecoin.refreshToken({ liker: fromLiker })
               await userService.transferLikerId({
                 fromLiker: {
                   ...fromLiker,

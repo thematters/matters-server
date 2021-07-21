@@ -1,6 +1,11 @@
 import { random } from 'lodash'
 
-import { AUTO_FOLLOW_TAGS, CIRCLE_STATE, DB_NOTICE_TYPE } from 'common/enums'
+import {
+  AUTO_FOLLOW_TAGS,
+  CIRCLE_STATE,
+  DB_NOTICE_TYPE,
+  INVITATION_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   CodeInvalidError,
@@ -32,7 +37,7 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
-  const email = rawEmail ? rawEmail.toLowerCase() : null
+  const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
     throw new EmailInvalidError('invalid email address format')
   }
@@ -136,7 +141,7 @@ const resolver: MutationToUserRegisterResolver = async (
   // send circle invitations' notices if user is invited
   const invitations = await atomService.findMany({
     table: 'circle_invitation',
-    where: { email, accepted: false },
+    where: { email, state: INVITATION_STATE.pending },
   })
   await Promise.all(
     invitations.map(async (invitation) => {

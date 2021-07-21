@@ -72,9 +72,6 @@ export default /* GraphQL */ `
     "Global id of an user."
     id: ID!
 
-    "UUID of an user, for backward compatibility."
-    uuid: UUID!
-
     "Global unique user name of a user."
     userName: String
 
@@ -88,7 +85,7 @@ export default /* GraphQL */ `
     liker: Liker!
 
     "URL for user avatar."
-    avatar: URL
+    avatar: String
 
     "User information."
     info: UserInfo!
@@ -100,28 +97,28 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
 
     "Articles authored by current user."
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags owned and maintained by current user."
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Drafts authored by current user."
-    drafts(input: ConnectionArgs!): DraftConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    drafts(input: ConnectionArgs!): DraftConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Articles current user commented on"
-    commentedArticles(input: ConnectionArgs!): ArticleConnection!
+    commentedArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Record of user activity, only accessable by current user."
     activity: UserActivity! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Followers of this user."
-    followers(input: ConnectionArgs!): UserConnection!
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
+    followees(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
 
     "Following contents of this user."
     following: Following!
@@ -133,7 +130,7 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
 
     "Users that blocked by current user."
-    blockList(input: ConnectionArgs!): UserConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    blockList(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Whether current user is blocking viewer."
     isBlocking: Boolean!
@@ -152,64 +149,52 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    "Activities based on user's following, sort by creation time."
+    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection!
+    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
-
-    "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Global articles sort by publish time."
-    newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    newest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by latest activity time."
-    hottest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    hottest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
-    icymi(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
-
-    "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    icymi(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    tags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Hottest tag list"
-    hottestTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    hottestTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Selected tag list"
-    selectedTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
-
-    "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    selectedTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Global user list, sort by activities in recent 6 month."
-    authors(input: RecommendInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
-
-    "Personalized recommendation based on interaction with tags."
-    interest(input: ConnectionArgs!): ArticleConnection!
-
-    "Recommend articles with collaborative filtering"
-    recommendArticles(input: ConnectionArgs!): ArticleConnection!
+    authors(input: RecommendInput!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
 
     "Global circles sort by created time."
-    newestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+    newestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
     "Global circles sort by latest activity time."
-    hottestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+    hottestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   input RecommendInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
     filter: FilterInput
     type: AuthorsType
@@ -217,7 +202,8 @@ export default /* GraphQL */ `
 
   input FilterInput {
     "index of list, min: 0, max: 49"
-    random: NonNegativeInt
+    random: Int @constraint(min: 0, max: 49)
+
     followed: Boolean
   }
 
@@ -232,7 +218,7 @@ export default /* GraphQL */ `
     description: String
 
     "User email."
-    email: Email @auth(mode: "${AUTH_MODE.oauth}")
+    email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
@@ -241,7 +227,7 @@ export default /* GraphQL */ `
     agreeOn: DateTime
 
     "Cover of profile page."
-    profileCover: URL
+    profileCover: String
 
     "Type of group."
     group: UserGroup!
@@ -257,19 +243,19 @@ export default /* GraphQL */ `
 
   type UserActivity {
     "User reading history."
-    history(input: ConnectionArgs!): ReadHistoryConnection!
+    history(input: ConnectionArgs!): ReadHistoryConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "User search history."
-    recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+    recentSearches(input: ConnectionArgs!): RecentSearchConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Appreciations current user gave."
-    appreciationsSent(input: ConnectionArgs!): AppreciationConnection!
+    appreciationsSent(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Total number of appreciation current user gave."
     appreciationsSentTotal: Int!
 
     "Appreciations current user received."
-    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Total number of appreciation current user received."
     appreciationsReceivedTotal: Int!
@@ -306,15 +292,15 @@ export default /* GraphQL */ `
     civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat! @auth(mode: "${AUTH_MODE.oauth}")
+    total: Float! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: NonNegativeFloat @objectCache(maxAge: ${CACHE_TTL.LONG})
+    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG})
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
+    boost: Float!
+    score: Float!
   }
 
   type Appreciation {
@@ -407,6 +393,101 @@ export default /* GraphQL */ `
     node: Appreciation!
   }
 
+  type FollowingActivityConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [FollowingActivityEdge!]
+  }
+
+  type FollowingActivityEdge {
+    cursor: String!
+    node: FollowingActivity!
+  }
+
+  union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+
+  type UserPublishArticleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article published by actor"
+    node: Article!
+  }
+
+  type UserBroadcastCircleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Comment boardcast by actor"
+    node: Comment!
+
+    "Circle that comment belongs to"
+    target: Circle!
+  }
+
+  type UserCreateCircleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Circle created by actor"
+    node: Circle!
+  }
+
+  type UserCollectArticleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article created by actor"
+    node: Article!
+
+    "Article that collected by"
+    target: Article!
+  }
+
+  type UserSubscribeCircleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Circle subscribed by actor"
+    node: Circle!
+  }
+
+  type UserFollowUserActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "User followed by actor"
+    node: User!
+  }
+
+  type UserDonateArticleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article donated by actor"
+    node: Article!
+  }
+
+  type UserBookmarkArticleActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article bookmarked by actor"
+    node: Article!
+  }
+
+  type UserAddArticleTagActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article added to tag"
+    node: Article!
+
+    "Tag added by article"
+    target: Tag!
+  }
+
+
   type FolloweeDonatedArticleConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -424,9 +505,9 @@ export default /* GraphQL */ `
   }
 
   type Following {
-    circles(input: ConnectionArgs!): CircleConnection!
-    tags(input: ConnectionArgs!): TagConnection!
-    users(input: ConnectionArgs!): UserConnection!
+    circles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    users(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   input UserInput {
@@ -434,7 +515,7 @@ export default /* GraphQL */ `
   }
 
   input SendVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     token: String
 
@@ -442,11 +523,11 @@ export default /* GraphQL */ `
     Redirect URL embedded in the verification email,
     use code instead if not provided.
     """
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   input ConfirmVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     code: String!
   }
@@ -458,9 +539,9 @@ export default /* GraphQL */ `
   }
 
   input ChangeEmailInput {
-    oldEmail: Email!
+    oldEmail: String! @constraint(format: "email")
     oldEmailCodeId: ID!
-    newEmail: Email!
+    newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }
 
@@ -469,7 +550,7 @@ export default /* GraphQL */ `
   }
 
   input UserRegisterInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     userName: String
     displayName: String!
     password: String!
@@ -478,7 +559,7 @@ export default /* GraphQL */ `
   }
 
   input UserLoginInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     password: String!
   }
 
@@ -503,7 +584,7 @@ export default /* GraphQL */ `
     id: ID
     emails: [String!]
     state: UserState!
-    banDays: PositiveInt
+    banDays: Int @constraint(exclusiveMin: 0)
     password: String
   }
 

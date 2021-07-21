@@ -1,5 +1,4 @@
 import { ApolloServer } from 'apollo-server-express'
-import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
 import { authModes, roleAccess } from 'common/utils'
@@ -17,7 +16,6 @@ import {
   UserService,
 } from 'connectors'
 import {
-  DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
   GQLSetFeatureInput,
@@ -122,7 +120,7 @@ export const testClient = async (
     context: ({ req }: { req: Request }) => {
       return { req, ..._context, knex }
     },
-    dataSources: (): DataSources => ({
+    dataSources: () => ({
       atomService: new AtomService(),
       userService: new UserService(),
       articleService: new ArticleService(),
@@ -136,7 +134,9 @@ export const testClient = async (
     }),
   })
 
-  return createTestClient(server)
+  await server.start()
+
+  return server
 }
 
 export const publishArticle = async (input: GQLPublishArticleInput) => {
@@ -152,13 +152,12 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     }
   `
 
-  const { mutate } = await testClient({
+  const server = await testClient({
     isAuth: true,
   })
 
-  const result = await mutate({
-    mutation: PUBLISH_ARTICLE,
-    // @ts-ignore
+  const result = await server.executeOperation({
+    query: PUBLISH_ARTICLE,
     variables: { input },
   })
 
@@ -193,17 +192,17 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         summaryCustomized
         content
         createdAt
+        license
       }
     }
   `
 
-  const { mutate } = await testClient({
+  const server = await testClient({
     isAuth: true,
     ...client,
   })
-  const result = await mutate({
-    mutation: PUT_DRAFT,
-    // @ts-ignore
+  const result = await server.executeOperation({
+    query: PUT_DRAFT,
     variables: { input: draft },
   })
 
@@ -226,10 +225,9 @@ export const registerUser = async (user: GQLUserRegisterInput) => {
     }
   `
 
-  const { mutate } = await testClient()
-  return mutate({
-    mutation: USER_REGISTER,
-    // @ts-ignore
+  const server = await testClient()
+  return server.executeOperation({
+    query: USER_REGISTER,
     variables: { input: user },
   })
 }
@@ -256,12 +254,11 @@ export const updateUserDescription = async ({
     _email = email
   }
   const context = await getUserContext({ email: _email })
-  const { mutate } = await testClient({
+  const server = await testClient({
     context,
   })
-  return mutate({
-    mutation: UPDATE_USER_INFO_DESCRIPTION,
-    // @ts-ignore
+  return server.executeOperation({
+    query: UPDATE_USER_INFO_DESCRIPTION,
     variables: { input: { description } },
   })
 }
@@ -284,9 +281,9 @@ export const updateUserState = async ({
     }
   `
 
-  const { mutate } = await testClient({ isAdmin: true })
-  return mutate({
-    mutation: UPDATE_USER_STATE,
+  const server = await testClient({ isAdmin: true })
+  return server.executeOperation({
+    query: UPDATE_USER_STATE,
     variables: { input: { id, state } },
   })
 }
@@ -305,10 +302,9 @@ export const setFeature = async ({
       }
     }
   `
-  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
-  const result = await mutate({
-    mutation: SET_FEATURE_FLAG,
-    // @ts-ignore
+  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await server.executeOperation({
+    query: SET_FEATURE_FLAG,
     variables: { input },
   })
   const data = result?.data?.setFeature

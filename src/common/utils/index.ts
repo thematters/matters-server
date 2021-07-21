@@ -10,7 +10,6 @@ export * from './getFileName'
 export * from './getLanguage'
 export * from './getViewer'
 export * from './globalId'
-export * from './initSubscriptions'
 export * from './connections'
 export * from './validator'
 export * from './notice'
@@ -18,7 +17,6 @@ export * from './getViewer'
 export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
-export * from './makeStreamToBuffer'
 export * from './content'
 export * from './scope'
 export * from './payment'
@@ -54,7 +52,7 @@ export const extractAssetDataFromHtml = (
   }
 
   return $(selector)
-    .map((index: number, element: CheerioElement) => {
+    .map((index, element) => {
       const uuid = $(element).attr('data-asset-id')
 
       if (uuid) {
@@ -66,9 +64,6 @@ export const extractAssetDataFromHtml = (
 
 export const generatePasswordhash = (password: string) =>
   hash(password, BCRYPT_ROUNDS)
-
-// https://github.com/Urigo/graphql-scalars#url
-export const resolveUrl = (url: any) => _.get(url, 'href')
 
 /**
  * Generate redirect link for registeration

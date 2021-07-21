@@ -11,13 +11,13 @@ services:
     env_file: ../.env
     volumes:
       - ..:/var/app
-      - /var/app/node_modules
     depends_on:
       - db
       - redis
       - s3
       - elasticsearch
       - ipfs
+      - stripe
     ports:
       - '4000:4000'
   db:
@@ -74,5 +74,5 @@ services:
       - '12112:12112'
 
 volumes:
-  ? postgres_data
-  ? elasticsearch_data
+  postgres_data:
+  elasticsearch_data:

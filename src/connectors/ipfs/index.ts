@@ -1,13 +1,14 @@
-import ipfsClient = require('ipfs-http-client')
+import { create } from 'ipfs-http-client'
 
 import { environment } from 'common/environment'
+
 export class IPFS {
-  client: IPFS.FilesAPI & ipfsCmds
+  client: any
 
   constructor() {
-    this.client = ipfsClient({
+    this.client = create({
       host: environment.ipfsHost,
-      port: environment.ipfsPort,
+      port: parseInt(environment.ipfsPort, 10),
       protocol: 'http',
     })
   }

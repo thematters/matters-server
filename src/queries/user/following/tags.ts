@@ -2,7 +2,7 @@ import { TAG_ACTION } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { FollowingToTagsResolver } from 'definitions'
 
@@ -15,8 +15,9 @@ const resolver: FollowingToTagsResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  // TODO: turn off `allowTakeAll` once new following feed is deployed
+  const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
+
   const [totalCount, actions] = await Promise.all([
     atomService.count({
       table: 'action_tag',

@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
-import { Router } from 'express'
+import { RequestHandler, Router } from 'express'
 import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
@@ -38,7 +38,7 @@ const invalidateCache = async ({
   }
 }
 
-likecoinRouter.use(bodyParser.json())
+likecoinRouter.use(bodyParser.json() as RequestHandler)
 
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
@@ -69,7 +69,7 @@ likecoinRouter.get('/', async (req, res) => {
     // get pending transaction
     const tx = (
       await paymentService.findTransactions({
-        providerTxId: state,
+        providerTxId: state as string,
       })
     )[0]
 
@@ -81,7 +81,7 @@ likecoinRouter.get('/', async (req, res) => {
     // check like chain tx state
     const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
-      hash: tx_hash,
+      hash: tx_hash as string,
     })
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
     const cosmosState =

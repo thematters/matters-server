@@ -4,7 +4,7 @@ import { ForbiddenError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { GQLAuthorsType, RecommendationToAuthorsResolver } from 'definitions'
 
@@ -13,13 +13,8 @@ export const authors: RecommendationToAuthorsResolver = async (
   { input },
   { dataSources: { userService }, viewer }
 ) => {
-  const {
-    first,
-    after,
-    filter,
-    oss = false,
-    type = GQLAuthorsType.default,
-  } = input
+  const { filter, oss = false, type = GQLAuthorsType.default } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -38,7 +33,7 @@ export const authors: RecommendationToAuthorsResolver = async (
     // TODO: move this logic to db layer
     const followees = await userService.findFollowees({
       userId: id,
-      limit: 999,
+      take: 999,
     })
     notIn = [...notIn, ...followees.map(({ targetId }: any) => targetId)]
   }
@@ -47,7 +42,7 @@ export const authors: RecommendationToAuthorsResolver = async (
    * Filter out top 60 trendy authors if type is most appreciated
    */
   if (isAppreciated) {
-    const trendyAuthors = await userService.recommendAuthor({ limit: 60, type })
+    const trendyAuthors = await userService.recommendAuthor({ take: 60, type })
     notIn = [...notIn, ...trendyAuthors.map((author) => author.id)]
   }
 
@@ -56,10 +51,10 @@ export const authors: RecommendationToAuthorsResolver = async (
    */
   if (typeof filter?.random === 'number') {
     const MAX_RANDOM_INDEX = isDefault ? 50 : 12
-    const randomDraw = isDefault ? first || 5 : 5
+    const randomDraw = isDefault ? input.first || 5 : 5
 
     const authorPool = await userService.recommendAuthor({
-      limit: MAX_RANDOM_INDEX * randomDraw,
+      take: MAX_RANDOM_INDEX * randomDraw,
       notIn,
       oss,
       type,
@@ -72,19 +67,13 @@ export const authors: RecommendationToAuthorsResolver = async (
     return connectionFromArray(filteredAuthors, input, authorPool.length)
   }
 
-  const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countAuthor({
     notIn,
     type,
   })
 
   return connectionFromPromisedArray(
-    userService.recommendAuthor({
-      offset,
-      notIn,
-      limit: first,
-      type,
-    }),
+    userService.recommendAuthor({ skip, take, notIn, type }),
     input,
     totalCount
   )

@@ -1,6 +1,10 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
+import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -29,7 +33,7 @@ const GET_VIEWER_OWN_CIRCLES = `
 `
 
 const PUT_CIRCLE = /* GraphQL */ `
-  mutation($input: PutCircleInput!) {
+  mutation ($input: PutCircleInput!) {
     putCircle(input: $input) {
       id
       name
@@ -47,7 +51,7 @@ const PUT_CIRCLE = /* GraphQL */ `
 `
 
 const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     toggleFollowCircle(input: $input) {
       id
       followers(input: { first: null }) {
@@ -65,7 +69,7 @@ const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
-  mutation($input: PutCircleArticlesInput!) {
+  mutation ($input: PutCircleArticlesInput!) {
     putCircleArticles(input: $input) {
       id
       works(input: { first: null }) {
@@ -80,6 +84,7 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
               }
             }
             revisionCount
+            license
           }
         }
       }
@@ -88,7 +93,7 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
 `
 
 const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
-  mutation($input: PutCommentInput!) {
+  mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
       id
     }
@@ -96,7 +101,7 @@ const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
 `
 
 const TOGGLE_PIN_COMMENT = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
+  mutation ($input: ToggleItemInput!) {
     togglePinComment(input: $input) {
       id
       pinned
@@ -105,7 +110,7 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
-  query($input: CircleInput!) {
+  query ($input: CircleInput!) {
     circle(input: $input) {
       id
       discussion(input: { first: null }) {
@@ -131,28 +136,62 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
   }
 `
 
-const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
+const QUERY_VIEWER_CIRCLE_PENDING_INVITES = /* GraphQL */ `
   query {
     viewer {
       ownCircles {
         id
-        invitations(input: { first: null }) {
-          totalCount
-          edges {
-            node {
-              id
-              invitee {
-                ... on User {
+        invites {
+          pending(input: { first: null }) {
+            totalCount
+            edges {
+              node {
+                id
+                invitee {
+                  ... on User {
+                    id
+                  }
+                  ... on Person {
+                    email
+                  }
+                }
+                inviter {
                   id
                 }
-                ... on Person {
-                  email
-                }
+                state
               }
-              inviter {
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES = /* GraphQL */ `
+  query {
+    viewer {
+      ownCircles {
+        id
+        invites {
+          accepted(input: { first: null }) {
+            totalCount
+            edges {
+              node {
                 id
+                invitee {
+                  ... on User {
+                    id
+                  }
+                  ... on Person {
+                    email
+                  }
+                }
+                inviter {
+                  id
+                }
+                state
               }
-              accepted
             }
           }
         }
@@ -181,13 +220,12 @@ const CIRCLE_INVITE = /* GraphQL*/ `
         id
       }
       freePeriod
-      accepted
     }
   }
 `
 
 const SUBSCRIBE_CIRCLE = /* GraphQL */ `
-  mutation($input: SubscribeCircleInput!) {
+  mutation ($input: SubscribeCircleInput!) {
     subscribeCircle(input: $input) {
       circle {
         id
@@ -206,7 +244,7 @@ describe('circle CRUD', () => {
 
   test('create circle', async () => {
     const path = 'data.putCircle'
-    const { mutate } = await testClient(userClient)
+    const server = await testClient(userClient)
     const input: Record<string, any> = {
       name: 'very_long_circle_name',
       displayName: 'very long circle name',
@@ -214,39 +252,39 @@ describe('circle CRUD', () => {
     }
 
     // test long circle name
-    const data1 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data1 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data1, errorPath)).toBe('NAME_INVALID')
 
     // test circle name with symbol
     input.name = 'circle-name'
-    const data2 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data2 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data2, errorPath)).toBe('NAME_INVALID')
 
     // test long circle display name
     input.name = 'circle1'
-    const data3 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data3 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data3, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     // test invalid display name
     input.displayName = '，'
-    const data4 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data4 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data4, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = 'Circle 1'
-    const data5 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data5 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
 
@@ -256,16 +294,16 @@ describe('circle CRUD', () => {
     expect(_get(data5, `${path}.prices[0].currency`)).toBe('HKD')
 
     // test create multiple circles
-    const data6 = await mutate({
-      mutation: PUT_CIRCLE,
+    const data6 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data6, errorPath)).toBe('CIRCLE_CREATION_REACH_LIMIT')
 
     // test create a duplicate circle
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const data7 = await adminMutate({
-      mutation: PUT_CIRCLE,
+    const serverAdmin = await testClient(adminClient)
+    const data7 = await serverAdmin.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(data7, errorPath)).toBe('NAME_EXISTS')
@@ -273,8 +311,8 @@ describe('circle CRUD', () => {
 
   test('update circle', async () => {
     const path = 'data.putCircle'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -284,22 +322,22 @@ describe('circle CRUD', () => {
     }
 
     // test cricle name
-    const updatedData1 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData1 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData1, errorPath)).toBe('NAME_INVALID')
 
     input.name = 'circle1'
-    const updatedData2 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData2 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData2, errorPath)).toBe('DUPLICATE_CIRCLE')
 
     input.name = 'circle2'
-    const updatedData3 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData3 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData3, `${path}.name`)).toBe('circle2')
@@ -307,22 +345,22 @@ describe('circle CRUD', () => {
     // test circle display name
     delete input.name
     input.displayName = 'very long circle name'
-    const updatedData4 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData4 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData4, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = '，'
-    const updatedData5 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData5 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData5, errorPath)).toBe('DISPLAYNAME_INVALID')
 
     input.displayName = 'Circle 2'
-    const updatedData6 = await mutate({
-      mutation: PUT_CIRCLE,
+    const updatedData6 = await server.executeOperation({
+      query: PUT_CIRCLE,
       variables: { input },
     })
     expect(_get(updatedData6, `${path}.displayName`)).toBe('Circle 2')
@@ -330,23 +368,23 @@ describe('circle CRUD', () => {
 
   test('toggle follow circle', async () => {
     const path = 'data.toggleFollowCircle'
-    const { query } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // test follow circle
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const updatedData1 = await adminMutate({
-      mutation: TOGGLE_FOLLOW_CIRCLE,
+    const serverAdmin = await testClient(adminClient)
+    const updatedData1 = await serverAdmin.executeOperation({
+      query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: true } },
     })
     expect(_get(updatedData1, `${path}.followers.edges`).length).toBe(1)
 
     // test unfollow circle
-    const updatedData2 = await adminMutate({
-      mutation: TOGGLE_FOLLOW_CIRCLE,
+    const updatedData2 = await serverAdmin.executeOperation({
+      query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: false } },
     })
     expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
@@ -354,8 +392,8 @@ describe('circle CRUD', () => {
 
   test('add article to circle with public access, then removes from circle', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -367,9 +405,10 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
+      license: ARTICLE_LICENSE_TYPE.cc_0,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
@@ -382,10 +421,13 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.cc_0
+    )
 
     // remove public article from circle
-    const removedData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const removedData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: {
         input: {
           ...publicInput,
@@ -398,8 +440,10 @@ describe('circle CRUD', () => {
 
   test('add article to circle with public access, then turns to paywall access', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({ query: GET_VIEWER_OWN_CIRCLES })
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[0].node')
 
@@ -410,8 +454,8 @@ describe('circle CRUD', () => {
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
@@ -424,6 +468,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+    )
 
     // turns to paywall access
     const paywallInput: Record<string, any> = {
@@ -431,9 +478,10 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.paywall,
+      license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPaywallData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
@@ -446,10 +494,13 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.arr
+    )
 
     // remove from circle
-    const removedData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const removedData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: {
         input: {
           ...paywallInput,
@@ -462,8 +513,8 @@ describe('circle CRUD', () => {
 
   test('add article to circle with paywall access, then turns to public access', async () => {
     const path = 'data.putCircleArticles'
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
@@ -475,9 +526,10 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.paywall,
+      license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPaywallData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
@@ -490,6 +542,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.arr
+    )
 
     // turns to public access
     const publicInput: Record<string, any> = {
@@ -497,9 +552,10 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
+      license: ARTICLE_LICENSE_TYPE.cc_0,
     }
-    const addedPublicData = await mutate({
-      mutation: PUT_CIRCLE_ARTICLES,
+    const addedPublicData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
     expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
@@ -509,15 +565,15 @@ describe('circle CRUD', () => {
   })
 
   test('add and retrieve discussion', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // add
-    const addedData = await mutate({
-      mutation: PUT_CIRCLE_COMMENT,
+    const addedData = await server.executeOperation({
+      query: PUT_CIRCLE_COMMENT,
       variables: {
         input: {
           comment: {
@@ -533,7 +589,7 @@ describe('circle CRUD', () => {
     expect(commentId).toBeTruthy()
 
     // retrieve
-    const retrieveData = await query({
+    const retrieveData = await server.executeOperation({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
         input: { name: circle.name },
@@ -549,15 +605,15 @@ describe('circle CRUD', () => {
   })
 
   test('add, pin and retrieve broadcast', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // add
-    const addedData = await mutate({
-      mutation: PUT_CIRCLE_COMMENT,
+    const addedData = await server.executeOperation({
+      query: PUT_CIRCLE_COMMENT,
       variables: {
         input: {
           comment: {
@@ -572,8 +628,8 @@ describe('circle CRUD', () => {
     expect(commentId).toBeTruthy()
 
     // pin
-    const pinnedData = await mutate({
-      mutation: TOGGLE_PIN_COMMENT,
+    const pinnedData = await server.executeOperation({
+      query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {
           id: commentId,
@@ -584,7 +640,7 @@ describe('circle CRUD', () => {
     expect(_get(pinnedData, 'data.togglePinComment.pinned')).toBe(true)
 
     // retrieve
-    const retrieveData = await query({
+    const retrieveData = await server.executeOperation({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
         input: { name: circle.name },
@@ -622,58 +678,58 @@ describe('circle invitation management', () => {
   ]
 
   test('create invitation', async () => {
-    const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    const server = await testClient(userClient)
+    const { data: pendingInvites } = await server.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
 
-    // check current invitations
-    const circle = _get(data, 'viewer.ownCircles.0')
-    expect(circle.invitations.totalCount).toBe(0)
+    // check current invites
+    const circle = _get(pendingInvites, 'viewer.ownCircles.0')
+    expect(circle.invites.pending.totalCount).toBe(0)
 
     // invite users
-    const inviteData1 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData1 = await server.executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
-          freePeriod: 3,
+          freePeriod: 90,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
-    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
       ADMIN_USER_GLOBAL_ID
     )
-    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
       'someone@matters.news'
     )
 
     // re-invite users with different duration
-    const inviteData2 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData2 = await server.executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees: [...invitees, { id: null, email: 'someone2@matters.news' }],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData2, 'data.invite').length).toBe(3)
-    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(1)
+    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)
     expect(_get(inviteData2, 'data.invite.2.invitee.email')).toBe(
       'someone2@matters.news'
     )
 
     // test validator
-    const inviteData3 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData3 = await server.executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
@@ -684,25 +740,25 @@ describe('circle invitation management', () => {
     })
     expect(_get(inviteData3, errorPath)).toBe('BAD_USER_INPUT')
 
-    const inviteData4 = await mutate({
-      mutation: CIRCLE_INVITE,
+    const inviteData4 = await server.executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees: [],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData4, errorPath)).toBe('BAD_USER_INPUT')
 
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const inviteData5 = await adminMutate({
-      mutation: CIRCLE_INVITE,
+    const serverAdmin = await testClient(adminClient)
+    const inviteData5 = await serverAdmin.executeOperation({
+      query: CIRCLE_INVITE,
       variables: {
         input: {
           invitees,
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
@@ -711,26 +767,30 @@ describe('circle invitation management', () => {
   })
 
   test('accept invitation', async () => {
-    const { query } = await testClient(userClient)
-    const { mutate } = await testClient(adminClient)
+    const serverUser = await testClient(userClient)
+    const serverAdmin = await testClient(adminClient)
 
     // check init state of invitations
-    const { data: ivtData } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    const { data: ivtData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
     const circle = _get(ivtData, 'viewer.ownCircles.0')
-    const ivtEdges = _get(ivtData, 'viewer.ownCircles.0.invitations.edges', [])
+    const ivtEdges = _get(
+      ivtData,
+      'viewer.ownCircles.0.invites.pending.edges',
+      []
+    )
     ivtEdges.forEach((edge: any) => {
       const inviteeId = _get(edge, 'node.invitee.id')
 
       if (inviteeId === ADMIN_USER_GLOBAL_ID) {
-        expect(_get(edge, 'node.accepted')).toBe(false)
+        expect(_get(edge, 'node.state')).toBe('pending')
       }
     })
 
     // subscribe invited circle
-    const subscribeResult = await mutate({
-      mutation: SUBSCRIBE_CIRCLE,
+    const subscribeResult = await serverAdmin.executeOperation({
+      query: SUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id, password: '123456' } },
     })
     expect(_get(subscribeResult, 'data.subscribeCircle.circle.id')).toBe(
@@ -740,20 +800,20 @@ describe('circle invitation management', () => {
       true
     )
 
-    // check if it's accept
-    const { data: newIvtData } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    // check if it's accepted
+    const { data: newIvtData } = await serverUser.executeOperation({
+      query: QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES,
     })
     const newIvtEdges = _get(
       newIvtData,
-      'viewer.ownCircles.0.invitations.edges',
+      'viewer.ownCircles.0.invites.accepted.edges',
       []
     )
     newIvtEdges.forEach((edge: any) => {
       const inviteeId = _get(edge, 'node.invitee.id')
 
       if (inviteeId === ADMIN_USER_GLOBAL_ID) {
-        expect(_get(edge, 'node.accepted')).toBe(true)
+        expect(_get(edge, 'node.state')).toBe('accepted')
       }
     })
   })

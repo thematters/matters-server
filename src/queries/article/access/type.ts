@@ -1,20 +1,12 @@
-import { ARTICLE_ACCESS_TYPE, CIRCLE_STATE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 import { ArticleAccessToTypeResolver } from 'definitions'
 
 export const type: ArticleAccessToTypeResolver = async (
   { articleId },
   _,
-  { knex }
+  { dataSources: { articleService } }
 ) => {
-  const articleCircle = await knex
-    .select('article_circle.*')
-    .from('article_circle')
-    .join('circle', 'article_circle.circle_id', 'circle.id')
-    .where({
-      'article_circle.article_id': articleId,
-      'circle.state': CIRCLE_STATE.active,
-    })
-    .first()
+  const articleCircle = await articleService.findArticleCircle(articleId)
 
   // not in circle, fallback to public
   if (!articleCircle) {

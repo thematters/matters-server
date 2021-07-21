@@ -94,10 +94,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       })
 
       // send notices
-      const participants = await tagService.findParticipants({
-        id: tag.id,
-        limit: 0,
-      })
+      const participants = await tagService.findParticipants({ id: tag.id })
 
       participants.map(async (participant) => {
         await notificationService.trigger({
@@ -284,7 +281,6 @@ const resolver: MutationToUpdateTagSettingResolver = async (
     }
     default: {
       throw new UserInputError('unknown update tag type')
-      break
     }
   }
 

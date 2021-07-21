@@ -1,20 +1,20 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToArticlesResolver } from 'definitions'
 
 export const articles: OSSToArticlesResolver = async (
   root,
-  { input: { ...connectionArgs } },
+  { input },
   { viewer, dataSources: { articleService, draftService } }
 ) => {
-  const { first, after } = connectionArgs
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [totalCount, items] = await Promise.all([
     articleService.baseCount(),
-    articleService.baseFind({ offset, limit: first }),
+    articleService.baseFind({ skip, take }),
   ])
   return connectionFromPromisedArray(
     draftService.dataloader.loadMany(items.map((item) => item.draftId)),
-    connectionArgs,
+    input,
     totalCount
   )
 }

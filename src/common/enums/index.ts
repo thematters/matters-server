@@ -23,11 +23,9 @@ export const GRAPHQL_COST_LIMIT = 500
 
 export const BCRYPT_ROUNDS = 12
 
-export const BATCH_SIZE = 10
+export const DEFAULT_TAKE_PER_PAGE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
-
-export const IPFS_PREFIX = 'article'
 
 export const APPRECIATION_PURPOSE = {
   appreciate: 'appreciate',
@@ -78,11 +76,23 @@ export const ARTICLE_ACCESS_TYPE = {
   paywall: 'paywall',
 }
 
+export const ARTICLE_LICENSE_TYPE = {
+  cc_0: 'cc_0',
+  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
+  arr: 'arr',
+}
+
 export const PUBLISH_STATE = {
   unpublished: 'unpublished',
   pending: 'pending',
   error: 'error',
   published: 'published',
+}
+
+export enum PIN_STATE {
+  pinned = 'pinned',
+  pinning = 'pinning',
+  failed = 'failed',
 }
 
 export const CIRCLE_STATE = {
@@ -125,8 +135,6 @@ export const IMAGE_DIMENSION_LIMIT = 1400
 export const LOG_RECORD_TYPES = {
   ReadFolloweeArticles: 'read_followee_articles',
   ReadResponseInfoPopUp: 'read_response_info_pop_up',
-  SentNewRegisterChurnEmail: 'sent_new_register_churn_email',
-  SentMediumTermChurnEmail: 'sent_medium_term_churn_email',
 }
 
 export const UTM_PARAMETER = {
@@ -175,15 +183,8 @@ export const APPRECIATION_TYPES = {
 }
 
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
-export const SEARCH_ARTICLE_URL_REGEX = /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
-
-// this is the base64 representation of a vector of [0] * 20, the rank of our ALS model is 20
-export const ALS_DEFAULT_VECTOR = {
-  factor:
-    '0|0 1|0 2|0 3|0 4|0 5|0 6|0 7|0 8|0 9|0 10|0 11|0 12|0 13|0 14|0 15|0 16|0 17|0 18|0 19|0',
-  embedding:
-    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-}
+export const SEARCH_ARTICLE_URL_REGEX =
+  /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
@@ -211,4 +212,4 @@ export const LOCAL_STRIPE = {
   protocol: 'http',
 }
 
-export const MAX_ARTICLE_REVISION_COUNT = 2
+export const MAX_ARTICLE_REVISION_COUNT = 4

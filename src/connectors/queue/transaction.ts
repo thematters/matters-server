@@ -46,38 +46,36 @@ class TxTimeoutQueue extends BaseQueue {
     this.q.process(QUEUE_JOB.txTimeout, this.handleUpdateTx())
   }
 
-  private handleUpdateTx = (): Queue.ProcessCallbackFunction<unknown> => async (
-    job,
-    done
-  ) => {
-    try {
-      // cancel pending tx that are 30minutes+ old
-      logger.info(`[schedule job] canceling timeout pending transactions`)
-      await this.paymentService
-        .knex(this.paymentService.table)
-        .update({
-          state: TRANSACTION_STATE.canceled,
-          remark: TRANSACTION_REMARK.TIME_OUT,
-        })
-        .where(
-          'created_at',
-          '<',
-          this.paymentService.knex.raw(`now() - ('30 minutes'::interval)`)
-        )
-        .andWhere({ state: TRANSACTION_STATE.pending })
-        .andWhereNot({
-          purpose: TRANSACTION_PURPOSE.payout,
-        })
+  private handleUpdateTx =
+    (): Queue.ProcessCallbackFunction<unknown> => async (job, done) => {
+      try {
+        // cancel pending tx that are 30 minutes+ old
+        logger.info(`[schedule job] canceling timeout pending transactions`)
+        await this.paymentService
+          .knex(this.paymentService.table)
+          .update({
+            state: TRANSACTION_STATE.canceled,
+            remark: TRANSACTION_REMARK.TIME_OUT,
+          })
+          .where(
+            'created_at',
+            '<',
+            this.paymentService.knex.raw(`now() - ('30 minutes'::interval)`)
+          )
+          .andWhere({ state: TRANSACTION_STATE.pending })
+          .andWhereNot({
+            purpose: TRANSACTION_PURPOSE.payout,
+          })
 
-      job.progress(100)
-      done(null)
-    } catch (e) {
-      logger.error(
-        `[schedule job] error in canceling timeout pending transactions}`
-      )
-      done(e)
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        logger.error(
+          `[schedule job] error in canceling timeout pending transactions}`
+        )
+        done(e)
+      }
     }
-  }
 }
 
 export const txTimeoutQueue = new TxTimeoutQueue()

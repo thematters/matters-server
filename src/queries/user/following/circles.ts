@@ -2,7 +2,7 @@ import { CIRCLE_ACTION } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { FollowingToCirclesResolver } from 'definitions'
 
@@ -15,8 +15,8 @@ const resolver: FollowingToCirclesResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [totalCount, actions] = await Promise.all([
     atomService.count({
       table: 'action_circle',

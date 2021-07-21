@@ -73,9 +73,8 @@ class MigrationQueue extends BaseQueue {
             return
           }
 
-          const {
-            id: entityTypeId,
-          } = await this.systemService.baseFindEntityTypeId('draft')
+          const { id: entityTypeId } =
+            await this.systemService.baseFindEntityTypeId('draft')
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
@@ -96,11 +95,8 @@ class MigrationQueue extends BaseQueue {
                 }
 
                 // process raw html
-                const {
-                  title,
-                  content,
-                  assets,
-                } = await this.userService.medium.convertRawHTML(html)
+                const { title, content, assets } =
+                  await this.userService.medium.convertRawHTML(html)
 
                 // put draft
                 const draft = await this.draftService.baseCreate({

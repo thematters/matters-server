@@ -10,6 +10,8 @@ export const QUEUE_JOB = {
   // Publication
   publishArticle: 'publishArticle',
   publishPendingDrafts: 'publishPendingDrafts',
+  verifyIPFSPinHashes: 'verifyIPFSPinHashes',
+  republishMissingHashes: 'republishMissingHashes',
 
   // Notification
   sendMail: 'sendMail',
@@ -26,20 +28,18 @@ export const QUEUE_JOB = {
 
   // Emails
   sendDailySummaryEmails: 'sendDailySummaryEmails',
-  sendChurnEmails: 'sendChurnEmails',
 
   // Refresh Views
-  refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
-  refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
-  refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
   refreshArticleHottestView: 'refreshArticleHottestView',
   refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
   refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
   refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
+  refreshUserActivityView: 'refreshUserActivityView',
+  refreshUserActivityLongView: 'refreshUserActivityLongView',
 
   // Migration
   migration: 'migration',
@@ -61,6 +61,9 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
+
+  // Circle
+  transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
 }
 
 export const QUEUE_NAME = {
@@ -78,6 +81,8 @@ export const QUEUE_NAME = {
   revision: 'revision',
   asset: 'asset',
   stripe: 'stripe',
+  circle: 'circle',
+  ipfs: 'ipfs',
 }
 
 export const QUEUE_CONCURRENCY = {

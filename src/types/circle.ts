@@ -34,10 +34,10 @@ export default /* GraphQL */ `
     id: ID!
 
     "Circle avatar's link."
-    avatar: URL
+    avatar: String
 
     "Circle cover's link."
-    cover: URL
+    cover: String
 
     "Slugified name of this Circle."
     name: String!
@@ -55,13 +55,13 @@ export default /* GraphQL */ `
     owner: User! @logCache(type: "${NODE_TYPES.User}")
 
     "List of Circle member."
-    members(input: ConnectionArgs!): MemberConnection!
+    members(input: ConnectionArgs!): MemberConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of Circle follower."
-    followers(input: ConnectionArgs!): UserConnection!
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of works belong to this Circle."
-    works(input: ConnectionArgs!): ArticleConnection!
+    works(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "State of this Circle."
     state: CircleState!
@@ -84,7 +84,7 @@ export default /* GraphQL */ `
     setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invitations(input: ConnectionArgs!): InvitationConnection!
+    invites: Invites!
 
     "Invitation used by current viewer."
     invitedBy: Invitation
@@ -95,7 +95,7 @@ export default /* GraphQL */ `
     ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.Circle}")
 
     "Circles whiches user has subscribed."
-    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.Circle}")
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type CircleSetting {
@@ -119,7 +119,7 @@ export default /* GraphQL */ `
     id: ID!
 
     "Amount of Price."
-    amount: NonNegativeFloat!
+    amount: Float!
 
     "Current Price belongs to whcih Circle."
     circle: Circle!
@@ -166,6 +166,14 @@ export default /* GraphQL */ `
     client_secret: String
   }
 
+  type Invites {
+    "Accepted invitation list"
+    accepted(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
+    "Pending invitation list"
+    pending(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+  }
+
   type Invitation {
     "Unique ID."
     id: ID!
@@ -180,7 +188,7 @@ export default /* GraphQL */ `
     circle: Circle!
 
     "Free period of this invitation."
-    freePeriod: PositiveInt!
+    freePeriod: Int!
 
     "Created time."
     createdAt: DateTime!
@@ -188,12 +196,15 @@ export default /* GraphQL */ `
     "Sent time."
     sentAt: DateTime!
 
-    "Determine it is accepted or not."
-    accepted: Boolean!
+    "Accepted time."
+    acceptedAt: DateTime
+
+    "Determine it's specific state."
+    state: InvitationState!
   }
 
   type Person {
-    email: Email!
+    email: String! @constraint(format: "email")
   }
 
   union Invitee = Person | User
@@ -234,7 +245,7 @@ export default /* GraphQL */ `
     description: String
 
     "Circle's subscription fee."
-    amount: NonNegativeFloat
+    amount: Float @constraint(exclusiveMin: 0)
   }
 
   input ToggleCircleMemberInput {
@@ -273,11 +284,14 @@ export default /* GraphQL */ `
 
     "Access Type, \`public\` or \`paywall\` only."
     accessType: ArticleAccessType!
+
+    "License Type, \`ARR\` is only for paywalled article"
+    license: ArticleLicenseType
   }
 
   input InviteCircleInput {
     invitees: [InviteCircleInvitee!]!
-    freePeriod: PositiveInt!
+    freePeriod: Int! @constraint(exclusiveMin: 0)
     circleId: ID!
   }
 
@@ -299,5 +313,12 @@ export default /* GraphQL */ `
   enum PutCircleArticlesType {
     add
     remove
+  }
+
+  enum InvitationState {
+    accepted
+    pending
+    transfer_succeeded
+    transfer_failed
   }
 `

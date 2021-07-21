@@ -1,17 +1,18 @@
 import { stripHtml } from '@matters/matters-html-formatter'
 
+import { gcp } from 'connectors'
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = async (
   { id, content, language: storedLanguage },
   _,
-  { dataSources: { articleService, draftService } }
+  { dataSources: { draftService } }
 ) => {
   if (storedLanguage) {
     return storedLanguage
   }
 
-  articleService
+  gcp
     .detectLanguage(stripHtml(content.slice(0, 300)))
     .then((language) => language && draftService.baseUpdate(id, { language }))
 

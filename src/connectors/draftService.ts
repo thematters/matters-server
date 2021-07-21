@@ -7,7 +7,6 @@ export class DraftService extends BaseService {
   constructor() {
     super('draft')
     this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /*********************************

@@ -66,7 +66,7 @@ export default /* GraphQL */ `
     myVote: Vote
 
     "Descendant comments of this comment."
-    comments(input: CommentCommentsInput!): CommentConnection!
+    comments(input: CommentCommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Parent comment of this comment."
     parentComment: Comment @logCache(type: "${NODE_TYPES.Comment}")
@@ -94,21 +94,21 @@ export default /* GraphQL */ `
     pinnedComments: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "List of featured comments of this article."
-    featuredComments(input: FeaturedCommentsInput!): CommentConnection!
+    featuredComments(input: FeaturedCommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of comments of this article."
-    comments(input: CommentsInput!): CommentConnection!
+    comments(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   extend type Circle {
     "Comments broadcasted by Circle owner."
-    broadcast(input: ConnectionArgs!): CommentConnection!
+    broadcast(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Pinned comments broadcasted by Circle owner."
     pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "Comments made by Circle member."
-    discussion(input: ConnectionArgs!): CommentConnection!
+    discussion(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Discussion (exclude replies) count of this circle."
     discussionThreadCount: Int!
@@ -151,7 +151,7 @@ export default /* GraphQL */ `
     author: ID
     sort: CommentSort
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
   }
 
   input CommentsInput {
@@ -160,14 +160,14 @@ export default /* GraphQL */ `
     before: String
     includeAfter: Boolean
     includeBefore: Boolean
-    first: Int
+    first: Int @constraint(min: 0)
     filter: CommentsFilter
   }
 
   input FeaturedCommentsInput {
     sort: CommentSort
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
   }
 
   input CommentsFilter {

@@ -53,13 +53,13 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2.1.4
+        uses: actions/setup-node@v2
         with:
-          node-version: '12.16'
+          node-version: '16'
 
       - name: Cache Dependencies
         id: cache
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -83,7 +83,6 @@ jobs:
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres
           MATTERS_PG_DATABASE: matters-test
-          MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
           MATTERS_MATTY_ID: 6
@@ -142,6 +141,7 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.DEVELOP_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.DEVELOP_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
+          MATTERS_STRIPE_SECRET: ${{ secrets.DEVELOP_STRIPE_SECRET }}
 
       - name: Build, tag, and push image to Amazon ECR (develop)
         if: github.base_ref == 'develop'
@@ -179,6 +179,7 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.STAGE_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.STAGE_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.STAGE_PG_PASSWORD }}
+          MATTERS_STRIPE_SECRET: ${{ secrets.STAGE_STRIPE_SECRET }}
 
       - name: Build, tag, and push image to Amazon ECR (stage)
         if: github.base_ref == 'stage'
@@ -236,6 +237,7 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.PROD_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.PROD_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.PROD_PG_PASSWORD }}
+          MATTERS_STRIPE_SECRET: ${{ secrets.PROD_STRIPE_SECRET }}
 
       - name: Kill VPN
         if: always()
