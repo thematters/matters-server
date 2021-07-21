@@ -1,6 +1,6 @@
-import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
+import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToNewestResolver } from 'definitions'
 
 export const newest: RecommendationToNewestResolver = async (
@@ -16,12 +16,11 @@ export const newest: RecommendationToNewestResolver = async (
     }
   }
 
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
-  const MAX_ITEM_COUNT = BATCH_SIZE * 50
+  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeNewestQuery = () => {
-    let qs = knex
+    const query = knex
       .select('article_set.draft_id')
       .from(
         knex
@@ -40,20 +39,20 @@ export const newest: RecommendationToNewestResolver = async (
       .as('newest')
 
     if (!oss) {
-      qs = qs.andWhere(function () {
+      query.andWhere(function () {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
     }
 
-    return qs
+    return query
   }
 
   const [countRecord, articles] = await Promise.all([
     knex.select().from(makeNewestQuery()).count().first(),
     makeNewestQuery()
       .orderBy('article_set.id', 'desc')
-      .offset(offset)
-      .limit(first || BATCH_SIZE),
+      .offset(skip)
+      .limit(take),
   ])
 
   const totalCount = parseInt(

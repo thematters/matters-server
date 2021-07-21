@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFolloweeCommentsResolver } from 'definitions'
 
@@ -15,14 +15,10 @@ export const followeeComments: RecommendationToFolloweeCommentsResolver =
       return connectionFromArray([], input)
     }
 
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
+    const { take, skip } = fromConnectionArgs(input)
+
     const totalCount = await userService.countFolloweeComments(id)
-    const items = await userService.followeeComments({
-      userId: id,
-      offset,
-      limit: first,
-    })
+    const items = await userService.followeeComments({ userId: id, skip, take })
     return connectionFromPromisedArray(
       commentService.dataloader.loadMany(items.map((item) => item.id)),
       input,

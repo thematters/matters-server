@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFolloweeArticlesResolver } from 'definitions'
 
@@ -9,17 +9,17 @@ export const followeeArticles: RecommendationToFolloweeArticlesResolver =
   async (
     { id }: { id: string },
     { input },
-    { dataSources: { articleService, draftService, userService } }
+    { dataSources: { draftService, userService } }
   ) => {
     if (!id) {
       return connectionFromArray([], input)
     }
 
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
+    const { take, skip } = fromConnectionArgs(input)
+
     const [totalCount, articles] = await Promise.all([
       userService.countFolloweeArticles(id),
-      userService.followeeArticles({ userId: id, offset, limit: first }),
+      userService.followeeArticles({ userId: id, skip, take }),
     ])
 
     return connectionFromPromisedArray(

@@ -170,6 +170,8 @@ export type MaterializedView =
   | 'most_active_author_materialized'
   | 'most_appreciated_author_materialized'
   | 'most_trendy_author_materialized'
+  | 'user_activity_materialized'
+  | 'user_activity_long_materialized'
 
 export type TableName = BasicTableName | View | MaterializedView
 

@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { GQLUserActivityTypeResolver } from 'definitions'
 
@@ -9,18 +9,17 @@ const resolver: GQLUserActivityTypeResolver = {
   history: async (
     { id },
     { input },
-    { dataSources: { userService, articleService, draftService } }
+    { dataSources: { userService, draftService } }
   ) => {
     if (!id) {
       return connectionFromArray([], input)
     }
 
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
+    const { take, skip } = fromConnectionArgs(input)
 
     const [totalCount, reads] = await Promise.all([
       userService.countReadHistory(id),
-      userService.findReadHistory({ userId: id, offset, limit: first }),
+      userService.findReadHistory({ userId: id, skip, take }),
     ])
     const nodes = await Promise.all(
       reads.map(async ({ article, readAt }) => {
@@ -48,19 +47,13 @@ const resolver: GQLUserActivityTypeResolver = {
 
   appreciationsSent: async (
     { id },
-    { input = {} },
+    { input },
     { dataSources: { userService } }
   ) => {
-    const { first, after } = input
-
-    const offset = after ? cursorToIndex(after) + 1 : 0
+    const { take, skip } = fromConnectionArgs(input)
     const totalCount = await userService.totalSentAppreciationCount(id)
     return connectionFromPromisedArray(
-      userService.findAppreciationBySender({
-        senderId: id,
-        limit: first,
-        offset,
-      }),
+      userService.findAppreciationBySender({ senderId: id, skip, take }),
       input,
       totalCount
     )
@@ -71,19 +64,14 @@ const resolver: GQLUserActivityTypeResolver = {
 
   appreciationsReceived: async (
     { id },
-    { input = {} },
+    { input },
     { dataSources: { userService } }
   ) => {
-    const { first, after } = input
+    const { take, skip } = fromConnectionArgs(input)
 
-    const offset = after ? cursorToIndex(after) + 1 : 0
     const totalCount = await userService.totalRecivedAppreciationCount(id)
     return connectionFromPromisedArray(
-      userService.findAppreciationByRecipient({
-        recipientId: id,
-        limit: first,
-        offset,
-      }),
+      userService.findAppreciationByRecipient({ recipientId: id, skip, take }),
       input,
       totalCount
     )

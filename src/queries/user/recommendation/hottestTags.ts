@@ -3,7 +3,7 @@ import { chunk } from 'lodash'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToHottestTagsResolver } from 'definitions'
 
@@ -12,17 +12,19 @@ export const hottestTags: RecommendationToHottestTagsResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
-  const { first, after, filter } = input
+  const { filter } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   /**
    * Pick randomly
    */
   if (typeof filter?.random === 'number') {
     const MAX_RANDOM_INDEX = 50
-    const randomDraw = first || 5
+    const randomDraw = input.first || 5
 
     const tagPool = await userService.recommendTags({
-      limit: MAX_RANDOM_INDEX * randomDraw,
+      skip: 0,
+      take: MAX_RANDOM_INDEX * randomDraw,
     })
 
     const chunks = chunk(tagPool, randomDraw)
@@ -32,14 +34,10 @@ export const hottestTags: RecommendationToHottestTagsResolver = async (
     return connectionFromArray(tags, input, tagPool.length)
   }
 
-  const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countRecommendTags()
 
   return connectionFromPromisedArray(
-    userService.recommendTags({
-      limit: first,
-      offset,
-    }),
+    userService.recommendTags({ skip, take }),
     input,
     totalCount
   )

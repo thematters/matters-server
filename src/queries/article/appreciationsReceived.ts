@@ -1,5 +1,5 @@
 import { APPRECIATION_PURPOSE } from 'common/enums'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedResolver = async (
@@ -7,8 +7,7 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
   { input },
   { dataSources: { articleService }, knex }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const record = await knex
     .select()
@@ -30,8 +29,8 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
   return connectionFromPromisedArray(
     articleService.findAppreciations({
       referenceId: articleId,
-      offset,
-      limit: first,
+      take,
+      skip,
     }),
     input,
     totalCount

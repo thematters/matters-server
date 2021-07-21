@@ -16,4 +16,5 @@ export enum MATERIALIZED_VIEW {
   most_active_author_materialized = 'most_active_author_materialized',
   most_appreciated_author_materialized = 'most_appreciated_author_materialized',
   most_trendy_author_materialized = 'most_trendy_author_materialized',
+  user_activity_materialized = 'user_activity_materialized',
 }

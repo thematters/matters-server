@@ -44,7 +44,7 @@ test('findByAuthor', async () => {
 })
 
 test('findByCommentedAuthor', async () => {
-  const articles = await articleService.findByCommentedAuthor('1')
+  const articles = await articleService.findByCommentedAuthor({ id: '1' })
   expect(articles.length).toBeDefined()
 })
 

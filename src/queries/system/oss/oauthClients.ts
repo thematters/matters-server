@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToOauthClientsResolver } from 'definitions'
 
 export const oauthClients: OSSToOauthClientsResolver = async (
@@ -6,15 +6,12 @@ export const oauthClients: OSSToOauthClientsResolver = async (
   { input },
   { viewer, dataSources: { oauthService } }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const totalCount = await oauthService.baseCount()
 
   return connectionFromPromisedArray(
-    oauthService.baseFind({
-      offset,
-      limit: first,
-    }),
+    oauthService.baseFind({ skip, take }),
     input,
     totalCount
   )

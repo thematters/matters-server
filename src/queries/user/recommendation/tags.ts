@@ -2,7 +2,7 @@ import { chunk } from 'lodash'
 
 import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToTagsResolver } from 'definitions'
 
 export const tags: RecommendationToTagsResolver = async (
@@ -10,7 +10,8 @@ export const tags: RecommendationToTagsResolver = async (
   { input },
   { viewer, dataSources: { tagService, userService } }
 ) => {
-  const { after, first, filter, oss = false } = input
+  const { filter, oss = false } = input
+  const { take, skip } = fromConnectionArgs(input, { defaultTake: 5 })
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -21,12 +22,12 @@ export const tags: RecommendationToTagsResolver = async (
   // pick randomly
   if (typeof filter?.random === 'number') {
     const { random } = filter
-    const draw = first || 5
+    const draw = input.first || 5
     const limit = 50
 
     const curationTags = await tagService.findCurationTags({
       mattyId: environment.mattyId,
-      limit: limit * draw,
+      take: limit * draw,
     })
     const chunks = chunk(curationTags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
@@ -39,13 +40,12 @@ export const tags: RecommendationToTagsResolver = async (
   }
 
   // query all tags by specific logic (curation concat non-curation)
-  const offset = cursorToIndex(after) + 1
   const totalCount = await tagService.baseCount()
   const items = await tagService.findArrangedTags({
     mattyId: environment.mattyId,
-    limit: first,
-    offset,
     oss,
+    skip,
+    take,
   })
   return connectionFromPromisedArray(
     tagService.dataloader.loadMany(items.map((item) => item.id)),

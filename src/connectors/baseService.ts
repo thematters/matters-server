@@ -3,7 +3,6 @@ import DataLoader from 'dataloader'
 import Knex from 'knex'
 import _ from 'lodash'
 
-import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
 import { aws, es, knex } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
@@ -24,15 +23,15 @@ export class BaseService extends DataSource {
   }
 
   baseCount = async (where?: { [key: string]: any }, table?: TableName) => {
-    let qs = this.knex(table || this.table)
+    const query = this.knex(table || this.table)
       .count()
       .first()
 
     if (where) {
-      qs = qs.where(where)
+      query.where(where)
     }
 
-    const result = await qs
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -103,32 +102,32 @@ export class BaseService extends DataSource {
    * Find items by given "where", "offset" and "limit"
    */
   baseFind = async ({
-    where,
-    offset = 0,
-    limit = BATCH_SIZE,
     table,
+    where,
+    skip,
+    take,
   }: {
-    where?: { [key: string]: any }
-    offset?: number
-    limit?: number
     table?: TableName
+    where?: { [key: string]: any }
+    skip?: number
+    take?: number
   }) => {
-    let qs = this.knex
+    const query = this.knex
       .select()
       .from(table || this.table)
       .orderBy('id', 'desc')
 
     if (where) {
-      qs = qs.where(where)
+      query.where(where)
     }
-    if (limit) {
-      qs = qs.limit(limit)
+    if (skip) {
+      query.offset(skip)
     }
-    if (offset) {
-      qs = qs.offset(offset)
+    if (take) {
+      query.limit(take)
     }
 
-    return qs
+    return query
   }
 
   /**

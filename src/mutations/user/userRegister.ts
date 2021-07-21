@@ -37,7 +37,7 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
-  const email = rawEmail ? rawEmail.toLowerCase() : null
+  const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
     throw new EmailInvalidError('invalid email address format')
   }

@@ -10,7 +10,6 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { resolveUrl } from 'common/utils'
 import { gcp } from 'connectors'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
@@ -19,16 +18,12 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   { input: { email: rawEmail, type, token, redirectUrl } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
-  const email = rawEmail ? rawEmail.toLowerCase() : null
+  const email = rawEmail.toLowerCase()
 
   if (!viewer.id && VERIFICATION_CODE_PROTECTED_TYPES.includes(type)) {
     throw new AuthenticationError(
       `visitor cannot send verification code of ${type}`
     )
-  }
-
-  if (redirectUrl) {
-    redirectUrl = resolveUrl(redirectUrl)
   }
 
   let user

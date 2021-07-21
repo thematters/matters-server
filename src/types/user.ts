@@ -85,7 +85,7 @@ export default /* GraphQL */ `
     liker: Liker!
 
     "URL for user avatar."
-    avatar: URL
+    avatar: String
 
     "User information."
     info: UserInfo!
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Activities based on user's following, sort by creation time."
-    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
+    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Articles published by user's followees."
     followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
@@ -194,7 +194,7 @@ export default /* GraphQL */ `
 
   input RecommendInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
     filter: FilterInput
     type: AuthorsType
@@ -202,7 +202,8 @@ export default /* GraphQL */ `
 
   input FilterInput {
     "index of list, min: 0, max: 49"
-    random: NonNegativeInt
+    random: Int @constraint(min: 0, max: 49)
+
     followed: Boolean
   }
 
@@ -217,7 +218,7 @@ export default /* GraphQL */ `
     description: String
 
     "User email."
-    email: Email @auth(mode: "${AUTH_MODE.oauth}")
+    email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
@@ -226,7 +227,7 @@ export default /* GraphQL */ `
     agreeOn: DateTime
 
     "Cover of profile page."
-    profileCover: URL
+    profileCover: String
 
     "Type of group."
     group: UserGroup!
@@ -291,15 +292,15 @@ export default /* GraphQL */ `
     civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat! @auth(mode: "${AUTH_MODE.oauth}")
+    total: Float! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: NonNegativeFloat @objectCache(maxAge: ${CACHE_TTL.LONG})
+    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG})
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
+    boost: Float!
+    score: Float!
   }
 
   type Appreciation {
@@ -407,6 +408,7 @@ export default /* GraphQL */ `
 
   type UserPublishArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article published by actor"
     node: Article!
@@ -414,6 +416,7 @@ export default /* GraphQL */ `
 
   type UserBroadcastCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Comment boardcast by actor"
     node: Comment!
@@ -424,6 +427,7 @@ export default /* GraphQL */ `
 
   type UserCreateCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Circle created by actor"
     node: Circle!
@@ -431,6 +435,7 @@ export default /* GraphQL */ `
 
   type UserCollectArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article created by actor"
     node: Article!
@@ -441,6 +446,7 @@ export default /* GraphQL */ `
 
   type UserSubscribeCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Circle subscribed by actor"
     node: Circle!
@@ -448,6 +454,7 @@ export default /* GraphQL */ `
 
   type UserFollowUserActivity {
     actor: User!
+    createdAt: DateTime!
 
     "User followed by actor"
     node: User!
@@ -455,6 +462,7 @@ export default /* GraphQL */ `
 
   type UserDonateArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article donated by actor"
     node: Article!
@@ -462,6 +470,7 @@ export default /* GraphQL */ `
 
   type UserBookmarkArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article bookmarked by actor"
     node: Article!
@@ -469,6 +478,7 @@ export default /* GraphQL */ `
 
   type UserAddArticleTagActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article added to tag"
     node: Article!
@@ -505,7 +515,7 @@ export default /* GraphQL */ `
   }
 
   input SendVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     token: String
 
@@ -513,11 +523,11 @@ export default /* GraphQL */ `
     Redirect URL embedded in the verification email,
     use code instead if not provided.
     """
-    redirectUrl: URL
+    redirectUrl: String @constraint(format: "uri")
   }
 
   input ConfirmVerificationCodeInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     type: VerificationCodeType!
     code: String!
   }
@@ -529,9 +539,9 @@ export default /* GraphQL */ `
   }
 
   input ChangeEmailInput {
-    oldEmail: Email!
+    oldEmail: String! @constraint(format: "email")
     oldEmailCodeId: ID!
-    newEmail: Email!
+    newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }
 
@@ -540,7 +550,7 @@ export default /* GraphQL */ `
   }
 
   input UserRegisterInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     userName: String
     displayName: String!
     password: String!
@@ -549,7 +559,7 @@ export default /* GraphQL */ `
   }
 
   input UserLoginInput {
-    email: Email!
+    email: String! @constraint(format: "email")
     password: String!
   }
 
@@ -574,7 +584,7 @@ export default /* GraphQL */ `
     id: ID
     emails: [String!]
     state: UserState!
-    banDays: PositiveInt
+    banDays: Int @constraint(exclusiveMin: 0)
     password: String
   }
 

@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFollowingTagsArticlesResolver } from 'definitions'
 
@@ -15,15 +15,11 @@ export const followingTagsArticles: RecommendationToFollowingTagsArticlesResolve
       return connectionFromArray([], input)
     }
 
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
+    const { take, skip } = fromConnectionArgs(input)
+
     const [totalCount, articleIds] = await Promise.all([
       userService.countFollowingTagsArticles(id),
-      userService.findFollowingTagsArticles({
-        userId: id,
-        offset,
-        limit: first,
-      }),
+      userService.findFollowingTagsArticles({ userId: id, skip, take }),
     ])
 
     return connectionFromPromisedArray(

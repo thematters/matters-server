@@ -1,5 +1,5 @@
 import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { UserToSubscribedCirclesResolver } from 'definitions'
 
 const resolver: UserToSubscribedCirclesResolver = async (
@@ -11,8 +11,7 @@ const resolver: UserToSubscribedCirclesResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const where = {
     'csi.user_id': id,
