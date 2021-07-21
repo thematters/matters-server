@@ -1892,7 +1892,7 @@ type User implements Node {
 
 type Recommendation {
   """Activities based on user's following, sort by creation time."""
-  following(input: ConnectionArgs!): FollowingActivityConnection! @deprecated(reason: "Merged into `Recommendation.following`")
+  following(input: ConnectionArgs!): FollowingActivityConnection!
 
   """Articles published by user's followees."""
   followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
@@ -2158,6 +2158,7 @@ union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivi
 
 type UserPublishArticleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Article published by actor"""
   node: Article!
@@ -2165,6 +2166,7 @@ type UserPublishArticleActivity {
 
 type UserBroadcastCircleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Comment boardcast by actor"""
   node: Comment!
@@ -2175,6 +2177,7 @@ type UserBroadcastCircleActivity {
 
 type UserCreateCircleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Circle created by actor"""
   node: Circle!
@@ -2182,6 +2185,7 @@ type UserCreateCircleActivity {
 
 type UserCollectArticleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Article created by actor"""
   node: Article!
@@ -2192,6 +2196,7 @@ type UserCollectArticleActivity {
 
 type UserSubscribeCircleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Circle subscribed by actor"""
   node: Circle!
@@ -2199,6 +2204,7 @@ type UserSubscribeCircleActivity {
 
 type UserFollowUserActivity {
   actor: User!
+  createdAt: DateTime!
 
   """User followed by actor"""
   node: User!
@@ -2206,6 +2212,7 @@ type UserFollowUserActivity {
 
 type UserDonateArticleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Article donated by actor"""
   node: Article!
@@ -2213,6 +2220,7 @@ type UserDonateArticleActivity {
 
 type UserBookmarkArticleActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Article bookmarked by actor"""
   node: Article!
@@ -2220,6 +2228,7 @@ type UserBookmarkArticleActivity {
 
 type UserAddArticleTagActivity {
   actor: User!
+  createdAt: DateTime!
 
   """Article added to tag"""
   node: Article!

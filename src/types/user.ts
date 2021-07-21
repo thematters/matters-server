@@ -150,7 +150,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Activities based on user's following, sort by creation time."
-    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
+    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Articles published by user's followees."
     followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
@@ -408,6 +408,7 @@ export default /* GraphQL */ `
 
   type UserPublishArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article published by actor"
     node: Article!
@@ -415,6 +416,7 @@ export default /* GraphQL */ `
 
   type UserBroadcastCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Comment boardcast by actor"
     node: Comment!
@@ -425,6 +427,7 @@ export default /* GraphQL */ `
 
   type UserCreateCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Circle created by actor"
     node: Circle!
@@ -432,6 +435,7 @@ export default /* GraphQL */ `
 
   type UserCollectArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article created by actor"
     node: Article!
@@ -442,6 +446,7 @@ export default /* GraphQL */ `
 
   type UserSubscribeCircleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Circle subscribed by actor"
     node: Circle!
@@ -449,6 +454,7 @@ export default /* GraphQL */ `
 
   type UserFollowUserActivity {
     actor: User!
+    createdAt: DateTime!
 
     "User followed by actor"
     node: User!
@@ -456,6 +462,7 @@ export default /* GraphQL */ `
 
   type UserDonateArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article donated by actor"
     node: Article!
@@ -463,6 +470,7 @@ export default /* GraphQL */ `
 
   type UserBookmarkArticleActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article bookmarked by actor"
     node: Article!
@@ -470,6 +478,7 @@ export default /* GraphQL */ `
 
   type UserAddArticleTagActivity {
     actor: User!
+    createdAt: DateTime!
 
     "Article added to tag"
     node: Article!

@@ -2604,7 +2604,6 @@ export interface GQLUser extends GQLNode {
 export interface GQLRecommendation {
   /**
    * Activities based on user's following, sort by creation time.
-   * @deprecated Merged into `Recommendation.following`
    */
   following: GQLFollowingActivityConnection
 
@@ -3005,6 +3004,7 @@ export interface GQLFollowingActivityNameMap {
 
 export interface GQLUserPublishArticleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Article published by actor
@@ -3014,6 +3014,7 @@ export interface GQLUserPublishArticleActivity {
 
 export interface GQLUserBroadcastCircleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Comment boardcast by actor
@@ -3028,6 +3029,7 @@ export interface GQLUserBroadcastCircleActivity {
 
 export interface GQLUserCreateCircleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Circle created by actor
@@ -3037,6 +3039,7 @@ export interface GQLUserCreateCircleActivity {
 
 export interface GQLUserCollectArticleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Article created by actor
@@ -3051,6 +3054,7 @@ export interface GQLUserCollectArticleActivity {
 
 export interface GQLUserSubscribeCircleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Circle subscribed by actor
@@ -3060,6 +3064,7 @@ export interface GQLUserSubscribeCircleActivity {
 
 export interface GQLUserFollowUserActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * User followed by actor
@@ -3069,6 +3074,7 @@ export interface GQLUserFollowUserActivity {
 
 export interface GQLUserDonateArticleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Article donated by actor
@@ -3078,6 +3084,7 @@ export interface GQLUserDonateArticleActivity {
 
 export interface GQLUserBookmarkArticleActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Article bookmarked by actor
@@ -3087,6 +3094,7 @@ export interface GQLUserBookmarkArticleActivity {
 
 export interface GQLUserAddArticleTagActivity {
   actor: GQLUser
+  createdAt: GQLDateTime
 
   /**
    * Article added to tag
@@ -10034,10 +10042,23 @@ export interface GQLFollowingActivityTypeResolver<TParent = any> {
 }
 export interface GQLUserPublishArticleActivityTypeResolver<TParent = any> {
   actor?: UserPublishArticleActivityToActorResolver<TParent>
+  createdAt?: UserPublishArticleActivityToCreatedAtResolver<TParent>
   node?: UserPublishArticleActivityToNodeResolver<TParent>
 }
 
 export interface UserPublishArticleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserPublishArticleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10063,11 +10084,24 @@ export interface UserPublishArticleActivityToNodeResolver<
 
 export interface GQLUserBroadcastCircleActivityTypeResolver<TParent = any> {
   actor?: UserBroadcastCircleActivityToActorResolver<TParent>
+  createdAt?: UserBroadcastCircleActivityToCreatedAtResolver<TParent>
   node?: UserBroadcastCircleActivityToNodeResolver<TParent>
   target?: UserBroadcastCircleActivityToTargetResolver<TParent>
 }
 
 export interface UserBroadcastCircleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserBroadcastCircleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10105,10 +10139,23 @@ export interface UserBroadcastCircleActivityToTargetResolver<
 
 export interface GQLUserCreateCircleActivityTypeResolver<TParent = any> {
   actor?: UserCreateCircleActivityToActorResolver<TParent>
+  createdAt?: UserCreateCircleActivityToCreatedAtResolver<TParent>
   node?: UserCreateCircleActivityToNodeResolver<TParent>
 }
 
 export interface UserCreateCircleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserCreateCircleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10134,11 +10181,24 @@ export interface UserCreateCircleActivityToNodeResolver<
 
 export interface GQLUserCollectArticleActivityTypeResolver<TParent = any> {
   actor?: UserCollectArticleActivityToActorResolver<TParent>
+  createdAt?: UserCollectArticleActivityToCreatedAtResolver<TParent>
   node?: UserCollectArticleActivityToNodeResolver<TParent>
   target?: UserCollectArticleActivityToTargetResolver<TParent>
 }
 
 export interface UserCollectArticleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserCollectArticleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10176,10 +10236,23 @@ export interface UserCollectArticleActivityToTargetResolver<
 
 export interface GQLUserSubscribeCircleActivityTypeResolver<TParent = any> {
   actor?: UserSubscribeCircleActivityToActorResolver<TParent>
+  createdAt?: UserSubscribeCircleActivityToCreatedAtResolver<TParent>
   node?: UserSubscribeCircleActivityToNodeResolver<TParent>
 }
 
 export interface UserSubscribeCircleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserSubscribeCircleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10205,10 +10278,23 @@ export interface UserSubscribeCircleActivityToNodeResolver<
 
 export interface GQLUserFollowUserActivityTypeResolver<TParent = any> {
   actor?: UserFollowUserActivityToActorResolver<TParent>
+  createdAt?: UserFollowUserActivityToCreatedAtResolver<TParent>
   node?: UserFollowUserActivityToNodeResolver<TParent>
 }
 
 export interface UserFollowUserActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserFollowUserActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10234,10 +10320,23 @@ export interface UserFollowUserActivityToNodeResolver<
 
 export interface GQLUserDonateArticleActivityTypeResolver<TParent = any> {
   actor?: UserDonateArticleActivityToActorResolver<TParent>
+  createdAt?: UserDonateArticleActivityToCreatedAtResolver<TParent>
   node?: UserDonateArticleActivityToNodeResolver<TParent>
 }
 
 export interface UserDonateArticleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserDonateArticleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10263,10 +10362,23 @@ export interface UserDonateArticleActivityToNodeResolver<
 
 export interface GQLUserBookmarkArticleActivityTypeResolver<TParent = any> {
   actor?: UserBookmarkArticleActivityToActorResolver<TParent>
+  createdAt?: UserBookmarkArticleActivityToCreatedAtResolver<TParent>
   node?: UserBookmarkArticleActivityToNodeResolver<TParent>
 }
 
 export interface UserBookmarkArticleActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserBookmarkArticleActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -10292,11 +10404,24 @@ export interface UserBookmarkArticleActivityToNodeResolver<
 
 export interface GQLUserAddArticleTagActivityTypeResolver<TParent = any> {
   actor?: UserAddArticleTagActivityToActorResolver<TParent>
+  createdAt?: UserAddArticleTagActivityToCreatedAtResolver<TParent>
   node?: UserAddArticleTagActivityToNodeResolver<TParent>
   target?: UserAddArticleTagActivityToTargetResolver<TParent>
 }
 
 export interface UserAddArticleTagActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserAddArticleTagActivityToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
