@@ -112,7 +112,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   // auto follow tags
   const items = await Promise.all(
-    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content })),
+    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content }))
   )
   await Promise.all(
     items.map((tags) => {
