@@ -123,6 +123,13 @@ const resolver: MutationToUserRegisterResolver = async (
     })
   )
 
+  if (environment.mattyChoiceTagId) {
+    await tagService.follow({
+      targetId: environment.mattyChoiceTagId,
+      userId: newUser.id,
+    })
+  }
+
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
