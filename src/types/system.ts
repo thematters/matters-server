@@ -247,6 +247,7 @@ export default /* GraphQL */ `
 
   enum LogRecordTypes {
     ReadFolloweeArticles
+    ReadFollowingFeed
     ReadResponseInfoPopUp
   }
 

@@ -2362,6 +2362,7 @@ export const enum GQLRemarkTypes {
 
 export const enum GQLLogRecordTypes {
   ReadFolloweeArticles = 'ReadFolloweeArticles',
+  ReadFollowingFeed = 'ReadFollowingFeed',
   ReadResponseInfoPopUp = 'ReadResponseInfoPopUp',
 }
 
@@ -2806,8 +2807,14 @@ export interface GQLUserStatus {
 
   /**
    * Whether there are unread articles from followees.
+   * @deprecated Use `unreadFollowing` instead
    */
   unreadFolloweeArticles: boolean
+
+  /**
+   * Whether there are unread activities from following.
+   */
+  unreadFollowing: boolean
 
   /**
    * Number of total written words.
@@ -9219,6 +9226,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   commentCount?: UserStatusToCommentCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
+  unreadFollowing?: UserStatusToUnreadFollowingResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
   hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   donatedArticleCount?: UserStatusToDonatedArticleCountResolver<TParent>
@@ -9280,6 +9288,18 @@ export interface UserStatusToUnreadNoticeCountResolver<
 }
 
 export interface UserStatusToUnreadFolloweeArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToUnreadFollowingResolver<
   TParent = any,
   TResult = any
 > {
