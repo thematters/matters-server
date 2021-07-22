@@ -1,24 +1,12 @@
 import _last from 'lodash/last'
 
-import { MATERIALIZED_VIEW } from 'common/enums'
+import { ActivityType, MATERIALIZED_VIEW } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
 import { RecommendationToFollowingResolver } from 'definitions'
-
-enum ActivityType {
-  UserPublishArticleActivity = 'UserPublishArticleActivity',
-  UserBroadcastCircleActivity = 'UserBroadcastCircleActivity',
-  UserCreateCircleActivity = 'UserCreateCircleActivity',
-  UserCollectArticleActivity = 'UserCollectArticleActivity',
-  UserSubscribeCircleActivity = 'UserSubscribeCircleActivity',
-  UserFollowUserActivity = 'UserFollowUserActivity',
-  UserDonateArticleActivity = 'UserDonateArticleActivity',
-  UserBookmarkArticleActivity = 'UserBookmarkArticleActivity',
-  UserAddArticleTagActivity = 'UserAddArticleTagActivity',
-}
 
 const resolver: RecommendationToFollowingResolver = async (
   { id: userId },

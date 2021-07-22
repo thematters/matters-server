@@ -8,6 +8,7 @@ import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
+  NotAllowAddOfficialTagError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -100,10 +101,9 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     throw new ForbiddenError('not allow add tag to article')
   }
 
-  // TODO: uncomment if the following feed is ready
-  // if (!isMatty && tag.id === environment.mattyChoiceTagId) {
-  //   throw new NotAllowAddOfficialTagError('not allow to add official tag')
-  // }
+  if (!isMatty && tag.id === environment.mattyChoiceTagId) {
+    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  }
 
   // compare new and old article ids that have this tag (dedupe)
   const oldIds = await tagService.findArticleIdsByTagIds([dbId])

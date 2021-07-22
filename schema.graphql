@@ -1714,6 +1714,7 @@ enum RemarkTypes {
 
 enum LogRecordTypes {
   ReadFolloweeArticles
+  ReadFollowingFeed
   ReadResponseInfoPopUp
 }
 
@@ -2019,7 +2020,10 @@ type UserStatus {
   unreadNoticeCount: Int!
 
   """Whether there are unread articles from followees."""
-  unreadFolloweeArticles: Boolean!
+  unreadFolloweeArticles: Boolean! @deprecated(reason: "Use `unreadFollowing` instead")
+
+  """Whether there are unread activities from following."""
+  unreadFollowing: Boolean!
 
   """Number of total written words."""
   totalWordCount: Int!
