@@ -2,7 +2,7 @@ import DataLoader from 'dataloader'
 import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, DAY, DB_NOTICE_TYPE } from 'common/enums'
+import { DAY, DB_NOTICE_TYPE } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
@@ -244,18 +244,17 @@ class Notice extends BaseService {
   findDetail = async ({
     where,
     whereIn,
-    offset,
-    limit,
+    skip,
+    take,
   }: {
     where?: any[][]
     whereIn?: [string, any[]]
-    offset?: number
-    limit?: number
+    skip?: number
+    take?: number
   }): Promise<NoticeDetail[]> => {
     let query = this.knex
       .select([
         'notice.id',
-        'notice.uuid',
         'notice.unread',
         'notice.deleted',
         'notice.updated_at',
@@ -283,12 +282,12 @@ class Notice extends BaseService {
       query = query.whereIn(...whereIn)
     }
 
-    if (offset) {
-      query = query.offset(offset)
+    if (skip) {
+      query = query.offset(skip)
     }
 
-    if (limit) {
-      query = query.limit(limit)
+    if (take) {
+      query = query.limit(take)
     }
 
     const result = await query
@@ -384,17 +383,17 @@ class Notice extends BaseService {
    *********************************/
   findByUser = async ({
     userId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     userId: string
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
   }): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       where: [[{ recipientId: userId, deleted: false }]],
-      offset,
-      limit,
+      skip,
+      take,
     })
 
     return Promise.all(
@@ -582,16 +581,16 @@ class Notice extends BaseService {
     userId: string
     unread?: boolean
   }) => {
-    let qs = this.knex('notice')
+    const query = this.knex('notice')
       .where({ recipientId: userId, deleted: false })
       .count()
       .first()
 
     if (unread) {
-      qs = qs.where({ unread: true })
+      query.where({ unread: true })
     }
 
-    const result = await qs
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 }

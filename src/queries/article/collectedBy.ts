@@ -1,7 +1,7 @@
 import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
   loadManyFilterError,
 } from 'common/utils'
 import { ArticleToCollectedByResolver } from 'definitions'
@@ -9,14 +9,28 @@ import { ArticleToCollectedByResolver } from 'definitions'
 const resolver: ArticleToCollectedByResolver = async (
   { articleId },
   { input },
-  { dataSources: { articleService, draftService } }
+  { dataSources: { atomService, articleService, draftService }, knex }
 ) => {
-  const { after, first } = input
-  const offset = cursorToIndex(after) + 1
-  const [totalCount, collections] = await Promise.all([
-    articleService.countCollectedBy(articleId),
-    articleService.findCollectedBy({ articleId, limit: first, offset }),
+  const { take, skip } = fromConnectionArgs(input)
+
+  const [countRecord, collections] = await Promise.all([
+    knex('collection')
+      .where({ articleId })
+      .countDistinct('entrance_id')
+      .first(),
+    atomService.findMany({
+      table: 'collection',
+      where: { articleId },
+      skip,
+      take,
+    }),
   ])
+
+  const totalCount = parseInt(
+    countRecord ? (countRecord.count as string) : '0',
+    10
+  )
+
   const articles = await articleService.dataloader
     .loadMany(collections.map((collection) => collection.entranceId))
     .then(loadManyFilterError)

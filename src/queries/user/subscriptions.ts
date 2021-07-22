@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { UserToSubscriptionsResolver } from 'definitions'
 
 const resolver: UserToSubscriptionsResolver = async (
@@ -6,15 +6,11 @@ const resolver: UserToSubscriptionsResolver = async (
   { input },
   { dataSources: { articleService, draftService, userService } }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [totalCount, actions] = await Promise.all([
     userService.countSubscription(id),
-    userService.findSubscriptions({
-      userId: id,
-      offset,
-      limit: first,
-    }),
+    userService.findSubscriptions({ userId: id, skip, take }),
   ])
   const articles = (await articleService.dataloader.loadMany(
     actions.map(({ targetId }: { targetId: string }) => targetId)

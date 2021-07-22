@@ -34,10 +34,10 @@ export default /* GraphQL */ `
     id: ID!
 
     "Circle avatar's link."
-    avatar: URL
+    avatar: String
 
     "Circle cover's link."
-    cover: URL
+    cover: String
 
     "Slugified name of this Circle."
     name: String!
@@ -84,9 +84,6 @@ export default /* GraphQL */ `
     setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invitations(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer use")
-
-    "Invitations belonged to this Circle."
     invites: Invites!
 
     "Invitation used by current viewer."
@@ -122,7 +119,7 @@ export default /* GraphQL */ `
     id: ID!
 
     "Amount of Price."
-    amount: NonNegativeFloat!
+    amount: Float!
 
     "Current Price belongs to whcih Circle."
     circle: Circle!
@@ -191,7 +188,7 @@ export default /* GraphQL */ `
     circle: Circle!
 
     "Free period of this invitation."
-    freePeriod: PositiveInt!
+    freePeriod: Int!
 
     "Created time."
     createdAt: DateTime!
@@ -202,15 +199,12 @@ export default /* GraphQL */ `
     "Accepted time."
     acceptedAt: DateTime
 
-    "Determine it is accepted or not."
-    accepted: Boolean! @deprecated(reason: "No longer use")
-
     "Determine it's specific state."
     state: InvitationState!
   }
 
   type Person {
-    email: Email!
+    email: String! @constraint(format: "email")
   }
 
   union Invitee = Person | User
@@ -251,7 +245,7 @@ export default /* GraphQL */ `
     description: String
 
     "Circle's subscription fee."
-    amount: NonNegativeFloat
+    amount: Float @constraint(exclusiveMin: 0)
   }
 
   input ToggleCircleMemberInput {
@@ -297,7 +291,7 @@ export default /* GraphQL */ `
 
   input InviteCircleInput {
     invitees: [InviteCircleInvitee!]!
-    freePeriod: PositiveInt!
+    freePeriod: Int! @constraint(exclusiveMin: 0)
     circleId: ID!
   }
 

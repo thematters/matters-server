@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { UserToCommentedArticlesResolver } from 'definitions'
 
 const resolver: UserToCommentedArticlesResolver = async (
@@ -6,7 +6,14 @@ const resolver: UserToCommentedArticlesResolver = async (
   { input },
   { dataSources: { articleService, draftService } }
 ) => {
-  const articles = await articleService.findByCommentedAuthor(id)
+  const { take, skip } = fromConnectionArgs(input)
+
+  const articles = await articleService.findByCommentedAuthor({
+    id,
+    take,
+    skip,
+  })
+
   return connectionFromPromisedArray(
     draftService.dataloader.loadMany(
       articles.map((article) => article.draftId)

@@ -50,7 +50,6 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}") @deprecated(reason: "No longer in use")
     toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
@@ -83,9 +82,6 @@ export default /* GraphQL */ `
     "State of this article."
     state: ArticleState!
 
-    "This value determines if this article is under Subscription or not."
-    live: Boolean! @deprecated(reason: "No longer in use")
-
     "Author of this article."
     author: User! @logCache(type: "${NODE_TYPES.User}")
 
@@ -93,7 +89,7 @@ export default /* GraphQL */ `
     title: String!
 
     "Article cover's link."
-    cover: URL
+    cover: String
 
     "List of assets are belonged to this article."
     assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -167,14 +163,14 @@ export default /* GraphQL */ `
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Cumulative reading time in seconds"
+    readTime: Float!
+
     "Drafts linked to this article."
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
 
     "Revision Count"
     revisionCount: Int!
-
-    "Current article belongs to which Circle."
-    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: ArticleAccess!
@@ -208,7 +204,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Tag's cover link."
-    cover: URL
+    cover: String
 
     "Description of this tag."
     description: String
@@ -231,6 +227,9 @@ export default /* GraphQL */ `
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "This value determines if it is official."
+    isOfficial: Boolean
+
     ##############
     #     OSS    #
     ##############
@@ -246,8 +245,8 @@ export default /* GraphQL */ `
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat! @auth(mode: "${AUTH_MODE.admin}")
-    score: NonNegativeFloat! @auth(mode: "${AUTH_MODE.admin}")
+    boost: Float! @auth(mode: "${AUTH_MODE.admin}")
+    score: Float! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendIcymi: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendHottest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
@@ -259,8 +258,8 @@ export default /* GraphQL */ `
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
+    boost: Float!
+    score: Float!
     selected: Boolean!
   }
 
@@ -286,15 +285,8 @@ export default /* GraphQL */ `
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
-  input TagsInput {
-    after: String
-    first: Int
-    sort: TagsSort
-  }
-
   input ArticleInput {
-    mediaHash: String
-    uuid: UUID
+    mediaHash: String!
   }
 
   input PublishArticleInput {
@@ -319,7 +311,7 @@ export default /* GraphQL */ `
 
   input AppreciateArticleInput {
     id: ID!
-    amount: PositiveInt!
+    amount: Int! @constraint(min: 1)
     token: String
     superLike: Boolean
   }
@@ -385,7 +377,7 @@ export default /* GraphQL */ `
 
   input TagArticlesInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
     selected: Boolean
   }
@@ -402,7 +394,7 @@ export default /* GraphQL */ `
 
   input TransactionsReceivedByArgs {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     purpose: TransactionPurpose!
   }
 
@@ -412,11 +404,11 @@ export default /* GraphQL */ `
 
   input RelatedDonationArticlesInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
 
     "index of article list, min: 0, max: 49"
-    random: NonNegativeInt
+    random: Int @constraint(min: 0, max: 49)
   }
 
   "Enums for an article state."
@@ -444,13 +436,6 @@ export default /* GraphQL */ `
     icymi
     hottest
     newest
-  }
-
-  "Enums for sorting tags."
-  enum TagsSort {
-    newest
-    oldest
-    hottest
   }
 
   enum UpdateTagSettingType {

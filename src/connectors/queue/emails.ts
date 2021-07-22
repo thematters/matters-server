@@ -50,76 +50,81 @@ class EmailsQueue extends BaseQueue {
     )
   }
 
-  private sendDailySummaryEmails: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
-    try {
-      logger.info(`[schedule job] send daily summary email`)
-      const users = await this.notificationService.notice.findDailySummaryUsers()
+  private sendDailySummaryEmails: Queue.ProcessCallbackFunction<unknown> =
+    async (job, done) => {
+      try {
+        logger.info(`[schedule job] send daily summary email`)
+        const users =
+          await this.notificationService.notice.findDailySummaryUsers()
 
-      users.forEach(async (user, index) => {
-        const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
-          user.id
-        )
+        users.forEach(async (user, index) => {
+          const notices =
+            await this.notificationService.notice.findDailySummaryNoticesByUser(
+              user.id
+            )
 
-        if (!notices || notices.length <= 0) {
-          return
-        }
+          if (!notices || notices.length <= 0) {
+            return
+          }
 
-        const filterNotices = (type: DBNoticeType) =>
-          notices.filter((notice) => notice.noticeType === type)
+          const filterNotices = (type: DBNoticeType) =>
+            notices.filter((notice) => notice.noticeType === type)
 
-        this.notificationService.mail.sendDailySummary({
-          to: user.email,
-          recipient: {
-            displayName: user.displayName,
-          },
-          notices: {
-            user_new_follower: filterNotices(DB_NOTICE_TYPE.user_new_follower),
-            article_new_collected: filterNotices(
-              DB_NOTICE_TYPE.article_new_collected
-            ),
-            article_new_appreciation: filterNotices(
-              DB_NOTICE_TYPE.article_new_appreciation
-            ),
-            article_new_subscriber: filterNotices(
-              DB_NOTICE_TYPE.article_new_subscriber
-            ),
-            article_new_comment: filterNotices(
-              DB_NOTICE_TYPE.article_new_comment
-            ),
-            article_mentioned_you: filterNotices(
-              DB_NOTICE_TYPE.article_mentioned_you
-            ),
-            comment_new_reply: filterNotices(DB_NOTICE_TYPE.comment_new_reply),
-            comment_mentioned_you: filterNotices(
-              DB_NOTICE_TYPE.comment_mentioned_you
-            ),
-          },
-          language: user.language,
+          this.notificationService.mail.sendDailySummary({
+            to: user.email,
+            recipient: {
+              displayName: user.displayName,
+            },
+            notices: {
+              user_new_follower: filterNotices(
+                DB_NOTICE_TYPE.user_new_follower
+              ),
+              article_new_collected: filterNotices(
+                DB_NOTICE_TYPE.article_new_collected
+              ),
+              article_new_appreciation: filterNotices(
+                DB_NOTICE_TYPE.article_new_appreciation
+              ),
+              article_new_subscriber: filterNotices(
+                DB_NOTICE_TYPE.article_new_subscriber
+              ),
+              article_new_comment: filterNotices(
+                DB_NOTICE_TYPE.article_new_comment
+              ),
+              article_mentioned_you: filterNotices(
+                DB_NOTICE_TYPE.article_mentioned_you
+              ),
+              comment_new_reply: filterNotices(
+                DB_NOTICE_TYPE.comment_new_reply
+              ),
+              comment_mentioned_you: filterNotices(
+                DB_NOTICE_TYPE.comment_mentioned_you
+              ),
+            },
+            language: user.language,
+          })
+
+          job.progress(((index + 1) / users.length) * 100)
         })
 
-        job.progress(((index + 1) / users.length) * 100)
-      })
-
-      job.progress(100)
-      if (users.length > 0) {
+        job.progress(100)
+        if (users.length > 0) {
+          this.slackService.sendQueueMessage({
+            title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
+            message: `Sent daily summary email to ${users.length} users.`,
+            state: SLACK_MESSAGE_STATE.successful,
+          })
+        }
+        done(null, `send daily emails to ${users.length} users`)
+      } catch (e) {
         this.slackService.sendQueueMessage({
           title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
-          message: `Sent daily summary email to ${users.length} users.`,
-          state: SLACK_MESSAGE_STATE.successful,
+          message: `Failed to process cron job`,
+          state: SLACK_MESSAGE_STATE.failed,
         })
+        done(e)
       }
-      done(null, `send daily emails to ${users.length} users`)
-    } catch (e) {
-      this.slackService.sendQueueMessage({
-        title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
-        message: `Failed to process cron job`,
-        state: SLACK_MESSAGE_STATE.failed,
-      })
-      done(e)
     }
-  }
 }
 
 export const emailsQueue = new EmailsQueue()

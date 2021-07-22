@@ -2,8 +2,10 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLFollowingActivityTypeResolver,
   GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
+  GQLPossibleFollowingActivityTypeNames,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
   GQLStripeAccountTypeResolver,
@@ -49,6 +51,7 @@ import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
+import unreadFollowing from './unreadFollowing'
 import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
@@ -63,7 +66,12 @@ const user: {
   UserActivity: GQLUserActivityTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
+
   Following: GQLFollowingTypeResolver
+  FollowingActivity: {
+    __resolveType: GQLFollowingActivityTypeResolver
+  }
+
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
@@ -123,13 +131,23 @@ const user: {
     commentCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
+    unreadFollowing,
     hasPaymentPassword,
     totalWordCount,
     donatedArticleCount,
     receivedDonationCount,
   },
   Appreciation,
+
   Following,
+  FollowingActivity: {
+    __resolveType: ({
+      __type,
+    }: {
+      __type: GQLPossibleFollowingActivityTypeNames
+    }) => __type,
+  },
+
   Recommendation,
 
   // LikeCoin

@@ -1,7 +1,7 @@
 ARG USERNAME=node
 
 # [Choice] Node.js version: 16, 14, 12
-ARG VARIANT=12-buster
+ARG VARIANT=16-buster
 FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-${VARIANT}
 
 # Install tslint, typescript, commitizen. eslint is installed by javascript image

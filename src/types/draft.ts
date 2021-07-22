@@ -47,7 +47,7 @@ export default /* GraphQL */ `
     tags: [String!]
 
     "Draft's cover link."
-    cover: URL
+    cover: String
 
     "State of draft during publihsing."
     publishState: PublishState!
@@ -60,9 +60,6 @@ export default /* GraphQL */ `
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Circle of this draft."
-    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: DraftAccess!

@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
-  cursorToIndex,
   filterMissingFieldNoticeEdges,
+  fromConnectionArgs,
 } from 'common/utils'
 import { UserToNoticesResolver } from 'definitions'
 
@@ -10,15 +10,15 @@ const resolver: UserToNoticesResolver = async (
   { input },
   { dataSources: { notificationService } }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const totalCount = await notificationService.notice.countNotice({
     userId: id,
   })
   const notices = await notificationService.notice.findByUser({
     userId: id,
-    offset,
-    limit: first,
+    skip,
+    take,
   })
 
   const result = connectionFromArray(notices, input, totalCount)

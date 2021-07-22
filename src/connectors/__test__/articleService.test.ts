@@ -8,16 +8,14 @@ const articleService = new ArticleService()
 // })
 
 test('publish', async () => {
-  const {
-    mediaHash,
-    contentHash: dataHash,
-  } = await articleService.publishToIPFS({
-    authorId: '1',
-    title: 'test',
-    cover: '1',
-    summary: 'test-summary',
-    content: '<div>test-html-string</div>',
-  })
+  const { mediaHash, contentHash: dataHash } =
+    await articleService.publishToIPFS({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      summary: 'test-summary',
+      content: '<div>test-html-string</div>',
+    })
   const articlePublished = await articleService.createArticle({
     draftId: '1',
     authorId: '1',
@@ -35,11 +33,6 @@ test('publish', async () => {
   expect(articlePublished.state).toBe('active')
 })
 
-test('countByAuthor', async () => {
-  const count = await articleService.countByAuthor('1')
-  expect(count).toBeDefined()
-})
-
 test('sumAppreciation', async () => {
   const appreciation = await articleService.sumAppreciation('1')
   expect(appreciation).toBeDefined()
@@ -51,7 +44,7 @@ test('findByAuthor', async () => {
 })
 
 test('findByCommentedAuthor', async () => {
-  const articles = await articleService.findByCommentedAuthor('1')
+  const articles = await articleService.findByCommentedAuthor({ id: '1' })
   expect(articles.length).toBeDefined()
 })
 

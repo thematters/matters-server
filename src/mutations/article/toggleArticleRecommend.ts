@@ -5,7 +5,7 @@ import { MutationToToggleArticleRecommendResolver } from 'definitions'
 const resolver: MutationToToggleArticleRecommendResolver = async (
   root,
   { input: { id, enabled, type = 'icymi' } },
-  { viewer, dataSources: { articleService, draftService } }
+  { viewer, dataSources: { atomService, articleService, draftService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
@@ -15,20 +15,35 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
 
   switch (type) {
     case 'icymi':
-      await (enabled
-        ? articleService.addRecommendIcymi
-        : articleService.removeRecommendIcymi)(dbId)
+      if (enabled) {
+        const data = { articleId: dbId }
+        await atomService.upsert({
+          table: 'matters_choice',
+          where: data,
+          create: data,
+          update: { ...data, updatedAt: new Date() },
+        })
+      } else {
+        await atomService.deleteMany({
+          table: 'matters_choice',
+          where: { articleId: dbId },
+        })
+      }
       break
     case 'hottest':
-      await articleService.updateRecommendSetting({
-        articleId: dbId,
-        data: { inHottest: enabled },
+      await atomService.upsert({
+        table: 'article_recommend_setting',
+        where: { articleId: dbId },
+        create: { inHottest: true, articleId: dbId },
+        update: { inHottest: true },
       })
       break
     case 'newest':
-      await articleService.updateRecommendSetting({
-        articleId: dbId,
-        data: { inNewest: enabled },
+      await atomService.upsert({
+        table: 'article_recommend_setting',
+        where: { articleId: dbId },
+        create: { inNewest: true, articleId: dbId },
+        update: { inNewest: true },
       })
       break
   }

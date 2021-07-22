@@ -1,5 +1,5 @@
 import bodyParser from 'body-parser'
-import { Request, Response, Router } from 'express'
+import { Request, RequestHandler, Response, Router } from 'express'
 import passport from 'passport'
 import querystring from 'querystring'
 
@@ -55,8 +55,8 @@ const oAuthServer = new OAuthServer({
  * Routes
  */
 oAuthRouter.use(passport.initialize())
-oAuthRouter.use(bodyParser.json())
-oAuthRouter.use(bodyParser.urlencoded({ extended: false }))
+oAuthRouter.use(bodyParser.json() as RequestHandler)
+oAuthRouter.use(bodyParser.urlencoded({ extended: false }) as RequestHandler)
 oAuthRouter.use(async (req, res, next) => {
   try {
     const viewer = await getViewerFromReq({ req, res })
@@ -73,7 +73,7 @@ oAuthRouter.use(async (req, res, next) => {
  * Routes:Provider
  */
 oAuthRouter.use('/authorize', async (req, res, next) => {
-  const qs = querystring.stringify(req.query)
+  const qs = querystring.stringify(req.query as any)
   const grantUrl = `${environment.oauthSiteDomain}/oauth/authorize?${qs}`
   const loginUrl = `${
     environment.oauthSiteDomain

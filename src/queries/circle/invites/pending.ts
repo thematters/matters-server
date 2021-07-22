@@ -1,5 +1,5 @@
 import { INVITATION_STATE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { InvitesToPendingResolver } from 'definitions'
 
 const resolver: InvitesToPendingResolver = async (
@@ -12,8 +12,7 @@ const resolver: InvitesToPendingResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, records] = await Promise.all([
     atomService.count({

@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToBadgedUsersResolver } from 'definitions'
 
 export const badgedUsers: OSSToBadgedUsersResolver = async (
@@ -6,8 +6,8 @@ export const badgedUsers: OSSToBadgedUsersResolver = async (
   { input },
   { viewer, dataSources: { atomService }, knex }
 ) => {
-  const { first: take, after, type } = input
-  const skip = cursorToIndex(after) + 1
+  const { type } = input
+  const { take, skip } = fromConnectionArgs(input)
 
   const table = 'user_badge'
 

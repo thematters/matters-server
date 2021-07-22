@@ -1,5 +1,5 @@
+import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { GraphQLEnumValue, GraphQLField } from 'graphql'
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 export class DeprecatedDirective extends SchemaDirectiveVisitor {
   public visitFieldDefinition(field: GraphQLField<any, any>) {

@@ -2,7 +2,11 @@ import _ from 'lodash'
 
 import { ARTICLE_STATE } from 'common/enums'
 import logger from 'common/logger'
-import { connectionFromArray, loadManyFilterError } from 'common/utils'
+import {
+  connectionFromArray,
+  fromConnectionArgs,
+  loadManyFilterError,
+} from 'common/utils'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
@@ -10,11 +14,11 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   { input },
   { dataSources: { articleService, draftService, tagService } }
 ) => {
+  // return 3 recommendations by default
+  const { take, skip } = fromConnectionArgs(input, { defaultTake: 3 })
+
   // buffer for archived article and random draw
   const buffer = 7
-
-  // return 3 recommendations by default
-  const recommendationSize = input.first || 3
 
   // helper function to prevent duplicates and origin article
   const addRec = (rec: any[], extra: any[]) =>
@@ -31,7 +35,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   try {
     const relatedArticles = await articleService.related({
       id: articleId,
-      size: recommendationSize + buffer,
+      size: take + buffer,
       notIn: collection,
     })
 
@@ -56,17 +60,18 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   }
 
   // fall back to tags
-  if (articles.length < recommendationSize + buffer) {
+  if (articles.length < take + buffer) {
     const tagIds = await articleService.findTagIds({ id: articleId })
 
     for (const tagId of tagIds) {
-      if (articles.length >= recommendationSize + buffer) {
+      if (articles.length >= take + buffer) {
         break
       }
 
       const articleIds = await tagService.findArticleIds({
         id: tagId,
-        limit: recommendationSize - ids.length,
+        take: take - ids.length,
+        skip,
       })
 
       logger.info(
@@ -83,7 +88,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   }
 
   // fall back to author
-  if (articles.length < recommendationSize + buffer) {
+  if (articles.length < take + buffer) {
     const articlesFromAuthor = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active,
     })
@@ -97,9 +102,9 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // random pick for last few elements
   const randomPick = 1
-  let pick = articles.slice(0, recommendationSize - randomPick)
+  let pick = articles.slice(0, take - randomPick)
   pick = pick.concat(
-    _.sampleSize(articles.slice(recommendationSize - randomPick), randomPick)
+    _.sampleSize(articles.slice(take - randomPick), randomPick)
   )
 
   const nodes = await draftService.dataloader.loadMany(

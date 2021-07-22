@@ -151,7 +151,7 @@ export default /* GraphQL */ `
     author: ID
     sort: CommentSort
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
   }
 
   input CommentsInput {
@@ -160,14 +160,14 @@ export default /* GraphQL */ `
     before: String
     includeAfter: Boolean
     includeBefore: Boolean
-    first: Int
+    first: Int @constraint(min: 0)
     filter: CommentsFilter
   }
 
   input FeaturedCommentsInput {
     sort: CommentSort
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
   }
 
   input CommentsFilter {
