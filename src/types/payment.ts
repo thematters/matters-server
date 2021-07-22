@@ -132,7 +132,7 @@ export default /* GraphQL */ `
     transaction: Transaction!
 
     "Only available when paying with LIKE."
-    redirectUrl: String @constraint(format: "uri")
+    redirectUrl: String
   }
 
   # Add Credit
