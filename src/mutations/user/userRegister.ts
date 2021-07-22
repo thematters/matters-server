@@ -113,7 +113,7 @@ const resolver: MutationToUserRegisterResolver = async (
   // auto follow tags
   const items = await Promise.all([
     ...AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content })),
-    atomService.findUnique({
+    atomService.findMany({
       table: 'tag',
       where: { id: environment.mattyChoiceTagId },
     }),
