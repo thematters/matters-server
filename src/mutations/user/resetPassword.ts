@@ -1,10 +1,14 @@
+import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeInvalidError,
   PasswordInvalidError,
   UserNotFoundError,
 } from 'common/errors'
 import { isValidPassword, isValidPaymentPassword } from 'common/utils'
-import { MutationToResetPasswordResolver } from 'definitions'
+import {
+  GQLVerificationCodeType,
+  MutationToResetPasswordResolver,
+} from 'definitions'
 
 const resolver: MutationToResetPasswordResolver = async (
   _,
@@ -14,8 +18,11 @@ const resolver: MutationToResetPasswordResolver = async (
   const [code] = await userService.findVerificationCodes({
     where: {
       uuid,
-      type: type === 'payment' ? 'payment_password_reset' : 'password_reset',
-      status: 'verified',
+      type:
+        type === 'payment'
+          ? GQLVerificationCodeType.payment_password_reset
+          : GQLVerificationCodeType.password_reset,
+      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
 
@@ -49,7 +56,7 @@ const resolver: MutationToResetPasswordResolver = async (
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'used',
+    status: VERIFICATION_CODE_STATUS.used,
   })
 
   // trigger notifications

@@ -285,7 +285,7 @@ describe('register and login functionarlities', () => {
     })
     await userService.markVerificationCodeAs({
       codeId: code.id,
-      status: 'verified',
+      status: VERIFICATION_CODE_STATUS.verified,
     })
     const user = {
       email,
