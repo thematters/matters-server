@@ -12,7 +12,7 @@ const resolver: RecommendationToFollowingResolver = async (
   { id: userId },
   { input },
   {
-    dataSources: { userService, commentService, atomService, articleService },
+    dataSources: { userService, commentService, tagService, atomService, articleService },
     knex,
   }
 ) => {
@@ -99,6 +99,8 @@ const resolver: RecommendationToFollowingResolver = async (
         return atomService.findFirst({ table: 'circle', where: { id } })
       case 'User':
         return userService.dataloader.load(id)
+      case 'Tag':
+        return tagService.dataloader.load(id)
     }
   }
   const activityLoader = async ({
