@@ -278,7 +278,10 @@ export default /* GraphQL */ `
     unreadNoticeCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) @deprecated(reason: "Use \`unreadFollowing\` instead")
+
+    "Whether there are unread activities from following."
+    unreadFollowing: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Number of total written words."
     totalWordCount: Int!
