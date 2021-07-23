@@ -1,7 +1,7 @@
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
-  VERIFICATION_CODE_TYPES,
+  VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -11,12 +11,23 @@ import {
 } from 'common/errors'
 import logger from 'common/logger'
 import { gcp } from 'connectors'
-import { MutationToSendVerificationCodeResolver } from 'definitions'
+import {
+  GQLVerificationCodeType,
+  MutationToSendVerificationCodeResolver,
+} from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email: rawEmail, type, token, redirectUrl } },
-  { viewer, dataSources: { userService, notificationService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      userService,
+      notificationService,
+      systemService,
+    },
+  }
 ) => {
   const email = rawEmail.toLowerCase()
 
@@ -29,7 +40,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   let user
 
   // register check
-  if (type === VERIFICATION_CODE_TYPES.register) {
+  if (type === GQLVerificationCodeType.register) {
     // check email
     user = await userService.findByEmail(email)
     if (user) {
@@ -44,9 +55,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   }
 
   if (
-    type === VERIFICATION_CODE_TYPES.payment_password_reset ||
-    type === VERIFICATION_CODE_TYPES.password_reset ||
-    type === VERIFICATION_CODE_TYPES.email_reset
+    type === GQLVerificationCodeType.payment_password_reset ||
+    type === GQLVerificationCodeType.password_reset ||
+    type === GQLVerificationCodeType.email_reset
   ) {
     user = await userService.findByEmail(email)
     if (!user) {
@@ -109,6 +120,13 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       }
     }
   }
+
+  // retire old active codes
+  await atomService.updateMany({
+    table: 'verification_code',
+    where: { type, email, status: VERIFICATION_CODE_STATUS.active },
+    data: { status: VERIFICATION_CODE_STATUS.inactive, updatedAt: new Date() },
+  })
 
   // insert record
   const { code } = await userService.createVerificationCode({

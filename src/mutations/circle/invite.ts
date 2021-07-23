@@ -7,7 +7,6 @@ import {
   INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
-  VERIFICATION_CODE_TYPES,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -22,7 +21,7 @@ import {
   makeUserName,
 } from 'common/utils'
 import { CacheService } from 'connectors'
-import { MutationToInviteResolver } from 'definitions'
+import { GQLVerificationCodeType, MutationToInviteResolver } from 'definitions'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
@@ -179,7 +178,7 @@ const resolver: MutationToInviteResolver = async (
     if (!recipient && email) {
       codeObject = await userService.createVerificationCode({
         email,
-        type: VERIFICATION_CODE_TYPES.register,
+        type: GQLVerificationCodeType.register,
         strong: true,
         expiredAt: new Date(
           Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER

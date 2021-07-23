@@ -1,7 +1,7 @@
-import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
+import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { notificationQueue } from 'connectors/queue/notification'
-import { LANGUAGES } from 'definitions'
+import { GQLVerificationCodeType, LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
 
@@ -14,7 +14,7 @@ export const sendVerificationCode = async ({
   language = 'zh_hant',
 }: {
   to: string
-  type: keyof typeof VERIFICATION_CODE_TYPES
+  type: GQLVerificationCodeType
   code: string
   redirectUrl?: string
   recipient: {
@@ -40,13 +40,13 @@ export const sendVerificationCode = async ({
           subject,
           siteDomain: environment.siteDomain,
           type: {
-            register: type === VERIFICATION_CODE_TYPES.register,
-            emailReset: type === VERIFICATION_CODE_TYPES.email_reset,
+            register: type === GQLVerificationCodeType.register,
+            emailReset: type === GQLVerificationCodeType.email_reset,
             emailResetConfirm:
-              type === VERIFICATION_CODE_TYPES.email_reset_confirm,
-            passwordReset: type === VERIFICATION_CODE_TYPES.password_reset,
+              type === GQLVerificationCodeType.email_reset_confirm,
+            passwordReset: type === GQLVerificationCodeType.password_reset,
             paymentPasswordReset:
-              type === VERIFICATION_CODE_TYPES.payment_password_reset,
+              type === GQLVerificationCodeType.payment_password_reset,
           },
           recipient: {
             ...recipient,

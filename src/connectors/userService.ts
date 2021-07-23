@@ -20,7 +20,6 @@ import {
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES,
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -36,6 +35,7 @@ import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchExclude,
+  GQLVerificationCodeType,
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
@@ -1520,6 +1520,7 @@ export class UserService extends BaseService {
         email,
         type,
         code,
+        status: VERIFICATION_CODE_STATUS.active,
         expiredAt:
           expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
@@ -1531,8 +1532,8 @@ export class UserService extends BaseService {
     where,
   }: {
     where?: {
-      type?: keyof typeof VERIFICATION_CODE_TYPES
-      status?: keyof typeof VERIFICATION_CODE_STATUS
+      type?: GQLVerificationCodeType
+      status?: VERIFICATION_CODE_STATUS
       [key: string]: any
     }
   }) => {
@@ -1553,7 +1554,7 @@ export class UserService extends BaseService {
     status,
   }: {
     codeId: string
-    status: keyof typeof VERIFICATION_CODE_STATUS
+    status: VERIFICATION_CODE_STATUS
   }) => {
     let data: any = { status }
 
