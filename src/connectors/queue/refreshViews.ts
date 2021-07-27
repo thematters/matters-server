@@ -141,6 +141,42 @@ class RefreshViewsQueue extends BaseQueue {
         },
       }
     )
+
+    // refresh user recently read tags view every 6 hours
+    this.q.add(
+      QUEUE_JOB.refreshRecentlyReadTagsView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 6,
+        },
+      }
+    )
+
+    // refresh article read time view every 1 hours
+    this.q.add(
+      QUEUE_JOB.refreshArticleReadTimeView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 1,
+        },
+      }
+    )
+
+    // refresh recommended articles from read tags view every 12 hours
+    this.q.add(
+      QUEUE_JOB.refreshRecommendedArticlesFromReadTagsView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 12,
+        },
+      }
+    )
   }
 
   /**
@@ -188,6 +224,18 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshUserActivityLongView,
       this.handleRefreshView('user_activity_long_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshRecentlyReadTagsView,
+      this.handleRefreshView('recently_read_tags_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshArticleReadTimeView,
+      this.handleRefreshView('article_read_time_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshRecommendedArticlesFromReadTagsView,
+      this.handleRefreshView('recommended_articles_from_read_tags_materialized')
     )
   }
 

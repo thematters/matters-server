@@ -12,7 +12,13 @@ const resolver: RecommendationToFollowingResolver = async (
   { id: userId },
   { input },
   {
-    dataSources: { userService, commentService, tagService, atomService, articleService },
+    dataSources: {
+      userService,
+      commentService,
+      tagService,
+      atomService,
+      articleService,
+    },
     knex,
   }
 ) => {

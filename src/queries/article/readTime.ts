@@ -3,27 +3,24 @@ import { ArticleToRevisionCountResolver } from 'definitions'
 const resolver: ArticleToRevisionCountResolver = async (
   { articleId },
   _,
-  { knex }
+  { dataSources: { atomService } }
 ) => {
-  const result = await knex
-    .sum('read_time as total')
-    .from('article_read_count')
-    .where({ articleId })
-    .andWhereNot({ readTime: null })
-    .groupBy('article_id')
-    .first()
+  const result = await atomService.findFirst({
+    table: 'article_read_time_materialized',
+    where: { articleId },
+  })
 
   if (!result) {
     return 0
   }
 
-  const total = parseFloat(result.total)
+  const sumReadTime = parseFloat(result.sumReadTime)
 
-  if (!total || total <= 0) {
+  if (!sumReadTime || sumReadTime <= 0) {
     return 0
   }
 
-  return total
+  return sumReadTime
 }
 
 export default resolver

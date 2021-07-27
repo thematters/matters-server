@@ -40,6 +40,10 @@ export const QUEUE_JOB = {
   refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
   refreshUserActivityView: 'refreshUserActivityView',
   refreshUserActivityLongView: 'refreshUserActivityLongView',
+  refreshArticleReadTimeView: 'refreshArticleReadTimeView',
+  refreshRecentlyReadTagsView: 'refreshRecentlyReadTagsView',
+  refreshRecommendedArticlesFromReadTagsView:
+    'refreshRecommendedArticlesFromReadTagsView',
 
   // Migration
   migration: 'migration',
