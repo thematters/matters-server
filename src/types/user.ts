@@ -152,6 +152,9 @@ export default /* GraphQL */ `
     "Activities based on user's following, sort by creation time."
     following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Articles recommended based on recently read article tags."
+    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "Articles published by user's followees."
     followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
