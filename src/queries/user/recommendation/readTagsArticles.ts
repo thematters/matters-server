@@ -31,8 +31,6 @@ const resolver: RecommendationToReadTagsArticlesResolver = async (
     }),
   ])
 
-  console.log(tagArticles)
-
   return connectionFromPromisedArray(
     articleService.draftLoader.loadMany(
       tagArticles.map(({ articleId }) => articleId)
