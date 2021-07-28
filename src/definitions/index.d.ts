@@ -172,6 +172,9 @@ export type MaterializedView =
   | 'most_trendy_author_materialized'
   | 'user_activity_materialized'
   | 'user_activity_long_materialized'
+  | 'recently_read_tags_materialized'
+  | 'article_read_time_materialized'
+  | 'recommended_articles_from_read_tags_materialized'
 
 export type TableName = BasicTableName | View | MaterializedView
 

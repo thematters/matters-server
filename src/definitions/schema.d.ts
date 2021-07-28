@@ -2609,6 +2609,11 @@ export interface GQLRecommendation {
   following: GQLFollowingActivityConnection
 
   /**
+   * Articles recommended based on recently read article tags.
+   */
+  readTagsArticles: GQLArticleConnection
+
+  /**
    * Articles published by user's followees.
    * @deprecated Merged into `Recommendation.following`
    */
@@ -8807,6 +8812,7 @@ export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   following?: RecommendationToFollowingResolver<TParent>
+  readTagsArticles?: RecommendationToReadTagsArticlesResolver<TParent>
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<TParent>
@@ -8832,6 +8838,21 @@ export interface RecommendationToFollowingResolver<
   (
     parent: TParent,
     args: RecommendationToFollowingArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToReadTagsArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToReadTagsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToReadTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

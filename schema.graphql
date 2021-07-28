@@ -1895,6 +1895,9 @@ type Recommendation {
   """Activities based on user's following, sort by creation time."""
   following(input: ConnectionArgs!): FollowingActivityConnection!
 
+  """Articles recommended based on recently read article tags."""
+  readTagsArticles(input: ConnectionArgs!): ArticleConnection!
+
   """Articles published by user's followees."""
   followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
 
