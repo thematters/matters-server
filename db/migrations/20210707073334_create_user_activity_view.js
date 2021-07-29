@@ -6,13 +6,15 @@ exports.up = async (knex) => {
   const createUserActivityViews = async (materialized_view_name, period) => {
     // create view
     await knex.raw(/*sql*/ `
+      DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE
+
       CREATE MATERIALIZED VIEW ${materialized_view_name} AS
       WITH
       /* UserPublishArticleActivity */
       article_period AS (SELECT * FROM article WHERE created_at >= now() - interval '${period}' day),
 
       /* UserBroadcastCircleActivity */
-      circle_boardcast_period AS (SELECT * FROM comment WHERE state = 'active' AND "type" = 'circle_discussion' AND created_at >= now() - interval '${period}' day),
+      circle_boardcast_period AS (SELECT * FROM comment WHERE state = 'active' AND "type" = 'circle_broadcast' AND created_at >= now() - interval '${period}' day),
 
       /* UserCreateCircleActivity */
       circle_period AS (SELECT * FROM circle WHERE state = 'active' AND created_at >= now() - interval '${period}' day),
