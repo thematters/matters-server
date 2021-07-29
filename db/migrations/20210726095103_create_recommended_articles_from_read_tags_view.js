@@ -6,7 +6,7 @@ const article_prepared_limit = 20
 exports.up = async (knex) => {
   // create materialized view
   await knex.raw(/*sql*/ `
-    DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE
+    DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE;
 
     CREATE MATERIALIZED VIEW ${materialized_view_name} AS
 
