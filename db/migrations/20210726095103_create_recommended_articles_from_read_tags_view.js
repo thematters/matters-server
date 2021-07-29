@@ -6,6 +6,8 @@ const article_prepared_limit = 20
 exports.up = async (knex) => {
   // create materialized view
   await knex.raw(/*sql*/ `
+    DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
+
     CREATE MATERIALIZED VIEW ${materialized_view_name} AS
 
     WITH tag_article_read_time AS (
@@ -26,9 +28,9 @@ exports.up = async (knex) => {
 
 
     SELECT
-      row_number() over (order by user_id, article_id) AS id,
-      user_id,
-      article_id,
+      row_number() over (order by tt.user_id, tt.article_id) AS id,
+      tt.user_id,
+      tt.article_id,
       tags_based,
       score
     FROM (
@@ -46,8 +48,10 @@ exports.up = async (knex) => {
         GROUP BY rrt.user_id, tart.article_id
       ) t
     ) tt
-    WHERE tt.row_num <= ${article_prepared_limit}
-    ORDER BY user_id ASC, score DESC
+    LEFT JOIN article_read_count arc on arc.article_id = tt.article_id
+      AND arc.user_id = tt.user_id
+    WHERE arc.article_id IS NULL AND tt.row_num <= ${article_prepared_limit}
+    ORDER BY tt.user_id ASC, score DESC
   `)
 
   // add indexes

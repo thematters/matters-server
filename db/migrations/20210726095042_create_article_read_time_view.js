@@ -3,6 +3,8 @@ const materialized_view_name = 'article_read_time_materialized'
 exports.up = async (knex) => {
   // create materialized view
   await knex.raw(/*sql*/ `
+    DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
+
     CREATE MATERIALIZED VIEW ${materialized_view_name} AS
     SELECT
       article_id as id,

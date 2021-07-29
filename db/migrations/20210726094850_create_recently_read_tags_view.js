@@ -7,6 +7,8 @@ const tag_read_limit = 10
 exports.up = async (knex) => {
   // create materialized view
   await knex.raw(/*sql*/ `
+    DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
+
     CREATE MATERIALIZED VIEW ${materialized_view_name} AS
 
     WITH
