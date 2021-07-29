@@ -6,7 +6,7 @@ exports.up = async (knex) => {
   const createUserActivityViews = async (materialized_view_name, period) => {
     // create view
     await knex.raw(/*sql*/ `
-      DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE;
+      DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
 
       CREATE MATERIALIZED VIEW ${materialized_view_name} AS
       WITH
