@@ -1,4 +1,4 @@
-import { INVITATION_STATE, NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLCircleSettingTypeResolver,
@@ -92,7 +92,6 @@ const circle: {
     circle: invitationCircle,
     freePeriod: ({ durationInDays }) => durationInDays,
     state: ({ state }) => state,
-    accepted: ({ state }) => state === INVITATION_STATE.accepted,
   },
 
   Invitee: {

@@ -1,9 +1,13 @@
+import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeInvalidError,
   EmailExistsError,
   UserNotFoundError,
 } from 'common/errors'
-import { MutationToChangeEmailResolver } from 'definitions'
+import {
+  GQLVerificationCodeType,
+  MutationToChangeEmailResolver,
+} from 'definitions'
 
 const resolver: MutationToChangeEmailResolver = async (
   _,
@@ -24,16 +28,16 @@ const resolver: MutationToChangeEmailResolver = async (
     where: {
       uuid: oldEmailCodeId,
       email: oldEmail,
-      type: 'email_reset',
-      status: 'verified',
+      type: GQLVerificationCodeType.email_reset,
+      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
   const [newCode] = await userService.findVerificationCodes({
     where: {
       uuid: newEmailCodeId,
       email: newEmail,
-      type: 'email_reset_confirm',
-      status: 'verified',
+      type: GQLVerificationCodeType.email_reset_confirm,
+      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
 
@@ -65,11 +69,11 @@ const resolver: MutationToChangeEmailResolver = async (
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: oldCode.id,
-    status: 'used',
+    status: VERIFICATION_CODE_STATUS.used,
   })
   await userService.markVerificationCodeAs({
     codeId: newCode.id,
-    status: 'used',
+    status: VERIFICATION_CODE_STATUS.used,
   })
 
   return newUser

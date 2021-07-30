@@ -1,7 +1,7 @@
-import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
+import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { notificationQueue } from 'connectors/queue/notification'
-import { LANGUAGES } from 'definitions'
+import { GQLVerificationCodeType, LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
 
@@ -34,7 +34,7 @@ export const sendCircleInvitation = async ({
   const urlHasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
   const registerLink = code
     ? `${redirectUrl}${urlHasQs ? '&' : '?'}code=${code}&type=${
-        VERIFICATION_CODE_TYPES.register
+        GQLVerificationCodeType.register
       }`
     : undefined
   const circleLink = code

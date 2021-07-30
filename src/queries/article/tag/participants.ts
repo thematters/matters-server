@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  fromConnectionArgs,
 } from 'common/utils'
 import { TagToParticipantsResolver } from 'definitions'
 
@@ -13,15 +13,15 @@ const resolver: TagToParticipantsResolver = async (
   if (!id) {
     return connectionFromArray([], input)
   }
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+
+  const { take, skip } = fromConnectionArgs(input)
 
   const exclude = owner ? [owner] : []
   const totalCount = await tagService.countParticipants({ id, exclude })
   const userIds = await tagService.findParticipants({
     id,
-    offset,
-    limit: first,
+    skip,
+    take,
     exclude,
   })
 

@@ -12,10 +12,6 @@ if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
 
   try {
     firebaseCert = require(filePath)
-    console.log(
-      new Date(),
-      `Succeeded to load firebase credentials on ${filePath}`
-    )
   } catch (e) {
     console.error(
       new Date(),
@@ -33,7 +29,6 @@ if (process.env.MATTERS_OICD_PRIVATE_KEY) {
 
   try {
     OICDPrivateKey = fs.readFileSync(filePath, { encoding: 'utf8' })
-    console.log(new Date(), `Succeeded to load OICD private key on ${filePath}`)
   } catch (e) {
     console.error(new Date(), `Failed to load OICD private key on ${filePath}`)
   }
@@ -64,8 +59,6 @@ export const environment = {
   pgDatabase: process.env.MATTERS_PG_DATABASE,
   ipfsHost: process.env.MATTERS_IPFS_HOST || '',
   ipfsPort: process.env.MATTERS_IPFS_PORT || '5001',
-  pubSubHost: process.env.MATTERS_PUBSUB_HOST as string,
-  pubSubPort: (process.env.MATTERS_PUBSUB_PORT || 6379) as number,
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
@@ -75,7 +68,6 @@ export const environment = {
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
-  apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   firebaseCert,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,

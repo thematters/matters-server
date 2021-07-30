@@ -83,7 +83,6 @@ jobs:
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres
           MATTERS_PG_DATABASE: matters-test
-          MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
           MATTERS_MATTY_ID: 6
@@ -156,7 +155,7 @@ jobs:
 
       - name: Deploy to EB (develop)
         if: github.base_ref == 'develop'
-        uses: einaregilsson/beanstalk-deploy@v16
+        uses: einaregilsson/beanstalk-deploy@v17
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -194,7 +193,7 @@ jobs:
 
       - name: Deploy to EB (stage)
         if: github.base_ref == 'stage'
-        uses: einaregilsson/beanstalk-deploy@v16
+        uses: einaregilsson/beanstalk-deploy@v17
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -256,7 +255,7 @@ jobs:
 
       - name: Deploy to EB (production)
         if: github.base_ref == 'master'
-        uses: einaregilsson/beanstalk-deploy@v16
+        uses: einaregilsson/beanstalk-deploy@v17
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

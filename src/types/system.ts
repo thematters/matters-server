@@ -27,10 +27,6 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
-  extend type Subscription {
-    nodeEdited(input: NodeEditedInput!): Node!
-  }
-
   interface Node {
     id: ID!
   }
@@ -98,15 +94,21 @@ export default /* GraphQL */ `
     node: Node! @logCache(type: "${NODE_TYPES.Node}")
   }
 
+  input TagsInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: TagsSort
+  }
+
   input SkippedListItemsInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     type: SkippedListItemType
   }
 
   input BadgedUsersInput {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     type: BadgeType
   }
 
@@ -139,20 +141,9 @@ export default /* GraphQL */ `
     ids: [ID!]!
   }
 
-  input ReportsInput {
-    article: Boolean!
-    comment: Boolean!
-    after: String
-    first: Int
-  }
-
   input FrequentSearchInput {
     key: String
-    first: Int
-  }
-
-  input NodeEditedInput {
-    id: ID!
+    first: Int @constraint(min: 0)
   }
 
   input SearchInput {
@@ -163,7 +154,7 @@ export default /* GraphQL */ `
     type: SearchTypes!
 
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
 
     "extra query filter for searching"
     filter: SearchFilter
@@ -183,14 +174,14 @@ export default /* GraphQL */ `
   input SingleFileUploadInput {
     type: AssetType!
     file: Upload
-    url: URL
+    url: String @constraint(format: "uri")
     entityType: EntityType!
     entityId: ID
   }
 
   input SetBoostInput {
     id: ID!
-    boost: NonNegativeFloat!
+    boost: Float! @constraint(min: 0)
     type: BoostTypes!
   }
 
@@ -213,7 +204,7 @@ export default /* GraphQL */ `
 
   input ConnectionArgs {
     after: String
-    first: Int
+    first: Int @constraint(min: 0)
     oss: Boolean
   }
 
@@ -256,7 +247,15 @@ export default /* GraphQL */ `
 
   enum LogRecordTypes {
     ReadFolloweeArticles
+    ReadFollowingFeed
     ReadResponseInfoPopUp
+  }
+
+  "Enums for sorting tags."
+  enum TagsSort {
+    newest
+    oldest
+    hottest
   }
 
   "Enums for asset types."
@@ -287,11 +286,6 @@ export default /* GraphQL */ `
     admin
   }
 
-  enum CacheScope {
-    PUBLIC
-    PRIVATE
-  }
-
   enum SkippedListItemType {
     agent_hash
     email
@@ -320,15 +314,44 @@ export default /* GraphQL */ `
     blocked
   }
 
+
+  ####################
+  #    Directives    #
+  ####################
+  enum CacheControlScope {
+    PUBLIC
+    PRIVATE
+  }
+
   input CostComplexity {
     min: Int = 1
     max: Int
   }
 
+  directive @constraint(
+    # String constraints
+    minLength: Int
+    maxLength: Int
+    startsWith: String
+    endsWith: String
+    contains: String
+    notContains: String
+    pattern: String
+    format: String
+    # Number constraints
+    min: Int
+    max: Int
+    exclusiveMin: Int
+    exclusiveMax: Int
+    multipleOf: Int
+    uniqueTypeName: String
+  ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
   directive @cacheControl(
     maxAge: Int
-    scope: CacheScope
-  ) on OBJECT | FIELD | FIELD_DEFINITION
+    scope: CacheControlScope
+    inheritMaxAge: Boolean
+  ) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
   directive @cost(
     multipliers: [String]

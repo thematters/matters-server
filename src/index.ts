@@ -3,71 +3,62 @@ import cors from 'cors'
 import express, { RequestHandler } from 'express'
 import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
-import http from 'http'
 import 'module-alias/register'
 import requestIp from 'request-ip'
 
-import { CORS_OPTIONS, SERVER_TIMEOUT } from 'common/enums'
+import { CORS_OPTIONS } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 
 import * as routes from './routes'
+;(async () => {
+  /**
+   * Init
+   */
+  // Sentry
+  Sentry.init({ dsn: environment.sentryDsn })
 
-/**
- * Init
- */
-// Sentry
-Sentry.init({ dsn: environment.sentryDsn })
+  // Firebase
+  try {
+    firebase.initializeApp({
+      credential: firebase.credential.cert(environment.firebaseCert),
+    })
+  } catch (e) {
+    console.error(new Date(), 'Failed to initialize admin, skipped')
+  }
 
-// Firebase
-try {
-  firebase.initializeApp({
-    credential: firebase.credential.cert(environment.firebaseCert),
-  })
-} catch (e) {
-  console.error(new Date(), 'Failed to initialize admin, skipped')
-}
+  // Express
+  const PORT = 4000
+  const app = express()
+  app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
 
-// Express
-const PORT = 4000
-const app = express()
-const httpServer = http.createServer(app)
-app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
+  /**
+   * Middlewares
+   */
+  app.use(
+    helmet({
+      contentSecurityPolicy: isProd ? undefined : false,
+    }) as RequestHandler
+  )
+  app.use(requestIp.mw())
+  app.use(cors(CORS_OPTIONS))
 
-/**
- * Middlewares
- */
+  /**
+   * Routes
+   *
+   */
+  // GraphQL
+  const server = await routes.graphql(app)
 
-app.use(
-  helmet({
-    contentSecurityPolicy: isProd ? undefined : false,
-  }) as RequestHandler
-)
-app.use(requestIp.mw())
-app.use(cors(CORS_OPTIONS))
+  // OAuth
+  app.use('/oauth', routes.oauth)
 
-/**
- * Routes
- *
- * @see {@url https://www.apollographql.com/docs/apollo-server
- * /features/subscriptions/#subscriptions-with-additional-middleware}
- */
+  // Pay
+  app.use('/pay', routes.pay)
 
-// GraphQL
-const server = routes.graphql(app)
-server.installSubscriptionHandlers(httpServer)
-
-// OAuth
-app.use('/oauth', routes.oauth)
-
-// Pay
-app.use('/pay', routes.pay)
-
-httpServer.listen(PORT, () => {
+  await new Promise((resolve) =>
+    app.listen({ port: PORT }, resolve as () => void)
+  )
   console.log(
     `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
   )
-  console.log(
-    `🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`
-  )
-})
-httpServer.setTimeout(SERVER_TIMEOUT)
+})()

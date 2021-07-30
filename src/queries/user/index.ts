@@ -51,6 +51,7 @@ import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
+import unreadFollowing from './unreadFollowing'
 import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
@@ -130,6 +131,7 @@ const user: {
     commentCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
+    unreadFollowing,
     hasPaymentPassword,
     totalWordCount,
     donatedArticleCount,

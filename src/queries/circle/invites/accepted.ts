@@ -1,5 +1,7 @@
-import { BATCH_SIZE, INVITATION_STATE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { cloneDeep } from 'lodash'
+
+import { INVITATION_STATE } from 'common/enums'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { InvitesToAcceptedResolver } from 'definitions'
 
 const resolver: InvitesToAcceptedResolver = async (
@@ -12,8 +14,7 @@ const resolver: InvitesToAcceptedResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   // here consider accepted, transfer failed and succeeded as true accepted
   const states = Object.values(INVITATION_STATE).filter(
@@ -31,8 +32,8 @@ const resolver: InvitesToAcceptedResolver = async (
     .groupBy('user_id')
     .orderBy('accepted_at', 'desc')
 
-  const countQuery = knex.count().from(base.as('base')).first()
-  const invitesQuery = base.offset(skip).limit(take || BATCH_SIZE)
+  const countQuery = knex.count().from(cloneDeep(base).as('base')).first()
+  const invitesQuery = base.offset(skip).limit(take)
 
   const [count, invites] = await Promise.all([countQuery, invitesQuery])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)

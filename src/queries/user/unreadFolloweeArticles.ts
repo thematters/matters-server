@@ -12,8 +12,7 @@ const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
   })
   const [latestFolloweeArticle] = await userService.followeeArticles({
     userId: id,
-    offset: 0,
-    limit: 1,
+    take: 1,
   })
 
   if (!readFolloweeArticlesLog || !latestFolloweeArticle) {

@@ -4,7 +4,11 @@ import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
 } from 'common/enums'
-import { connectionFromArray, cursorToIndex, fromGlobalId } from 'common/utils'
+import {
+  connectionFromArray,
+  fromConnectionArgs,
+  fromGlobalId,
+} from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
 
 const resolver: QueryToSearchResolver = async (
@@ -15,6 +19,8 @@ const resolver: QueryToSearchResolver = async (
     viewer,
   }
 ) => {
+  const { take, skip } = fromConnectionArgs(input)
+
   if (input.key) {
     const match = SEARCH_ARTICLE_URL_REGEX.exec(input.key)
     input.key = match
@@ -34,8 +40,6 @@ const resolver: QueryToSearchResolver = async (
     input.filter.authorId = authorId
   }
 
-  const offset = cursorToIndex(input.after) + 1
-
   const serviceMap = {
     Article: articleService,
     User: userService,
@@ -43,7 +47,7 @@ const resolver: QueryToSearchResolver = async (
   }
 
   const connection = await serviceMap[input.type]
-    .search({ ...input, offset, viewerId: viewer.id })
+    .search({ ...input, skip, take, viewerId: viewer.id })
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
       return {

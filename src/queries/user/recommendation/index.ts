@@ -4,7 +4,7 @@ import { authors } from './authors'
 import { followeeArticles } from './followeeArticles'
 import { followeeComments } from './followeeComments'
 import { followeeDonatedArticles } from './followeeDonatedArticles'
-import { following } from './following'
+import following from './following'
 import { followingTagsArticles } from './followingTagsArticles'
 import { hottest } from './hottest'
 import hottestCircles from './hottestCircles'
@@ -12,12 +12,14 @@ import { hottestTags } from './hottestTags'
 import { icymi } from './icymi'
 import { newest } from './newest'
 import newestCircles from './newestCircles'
+import readTagsArticles from './readTagsArticles'
 import { selectedTags } from './selectedTags'
 import { tags } from './tags'
 
 const resolvers: GQLRecommendationTypeResolver = {
   authors,
   following,
+  readTagsArticles,
   followeeArticles,
   followeeComments,
   followeeDonatedArticles,

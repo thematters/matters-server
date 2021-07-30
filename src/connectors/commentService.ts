@@ -53,7 +53,13 @@ export class CommentService extends BaseService {
     id,
     author,
     sort,
-  }: GQLCommentCommentsInput & { id: string }) => {
+    skip,
+    take,
+  }: GQLCommentCommentsInput & {
+    id: string
+    skip?: number
+    take?: number
+  }) => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
     }
@@ -72,6 +78,13 @@ export class CommentService extends BaseService {
       query = sortCreatedAt('desc')
     } else {
       query = sortCreatedAt('desc')
+    }
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
     }
 
     return query
@@ -248,12 +261,6 @@ export class CommentService extends BaseService {
 
   /*********************************
    *                               *
-   *           Featured            *
-   *                               *
-   *********************************/
-
-  /*********************************
-   *                               *
    *              Pin              *
    *                               *
    *********************************/
@@ -267,19 +274,19 @@ export class CommentService extends BaseService {
     articleId: string
     activeOnly?: boolean
   }) => {
-    let qs = this.knex(this.table)
+    const query = this.knex(this.table)
       .count()
       .where({ targetId: articleId, pinned: true })
       .first()
 
     if (activeOnly) {
-      qs = qs.where({
+      query.where({
         state: COMMENT_STATE.active,
         type: COMMENT_TYPE.article,
       })
     }
 
-    const result = await qs
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 

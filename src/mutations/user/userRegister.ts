@@ -5,6 +5,7 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
+  VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -24,7 +25,10 @@ import {
   makeUserName,
   setCookie,
 } from 'common/utils'
-import { MutationToUserRegisterResolver } from 'definitions'
+import {
+  GQLVerificationCodeType,
+  MutationToUserRegisterResolver,
+} from 'definitions'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
@@ -37,7 +41,7 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
-  const email = rawEmail ? rawEmail.toLowerCase() : null
+  const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
     throw new EmailInvalidError('invalid email address format')
   }
@@ -47,8 +51,8 @@ const resolver: MutationToUserRegisterResolver = async (
     where: {
       uuid: codeId,
       email,
-      type: 'register',
-      status: 'verified',
+      type: GQLVerificationCodeType.register,
+      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
   if (!code) {
@@ -123,10 +127,17 @@ const resolver: MutationToUserRegisterResolver = async (
     })
   )
 
+  if (environment.mattyChoiceTagId) {
+    await tagService.follow({
+      targetId: environment.mattyChoiceTagId,
+      userId: newUser.id,
+    })
+  }
+
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'used',
+    status: VERIFICATION_CODE_STATUS.used,
   })
 
   // send email

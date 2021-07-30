@@ -139,8 +139,8 @@ const prepare = async ({
   // @ts-ignore
   context.viewer.scope = scope || {}
 
-  const { mutate, query } = await testClient({ context })
-  return { context, mutate, query }
+  const server = await testClient({ context })
+  return { context, server }
 }
 
 /**
@@ -150,9 +150,9 @@ const prepare = async ({
  */
 describe('Anonymous query and mutation', () => {
   test('query with public and private fields', async () => {
-    const { query } = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false })
     const otherUserName = 'test2'
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: VIEWER_SCOPED_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -163,9 +163,9 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const { query } = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false })
     const otherUserName = 'test2'
-    const error_case = await query({
+    const error_case = await server.executeOperation({
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -174,8 +174,10 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { query } = await testClient({ isAuth: false })
-    const errorCase1 = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
+    const server = await testClient({ isAuth: false })
+    const errorCase1 = await server.executeOperation({
+      query: VIEWER_NESTED_OTHER_PARIVATE,
+    })
 
     try {
       expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(
@@ -194,9 +196,9 @@ describe('Anonymous query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const { mutate } = await testClient({ isAuth: false })
-    const { errors } = await mutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
+    const server = await testClient({ isAuth: false })
+    const { errors } = await server.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     expect(errors && errors.length).toBe(1)
@@ -205,9 +207,9 @@ describe('Anonymous query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = 'test comment content'
-    const { mutate } = await testClient({ isAuth: false })
-    const { errors } = await mutate({
-      mutation: CREATE_COMMENT,
+    const server = await testClient({ isAuth: false })
+    const { errors } = await server.executeOperation({
+      query: CREATE_COMMENT,
       variables: { content },
     })
     expect(errors && errors.length).toBe(1)
@@ -215,9 +217,9 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('level3 mutation', async () => {
-    const { mutate } = await testClient({ isAuth: false })
-    const { errors } = await mutate({
-      mutation: CLEAR_SEARCH_HISTORY,
+    const server = await testClient({ isAuth: false })
+    const { errors } = await server.executeOperation({
+      query: CLEAR_SEARCH_HISTORY,
     })
     expect(errors && errors.length).toBe(1)
     expect(errors && errors[0].message).toBeTruthy()
@@ -231,13 +233,13 @@ describe('Anonymous query and mutation', () => {
  */
 describe('OAuth viewer qeury and mutation', () => {
   test('query with public and private fields', async () => {
-    const { context, query } = await prepare({
+    const { context, server } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes,
     })
     const otherUserName = 'test2'
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: VIEWER_SCOPED_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -248,14 +250,16 @@ describe('OAuth viewer qeury and mutation', () => {
   })
 
   test('query with no scoped and other private fields', async () => {
-    const { query } = await prepare({
+    const { server } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes,
     })
 
     // query no scope field error
-    const errorCase1 = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
+    const errorCase1 = await server.executeOperation({
+      query: VIEWER_NO_SCOPED_PRIVATE,
+    })
     expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(1)
     expect(
       errorCase1 && errorCase1.errors && errorCase1.errors[0].message
@@ -263,7 +267,7 @@ describe('OAuth viewer qeury and mutation', () => {
 
     // query other private field error
     const otherUserName = 'test2'
-    const errorCase2 = await query({
+    const errorCase2 = await server.executeOperation({
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -274,13 +278,15 @@ describe('OAuth viewer qeury and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { query } = await prepare({
+    const { server } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes,
     })
 
-    const errorCase1 = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
+    const errorCase1 = await server.executeOperation({
+      query: VIEWER_NESTED_OTHER_PARIVATE,
+    })
 
     try {
       expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(
@@ -302,26 +308,26 @@ describe('OAuth viewer qeury and mutation', () => {
     const description = 'foo bar'
 
     // no scoped
-    const { mutate: noScopedMutate } = await prepare({
+    const { server: serverNoScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes, // only have query scopes
     })
-    const { errors } = await noScopedMutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
+    const { errors } = await serverNoScoped.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     expect(errors && errors.length).toBe(1)
     expect(errors && errors[0].message).toBeTruthy()
 
     // scoped
-    const { mutate: scopedMutate } = await prepare({
+    const { server: serverScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: mutationScopes,
     })
-    const { data } = await scopedMutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
+    const { data } = await serverScoped.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
@@ -330,26 +336,26 @@ describe('OAuth viewer qeury and mutation', () => {
   test('level2 mutation', async () => {
     // scoped
     const content = 'test comment content'
-    const { mutate: scopedMutate } = await prepare({
+    const { server: serverScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: mutationScopes,
     })
-    const { data } = await scopedMutate({
-      mutation: CREATE_COMMENT,
+    const { data } = await serverScoped.executeOperation({
+      query: CREATE_COMMENT,
       variables: { content },
     })
     expect(_.get(data, 'putComment.content')).toBe(content)
 
     // no scoped
     const prevCreatedCommentId = _.get(data, 'putComment.id')
-    const { mutate: noScopedMutate } = await prepare({
+    const { server: serverNoScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: mutationScopes, // scope can't collapse comment
     })
-    const { errors } = await noScopedMutate({
-      mutation: COLLAPSE_COMMENT,
+    const { errors } = await serverNoScoped.executeOperation({
+      query: COLLAPSE_COMMENT,
       variables: { input: { id: prevCreatedCommentId } },
     })
     expect(errors && errors.length).toBe(1)
@@ -358,24 +364,24 @@ describe('OAuth viewer qeury and mutation', () => {
 
   test('level3 mutation', async () => {
     // scoped
-    const { mutate: scopedMutate } = await prepare({
+    const { server: serverScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: mutationScopes,
     })
-    const { data } = await scopedMutate({
-      mutation: CLEAR_SEARCH_HISTORY,
+    const { data } = await serverScoped.executeOperation({
+      query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
 
     // no scoped
-    const { mutate: noScopedMutate } = await prepare({
+    const { server: serverNoScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: mutationLevel3Scope, // level3 scope don't supports wildcard
     })
-    const { errors } = await noScopedMutate({
-      mutation: CLEAR_SEARCH_HISTORY,
+    const { errors } = await serverNoScoped.executeOperation({
+      query: CLEAR_SEARCH_HISTORY,
     })
     expect(errors && errors.length).toBe(1)
     expect(errors && errors[0].message).toBeTruthy()
@@ -389,9 +395,11 @@ describe('OAuth viewer qeury and mutation', () => {
  */
 describe('General viewer query and mutation', () => {
   test('query with public and private fields', async () => {
-    const { context, query } = await prepare({ email: defaultTestUser.email })
+    const { context, server } = await prepare({
+      email: defaultTestUser.email,
+    })
     const otherUserName = 'test2'
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: VIEWER_SCOPED_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -401,14 +409,16 @@ describe('General viewer query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const { query } = await prepare({ email: defaultTestUser.email })
+    const { server } = await prepare({ email: defaultTestUser.email })
     // query no scope field error
-    const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
+    const { data } = await server.executeOperation({
+      query: VIEWER_NO_SCOPED_PRIVATE,
+    })
     expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'
-    const error_case = await query({
+    const error_case = await server.executeOperation({
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -417,10 +427,12 @@ describe('General viewer query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { query } = await prepare({
+    const { server } = await prepare({
       email: defaultTestUser.email,
     })
-    const errorCase1 = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
+    const errorCase1 = await server.executeOperation({
+      query: VIEWER_NESTED_OTHER_PARIVATE,
+    })
 
     try {
       expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(
@@ -439,9 +451,9 @@ describe('General viewer query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const { mutate } = await prepare({ email: defaultTestUser.email })
-    const { data } = await mutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
+    const { server } = await prepare({ email: defaultTestUser.email })
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
@@ -449,22 +461,22 @@ describe('General viewer query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = 'test comment content'
-    const { mutate } = await prepare({
+    const { server } = await prepare({
       email: defaultTestUser.email,
     })
-    const { data } = await mutate({
-      mutation: CREATE_COMMENT,
+    const { data } = await server.executeOperation({
+      query: CREATE_COMMENT,
       variables: { content },
     })
     expect(_.get(data, 'putComment.content')).toBe(content)
   })
 
   test('level3 mutation', async () => {
-    const { mutate } = await prepare({
+    const { server } = await prepare({
       email: defaultTestUser.email,
     })
-    const { data } = await mutate({
-      mutation: CLEAR_SEARCH_HISTORY,
+    const { data } = await server.executeOperation({
+      query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
   })
@@ -477,9 +489,11 @@ describe('General viewer query and mutation', () => {
  */
 describe('Admin viewer query and mutation', () => {
   test('query with public and private fields', async () => {
-    const { context, query } = await prepare({ email: adminUser.email })
+    const { context, server } = await prepare({
+      email: adminUser.email,
+    })
     const otherUserName = 'test2'
-    const { data } = await query({
+    const { data } = await server.executeOperation({
       query: VIEWER_SCOPED_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -489,15 +503,17 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const { query } = await prepare({ email: adminUser.email })
+    const { server } = await prepare({ email: adminUser.email })
 
     // query no scope field error
-    const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
+    const { data } = await server.executeOperation({
+      query: VIEWER_NO_SCOPED_PRIVATE,
+    })
     expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'
-    const { data: data2 } = await query({
+    const { data: data2 } = await server.executeOperation({
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
@@ -505,11 +521,13 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { query } = await prepare({
+    const { server } = await prepare({
       email: adminUser.email,
     })
 
-    const { data } = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
+    const { data } = await server.executeOperation({
+      query: VIEWER_NESTED_OTHER_PARIVATE,
+    })
 
     try {
       expect(
@@ -524,9 +542,9 @@ describe('Admin viewer query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const { mutate } = await prepare({ email: adminUser.email })
-    const { data } = await mutate({
-      mutation: UPDATE_USER_INFO_DESCRIPTION,
+    const { server } = await prepare({ email: adminUser.email })
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
     })
     expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
@@ -534,22 +552,22 @@ describe('Admin viewer query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = 'test comment content'
-    const { mutate } = await prepare({
+    const { server } = await prepare({
       email: adminUser.email,
     })
-    const { data } = await mutate({
-      mutation: CREATE_COMMENT,
+    const { data } = await server.executeOperation({
+      query: CREATE_COMMENT,
       variables: { content },
     })
     expect(_.get(data, 'putComment.content')).toBe(content)
   })
 
   test('level3 mutation', async () => {
-    const { mutate } = await prepare({
+    const { server } = await prepare({
       email: adminUser.email,
     })
-    const { data } = await mutate({
-      mutation: CLEAR_SEARCH_HISTORY,
+    const { data } = await server.executeOperation({
+      query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
   })

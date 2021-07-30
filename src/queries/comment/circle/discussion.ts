@@ -1,5 +1,5 @@
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { CircleToDiscussionResolver } from 'definitions'
 
 const resolver: CircleToDiscussionResolver = async (
@@ -21,8 +21,7 @@ const resolver: CircleToDiscussionResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first: take, after } = input
-  const skip = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
   const where = {
     state: COMMENT_STATE.active,

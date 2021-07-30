@@ -10,7 +10,6 @@ import {
 
 import { mail } from './mail'
 import { notice } from './notice'
-import { pubsub } from './pubsub'
 import { push } from './push'
 import trans from './translations'
 
@@ -18,14 +17,12 @@ export class NotificationService extends BaseService {
   mail: typeof mail
   push: typeof push
   notice: typeof notice
-  pubsub: typeof pubsub
 
   constructor() {
     super('noop')
     this.mail = mail
     this.push = push
     this.notice = notice
-    this.pubsub = pubsub
   }
 
   trigger = async (params: NotificationPrarms) => {
@@ -223,16 +220,5 @@ export class NotificationService extends BaseService {
       noticeParams,
       recipient,
     })
-
-    /**
-     * Publish a PubSub event
-     */
-    // this.pubsub.publish(
-    //   toGlobalId({
-    //     type: 'User',
-    //     id: noticeParams.recipientId,
-    //   }),
-    //   recipient
-    // )
   }
 }

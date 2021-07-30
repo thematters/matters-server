@@ -1,5 +1,5 @@
 import { USER_ACTION } from 'common/enums'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { ArticleToSubscribersResolver } from 'definitions'
 
 const resolver: ArticleToSubscribersResolver = async (
@@ -7,14 +7,14 @@ const resolver: ArticleToSubscribersResolver = async (
   { input },
   { dataSources: { articleService, userService }, knex }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [countRecord, actions] = await Promise.all([
     knex('action_article')
       .where({ targetId: articleId, action: USER_ACTION.subscribe })
       .countDistinct('user_id')
       .first(),
-    articleService.findSubscriptions({ id: articleId, offset, limit: first }),
+    articleService.findSubscriptions({ id: articleId, skip, take }),
   ])
 
   const totalCount = parseInt(

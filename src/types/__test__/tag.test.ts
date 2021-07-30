@@ -150,10 +150,9 @@ export const putTag = async ({
   isMatty = true,
   tag,
 }: PutTagInput) => {
-  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
-  const result = await mutate({
-    mutation: PUT_TAG,
-    // @ts-ignore
+  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await server.executeOperation({
+    query: PUT_TAG,
     variables: { input: tag },
   })
   const data = result?.data?.putTag
@@ -170,9 +169,9 @@ export const updateTagSetting = async ({
   type,
   editors,
 }: UpdateTagSettingInput) => {
-  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
-  const result = await mutate({
-    mutation: UPDATE_TAG_SETTING,
+  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await server.executeOperation({
+    query: UPDATE_TAG_SETTING,
     variables: { input: { id, type, editors } },
   })
 
@@ -194,14 +193,13 @@ describe('put tag', () => {
     expect(createTagId).toBeDefined()
 
     // query
-    const { query } = await testClient({
+    const server = await testClient({
       isAuth: true,
       isAdmin: true,
       isMatty: true,
     })
-    const queryResult = await query({
+    const queryResult = await server.executeOperation({
       query: QUERY_TAG,
-      // @ts-ignore
       variables: { input: { id: createTagId } },
     })
     expect(_get(queryResult, 'data.node.content')).toBe(content)
@@ -229,23 +227,23 @@ describe('manage tag', () => {
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
-    const { mutate } = await testClient({
+    const server = await testClient({
       isAuth: true,
       isAdmin: true,
       isMatty: true,
     })
     // rename
     const renameContent = 'Rename tag'
-    const renameResult = await mutate({
-      mutation: RENAME_TAG,
+    const renameResult = await server.executeOperation({
+      query: RENAME_TAG,
       variables: { input: { id: createTagId, content: renameContent } },
     })
     expect(renameResult?.data?.renameTag?.content).toBe(renameContent)
 
     // merge
     const mergeContent = 'Merge tag'
-    const mergeResult = await mutate({
-      mutation: MERGE_TAG,
+    const mergeResult = await server.executeOperation({
+      query: MERGE_TAG,
       variables: { input: { ids: [createTagId], content: mergeContent } },
     })
     const mergeTagId = mergeResult?.data?.mergeTags?.id
@@ -255,8 +253,8 @@ describe('manage tag', () => {
     )
 
     // delete
-    const deleteResult = await mutate({
-      mutation: DELETE_TAG,
+    const deleteResult = await server.executeOperation({
+      query: DELETE_TAG,
       variables: { input: { ids: [mergeTagId] } },
     })
     expect(deleteResult?.data?.deleteTags).toBe(true)
@@ -270,7 +268,7 @@ describe('manage article tag', () => {
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
-    const { mutate } = await testClient({
+    const server = await testClient({
       isAuth: true,
       isAdmin: true,
       isMatty: true,
@@ -282,8 +280,8 @@ describe('manage article tag', () => {
     ]
 
     // add
-    const addResult = await mutate({
-      mutation: ADD_ARTICLES_TAGS,
+    const addResult = await server.executeOperation({
+      query: ADD_ARTICLES_TAGS,
       variables: {
         input: {
           id: createTagId,
@@ -294,8 +292,8 @@ describe('manage article tag', () => {
     expect(addResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
 
     // update
-    const updateResult = await mutate({
-      mutation: UPDATE_ARTICLES_TAGS,
+    const updateResult = await server.executeOperation({
+      query: UPDATE_ARTICLES_TAGS,
       variables: {
         input: {
           id: createTagId,
@@ -309,8 +307,8 @@ describe('manage article tag', () => {
     )
 
     // remove
-    const deleteResult = await mutate({
-      mutation: DELETE_ARTICLES_TAGS,
+    const deleteResult = await server.executeOperation({
+      query: DELETE_ARTICLES_TAGS,
       variables: {
         input: {
           id: createTagId,

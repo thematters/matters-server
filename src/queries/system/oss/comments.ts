@@ -1,21 +1,18 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToCommentsResolver } from 'definitions'
 
 export const comments: OSSToCommentsResolver = async (
   root,
-  { input: connectionArgs },
+  { input },
   { viewer, dataSources: { commentService } }
 ) => {
-  const { first, after } = connectionArgs
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const totalCount = await commentService.baseCount()
 
   return connectionFromPromisedArray(
-    commentService.baseFind({
-      offset,
-      limit: first,
-    }),
-    connectionArgs,
+    commentService.baseFind({ skip, take }),
+    input,
     totalCount
   )
 }

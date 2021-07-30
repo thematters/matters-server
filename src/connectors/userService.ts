@@ -9,7 +9,6 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
-  BATCH_SIZE,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -21,7 +20,6 @@ import {
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES,
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -37,7 +35,7 @@ import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchExclude,
-  GQLSearchInput,
+  GQLVerificationCodeType,
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
@@ -379,19 +377,25 @@ export class UserService extends BaseService {
 
   search = async ({
     key,
-    first = 20,
-    offset,
+    take,
+    skip,
     oss = false,
+    filter,
     exclude,
     viewerId,
-  }: GQLSearchInput & {
-    offset: number
+  }: {
+    key: string
+    author?: string
+    take: number
+    skip: number
     oss?: boolean
+    filter?: Record<string, any>
     viewerId?: string | null
+    exclude?: GQLSearchExclude
   }) => {
     const body = bodybuilder()
-      .from(offset)
-      .size(first)
+      .from(skip)
+      .size(take)
       .query('match', 'displayName.raw', key)
       .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
@@ -404,7 +408,7 @@ export class UserService extends BaseService {
           fuzzy: {
             fuzziness: 0,
           },
-          size: first,
+          size: take,
         },
       },
       displayName: {
@@ -414,7 +418,7 @@ export class UserService extends BaseService {
           fuzzy: {
             fuzziness: 0,
           },
-          size: first,
+          size: take,
         },
       },
     }
@@ -534,43 +538,58 @@ export class UserService extends BaseService {
 
   findAppreciationBySender = async ({
     senderId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     senderId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('appreciation')
+    take?: number
+    skip?: number
+  }) => {
+    const query = this.knex('appreciation')
       .where({
         senderId,
       })
       .whereNot({
         purpose: APPRECIATION_PURPOSE.superlike,
       })
-      .limit(limit)
-      .offset(offset)
       .orderBy('id', 'desc')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   findAppreciationByRecipient = async ({
     recipientId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     recipientId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('appreciation')
+    take?: number
+    skip?: number
+  }) => {
+    const query = this.knex('appreciation')
       .where({
         recipientId,
       })
       .whereNot({
         purpose: APPRECIATION_PURPOSE.superlike,
       })
-      .limit(limit)
-      .offset(offset)
       .orderBy('id', 'desc')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+    return query
+  }
 
   /*********************************
    *                               *
@@ -690,20 +709,27 @@ export class UserService extends BaseService {
 
   followeeArticles = async ({
     userId,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
   }: {
     userId: string
-    offset?: number
-    limit?: number
-  }) =>
-    this.knex('action_user as au')
+    skip?: number
+    take?: number
+  }) => {
+    const query = this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId, 'ar.state': ARTICLE_STATE.active })
       .orderBy('ar.created_at', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+    return query
+  }
 
   countFolloweeArticles = async (userId: string) => {
     const result = await this.knex('action_user as au')
@@ -721,14 +747,14 @@ export class UserService extends BaseService {
    */
   followeeComments = async ({
     userId,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
   }: {
     userId: string
-    offset?: number
-    limit?: number
-  }) =>
-    this.knex
+    skip?: number
+    take?: number
+  }) => {
+    const query = this.knex
       .select('source.*')
       .from((operator: any) => {
         operator
@@ -744,8 +770,16 @@ export class UserService extends BaseService {
           .as('source')
       })
       .orderBy('source.created_at', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   /**
    * Count followee comments based on action_user table records. If one followee made
@@ -779,40 +813,41 @@ export class UserService extends BaseService {
    */
   findDedupedFolloweeDonationsByEntity = async ({
     id,
-    limit = BATCH_SIZE,
-    after,
+    take,
+    skip,
     type,
   }: {
     id: string
-    limit?: number
-    after?: number
+    take?: number
+    skip?: number
     type: TRANSACTION_TARGET_TYPE
   }) => {
-    const query = this.knex
-      .select('*')
-      .from((knex: any) => {
-        const source = knex
-          .max('tx.id as id')
-          .select('tx.target_id as article_id')
-          .from('action_user as au')
-          .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
-          .where({
-            'au.user_id': id,
-            'au.action': USER_ACTION.follow,
-            'tx.purpose': TRANSACTION_PURPOSE.donation,
-            'tx.state': TRANSACTION_STATE.succeeded,
-            'tx.target_type': type,
-          })
-          .groupBy('article_id')
-          .orderBy('id', 'desc')
-          .as('source')
-        return source
-      })
-      .limit(limit)
+    const query = this.knex.select('*').from((knex: any) => {
+      const source = knex
+        .max('tx.id as id')
+        .select('tx.target_id as article_id')
+        .from('action_user as au')
+        .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
+        .where({
+          'au.user_id': id,
+          'au.action': USER_ACTION.follow,
+          'tx.purpose': TRANSACTION_PURPOSE.donation,
+          'tx.state': TRANSACTION_STATE.succeeded,
+          'tx.target_type': type,
+        })
+        .groupBy('article_id')
+        .orderBy('id', 'desc')
+        .as('source')
+      return source
+    })
 
-    if (after) {
-      query.andWhere('id', '<', after)
+    if (skip) {
+      query.andWhere('id', '<', skip)
     }
+    if (take) {
+      query.limit(take)
+    }
+
     return query
   }
 
@@ -852,25 +887,6 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find tags based on action_tag table records.
-   *
-   */
-  findFollowingTags = async ({
-    userId,
-    offset = 0,
-    limit = BATCH_SIZE,
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }) =>
-    this.knex('action_tag')
-      .select('target_id')
-      .where({ userId })
-      .offset(offset)
-      .limit(limit)
-
-  /**
    * Count tags based on action_tag table records.
    *
    */
@@ -889,14 +905,14 @@ export class UserService extends BaseService {
    */
   findFollowingTagsArticles = async ({
     userId,
-    offset = 0,
-    limit = BATCH_SIZE,
+    skip,
+    take,
   }: {
     userId: string
-    offset?: number
-    limit?: number
-  }) =>
-    this.knex
+    skip?: number
+    take?: number
+  }) => {
+    const query = this.knex
       .select('article_tag.article_id')
       .max('article_tag.created_at as created_at')
       .from('action_tag')
@@ -904,8 +920,16 @@ export class UserService extends BaseService {
       .where({ userId })
       .groupBy('article_tag.article_id')
       .orderBy('created_at', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   /**
    * Count tags articles based on action_tag table records.
@@ -924,40 +948,51 @@ export class UserService extends BaseService {
 
   findFollowees = async ({
     userId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     userId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex
+    take?: number
+    skip?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   findFollowers = async ({
     targetId,
-    limit = BATCH_SIZE,
-    after,
+    take,
+    skip,
   }: {
     targetId: string
-    limit?: number
-    after?: number
+    take?: number
+    skip?: number
   }) => {
     const query = this.knex
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
-      .limit(limit)
 
-    if (after) {
-      query.andWhere('id', '<', after)
+    if (skip) {
+      query.andWhere('id', '<', skip)
     }
+    if (take) {
+      query.limit(take)
+    }
+
     return query
   }
 
@@ -1030,20 +1065,28 @@ export class UserService extends BaseService {
 
   findBlockList = async ({
     userId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     userId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex
+    take?: number
+    skip?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.block })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   /*********************************
    *                               *
@@ -1161,14 +1204,14 @@ export class UserService extends BaseService {
   }
 
   recommendAuthor = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
     notIn = [],
     oss = false,
     type = GQLAuthorsType.default,
   }: {
-    limit?: number
-    offset?: number
+    take?: number
+    skip?: number
     notIn?: string[]
     oss?: boolean
     type?: GQLAuthorsType
@@ -1178,15 +1221,21 @@ export class UserService extends BaseService {
         const table = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
-        const result = await this.knex(table)
+        const query = this.knex(table)
           .select()
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
-          .offset(offset)
-          .limit(limit)
           .where({ state: USER_STATE.active })
           .whereNotIn('id', notIn)
-        return result
+
+        if (skip) {
+          query.offset(skip)
+        }
+        if (take) {
+          query.limit(take)
+        }
+
+        return query
       }
       case GQLAuthorsType.active:
       case GQLAuthorsType.appreciated:
@@ -1198,15 +1247,21 @@ export class UserService extends BaseService {
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
 
-        const result = await this.knex
+        const query = this.knex
           .select()
           .from({ view })
           .innerJoin('user', 'view.id', 'user.id')
-          .offset(offset)
-          .limit(limit)
           .where({ state: USER_STATE.active })
           .whereNotIn('view.id', notIn)
-        return result
+
+        if (skip) {
+          query.offset(skip)
+        }
+        if (take) {
+          query.limit(take)
+        }
+
+        return query
       }
     }
   }
@@ -1239,7 +1294,7 @@ export class UserService extends BaseService {
     return author.authorScore || 0
   }
 
-  recommendTags = ({ limit = 5, offset = 0 }) =>
+  recommendTags = ({ skip, take }: { skip: number; take: number }) =>
     this.knex('tag')
       .select('*')
       .join(
@@ -1277,8 +1332,8 @@ export class UserService extends BaseService {
       )
       .andWhere('article_count', '>=', 8)
       .orderBy('follower_count', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .offset(skip)
+      .limit(take)
 
   countRecommendTags = async () => {
     const result = await this.knex()
@@ -1352,20 +1407,28 @@ export class UserService extends BaseService {
 
   findSubscriptions = async ({
     userId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     userId: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex
+    take?: number
+    skip?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
-      .limit(limit)
-      .offset(offset)
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take) {
+      query.limit(take)
+    }
+
+    return query
+  }
 
   /*********************************
    *                               *
@@ -1382,12 +1445,12 @@ export class UserService extends BaseService {
 
   findReadHistory = async ({
     userId,
-    limit = BATCH_SIZE,
-    offset = 0,
+    take,
+    skip,
   }: {
     userId: string
-    limit?: number
-    offset?: number
+    take: number
+    skip: number
   }) => {
     const result = await this.knex('article')
       .select('read.read_at', 'article.*')
@@ -1402,8 +1465,8 @@ export class UserService extends BaseService {
       )
       .where({ state: ARTICLE_STATE.active })
       .orderBy('read_at', 'desc')
-      .limit(limit)
-      .offset(offset)
+      .limit(take)
+      .offset(skip)
 
     return result.map(({ readAt, ...article }: any) => ({ readAt, article }))
   }
@@ -1457,6 +1520,7 @@ export class UserService extends BaseService {
         email,
         type,
         code,
+        status: VERIFICATION_CODE_STATUS.active,
         expiredAt:
           expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
@@ -1468,18 +1532,21 @@ export class UserService extends BaseService {
     where,
   }: {
     where?: {
-      type?: keyof typeof VERIFICATION_CODE_TYPES
-      status?: keyof typeof VERIFICATION_CODE_STATUS
+      type?: GQLVerificationCodeType
+      status?: VERIFICATION_CODE_STATUS
       [key: string]: any
     }
   }) => {
-    let qs = this.knex.select().from('verification_code').orderBy('id', 'desc')
+    const query = this.knex
+      .select()
+      .from('verification_code')
+      .orderBy('id', 'desc')
 
     if (where) {
-      qs = qs.where(where)
+      query.where(where)
     }
 
-    return qs
+    return query
   }
 
   markVerificationCodeAs = ({
@@ -1487,7 +1554,7 @@ export class UserService extends BaseService {
     status,
   }: {
     codeId: string
-    status: keyof typeof VERIFICATION_CODE_STATUS
+    status: VERIFICATION_CODE_STATUS
   }) => {
     let data: any = { status }
 

@@ -27,6 +27,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
+  NotAllowAddOfficialTagError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -168,14 +169,13 @@ const resolver: MutationToEditArticleResolver = async (
       await tagService.findByArticleId({ articleId: article.id })
     ).map(({ id: tagId }: { id: string }) => tagId)
 
-    // TODO: uncomment if following feed is ready
-    // // check if add tags include matty's tag
-    // const mattyTagId = environment.mattyChoiceTagId || ''
-    // const isMatty = environment.mattyId === viewer.id
-    // const addIds = difference(newIds, oldIds)
-    // if (addIds.includes(mattyTagId) && !isMatty) {
-    //   throw new NotAllowAddOfficialTagError('not allow to add official tag')
-    // }
+    // check if add tags include matty's tag
+    const mattyTagId = environment.mattyChoiceTagId || ''
+    const isMatty = environment.mattyId === viewer.id
+    const addIds = difference(newIds, oldIds)
+    if (addIds.includes(mattyTagId) && !isMatty) {
+      throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    }
 
     // add
     await tagService.createArticleTags({
@@ -236,7 +236,6 @@ const resolver: MutationToEditArticleResolver = async (
     const oldIds = (
       await articleService.findCollections({
         entranceId: article.id,
-        limit: null,
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
 
@@ -501,7 +500,7 @@ const resolver: MutationToEditArticleResolver = async (
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(dbId), // fetch latest article
-      articleService.findCollections({ entranceId: article.id, limit: null }),
+      articleService.findCollections({ entranceId: article.id }),
       tagService.findByArticleId({ articleId: article.id }),
       articleService.findArticleCircle(article.id),
     ])

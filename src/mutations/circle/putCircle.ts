@@ -86,6 +86,10 @@ const resolver: MutationToPutCircleResolver = async (
         )
       }
 
+      if (!amount) {
+        throw new UserInputError('"amount" is required')
+      }
+
       if (amount < PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD) {
         throw new PaymentAmountTooSmallError(
           `The minimal amount is ${PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD}`

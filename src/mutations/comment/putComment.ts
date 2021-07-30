@@ -140,6 +140,16 @@ const resolver: MutationToPutCommentResolver = async (
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
+
+    // check if the author of parent comment blocked viewer
+    const isParentBlocked = await userService.blocked({
+      userId: parentComment.authorId,
+      targetId: viewer.id,
+    })
+    if (isParentBlocked) {
+      throw new ForbiddenError('viewer is blocked by parent author')
+    }
+
     data.parentCommentId = parentComment.id
   }
 

@@ -23,7 +23,7 @@ export const GRAPHQL_COST_LIMIT = 500
 
 export const BCRYPT_ROUNDS = 12
 
-export const BATCH_SIZE = 10
+export const DEFAULT_TAKE_PER_PAGE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
@@ -134,6 +134,7 @@ export const IMAGE_DIMENSION_LIMIT = 1400
 
 export const LOG_RECORD_TYPES = {
   ReadFolloweeArticles: 'read_followee_articles',
+  ReadFollowingFeed: 'read_following_feed',
   ReadResponseInfoPopUp: 'read_response_info_pop_up',
 }
 
@@ -213,3 +214,15 @@ export const LOCAL_STRIPE = {
 }
 
 export const MAX_ARTICLE_REVISION_COUNT = 4
+
+export enum ActivityType {
+  UserPublishArticleActivity = 'UserPublishArticleActivity',
+  UserBroadcastCircleActivity = 'UserBroadcastCircleActivity',
+  UserCreateCircleActivity = 'UserCreateCircleActivity',
+  UserCollectArticleActivity = 'UserCollectArticleActivity',
+  UserSubscribeCircleActivity = 'UserSubscribeCircleActivity',
+  UserFollowUserActivity = 'UserFollowUserActivity',
+  UserDonateArticleActivity = 'UserDonateArticleActivity',
+  UserBookmarkArticleActivity = 'UserBookmarkArticleActivity',
+  UserAddArticleTagActivity = 'UserAddArticleTagActivity',
+}

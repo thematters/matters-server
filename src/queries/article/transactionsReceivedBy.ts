@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { ArticleToTransactionsReceivedByResolver } from 'definitions'
 
 const resolver: ArticleToTransactionsReceivedByResolver = async (
@@ -6,13 +6,13 @@ const resolver: ArticleToTransactionsReceivedByResolver = async (
   { input },
   { dataSources: { articleService, userService } }
 ) => {
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
+
   const [totalCount, txs] = await Promise.all([
     articleService.countTransactions({ targetId: articleId }),
     articleService.findTransactions({
-      offset,
-      limit: first,
+      skip,
+      take,
       targetId: articleId,
     }),
   ])

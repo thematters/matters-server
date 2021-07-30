@@ -1,6 +1,6 @@
-import { BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
+import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToHottestResolver } from 'definitions'
 
 export const hottest: RecommendationToHottestResolver = async (
@@ -16,12 +16,11 @@ export const hottest: RecommendationToHottestResolver = async (
     }
   }
 
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
+  const { take, skip } = fromConnectionArgs(input)
 
-  const MAX_ITEM_COUNT = BATCH_SIZE * 50
+  const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
-    let qs = knex
+    const query = knex
       .select('article.draft_id')
       .from(
         knex
@@ -40,10 +39,10 @@ export const hottest: RecommendationToHottestResolver = async (
       .as('hottest')
 
     if (!oss) {
-      qs = qs.where({ inHottest: true }).orWhereNull('in_hottest')
+      query.where({ inHottest: true }).orWhereNull('in_hottest')
     }
 
-    return qs
+    return query
   }
 
   const [countRecord, articles] = await Promise.all([
@@ -51,8 +50,8 @@ export const hottest: RecommendationToHottestResolver = async (
     makeHottestQuery()
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
-      .offset(offset)
-      .limit(first || BATCH_SIZE),
+      .offset(skip)
+      .limit(take),
   ])
 
   const totalCount = parseInt(
