@@ -557,7 +557,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -585,7 +585,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
     return query
@@ -725,7 +725,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
     return query
@@ -774,7 +774,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -844,7 +844,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.andWhere('id', '<', skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -924,7 +924,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -964,7 +964,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -989,7 +989,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.andWhere('id', '<', skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -1081,7 +1081,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -1231,7 +1231,7 @@ export class UserService extends BaseService {
         if (skip) {
           query.offset(skip)
         }
-        if (take) {
+        if (take || take === 0) {
           query.limit(take)
         }
 
@@ -1257,7 +1257,7 @@ export class UserService extends BaseService {
         if (skip) {
           query.offset(skip)
         }
-        if (take) {
+        if (take || take === 0) {
           query.limit(take)
         }
 
@@ -1423,7 +1423,7 @@ export class UserService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 

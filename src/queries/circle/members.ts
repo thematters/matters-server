@@ -45,7 +45,7 @@ const resolver: CircleToMembersResolver = async (
   if (skip) {
     query.offset(skip)
   }
-  if (take) {
+  if (take || take === 0) {
     query.limit(take)
   }
   const memberIds = await query
