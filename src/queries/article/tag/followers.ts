@@ -15,7 +15,7 @@ const resolver: TagToFollowersResolver = async (
   }
 
   const keys = cursorToKeys(input.after)
-  const params = { targetId: id, after: keys.idCursor, limit: input.first }
+  const params = { targetId: id, skip: keys.idCursor, limit: input.first }
   const [count, actions] = await Promise.all([
     tagService.countFollowers(id),
     tagService.findFollowers(params),
