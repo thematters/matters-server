@@ -2,6 +2,7 @@ import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
+  fromConnectionArgs,
 } from 'common/utils'
 import { TagToFollowersResolver } from 'definitions'
 
@@ -14,8 +15,9 @@ const resolver: TagToFollowersResolver = async (
     return connectionFromArray([], input)
   }
 
+  const { take } = fromConnectionArgs(input)
   const keys = cursorToKeys(input.after)
-  const params = { targetId: id, skip: keys.idCursor, limit: input.first }
+  const params = { targetId: id, skip: keys.idCursor, take }
   const [count, actions] = await Promise.all([
     tagService.countFollowers(id),
     tagService.findFollowers(params),
