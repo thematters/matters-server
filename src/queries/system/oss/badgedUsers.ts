@@ -27,7 +27,7 @@ export const badgedUsers: OSSToBadgedUsersResolver = async (
     usersQuery.offset(skip)
   }
 
-  if (take) {
+  if (take || take === 0) {
     usersQuery.limit(take)
   }
 
