@@ -317,7 +317,7 @@ export class TagService extends BaseService {
       .orderBy('id', 'desc')
 
     if (skip) {
-      query.offset(skip)
+      query.andWhere('id', '<', skip)
     }
     if (take) {
       query.limit(take)
