@@ -174,7 +174,7 @@ export class AtomService extends DataSource {
       query.offset(skip)
     }
 
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
     return query

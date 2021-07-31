@@ -56,7 +56,7 @@ export class TagService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -248,7 +248,7 @@ export class TagService extends BaseService {
       query.whereNotIn('author_id', exclude)
     }
 
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
     if (skip) {
@@ -319,7 +319,7 @@ export class TagService extends BaseService {
     if (skip) {
       query.andWhere('id', '<', skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -503,7 +503,7 @@ export class TagService extends BaseService {
       .from(MATERIALIZED_VIEW.curation_tag_materialized)
       .orderBy('uuid')
 
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -571,7 +571,7 @@ export class TagService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -591,7 +591,7 @@ export class TagService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
@@ -713,7 +713,7 @@ export class TagService extends BaseService {
     if (skip) {
       query.offset(skip)
     }
-    if (take) {
+    if (take || take === 0) {
       query.limit(take)
     }
 
