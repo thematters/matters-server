@@ -1180,7 +1180,7 @@ export interface GQLCircleContentAnalytics {
 
 export interface GQLCircleContentAnalyticsDatum {
   node: GQLArticle
-  count: number
+  readCount: number
 }
 
 export interface GQLCircleInput {
@@ -6721,7 +6721,7 @@ export interface CircleContentAnalyticsToPaywallResolver<
 
 export interface GQLCircleContentAnalyticsDatumTypeResolver<TParent = any> {
   node?: CircleContentAnalyticsDatumToNodeResolver<TParent>
-  count?: CircleContentAnalyticsDatumToCountResolver<TParent>
+  readCount?: CircleContentAnalyticsDatumToReadCountResolver<TParent>
 }
 
 export interface CircleContentAnalyticsDatumToNodeResolver<
@@ -6736,7 +6736,7 @@ export interface CircleContentAnalyticsDatumToNodeResolver<
   ): TResult
 }
 
-export interface CircleContentAnalyticsDatumToCountResolver<
+export interface CircleContentAnalyticsDatumToReadCountResolver<
   TParent = any,
   TResult = any
 > {

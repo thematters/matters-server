@@ -235,6 +235,58 @@ const SUBSCRIBE_CIRCLE = /* GraphQL */ `
   }
 `
 
+const QUERY_VIEWER_ANALYTICS = /* GraphQL */ `
+  query {
+    viewer {
+      ownCircles {
+        id
+        analytics {
+          content {
+            public {
+              node {
+                id
+              }
+              readCount
+            }
+            paywall {
+              node {
+                id
+              }
+              readCount
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const QUERY_CIRCLE_ANALYTICS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Circle {
+        id
+        analytics {
+          content {
+            public {
+              node {
+                id
+              }
+              readCount
+            }
+            paywall {
+              node {
+                id
+              }
+              readCount
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 describe('circle CRUD', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
@@ -656,6 +708,27 @@ describe('circle CRUD', () => {
     expect(_get(retrieveData, 'data.circle.pinnedBroadcast.0.id')).toBe(
       commentId
     )
+  })
+
+  test('circle analytics dashboard', async () => {
+    const server = await testClient(userClient)
+    const { data } = await server.executeOperation({
+      query: QUERY_VIEWER_ANALYTICS,
+    })
+
+    const circle = _get(data, 'viewer.ownCircles[0]')
+    expect(_get(circle, 'analytics.content.public').length).toBe(0)
+    expect(_get(circle, 'analytics.content.paywall').length).toBe(0)
+
+    // check permission
+    const serverAdmin = await testClient(adminClient)
+    const errorData = await serverAdmin.executeOperation({
+      query: QUERY_CIRCLE_ANALYTICS,
+      variables: {
+        input: { id: circle.id },
+      },
+    })
+    expect(_get(errorData, errorPath)).toBe('FORBIDDEN')
   })
 })
 

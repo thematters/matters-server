@@ -234,7 +234,7 @@ export default /* GraphQL */ `
 
   type CircleContentAnalyticsDatum {
     node: Article!
-    count: Int!
+    readCount: Int!
   }
 
   input CircleInput {

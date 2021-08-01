@@ -860,7 +860,7 @@ type CircleContentAnalytics {
 
 type CircleContentAnalyticsDatum {
   node: Article!
-  count: Int!
+  readCount: Int!
 }
 
 input CircleInput {

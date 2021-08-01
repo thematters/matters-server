@@ -32,7 +32,7 @@ const resolver: CircleContentAnalyticsToPaywallResolver = async (
         table: 'article',
         where: { id: articleId },
       })
-      return { node, count }
+      return { node, readCount: count }
     })
   )
   return data
