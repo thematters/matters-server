@@ -21,18 +21,18 @@ const resolver: CircleContentAnalyticsToPaywallResolver = async (
       'ac.circle_id': id,
       'ac.access': GQLArticleAccessType.paywall,
     })
-    .sum('arc.timed_count as count')
+    .sum('arc.timed_count as readCount')
     .groupBy('ac.article_id')
-    .orderBy('count', 'desc')
+    .orderBy('readCount', 'desc')
     .limit(10)
 
   const data = await Promise.all(
-    records.map(async ({ articleId, count }) => {
+    records.map(async ({ articleId, readCount }) => {
       const node = await atomService.findUnique({
         table: 'article',
         where: { id: articleId },
       })
-      return { node, readCount: count }
+      return { node, readCount }
     })
   )
   return data
