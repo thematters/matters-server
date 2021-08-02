@@ -28,7 +28,7 @@ const resolver: CircleContentAnalyticsToPaywallResolver = async (
 
   const data = await Promise.all(
     records.map(async ({ articleId, count }) => {
-      const node = atomService.findUnique({
+      const node = await atomService.findUnique({
         table: 'article',
         where: { id: articleId },
       })
