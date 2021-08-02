@@ -252,7 +252,7 @@ class Notice extends BaseService {
     skip?: number
     take?: number
   }): Promise<NoticeDetail[]> => {
-    let query = this.knex
+    const query = this.knex
       .select([
         'notice.id',
         'notice.unread',
@@ -274,20 +274,20 @@ class Notice extends BaseService {
 
     if (where) {
       where.forEach((w) => {
-        query = query.where(w[0], w[1], w[2])
+        query.where(w[0], w[1], w[2])
       })
     }
 
     if (whereIn) {
-      query = query.whereIn(...whereIn)
+      query.whereIn(...whereIn)
     }
 
     if (skip) {
-      query = query.offset(skip)
+      query.offset(skip)
     }
 
-    if (take) {
-      query = query.limit(take)
+    if (take || take === 0) {
+      query.limit(take)
     }
 
     const result = await query

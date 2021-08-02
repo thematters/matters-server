@@ -45,7 +45,7 @@ const resolver: UserToSubscribedCirclesResolver = async (
     query.offset(skip)
   }
 
-  if (take) {
+  if (take || take === 0) {
     query.limit(take)
   }
 
