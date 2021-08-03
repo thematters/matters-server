@@ -7,6 +7,7 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
   { input: { id, enabled, type = 'icymi' } },
   { viewer, dataSources: { atomService, articleService, draftService } }
 ) => {
+
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
@@ -34,16 +35,16 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
       await atomService.upsert({
         table: 'article_recommend_setting',
         where: { articleId: dbId },
-        create: { inHottest: true, articleId: dbId },
-        update: { inHottest: true },
+        create: { inHottest: enabled, articleId: dbId },
+        update: { inHottest: enabled },
       })
       break
     case 'newest':
       await atomService.upsert({
         table: 'article_recommend_setting',
         where: { articleId: dbId },
-        create: { inNewest: true, articleId: dbId },
-        update: { inNewest: true },
+        create: { inNewest: enabled, articleId: dbId },
+        update: { inNewest: enabled },
       })
       break
   }
