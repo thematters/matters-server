@@ -28,9 +28,13 @@ const resolver: CircleContentAnalyticsToPublicResolver = async (
 
   const data = await Promise.all(
     records.map(async ({ articleId, readCount }) => {
-      const node = await atomService.findUnique({
+      const article = await atomService.findUnique({
         table: 'article',
         where: { id: articleId },
+      })
+      const node = await atomService.findUnique({
+        table: 'draft',
+        where: { id: article.draftId },
       })
       return { node, readCount }
     })
