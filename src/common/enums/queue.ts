@@ -39,7 +39,6 @@ export const QUEUE_JOB = {
   refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
   refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
   refreshUserActivityView: 'refreshUserActivityView',
-  refreshUserActivityLongView: 'refreshUserActivityLongView',
   refreshArticleReadTimeView: 'refreshArticleReadTimeView',
   refreshRecentlyReadTagsView: 'refreshRecentlyReadTagsView',
   refreshRecommendedArticlesFromReadTagsView:

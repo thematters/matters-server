@@ -130,18 +130,6 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    // refresh user activity view every 1 hours
-    this.q.add(
-      QUEUE_JOB.refreshUserActivityLongView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: HOUR * 1,
-        },
-      }
-    )
-
     // refresh user recently read tags view every 6 hours
     this.q.add(
       QUEUE_JOB.refreshRecentlyReadTagsView,
@@ -220,10 +208,6 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshUserActivityView,
       this.handleRefreshView('user_activity_materialized')
-    )
-    this.q.process(
-      QUEUE_JOB.refreshUserActivityLongView,
-      this.handleRefreshView('user_activity_long_materialized')
     )
     this.q.process(
       QUEUE_JOB.refreshRecentlyReadTagsView,

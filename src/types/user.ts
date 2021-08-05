@@ -117,9 +117,6 @@ export default /* GraphQL */ `
     "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
-    "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
-
     "Following contents of this user."
     following: Following!
 
@@ -153,19 +150,7 @@ export default /* GraphQL */ `
     following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Articles recommended based on recently read article tags."
-    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into following")
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -280,8 +265,6 @@ export default /* GraphQL */ `
     "Number of unread notices."
     unreadNoticeCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
-    "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) @deprecated(reason: "Use \`unreadFollowing\` instead")
 
     "Whether there are unread activities from following."
     unreadFollowing: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -410,7 +393,20 @@ export default /* GraphQL */ `
     node: FollowingActivity!
   }
 
-  union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+  union FollowingActivity = UserPublishArticleActivity
+  | UserAddArticleTagActivity
+  | UserBroadcastCircleActivity
+  | UserCreateCircleActivity
+  | UserRecommendationActivity
+  | ArticleRecommendationActivity
+  | CircleRecommendationActivity
+
+  # below are deprecated, won't return data
+  | UserSubscribeCircleActivity
+  | UserFollowUserActivity
+  | UserDonateArticleActivity
+  | UserBookmarkArticleActivity
+  | UserCollectArticleActivity
 
   type UserPublishArticleActivity {
     actor: User!
@@ -418,6 +414,17 @@ export default /* GraphQL */ `
 
     "Article published by actor"
     node: Article!
+  }
+
+  type UserAddArticleTagActivity {
+    actor: User!
+    createdAt: DateTime!
+
+    "Article added to tag"
+    node: Article!
+
+    "Tag added by article"
+    target: Tag!
   }
 
   type UserBroadcastCircleActivity {
@@ -439,6 +446,47 @@ export default /* GraphQL */ `
     node: Circle!
   }
 
+  type UserRecommendationActivity {
+    "The source type of recommendation"
+    source: UserRecommendationActivitySource
+
+    "Recommended users"
+    nodes: [User!]
+  }
+
+  enum UserRecommendationActivitySource {
+    UserFolloweing
+  }
+
+  type ArticleRecommendationActivity {
+    "The source type of recommendation"
+    source: ArticleRecommendationActivitySource
+
+    "Recommended articles"
+    nodes: [Article!]
+  }
+
+  enum ArticleRecommendationActivitySource {
+    UserDonation
+    ReadArticlesTags
+  }
+
+  type CircleRecommendationActivity {
+    "The source type of recommendation"
+    source: CircleRecommendationActivitySource
+
+    "Recommended circles"
+    nodes: [Circle!]
+  }
+
+  enum CircleRecommendationActivitySource {
+    UserSubscription
+  }
+
+
+  #########################
+  ### deprecated:start ###
+  #########################
   type UserCollectArticleActivity {
     actor: User!
     createdAt: DateTime!
@@ -481,18 +529,9 @@ export default /* GraphQL */ `
     "Article bookmarked by actor"
     node: Article!
   }
-
-  type UserAddArticleTagActivity {
-    actor: User!
-    createdAt: DateTime!
-
-    "Article added to tag"
-    node: Article!
-
-    "Tag added by article"
-    target: Tag!
-  }
-
+  ######################
+  ### deprecated:end ###
+  ######################
 
   type FolloweeDonatedArticleConnection implements Connection {
     totalCount: Int!
