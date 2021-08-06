@@ -1,6 +1,9 @@
+import Knex from 'knex'
+
 import {
   ActivityType,
   CIRCLE_ACTION,
+  CIRCLE_STATE,
   MATERIALIZED_VIEW,
   TAG_ACTION,
   USER_ACTION,
@@ -108,9 +111,27 @@ export const makeUserFollowingActivityQuery = ({
     | ActivityType.UserFollowUserActivity
 }) =>
   withExcludedUsers({ userId })
+    .with('excluded_circles', (builder) => {
+      // following circles
+      builder
+        .select('target_id as circle_id')
+        .from('action_circle')
+        .where({ userId, action: CIRCLE_ACTION.follow })
+        // viewer own circles
+        .union(
+          knex
+            .select('id as circle_id')
+            .from('circle')
+            .where({ owner: userId, state: CIRCLE_STATE.active })
+        )
+      // TODO: subscirbed circles,
+      // skip for now since subscribed circle also the following circle
+      // and querying subscribed circles are expensive
+      // @see `queries/user/subscribedCircles.ts`
+    })
     .select()
-    .from(
-      knex
+    .from((builder: Knex.QueryBuilder) => {
+      const query = builder
         .as('selected_activities')
         .select('acty.*')
         .from('action_user as au')
@@ -122,7 +143,21 @@ export const makeUserFollowingActivityQuery = ({
           'au.action': USER_ACTION.follow,
           'acty.type': type,
         })
-    )
+
+      if (type === ActivityType.UserSubscribeCircleActivity) {
+        query
+          .leftJoin(
+            'excluded_circles',
+            'acty.node_id',
+            'excluded_circles.circle_id'
+          )
+          .andWhere({
+            'excluded_circles.circle_id': null,
+          })
+      }
+
+      return query
+    })
     .orderBy('created_at', 'desc')
 
 // retrieve recommendations based on user read articles tags

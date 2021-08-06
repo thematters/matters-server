@@ -156,10 +156,12 @@ const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
 const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
   query ($input: ConnectionArgs!) {
     viewer {
-      followees(input: $input) {
-        edges {
-          node {
-            id
+      following {
+        users(input: $input) {
+          edges {
+            node {
+              id
+            }
           }
         }
       }
@@ -416,7 +418,7 @@ describe('user query fields', () => {
       query: GET_VIEWER_FOLLOWEES,
       variables: { input: {} },
     })
-    const followees = _get(data, 'viewer.followees.edges')
+    const followees = _get(data, 'viewer.following.users.edges')
     expect(followees.length).toBeTruthy()
   })
 

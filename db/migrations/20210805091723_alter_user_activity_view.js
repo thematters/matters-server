@@ -122,8 +122,10 @@ exports.up = async (knex) => {
           null AS target_id,
           null AS target_type,
           cirlce_subscription_period.created_at
-          FROM cirlce_subscription_period LEFT JOIN circle_price ON circle_price.id = price_id
+        FROM cirlce_subscription_period
+        LEFT JOIN circle_price ON circle_price.id = price_id
         LEFT JOIN circle ON circle.id = circle_price.circle_id
+        WHERE circle.state = 'active'
 
         UNION
         SELECT
