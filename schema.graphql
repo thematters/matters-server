@@ -708,6 +708,9 @@ type Circle implements Node {
   """Invitation used by current viewer."""
   invitedBy: Invitation
 
+  """Analytics dashboard."""
+  analytics: CircleAnalytics!
+
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
 
@@ -844,6 +847,20 @@ type InvitationConnection implements Connection {
 type InvitationEdge {
   cursor: String!
   node: Invitation!
+}
+
+type CircleAnalytics {
+  content: CircleContentAnalytics!
+}
+
+type CircleContentAnalytics {
+  public: [CircleContentAnalyticsDatum!]
+  paywall: [CircleContentAnalyticsDatum!]
+}
+
+type CircleContentAnalyticsDatum {
+  node: Article!
+  readCount: Int!
 }
 
 input CircleInput {
