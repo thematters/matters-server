@@ -88,6 +88,9 @@ export default /* GraphQL */ `
 
     "Invitation used by current viewer."
     invitedBy: Invitation
+
+    "Analytics dashboard."
+    analytics: CircleAnalytics!
   }
 
   extend type User {
@@ -218,6 +221,20 @@ export default /* GraphQL */ `
   type InvitationEdge {
     cursor: String!
     node: Invitation!
+  }
+
+  type CircleAnalytics {
+    content: CircleContentAnalytics!
+  }
+
+  type CircleContentAnalytics {
+    public: [CircleContentAnalyticsDatum!]
+    paywall: [CircleContentAnalyticsDatum!]
+  }
+
+  type CircleContentAnalyticsDatum {
+    node: Article!
+    readCount: Int!
   }
 
   input CircleInput {

@@ -962,6 +962,11 @@ export interface GQLCircle extends GQLNode {
   invitedBy?: GQLInvitation
 
   /**
+   * Analytics dashboard.
+   */
+  analytics: GQLCircleAnalytics
+
+  /**
    * Comments broadcasted by Circle owner.
    */
   broadcast: GQLCommentConnection
@@ -1162,6 +1167,20 @@ export interface GQLInvitationConnection extends GQLConnection {
 export interface GQLInvitationEdge {
   cursor: string
   node: GQLInvitation
+}
+
+export interface GQLCircleAnalytics {
+  content: GQLCircleContentAnalytics
+}
+
+export interface GQLCircleContentAnalytics {
+  public?: Array<GQLCircleContentAnalyticsDatum>
+  paywall?: Array<GQLCircleContentAnalyticsDatum>
+}
+
+export interface GQLCircleContentAnalyticsDatum {
+  node: GQLArticle
+  readCount: number
 }
 
 export interface GQLCircleInput {
@@ -3727,6 +3746,9 @@ export interface GQLResolver {
 
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
+  CircleAnalytics?: GQLCircleAnalyticsTypeResolver
+  CircleContentAnalytics?: GQLCircleContentAnalyticsTypeResolver
+  CircleContentAnalyticsDatum?: GQLCircleContentAnalyticsDatumTypeResolver
   Comment?: GQLCommentTypeResolver
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
@@ -5949,6 +5971,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   setting?: CircleToSettingResolver<TParent>
   invites?: CircleToInvitesResolver<TParent>
   invitedBy?: CircleToInvitedByResolver<TParent>
+  analytics?: CircleToAnalyticsResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
@@ -6128,6 +6151,15 @@ export interface CircleToInvitesResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToInvitedByResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToAnalyticsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6666,6 +6698,80 @@ export interface InvitationEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleAnalyticsTypeResolver<TParent = any> {
+  content?: CircleAnalyticsToContentResolver<TParent>
+}
+
+export interface CircleAnalyticsToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleContentAnalyticsTypeResolver<TParent = any> {
+  public?: CircleContentAnalyticsToPublicResolver<TParent>
+  paywall?: CircleContentAnalyticsToPaywallResolver<TParent>
+}
+
+export interface CircleContentAnalyticsToPublicResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleContentAnalyticsToPaywallResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleContentAnalyticsDatumTypeResolver<TParent = any> {
+  node?: CircleContentAnalyticsDatumToNodeResolver<TParent>
+  readCount?: CircleContentAnalyticsDatumToReadCountResolver<TParent>
+}
+
+export interface CircleContentAnalyticsDatumToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleContentAnalyticsDatumToReadCountResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

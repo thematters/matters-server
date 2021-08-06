@@ -1,6 +1,8 @@
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
+  GQLCircleAnalyticsTypeResolver,
+  GQLCircleContentAnalyticsTypeResolver,
   GQLCircleSettingTypeResolver,
   GQLCircleTypeResolver,
   GQLInvitationTypeResolver,
@@ -13,6 +15,8 @@ import {
   GQLQueryTypeResolver,
 } from 'definitions'
 
+import contentPaywall from './analytics/contentPaywall'
+import contentPublic from './analytics/contentPublic'
 import avatar from './avatar'
 import cover from './cover'
 import followers from './followers'
@@ -47,6 +51,8 @@ const circle: {
     __resolveType: GQLInviteeTypeResolver
   }
   Person: GQLPersonTypeResolver
+  CircleAnalytics: GQLCircleAnalyticsTypeResolver
+  CircleContentAnalytics: GQLCircleContentAnalyticsTypeResolver
 } = {
   Query: {
     circle: rootCircle,
@@ -66,6 +72,7 @@ const circle: {
     setting: (root: any) => root,
     invitedBy,
     invites: (root) => root,
+    analytics: (root) => root,
   },
 
   CircleSetting: {
@@ -101,6 +108,15 @@ const circle: {
 
   Person: {
     email: ({ email }) => email,
+  },
+
+  CircleAnalytics: {
+    content: (root) => root,
+  },
+
+  CircleContentAnalytics: {
+    public: contentPublic,
+    paywall: contentPaywall,
   },
 }
 
