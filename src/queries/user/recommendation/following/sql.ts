@@ -132,10 +132,11 @@ export const makeReadArticlesTagsActivityQuery = ({
   userId: string
 }) =>
   withExcludedUsers({ userId })
-    .select('recommended.*')
+    .select()
     .from(
       knex
-        .as('selected_activities')
+        .as('selected_recommendations')
+        .select('recommended.*')
         .from('recommended_articles_from_read_tags_materialized as recommended')
         .leftJoin('article', 'recommended.article_id', 'article.id')
         .leftJoin(
@@ -145,6 +146,6 @@ export const makeReadArticlesTagsActivityQuery = ({
         )
         .where({
           'excluded_users.user_id': null,
-          userId,
+          'recommended.user_id': userId,
         })
     )

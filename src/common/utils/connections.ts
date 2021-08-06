@@ -48,7 +48,7 @@ export const cursorToIndex = (cursor: ConnectionCursor | undefined): number => {
   return cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 }
 
-export const indexToCursor = (index: number): ConnectionCursor => {
+export const indexToCursor = (index: number | string): ConnectionCursor => {
   return Base64.encodeURI(`${PREFIX}:${index}`)
 }
 

@@ -6,6 +6,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  indexToCursor,
 } from 'common/utils'
 import { RecommendationToFollowingResolver } from 'definitions'
 
@@ -127,20 +128,20 @@ const resolver: RecommendationToFollowingResolver = async (
   // remake edges: every 5 activities
   // will append 1 circle activity and 1 recommendation activity
   const edges: any[] = []
-  connections.edges.forEach(async (edge, index) => {
+  for (const [index, edge] of connections.edges.entries()) {
     edges.push(edge)
 
     const step = 5
-    const position = skip + index
+    const position = skip + index + 1
 
     const shouldAppendRecommendations = position % step === 0
-    if (!shouldAppendRecommendations) {
-      return
+    if (position < step || !shouldAppendRecommendations) {
+      continue
     }
 
     // append circle activity
     const circleTake = 1
-    const circleSkip = Math.floor(position / step) * circleTake
+    const circleSkip = (Math.ceil(position / step) - 1) * circleTake
     const circleActivities = await makeCircleActivityQuery({ userId })
       .orderBy('created_at', 'desc')
       .offset(circleSkip)
@@ -149,67 +150,87 @@ const resolver: RecommendationToFollowingResolver = async (
     if (circleActivities.length >= 0) {
       edges.push(
         ...(await Promise.all(
-          circleActivities.map((acty) => activityLoader(acty))
+          circleActivities.map((acty, i) => ({
+            cursor: indexToCursor(`circle:${circleSkip}:${i}`),
+            node: activityLoader(acty),
+          }))
         ))
       )
     }
 
     // append recommendation rotarily based on current edge index
+    const recommenderCount = recommenders.length
     const recommendationTake = 5
-    const recommendationSkip = Math.floor(position / step) * recommendationTake
-    const pick = (Math.floor(position / step) % recommenders.length) - 1
+    const recommendationSkip =
+      (Math.ceil(position / step / recommenderCount) - 1) * recommendationTake
+    const recommendationCursor = indexToCursor(
+      `recommendation:${recommendationSkip}`
+    )
+    const pick = (Math.floor(position / step) - 1) % recommenderCount
     const { source, query: recommendationQuery } = recommenders[pick]
     const recommendation = await recommendationQuery()
       .offset(recommendationSkip)
       .limit(recommendationTake)
 
     if (recommendation.length <= 0) {
-      return
+      continue
     }
 
     switch (source) {
       case RecommendationSource.UserFollowing:
         edges.push({
-          __type: 'UserRecommendationActivity',
-          source,
-          nodes: await userService.dataloader.loadMany(
-            recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
-          ),
+          cursor: recommendationCursor,
+          node: {
+            __type: 'UserRecommendationActivity',
+            source,
+            nodes: await userService.dataloader.loadMany(
+              recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
+            ),
+          },
         })
-        return
+        break
       case RecommendationSource.UserDonation:
         edges.push({
-          __type: 'ArticleRecommendationActivity',
-          source,
-          nodes: await articleService.dataloader.loadMany(
-            recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
-          ),
+          cursor: recommendationCursor,
+          node: {
+            __type: 'ArticleRecommendationActivity',
+            source,
+            nodes: await articleService.dataloader.loadMany(
+              recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
+            ),
+          },
         })
-        return
+        break
       case RecommendationSource.ReadArticlesTags:
         edges.push({
-          __type: 'ArticleRecommendationActivity',
-          source,
-          nodes: await articleService.draftLoader.loadMany(
-            recommendation.map(({ articleId }) => articleId)
-          ),
+          cursor: recommendationCursor,
+          node: {
+            __type: 'ArticleRecommendationActivity',
+            source,
+            nodes: await articleService.draftLoader.loadMany(
+              recommendation.map(({ articleId }) => articleId)
+            ),
+          },
         })
-        return
+        break
       case RecommendationSource.UserSubscription:
         edges.push({
-          __type: 'CircleRecommendationActivity',
-          source,
-          nodes: await atomService.findMany({
-            table: 'circle',
-            whereIn: [
-              'id',
-              recommendation.map(({ nodeId }: { nodeId: string }) => nodeId),
-            ],
-          }),
+          cursor: recommendationCursor,
+          node: {
+            __type: 'CircleRecommendationActivity',
+            source,
+            nodes: await atomService.findMany({
+              table: 'circle',
+              whereIn: [
+                'id',
+                recommendation.map(({ nodeId }: { nodeId: string }) => nodeId),
+              ],
+            }),
+          },
         })
-        return
+        break
     }
-  })
+  }
 
   return {
     ...connections,

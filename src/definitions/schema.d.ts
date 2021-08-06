@@ -3052,7 +3052,7 @@ export interface GQLUserRecommendationActivity {
 }
 
 export const enum GQLUserRecommendationActivitySource {
-  UserFolloweing = 'UserFolloweing',
+  UserFollowing = 'UserFollowing',
 }
 
 export interface GQLArticleRecommendationActivity {

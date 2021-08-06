@@ -2192,7 +2192,7 @@ type UserRecommendationActivity {
 }
 
 enum UserRecommendationActivitySource {
-  UserFolloweing
+  UserFollowing
 }
 
 type ArticleRecommendationActivity {

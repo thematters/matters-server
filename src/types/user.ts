@@ -413,41 +413,41 @@ export default /* GraphQL */ `
   | UserCollectArticleActivity
 
   type UserPublishArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article published by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   type UserAddArticleTagActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article added to tag"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
 
     "Tag added by article"
-    target: Tag!
+    target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
   type UserBroadcastCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Comment boardcast by actor"
-    node: Comment!
+    node: Comment! @logCache(type: "${NODE_TYPES.Comment}")
 
     "Circle that comment belongs to"
-    target: Circle!
+    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type UserCreateCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Circle created by actor"
-    node: Circle!
+    node: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type UserRecommendationActivity {
@@ -455,11 +455,11 @@ export default /* GraphQL */ `
     source: UserRecommendationActivitySource
 
     "Recommended users"
-    nodes: [User!]
+    nodes: [User!] @logCache(type: "${NODE_TYPES.User}")
   }
 
   enum UserRecommendationActivitySource {
-    UserFolloweing
+    UserFollowing
   }
 
   type ArticleRecommendationActivity {
@@ -467,7 +467,7 @@ export default /* GraphQL */ `
     source: ArticleRecommendationActivitySource
 
     "Recommended articles"
-    nodes: [Article!]
+    nodes: [Article!] @logCache(type: "${NODE_TYPES.Article}")
   }
 
   enum ArticleRecommendationActivitySource {
@@ -480,7 +480,7 @@ export default /* GraphQL */ `
     source: CircleRecommendationActivitySource
 
     "Recommended circles"
-    nodes: [Circle!]
+    nodes: [Circle!] @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   enum CircleRecommendationActivitySource {
@@ -492,18 +492,18 @@ export default /* GraphQL */ `
   ### deprecated:start ###
   #########################
   type UserCollectArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article created by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
 
     "Article that collected by"
     target: Article!
   }
 
   type UserSubscribeCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Circle subscribed by actor"
@@ -511,7 +511,7 @@ export default /* GraphQL */ `
   }
 
   type UserFollowUserActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "User followed by actor"
@@ -519,19 +519,19 @@ export default /* GraphQL */ `
   }
 
   type UserDonateArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article donated by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   type UserBookmarkArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article bookmarked by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
   ######################
   ### deprecated:end ###
