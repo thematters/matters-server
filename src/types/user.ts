@@ -395,8 +395,12 @@ export default /* GraphQL */ `
 
   union FollowingActivity = UserPublishArticleActivity
   | UserAddArticleTagActivity
+
+  # circle activities
   | UserBroadcastCircleActivity
   | UserCreateCircleActivity
+
+  # recommendation activities
   | UserRecommendationActivity
   | ArticleRecommendationActivity
   | CircleRecommendationActivity

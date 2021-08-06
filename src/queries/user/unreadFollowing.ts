@@ -28,18 +28,10 @@ const resolver: UserStatusToUnreadFollowingResolver = async (
           'acty.actor_id',
           'au.target_id'
         )
-        .whereIn('acty.type', [
-          ActivityType.UserPublishArticleActivity,
-          ActivityType.UserCreateCircleActivity,
-          ActivityType.UserCollectArticleActivity,
-          ActivityType.UserSubscribeCircleActivity,
-          ActivityType.UserFollowUserActivity,
-          ActivityType.UserDonateArticleActivity,
-          ActivityType.UserBookmarkArticleActivity,
-        ])
-        .andWhere({
+        .where({
           'au.user_id': userId,
           'au.action': 'follow',
+          'acty.type': ActivityType.UserPublishArticleActivity,
         })
         .union([
           // filter activities based on viewer's following tag
