@@ -1,9 +1,10 @@
 const period = 30
+const materialized_view_name = 'user_activity_materialized'
 
 exports.up = async (knex) => {
   // Drop user_activity_long_materialized
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW user_activity_long_materialized CASCADE`
+    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_long_materialized CASCADE`
   )
 
   /**
@@ -11,13 +12,13 @@ exports.up = async (knex) => {
    */
   // create view
   await knex.raw(/*sql*/ `
-      DROP MATERIALIZED VIEW IF EXISTS user_activity_materialized CASCADE;
+      DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
 
-      CREATE MATERIALIZED VIEW user_activity_materialized AS
+      CREATE MATERIALIZED VIEW ${materialized_view_name} AS
       WITH
       /* UserPublishArticleActivity */
       article_period AS (
-        SELECT * FROM article
+        SELECT article.* FROM article
         LEFT JOIN "user" on article.author_id = "user".id
         WHERE "user".state = 'active'
           AND article.state = 'active'
@@ -26,7 +27,7 @@ exports.up = async (knex) => {
 
       /* UserBroadcastCircleActivity */
       circle_boardcast_period AS (
-        SELECT * FROM comment
+        SELECT comment.* FROM comment
         WHERE state = 'active'
           AND "type" = 'circle_broadcast'
           AND parent_comment_id IS NULL
@@ -35,14 +36,14 @@ exports.up = async (knex) => {
 
       /* UserCreateCircleActivity */
       circle_period AS (
-        SELECT * FROM circle
+        SELECT circle.* FROM circle
         WHERE circle.state = 'active'
           AND circle.created_at >= now() - interval '${period}' day
       ),
 
       /* UserSubscribeCircleActivity */
       cirlce_subscription_period AS (
-        SELECT * FROM circle_subscription_item
+        SELECT circle_subscription_item.* FROM circle_subscription_item
         LEFT JOIN "user" on circle_subscription_item.user_id = "user".id
         WHERE circle_subscription_item.archived = FALSE
           AND "user".state = 'active'
@@ -51,7 +52,7 @@ exports.up = async (knex) => {
 
       /* UserFollowUserActivity */
       user_follow_period AS (
-        SELECT * FROM action_user
+        SELECT action_user.* FROM action_user
         LEFT JOIN "user" on action_user.target_id = "user".id
         WHERE action = 'follow'
           AND "user".state = 'active'
@@ -60,7 +61,7 @@ exports.up = async (knex) => {
 
       /* UserDonateArticleActivity */
       article_donation_period AS (
-        SELECT * FROM transaction
+        SELECT transaction.* FROM transaction
         LEFT JOIN article on transaction.target_id = article.id
         LEFT JOIN "user" on transaction.recipient_id = "user".id
         WHERE transaction.state = 'succeeded'
@@ -72,7 +73,7 @@ exports.up = async (knex) => {
 
       /* UserAddArticleTagActivity */
       article_tag_period AS (
-        SELECT * FROM article_tag
+        SELECT article_tag.* FROM article_tag
         LEFT JOIN article on article_tag.article_id = article.id
         WHERE article_tag.selected = TRUE
           AND article.state = 'active'
@@ -170,6 +171,6 @@ exports.up = async (knex) => {
 
 exports.down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW user_activity_materialized CASCADE`
+    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_materialized CASCADE`
   )
 }
