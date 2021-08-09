@@ -863,27 +863,33 @@ export class ArticleService extends BaseService {
     }
 
     // logged-in user
-    // calculate heart beat lapsed time in secondes
+    // calculate heart beat lapsed time in milisecondes
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
     // calculate last read total time
     const readLength = Date.now() - new Date(oldData.lastRead).getTime()
 
-    // if original read longer than 30 minutes
-    // skip
-    if (userId && readLength > MINUTE * 30) {
+    // if lapse shorter than 5 minutes or readLength longer than 30 minutes, 
+    // only update the updatedAt and then return
+   if (lapse < MINUTE * 5 || readLength > MINUTE * 30) {
+      await this.baseUpdate(
+          oldData.id,
+          {
+            readTime
+          },
+          table
+        )
       return { newRead: false }
-    }
+    } 
 
-    // if lapse is longer than 5 minutes,
-    // or total length longer than 30 minutes,
+    // If lapse equal or longer than 5 minutes,
     // add a new count and update last read timestamp
-    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+   if (lapse >= MINUTE * 5 && readLength <= MINUTE * 30) {
       await updateReadCount()
       return { newRead: true }
-    }
+    } 
 
-    // other wise accumulate time
+    // otherwise accumulate time
     // NOTE: we don't accumulate read time for visitors
     const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
     await this.baseUpdate(
