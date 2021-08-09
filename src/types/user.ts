@@ -117,9 +117,6 @@ export default /* GraphQL */ `
     "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
-    "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
-
     "Following contents of this user."
     following: Following!
 
@@ -153,19 +150,7 @@ export default /* GraphQL */ `
     following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Articles recommended based on recently read article tags."
-    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
-
-    "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    readTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into following")
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -280,8 +265,6 @@ export default /* GraphQL */ `
     "Number of unread notices."
     unreadNoticeCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
-    "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) @deprecated(reason: "Use \`unreadFollowing\` instead")
 
     "Whether there are unread activities from following."
     unreadFollowing: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -410,48 +393,117 @@ export default /* GraphQL */ `
     node: FollowingActivity!
   }
 
-  union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+  union FollowingActivity = UserPublishArticleActivity
+  | UserAddArticleTagActivity
+
+  # circle activities
+  | UserBroadcastCircleActivity
+  | UserCreateCircleActivity
+
+  # recommendation activities
+  | UserRecommendationActivity
+  | ArticleRecommendationActivity
+  | CircleRecommendationActivity
+
+  # below are deprecated, won't return data
+  | UserSubscribeCircleActivity
+  | UserFollowUserActivity
+  | UserDonateArticleActivity
+  | UserBookmarkArticleActivity
+  | UserCollectArticleActivity
 
   type UserPublishArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article published by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
+  }
+
+  type UserAddArticleTagActivity {
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
+    createdAt: DateTime!
+
+    "Article added to tag"
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
+
+    "Tag added by article"
+    target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
   type UserBroadcastCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Comment boardcast by actor"
-    node: Comment!
+    node: Comment! @logCache(type: "${NODE_TYPES.Comment}")
 
     "Circle that comment belongs to"
-    target: Circle!
+    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type UserCreateCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Circle created by actor"
-    node: Circle!
+    node: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
+  type UserRecommendationActivity {
+    "The source type of recommendation"
+    source: UserRecommendationActivitySource
+
+    "Recommended users"
+    nodes: [User!] @logCache(type: "${NODE_TYPES.User}")
+  }
+
+  enum UserRecommendationActivitySource {
+    UserFollowing
+  }
+
+  type ArticleRecommendationActivity {
+    "The source type of recommendation"
+    source: ArticleRecommendationActivitySource
+
+    "Recommended articles"
+    nodes: [Article!] @logCache(type: "${NODE_TYPES.Article}")
+  }
+
+  enum ArticleRecommendationActivitySource {
+    UserDonation
+    ReadArticlesTags
+  }
+
+  type CircleRecommendationActivity {
+    "The source type of recommendation"
+    source: CircleRecommendationActivitySource
+
+    "Recommended circles"
+    nodes: [Circle!] @logCache(type: "${NODE_TYPES.Circle}")
+  }
+
+  enum CircleRecommendationActivitySource {
+    UserSubscription
+  }
+
+
+  #########################
+  ### deprecated:start ###
+  #########################
   type UserCollectArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article created by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
 
     "Article that collected by"
     target: Article!
   }
 
   type UserSubscribeCircleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Circle subscribed by actor"
@@ -459,7 +511,7 @@ export default /* GraphQL */ `
   }
 
   type UserFollowUserActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "User followed by actor"
@@ -467,32 +519,23 @@ export default /* GraphQL */ `
   }
 
   type UserDonateArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article donated by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   type UserBookmarkArticleActivity {
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
     "Article bookmarked by actor"
-    node: Article!
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
-
-  type UserAddArticleTagActivity {
-    actor: User!
-    createdAt: DateTime!
-
-    "Article added to tag"
-    node: Article!
-
-    "Tag added by article"
-    target: Tag!
-  }
-
+  ######################
+  ### deprecated:end ###
+  ######################
 
   type FolloweeDonatedArticleConnection implements Connection {
     totalCount: Int!

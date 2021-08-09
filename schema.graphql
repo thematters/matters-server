@@ -1862,9 +1862,6 @@ type User implements Node {
   """Followers of this user."""
   followers(input: ConnectionArgs!): UserConnection!
 
-  """Users that this user follows."""
-  followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
-
   """Following contents of this user."""
   following: Following!
 
@@ -1913,19 +1910,7 @@ type Recommendation {
   following(input: ConnectionArgs!): FollowingActivityConnection!
 
   """Articles recommended based on recently read article tags."""
-  readTagsArticles(input: ConnectionArgs!): ArticleConnection!
-
-  """Articles published by user's followees."""
-  followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Comments published by user's followees."""
-  followeeComments(input: ConnectionArgs!): CommentConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Articles that followee donated"""
-  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
-
-  """Articles has been added into followed tags."""
-  followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
+  readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
 
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
@@ -2038,9 +2023,6 @@ type UserStatus {
 
   """Number of unread notices."""
   unreadNoticeCount: Int!
-
-  """Whether there are unread articles from followees."""
-  unreadFolloweeArticles: Boolean! @deprecated(reason: "Use `unreadFollowing` instead")
 
   """Whether there are unread activities from following."""
   unreadFollowing: Boolean!
@@ -2178,7 +2160,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserCollectArticleActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2186,6 +2168,17 @@ type UserPublishArticleActivity {
 
   """Article published by actor"""
   node: Article!
+}
+
+type UserAddArticleTagActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Article added to tag"""
+  node: Article!
+
+  """Tag added by article"""
+  target: Tag!
 }
 
 type UserBroadcastCircleActivity {
@@ -2207,6 +2200,48 @@ type UserCreateCircleActivity {
   node: Circle!
 }
 
+type UserRecommendationActivity {
+  """The source type of recommendation"""
+  source: UserRecommendationActivitySource
+
+  """Recommended users"""
+  nodes: [User!]
+}
+
+enum UserRecommendationActivitySource {
+  UserFollowing
+}
+
+type ArticleRecommendationActivity {
+  """The source type of recommendation"""
+  source: ArticleRecommendationActivitySource
+
+  """Recommended articles"""
+  nodes: [Article!]
+}
+
+enum ArticleRecommendationActivitySource {
+  UserDonation
+  ReadArticlesTags
+}
+
+type CircleRecommendationActivity {
+  """The source type of recommendation"""
+  source: CircleRecommendationActivitySource
+
+  """Recommended circles"""
+  nodes: [Circle!]
+}
+
+enum CircleRecommendationActivitySource {
+  UserSubscription
+}
+
+"""
+########################
+## deprecated:start ###
+########################
+"""
 type UserCollectArticleActivity {
   actor: User!
   createdAt: DateTime!
@@ -2248,17 +2283,6 @@ type UserBookmarkArticleActivity {
 
   """Article bookmarked by actor"""
   node: Article!
-}
-
-type UserAddArticleTagActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article added to tag"""
-  node: Article!
-
-  """Tag added by article"""
-  target: Tag!
 }
 
 type FolloweeDonatedArticleConnection implements Connection {
