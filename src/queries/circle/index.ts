@@ -3,7 +3,10 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLCircleAnalyticsTypeResolver,
   GQLCircleContentAnalyticsTypeResolver,
+  GQLCircleFollowerAnalyticsTypeResolver,
+  GQLCircleIncomeAnalyticsTypeResolver,
   GQLCircleSettingTypeResolver,
+  GQLCircleSubscriberAnalyticsTypeResolver,
   GQLCircleTypeResolver,
   GQLInvitationTypeResolver,
   GQLInviteeTypeResolver,
@@ -15,8 +18,7 @@ import {
   GQLQueryTypeResolver,
 } from 'definitions'
 
-import contentPaywall from './analytics/contentPaywall'
-import contentPublic from './analytics/contentPublic'
+import analytics from './analytics'
 import avatar from './avatar'
 import cover from './cover'
 import followers from './followers'
@@ -52,6 +54,9 @@ const circle: {
   }
   Person: GQLPersonTypeResolver
   CircleAnalytics: GQLCircleAnalyticsTypeResolver
+  CircleIncomeAnalytics: GQLCircleIncomeAnalyticsTypeResolver
+  CircleSubscriberAnalytics: GQLCircleSubscriberAnalyticsTypeResolver
+  CircleFollowerAnalytics: GQLCircleFollowerAnalyticsTypeResolver
   CircleContentAnalytics: GQLCircleContentAnalyticsTypeResolver
 } = {
   Query: {
@@ -111,13 +116,16 @@ const circle: {
   },
 
   CircleAnalytics: {
+    income: (root) => root,
+    subscriber: (root) => root,
+    follower: (root) => root,
     content: (root) => root,
   },
 
-  CircleContentAnalytics: {
-    public: contentPublic,
-    paywall: contentPaywall,
-  },
+  CircleIncomeAnalytics: analytics.CircleIncomeAnalytics,
+  CircleSubscriberAnalytics: analytics.CircleSubscriberAnalytics,
+  CircleFollowerAnalytics: analytics.CircleFollowerAnalytics,
+  CircleContentAnalytics: analytics.CircleContentAnalytics,
 }
 
 export default circle

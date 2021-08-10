@@ -1,8 +1,4 @@
-import {
-  AUTH_MODE as MODE,
-  NODE_TYPES,
-  SCOPE_GROUP as GROUP,
-} from 'common/enums'
+import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -11,19 +7,19 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Create or update a Circle."
-    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Follow or unfollow a Circle."
-    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Subscribe a Circle."
-    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Add or remove Circle's articles"
-    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Invite others to join circle"
     invite(input: InviteCircleInput!): [Invitation!]
@@ -81,16 +77,16 @@ export default /* GraphQL */ `
     isMember: Boolean!
 
     "Setting of this Circle."
-    setting: CircleSetting!
+    setting: CircleSetting! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Invitations belonged to this Circle."
-    invites: Invites!
+    invites: Invites! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Invitation used by current viewer."
     invitedBy: Invitation
 
     "Analytics dashboard."
-    analytics: CircleAnalytics!
+    analytics: CircleAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   extend type User {
