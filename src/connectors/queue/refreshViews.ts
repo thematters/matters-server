@@ -130,21 +130,9 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    // refresh user recently read tags view every 6 hours
+    // refresh user recently read tags view every hour
     this.q.add(
       QUEUE_JOB.refreshRecentlyReadTagsView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: HOUR * 6,
-        },
-      }
-    )
-
-    // refresh article read time view every 1 hours
-    this.q.add(
-      QUEUE_JOB.refreshArticleReadTimeView,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
@@ -154,14 +142,26 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    // refresh recommended articles from read tags view every 12 hours
+    // refresh article read time view every 30 minutes
+    this.q.add(
+      QUEUE_JOB.refreshArticleReadTimeView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: MINUTE * 30,
+        },
+      }
+    )
+
+    // refresh recommended articles from read tags view every 3 hours
     this.q.add(
       QUEUE_JOB.refreshRecommendedArticlesFromReadTagsView,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 12,
+          every: HOUR * 3,
         },
       }
     )
