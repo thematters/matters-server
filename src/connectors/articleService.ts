@@ -812,6 +812,13 @@ export class ArticleService extends BaseService {
   }) => {
     const table = 'article_read_count'
 
+    /***
+     * recording parameters:
+     * updatedAt: last heart beat update
+     * lastRead: last new read start timestamp
+     * readTime: total read time in seconds, accumulated from heart beat and updatedAt
+     */
+
     // current read data
     const newData = {
       articleId,
@@ -821,10 +828,13 @@ export class ArticleService extends BaseService {
       ip,
     }
 
-    // past record
+    // get past record
     const record = await this.baseFind({ where: { articleId, userId }, table })
 
-    // create create new record if none exists
+    /**
+     * Case 1: no past record exists
+     * create new record and return
+     */
     if (!record || record.length === 0) {
       await this.baseCreate(
         {
@@ -841,6 +851,8 @@ export class ArticleService extends BaseService {
 
     // get old data
     const oldData = record[0]
+
+    // prepare funtion to only update count
     const updateReadCount = async () => {
       await this.baseUpdate(
         oldData.id,
@@ -855,37 +867,59 @@ export class ArticleService extends BaseService {
       )
     }
 
-    // visitor
-    // add a new count and update last read timestamp for visitors
+    /**
+     *
+     * Case 2: visitor
+     * don't accumulate read time
+     * add a new count and update last read timestamp for visitors
+     */
     if (!userId) {
       await updateReadCount()
       return { newRead: true }
     }
 
-    // logged-in user
-    // calculate heart beat lapsed time in secondes
+    // for logged-in user, calculate lapsed time in milisecondes
+    // based on updatedAt
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
-    // calculate last read total time
+    // calculate total time since last read started
     const readLength = Date.now() - new Date(oldData.lastRead).getTime()
 
-    // if original read longer than 30 minutes
-    // skip
-    if (userId && readLength > MINUTE * 30) {
+    // calculate total read time by accumulating heart beat
+    const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
+
+    /**
+     * Case 3: user continuous read that exceeds 30 minutes
+     * stop accumulating read time and only update updatedAt
+     *
+     * also check if lapse time is longer than 5 minutes,
+     * if so it's a new read and go to case 4
+     */
+    if (lapse < MINUTE * 5 && readLength > MINUTE * 30) {
+      await this.baseUpdate(
+        oldData.id,
+        {
+          updatedAt: newData.updatedAt,
+        },
+        table
+      )
       return { newRead: false }
     }
 
-    // if lapse is longer than 5 minutes,
-    // or total length longer than 30 minutes,
-    // add a new count and update last read timestamp
-    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+    /**
+     * Case 4: lapse equal or longer than 5 minutes
+     * treat as a new read
+     * add a new count and update last read timestamp
+     */
+    if (lapse >= MINUTE * 5) {
       await updateReadCount()
       return { newRead: true }
     }
 
-    // other wise accumulate time
-    // NOTE: we don't accumulate read time for visitors
-    const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
+    /**
+     * Case 5: all other normal readings
+     * accumulate time and update data
+     */
     await this.baseUpdate(
       oldData.id,
       {
