@@ -195,7 +195,7 @@ const resolver: RecommendationToFollowingResolver = async (
           node: {
             __type: 'ArticleRecommendationActivity',
             source,
-            nodes: await articleService.dataloader.loadMany(
+            nodes: await articleService.draftLoader.loadMany(
               recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
             ),
           },
