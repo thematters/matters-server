@@ -148,7 +148,7 @@ export const makeUserFollowUserActivityQuery = ({
         .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
         .leftJoin(
           'excluded_followers',
-          'acty.actor_id',
+          'acty.node_id',
           'excluded_followers.user_id'
         )
         .where({
