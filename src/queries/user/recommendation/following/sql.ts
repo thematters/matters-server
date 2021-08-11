@@ -118,7 +118,7 @@ export const makeUserDonateArticleActivityQuery = ({
           'excluded_users.user_id': null,
           'au.user_id': userId,
           'au.action': USER_ACTION.follow,
-          'acty.type': ActivityType.UserSubscribeCircleActivity,
+          'acty.type': ActivityType.UserDonateArticleActivity,
         })
 
       return query
