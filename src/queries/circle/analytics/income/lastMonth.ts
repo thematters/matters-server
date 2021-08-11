@@ -1,11 +1,49 @@
+import {
+  PAYMENT_PROVIDER,
+  PRICE_STATE,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
+} from 'common/enums'
 import { CircleIncomeAnalyticsToLastMonthResolver } from 'definitions'
 
 const resolver: CircleIncomeAnalyticsToLastMonthResolver = async (
-  { id },
+  { id, owner },
   _,
-  { dataSources: { atomService }, knex }
+  { dataSources: { atomService, systemService }, knex }
 ) => {
-  return 0
+  const [{ id: entityTypeId }, price] = await Promise.all([
+    systemService.baseFindEntityTypeId(TRANSACTION_TARGET_TYPE.circlePrice),
+    atomService.findFirst({
+      table: 'circle_price',
+      where: { circleId: id, state: PRICE_STATE.active },
+    }),
+  ])
+
+  const result = await knex
+    .select()
+    .from('transaction')
+    .where({
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+      provider: PAYMENT_PROVIDER.matters,
+      recipientId: owner,
+      targetType: entityTypeId,
+      targetId: price.id,
+    })
+    .andWhere(
+      'created_at',
+      '>=',
+      knex.raw(`date_trunc('month', current_date - interval '1' month)`)
+    )
+    .andWhere('created_at', '<', knex.raw(`date_trunc('month', current_date)`))
+    .sum('amount as total')
+
+  if (!result || !result[0]) {
+    return 0
+  }
+
+  return parseInt(result[0].total || 0, 10)
 }
 
 export default resolver
