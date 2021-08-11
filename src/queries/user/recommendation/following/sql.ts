@@ -136,7 +136,7 @@ export const makeUserFollowUserActivityQuery = ({
       builder
         .select('target_id as user_id')
         .from('action_user')
-        .where({ userId, action: USER_ACTION.block })
+        .where({ userId, action: USER_ACTION.follow })
     })
     .select()
     .from((builder: Knex.QueryBuilder) => {
