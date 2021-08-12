@@ -99,16 +99,75 @@ export const makeCircleActivityQuery = ({ userId }: { userId: string }) =>
         ])
     )
 
-// retrieve activities based on user's following user
-export const makeUserFollowingActivityQuery = ({
+// retrieve UserDonateArticleActivity
+export const makeUserDonateArticleActivityQuery = ({
   userId,
-  type,
 }: {
   userId: string
-  type:
-    | ActivityType.UserSubscribeCircleActivity
-    | ActivityType.UserDonateArticleActivity
-    | ActivityType.UserFollowUserActivity
+}) =>
+  withExcludedUsers({ userId })
+    .select()
+    .from((builder: Knex.QueryBuilder) => {
+      const query = builder
+        .as('selected_activities')
+        .select('acty.*')
+        .from('action_user as au')
+        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+        .where({
+          'excluded_users.user_id': null,
+          'au.user_id': userId,
+          'au.action': USER_ACTION.follow,
+          'acty.type': ActivityType.UserDonateArticleActivity,
+        })
+
+      return query
+    })
+    .orderBy('created_at', 'desc')
+
+// retrieve UserFollowUserActivity
+export const makeUserFollowUserActivityQuery = ({
+  userId,
+}: {
+  userId: string
+}) =>
+  withExcludedUsers({ userId })
+    .with('excluded_followers', (builder) => {
+      builder
+        .select('target_id as user_id')
+        .from('action_user')
+        .where({ userId, action: USER_ACTION.follow })
+    })
+    .select()
+    .from((builder: Knex.QueryBuilder) => {
+      const query = builder
+        .as('selected_activities')
+        .select('acty.*')
+        .from('action_user as au')
+        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+        .leftJoin(
+          'excluded_followers',
+          'acty.node_id',
+          'excluded_followers.user_id'
+        )
+        .where({
+          'excluded_users.user_id': null,
+          'excluded_followers.user_id': null,
+          'au.user_id': userId,
+          'au.action': USER_ACTION.follow,
+          'acty.type': ActivityType.UserFollowUserActivity,
+        })
+
+      return query
+    })
+    .orderBy('created_at', 'desc')
+
+// retrieve UserSubscribeCircleActivity
+export const makeUserSubscribeCircleActivityQuery = ({
+  userId,
+}: {
+  userId: string
 }) =>
   withExcludedUsers({ userId })
     .with('excluded_circles', (builder) => {
@@ -137,24 +196,18 @@ export const makeUserFollowingActivityQuery = ({
         .from('action_user as au')
         .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
         .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+        .leftJoin(
+          'excluded_circles',
+          'acty.node_id',
+          'excluded_circles.circle_id'
+        )
         .where({
           'excluded_users.user_id': null,
+          'excluded_circles.circle_id': null,
           'au.user_id': userId,
           'au.action': USER_ACTION.follow,
-          'acty.type': type,
+          'acty.type': ActivityType.UserSubscribeCircleActivity,
         })
-
-      if (type === ActivityType.UserSubscribeCircleActivity) {
-        query
-          .leftJoin(
-            'excluded_circles',
-            'acty.node_id',
-            'excluded_circles.circle_id'
-          )
-          .andWhere({
-            'excluded_circles.circle_id': null,
-          })
-      }
 
       return query
     })
