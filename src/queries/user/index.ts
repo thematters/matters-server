@@ -27,7 +27,6 @@ import badges from './badges'
 import blockList from './blockList'
 import commentCount from './commentCount'
 import donatedArticleCount from './donatedArticleCount'
-import followees from './followees'
 import followers from './followers'
 import Following from './following'
 import group from './group'
@@ -50,7 +49,6 @@ import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
-import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadFollowing from './unreadFollowing'
 import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
@@ -105,7 +103,6 @@ const user: {
     // hasFollowed,
     subscriptions,
     followers,
-    followees,
     isFollower,
     isFollowee,
     blockList,
@@ -130,7 +127,6 @@ const user: {
     articleCount,
     commentCount,
     unreadNoticeCount,
-    unreadFolloweeArticles,
     unreadFollowing,
     hasPaymentPassword,
     totalWordCount,

@@ -962,6 +962,11 @@ export interface GQLCircle extends GQLNode {
   invitedBy?: GQLInvitation
 
   /**
+   * Analytics dashboard.
+   */
+  analytics: GQLCircleAnalytics
+
+  /**
    * Comments broadcasted by Circle owner.
    */
   broadcast: GQLCommentConnection
@@ -1162,6 +1167,20 @@ export interface GQLInvitationConnection extends GQLConnection {
 export interface GQLInvitationEdge {
   cursor: string
   node: GQLInvitation
+}
+
+export interface GQLCircleAnalytics {
+  content: GQLCircleContentAnalytics
+}
+
+export interface GQLCircleContentAnalytics {
+  public?: Array<GQLCircleContentAnalyticsDatum>
+  paywall?: Array<GQLCircleContentAnalyticsDatum>
+}
+
+export interface GQLCircleContentAnalyticsDatum {
+  node: GQLArticle
+  readCount: number
 }
 
 export interface GQLCircleInput {
@@ -2532,12 +2551,6 @@ export interface GQLUser extends GQLNode {
   followers: GQLUserConnection
 
   /**
-   * Users that this user follows.
-   * @deprecated Move to a new field
-   */
-  followees: GQLUserConnection
-
-  /**
    * Following contents of this user.
    */
   following: GQLFollowing
@@ -2610,31 +2623,9 @@ export interface GQLRecommendation {
 
   /**
    * Articles recommended based on recently read article tags.
+   * @deprecated Merged into following
    */
   readTagsArticles: GQLArticleConnection
-
-  /**
-   * Articles published by user's followees.
-   * @deprecated Merged into `Recommendation.following`
-   */
-  followeeArticles: GQLArticleConnection
-
-  /**
-   * Comments published by user's followees.
-   * @deprecated Merged into `Recommendation.following`
-   */
-  followeeComments: GQLCommentConnection
-
-  /**
-   * Articles that followee donated
-   * @deprecated Merged into `Recommendation.following`
-   */
-  followeeDonatedArticles: GQLFolloweeDonatedArticleConnection
-
-  /**
-   * Articles has been added into followed tags.
-   */
-  followingTagsArticles: GQLArticleConnection
 
   /**
    * Global articles sort by publish time.
@@ -2811,12 +2802,6 @@ export interface GQLUserStatus {
   unreadNoticeCount: number
 
   /**
-   * Whether there are unread articles from followees.
-   * @deprecated Use `unreadFollowing` instead
-   */
-  unreadFolloweeArticles: boolean
-
-  /**
    * Whether there are unread activities from following.
    */
   unreadFollowing: boolean
@@ -2980,38 +2965,47 @@ export interface GQLFollowingActivityEdge {
 
 export type GQLFollowingActivity =
   | GQLUserPublishArticleActivity
+  | GQLUserAddArticleTagActivity
   | GQLUserBroadcastCircleActivity
   | GQLUserCreateCircleActivity
-  | GQLUserCollectArticleActivity
+  | GQLUserRecommendationActivity
+  | GQLArticleRecommendationActivity
+  | GQLCircleRecommendationActivity
   | GQLUserSubscribeCircleActivity
   | GQLUserFollowUserActivity
   | GQLUserDonateArticleActivity
   | GQLUserBookmarkArticleActivity
-  | GQLUserAddArticleTagActivity
+  | GQLUserCollectArticleActivity
 
 /** Use this to resolve union type FollowingActivity */
 export type GQLPossibleFollowingActivityTypeNames =
   | 'UserPublishArticleActivity'
+  | 'UserAddArticleTagActivity'
   | 'UserBroadcastCircleActivity'
   | 'UserCreateCircleActivity'
-  | 'UserCollectArticleActivity'
+  | 'UserRecommendationActivity'
+  | 'ArticleRecommendationActivity'
+  | 'CircleRecommendationActivity'
   | 'UserSubscribeCircleActivity'
   | 'UserFollowUserActivity'
   | 'UserDonateArticleActivity'
   | 'UserBookmarkArticleActivity'
-  | 'UserAddArticleTagActivity'
+  | 'UserCollectArticleActivity'
 
 export interface GQLFollowingActivityNameMap {
   FollowingActivity: GQLFollowingActivity
   UserPublishArticleActivity: GQLUserPublishArticleActivity
+  UserAddArticleTagActivity: GQLUserAddArticleTagActivity
   UserBroadcastCircleActivity: GQLUserBroadcastCircleActivity
   UserCreateCircleActivity: GQLUserCreateCircleActivity
-  UserCollectArticleActivity: GQLUserCollectArticleActivity
+  UserRecommendationActivity: GQLUserRecommendationActivity
+  ArticleRecommendationActivity: GQLArticleRecommendationActivity
+  CircleRecommendationActivity: GQLCircleRecommendationActivity
   UserSubscribeCircleActivity: GQLUserSubscribeCircleActivity
   UserFollowUserActivity: GQLUserFollowUserActivity
   UserDonateArticleActivity: GQLUserDonateArticleActivity
   UserBookmarkArticleActivity: GQLUserBookmarkArticleActivity
-  UserAddArticleTagActivity: GQLUserAddArticleTagActivity
+  UserCollectArticleActivity: GQLUserCollectArticleActivity
 }
 
 export interface GQLUserPublishArticleActivity {
@@ -3022,6 +3016,21 @@ export interface GQLUserPublishArticleActivity {
    * Article published by actor
    */
   node: GQLArticle
+}
+
+export interface GQLUserAddArticleTagActivity {
+  actor: GQLUser
+  createdAt: GQLDateTime
+
+  /**
+   * Article added to tag
+   */
+  node: GQLArticle
+
+  /**
+   * Tag added by article
+   */
+  target: GQLTag
 }
 
 export interface GQLUserBroadcastCircleActivity {
@@ -3049,6 +3058,60 @@ export interface GQLUserCreateCircleActivity {
   node: GQLCircle
 }
 
+export interface GQLUserRecommendationActivity {
+  /**
+   * The source type of recommendation
+   */
+  source?: GQLUserRecommendationActivitySource
+
+  /**
+   * Recommended users
+   */
+  nodes?: Array<GQLUser>
+}
+
+export const enum GQLUserRecommendationActivitySource {
+  UserFollowing = 'UserFollowing',
+}
+
+export interface GQLArticleRecommendationActivity {
+  /**
+   * The source type of recommendation
+   */
+  source?: GQLArticleRecommendationActivitySource
+
+  /**
+   * Recommended articles
+   */
+  nodes?: Array<GQLArticle>
+}
+
+export const enum GQLArticleRecommendationActivitySource {
+  UserDonation = 'UserDonation',
+  ReadArticlesTags = 'ReadArticlesTags',
+}
+
+export interface GQLCircleRecommendationActivity {
+  /**
+   * The source type of recommendation
+   */
+  source?: GQLCircleRecommendationActivitySource
+
+  /**
+   * Recommended circles
+   */
+  nodes?: Array<GQLCircle>
+}
+
+export const enum GQLCircleRecommendationActivitySource {
+  UserSubscription = 'UserSubscription',
+}
+
+/**
+ * ########################
+ * ## deprecated:start ###
+ * ########################
+ */
 export interface GQLUserCollectArticleActivity {
   actor: GQLUser
   createdAt: GQLDateTime
@@ -3102,21 +3165,6 @@ export interface GQLUserBookmarkArticleActivity {
    * Article bookmarked by actor
    */
   node: GQLArticle
-}
-
-export interface GQLUserAddArticleTagActivity {
-  actor: GQLUser
-  createdAt: GQLDateTime
-
-  /**
-   * Article added to tag
-   */
-  node: GQLArticle
-
-  /**
-   * Tag added by article
-   */
-  target: GQLTag
 }
 
 export interface GQLFolloweeDonatedArticleConnection extends GQLConnection {
@@ -3698,6 +3746,9 @@ export interface GQLResolver {
 
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
+  CircleAnalytics?: GQLCircleAnalyticsTypeResolver
+  CircleContentAnalytics?: GQLCircleContentAnalyticsTypeResolver
+  CircleContentAnalyticsDatum?: GQLCircleContentAnalyticsDatumTypeResolver
   Comment?: GQLCommentTypeResolver
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
@@ -3769,14 +3820,17 @@ export interface GQLResolver {
   }
 
   UserPublishArticleActivity?: GQLUserPublishArticleActivityTypeResolver
+  UserAddArticleTagActivity?: GQLUserAddArticleTagActivityTypeResolver
   UserBroadcastCircleActivity?: GQLUserBroadcastCircleActivityTypeResolver
   UserCreateCircleActivity?: GQLUserCreateCircleActivityTypeResolver
+  UserRecommendationActivity?: GQLUserRecommendationActivityTypeResolver
+  ArticleRecommendationActivity?: GQLArticleRecommendationActivityTypeResolver
+  CircleRecommendationActivity?: GQLCircleRecommendationActivityTypeResolver
   UserCollectArticleActivity?: GQLUserCollectArticleActivityTypeResolver
   UserSubscribeCircleActivity?: GQLUserSubscribeCircleActivityTypeResolver
   UserFollowUserActivity?: GQLUserFollowUserActivityTypeResolver
   UserDonateArticleActivity?: GQLUserDonateArticleActivityTypeResolver
   UserBookmarkArticleActivity?: GQLUserBookmarkArticleActivityTypeResolver
-  UserAddArticleTagActivity?: GQLUserAddArticleTagActivityTypeResolver
   FolloweeDonatedArticleConnection?: GQLFolloweeDonatedArticleConnectionTypeResolver
   FolloweeDonatedArticleEdge?: GQLFolloweeDonatedArticleEdgeTypeResolver
   FolloweeDonatedArticle?: GQLFolloweeDonatedArticleTypeResolver
@@ -5917,6 +5971,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   setting?: CircleToSettingResolver<TParent>
   invites?: CircleToInvitesResolver<TParent>
   invitedBy?: CircleToInvitedByResolver<TParent>
+  analytics?: CircleToAnalyticsResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
@@ -6096,6 +6151,15 @@ export interface CircleToInvitesResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToInvitedByResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToAnalyticsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6634,6 +6698,80 @@ export interface InvitationEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleAnalyticsTypeResolver<TParent = any> {
+  content?: CircleAnalyticsToContentResolver<TParent>
+}
+
+export interface CircleAnalyticsToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleContentAnalyticsTypeResolver<TParent = any> {
+  public?: CircleContentAnalyticsToPublicResolver<TParent>
+  paywall?: CircleContentAnalyticsToPaywallResolver<TParent>
+}
+
+export interface CircleContentAnalyticsToPublicResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleContentAnalyticsToPaywallResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleContentAnalyticsDatumTypeResolver<TParent = any> {
+  node?: CircleContentAnalyticsDatumToNodeResolver<TParent>
+  readCount?: CircleContentAnalyticsDatumToReadCountResolver<TParent>
+}
+
+export interface CircleContentAnalyticsDatumToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleContentAnalyticsDatumToReadCountResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -8484,7 +8622,6 @@ export interface GQLUserTypeResolver<TParent = any> {
   subscriptions?: UserToSubscriptionsResolver<TParent>
   activity?: UserToActivityResolver<TParent>
   followers?: UserToFollowersResolver<TParent>
-  followees?: UserToFolloweesResolver<TParent>
   following?: UserToFollowingResolver<TParent>
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
@@ -8663,18 +8800,6 @@ export interface UserToFollowersResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToFolloweesArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToFolloweesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToFolloweesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface UserToFollowingResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -8813,10 +8938,6 @@ export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
 export interface GQLRecommendationTypeResolver<TParent = any> {
   following?: RecommendationToFollowingResolver<TParent>
   readTagsArticles?: RecommendationToReadTagsArticlesResolver<TParent>
-  followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
-  followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
-  followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<TParent>
-  followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -8853,66 +8974,6 @@ export interface RecommendationToReadTagsArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToReadTagsArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToFolloweeArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToFolloweeArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToFolloweeArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToFolloweeCommentsArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToFolloweeCommentsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToFolloweeCommentsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToFolloweeDonatedArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToFolloweeDonatedArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToFolloweeDonatedArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToFollowingTagsArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToFollowingTagsArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToFollowingTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -9246,7 +9307,6 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   articleCount?: UserStatusToArticleCountResolver<TParent>
   commentCount?: UserStatusToCommentCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
-  unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadFollowing?: UserStatusToUnreadFollowingResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
   hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
@@ -9297,18 +9357,6 @@ export interface UserStatusToCommentCountResolver<
 }
 
 export interface UserStatusToUnreadNoticeCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToUnreadFolloweeArticlesResolver<
   TParent = any,
   TResult = any
 > {
@@ -10061,24 +10109,30 @@ export interface FollowingActivityEdgeToNodeResolver<
 export interface GQLFollowingActivityTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'UserPublishArticleActivity'
+    | 'UserAddArticleTagActivity'
     | 'UserBroadcastCircleActivity'
     | 'UserCreateCircleActivity'
-    | 'UserCollectArticleActivity'
+    | 'UserRecommendationActivity'
+    | 'ArticleRecommendationActivity'
+    | 'CircleRecommendationActivity'
     | 'UserSubscribeCircleActivity'
     | 'UserFollowUserActivity'
     | 'UserDonateArticleActivity'
     | 'UserBookmarkArticleActivity'
-    | 'UserAddArticleTagActivity'
+    | 'UserCollectArticleActivity'
     | Promise<
         | 'UserPublishArticleActivity'
+        | 'UserAddArticleTagActivity'
         | 'UserBroadcastCircleActivity'
         | 'UserCreateCircleActivity'
-        | 'UserCollectArticleActivity'
+        | 'UserRecommendationActivity'
+        | 'ArticleRecommendationActivity'
+        | 'CircleRecommendationActivity'
         | 'UserSubscribeCircleActivity'
         | 'UserFollowUserActivity'
         | 'UserDonateArticleActivity'
         | 'UserBookmarkArticleActivity'
-        | 'UserAddArticleTagActivity'
+        | 'UserCollectArticleActivity'
       >
 }
 export interface GQLUserPublishArticleActivityTypeResolver<TParent = any> {
@@ -10112,6 +10166,61 @@ export interface UserPublishArticleActivityToCreatedAtResolver<
 }
 
 export interface UserPublishArticleActivityToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLUserAddArticleTagActivityTypeResolver<TParent = any> {
+  actor?: UserAddArticleTagActivityToActorResolver<TParent>
+  createdAt?: UserAddArticleTagActivityToCreatedAtResolver<TParent>
+  node?: UserAddArticleTagActivityToNodeResolver<TParent>
+  target?: UserAddArticleTagActivityToTargetResolver<TParent>
+}
+
+export interface UserAddArticleTagActivityToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserAddArticleTagActivityToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserAddArticleTagActivityToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserAddArticleTagActivityToTargetResolver<
   TParent = any,
   TResult = any
 > {
@@ -10209,6 +10318,93 @@ export interface UserCreateCircleActivityToCreatedAtResolver<
 }
 
 export interface UserCreateCircleActivityToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLUserRecommendationActivityTypeResolver<TParent = any> {
+  source?: UserRecommendationActivityToSourceResolver<TParent>
+  nodes?: UserRecommendationActivityToNodesResolver<TParent>
+}
+
+export interface UserRecommendationActivityToSourceResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserRecommendationActivityToNodesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleRecommendationActivityTypeResolver<TParent = any> {
+  source?: ArticleRecommendationActivityToSourceResolver<TParent>
+  nodes?: ArticleRecommendationActivityToNodesResolver<TParent>
+}
+
+export interface ArticleRecommendationActivityToSourceResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleRecommendationActivityToNodesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleRecommendationActivityTypeResolver<TParent = any> {
+  source?: CircleRecommendationActivityToSourceResolver<TParent>
+  nodes?: CircleRecommendationActivityToNodesResolver<TParent>
+}
+
+export interface CircleRecommendationActivityToSourceResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleRecommendationActivityToNodesResolver<
   TParent = any,
   TResult = any
 > {
@@ -10432,61 +10628,6 @@ export interface UserBookmarkArticleActivityToCreatedAtResolver<
 }
 
 export interface UserBookmarkArticleActivityToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLUserAddArticleTagActivityTypeResolver<TParent = any> {
-  actor?: UserAddArticleTagActivityToActorResolver<TParent>
-  createdAt?: UserAddArticleTagActivityToCreatedAtResolver<TParent>
-  node?: UserAddArticleTagActivityToNodeResolver<TParent>
-  target?: UserAddArticleTagActivityToTargetResolver<TParent>
-}
-
-export interface UserAddArticleTagActivityToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserAddArticleTagActivityToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserAddArticleTagActivityToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserAddArticleTagActivityToTargetResolver<
   TParent = any,
   TResult = any
 > {

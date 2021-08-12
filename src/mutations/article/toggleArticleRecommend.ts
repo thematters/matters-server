@@ -7,7 +7,6 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
   { input: { id, enabled, type = 'icymi' } },
   { viewer, dataSources: { atomService, articleService, draftService } }
 ) => {
-
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
