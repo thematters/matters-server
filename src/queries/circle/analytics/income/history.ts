@@ -1,5 +1,3 @@
-import Knex from 'knex'
-
 import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -14,8 +12,6 @@ const resolver: CircleIncomeAnalyticsToHistoryResolver = async (
   _,
   { dataSources: { atomService, systemService }, knex }
 ) => {
-  const take = 4
-
   const [{ id: entityTypeId }, price] = await Promise.all([
     systemService.baseFindEntityTypeId(TRANSACTION_TARGET_TYPE.circlePrice),
     atomService.findFirst({
@@ -24,10 +20,27 @@ const resolver: CircleIncomeAnalyticsToHistoryResolver = async (
     }),
   ])
 
+  const selectPastMonth = (month: number) =>
+    knex.raw(
+      `select date_trunc('month', current_date - interval '${month}' month) as date`
+    )
   const result = await knex
-    .select()
-    .from((builder: Knex.QueryBuilder) => {
+    .with('last_4_months', (builder) => {
       builder
+        .select()
+        .union([
+          selectPastMonth(3),
+          selectPastMonth(2),
+          selectPastMonth(1),
+          selectPastMonth(0),
+        ])
+        .orderBy('date', 'asc')
+    })
+    .select('date')
+    .select(knex.raw(`coalesce(group_amount, 0) as value`))
+    .from('last_4_months')
+    .leftJoin(
+      knex
         .select(knex.raw(`date_trunc('month', created_at) as group_month`))
         .sum('amount as group_amount')
         .from('transaction')
@@ -39,17 +52,13 @@ const resolver: CircleIncomeAnalyticsToHistoryResolver = async (
           targetType: entityTypeId,
           targetId: price.id,
         })
-        .limit(take)
         .groupBy('group_month')
-        .orderBy('group_month', 'desc')
-        .as('latest_history')
-    })
-    .orderBy('group_month', 'asc')
+        .as('history'),
+      'history.group_month',
+      'last_4_months.date'
+    )
 
-  return result.map((item) => ({
-    value: item.groupAmount,
-    date: item.groupMonth,
-  }))
+  return result
 }
 
 export default resolver
