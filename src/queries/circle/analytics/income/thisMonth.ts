@@ -78,8 +78,9 @@ const resolver: CircleIncomeAnalyticsToThisMonthResolver = async (
     trialEndSubItems ? (trialEndSubItems.count as string) : '0',
     10
   )
+  const priceAmount = parseInt(price.amount, 10)
 
-  return (stripeCount + trialEndSubCount) * price
+  return (stripeCount + trialEndSubCount) * priceAmount
 }
 
 export default resolver
