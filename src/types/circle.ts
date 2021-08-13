@@ -77,16 +77,16 @@ export default /* GraphQL */ `
     isMember: Boolean!
 
     "Setting of this Circle."
-    setting: CircleSetting! @auth(mode: "${AUTH_MODE.oauth}")
+    setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invites: Invites! @auth(mode: "${AUTH_MODE.oauth}")
+    invites: Invites!
 
     "Invitation used by current viewer."
     invitedBy: Invitation
 
     "Analytics dashboard."
-    analytics: CircleAnalytics! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.ANALYTICS})
+    analytics: CircleAnalytics! @cacheControl(maxAge: ${CACHE_TTL.ANALYTICS})
   }
 
   extend type User {

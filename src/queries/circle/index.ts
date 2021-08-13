@@ -1,4 +1,5 @@
 import { NODE_TYPES } from 'common/enums'
+import { ForbiddenError } from 'common/errors'
 import { toGlobalId } from 'common/utils'
 import {
   GQLCircleAnalyticsTypeResolver,
@@ -74,10 +75,25 @@ const circle: {
     works,
     isFollower,
     isMember,
-    setting: (root: any) => root,
+    setting: (root, _, { viewer }) => {
+      if (!viewer.id || root.owner !== viewer.id) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+      return root
+    },
     invitedBy,
-    invites: (root) => root,
-    analytics: (root) => root,
+    invites: (root, _, { viewer }) => {
+      if (!viewer.id || root.owner !== viewer.id) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+      return root
+    },
+    analytics: (root, _, { viewer }) => {
+      if (!viewer.id || root.owner !== viewer.id) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+      return root
+    },
   },
 
   CircleSetting: {
