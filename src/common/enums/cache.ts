@@ -8,6 +8,8 @@ export const CACHE_TTL = {
 
   PRIVATE_QUERY: 60 * 3, // 3 mins
 
+  ANALYTICS: 60 * 30, // 30 mins
+
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
   SHORT: 60 * 3, // 3 mins
