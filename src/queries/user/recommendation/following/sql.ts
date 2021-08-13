@@ -104,26 +104,38 @@ export const makeUserDonateArticleActivityQuery = ({
   userId,
 }: {
   userId: string
-}) =>
-  withExcludedUsers({ userId })
-    .select()
-    .from((builder: Knex.QueryBuilder) => {
-      const query = builder
-        .as('selected_activities')
-        .select('acty.*')
-        .from('action_user as au')
-        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
-        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
-        .where({
-          'excluded_users.user_id': null,
-          'au.user_id': userId,
-          'au.action': USER_ACTION.follow,
-          'acty.type': ActivityType.UserDonateArticleActivity,
-        })
+}) => {
+  const query = (builder: Knex.QueryBuilder) =>
+    builder
+      .select()
+      .from(subquery)
+      .where({ rowNumber: 1 })
+      .as('selected_activities')
 
-      return query
-    })
+  const subquery = (builder: Knex.QueryBuilder) =>
+    builder
+      .as('activities')
+      .select('acty.*')
+      .select(
+        knex.raw(
+          'row_number() over (partition by node_id order by acty.id) as row_number'
+        )
+      )
+      .from('action_user as au')
+      .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+      .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+      .where({
+        'excluded_users.user_id': null,
+        'au.user_id': userId,
+        'au.action': USER_ACTION.follow,
+        'acty.type': ActivityType.UserDonateArticleActivity,
+      })
+
+  return withExcludedUsers({ userId })
+    .select()
+    .from(query)
     .orderBy('created_at', 'desc')
+}
 
 // retrieve UserFollowUserActivity
 export const makeUserFollowUserActivityQuery = ({
