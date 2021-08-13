@@ -104,34 +104,78 @@ export const makeUserDonateArticleActivityQuery = ({
   userId,
 }: {
   userId: string
-}) =>
-  withExcludedUsers({ userId })
-    .select()
-    .from((builder: Knex.QueryBuilder) => {
-      const query = builder
-        .as('selected_activities')
-        .select('acty.*')
-        .from('action_user as au')
-        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
-        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
-        .where({
-          'excluded_users.user_id': null,
-          'au.user_id': userId,
-          'au.action': USER_ACTION.follow,
-          'acty.type': ActivityType.UserDonateArticleActivity,
-        })
+}) => {
+  const query = (builder: Knex.QueryBuilder) =>
+    builder
+      .select()
+      .from(subquery)
+      .where({ rowNumber: 1 })
+      .as('selected_activities')
 
-      return query
-    })
+  const subquery = (builder: Knex.QueryBuilder) =>
+    builder
+      .as('activities')
+      .select('acty.*')
+      .select(
+        knex.raw(
+          'row_number() over (partition by node_id order by acty.id) as row_number'
+        )
+      )
+      .from('action_user as au')
+      .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+      .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+      .where({
+        'excluded_users.user_id': null,
+        'au.user_id': userId,
+        'au.action': USER_ACTION.follow,
+        'acty.type': ActivityType.UserDonateArticleActivity,
+      })
+
+  return withExcludedUsers({ userId })
+    .select()
+    .from(query)
     .orderBy('created_at', 'desc')
+}
 
 // retrieve UserFollowUserActivity
 export const makeUserFollowUserActivityQuery = ({
   userId,
 }: {
   userId: string
-}) =>
-  withExcludedUsers({ userId })
+}) => {
+  const query = (builder: Knex.QueryBuilder) =>
+    builder
+      .select()
+      .from(subquery)
+      .where({ rowNumber: 1 })
+      .as('selected_activities')
+
+  const subquery = (builder: Knex.QueryBuilder) =>
+    builder
+      .as('activities')
+      .select('acty.*')
+      .select(
+        knex.raw(
+          'row_number() over (partition by node_id order by acty.id) as row_number'
+        )
+      )
+      .from('action_user as au')
+      .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+      .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+      .leftJoin(
+        'excluded_followers',
+        'acty.node_id',
+        'excluded_followers.user_id'
+      )
+      .where({
+        'excluded_users.user_id': null,
+        'excluded_followers.user_id': null,
+        'au.user_id': userId,
+        'au.action': USER_ACTION.follow,
+        'acty.type': ActivityType.UserFollowUserActivity,
+      })
+
+  return withExcludedUsers({ userId })
     .with('excluded_followers', (builder) => {
       builder
         .select('target_id as user_id')
@@ -139,37 +183,49 @@ export const makeUserFollowUserActivityQuery = ({
         .where({ userId, action: USER_ACTION.follow })
     })
     .select()
-    .from((builder: Knex.QueryBuilder) => {
-      const query = builder
-        .as('selected_activities')
-        .select('acty.*')
-        .from('action_user as au')
-        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
-        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
-        .leftJoin(
-          'excluded_followers',
-          'acty.node_id',
-          'excluded_followers.user_id'
-        )
-        .where({
-          'excluded_users.user_id': null,
-          'excluded_followers.user_id': null,
-          'au.user_id': userId,
-          'au.action': USER_ACTION.follow,
-          'acty.type': ActivityType.UserFollowUserActivity,
-        })
-
-      return query
-    })
+    .from(query)
     .orderBy('created_at', 'desc')
+}
 
 // retrieve UserSubscribeCircleActivity
 export const makeUserSubscribeCircleActivityQuery = ({
   userId,
 }: {
   userId: string
-}) =>
-  withExcludedUsers({ userId })
+}) => {
+  const query = (builder: Knex.QueryBuilder) =>
+    builder
+      .select()
+      .from(subquery)
+      .where({ rowNumber: 1 })
+      .as('selected_activities')
+
+  const subquery = (builder: Knex.QueryBuilder) =>
+    builder
+      .as('activities')
+      .select('acty.*')
+      .select(
+        knex.raw(
+          'row_number() over (partition by node_id order by acty.id) as row_number'
+        )
+      )
+      .from('action_user as au')
+      .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+      .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
+      .leftJoin(
+        'excluded_circles',
+        'acty.node_id',
+        'excluded_circles.circle_id'
+      )
+      .where({
+        'excluded_users.user_id': null,
+        'excluded_circles.circle_id': null,
+        'au.user_id': userId,
+        'au.action': USER_ACTION.follow,
+        'acty.type': ActivityType.UserSubscribeCircleActivity,
+      })
+
+  return withExcludedUsers({ userId })
     .with('excluded_circles', (builder) => {
       // following circles
       builder
@@ -189,29 +245,9 @@ export const makeUserSubscribeCircleActivityQuery = ({
       // @see `queries/user/subscribedCircles.ts`
     })
     .select()
-    .from((builder: Knex.QueryBuilder) => {
-      const query = builder
-        .as('selected_activities')
-        .select('acty.*')
-        .from('action_user as au')
-        .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
-        .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
-        .leftJoin(
-          'excluded_circles',
-          'acty.node_id',
-          'excluded_circles.circle_id'
-        )
-        .where({
-          'excluded_users.user_id': null,
-          'excluded_circles.circle_id': null,
-          'au.user_id': userId,
-          'au.action': USER_ACTION.follow,
-          'acty.type': ActivityType.UserSubscribeCircleActivity,
-        })
-
-      return query
-    })
+    .from(query)
     .orderBy('created_at', 'desc')
+}
 
 // retrieve recommendations based on user read articles tags
 export const makeReadArticlesTagsActivityQuery = ({
