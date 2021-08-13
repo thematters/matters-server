@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -86,7 +86,7 @@ export default /* GraphQL */ `
     invitedBy: Invitation
 
     "Analytics dashboard."
-    analytics: CircleAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
+    analytics: CircleAnalytics! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.ANALYTICS})
   }
 
   extend type User {
