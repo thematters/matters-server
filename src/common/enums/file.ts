@@ -8,6 +8,7 @@ export const ASSET_TYPE = {
   tagCover: 'tagCover',
   circleAvatar: 'circleAvatar',
   circleCover: 'circleCover',
+  announcementCover: 'announcementCover',
 }
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
