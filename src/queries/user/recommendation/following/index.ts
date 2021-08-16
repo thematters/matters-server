@@ -1,7 +1,6 @@
 import _chunk from 'lodash/chunk'
 import _times from 'lodash/times'
 
-import { ActivityType } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -14,7 +13,9 @@ import {
   makeBaseActivityQuery,
   makeCircleActivityQuery,
   makeReadArticlesTagsActivityQuery,
-  makeUserFollowingActivityQuery,
+  makeUserDonateArticleActivityQuery,
+  makeUserFollowUserActivityQuery,
+  makeUserSubscribeCircleActivityQuery,
 } from './sql'
 
 export enum RecommendationSource {
@@ -95,27 +96,15 @@ const resolver: RecommendationToFollowingResolver = async (
     },
     {
       source: RecommendationSource.UserFollowing,
-      query: () =>
-        makeUserFollowingActivityQuery({
-          userId,
-          type: ActivityType.UserFollowUserActivity,
-        }),
+      query: () => makeUserFollowUserActivityQuery({ userId }),
     },
     {
       source: RecommendationSource.UserDonation,
-      query: () =>
-        makeUserFollowingActivityQuery({
-          userId,
-          type: ActivityType.UserDonateArticleActivity,
-        }),
+      query: () => makeUserDonateArticleActivityQuery({ userId }),
     },
     {
       source: RecommendationSource.UserSubscription,
-      query: () =>
-        makeUserFollowingActivityQuery({
-          userId,
-          type: ActivityType.UserSubscribeCircleActivity,
-        }),
+      query: () => makeUserSubscribeCircleActivityQuery({ userId }),
     },
   ]
 

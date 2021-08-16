@@ -1,8 +1,4 @@
-import {
-  AUTH_MODE as MODE,
-  NODE_TYPES,
-  SCOPE_GROUP as GROUP,
-} from 'common/enums'
+import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -11,19 +7,19 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Create or update a Circle."
-    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Follow or unfollow a Circle."
-    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Subscribe a Circle."
-    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Add or remove Circle's articles"
-    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Invite others to join circle"
     invite(input: InviteCircleInput!): [Invitation!]
@@ -90,7 +86,7 @@ export default /* GraphQL */ `
     invitedBy: Invitation
 
     "Analytics dashboard."
-    analytics: CircleAnalytics!
+    analytics: CircleAnalytics! @cacheControl(maxAge: ${CACHE_TTL.ANALYTICS})
   }
 
   extend type User {
@@ -224,7 +220,49 @@ export default /* GraphQL */ `
   }
 
   type CircleAnalytics {
+    income: CircleIncomeAnalytics!
+    subscriber: CircleSubscriberAnalytics!
+    follower: CircleFollowerAnalytics!
     content: CircleContentAnalytics!
+  }
+
+  type CircleIncomeAnalytics {
+    "income history of last 4 months"
+    history: [MonthlyDatum!]!
+
+    "total income of all time"
+    total: Float!
+
+    "income of this month"
+    thisMonth: Float!
+
+    "income of last month"
+    lastMonth: Float!
+  }
+
+  type CircleSubscriberAnalytics {
+    "subscriber count history of last 4 months"
+    subscriberHistory: [MonthlyDatum!]!
+
+    "invitee count history of last 4 months"
+    inviteeHistory: [MonthlyDatum!]!
+
+    "current subscriber count"
+    currentSubscriber: Int!
+
+    "current invitee count"
+    currentInvitee: Int!
+  }
+
+  type CircleFollowerAnalytics {
+    "subscriber count history of last 4 months"
+    history: [MonthlyDatum!]!
+
+    "current follower count"
+    current: Int!
+
+    "the percentage of follower count in reader count of circle articles"
+    followerPercentage: Float!
   }
 
   type CircleContentAnalytics {
@@ -235,6 +273,11 @@ export default /* GraphQL */ `
   type CircleContentAnalyticsDatum {
     node: Article!
     readCount: Int!
+  }
+
+  type MonthlyDatum {
+    value: Float!
+    date: DateTime!
   }
 
   input CircleInput {

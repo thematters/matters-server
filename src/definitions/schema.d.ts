@@ -1172,7 +1172,71 @@ export interface GQLInvitationEdge {
 }
 
 export interface GQLCircleAnalytics {
+  income: GQLCircleIncomeAnalytics
+  subscriber: GQLCircleSubscriberAnalytics
+  follower: GQLCircleFollowerAnalytics
   content: GQLCircleContentAnalytics
+}
+
+export interface GQLCircleIncomeAnalytics {
+  /**
+   * income history of last 4 months
+   */
+  history: Array<GQLMonthlyDatum>
+
+  /**
+   * total income of all time
+   */
+  total: number
+
+  /**
+   * income of this month
+   */
+  thisMonth: number
+
+  /**
+   * income of last month
+   */
+  lastMonth: number
+}
+
+export interface GQLCircleSubscriberAnalytics {
+  /**
+   * subscriber count history of last 4 months
+   */
+  subscriberHistory: Array<GQLMonthlyDatum>
+
+  /**
+   * invitee count history of last 4 months
+   */
+  inviteeHistory: Array<GQLMonthlyDatum>
+
+  /**
+   * current subscriber count
+   */
+  currentSubscriber: number
+
+  /**
+   * current invitee count
+   */
+  currentInvitee: number
+}
+
+export interface GQLCircleFollowerAnalytics {
+  /**
+   * subscriber count history of last 4 months
+   */
+  history: Array<GQLMonthlyDatum>
+
+  /**
+   * current follower count
+   */
+  current: number
+
+  /**
+   * the percentage of follower count in reader count of circle articles
+   */
+  followerPercentage: number
 }
 
 export interface GQLCircleContentAnalytics {
@@ -1183,6 +1247,11 @@ export interface GQLCircleContentAnalytics {
 export interface GQLCircleContentAnalyticsDatum {
   node: GQLArticle
   readCount: number
+}
+
+export interface GQLMonthlyDatum {
+  value: number
+  date: GQLDateTime
 }
 
 export interface GQLCircleInput {
@@ -3794,8 +3863,12 @@ export interface GQLResolver {
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
   CircleAnalytics?: GQLCircleAnalyticsTypeResolver
+  CircleIncomeAnalytics?: GQLCircleIncomeAnalyticsTypeResolver
+  CircleSubscriberAnalytics?: GQLCircleSubscriberAnalyticsTypeResolver
+  CircleFollowerAnalytics?: GQLCircleFollowerAnalyticsTypeResolver
   CircleContentAnalytics?: GQLCircleContentAnalyticsTypeResolver
   CircleContentAnalyticsDatum?: GQLCircleContentAnalyticsDatumTypeResolver
+  MonthlyDatum?: GQLMonthlyDatumTypeResolver
   Comment?: GQLCommentTypeResolver
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
@@ -6787,10 +6860,198 @@ export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLCircleAnalyticsTypeResolver<TParent = any> {
+  income?: CircleAnalyticsToIncomeResolver<TParent>
+  subscriber?: CircleAnalyticsToSubscriberResolver<TParent>
+  follower?: CircleAnalyticsToFollowerResolver<TParent>
   content?: CircleAnalyticsToContentResolver<TParent>
 }
 
+export interface CircleAnalyticsToIncomeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleAnalyticsToSubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleAnalyticsToFollowerResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface CircleAnalyticsToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleIncomeAnalyticsTypeResolver<TParent = any> {
+  history?: CircleIncomeAnalyticsToHistoryResolver<TParent>
+  total?: CircleIncomeAnalyticsToTotalResolver<TParent>
+  thisMonth?: CircleIncomeAnalyticsToThisMonthResolver<TParent>
+  lastMonth?: CircleIncomeAnalyticsToLastMonthResolver<TParent>
+}
+
+export interface CircleIncomeAnalyticsToHistoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleIncomeAnalyticsToTotalResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleIncomeAnalyticsToThisMonthResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleIncomeAnalyticsToLastMonthResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleSubscriberAnalyticsTypeResolver<TParent = any> {
+  subscriberHistory?: CircleSubscriberAnalyticsToSubscriberHistoryResolver<TParent>
+  inviteeHistory?: CircleSubscriberAnalyticsToInviteeHistoryResolver<TParent>
+  currentSubscriber?: CircleSubscriberAnalyticsToCurrentSubscriberResolver<TParent>
+  currentInvitee?: CircleSubscriberAnalyticsToCurrentInviteeResolver<TParent>
+}
+
+export interface CircleSubscriberAnalyticsToSubscriberHistoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleSubscriberAnalyticsToInviteeHistoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleSubscriberAnalyticsToCurrentSubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleSubscriberAnalyticsToCurrentInviteeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleFollowerAnalyticsTypeResolver<TParent = any> {
+  history?: CircleFollowerAnalyticsToHistoryResolver<TParent>
+  current?: CircleFollowerAnalyticsToCurrentResolver<TParent>
+  followerPercentage?: CircleFollowerAnalyticsToFollowerPercentageResolver<TParent>
+}
+
+export interface CircleFollowerAnalyticsToHistoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleFollowerAnalyticsToCurrentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleFollowerAnalyticsToFollowerPercentageResolver<
   TParent = any,
   TResult = any
 > {
@@ -6852,6 +7113,29 @@ export interface CircleContentAnalyticsDatumToReadCountResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLMonthlyDatumTypeResolver<TParent = any> {
+  value?: MonthlyDatumToValueResolver<TParent>
+  date?: MonthlyDatumToDateResolver<TParent>
+}
+
+export interface MonthlyDatumToValueResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MonthlyDatumToDateResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
