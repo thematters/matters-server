@@ -61,7 +61,9 @@ export default /* GraphQL */ `
 
   type Announcement {
     id: ID!
+    title: String
     cover: String
+    content: String
     link: String
     type: AnnouncementType!
     visible: Boolean!
@@ -246,7 +248,9 @@ export default /* GraphQL */ `
 
   input PutAnnouncementInput {
     id: ID
+    title: String
     cover: String
+    content: String
     link: String
     type: AnnouncementType
     visible: Boolean

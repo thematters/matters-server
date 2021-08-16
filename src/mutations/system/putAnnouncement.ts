@@ -9,7 +9,7 @@ import { MutationToPutAnnouncementResolver } from 'definitions'
 
 const resolver: MutationToPutAnnouncementResolver = async (
   root,
-  { input: { id, cover, link, type, visible, order } },
+  { input: { id, title, content, cover, link, type, visible, order } },
   { dataSources: { atomService, systemService }, viewer }
 ) => {
   const table = 'announcement'
@@ -50,7 +50,9 @@ const resolver: MutationToPutAnnouncementResolver = async (
       table,
       where: { id: dbId },
       data: {
+        ...(title ? { title } : {}),
         ...(coverDbId ? { cover: coverDbId } : {}),
+        ...(content ? { content } : {}),
         ...(link ? { link } : {}),
         ...(type ? { type } : {}),
         ...(visible ? { visible } : {}),

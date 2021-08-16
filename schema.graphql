@@ -1549,7 +1549,9 @@ type Feature {
 
 type Announcement {
   id: ID!
+  title: String
   cover: String
+  content: String
   link: String
   type: AnnouncementType!
   visible: Boolean!
@@ -1730,7 +1732,9 @@ input AnnouncementsInput {
 
 input PutAnnouncementInput {
   id: ID
+  title: String
   cover: String
+  content: String
   link: String
   type: AnnouncementType
   visible: Boolean

@@ -13,6 +13,8 @@ export const announcements: OfficialToAnnouncementsResolver = async (
     ...(dbId ? { where: { id: dbId } } : {}),
     orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
+
+  // re-format announcements
   const items = await Promise.all(
     records.map(async (record) => {
       const cover = record?.cover

@@ -2179,7 +2179,9 @@ export interface GQLFeature {
 
 export interface GQLAnnouncement {
   id: string
+  title?: string
   cover?: string
+  content?: string
   link?: string
   type: GQLAnnouncementType
   visible: boolean
@@ -2382,7 +2384,9 @@ export interface GQLAnnouncementsInput {
 
 export interface GQLPutAnnouncementInput {
   id?: string
+  title?: string
   cover?: string
+  content?: string
   link?: string
   type?: GQLAnnouncementType
   visible?: boolean
@@ -8325,7 +8329,9 @@ export interface FeatureToEnabledResolver<TParent = any, TResult = any> {
 
 export interface GQLAnnouncementTypeResolver<TParent = any> {
   id?: AnnouncementToIdResolver<TParent>
+  title?: AnnouncementToTitleResolver<TParent>
   cover?: AnnouncementToCoverResolver<TParent>
+  content?: AnnouncementToContentResolver<TParent>
   link?: AnnouncementToLinkResolver<TParent>
   type?: AnnouncementToTypeResolver<TParent>
   visible?: AnnouncementToVisibleResolver<TParent>
@@ -8343,7 +8349,25 @@ export interface AnnouncementToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface AnnouncementToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface AnnouncementToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToContentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
