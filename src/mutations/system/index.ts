@@ -1,4 +1,6 @@
+import deleteAnnouncements from './deleteAnnouncements'
 import logRecord from './logRecord'
+import putAnnouncement from './putAnnouncement'
 import putRemark from './putRemark'
 import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
@@ -15,5 +17,7 @@ export default {
     putSkippedListItem,
     setFeature,
     toggleSeedingUsers,
+    putAnnouncement,
+    deleteAnnouncements,
   },
 }

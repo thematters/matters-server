@@ -199,6 +199,8 @@ export interface GQLMutation {
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
   toggleSeedingUsers: Array<GQLUser | null>
+  putAnnouncement: GQLAnnouncement
+  deleteAnnouncements?: boolean
 
   /**
    * Send verification code for email.
@@ -2225,18 +2227,36 @@ export interface GQLConnectionNameMap {
 }
 
 /**
- * This type contains system-wise settings.
+ * This type contains system-wise info and settings.
  */
 export interface GQLOfficial {
   /**
    * Feature flag
    */
   features: Array<GQLFeature>
+
+  /**
+   * Announcements
+   */
+  announcements?: Array<GQLAnnouncement>
 }
 
 export interface GQLFeature {
   name: GQLFeatureName
   enabled: boolean
+}
+
+export interface GQLAnnouncement {
+  id: string
+  title?: string
+  cover?: string
+  content?: string
+  link?: string
+  type: GQLAnnouncementType
+  visible: boolean
+  order: number
+  createdAt: GQLDateTime
+  updatedAt: GQLDateTime
 }
 
 export interface GQLOSS {
@@ -2427,6 +2447,26 @@ export interface GQLToggleSeedingUsersInput {
   enabled: boolean
 }
 
+export interface GQLAnnouncementsInput {
+  id?: string
+  visible?: boolean
+}
+
+export interface GQLPutAnnouncementInput {
+  id?: string
+  title?: string
+  cover?: string
+  content?: string
+  link?: string
+  type?: GQLAnnouncementType
+  visible?: boolean
+  order?: number
+}
+
+export interface GQLDeleteAnnouncementsInput {
+  ids?: Array<string>
+}
+
 export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
@@ -2476,6 +2516,7 @@ export const enum GQLAssetType {
   tagCover = 'tagCover',
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
+  announcementCover = 'announcementCover',
 }
 
 export const enum GQLEntityType {
@@ -2484,6 +2525,7 @@ export const enum GQLEntityType {
   tag = 'tag',
   user = 'user',
   circle = 'circle',
+  announcement = 'announcement',
 }
 
 /**
@@ -2521,6 +2563,12 @@ export const enum GQLFeatureFlag {
 
 export const enum GQLSearchExclude {
   blocked = 'blocked',
+}
+
+export const enum GQLAnnouncementType {
+  community = 'community',
+  product = 'product',
+  seminar = 'seminar',
 }
 
 /**
@@ -3858,6 +3906,7 @@ export interface GQLResolver {
 
   Official?: GQLOfficialTypeResolver
   Feature?: GQLFeatureTypeResolver
+  Announcement?: GQLAnnouncementTypeResolver
   OSS?: GQLOSSTypeResolver
   Asset?: GQLAssetTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
@@ -4110,6 +4159,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
   setFeature?: MutationToSetFeatureResolver<TParent>
   toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
+  putAnnouncement?: MutationToPutAnnouncementResolver<TParent>
+  deleteAnnouncements?: MutationToDeleteAnnouncementsResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -4683,6 +4734,36 @@ export interface MutationToToggleSeedingUsersResolver<
   (
     parent: TParent,
     args: MutationToToggleSeedingUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutAnnouncementArgs {
+  input: GQLPutAnnouncementInput
+}
+export interface MutationToPutAnnouncementResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutAnnouncementArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteAnnouncementsArgs {
+  input: GQLDeleteAnnouncementsInput
+}
+export interface MutationToDeleteAnnouncementsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteAnnouncementsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8484,12 +8565,25 @@ export interface GQLConnectionTypeResolver<TParent = any> {
 }
 export interface GQLOfficialTypeResolver<TParent = any> {
   features?: OfficialToFeaturesResolver<TParent>
+  announcements?: OfficialToAnnouncementsResolver<TParent>
 }
 
 export interface OfficialToFeaturesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OfficialToAnnouncementsArgs {
+  input: GQLAnnouncementsInput
+}
+export interface OfficialToAnnouncementsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OfficialToAnnouncementsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8510,6 +8604,109 @@ export interface FeatureToNameResolver<TParent = any, TResult = any> {
 }
 
 export interface FeatureToEnabledResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLAnnouncementTypeResolver<TParent = any> {
+  id?: AnnouncementToIdResolver<TParent>
+  title?: AnnouncementToTitleResolver<TParent>
+  cover?: AnnouncementToCoverResolver<TParent>
+  content?: AnnouncementToContentResolver<TParent>
+  link?: AnnouncementToLinkResolver<TParent>
+  type?: AnnouncementToTypeResolver<TParent>
+  visible?: AnnouncementToVisibleResolver<TParent>
+  order?: AnnouncementToOrderResolver<TParent>
+  createdAt?: AnnouncementToCreatedAtResolver<TParent>
+  updatedAt?: AnnouncementToUpdatedAtResolver<TParent>
+}
+
+export interface AnnouncementToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToContentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToLinkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToVisibleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToOrderResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToUpdatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

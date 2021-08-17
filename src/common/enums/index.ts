@@ -170,6 +170,7 @@ export enum NODE_TYPES {
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',
   Invitation = 'Invitation',
+  Announcement = 'Announcement',
 
   // Unions & Interfaces
   Node = 'Node',

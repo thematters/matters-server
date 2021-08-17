@@ -150,6 +150,7 @@ export type BasicTableName =
   | 'article_circle'
   | 'feature_flag'
   | 'seeding_user'
+  | 'announcement'
 
 export type View =
   | 'tag_count_view'

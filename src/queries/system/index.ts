@@ -6,7 +6,7 @@ import {
 import frequentSearch from './frequentSearch'
 import node from './node'
 import nodes from './nodes'
-import { features } from './official'
+import { announcements, features } from './official'
 import OSS from './oss'
 import search from './search'
 
@@ -31,6 +31,7 @@ export default {
   },
   Official: {
     features,
+    announcements,
   },
   OSS,
 }

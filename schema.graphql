@@ -162,6 +162,8 @@ type Mutation {
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
+  putAnnouncement(input: PutAnnouncementInput!): Announcement!
+  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1578,15 +1580,31 @@ interface Connection {
   pageInfo: PageInfo!
 }
 
-"""This type contains system-wise settings."""
+"""This type contains system-wise info and settings."""
 type Official {
   """Feature flag"""
   features: [Feature!]!
+
+  """Announcements"""
+  announcements(input: AnnouncementsInput!): [Announcement!]
 }
 
 type Feature {
   name: FeatureName!
   enabled: Boolean!
+}
+
+type Announcement {
+  id: ID!
+  title: String
+  cover: String
+  content: String
+  link: String
+  type: AnnouncementType!
+  visible: Boolean!
+  order: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type OSS {
@@ -1755,6 +1773,26 @@ input ToggleSeedingUsersInput {
   enabled: Boolean!
 }
 
+input AnnouncementsInput {
+  id: ID
+  visible: Boolean
+}
+
+input PutAnnouncementInput {
+  id: ID
+  title: String
+  cover: String
+  content: String
+  link: String
+  type: AnnouncementType
+  visible: Boolean
+  order: Int
+}
+
+input DeleteAnnouncementsInput {
+  ids: [ID!]
+}
+
 enum SearchTypes {
   Article
   User
@@ -1800,6 +1838,7 @@ enum AssetType {
   tagCover
   circleAvatar
   circleCover
+  announcementCover
 }
 
 enum EntityType {
@@ -1808,6 +1847,7 @@ enum EntityType {
   tag
   user
   circle
+  announcement
 }
 
 """Enums for user roles."""
@@ -1843,6 +1883,12 @@ enum FeatureFlag {
 
 enum SearchExclude {
   blocked
+}
+
+enum AnnouncementType {
+  community
+  product
+  seminar
 }
 
 """
