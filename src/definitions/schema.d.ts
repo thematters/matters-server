@@ -2449,6 +2449,7 @@ export interface GQLToggleSeedingUsersInput {
 
 export interface GQLAnnouncementsInput {
   id?: string
+  visible?: boolean
 }
 
 export interface GQLPutAnnouncementInput {

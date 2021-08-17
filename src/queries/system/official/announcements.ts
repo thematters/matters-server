@@ -4,12 +4,23 @@ import { OfficialToAnnouncementsResolver } from 'definitions'
 
 export const announcements: OfficialToAnnouncementsResolver = async (
   root,
-  { input: { id } },
-  { dataSources: { atomService, systemService } }
+  { input: { id, visible } },
+  { dataSources: { atomService, systemService }, viewer }
 ) => {
+  const isAdmin = viewer.hasRole('admin')
+  const visibleFilter = !isAdmin
+    ? { visible: true }
+    : typeof visible === 'boolean'
+    ? { visible }
+    : {}
+
   const { id: dbId } = id ? fromGlobalId(id) : { id: null }
   const records = await atomService.findMany({
     table: 'announcement',
+    where: {
+      ...(dbId ? { id: dbId } : {}),
+      ...visibleFilter,
+    },
     ...(dbId ? { where: { id: dbId } } : {}),
     orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
