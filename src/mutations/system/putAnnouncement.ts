@@ -55,7 +55,7 @@ const resolver: MutationToPutAnnouncementResolver = async (
         ...(content ? { content } : {}),
         ...(link ? { link } : {}),
         ...(type ? { type } : {}),
-        ...(visible ? { visible } : {}),
+        ...(typeof visible === 'boolean' ? { visible } : {}),
       },
     })
     // return updated anounncement
