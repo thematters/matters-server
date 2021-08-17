@@ -251,7 +251,7 @@ export default /* GraphQL */ `
     id: ID
     title: String
     cover: String
-    content: String
+    content: String @constraint(format: "uri")
     link: String
     type: AnnouncementType
     visible: Boolean
