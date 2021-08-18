@@ -224,7 +224,11 @@ export const updateSubscription = async ({
           archived: false,
           provider: PAYMENT_PROVIDER.stripe,
         },
-        data: { archived: true, updatedAt: new Date() },
+        data: {
+          archived: true,
+          updatedAt: new Date(),
+          canceledAt: new Date(),
+        },
       })
       updatedPriceIds = updatedItems.map((i) => i.priceId)
     } catch (error) {

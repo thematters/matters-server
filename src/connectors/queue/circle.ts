@@ -205,6 +205,7 @@ class CircleQueue extends BaseQueue {
         data: {
           archived: true,
           updatedAt: new Date(),
+          canceledAt: new Date(),
           remark: SUBSCRIPTION_ITEM_REMARK.trial_end,
         },
       })

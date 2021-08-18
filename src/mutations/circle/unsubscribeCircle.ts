@@ -133,6 +133,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
         data: {
           archived: true,
           updatedAt: new Date(),
+          canceledAt: new Date(),
           ...(isMattersSub
             ? { remark: SUBSCRIPTION_ITEM_REMARK.trial_cancel }
             : {}),
