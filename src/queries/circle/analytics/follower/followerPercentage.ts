@@ -33,7 +33,7 @@ const resolver: CircleFollowerAnalyticsToFollowerPercentageResolver = async (
     return 100
   }
 
-  return numRound((followerCount / readerCount) * 100)
+  return Math.min(numRound((followerCount / readerCount) * 100), 100)
 }
 
 export default resolver
