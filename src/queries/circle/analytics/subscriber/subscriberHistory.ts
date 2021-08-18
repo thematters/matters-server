@@ -25,7 +25,7 @@ const resolver: CircleSubscriberAnalyticsToSubscriberHistoryResolver = async (
       .select(knex.raw(`date_trunc('month', csi.created_at) as started_at`))
       .select(
         knex.raw(
-          `(CASE csi.archived WHEN false THEN null ELSE date_trunc('month', csi.updated_at) END) as ended_at`
+          `(CASE csi.archived WHEN false THEN null ELSE date_trunc('month', csi.canceled_at) END) as ended_at`
         )
       )
       .from('circle_subscription_item as csi')
