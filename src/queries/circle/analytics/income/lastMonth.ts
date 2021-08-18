@@ -33,10 +33,10 @@ const resolver: CircleIncomeAnalyticsToLastMonthResolver = async (
     })
     .andWhere(
       'created_at',
-      '>=',
-      knex.raw(`date_trunc('month', current_date - interval '1' month)`)
+      '<',
+      knex.raw(`date_trunc('month', current_date + interval '1' month)`)
     )
-    .andWhere('created_at', '<', knex.raw(`date_trunc('month', current_date)`))
+    .andWhere('created_at', '>=', knex.raw(`date_trunc('month', current_date)`))
     .sum('amount as total')
 
   if (!result || !result[0]) {
