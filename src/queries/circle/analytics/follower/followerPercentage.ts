@@ -25,6 +25,14 @@ const resolver: CircleFollowerAnalyticsToFollowerPercentageResolver = async (
     10
   )
 
+  if (followerCount <= 0) {
+    return 0
+  }
+
+  if (readerCount <= 0) {
+    return 100
+  }
+
   return numRound((followerCount / readerCount) * 100)
 }
 
