@@ -13,6 +13,7 @@ const isDesc = (ints: number[]) =>
     .every((x) => x)
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+const ARTICLE_2_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 const COMMENT_ID = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
 
 const GET_ARTILCE_COMMENTS = /* GraphQL */ `
@@ -154,7 +155,7 @@ describe('mutations on comment', () => {
             content: 'test',
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
-            articleId: ARTICLE_ID,
+            articleId: ARTICLE_2_ID,
             type: GQLCommentType.article,
           },
         },

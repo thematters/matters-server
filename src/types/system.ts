@@ -25,6 +25,8 @@ export default /* GraphQL */ `
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+    putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
+    deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
   }
 
   interface Node {
@@ -43,15 +45,31 @@ export default /* GraphQL */ `
     pageInfo: PageInfo!
   }
 
-  "This type contains system-wise settings."
+  "This type contains system-wise info and settings."
   type Official {
     "Feature flag"
     features: [Feature!]!
+
+    "Announcements"
+    announcements(input: AnnouncementsInput!): [Announcement!]
   }
 
   type Feature {
     name: FeatureName!
     enabled: Boolean!
+  }
+
+  type Announcement {
+    id: ID!
+    title: String
+    cover: String
+    content: String
+    link: String
+    type: AnnouncementType!
+    visible: Boolean!
+    order: Int!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -224,6 +242,26 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input AnnouncementsInput {
+    id: ID
+    visible: Boolean
+  }
+
+  input PutAnnouncementInput {
+    id: ID
+    title: String
+    cover: String
+    content: String
+    link: String @constraint(format: "uri")
+    type: AnnouncementType
+    visible: Boolean
+    order: Int
+  }
+
+  input DeleteAnnouncementsInput {
+    ids: [ID!]
+  }
+
   enum SearchTypes {
     Article
     User
@@ -269,6 +307,7 @@ export default /* GraphQL */ `
     tagCover
     circleAvatar
     circleCover
+    announcementCover
   }
 
   enum EntityType {
@@ -277,6 +316,7 @@ export default /* GraphQL */ `
     tag
     user
     circle
+    announcement
   }
 
   "Enums for user roles."
@@ -314,6 +354,11 @@ export default /* GraphQL */ `
     blocked
   }
 
+  enum AnnouncementType {
+    community
+    product
+    seminar
+  }
 
   ####################
   #    Directives    #
