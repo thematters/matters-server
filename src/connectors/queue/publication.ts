@@ -88,7 +88,8 @@ class PublicationQueue extends BaseQueue {
       job.progress(10)
 
       // Step 3: create an article
-      const article = await this.articleService.createArticle({
+      let article
+      const articleData = {
         ...draft,
         draftId: draft.id,
         dataHash,
@@ -96,7 +97,16 @@ class PublicationQueue extends BaseQueue {
         summary,
         wordCount,
         slug: slugify(draft.title),
-      })
+      }
+      if (draft.articleId) {
+        article = await this.articleService.baseUpdate(
+          draft.articleId,
+          articleData
+        )
+      } else {
+        article = await this.articleService.createArticle(articleData)
+      }
+
       job.progress(20)
 
       // Step 4: update draft
