@@ -7,7 +7,7 @@ import 'module-alias/register'
 import requestIp from 'request-ip'
 
 import { CORS_OPTIONS } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { environment } from 'common/environment'
 
 import * as routes from './routes'
 ;(async () => {
@@ -34,11 +34,7 @@ import * as routes from './routes'
   /**
    * Middlewares
    */
-  app.use(
-    helmet({
-      contentSecurityPolicy: isProd ? undefined : false,
-    }) as RequestHandler
-  )
+  app.use(helmet({ contentSecurityPolicy: false }) as RequestHandler)
   app.use(requestIp.mw())
   app.use(cors(CORS_OPTIONS))
 
