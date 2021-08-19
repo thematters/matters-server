@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash'
 
-import { COMMENT_TYPE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { UserToCommentedArticlesResolver } from 'definitions'
 
@@ -19,6 +19,7 @@ const resolver: UserToCommentedArticlesResolver = async (
     .where({
       'comment.author_id': id,
       'comment.type': COMMENT_TYPE.article,
+      'comment.state': COMMENT_STATE.active,
     })
     .groupBy('article.id')
     .orderBy('_comment_id_', 'desc')
