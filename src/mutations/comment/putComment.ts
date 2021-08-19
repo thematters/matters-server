@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   ARTICLE_ACCESS_TYPE,
+  ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   COMMENT_TYPE,
@@ -76,8 +77,10 @@ const resolver: MutationToPutCommentResolver = async (
   let targetAuthor: any
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
-    article = await articleService.dataloader.load(articleDbId)
-
+    article = await atomService.findFirst({
+      table: 'article',
+      where: { id: articleDbId, state: ARTICLE_STATE.active },
+    })
     if (!article) {
       throw new ArticleNotFoundError('target article does not exists')
     }

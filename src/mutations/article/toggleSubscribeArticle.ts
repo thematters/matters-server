@@ -1,4 +1,9 @@
-import { DB_NOTICE_TYPE, USER_ACTION, USER_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  DB_NOTICE_TYPE,
+  USER_ACTION,
+  USER_STATE,
+} from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -10,15 +15,7 @@ import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 const resolver: MutationToToggleSubscribeArticleResolver = async (
   root,
   { input: { id, enabled } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      articleService,
-      draftService,
-      notificationService,
-    },
-  }
+  { viewer, dataSources: { atomService, draftService, notificationService } }
 ) => {
   // checks
   if (!viewer.id) {
@@ -30,7 +27,10 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.baseFindById(dbId)
+  const article = await atomService.findFirst({
+    table: 'article',
+    where: { id: dbId, state: ARTICLE_STATE.active },
+  })
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }

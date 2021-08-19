@@ -3,6 +3,7 @@ import Queue from 'bull'
 
 import {
   APPRECIATION_TYPES,
+  ARTICLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
   QUEUE_JOB,
@@ -82,7 +83,10 @@ class AppreciationQueue extends BaseQueue {
         throw new Error('appreciation job has no required data')
       }
 
-      const article = await this.articleService.baseFindById(articleId)
+      const article = await this.atomService.findFirst({
+        table: 'article',
+        where: { id: articleId, state: ARTICLE_STATE.active },
+      })
       if (!article) {
         throw new ArticleNotFoundError('article does not exist')
       }
