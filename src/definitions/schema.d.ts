@@ -1195,9 +1195,9 @@ export interface GQLCircleIncomeAnalytics {
   thisMonth: number
 
   /**
-   * income of last month
+   * income of next month
    */
-  lastMonth: number
+  nextMonth: number
 }
 
 export interface GQLCircleSubscriberAnalytics {
@@ -6916,7 +6916,7 @@ export interface GQLCircleIncomeAnalyticsTypeResolver<TParent = any> {
   history?: CircleIncomeAnalyticsToHistoryResolver<TParent>
   total?: CircleIncomeAnalyticsToTotalResolver<TParent>
   thisMonth?: CircleIncomeAnalyticsToThisMonthResolver<TParent>
-  lastMonth?: CircleIncomeAnalyticsToLastMonthResolver<TParent>
+  nextMonth?: CircleIncomeAnalyticsToNextMonthResolver<TParent>
 }
 
 export interface CircleIncomeAnalyticsToHistoryResolver<
@@ -6955,7 +6955,7 @@ export interface CircleIncomeAnalyticsToThisMonthResolver<
   ): TResult
 }
 
-export interface CircleIncomeAnalyticsToLastMonthResolver<
+export interface CircleIncomeAnalyticsToNextMonthResolver<
   TParent = any,
   TResult = any
 > {
