@@ -5,6 +5,7 @@ import {
   APPRECIATION_PURPOSE,
   APPRECIATION_TYPES,
   ARTICLE_ACCESS_TYPE,
+  ARTICLE_STATE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -61,7 +62,10 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   // check target
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await atomService.findFirst({
+    table: 'article',
+    where: { id: dbId, state: ARTICLE_STATE.active },
+  })
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
