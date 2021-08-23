@@ -108,6 +108,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
     }
   }
 
+  // check if viewer is blocked by article owner
+  const isBlocked = await userService.blocked({
+    userId: article.authorId,
+    targetId: viewer.id,
+  })
+  if (isBlocked) {
+    throw new ForbiddenError('viewer is blocked by target author')
+  }
+
   /**
    * Super Like
    */
