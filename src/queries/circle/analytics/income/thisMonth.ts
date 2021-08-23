@@ -1,86 +1,49 @@
 import {
-  INVITATION_STATE,
   PAYMENT_PROVIDER,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { CircleIncomeAnalyticsToThisMonthResolver } from 'definitions'
 
 const resolver: CircleIncomeAnalyticsToThisMonthResolver = async (
-  { id },
+  { id, owner },
   _,
-  { dataSources: { atomService }, knex }
+  { dataSources: { atomService, systemService }, knex }
 ) => {
-  const [price, stripeSubItems, trialEndSubItems] = await Promise.all([
+  const [{ id: entityTypeId }, price] = await Promise.all([
+    systemService.baseFindEntityTypeId(TRANSACTION_TARGET_TYPE.circlePrice),
     atomService.findFirst({
       table: 'circle_price',
-      where: {
-        circle_id: id,
-        state: 'active',
-      },
+      where: { circleId: id, state: PRICE_STATE.active },
     }),
-    knex
-      .count()
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'circle_price.circle_id': id,
-        'circle_price.state': PRICE_STATE.active,
-        'csi.provider': PAYMENT_PROVIDER.stripe,
-        'csi.archived': false,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-      .first(),
-    knex
-      .count()
-      .from(
-        knex('circle_invitation')
-          .select(
-            '*',
-            knex.raw(
-              `accepted_at + duration_in_days * interval '1 day' AS ended_at`
-            )
-          )
-          .where({ state: INVITATION_STATE.accepted })
-          .whereNotNull('subscription_item_id')
-          .as('expired_ivts')
-      )
-      .leftJoin(
-        'circle_subscription_item as csi',
-        'csi.id',
-        'expired_ivts.subscription_item_id'
-      )
-      .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
-      .where({
-        'circle_price.circle_id': id,
-        'circle_price.state': PRICE_STATE.active,
-        'csi.provider': PAYMENT_PROVIDER.matters,
-        'csi.archived': false,
-      })
-      .andWhere(
-        'ended_at',
-        '<',
-        knex.raw(`date_trunc('month', current_date + interval '1' month)`)
-      )
-      .andWhere('ended_at', '>=', knex.raw(`date_trunc('month', current_date)`))
-      .first(),
   ])
 
-  const stripeCount = parseInt(
-    stripeSubItems ? (stripeSubItems.count as string) : '0',
-    10
-  )
-  const trialEndSubCount = parseInt(
-    trialEndSubItems ? (trialEndSubItems.count as string) : '0',
-    10
-  )
-  const priceAmount = parseInt(price.amount, 10)
+  const result = await knex
+    .select()
+    .from('transaction')
+    .where({
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+      provider: PAYMENT_PROVIDER.matters,
+      recipientId: owner,
+      targetType: entityTypeId,
+      targetId: price.id,
+    })
+    .andWhere(
+      'created_at',
+      '<',
+      knex.raw(`date_trunc('month', current_date + interval '1' month)`)
+    )
+    .andWhere('created_at', '>=', knex.raw(`date_trunc('month', current_date)`))
+    .sum('amount as total')
 
-  return (stripeCount + trialEndSubCount) * priceAmount
+  if (!result || !result[0]) {
+    return 0
+  }
+
+  return parseInt(result[0].total || 0, 10)
 }
 
 export default resolver

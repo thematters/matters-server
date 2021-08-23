@@ -1,5 +1,6 @@
 import slugify from '@matters/slugify'
 
+import { ARTICLE_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
@@ -10,13 +11,21 @@ import { MutationToReadArticleResolver } from 'definitions'
 const resolver: MutationToReadArticleResolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { articleService, draftService, userService } }
+  {
+    viewer,
+    dataSources: { atomService, articleService, draftService, userService },
+  }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.baseFindById(dbId)
+
+  const article = await atomService.findFirst({
+    table: 'article',
+    where: { id: dbId, state: ARTICLE_STATE.active },
+  })
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
+
   const node = await draftService.baseFindById(article.draftId)
   if (!node) {
     throw new ArticleNotFoundError(

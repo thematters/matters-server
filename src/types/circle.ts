@@ -236,8 +236,8 @@ export default /* GraphQL */ `
     "income of this month"
     thisMonth: Float!
 
-    "income of last month"
-    lastMonth: Float!
+    "income of next month"
+    nextMonth: Float!
   }
 
   type CircleSubscriberAnalytics {
