@@ -30,10 +30,12 @@ const resolver: MutationToMigrationResolver = async (
   // pre-process uploaded migration data
   let totalSize = 0
   const uploads = await Promise.all(files.map((file) => file))
+
   const htmls: string[] = []
   for (const upload of uploads) {
     try {
-      const { createReadStream, mimetype } = upload
+      const { createReadStream, mimetype } = upload.file
+
       if (!createReadStream || mimetype !== 'text/html') {
         return ''
       }
