@@ -44,7 +44,6 @@ export enum DB_NOTICE_TYPE {
   payment_payout = 'payment_payout',
 
   // circle
-  circle_new_follower = 'circle_new_follower',
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
   circle_invitation = 'circle_invitation',

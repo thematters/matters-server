@@ -103,7 +103,6 @@ const notice: {
         payment_payout: NOTICE_TYPE.TransactionNotice,
 
         // circle
-        circle_new_follower: NOTICE_TYPE.CircleNotice,
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
         circle_new_unsubscriber: NOTICE_TYPE.CircleNotice,
         circle_invitation: NOTICE_TYPE.CircleNotice,
@@ -261,8 +260,6 @@ const notice: {
   CircleNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_follower:
-          return GQLCircleNoticeType.CircleNewFollower
         case DB_NOTICE_TYPE.circle_new_subscriber:
           return GQLCircleNoticeType.CircleNewSubscriber
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
@@ -273,7 +270,6 @@ const notice: {
     },
     target: ({ entities, type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_follower:
         case DB_NOTICE_TYPE.circle_new_subscriber:
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
         case DB_NOTICE_TYPE.circle_invitation:
