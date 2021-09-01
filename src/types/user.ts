@@ -320,7 +320,7 @@ export default /* GraphQL */ `
     articleNewSubscription: Boolean!
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
-    circleNewFollower: Boolean!
+    circleNewFollower: Boolean! # deprecated
     circleNewDiscussion: Boolean!
   }
 
@@ -405,12 +405,6 @@ export default /* GraphQL */ `
   | ArticleRecommendationActivity
   | CircleRecommendationActivity
 
-  # below are deprecated, won't return data
-  | UserSubscribeCircleActivity
-  | UserFollowUserActivity
-  | UserDonateArticleActivity
-  | UserBookmarkArticleActivity
-  | UserCollectArticleActivity
 
   type UserPublishArticleActivity {
     actor: User! @logCache(type: "${NODE_TYPES.User}")
@@ -485,72 +479,6 @@ export default /* GraphQL */ `
 
   enum CircleRecommendationActivitySource {
     UserSubscription
-  }
-
-
-  #########################
-  ### deprecated:start ###
-  #########################
-  type UserCollectArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article created by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-
-    "Article that collected by"
-    target: Article!
-  }
-
-  type UserSubscribeCircleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Circle subscribed by actor"
-    node: Circle!
-  }
-
-  type UserFollowUserActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "User followed by actor"
-    node: User!
-  }
-
-  type UserDonateArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article donated by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-  }
-
-  type UserBookmarkArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article bookmarked by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-  }
-  ######################
-  ### deprecated:end ###
-  ######################
-
-  type FolloweeDonatedArticleConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [FolloweeDonatedArticleEdge!]
-  }
-
-  type FolloweeDonatedArticleEdge {
-    cursor: String!
-    node: FolloweeDonatedArticle!
-  }
-
-  type FolloweeDonatedArticle {
-    article: Article! @logCache(type: "${NODE_TYPES.Article}")
-    followee: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   type Following {

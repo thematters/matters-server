@@ -77,7 +77,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_leave:
       case DB_NOTICE_TYPE.tag_add_editor:
       case DB_NOTICE_TYPE.tag_leave_editor:
-      case DB_NOTICE_TYPE.circle_new_follower:
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
       case DB_NOTICE_TYPE.circle_new_broadcast:
