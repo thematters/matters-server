@@ -564,6 +564,91 @@ export interface GQLArticle extends GQLNode {
 }
 
 /**
+ * This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic.
+ */
+export interface GQLChapter extends GQLNode {
+  /**
+   * Unique id of this chapter.
+   */
+  id: string
+
+  /**
+   * Title of this chapter.
+   */
+  title: string
+
+  /**
+   * Description of this chapter.
+   */
+  description?: string
+
+  /**
+   * Articles included in this Chapter
+   */
+  articles: Array<GQLArticle | null>
+
+  /**
+   * The topic that this Chapter belongs to.
+   */
+  topic: GQLTopic
+}
+
+/**
+ * This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types.
+ */
+export interface GQLTopic extends GQLNode {
+  /**
+   * Unique id of this topic.
+   */
+  id: string
+
+  /**
+   * Title of this topic.
+   */
+  title: string
+
+  /**
+   * Cover of this topic.
+   */
+  cover: string
+
+  /**
+   * Description of this topic.
+   */
+  description?: string
+
+  /**
+   * Number of chapters included in this topic.
+   */
+  chapterCount: number
+
+  /**
+   * Number articles included in this topic.
+   */
+  articleCount: number
+
+  /**
+   * List of chapters included in this topic.
+   */
+  chapters: Array<GQLChapter | null>
+
+  /**
+   * List of articles included in this topic.
+   */
+  articles: Array<GQLArticle | null>
+
+  /**
+   * Author of this topic.
+   */
+  author: GQLUser
+
+  /**
+   * Whether this topic is public or not.
+   */
+  public: boolean
+}
+
+/**
  * This type contains content, count and related data of an article tag.
  */
 export interface GQLTag extends GQLNode {
@@ -2153,6 +2238,8 @@ export interface GQLNode {
 /** Use this to resolve interface type Node */
 export type GQLPossibleNodeTypeNames =
   | 'Article'
+  | 'Chapter'
+  | 'Topic'
   | 'Tag'
   | 'Circle'
   | 'Comment'
@@ -2162,6 +2249,8 @@ export type GQLPossibleNodeTypeNames =
 export interface GQLNodeNameMap {
   Node: GQLNode
   Article: GQLArticle
+  Chapter: GQLChapter
+  Topic: GQLTopic
   Tag: GQLTag
   Circle: GQLCircle
   Comment: GQLComment
@@ -2638,6 +2727,11 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
+   * Topics created by current user.
+   */
+  topics: Array<GQLTopic | null>
+
+  /**
    * Tags owned and maintained by current user.
    */
   tags: GQLTagConnection
@@ -2803,7 +2897,16 @@ export interface GQLFilterInput {
    * index of list, min: 0, max: 49
    */
   random?: number
+
+  /**
+   * Used in RecommendInput
+   */
   followed?: boolean
+
+  /**
+   * Used in User.topics
+   */
+  public?: boolean
 }
 
 export interface GQLUserInfo {
@@ -3836,6 +3939,8 @@ export interface GQLResolver {
   Query?: GQLQueryTypeResolver
   Mutation?: GQLMutationTypeResolver
   Article?: GQLArticleTypeResolver
+  Chapter?: GQLChapterTypeResolver
+  Topic?: GQLTopicTypeResolver
   Tag?: GQLTagTypeResolver
   ArticleAccess?: GQLArticleAccessTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
@@ -5631,6 +5736,162 @@ export interface ArticleToResponsesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToResponsesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLChapterTypeResolver<TParent = any> {
+  id?: ChapterToIdResolver<TParent>
+  title?: ChapterToTitleResolver<TParent>
+  description?: ChapterToDescriptionResolver<TParent>
+  articles?: ChapterToArticlesResolver<TParent>
+  topic?: ChapterToTopicResolver<TParent>
+}
+
+export interface ChapterToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToTopicResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTopicTypeResolver<TParent = any> {
+  id?: TopicToIdResolver<TParent>
+  title?: TopicToTitleResolver<TParent>
+  cover?: TopicToCoverResolver<TParent>
+  description?: TopicToDescriptionResolver<TParent>
+  chapterCount?: TopicToChapterCountResolver<TParent>
+  articleCount?: TopicToArticleCountResolver<TParent>
+  chapters?: TopicToChaptersResolver<TParent>
+  articles?: TopicToArticlesResolver<TParent>
+  author?: TopicToAuthorResolver<TParent>
+  public?: TopicToPublicResolver<TParent>
+}
+
+export interface TopicToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToChapterCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToArticleCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToChaptersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToAuthorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToPublicResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8467,12 +8728,23 @@ export interface OfficialAnnouncementNoticeToLinkResolver<
 export interface GQLNodeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
+    | 'Chapter'
+    | 'Topic'
     | 'Tag'
     | 'Circle'
     | 'Comment'
     | 'Draft'
     | 'User'
-    | Promise<'Article' | 'Tag' | 'Circle' | 'Comment' | 'Draft' | 'User'>
+    | Promise<
+        | 'Article'
+        | 'Chapter'
+        | 'Topic'
+        | 'Tag'
+        | 'Circle'
+        | 'Comment'
+        | 'Draft'
+        | 'User'
+      >
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -9097,6 +9369,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
+  topics?: UserToTopicsResolver<TParent>
   tags?: UserToTagsResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
@@ -9207,6 +9480,18 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToTopicsArgs {
+  input?: GQLFilterInput
+}
+export interface UserToTopicsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToTopicsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

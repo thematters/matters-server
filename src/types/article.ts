@@ -186,6 +186,58 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
+  "This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic."
+  type Chapter implements Node {
+    "Unique id of this chapter."
+    id: ID!
+
+    "Title of this chapter."
+    title: String!
+
+    "Description of this chapter."
+    description: String
+
+    "Articles included in this Chapter"
+    articles: [Article]!
+
+    "The topic that this Chapter belongs to."
+    topic: Topic!
+  }
+
+
+  "This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types."
+  type Topic implements Node {
+    "Unique id of this topic."
+    id: ID!
+
+    "Title of this topic."
+    title: String!
+
+    "Cover of this topic."
+    cover: String!
+
+    "Description of this topic."
+    description: String
+
+    "Number of chapters included in this topic."
+    chapterCount: Int!
+
+    "Number articles included in this topic."
+    articleCount: Int!
+
+    "List of chapters included in this topic."
+    chapters: [Chapter]!
+
+    "List of articles included in this topic."
+    articles: [Article]!
+
+    "Author of this topic."
+    author: User!
+
+    "Whether this topic is public or not."
+    public: Boolean!
+  }
+
   "This type contains content, count and related data of an article tag."
   type Tag implements Node {
     "Unique id of this tag."
