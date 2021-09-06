@@ -53,6 +53,16 @@ export interface GQLMutation {
   readArticle: GQLArticle
 
   /**
+   * Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title.
+   */
+  putTopic: GQLTopic
+
+  /**
+   * Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic.
+   */
+  putChapter: GQLChapter
+
+  /**
    * Follow or unfollow tag.
    */
   toggleFollowTag: GQLTag
@@ -814,6 +824,25 @@ export interface GQLAppreciateArticleInput {
 
 export interface GQLReadArticleInput {
   id: string
+}
+
+export interface GQLPutTopicInput {
+  id?: string
+  title?: string
+  description?: string
+  cover?: string
+  public?: boolean
+  articles?: Array<string>
+  chapters?: Array<string>
+}
+
+export interface GQLPutChapterInput {
+  id?: string
+  title?: string
+  description?: string
+  cover?: string
+  topic?: string
+  articles?: Array<string>
 }
 
 export interface GQLToggleRecommendInput {
@@ -4228,6 +4257,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSubscribeArticle?: MutationToToggleSubscribeArticleResolver<TParent>
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
+  putTopic?: MutationToPutTopicResolver<TParent>
+  putChapter?: MutationToPutChapterResolver<TParent>
   toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
   updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
@@ -4356,6 +4387,30 @@ export interface MutationToReadArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReadArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutTopicArgs {
+  input: GQLPutTopicInput
+}
+export interface MutationToPutTopicResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutTopicArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutChapterArgs {
+  input: GQLPutChapterInput
+}
+export interface MutationToPutChapterResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutChapterArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

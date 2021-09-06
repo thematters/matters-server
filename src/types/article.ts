@@ -24,6 +24,15 @@ export default /* GraphQL */ `
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
+    ######################
+    # Article Containers #
+    ######################
+    "Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title."
+    putTopic(input: PutTopicInput!): Topic!
+
+    "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
+    putChapter(input: PutChapterInput!): Chapter!
+
 
     ##############
     #     Tag    #
@@ -370,6 +379,25 @@ export default /* GraphQL */ `
 
   input ReadArticleInput {
     id: ID!
+  }
+
+  input PutTopicInput {
+    id: ID
+    title: String
+    description: String
+    cover: ID
+    public: Boolean
+    articles: [ID!]
+    chapters: [ID!]
+  }
+
+  input PutChapterInput {
+    id: ID
+    title: String
+    description: String
+    cover: ID
+    topic: ID
+    articles: [ID!]
   }
 
   input ToggleRecommendInput {
