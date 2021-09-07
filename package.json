@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.25.0",
+  "version": "3.26.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -135,6 +135,7 @@
     "chokidar": "^3.5.2",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.8.3",
+    "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^7.0.1",
     "jest": "^27.0.6",

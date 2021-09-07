@@ -99,6 +99,9 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Topics created by current user."
+    topics(input: FilterInput): [Topic]!
+
     "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
@@ -192,7 +195,11 @@ export default /* GraphQL */ `
     "index of list, min: 0, max: 49"
     random: Int @constraint(min: 0, max: 49)
 
+    "Used in RecommendInput"
     followed: Boolean
+
+    "Used in User.topics"
+    public: Boolean
   }
 
   type UserInfo {
