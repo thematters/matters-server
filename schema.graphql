@@ -109,7 +109,7 @@ type Mutation {
   putCircle(input: PutCircleInput!): Circle!
 
   """Follow or unfollow a Circle."""
-  toggleFollowCircle(input: ToggleItemInput!): Circle!
+  toggleFollowCircle(input: ToggleItemInput!): Circle! @deprecated(reason: "No longer in use")
 
   """Subscribe a Circle."""
   subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult!
@@ -118,7 +118,7 @@ type Mutation {
   unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
   """Add or remove Circle's articles"""
-  putCircleArticles(input: PutCircleArticlesInput!): Circle!
+  putCircleArticles(input: PutCircleArticlesInput!): Circle! @deprecated(reason: "No longer in use")
 
   """Invite others to join circle"""
   invite(input: InviteCircleInput!): [Invitation!]
@@ -741,16 +741,16 @@ type Circle implements Node {
   id: ID!
 
   """Circle avatar's link."""
-  avatar: String
+  avatar: String @deprecated(reason: "No longer in use")
 
   """Circle cover's link."""
-  cover: String
+  cover: String @deprecated(reason: "No longer in use")
 
   """Slugified name of this Circle."""
-  name: String!
+  name: String! @deprecated(reason: "No longer in use")
 
   """Human readable name of this Circle."""
-  displayName: String!
+  displayName: String! @deprecated(reason: "No longer in use")
 
   """A short description of this Circle."""
   description: String
@@ -762,31 +762,28 @@ type Circle implements Node {
   owner: User!
 
   """List of Circle member."""
-  members(input: ConnectionArgs!): MemberConnection!
+  members(input: ConnectionArgs!): MemberConnection! @deprecated(reason: "No longer in use")
 
   """List of Circle follower."""
-  followers(input: ConnectionArgs!): UserConnection!
+  followers(input: ConnectionArgs!): UserConnection! @deprecated(reason: "No longer in use")
 
   """List of works belong to this Circle."""
-  works(input: ConnectionArgs!): ArticleConnection!
+  works(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "No longer in use")
 
   """State of this Circle."""
-  state: CircleState!
+  state: CircleState! @deprecated(reason: "No longer in use")
 
   """Created time."""
-  createdAt: DateTime!
+  createdAt: DateTime! @deprecated(reason: "No longer in use")
 
   """Updated time."""
-  updatedAt: DateTime!
+  updatedAt: DateTime! @deprecated(reason: "No longer in use")
 
   """This value determines if current viewer is following Circle or not."""
-  isFollower: Boolean!
+  isFollower: Boolean! @deprecated(reason: "No longer in use")
 
   """This value determines if current viewer is Member or not."""
-  isMember: Boolean!
-
-  """Setting of this Circle."""
-  setting: CircleSetting!
+  isMember: Boolean! @deprecated(reason: "No longer in use")
 
   """Invitations belonged to this Circle."""
   invites: Invites!
@@ -811,14 +808,6 @@ type Circle implements Node {
 
   """Discussion (include replies) count of this circle."""
   discussionCount: Int!
-}
-
-type CircleSetting {
-  """Whether broadcast is enabled or not."""
-  enableBroadcast: Boolean!
-
-  """Whther discussion is enabled or not."""
-  enableDiscussion: Boolean!
 }
 
 type Member {
@@ -846,10 +835,10 @@ type Price {
   state: PriceState!
 
   """Created time."""
-  createdAt: DateTime!
+  createdAt: DateTime! @deprecated(reason: "No longer in use")
 
   """Updated time."""
-  updatedAt: DateTime!
+  updatedAt: DateTime! @deprecated(reason: "No longer in use")
 }
 
 type CircleConnection implements Connection {
@@ -2345,7 +2334,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserCollectArticleActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2420,70 +2409,6 @@ type CircleRecommendationActivity {
 
 enum CircleRecommendationActivitySource {
   UserSubscription
-}
-
-"""
-########################
-## deprecated:start ###
-########################
-"""
-type UserCollectArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article created by actor"""
-  node: Article!
-
-  """Article that collected by"""
-  target: Article!
-}
-
-type UserSubscribeCircleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Circle subscribed by actor"""
-  node: Circle!
-}
-
-type UserFollowUserActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """User followed by actor"""
-  node: User!
-}
-
-type UserDonateArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article donated by actor"""
-  node: Article!
-}
-
-type UserBookmarkArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article bookmarked by actor"""
-  node: Article!
-}
-
-type FolloweeDonatedArticleConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [FolloweeDonatedArticleEdge!]
-}
-
-type FolloweeDonatedArticleEdge {
-  cursor: String!
-  node: FolloweeDonatedArticle!
-}
-
-type FolloweeDonatedArticle {
-  article: Article!
-  followee: User!
 }
 
 type Following {

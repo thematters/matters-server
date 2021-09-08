@@ -64,7 +64,6 @@ describe('user notify setting', () => {
     payment_payout: true,
 
     // circle
-    circle_new_follower: true,
     circle_new_subscriber: true,
     circle_new_unsubscriber: true,
     circle_invitation: true,

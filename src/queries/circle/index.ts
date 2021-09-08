@@ -6,7 +6,6 @@ import {
   GQLCircleContentAnalyticsTypeResolver,
   GQLCircleFollowerAnalyticsTypeResolver,
   GQLCircleIncomeAnalyticsTypeResolver,
-  GQLCircleSettingTypeResolver,
   GQLCircleSubscriberAnalyticsTypeResolver,
   GQLCircleTypeResolver,
   GQLInvitationTypeResolver,
@@ -37,15 +36,12 @@ import owner from './owner'
 import priceCircle from './price/circle'
 import prices from './prices'
 import rootCircle from './rootCircle'
-import enableBroadcast from './setting/enableBroadcast'
-import enableDiscussion from './setting/enableDiscussion'
 import works from './works'
 
 const circle: {
   Query: GQLQueryTypeResolver
 
   Circle: GQLCircleTypeResolver
-  CircleSetting: GQLCircleSettingTypeResolver
   Member: GQLMemberTypeResolver
   Price: GQLPriceTypeResolver
   Invites: GQLInvitesTypeResolver
@@ -75,12 +71,6 @@ const circle: {
     works,
     isFollower,
     isMember,
-    setting: (root, _, { viewer }) => {
-      if (!viewer.id || root.owner !== viewer.id) {
-        throw new ForbiddenError('viewer has no permission')
-      }
-      return root
-    },
     invitedBy,
     invites: (root, _, { viewer }) => {
       if (!viewer.id || root.owner !== viewer.id) {
@@ -94,11 +84,6 @@ const circle: {
       }
       return root
     },
-  },
-
-  CircleSetting: {
-    enableBroadcast,
-    enableDiscussion,
   },
 
   Member: {
