@@ -9,6 +9,7 @@ export const ASSET_TYPE = {
   circleAvatar: 'circleAvatar',
   circleCover: 'circleCover',
   announcementCover: 'announcementCover',
+  topicCover: 'topicCover',
 }
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [

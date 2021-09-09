@@ -44,6 +44,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
       ASSET_TYPE.tagCover,
       ASSET_TYPE.circleAvatar,
       ASSET_TYPE.circleCover,
+      ASSET_TYPE.topicCover,
     ].indexOf(type) >= 0
   const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 
