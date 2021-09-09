@@ -151,6 +151,10 @@ export type BasicTableName =
   | 'feature_flag'
   | 'seeding_user'
   | 'announcement'
+  | 'topic'
+  | 'article_topic'
+  | 'chapter'
+  | 'article_chapter'
 
 export type View =
   | 'tag_count_view'

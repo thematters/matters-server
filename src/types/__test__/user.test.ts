@@ -267,6 +267,32 @@ const GET_VIEWER_BADGES = /* GraphQL */ `
   }
 `
 
+const GET_VIEWER_TOPICS = /* GraphQL */ `
+  query {
+    viewer {
+      topics {
+        id
+        cover
+        author {
+          id
+        }
+        chapterCount
+        articleCount
+        chapters {
+          id
+          articles {
+            id
+          }
+        }
+        articles {
+          id
+        }
+        public
+      }
+    }
+  }
+`
+
 const SEND_VERIFICATION_CODE = /* GraphQL */ `
   mutation SendVerificationCode($input: SendVerificationCodeInput!) {
     sendVerificationCode(input: $input)
@@ -646,5 +672,24 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
+  })
+})
+
+describe('topics & chapters', () => {
+  test('get user topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_TOPICS,
+      variables: {},
+    })
+
+    expect(_get(data, 'viewer.topics.0.id')).toBeDefined()
+    expect(_get(data, 'viewer.topics.0.chapterCount')).toBeGreaterThan(0)
+    expect(_get(data, 'viewer.topics.0.articleCount')).toBeGreaterThan(0)
+    expect(_get(data, 'viewer.topics.0.chapters.0.id')).toBeDefined()
+    expect(_get(data, 'viewer.topics.0.chapters.0.articles.0.id')).toBeDefined()
+    expect(_get(data, 'viewer.topics.0.articles.0.id')).toBeDefined()
   })
 })
