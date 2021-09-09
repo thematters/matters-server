@@ -308,6 +308,7 @@ export default /* GraphQL */ `
     circleAvatar
     circleCover
     announcementCover
+    topicCover
   }
 
   enum EntityType {

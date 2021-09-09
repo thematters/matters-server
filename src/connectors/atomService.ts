@@ -65,6 +65,12 @@ interface CountInput {
   whereIn?: [string, string[]]
 }
 
+interface MaxInput {
+  table: TableName
+  where?: Record<string, any>
+  column: string
+}
+
 /**
  * This object is a container for data loaders or system wide services.
  */
@@ -270,6 +276,16 @@ export class AtomService extends DataSource {
     }
     const record = await action.first()
 
+    return parseInt(record ? (record.count as string) : '0', 10)
+  }
+
+  /**
+   * Max of given column.
+   *
+   * A Prisma like method for getting max.
+   */
+  max = async ({ table, where, column }: MaxInput) => {
+    const record = await this.knex(table).max(column).where(where).first()
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 

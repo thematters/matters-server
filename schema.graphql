@@ -605,7 +605,6 @@ input PutChapterInput {
   id: ID
   title: String
   description: String
-  cover: ID
   topic: ID
   articles: [ID!]
 }
@@ -1912,6 +1911,7 @@ enum AssetType {
   circleAvatar
   circleCover
   announcementCover
+  topicCover
 }
 
 enum EntityType {
