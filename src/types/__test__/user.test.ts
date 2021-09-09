@@ -270,24 +270,29 @@ const GET_VIEWER_BADGES = /* GraphQL */ `
 const GET_VIEWER_TOPICS = /* GraphQL */ `
   query {
     viewer {
-      topics {
-        id
-        cover
-        author {
-          id
-        }
-        chapterCount
-        articleCount
-        chapters {
-          id
-          articles {
+      topics(input: { first: 10 }) {
+        totalCount
+        edges {
+          node {
             id
+            cover
+            author {
+              id
+            }
+            chapterCount
+            articleCount
+            chapters {
+              id
+              articles {
+                id
+              }
+            }
+            articles {
+              id
+            }
+            public
           }
         }
-        articles {
-          id
-        }
-        public
       }
     }
   }
@@ -685,11 +690,15 @@ describe('topics & chapters', () => {
       variables: {},
     })
 
-    expect(_get(data, 'viewer.topics.0.id')).toBeDefined()
-    expect(_get(data, 'viewer.topics.0.chapterCount')).toBeGreaterThan(0)
-    expect(_get(data, 'viewer.topics.0.articleCount')).toBeGreaterThan(0)
-    expect(_get(data, 'viewer.topics.0.chapters.0.id')).toBeDefined()
-    expect(_get(data, 'viewer.topics.0.chapters.0.articles.0.id')).toBeDefined()
-    expect(_get(data, 'viewer.topics.0.articles.0.id')).toBeDefined()
+    expect(_get(data, 'viewer.topics.totalCount')).toBeGreaterThan(0)
+
+    const firstTopic = _get(data, 'viewer.topics.edges.0.node')
+
+    expect(_get(firstTopic, 'id')).toBeDefined()
+    expect(_get(firstTopic, 'chapterCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'articleCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'chapters.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'chapters.0.articles.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'articles.0.id')).toBeDefined()
   })
 })
