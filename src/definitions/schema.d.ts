@@ -597,7 +597,7 @@ export interface GQLChapter extends GQLNode {
   /**
    * Articles included in this Chapter
    */
-  articles: Array<GQLArticle | null>
+  articles?: Array<GQLArticle>
 
   /**
    * The topic that this Chapter belongs to.
@@ -642,12 +642,12 @@ export interface GQLTopic extends GQLNode {
   /**
    * List of chapters included in this topic.
    */
-  chapters: Array<GQLChapter | null>
+  chapters?: Array<GQLChapter>
 
   /**
    * List of articles included in this topic.
    */
-  articles: Array<GQLArticle | null>
+  articles?: Array<GQLArticle>
 
   /**
    * Author of this topic.
@@ -658,6 +658,11 @@ export interface GQLTopic extends GQLNode {
    * Whether this topic is public or not.
    */
   public: boolean
+
+  /**
+   * Latest published article on this topic
+   */
+  latestArticle?: GQLArticle
 }
 
 /**
@@ -778,6 +783,17 @@ export interface GQLArticleConnection extends GQLConnection {
 export interface GQLArticleEdge {
   cursor: string
   node: GQLArticle
+}
+
+export interface GQLTopicConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLTopicEdge>
+}
+
+export interface GQLTopicEdge {
+  cursor: string
+  node: GQLTopic
 }
 
 export interface GQLTagConnection extends GQLConnection {
@@ -2301,6 +2317,7 @@ export interface GQLConnection {
 /** Use this to resolve interface type Connection */
 export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
+  | 'TopicConnection'
   | 'TagConnection'
   | 'CircleConnection'
   | 'MemberConnection'
@@ -2322,6 +2339,7 @@ export type GQLPossibleConnectionTypeNames =
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
   ArticleConnection: GQLArticleConnection
+  TopicConnection: GQLTopicConnection
   TagConnection: GQLTagConnection
   CircleConnection: GQLCircleConnection
   MemberConnection: GQLMemberConnection
@@ -2755,7 +2773,7 @@ export interface GQLUser extends GQLNode {
   /**
    * Topics created by current user.
    */
-  topics: Array<GQLTopic | null>
+  topics: GQLTopicConnection
 
   /**
    * Tags owned and maintained by current user.
@@ -2916,6 +2934,12 @@ export interface GQLRecommendInput {
   oss?: boolean
   filter?: GQLFilterInput
   type?: GQLAuthorsType
+}
+
+export interface GQLTopicInput {
+  after?: string
+  first?: number
+  filter?: GQLFilterInput
 }
 
 export interface GQLFilterInput {
@@ -3883,6 +3907,8 @@ export interface GQLResolver {
   TagOSS?: GQLTagOSSTypeResolver
   ArticleConnection?: GQLArticleConnectionTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
+  TopicConnection?: GQLTopicConnectionTypeResolver
+  TopicEdge?: GQLTopicEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Circle?: GQLCircleTypeResolver
@@ -5757,6 +5783,7 @@ export interface GQLTopicTypeResolver<TParent = any> {
   articles?: TopicToArticlesResolver<TParent>
   author?: TopicToAuthorResolver<TParent>
   public?: TopicToPublicResolver<TParent>
+  latestArticle?: TopicToLatestArticleResolver<TParent>
 }
 
 export interface TopicToIdResolver<TParent = any, TResult = any> {
@@ -5841,6 +5868,15 @@ export interface TopicToAuthorResolver<TParent = any, TResult = any> {
 }
 
 export interface TopicToPublicResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicToLatestArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6251,6 +6287,68 @@ export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTopicConnectionTypeResolver<TParent = any> {
+  totalCount?: TopicConnectionToTotalCountResolver<TParent>
+  pageInfo?: TopicConnectionToPageInfoResolver<TParent>
+  edges?: TopicConnectionToEdgesResolver<TParent>
+}
+
+export interface TopicConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicConnectionToEdgesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTopicEdgeTypeResolver<TParent = any> {
+  cursor?: TopicEdgeToCursorResolver<TParent>
+  node?: TopicEdgeToNodeResolver<TParent>
+}
+
+export interface TopicEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopicEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8708,6 +8806,7 @@ export interface PageInfoToHasPreviousPageResolver<
 export interface GQLConnectionTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleConnection'
+    | 'TopicConnection'
     | 'TagConnection'
     | 'CircleConnection'
     | 'MemberConnection'
@@ -8727,6 +8826,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'OAuthClientConnection'
     | Promise<
         | 'ArticleConnection'
+        | 'TopicConnection'
         | 'TagConnection'
         | 'CircleConnection'
         | 'MemberConnection'
@@ -9397,7 +9497,7 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToTopicsArgs {
-  input?: GQLFilterInput
+  input: GQLTopicInput
 }
 export interface UserToTopicsResolver<TParent = any, TResult = any> {
   (

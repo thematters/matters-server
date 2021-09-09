@@ -1,3 +1,4 @@
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { UserToTopicsResolver } from 'definitions'
 
 const resolver: UserToTopicsResolver = async (
@@ -5,13 +6,29 @@ const resolver: UserToTopicsResolver = async (
   { input },
   { dataSources: { atomService }, viewer }
 ) => {
-  const isViewer = viewer.id === id
-  const isPublicOnly = !!input?.public || !isViewer
+  const { take, skip } = fromConnectionArgs(input)
 
-  return atomService.findMany({
-    table: 'topic',
-    where: { userId: id, ...(isPublicOnly ? { public: true } : {}) },
-  })
+  if (!id) {
+    return connectionFromArray([], input)
+  }
+
+  const isViewer = viewer.id === id
+  const isPublicOnly = !!input?.filter?.public || !isViewer
+
+  const [totalCount, topics] = await Promise.all([
+    atomService.count({
+      table: 'topic',
+      where: { userId: id, ...(isPublicOnly ? { public: true } : {}) },
+    }),
+    atomService.findMany({
+      table: 'topic',
+      where: { userId: id, ...(isPublicOnly ? { public: true } : {}) },
+      take,
+      skip,
+    }),
+  ])
+
+  return connectionFromArray(topics, input, totalCount)
 }
 
 export default resolver

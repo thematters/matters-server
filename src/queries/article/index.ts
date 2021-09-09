@@ -54,6 +54,7 @@ import topicAuthor from './topic/author'
 import topicChapterCount from './topic/chapterCount'
 import topicChapters from './topic/chapters'
 import topicCover from './topic/cover'
+import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
@@ -137,6 +138,7 @@ export default {
     chapters: topicChapters,
     articles: topicArticles,
     author: topicAuthor,
+    latestArticle: topicLatestArticle,
   },
   Chapter: {
     id: ({ id }: { id: string }) =>
