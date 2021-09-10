@@ -210,7 +210,7 @@ export default /* GraphQL */ `
     articles: [Article!]
 
     "The topic that this Chapter belongs to."
-    topic: Topic!
+    topic: Topic! @logCache(type: "${NODE_TYPES.Topic}")
   }
 
 
@@ -346,7 +346,7 @@ export default /* GraphQL */ `
 
   type TopicEdge {
     cursor: String!
-    node: Topic!
+    node: Topic! @logCache(type: "${NODE_TYPES.Topic}")
   }
 
   type TagConnection implements Connection {
