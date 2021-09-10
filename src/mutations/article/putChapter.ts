@@ -1,4 +1,7 @@
 import { UserInputError } from 'apollo-server-core'
+import _difference from 'lodash/difference'
+import _inter from 'lodash/intersection'
+import _uniq from 'lodash/uniq'
 
 import { USER_STATE } from 'common/enums'
 import {
@@ -42,7 +45,7 @@ const resolver: MutationToPutChapterResolver = async (
 
     const topic = await atomService.findUnique({
       table: 'topic',
-      where: { id: fromGlobalId(chapter.topicId).id },
+      where: { id: chapter.topicId },
     })
 
     // check topic ownership
@@ -79,26 +82,65 @@ const resolver: MutationToPutChapterResolver = async (
       })
     }
 
-    // update article order or insert new articles in article_chapter table
+    // update article order or insert new articles in article_topic table
     if (articles && articles.length > 0) {
+      // get unique ids from input
+      const newIds = _uniq(articles).map(
+        (globalId) => fromGlobalId(globalId).id
+      )
+
+      // get existing articles
+      const oldIds = (
+        await atomService.findMany({
+          table: 'article_chapter',
+          where: { chapterId: chapterDbId },
+        })
+      ).map((record) => record.articleId)
+
+      // determine articles to be removed, added and updated
+      const addIds = _difference(newIds, oldIds)
+      const removeIds = _difference(oldIds, newIds)
+      const updateIds = _inter(newIds, oldIds)
+
+      // updated
       await Promise.all(
-        articles.map((article, index) =>
-          atomService.upsert({
+        updateIds.map((articleId) =>
+          atomService.update({
+            table: 'article_chapter',
+            where: { chapterId: chapterDbId, articleId },
+            data: { order: newIds.indexOf(articleId), updatedAt: new Date() },
+          })
+        )
+      )
+
+      // create
+      await Promise.all(
+        addIds.map((articleId) =>
+          atomService.create({
+            table: 'article_chapter',
+            data: {
+              chapterId: chapterDbId,
+              articleId,
+              order: newIds.indexOf(articleId),
+            },
+          })
+        )
+      )
+
+      // remove
+      await Promise.all(
+        removeIds.map((articleId) =>
+          atomService.deleteMany({
             table: 'article_chapter',
             where: {
               chapterId: chapterDbId,
-              articleId: fromGlobalId(article).id,
-            },
-            update: { order: index, updatedAt: new Date() },
-            create: {
-              chapterId: chapterDbId,
-              articleId: fromGlobalId(article).id,
-              order: index,
+              articleId,
             },
           })
         )
       )
     }
+
     return chapter
   }
 
@@ -114,13 +156,17 @@ const resolver: MutationToPutChapterResolver = async (
       )
     }
 
+    // check topic
     const { id: topicDbId } = fromGlobalId(topicGlobalId)
 
-    // check access
     const topic = await atomService.findUnique({
       table: 'topic',
       where: { id: topicDbId },
     })
+
+    if (!topic) {
+      throw new UserInputError('Topic not found')
+    }
 
     if (topic.userId !== viewer.id) {
       throw new AuthenticationError(
@@ -128,29 +174,33 @@ const resolver: MutationToPutChapterResolver = async (
       )
     }
 
+    properties.topicId = topic.id
+
     // get default order
     const order =
-      (await atomService.max({
+      ((await atomService.max({
         table: 'chapter',
         column: 'order',
         where: { topicId: topicDbId },
-      })) + 1
+      })) || 0) + 1
 
     // create record in chapter table
     const chapter = await atomService.create({
       table: 'chapter',
-      data: { userId: viewer.id, order, ...properties },
+      data: { order, ...properties },
     })
 
     // create references to articles in article_chapter
     if (articles && articles.length > 0) {
+      // get unique ids from input
+      const ids = _uniq(articles).map((globalId) => fromGlobalId(globalId).id)
       await Promise.all(
-        articles.map((article, index) =>
+        ids.map((articleId, index) =>
           atomService.create({
-            table: 'article_topic',
+            table: 'article_chapter',
             data: {
               chapterId: chapter.id,
-              articleId: fromGlobalId(article).id,
+              articleId,
               order: index,
             },
           })

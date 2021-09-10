@@ -622,7 +622,7 @@ export interface GQLTopic extends GQLNode {
   /**
    * Cover of this topic.
    */
-  cover: string
+  cover?: string
 
   /**
    * Description of this topic.

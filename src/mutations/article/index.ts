@@ -5,7 +5,9 @@ import deleteTags from './deleteTags'
 import editArticle from './editArticle'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
+import putChapter from './putChapter'
 import putTag from './putTag'
+import putTopic from './putTopic'
 import readArticle from './readArticle'
 import renameTag from './renameTag'
 import toggleArticleRecommend from './toggleArticleRecommend'
@@ -33,5 +35,7 @@ export default {
     updateArticlesTags,
     updateTagSetting,
     toggleTagRecommend,
+    putChapter,
+    putTopic,
   },
 }
