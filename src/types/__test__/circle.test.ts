@@ -287,14 +287,14 @@ const QUERY_CIRCLE_ANALYTICS = /* GraphQL */ `
   }
 `
 
-describe.only('circle CRUD', () => {
+describe('circle CRUD', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
 
   const userClient = { isAuth: true, isAdmin: false }
   const adminClient = { isAuth: true, isAdmin: true }
 
-  test.only('create circle', async () => {
+  test('create circle', async () => {
     const path = 'data.putCircle'
     const server = await testClient(userClient)
     const input: Record<string, any> = {

@@ -699,7 +699,7 @@ describe('verification code', () => {
   })
 })
 
-describe.only('topics & chapters', () => {
+describe('topics & chapters', () => {
   test('get user topics', async () => {
     const server = await testClient({
       isAuth: true,
@@ -769,7 +769,7 @@ describe.only('topics & chapters', () => {
     expect(_get(created, 'putChapter.title')).toBe(title)
   })
 
-  test.only('update chapter', async () => {
+  test('update chapter', async () => {
     const server = await testClient({
       isAuth: true,
     })
