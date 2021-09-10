@@ -1,3 +1,7 @@
+import _difference from 'lodash/difference'
+import _inter from 'lodash/intersection'
+import _uniq from 'lodash/uniq'
+
 import { ASSET_TYPE, USER_STATE } from 'common/enums'
 import {
   AssetNotFoundError,
@@ -80,16 +84,57 @@ const resolver: MutationToPutTopicResolver = async (
 
     // update article order or insert new articles in article_topic table
     if (articles && articles.length > 0) {
+      // get unique ids from input
+      const newIds = _uniq(articles).map(
+        (globalId) => fromGlobalId(globalId).id
+      )
+
+      // get existing articles
+      const oldIds = (
+        await atomService.findMany({
+          table: 'article_topic',
+          where: { topicId: topicDbId },
+        })
+      ).map((record) => record.articleId)
+
+      // determine articles to be removed, added and updated
+      const addIds = _difference(newIds, oldIds)
+      const removeIds = _difference(oldIds, newIds)
+      const updateIds = _inter(newIds, oldIds)
+
+      // updated
       await Promise.all(
-        articles.map((article, index) =>
-          atomService.upsert({
+        updateIds.map((articleId) =>
+          atomService.update({
             table: 'article_topic',
-            where: { topicId: topicDbId, articleId: fromGlobalId(article).id },
-            update: { order: index, updatedAt: new Date() },
-            create: {
+            where: { topicId: topicDbId, articleId },
+            data: { order: newIds.indexOf(articleId), updatedAt: new Date() },
+          })
+        )
+      )
+
+      // create
+      await Promise.all(
+        addIds.map((articleId) =>
+          atomService.create({
+            table: 'article_topic',
+            data: {
               topicId: topicDbId,
-              articleId: fromGlobalId(article).id,
-              order: index,
+              articleId,
+              order: newIds.indexOf(articleId),
+            },
+          })
+        )
+      )
+
+      // remove
+      await Promise.all(
+        removeIds.map((articleId) =>
+          atomService.deleteMany({
+            table: 'article_topic',
+            where: {
+              topicId: topicDbId,
+              articleId,
             },
           })
         )
