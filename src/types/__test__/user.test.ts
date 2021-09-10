@@ -207,7 +207,7 @@ const GET_VIEWER_STATUS = /* GraphQL */ `
     }
   }
 `
-const GET_VIEWER_RECOMMENDATION = (list: string) => `
+const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: ConnectionArgs!) {
   viewer {
     recommendation {
@@ -223,23 +223,23 @@ query($input: ConnectionArgs!) {
 }
 `
 
-const GET_VIEWER_RECOMMENDATION_TAGS = `
-query($input: RecommendInput!) {
-  viewer {
-    recommendation {
-      tags(input: $input) {
-        edges {
-          node {
-            id
+const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
+  query ($input: RecommendInput!) {
+    viewer {
+      recommendation {
+        tags(input: $input) {
+          edges {
+            node {
+              id
+            }
           }
         }
       }
     }
   }
-}
 `
 
-const GET_AUTHOR_RECOMMENDATION = (list: string) => `
+const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: RecommendInput!) {
   viewer {
     recommendation {
@@ -288,6 +288,30 @@ const GET_VIEWER_TOPICS = /* GraphQL */ `
           id
         }
         public
+      }
+    }
+  }
+`
+
+const PUT_TOPIC = /* GraphQL */ `
+  mutation PutTopic($input: PutTopicInput!) {
+    putTopic(input: $input) {
+      id
+      title
+      articles {
+        id
+      }
+    }
+  }
+`
+
+const PUT_CHAPTER = /* GraphQL */ `
+  mutation PutChapter($input: PutChapterInput!) {
+    putChapter(input: $input) {
+      id
+      title
+      articles {
+        id
       }
     }
   }
@@ -675,7 +699,7 @@ describe('verification code', () => {
   })
 })
 
-describe('topics & chapters', () => {
+describe.only('topics & chapters', () => {
   test('get user topics', async () => {
     const server = await testClient({
       isAuth: true,
@@ -691,5 +715,79 @@ describe('topics & chapters', () => {
     expect(_get(data, 'viewer.topics.0.chapters.0.id')).toBeDefined()
     expect(_get(data, 'viewer.topics.0.chapters.0.articles.0.id')).toBeDefined()
     expect(_get(data, 'viewer.topics.0.articles.0.id')).toBeDefined()
+  })
+
+  test('create topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'topic 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: { input: { title } },
+    })
+
+    expect(_get(created, 'putTopic.title')).toBe(title)
+  })
+
+  test('update topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'topic 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: {
+        input: { id: 'VG9waWM6MQ==', title, articles },
+      },
+    })
+
+    expect(_get(updated, 'putTopic.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putTopic.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
+  })
+
+  test('create chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'chapter 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: { input: { title, topic: 'VG9waWM6MQ==' } },
+    })
+
+    expect(_get(created, 'putChapter.title')).toBe(title)
+  })
+
+  test.only('update chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'chapter 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: {
+        input: { id: 'Q2hhcHRlcjox', title, articles },
+      },
+    })
+
+    expect(_get(updated, 'putChapter.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putChapter.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
   })
 })

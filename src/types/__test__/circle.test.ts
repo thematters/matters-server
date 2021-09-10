@@ -10,7 +10,7 @@ import { GQLCommentType } from 'definitions'
 
 import { testClient } from './utils'
 
-const GET_VIEWER_OWN_CIRCLES = `
+const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {
     viewer {
       id
@@ -287,14 +287,14 @@ const QUERY_CIRCLE_ANALYTICS = /* GraphQL */ `
   }
 `
 
-describe('circle CRUD', () => {
+describe.only('circle CRUD', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
 
   const userClient = { isAuth: true, isAdmin: false }
   const adminClient = { isAuth: true, isAdmin: true }
 
-  test('create circle', async () => {
+  test.only('create circle', async () => {
     const path = 'data.putCircle'
     const server = await testClient(userClient)
     const input: Record<string, any> = {
