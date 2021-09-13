@@ -32,21 +32,52 @@ const resolver: MutationToPutChapterResolver = async (
     topicId: string
   }
 
+  // helper function to check article ids validity
+  const checkArticleIds = async (ids: string[]) => {
+    if (ids.length > 0) {
+      const articlesObjs = await atomService.findMany({
+        table: 'article',
+        whereIn: ['id', ids],
+      })
+
+      if (articlesObjs.length !== ids.length) {
+        throw new UserInputError('some articles cannot be found.')
+      }
+
+      articlesObjs.map((articleObj) => {
+        if (articleObj.authorId !== viewer.id) {
+          throw new AuthenticationError(
+            'users can only update their own articles.'
+          )
+        }
+      })
+    }
+  }
+
   /**
    * update
    * when id is provided
    */
   if (id) {
     const { id: chapterDbId } = fromGlobalId(id)
+
     let chapter = await atomService.findUnique({
       table: 'chapter',
       where: { id: chapterDbId },
     })
 
+    if (!chapter) {
+      throw new UserInputError('cannot find chapter.')
+    }
+
     const topic = await atomService.findUnique({
       table: 'topic',
       where: { id: chapter.topicId },
     })
+
+    if (!topic) {
+      throw new UserInputError('cannot find topic of chapter.')
+    }
 
     // check topic ownership
     if (topic.userId !== viewer.id) {
@@ -98,9 +129,12 @@ const resolver: MutationToPutChapterResolver = async (
       ).map((record) => record.articleId)
 
       // determine articles to be removed, added and updated
-      const addIds = _difference(newIds, oldIds)
+      const addIds = _difference(newIds, oldIds) as string[]
       const removeIds = _difference(oldIds, newIds)
       const updateIds = _inter(newIds, oldIds)
+
+      // check validity of added ids
+      await checkArticleIds(addIds)
 
       // updated
       await Promise.all(
@@ -170,7 +204,7 @@ const resolver: MutationToPutChapterResolver = async (
 
     if (topic.userId !== viewer.id) {
       throw new AuthenticationError(
-        'users can only create chapter in their own topics'
+        'Users can only create chapter in their own topics'
       )
     }
 
@@ -193,7 +227,13 @@ const resolver: MutationToPutChapterResolver = async (
     // create references to articles in article_chapter
     if (articles && articles.length > 0) {
       // get unique ids from input
-      const ids = _uniq(articles).map((globalId) => fromGlobalId(globalId).id)
+      const ids = _uniq(articles).map(
+        (globalId) => fromGlobalId(globalId).id
+      ) as string[]
+
+      // check validity of article ids
+      await checkArticleIds(ids)
+
       await Promise.all(
         ids.map((articleId, index) =>
           atomService.create({

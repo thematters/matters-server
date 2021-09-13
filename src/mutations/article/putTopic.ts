@@ -56,8 +56,12 @@ const resolver: MutationToPutTopicResolver = async (
       where: { id: topicDbId },
     })
 
+    if (!topic) {
+      throw new UserInputError('cannot find topic.')
+    }
+
     if (topic.userId !== viewer.id) {
-      throw new AuthenticationError('users can only update their own topics')
+      throw new AuthenticationError('users can only update their own topics.')
     }
 
     // update properties in topic table
@@ -71,11 +75,37 @@ const resolver: MutationToPutTopicResolver = async (
 
     // update chapter order in chapter table
     if (chapters && chapters.length > 0) {
+      // get chapter db ids
+      const chapterDbIds = _uniq(chapters).map(
+        (chapterGlobalId) => fromGlobalId(chapterGlobalId).id
+      )
+
+      // join to get topic owner
+      const chapterObjs = await atomService.knex
+        .select('chapter.id', 'topic.user_id')
+        .from('chapter')
+        .join('topic', 'chapter.topic_id', 'topic.id')
+        .whereIn('chapter.id', chapterDbIds)
+
+      // check validity
+      if (chapterObjs.length !== chapterDbIds.length) {
+        throw new UserInputError('some chapters cannot be found.')
+      }
+
+      chapterObjs.map((chapter) => {
+        if (chapter.userId !== viewer.id) {
+          throw new AuthenticationError(
+            'users can only update their own chapters.'
+          )
+        }
+      })
+
+      // update record
       await Promise.all(
-        chapters.map((chapter, index) =>
+        chapterDbIds.map((chapterDbId, index) =>
           atomService.update({
             table: 'chapter',
-            where: { id: fromGlobalId(chapter).id, topicId: topicDbId },
+            where: { id: chapterDbId, topicId: topicDbId },
             data: { order: index, updatedAt: new Date() },
           })
         )
@@ -101,6 +131,24 @@ const resolver: MutationToPutTopicResolver = async (
       const addIds = _difference(newIds, oldIds)
       const removeIds = _difference(oldIds, newIds)
       const updateIds = _inter(newIds, oldIds)
+
+      // check validity of added articles
+      const articlesObjs = await atomService.findMany({
+        table: 'article',
+        whereIn: ['id', addIds],
+      })
+
+      if (articlesObjs.length !== addIds.length) {
+        throw new UserInputError('some articles cannot be found.')
+      }
+
+      articlesObjs.map((articleObj) => {
+        if (articleObj.authorId !== viewer.id) {
+          throw new AuthenticationError(
+            'users can only update their own articles.'
+          )
+        }
+      })
 
       // updated
       await Promise.all(
