@@ -100,7 +100,7 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Topics created by current user."
-    topics(input: FilterInput): [Topic]!
+    topics(input: TopicInput!): TopicConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
@@ -189,6 +189,12 @@ export default /* GraphQL */ `
     oss: Boolean
     filter: FilterInput
     type: AuthorsType
+  }
+
+  input TopicInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: FilterInput
   }
 
   input FilterInput {

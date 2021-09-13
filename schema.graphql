@@ -414,7 +414,7 @@ type Chapter implements Node {
   description: String
 
   """Articles included in this Chapter"""
-  articles: [Article]!
+  articles: [Article!]
 
   """The topic that this Chapter belongs to."""
   topic: Topic!
@@ -443,16 +443,19 @@ type Topic implements Node {
   articleCount: Int!
 
   """List of chapters included in this topic."""
-  chapters: [Chapter]!
+  chapters: [Chapter!]
 
   """List of articles included in this topic."""
-  articles: [Article]!
+  articles: [Article!]
 
   """Author of this topic."""
   author: User!
 
   """Whether this topic is public or not."""
   public: Boolean!
+
+  """Latest published article on this topic"""
+  latestArticle: Article
 }
 
 """This type contains content, count and related data of an article tag."""
@@ -543,6 +546,17 @@ type ArticleConnection implements Connection {
 type ArticleEdge {
   cursor: String!
   node: Article!
+}
+
+type TopicConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TopicEdge!]
+}
+
+type TopicEdge {
+  cursor: String!
+  node: Topic!
 }
 
 type TagConnection implements Connection {
@@ -2011,7 +2025,7 @@ type User implements Node {
   articles(input: ConnectionArgs!): ArticleConnection!
 
   """Topics created by current user."""
-  topics(input: FilterInput): [Topic]!
+  topics(input: TopicInput!): TopicConnection!
 
   """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
@@ -2115,6 +2129,12 @@ input RecommendInput {
   oss: Boolean
   filter: FilterInput
   type: AuthorsType
+}
+
+input TopicInput {
+  after: String
+  first: Int
+  filter: FilterInput
 }
 
 input FilterInput {

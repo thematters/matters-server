@@ -207,10 +207,10 @@ export default /* GraphQL */ `
     description: String
 
     "Articles included in this Chapter"
-    articles: [Article]!
+    articles: [Article!]
 
     "The topic that this Chapter belongs to."
-    topic: Topic!
+    topic: Topic! @logCache(type: "${NODE_TYPES.Topic}")
   }
 
 
@@ -235,16 +235,19 @@ export default /* GraphQL */ `
     articleCount: Int!
 
     "List of chapters included in this topic."
-    chapters: [Chapter]!
+    chapters: [Chapter!]
 
     "List of articles included in this topic."
-    articles: [Article]!
+    articles: [Article!]
 
     "Author of this topic."
     author: User!
 
     "Whether this topic is public or not."
     public: Boolean!
+
+    "Latest published article on this topic"
+    latestArticle: Article
   }
 
   "This type contains content, count and related data of an article tag."
@@ -333,6 +336,17 @@ export default /* GraphQL */ `
   type ArticleEdge {
     cursor: String!
     node: Article! @logCache(type: "${NODE_TYPES.Article}")
+  }
+
+  type TopicConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TopicEdge!]
+  }
+
+  type TopicEdge {
+    cursor: String!
+    node: Topic! @logCache(type: "${NODE_TYPES.Topic}")
   }
 
   type TagConnection implements Connection {
