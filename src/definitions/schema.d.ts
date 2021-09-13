@@ -622,7 +622,7 @@ export interface GQLTopic extends GQLNode {
   /**
    * Cover of this topic.
    */
-  cover: string
+  cover?: string
 
   /**
    * Description of this topic.
@@ -858,7 +858,6 @@ export interface GQLPutChapterInput {
   id?: string
   title?: string
   description?: string
-  cover?: string
   topic?: string
   articles?: Array<string>
 }
@@ -2650,6 +2649,7 @@ export const enum GQLAssetType {
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
   announcementCover = 'announcementCover',
+  topicCover = 'topicCover',
 }
 
 export const enum GQLEntityType {

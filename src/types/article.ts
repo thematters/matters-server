@@ -223,7 +223,7 @@ export default /* GraphQL */ `
     title: String!
 
     "Cover of this topic."
-    cover: String!
+    cover: String
 
     "Description of this topic."
     description: String
@@ -409,7 +409,6 @@ export default /* GraphQL */ `
     id: ID
     title: String
     description: String
-    cover: ID
     topic: ID
     articles: [ID!]
   }

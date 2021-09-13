@@ -132,13 +132,14 @@ class UserQueue extends BaseQueue {
    * - avatar
    * - profileCover
    * - oauthClientAvatar
-   *
+   * - topicCover
    */
   private deleteUserAssets = async (userId: string) => {
     const types = [
       ASSET_TYPE.avatar,
       ASSET_TYPE.profileCover,
       ASSET_TYPE.oauthClientAvatar,
+      ASSET_TYPE.profileCover,
     ]
     const assets = (
       await this.systemService.findAssetsByAuthorAndTypes(userId, types)

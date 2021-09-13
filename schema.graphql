@@ -431,7 +431,7 @@ type Topic implements Node {
   title: String!
 
   """Cover of this topic."""
-  cover: String!
+  cover: String
 
   """Description of this topic."""
   description: String
@@ -619,7 +619,6 @@ input PutChapterInput {
   id: ID
   title: String
   description: String
-  cover: ID
   topic: ID
   articles: [ID!]
 }
@@ -1926,6 +1925,7 @@ enum AssetType {
   circleAvatar
   circleCover
   announcementCover
+  topicCover
 }
 
 enum EntityType {
