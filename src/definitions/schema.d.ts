@@ -595,6 +595,11 @@ export interface GQLChapter extends GQLNode {
   description?: string
 
   /**
+   * Number articles included in this chapter.
+   */
+  articleCount: number
+
+  /**
    * Articles included in this Chapter
    */
   articles?: Array<GQLArticle>
@@ -2659,6 +2664,7 @@ export const enum GQLEntityType {
   user = 'user',
   circle = 'circle',
   announcement = 'announcement',
+  topic = 'topic',
 }
 
 /**
@@ -5723,6 +5729,7 @@ export interface GQLChapterTypeResolver<TParent = any> {
   id?: ChapterToIdResolver<TParent>
   title?: ChapterToTitleResolver<TParent>
   description?: ChapterToDescriptionResolver<TParent>
+  articleCount?: ChapterToArticleCountResolver<TParent>
   articles?: ChapterToArticlesResolver<TParent>
   topic?: ChapterToTopicResolver<TParent>
 }
@@ -5746,6 +5753,15 @@ export interface ChapterToTitleResolver<TParent = any, TResult = any> {
 }
 
 export interface ChapterToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToArticleCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -206,6 +206,9 @@ export default /* GraphQL */ `
     "Description of this chapter."
     description: String
 
+    "Number articles included in this chapter."
+    articleCount: Int!
+
     "Articles included in this Chapter"
     articles: [Article!]
 

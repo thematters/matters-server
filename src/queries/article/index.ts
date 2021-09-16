@@ -15,6 +15,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
+import chapterArticleCount from './chapter/articleCount'
 import chapterArticles from './chapter/articles'
 import chapterTopic from './chapter/topic'
 import collectedBy from './collectedBy'
@@ -143,6 +144,7 @@ export default {
   Chapter: {
     id: ({ id }: { id: string }) =>
       toGlobalId({ type: NODE_TYPES.Chapter, id }),
+    articleCount: chapterArticleCount,
     articles: chapterArticles,
     topic: chapterTopic,
   },

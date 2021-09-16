@@ -413,6 +413,9 @@ type Chapter implements Node {
   """Description of this chapter."""
   description: String
 
+  """Number articles included in this chapter."""
+  articleCount: Int!
+
   """Articles included in this Chapter"""
   articles: [Article!]
 
@@ -1935,6 +1938,7 @@ enum EntityType {
   user
   circle
   announcement
+  topic
 }
 
 """Enums for user roles."""
