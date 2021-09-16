@@ -31,7 +31,7 @@ export default /* GraphQL */ `
     putTopic(input: PutTopicInput!): Topic! @purgeCache(type: "${NODE_TYPES.Topic}")
 
     "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
-    putChapter(input: PutChapterInput!): Chapter!
+    putChapter(input: PutChapterInput!): Chapter! @purgeCache(type: "${NODE_TYPES.Chapter}")
 
     "Delete topics"
     deleteTopics(input: DeleteTopicsInput!): Boolean!

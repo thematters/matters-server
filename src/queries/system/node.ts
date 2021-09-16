@@ -27,6 +27,7 @@ const resolver: QueryToNodeResolver = async (
     Tag: tagService.dataloader,
     Circle: atomService.circleIdLoader,
     Topic: atomService.topicIdLoader,
+    Chapter: atomService.chapterIdLoader,
   }
 
   const { type, id: dbId } = fromGlobalId(id)
