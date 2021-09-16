@@ -75,6 +75,12 @@ type Mutation {
   """
   putChapter(input: PutChapterInput!): Chapter!
 
+  """Delete topics"""
+  deleteTopics(input: DeleteTopicsInput!): Boolean!
+
+  """Sort topics"""
+  sortTopics(input: SortTopicsInput!): [Topic!]!
+
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
@@ -624,6 +630,14 @@ input PutChapterInput {
   description: String
   topic: ID
   articles: [ID!]
+}
+
+input DeleteTopicsInput {
+  ids: [ID!]!
+}
+
+input SortTopicsInput {
+  ids: [ID!]!
 }
 
 input ToggleRecommendInput {

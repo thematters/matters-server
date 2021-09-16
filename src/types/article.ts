@@ -33,6 +33,11 @@ export default /* GraphQL */ `
     "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
     putChapter(input: PutChapterInput!): Chapter!
 
+    "Delete topics"
+    deleteTopics(input: DeleteTopicsInput!): Boolean!
+
+    "Sort topics"
+    sortTopics(input: SortTopicsInput!): [Topic!]!
 
     ##############
     #     Tag    #
@@ -414,6 +419,14 @@ export default /* GraphQL */ `
     description: String
     topic: ID
     articles: [ID!]
+  }
+
+  input DeleteTopicsInput {
+    ids: [ID!]!
+  }
+
+  input SortTopicsInput {
+    ids: [ID!]!
   }
 
   input ToggleRecommendInput {

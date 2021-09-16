@@ -6,7 +6,7 @@ const resolver: UserToTopicsResolver = async (
   { input },
   { dataSources: { atomService }, viewer }
 ) => {
-  const { take, skip } = fromConnectionArgs(input)
+  const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
   if (!id) {
     return connectionFromArray([], input)
@@ -25,6 +25,7 @@ const resolver: UserToTopicsResolver = async (
       where: { userId: id, ...(isPublicOnly ? { public: true } : {}) },
       take,
       skip,
+      orderBy: [{ column: 'order', order: 'asc' }],
     }),
   ])
 

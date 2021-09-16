@@ -322,6 +322,20 @@ const PUT_CHAPTER = /* GraphQL */ `
   }
 `
 
+const DELETE_TOPICS = /* GraphQL */ `
+  mutation DeleteTopics($input: DeleteTopicsInput!) {
+    deleteTopics(input: $input)
+  }
+`
+
+const SORT_TOPICS = /* GraphQL */ `
+  mutation SortTopics($input: SortTopicsInput!) {
+    sortTopics(input: $input) {
+      id
+    }
+  }
+`
+
 const SEND_VERIFICATION_CODE = /* GraphQL */ `
   mutation SendVerificationCode($input: SendVerificationCodeInput!) {
     sendVerificationCode(input: $input)
@@ -704,6 +718,9 @@ describe('verification code', () => {
   })
 })
 
+const TOPIC_ID_1 = toGlobalId({ type: NODE_TYPES.Topic, id: 1 })
+const TOPIC_ID_2 = toGlobalId({ type: NODE_TYPES.Topic, id: 2 })
+
 describe('topics & chapters', () => {
   test('get user topics', async () => {
     const server = await testClient({
@@ -751,7 +768,11 @@ describe('topics & chapters', () => {
     const { data: updated } = await server.executeOperation({
       query: PUT_TOPIC,
       variables: {
-        input: { id: 'VG9waWM6MQ==', title, articles },
+        input: {
+          id: TOPIC_ID_1,
+          title,
+          articles,
+        },
       },
     })
 
@@ -772,7 +793,9 @@ describe('topics & chapters', () => {
     const title = 'chapter 123'
     const { data: created } = await server.executeOperation({
       query: PUT_CHAPTER,
-      variables: { input: { title, topic: 'VG9waWM6MQ==' } },
+      variables: {
+        input: { title, topic: TOPIC_ID_1 },
+      },
     })
 
     expect(_get(created, 'putChapter.title')).toBe(title)
@@ -798,5 +821,36 @@ describe('topics & chapters', () => {
         ({ id }) => id
       )
     ).toEqual(articles)
+  })
+
+  test('sort topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: SORT_TOPICS,
+      variables: {
+        input: { ids: [TOPIC_ID_2, TOPIC_ID_1] },
+      },
+    })
+
+    expect(_get(data, 'sortTopics.0.id')).toBe(TOPIC_ID_2)
+    expect(_get(data, 'sortTopics.1.id')).toBe(TOPIC_ID_1)
+  })
+
+  test('delete topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data: deleted } = await server.executeOperation({
+      query: DELETE_TOPICS,
+      variables: {
+        input: { ids: [] },
+      },
+    })
+
+    expect(deleted).toBe(true)
   })
 })
