@@ -28,7 +28,7 @@ export default /* GraphQL */ `
     # Article Containers #
     ######################
     "Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title."
-    putTopic(input: PutTopicInput!): Topic!
+    putTopic(input: PutTopicInput!): Topic! @purgeCache(type: "${NODE_TYPES.Topic}")
 
     "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
     putChapter(input: PutChapterInput!): Chapter!
@@ -37,7 +37,7 @@ export default /* GraphQL */ `
     deleteTopics(input: DeleteTopicsInput!): Boolean!
 
     "Sort topics"
-    sortTopics(input: SortTopicsInput!): [Topic!]!
+    sortTopics(input: SortTopicsInput!): [Topic!]! @purgeCache(type: "${NODE_TYPES.Topic}")
 
     ##############
     #     Tag    #
