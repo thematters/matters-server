@@ -93,6 +93,7 @@ jobs:
           MATTERS_IPFS_PORT: 5001
           MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
           MATTERS_STRIPE_SECRET: sk_test_foobar
+          MATTERS_SENDGRID_API_KEY: SG.0-_abcabcabc.
 
       - name: Build
         run: npm run build
