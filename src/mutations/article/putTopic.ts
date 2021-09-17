@@ -207,10 +207,28 @@ const resolver: MutationToPutTopicResolver = async (
       )
     }
 
+    // update orders
+    const userTopics = await atomService.findMany({
+      table: 'topic',
+      where: { user_id: viewer.id },
+    })
+    await Promise.all(
+      userTopics.map((topic) =>
+        atomService.update({
+          table: 'topic',
+          where: { id: topic.id },
+          data: {
+            order: topic.order + 1,
+            updatedAt: new Date(),
+          },
+        })
+      )
+    )
+
     // create record in topic table
     const newTopic = await atomService.create({
       table: 'topic',
-      data: { userId: viewer.id, ...properties },
+      data: { userId: viewer.id, order: 0, ...properties },
     })
 
     // create references to articles in article_topic

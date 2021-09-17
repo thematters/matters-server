@@ -63,6 +63,16 @@ export interface GQLMutation {
   putChapter: GQLChapter
 
   /**
+   * Delete topics
+   */
+  deleteTopics: boolean
+
+  /**
+   * Sort topics
+   */
+  sortTopics: Array<GQLTopic>
+
+  /**
    * Follow or unfollow tag.
    */
   toggleFollowTag: GQLTag
@@ -595,6 +605,11 @@ export interface GQLChapter extends GQLNode {
   description?: string
 
   /**
+   * Number articles included in this chapter.
+   */
+  articleCount: number
+
+  /**
    * Articles included in this Chapter
    */
   articles?: Array<GQLArticle>
@@ -860,6 +875,14 @@ export interface GQLPutChapterInput {
   description?: string
   topic?: string
   articles?: Array<string>
+}
+
+export interface GQLDeleteTopicsInput {
+  ids: Array<string>
+}
+
+export interface GQLSortTopicsInput {
+  ids: Array<string>
 }
 
 export interface GQLToggleRecommendInput {
@@ -2659,6 +2682,7 @@ export const enum GQLEntityType {
   user = 'user',
   circle = 'circle',
   announcement = 'announcement',
+  topic = 'topic',
 }
 
 /**
@@ -4182,6 +4206,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   readArticle?: MutationToReadArticleResolver<TParent>
   putTopic?: MutationToPutTopicResolver<TParent>
   putChapter?: MutationToPutChapterResolver<TParent>
+  deleteTopics?: MutationToDeleteTopicsResolver<TParent>
+  sortTopics?: MutationToSortTopicsResolver<TParent>
   toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
   updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
@@ -4334,6 +4360,30 @@ export interface MutationToPutChapterResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutChapterArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteTopicsArgs {
+  input: GQLDeleteTopicsInput
+}
+export interface MutationToDeleteTopicsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToDeleteTopicsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSortTopicsArgs {
+  input: GQLSortTopicsInput
+}
+export interface MutationToSortTopicsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSortTopicsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5723,6 +5773,7 @@ export interface GQLChapterTypeResolver<TParent = any> {
   id?: ChapterToIdResolver<TParent>
   title?: ChapterToTitleResolver<TParent>
   description?: ChapterToDescriptionResolver<TParent>
+  articleCount?: ChapterToArticleCountResolver<TParent>
   articles?: ChapterToArticlesResolver<TParent>
   topic?: ChapterToTopicResolver<TParent>
 }
@@ -5746,6 +5797,15 @@ export interface ChapterToTitleResolver<TParent = any, TResult = any> {
 }
 
 export interface ChapterToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ChapterToArticleCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

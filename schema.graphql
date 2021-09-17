@@ -75,6 +75,12 @@ type Mutation {
   """
   putChapter(input: PutChapterInput!): Chapter!
 
+  """Delete topics"""
+  deleteTopics(input: DeleteTopicsInput!): Boolean!
+
+  """Sort topics"""
+  sortTopics(input: SortTopicsInput!): [Topic!]!
+
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
@@ -413,6 +419,9 @@ type Chapter implements Node {
   """Description of this chapter."""
   description: String
 
+  """Number articles included in this chapter."""
+  articleCount: Int!
+
   """Articles included in this Chapter"""
   articles: [Article!]
 
@@ -621,6 +630,14 @@ input PutChapterInput {
   description: String
   topic: ID
   articles: [ID!]
+}
+
+input DeleteTopicsInput {
+  ids: [ID!]!
+}
+
+input SortTopicsInput {
+  ids: [ID!]!
 }
 
 input ToggleRecommendInput {
@@ -1935,6 +1952,7 @@ enum EntityType {
   user
   circle
   announcement
+  topic
 }
 
 """Enums for user roles."""

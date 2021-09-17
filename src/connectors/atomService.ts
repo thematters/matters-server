@@ -80,9 +80,10 @@ export class AtomService extends DataSource {
   knex: Knex
 
   circleIdLoader: DataLoader<string, Item>
-  topicIdLoader: DataLoader<string, Item>
   draftIdLoader: DataLoader<string, Item>
   userIdLoader: DataLoader<string, Item>
+  topicIdLoader: DataLoader<string, Item>
+  chapterIdLoader: DataLoader<string, Item>
 
   constructor() {
     super()
@@ -91,9 +92,10 @@ export class AtomService extends DataSource {
     this.knex = knex
 
     this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
-    this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
     this.draftIdLoader = this.initLoader({ table: 'draft', mode: 'id' })
     this.userIdLoader = this.initLoader({ table: 'user', mode: 'id' })
+    this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
+    this.chapterIdLoader = this.initLoader({ table: 'chapter', mode: 'id' })
   }
 
   /* Data Loader */
