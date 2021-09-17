@@ -844,13 +844,13 @@ describe('topics & chapters', () => {
       isAuth: true,
     })
 
-    const { data: deleted } = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: DELETE_TOPICS,
       variables: {
         input: { ids: [] },
       },
     })
 
-    expect(deleted).toBe(true)
+    expect(_get(data, 'deleteTopics')).toBe(true)
   })
 })
