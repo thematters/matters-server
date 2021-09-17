@@ -499,6 +499,7 @@ describe('user query fields', () => {
       query: GET_VIEWER_FOLLOWINGS,
       variables: { input: {} },
     })
+    console.log(JSON.stringify(data), '1234')
     const circles = _get(data, 'viewer.following.circles.edges')
     const users = _get(data, 'viewer.following.users.edges')
     const tags = _get(data, 'viewer.following.tags.edges')
