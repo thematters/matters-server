@@ -288,7 +288,7 @@ export default /* GraphQL */ `
   }
 
   enum CircleNoticeType {
-    CircleNewFollower
+    CircleNewFollower # deprecated
     CircleNewSubscriber
     CircleNewUnsubscriber
     CircleInvitation

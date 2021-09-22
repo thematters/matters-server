@@ -10,7 +10,7 @@ import { GQLCommentType } from 'definitions'
 
 import { testClient } from './utils'
 
-const GET_VIEWER_OWN_CIRCLES = `
+const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {
     viewer {
       id

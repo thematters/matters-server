@@ -65,6 +65,12 @@ interface CountInput {
   whereIn?: [string, string[]]
 }
 
+interface MaxInput {
+  table: TableName
+  where?: Record<string, any>
+  column: string
+}
+
 /**
  * This object is a container for data loaders or system wide services.
  */
@@ -76,6 +82,8 @@ export class AtomService extends DataSource {
   circleIdLoader: DataLoader<string, Item>
   draftIdLoader: DataLoader<string, Item>
   userIdLoader: DataLoader<string, Item>
+  topicIdLoader: DataLoader<string, Item>
+  chapterIdLoader: DataLoader<string, Item>
 
   constructor() {
     super()
@@ -86,6 +94,8 @@ export class AtomService extends DataSource {
     this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
     this.draftIdLoader = this.initLoader({ table: 'draft', mode: 'id' })
     this.userIdLoader = this.initLoader({ table: 'user', mode: 'id' })
+    this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
+    this.chapterIdLoader = this.initLoader({ table: 'chapter', mode: 'id' })
   }
 
   /* Data Loader */
@@ -270,6 +280,16 @@ export class AtomService extends DataSource {
     }
     const record = await action.first()
 
+    return parseInt(record ? (record.count as string) : '0', 10)
+  }
+
+  /**
+   * Max of given column.
+   *
+   * A Prisma like method for getting max.
+   */
+  max = async ({ table, where, column }: MaxInput) => {
+    const record = await this.knex(table).max(column).where(where).first()
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 

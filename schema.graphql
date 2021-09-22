@@ -65,6 +65,22 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
+  """
+  Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title.
+  """
+  putTopic(input: PutTopicInput!): Topic!
+
+  """
+  Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic.
+  """
+  putChapter(input: PutChapterInput!): Chapter!
+
+  """Delete topics"""
+  deleteTopics(input: DeleteTopicsInput!): Boolean!
+
+  """Sort topics"""
+  sortTopics(input: SortTopicsInput!): [Topic!]!
+
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
@@ -99,7 +115,7 @@ type Mutation {
   putCircle(input: PutCircleInput!): Circle!
 
   """Follow or unfollow a Circle."""
-  toggleFollowCircle(input: ToggleItemInput!): Circle!
+  toggleFollowCircle(input: ToggleItemInput!): Circle! @deprecated(reason: "No longer in use")
 
   """Subscribe a Circle."""
   subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult!
@@ -108,7 +124,7 @@ type Mutation {
   unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
   """Add or remove Circle's articles"""
-  putCircleArticles(input: PutCircleArticlesInput!): Circle!
+  putCircleArticles(input: PutCircleArticlesInput!): Circle! @deprecated(reason: "No longer in use")
 
   """Invite others to join circle"""
   invite(input: InviteCircleInput!): [Invitation!]
@@ -390,6 +406,67 @@ type Article implements Node {
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
+"""
+This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic.
+"""
+type Chapter implements Node {
+  """Unique id of this chapter."""
+  id: ID!
+
+  """Title of this chapter."""
+  title: String!
+
+  """Description of this chapter."""
+  description: String
+
+  """Number articles included in this chapter."""
+  articleCount: Int!
+
+  """Articles included in this Chapter"""
+  articles: [Article!]
+
+  """The topic that this Chapter belongs to."""
+  topic: Topic!
+}
+
+"""
+This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types.
+"""
+type Topic implements Node {
+  """Unique id of this topic."""
+  id: ID!
+
+  """Title of this topic."""
+  title: String!
+
+  """Cover of this topic."""
+  cover: String
+
+  """Description of this topic."""
+  description: String
+
+  """Number of chapters included in this topic."""
+  chapterCount: Int!
+
+  """Number articles included in this topic."""
+  articleCount: Int!
+
+  """List of chapters included in this topic."""
+  chapters: [Chapter!]
+
+  """List of articles included in this topic."""
+  articles: [Article!]
+
+  """Author of this topic."""
+  author: User!
+
+  """Whether this topic is public or not."""
+  public: Boolean!
+
+  """Latest published article on this topic"""
+  latestArticle: Article
+}
+
 """This type contains content, count and related data of an article tag."""
 type Tag implements Node {
   """Unique id of this tag."""
@@ -480,6 +557,17 @@ type ArticleEdge {
   node: Article!
 }
 
+type TopicConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TopicEdge!]
+}
+
+type TopicEdge {
+  cursor: String!
+  node: Topic!
+}
+
 type TagConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
@@ -524,6 +612,32 @@ input AppreciateArticleInput {
 
 input ReadArticleInput {
   id: ID!
+}
+
+input PutTopicInput {
+  id: ID
+  title: String
+  description: String
+  cover: ID
+  public: Boolean
+  articles: [ID!]
+  chapters: [ID!]
+}
+
+input PutChapterInput {
+  id: ID
+  title: String
+  description: String
+  topic: ID
+  articles: [ID!]
+}
+
+input DeleteTopicsInput {
+  ids: [ID!]!
+}
+
+input SortTopicsInput {
+  ids: [ID!]!
 }
 
 input ToggleRecommendInput {
@@ -657,16 +771,16 @@ type Circle implements Node {
   id: ID!
 
   """Circle avatar's link."""
-  avatar: String
+  avatar: String @deprecated(reason: "No longer in use")
 
   """Circle cover's link."""
-  cover: String
+  cover: String @deprecated(reason: "No longer in use")
 
   """Slugified name of this Circle."""
-  name: String!
+  name: String! @deprecated(reason: "No longer in use")
 
   """Human readable name of this Circle."""
-  displayName: String!
+  displayName: String! @deprecated(reason: "No longer in use")
 
   """A short description of this Circle."""
   description: String
@@ -678,31 +792,28 @@ type Circle implements Node {
   owner: User!
 
   """List of Circle member."""
-  members(input: ConnectionArgs!): MemberConnection!
+  members(input: ConnectionArgs!): MemberConnection! @deprecated(reason: "No longer in use")
 
   """List of Circle follower."""
-  followers(input: ConnectionArgs!): UserConnection!
+  followers(input: ConnectionArgs!): UserConnection! @deprecated(reason: "No longer in use")
 
   """List of works belong to this Circle."""
-  works(input: ConnectionArgs!): ArticleConnection!
+  works(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "No longer in use")
 
   """State of this Circle."""
-  state: CircleState!
+  state: CircleState! @deprecated(reason: "No longer in use")
 
   """Created time."""
-  createdAt: DateTime!
+  createdAt: DateTime! @deprecated(reason: "No longer in use")
 
   """Updated time."""
-  updatedAt: DateTime!
+  updatedAt: DateTime! @deprecated(reason: "No longer in use")
 
   """This value determines if current viewer is following Circle or not."""
-  isFollower: Boolean!
+  isFollower: Boolean! @deprecated(reason: "No longer in use")
 
   """This value determines if current viewer is Member or not."""
-  isMember: Boolean!
-
-  """Setting of this Circle."""
-  setting: CircleSetting!
+  isMember: Boolean! @deprecated(reason: "No longer in use")
 
   """Invitations belonged to this Circle."""
   invites: Invites!
@@ -727,14 +838,6 @@ type Circle implements Node {
 
   """Discussion (include replies) count of this circle."""
   discussionCount: Int!
-}
-
-type CircleSetting {
-  """Whether broadcast is enabled or not."""
-  enableBroadcast: Boolean!
-
-  """Whther discussion is enabled or not."""
-  enableDiscussion: Boolean!
 }
 
 type Member {
@@ -762,10 +865,10 @@ type Price {
   state: PriceState!
 
   """Created time."""
-  createdAt: DateTime!
+  createdAt: DateTime! @deprecated(reason: "No longer in use")
 
   """Updated time."""
-  updatedAt: DateTime!
+  updatedAt: DateTime! @deprecated(reason: "No longer in use")
 }
 
 type CircleConnection implements Connection {
@@ -1839,6 +1942,7 @@ enum AssetType {
   circleAvatar
   circleCover
   announcementCover
+  topicCover
 }
 
 enum EntityType {
@@ -1848,6 +1952,7 @@ enum EntityType {
   user
   circle
   announcement
+  topic
 }
 
 """Enums for user roles."""
@@ -1936,6 +2041,9 @@ type User implements Node {
 
   """Articles authored by current user."""
   articles(input: ConnectionArgs!): ArticleConnection!
+
+  """Topics created by current user."""
+  topics(input: TopicInput!): TopicConnection!
 
   """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
@@ -2041,10 +2149,21 @@ input RecommendInput {
   type: AuthorsType
 }
 
+input TopicInput {
+  after: String
+  first: Int
+  filter: FilterInput
+}
+
 input FilterInput {
   """index of list, min: 0, max: 49"""
   random: Int
+
+  """Used in RecommendInput"""
   followed: Boolean
+
+  """Used in User.topics"""
+  public: Boolean
 }
 
 type UserInfo {
@@ -2253,7 +2372,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserCollectArticleActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2328,70 +2447,6 @@ type CircleRecommendationActivity {
 
 enum CircleRecommendationActivitySource {
   UserSubscription
-}
-
-"""
-########################
-## deprecated:start ###
-########################
-"""
-type UserCollectArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article created by actor"""
-  node: Article!
-
-  """Article that collected by"""
-  target: Article!
-}
-
-type UserSubscribeCircleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Circle subscribed by actor"""
-  node: Circle!
-}
-
-type UserFollowUserActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """User followed by actor"""
-  node: User!
-}
-
-type UserDonateArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article donated by actor"""
-  node: Article!
-}
-
-type UserBookmarkArticleActivity {
-  actor: User!
-  createdAt: DateTime!
-
-  """Article bookmarked by actor"""
-  node: Article!
-}
-
-type FolloweeDonatedArticleConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [FolloweeDonatedArticleEdge!]
-}
-
-type FolloweeDonatedArticleEdge {
-  cursor: String!
-  node: FolloweeDonatedArticle!
-}
-
-type FolloweeDonatedArticle {
-  article: Article!
-  followee: User!
 }
 
 type Following {

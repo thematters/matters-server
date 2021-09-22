@@ -282,14 +282,6 @@ export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
 /**
  * Circle
  */
-export interface NoticeCircleNewFollowerParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_new_follower
-  actorId: string
-  recipientId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-}
-
 export interface NoticeCircleNewSubscriberParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.circle_new_subscriber
@@ -407,7 +399,6 @@ export type NotificationPrarms =
   | NoticePaymentReceivedDonationParams
   | NoticePaymentPayoutParams
   // Circle
-  | NoticeCircleNewFollowerParams
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewUnsubscriberParams
   | NoticeCircleInvitationParams

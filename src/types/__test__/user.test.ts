@@ -207,7 +207,7 @@ const GET_VIEWER_STATUS = /* GraphQL */ `
     }
   }
 `
-const GET_VIEWER_RECOMMENDATION = (list: string) => `
+const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: ConnectionArgs!) {
   viewer {
     recommendation {
@@ -223,23 +223,23 @@ query($input: ConnectionArgs!) {
 }
 `
 
-const GET_VIEWER_RECOMMENDATION_TAGS = `
-query($input: RecommendInput!) {
-  viewer {
-    recommendation {
-      tags(input: $input) {
-        edges {
-          node {
-            id
+const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
+  query ($input: RecommendInput!) {
+    viewer {
+      recommendation {
+        tags(input: $input) {
+          edges {
+            node {
+              id
+            }
           }
         }
       }
     }
   }
-}
 `
 
-const GET_AUTHOR_RECOMMENDATION = (list: string) => `
+const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: RecommendInput!) {
   viewer {
     recommendation {
@@ -263,6 +263,75 @@ const GET_VIEWER_BADGES = /* GraphQL */ `
           type
         }
       }
+    }
+  }
+`
+
+const GET_VIEWER_TOPICS = /* GraphQL */ `
+  query {
+    viewer {
+      topics(input: { first: 10 }) {
+        totalCount
+        edges {
+          node {
+            id
+            cover
+            author {
+              id
+            }
+            chapterCount
+            articleCount
+            chapters {
+              id
+              articles {
+                id
+              }
+            }
+            articles {
+              id
+            }
+            public
+          }
+        }
+      }
+    }
+  }
+`
+
+const PUT_TOPIC = /* GraphQL */ `
+  mutation PutTopic($input: PutTopicInput!) {
+    putTopic(input: $input) {
+      id
+      title
+      articles {
+        id
+      }
+    }
+  }
+`
+
+const PUT_CHAPTER = /* GraphQL */ `
+  mutation PutChapter($input: PutChapterInput!) {
+    putChapter(input: $input) {
+      id
+      title
+      articles {
+        id
+      }
+    }
+  }
+`
+
+const DELETE_TOPICS = /* GraphQL */ `
+  mutation DeleteTopics($input: DeleteTopicsInput!) {
+    deleteTopics(input: $input)
+  }
+`
+
+const SORT_TOPICS = /* GraphQL */ `
+  mutation SortTopics($input: SortTopicsInput!) {
+    sortTopics(input: $input) {
+      id
     }
   }
 `
@@ -433,9 +502,9 @@ describe('user query fields', () => {
     const circles = _get(data, 'viewer.following.circles.edges')
     const users = _get(data, 'viewer.following.users.edges')
     const tags = _get(data, 'viewer.following.tags.edges')
-    expect(circles.length).toBe(0)
-    expect(users.length).toBeTruthy()
-    expect(tags.length).toBeTruthy()
+    expect(Array.isArray(circles)).toBe(true)
+    expect(Array.isArray(users)).toBe(true)
+    expect(Array.isArray(tags)).toBe(true)
   })
 
   test('retrive UserStatus', async () => {
@@ -646,5 +715,142 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
+  })
+})
+
+const TOPIC_ID_1 = toGlobalId({ type: NODE_TYPES.Topic, id: 1 })
+const TOPIC_ID_2 = toGlobalId({ type: NODE_TYPES.Topic, id: 2 })
+
+describe('topics & chapters', () => {
+  test('get user topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_TOPICS,
+      variables: {},
+    })
+
+    expect(_get(data, 'viewer.topics.totalCount')).toBeGreaterThan(0)
+
+    const firstTopic = _get(data, 'viewer.topics.edges.0.node')
+
+    expect(_get(firstTopic, 'id')).toBeDefined()
+    expect(_get(firstTopic, 'chapterCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'articleCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'chapters.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'chapters.0.articles.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'articles.0.id')).toBeDefined()
+  })
+
+  test('create topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'topic 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: { input: { title } },
+    })
+
+    expect(_get(created, 'putTopic.title')).toBe(title)
+  })
+
+  test('update topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'topic 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: {
+        input: {
+          id: TOPIC_ID_1,
+          title,
+          articles,
+        },
+      },
+    })
+
+    expect(_get(updated, 'putTopic.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putTopic.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
+  })
+
+  test('create chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'chapter 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: {
+        input: { title, topic: TOPIC_ID_1 },
+      },
+    })
+
+    expect(_get(created, 'putChapter.title')).toBe(title)
+  })
+
+  test('update chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'chapter 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: {
+        input: { id: 'Q2hhcHRlcjox', title, articles },
+      },
+    })
+
+    expect(_get(updated, 'putChapter.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putChapter.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
+  })
+
+  test('sort topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: SORT_TOPICS,
+      variables: {
+        input: { ids: [TOPIC_ID_2, TOPIC_ID_1] },
+      },
+    })
+
+    expect(_get(data, 'sortTopics.0.id')).toBe(TOPIC_ID_2)
+    expect(_get(data, 'sortTopics.1.id')).toBe(TOPIC_ID_1)
+  })
+
+  test('delete topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: DELETE_TOPICS,
+      variables: {
+        input: { ids: [] },
+      },
+    })
+
+    expect(_get(data, 'deleteTopics')).toBe(true)
   })
 })

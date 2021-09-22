@@ -308,6 +308,7 @@ export default /* GraphQL */ `
     circleAvatar
     circleCover
     announcementCover
+    topicCover
   }
 
   enum EntityType {
@@ -317,6 +318,7 @@ export default /* GraphQL */ `
     user
     circle
     announcement
+    topic
   }
 
   "Enums for user roles."

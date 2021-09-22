@@ -26,10 +26,17 @@ const resolver: QueryToNodeResolver = async (
     Draft: draftService.dataloader,
     Tag: tagService.dataloader,
     Circle: atomService.circleIdLoader,
+    Topic: atomService.topicIdLoader,
+    Chapter: atomService.chapterIdLoader,
   }
 
   const { type, id: dbId } = fromGlobalId(id)
   const nodeService = _.get(services, type)
+
+  if (!nodeService) {
+    throw new EntityNotFoundError(`${type} is not supported yet`)
+  }
+
   const node = await nodeService.load(dbId)
 
   if (!node) {

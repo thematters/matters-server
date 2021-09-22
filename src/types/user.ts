@@ -99,6 +99,9 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Topics created by current user."
+    topics(input: TopicInput!): TopicConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
@@ -188,11 +191,21 @@ export default /* GraphQL */ `
     type: AuthorsType
   }
 
+  input TopicInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: FilterInput
+  }
+
   input FilterInput {
     "index of list, min: 0, max: 49"
     random: Int @constraint(min: 0, max: 49)
 
+    "Used in RecommendInput"
     followed: Boolean
+
+    "Used in User.topics"
+    public: Boolean
   }
 
   type UserInfo {
@@ -320,7 +333,7 @@ export default /* GraphQL */ `
     articleNewSubscription: Boolean!
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
-    circleNewFollower: Boolean!
+    circleNewFollower: Boolean! # deprecated
     circleNewDiscussion: Boolean!
   }
 
@@ -405,12 +418,6 @@ export default /* GraphQL */ `
   | ArticleRecommendationActivity
   | CircleRecommendationActivity
 
-  # below are deprecated, won't return data
-  | UserSubscribeCircleActivity
-  | UserFollowUserActivity
-  | UserDonateArticleActivity
-  | UserBookmarkArticleActivity
-  | UserCollectArticleActivity
 
   type UserPublishArticleActivity {
     actor: User! @logCache(type: "${NODE_TYPES.User}")
@@ -485,72 +492,6 @@ export default /* GraphQL */ `
 
   enum CircleRecommendationActivitySource {
     UserSubscription
-  }
-
-
-  #########################
-  ### deprecated:start ###
-  #########################
-  type UserCollectArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article created by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-
-    "Article that collected by"
-    target: Article!
-  }
-
-  type UserSubscribeCircleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Circle subscribed by actor"
-    node: Circle!
-  }
-
-  type UserFollowUserActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "User followed by actor"
-    node: User!
-  }
-
-  type UserDonateArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article donated by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-  }
-
-  type UserBookmarkArticleActivity {
-    actor: User! @logCache(type: "${NODE_TYPES.User}")
-    createdAt: DateTime!
-
-    "Article bookmarked by actor"
-    node: Article! @logCache(type: "${NODE_TYPES.Article}")
-  }
-  ######################
-  ### deprecated:end ###
-  ######################
-
-  type FolloweeDonatedArticleConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [FolloweeDonatedArticleEdge!]
-  }
-
-  type FolloweeDonatedArticleEdge {
-    cursor: String!
-    node: FolloweeDonatedArticle!
-  }
-
-  type FolloweeDonatedArticle {
-    article: Article! @logCache(type: "${NODE_TYPES.Article}")
-    followee: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   type Following {

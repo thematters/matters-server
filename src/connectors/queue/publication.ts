@@ -68,7 +68,7 @@ class PublicationQueue extends BaseQueue {
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
-    if (draft.publishState !== PUBLISH_STATE.pending) {
+    if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       job.progress(100)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
       return
