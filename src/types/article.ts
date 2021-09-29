@@ -105,7 +105,7 @@ export default /* GraphQL */ `
     "Article cover's link."
     cover: String
 
-    "List of assets are belonged to this article."
+    "List of assets are belonged to this article (Only the author can access currently)."
     assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "A short summary for this article."
