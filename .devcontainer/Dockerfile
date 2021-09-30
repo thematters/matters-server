@@ -18,16 +18,15 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # ARG EXTRA_NODE_VERSION=10
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
-# Install Moby CLI and Engine
+# Install Engine
 COPY library-scripts/*.sh library-scripts/*.env first-run-notice.txt /tmp/library-scripts/
-RUN bash /tmp/library-scripts/sshd-debian.sh \
-  && bash /tmp/library-scripts/docker-in-docker-debian.sh "true" "${USERNAME}" "true"
+RUN /bin/bash /tmp/library-scripts/docker-in-docker-debian.sh "true" "${USERNAME}" "true"
 
 # Mount for docker-in-docker
 VOLUME [ "/var/lib/docker" ]
 
 # Fire Docker/Moby script if needed along with Oryx's benv
-ENTRYPOINT [ "/usr/local/share/docker-init.sh", "/usr/local/share/ssh-init.sh" ]
+ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
 # [Optional] Install debugger for development of Codespaces - Not in resulting image by default
