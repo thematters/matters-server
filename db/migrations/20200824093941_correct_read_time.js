@@ -12,7 +12,7 @@ exports.up = async (knex) => {
         read_time = ROUND(read_time::NUMERIC/1000)
     WHERE
         updated_at > '2020-07-31 12:29:00'
-  `)
-}
+  `);
+};
 
-exports.down = async (knex) => {}
+exports.down = async (knex) => {};

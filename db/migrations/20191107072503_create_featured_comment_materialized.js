@@ -1,4 +1,4 @@
-const table = 'featured_comment_materialized'
+const table = "featured_comment_materialized";
 
 exports.up = async (knex) => {
   await knex.raw(/*sql*/ `
@@ -23,9 +23,9 @@ exports.up = async (knex) => {
       group by downvoted_id) as downvotes on comment.id = downvotes.downvoted_id
       where parent_comment_id is null) as comment_score
   where pinned = true or score > 20
-  `)
-}
+  `);
+};
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop materialized view ${table}`)
-}
+  return knex.raw(/*sql*/ `drop materialized view IF EXISTS ${table}`);
+};

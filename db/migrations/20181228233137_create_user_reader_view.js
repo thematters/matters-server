@@ -1,4 +1,4 @@
-const table = 'user_reader_view'
+const table = "user_reader_view";
 
 exports.up = async (knex) =>
   knex.raw(/*sql*/ `
@@ -45,8 +45,8 @@ exports.up = async (knex) =>
                     user_id
                 from
                     user_boost) as b on "user".id = b.user_id
-  `)
+  `);
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
-}
+  return knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
+};

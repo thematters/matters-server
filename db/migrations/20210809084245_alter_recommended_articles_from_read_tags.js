@@ -1,6 +1,6 @@
 const materialized_view_name =
-  'recommended_articles_from_read_tags_materialized'
-const tag_article_limit = 20
+  "recommended_articles_from_read_tags_materialized";
+const tag_article_limit = 20;
 
 exports.up = async (knex) => {
   // create materialized view
@@ -53,16 +53,16 @@ exports.up = async (knex) => {
     WHERE arc.article_id IS NULL
       AND article.author_id IS NULL
     ORDER BY t.user_id ASC, score DESC
-  `)
+  `);
 
   // add indexes
   await knex.schema.table(materialized_view_name, (t) => {
-    t.index('user_id')
-  })
-}
+    t.index("user_id");
+  });
+};
 
 exports.down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE`
-  )
-}
+    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE`
+  );
+};

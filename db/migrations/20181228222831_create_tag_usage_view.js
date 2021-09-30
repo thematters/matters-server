@@ -1,4 +1,4 @@
-const table = 'tag_count_view'
+const table = "tag_count_view";
 
 exports.up = async (knex) =>
   knex.raw(/*sql*/ `
@@ -51,8 +51,8 @@ exports.up = async (knex) =>
                     tag_id
                 from
                     tag_boost) as b on tag.id = b.tag_id
-  `)
+  `);
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
-}
+  return knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
+};

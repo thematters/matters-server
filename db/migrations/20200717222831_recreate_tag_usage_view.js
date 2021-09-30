@@ -1,13 +1,13 @@
-const view = 'tag_count_view'
+const view = "tag_count_view";
 
-const materialized = 'tag_count_materialized'
+const materialized = "tag_count_materialized";
 
 exports.up = async (knex) => {
   // drop materialzied view
-  await knex.raw(`drop materialized view if exists ${materialized}`)
+  await knex.raw(`drop materialized view if exists ${materialized} cascade`);
 
   // drop old view
-  await knex.raw(`drop view if exists ${view}`)
+  await knex.raw(`drop view if exists ${view} cascade`);
 
   // create view
   await knex.raw(`
@@ -65,22 +65,22 @@ exports.up = async (knex) => {
                     tag_id
                 from
                     tag_boost) as b on tag.id = b.tag_id
-  `)
+  `);
 
   // re-create materialized view
   await knex.raw(`
     create materialized view ${materialized} as
         select *
         from ${view}
-  `)
-}
+  `);
+};
 
 exports.down = async (knex) => {
   // drop materialzied view
-  await knex.raw(`drop materialized view if exists ${materialized}`)
+  await knex.raw(`drop materialized view if exists ${materialized} cascade`);
 
   // drop old view
-  await knex.raw(`drop view if exists ${view}`)
+  await knex.raw(`drop view if exists ${view} cascade`);
 
   // create view
   await knex.raw(`
@@ -136,12 +136,12 @@ exports.down = async (knex) => {
                     tag_id
                 from
                     tag_boost) as b on tag.id = b.tag_id
-  `)
+  `);
 
   // re-create materialized view
   await knex.raw(`
     create materialized view ${materialized} as
         select *
         from ${view}
-  `)
-}
+  `);
+};

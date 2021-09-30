@@ -1,4 +1,4 @@
-const table = 'article_activity_view'
+const table = "article_activity_view";
 
 exports.up = async (knex) =>
   knex.raw(/*sql*/ `
@@ -39,8 +39,8 @@ exports.up = async (knex) =>
                 where purpose = 'appreciate'
                 group by
                     reference_id) as ts on article.id = ts.reference_id
-    `)
+    `);
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view if exists ${table}`)
-}
+  return knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
+};

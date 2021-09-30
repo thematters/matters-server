@@ -1,15 +1,15 @@
-const { baseDown } = require('../utils')
+const { baseDown } = require("../utils");
 
 exports.up = async (knex) => {
   // copy transaction table
   await knex.raw(/*sql*/ `
   create table if not exists appreciation as
   table "transaction";
-  `)
+  `);
 
   // update article activity view and article activity materialized
   return knex.raw(/*sql*/ `
-  drop view article_activity_view cascade;
+  drop view if exists article_activity_view cascade;
 
 
   create view article_activity_view as
@@ -68,7 +68,7 @@ exports.up = async (knex) => {
 
   create materialized view article_activity_materialized as
   select *
-  from article_activity_view`)
-}
+  from article_activity_view`);
+};
 
-exports.down = async () => {}
+exports.down = async () => {};

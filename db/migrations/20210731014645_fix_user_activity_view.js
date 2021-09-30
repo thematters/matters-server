@@ -137,29 +137,29 @@ exports.up = async (knex) => {
           article_tag_period.created_at
         FROM article_tag_period LEFT JOIN article ON article.id = article_id
         ) AS user_activity
-    `)
+    `);
 
     // add indexes
     await knex.schema.table(materialized_view_name, (t) => {
-      t.index('id')
-        .index('type')
-        .index(['node_id', 'node_type'])
-        .index(['target_id', 'target_type'])
-    })
-  }
+      t.index("id")
+        .index("type")
+        .index(["node_id", "node_type"])
+        .index(["target_id", "target_type"]);
+    });
+  };
 
   /**
    * Create views
    */
-  await createUserActivityViews('user_activity_materialized', 30)
-  await createUserActivityViews('user_activity_long_materialized', 90)
-}
+  await createUserActivityViews("user_activity_materialized", 30);
+  await createUserActivityViews("user_activity_long_materialized", 90);
+};
 
 exports.down = async (knex) => {
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW user_activity_long_materialized CASCADE`
-  )
+    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_long_materialized CASCADE`
+  );
   await knex.raw(
-    /*sql*/ `DROP MATERIALIZED VIEW user_activity_materialized CASCADE`
-  )
-}
+    /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_materialized CASCADE`
+  );
+};

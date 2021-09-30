@@ -1,6 +1,6 @@
 exports.up = async (knex) => {
   await knex.raw(/*sql*/ `
-  drop view article_activity_view cascade;
+  drop view if exists article_activity_view cascade;
 
   create view article_activity_view as
   select id,
@@ -33,7 +33,7 @@ exports.up = async (knex) => {
   create materialized view article_activity_materialized as
   select *
   from article_activity_view
-  `)
-}
+  `);
+};
 
-exports.down = async (knex) => {}
+exports.down = async (knex) => {};

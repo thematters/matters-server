@@ -1,13 +1,13 @@
-const table = 'article_activity_view'
+const table = "article_activity_view";
 
-const materialized = 'article_activity_materialized'
+const materialized = "article_activity_materialized";
 
 exports.up = async (knex) => {
   // Drop materialzied view
-  await knex.raw(`drop materialized view if exists ${materialized}`)
+  await knex.raw(`drop materialized view if exists ${materialized} cascade`);
 
   // Drop old view
-  await knex.raw(`drop view if exists ${table}`)
+  await knex.raw(`drop view if exists ${table} cascade`);
 
   // Create new view
   await knex.raw(`
@@ -48,22 +48,22 @@ exports.up = async (knex) => {
                 where purpose = 'appreciate'
                 group by
                     reference_id) as ts on article.id = ts.reference_id
-    `)
+    `);
 
   // Re-create materialized view
   await knex.raw(`
     create materialized view ${materialized} as
         select *
         from article_activity_view
-    `)
-}
+    `);
+};
 
 exports.down = async (knex) => {
   // Drop materialized view
-  await knex.raw(`drop materialized view if exists ${materialized}`)
+  await knex.raw(`drop materialized view if exists ${materialized} cascade`);
 
   // Drop new created view
-  await knex.raw(`drop view if exists ${table}`)
+  await knex.raw(`drop view if exists ${table} cascade`);
 
   // Re-create old view
   await knex.raw(`
@@ -104,12 +104,12 @@ exports.down = async (knex) => {
                 where purpose = 'appreciate'
                 group by
                     reference_id) as ts on article.id = ts.reference_id
-    `)
+    `);
 
   // Re-create materialized view
   await knex.raw(`
     create materialized view ${materialized} as
         select *
         from article_activity_view
-    `)
-}
+    `);
+};

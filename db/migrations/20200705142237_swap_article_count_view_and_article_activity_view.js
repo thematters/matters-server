@@ -1,12 +1,12 @@
-const hottestView = 'article_activity_view'
-const hottestMaterilized = 'article_activity_materialized'
-const topicView = 'article_count_view'
-const topicMaterialized = 'article_count_materialized'
+const hottestView = "article_activity_view";
+const hottestMaterilized = "article_activity_materialized";
+const topicView = "article_count_view";
+const topicMaterialized = "article_count_materialized";
 
 exports.up = async (knex) => {
   // topic
   await knex.raw(/*sql*/ `
-  drop view ${topicView} cascade;
+  drop view if exists ${topicView} cascade;
 
   create view ${topicView} as
   select id,
@@ -39,11 +39,11 @@ exports.up = async (knex) => {
   create materialized view ${topicMaterialized} as
   select *
   from ${topicView}
-  `)
+  `);
 
   // hottest
   return knex.raw(/*sql*/ `
-    drop view ${hottestView} cascade;
+    drop view if exists ${hottestView} cascade;
 
     create view ${hottestView} as
     select *,
@@ -101,7 +101,7 @@ exports.up = async (knex) => {
 
     create materialized view ${hottestMaterilized} as
     select *
-    from ${hottestView}`)
-}
+    from ${hottestView}`);
+};
 
-exports.down = async (knex) => {}
+exports.down = async (knex) => {};

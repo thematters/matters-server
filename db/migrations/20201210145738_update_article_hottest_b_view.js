@@ -1,11 +1,11 @@
-const view = `article_hottest_b_view`
-const materialized = `article_hottest_b_materialized`
+const view = `article_hottest_b_view`;
+const materialized = `article_hottest_b_materialized`;
 
-const time_window = 3
-const donation_decay_factor = 0.8
-const boost = 1
-const boost_window = 3
-const matty_donation_decay_factor = 0.95
+const time_window = 3;
+const donation_decay_factor = 0.8;
+const boost = 1;
+const boost_window = 3;
+const matty_donation_decay_factor = 0.95;
 
 exports.up = async (knex) => {
   await knex.raw(/*sql*/ `
@@ -86,11 +86,11 @@ exports.up = async (knex) => {
   create materialized view ${materialized} as
   select *
   from ${view}
-  `)
-}
+  `);
+};
 
 exports.down = function (knex) {
   knex.raw(/*sql*/ `
-  drop view ${view} cascade;
-  `)
-}
+  drop view if exists ${view} cascade;
+  `);
+};

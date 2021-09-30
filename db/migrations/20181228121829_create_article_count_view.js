@@ -1,4 +1,4 @@
-const table = 'article_count_view'
+const table = "article_count_view";
 
 exports.up = async (knex) =>
   knex.raw(/*sql*/ `
@@ -53,8 +53,8 @@ exports.up = async (knex) =>
                     article_id
                 from
                     article_boost) as b on article.id = b.article_id
-  `)
+  `);
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
-}
+  return knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
+};

@@ -25,7 +25,7 @@ exports.up = async (knex) => {
             AND base.avg_time > 1800
     ) AS source
     WHERE article_read_count.id = source.id
-  `)
-}
+  `);
+};
 
-exports.down = async (knex) => {}
+exports.down = async (knex) => {};

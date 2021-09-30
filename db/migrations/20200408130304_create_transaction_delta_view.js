@@ -1,7 +1,7 @@
-const table = 'transaction_delta_view'
+const table = "transaction_delta_view";
 
 exports.up = async (knex) => {
-  await knex.raw(/*sql*/ `DROP view IF EXISTS ${table}`)
+  await knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
 
   await knex.raw(/*sql*/ `
     create view ${table} as
@@ -28,9 +28,9 @@ exports.up = async (knex) => {
                     *
                 from
                     transaction) as trx2 on trx2.sender_id = "user".id
-  `)
-}
+  `);
+};
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
-}
+  return knex.raw(/*sql*/ `drop view if exists ${table} cascade`);
+};

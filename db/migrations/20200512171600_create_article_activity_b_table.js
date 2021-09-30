@@ -1,5 +1,5 @@
-const view = `article_activity_b_view`
-const materialized = `article_activity_b_materialized`
+const view = `article_activity_b_view`;
+const materialized = `article_activity_b_materialized`;
 
 exports.up = async (knex) => {
   await knex.raw(/*sql*/ `
@@ -58,10 +58,10 @@ exports.up = async (knex) => {
   create materialized view ${materialized} as
   select *
   from ${view}
-  `)
-}
+  `);
+};
 
 exports.down = (knex) =>
   knex.raw(/*sql*/ `
-    drop view ${view} cascade;
-  `)
+    drop view if exists ${view} cascade;
+  `);
