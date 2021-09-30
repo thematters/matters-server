@@ -27,7 +27,7 @@ jobs:
         ports:
           - 9200:9200
       ipfs:
-        image: ipfs/go-ipfs:latest
+        image: ipfs/go-ipfs:v0.9.1
         ports:
           - 5001:5001
       stripe:
