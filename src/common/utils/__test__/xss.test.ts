@@ -5,7 +5,7 @@ test('valid contents', async () => {
     // link:mention
     {
       content:
-        '<a class="mention" href="/@hi176" target="_blank" data-display-name="Matty" data-user-name="hi176" data-id="VXNlcjoxNDk0OQ"><span>@Matty</span></a>',
+        '<a class="mention" href="/@hi176" rel="noopener noreferrer" target="_blank" data-display-name="Matty" data-user-name="hi176" data-id="VXNlcjoxNDk0OQ"><span>@Matty</span></a>',
     },
     // link:embed
     {
