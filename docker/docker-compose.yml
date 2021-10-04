@@ -11,6 +11,7 @@ services:
     env_file: ../.env
     volumes:
       - ..:/var/app
+      - /var/app/node_modules
     depends_on:
       - db
       - redis
@@ -43,7 +44,7 @@ services:
       - '4569:4569'
   ipfs:
     container_name: ipfs
-    image: ipfs/go-ipfs:latest
+    image: ipfs/go-ipfs:v0.9.1
     ports:
       - '8080:8080'
       - '4001:4001'

@@ -37,6 +37,10 @@ test('valid contents', async () => {
       content:
         '<figure class="embed-code"><div class="iframe-container"><iframe src="https://jsfiddle.net/yokev33205/efcd46mb/embedded/" frameborder="0" allowfullscreen="false" sandbox="allow-scripts allow-same-origin allow-popups"></iframe></div><figcaption><span></span></figcaption></figure>',
     },
+    {
+      content:
+        '<pre class="ql-syntax" spellcheck="false">Pre1\n</pre><p>Para2</p><p>Para3</p>',
+    },
   ]
 
   htmls.forEach(({ content }) => {
