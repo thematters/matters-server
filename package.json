@@ -46,7 +46,7 @@
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^7.4.5",
-    "@sentry/node": "^5.20.0",
+    "@sentry/node": "^6.13.2",
     "@slack/web-api": "^5.11.0",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
