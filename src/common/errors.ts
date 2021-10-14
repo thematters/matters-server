@@ -317,6 +317,15 @@ export class UserFollowFailedError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'UserFollowFailedError' })
   }
 }
+
+export class CryptoWalletExistsError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CRYPTO_WALLET_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'CryptoWalletExistsError' })
+  }
+}
+
 /*********************************
  *                               *
  *      Verification Code        *

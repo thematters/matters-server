@@ -305,6 +305,16 @@ export interface GQLMutation {
   migration?: boolean
 
   /**
+   * Update wallet.
+   */
+  putWallet: GQLCryptoWallet
+
+  /**
+   * Delete connected wallet.
+   */
+  deleteWallet: boolean
+
+  /**
    * Update state of a user, used in OSS.
    */
   updateUserState?: Array<GQLUser>
@@ -392,7 +402,7 @@ export interface GQLArticle extends GQLNode {
   cover?: string
 
   /**
-   * List of assets are belonged to this article.
+   * List of assets are belonged to this article (Only the author can access currently).
    */
   assets: Array<GQLAsset>
 
@@ -3023,6 +3033,11 @@ export interface GQLUserInfo {
    * Type of group.
    */
   group: GQLUserGroup
+
+  /**
+   * Connected wallet.
+   */
+  cryptoWallet?: GQLCryptoWallet
 }
 
 export interface GQLUserSettings {
@@ -3392,6 +3407,12 @@ export interface GQLFollowing {
   users: GQLUserConnection
 }
 
+export interface GQLCryptoWallet {
+  id: string
+  address: string
+  createdAt: GQLDateTime
+}
+
 export interface GQLUserInput {
   userName: string
 }
@@ -3488,6 +3509,15 @@ export interface GQLClearReadHistoryInput {
 export interface GQLMigrationInput {
   type?: GQLMigrationType
   files: Array<GQLUpload | null>
+}
+
+export interface GQLPutWalletInput {
+  id?: string
+  address: string
+}
+
+export interface GQLDeleteWalletInput {
+  id: string
 }
 
 export const enum GQLBadgeType {
@@ -4038,6 +4068,7 @@ export interface GQLResolver {
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityTypeResolver
   CircleRecommendationActivity?: GQLCircleRecommendationActivityTypeResolver
   Following?: GQLFollowingTypeResolver
+  CryptoWallet?: GQLCryptoWalletTypeResolver
   Response?: {
     __resolveType: GQLResponseTypeResolver
   }
@@ -4262,6 +4293,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   migration?: MutationToMigrationResolver<TParent>
+  putWallet?: MutationToPutWalletResolver<TParent>
+  deleteWallet?: MutationToDeleteWalletResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
@@ -5110,6 +5143,30 @@ export interface MutationToMigrationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToMigrationArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutWalletArgs {
+  input: GQLPutWalletInput
+}
+export interface MutationToPutWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutWalletArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteWalletArgs {
+  input: GQLDeleteWalletInput
+}
+export interface MutationToDeleteWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToDeleteWalletArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -9945,6 +10002,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
   profileCover?: UserInfoToProfileCoverResolver<TParent>
   group?: UserInfoToGroupResolver<TParent>
+  cryptoWallet?: UserInfoToCryptoWalletResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -10014,6 +10072,15 @@ export interface UserInfoToProfileCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToGroupResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToCryptoWalletResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -11280,6 +11347,39 @@ export interface FollowingToUsersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: FollowingToUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCryptoWalletTypeResolver<TParent = any> {
+  id?: CryptoWalletToIdResolver<TParent>
+  address?: CryptoWalletToAddressResolver<TParent>
+  createdAt?: CryptoWalletToCreatedAtResolver<TParent>
+}
+
+export interface CryptoWalletToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CryptoWalletToAddressResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CryptoWalletToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

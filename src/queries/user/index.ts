@@ -26,6 +26,7 @@ import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
 import commentCount from './commentCount'
+import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
 import followers from './followers'
 import Following from './following'
@@ -117,6 +118,7 @@ const user: {
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
     group,
+    cryptoWallet,
   },
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,

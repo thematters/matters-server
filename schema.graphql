@@ -229,6 +229,12 @@ type Mutation {
   """Migrate articles from other service provider."""
   migration(input: MigrationInput!): Boolean
 
+  """Update wallet."""
+  putWallet(input: PutWalletInput!): CryptoWallet!
+
+  """Delete connected wallet."""
+  deleteWallet(input: DeleteWalletInput!): Boolean!
+
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
 
@@ -284,7 +290,9 @@ type Article implements Node {
   """Article cover's link."""
   cover: String
 
-  """List of assets are belonged to this article."""
+  """
+  List of assets are belonged to this article (Only the author can access currently).
+  """
   assets: [Asset!]!
 
   """A short summary for this article."""
@@ -2190,6 +2198,9 @@ type UserInfo {
 
   """Type of group."""
   group: UserGroup!
+
+  """Connected wallet."""
+  cryptoWallet: CryptoWallet
 }
 
 type UserSettings {
@@ -2455,6 +2466,12 @@ type Following {
   users(input: ConnectionArgs!): UserConnection!
 }
 
+type CryptoWallet {
+  id: ID!
+  address: String!
+  createdAt: DateTime!
+}
+
 input UserInput {
   userName: String!
 }
@@ -2551,6 +2568,15 @@ input ClearReadHistoryInput {
 input MigrationInput {
   type: MigrationType
   files: [Upload]!
+}
+
+input PutWalletInput {
+  id: ID
+  address: String!
+}
+
+input DeleteWalletInput {
+  id: ID!
 }
 
 enum BadgeType {

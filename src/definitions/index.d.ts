@@ -155,6 +155,7 @@ export type BasicTableName =
   | 'article_topic'
   | 'chapter'
   | 'article_chapter'
+  | 'crypto_wallet'
 
 export type View =
   | 'tag_count_view'
