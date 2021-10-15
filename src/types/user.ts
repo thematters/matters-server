@@ -616,6 +616,8 @@ export default /* GraphQL */ `
   input PutWalletInput {
     id: ID
     address: String!
+    signedMessage: String!
+    signature: String!
   }
 
   input DeleteWalletInput {

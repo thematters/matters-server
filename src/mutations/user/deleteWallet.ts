@@ -16,9 +16,9 @@ const resolver: MutationToDeleteWalletResolver = async (
   const table = 'crypto_wallet'
 
   // check if exist
-  const wallet = await atomService.findUnique({
+  const wallet = await atomService.findFirst({
     table,
-    where: { id: walletId },
+    where: { id: walletId, userId: viewer.id },
   })
 
   if (!wallet) {

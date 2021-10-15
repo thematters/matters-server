@@ -1,4 +1,5 @@
-import web3 from 'web3'
+import { recoverPersonalSignature } from 'eth-sig-util'
+import Web3 from 'web3'
 
 import { NODE_TYPES } from 'common/enums'
 import {
@@ -12,19 +13,29 @@ import { MutationToPutWalletResolver } from 'definitions'
 
 const resolver: MutationToPutWalletResolver = async (
   _,
-  { input: { id, address } },
+  { input: { id, address, signedMessage, signature } },
   { viewer, dataSources: { atomService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (!address) {
-    throw new UserInputError('address is required')
+  if (!address || !signedMessage || !signature) {
+    throw new UserInputError('parameter is invaid')
   }
 
-  if (!web3.utils.isAddress(address)) {
+  if (!Web3.utils.isAddress(address)) {
     throw new UserInputError('address is invalid')
+  }
+
+  // verify signature
+  const verifiedAddress = recoverPersonalSignature({
+    data: signedMessage,
+    sig: signature,
+  })
+
+  if (address.toLowerCase() !== verifiedAddress) {
+    throw new UserInputError('signature is invalid')
   }
 
   let wallet
@@ -32,9 +43,9 @@ const resolver: MutationToPutWalletResolver = async (
 
   if (id) {
     // replace connected wallet
-    const item = await atomService.findUnique({
+    const item = await atomService.findFirst({
       table,
-      where: { id },
+      where: { id, userId: viewer.id },
     })
 
     if (!item) {

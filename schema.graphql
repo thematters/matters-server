@@ -2573,6 +2573,8 @@ input MigrationInput {
 input PutWalletInput {
   id: ID
   address: String!
+  signedMessage: String!
+  signature: String!
 }
 
 input DeleteWalletInput {

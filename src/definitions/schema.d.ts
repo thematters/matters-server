@@ -3514,6 +3514,8 @@ export interface GQLMigrationInput {
 export interface GQLPutWalletInput {
   id?: string
   address: string
+  signedMessage: string
+  signature: string
 }
 
 export interface GQLDeleteWalletInput {
