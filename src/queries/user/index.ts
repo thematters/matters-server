@@ -2,6 +2,7 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLCryptoWalletTypeResolver,
   GQLFollowingActivityTypeResolver,
   GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
@@ -83,6 +84,8 @@ const user: {
     __resolveType: GQLTransactionTargetTypeResolver
   }
   StripeAccount: GQLStripeAccountTypeResolver
+
+  CryptoWallet: GQLCryptoWalletTypeResolver
 } = {
   Query: {
     viewer: (root, _, { viewer }) => viewer,
@@ -162,6 +165,13 @@ const user: {
   Transaction,
   TransactionTarget,
   StripeAccount,
+
+  CryptoWallet: {
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
+    address: ({ address }) => address,
+    createdAt: ({ createdAt }) => createdAt,
+  },
 }
 
 export default user

@@ -1,14 +1,12 @@
 import { recoverPersonalSignature } from 'eth-sig-util'
 import Web3 from 'web3'
 
-import { NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   CryptoWalletExistsError,
   EntityNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { toGlobalId } from 'common/utils'
 import { MutationToPutWalletResolver } from 'definitions'
 
 const resolver: MutationToPutWalletResolver = async (
@@ -80,12 +78,7 @@ const resolver: MutationToPutWalletResolver = async (
     })
   }
 
-  if (wallet) {
-    wallet = {
-      ...wallet,
-      id: toGlobalId({ type: NODE_TYPES.CryptoWallet, id: wallet.id }),
-    }
-  }
+  // TODO: send email if it's successful
 
   return wallet
 }

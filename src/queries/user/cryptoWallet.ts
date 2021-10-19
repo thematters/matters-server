@@ -1,5 +1,3 @@
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
 import { UserInfoToCryptoWalletResolver } from 'definitions'
 
 const resolver: UserInfoToCryptoWalletResolver = async (
@@ -11,17 +9,10 @@ const resolver: UserInfoToCryptoWalletResolver = async (
     return null
   }
 
-  let wallet = await atomService.findFirst({
+  const wallet = await atomService.findFirst({
     table: 'crypto_wallet',
     where: { userId: id },
   })
-
-  if (wallet) {
-    wallet = {
-      ...wallet,
-      id: toGlobalId({ type: NODE_TYPES.CryptoWallet, id: wallet.id }),
-    }
-  }
 
   return wallet
 }
