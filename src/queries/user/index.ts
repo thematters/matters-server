@@ -2,6 +2,7 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLCryptoWalletTypeResolver,
   GQLFollowingActivityTypeResolver,
   GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
@@ -26,6 +27,7 @@ import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
 import commentCount from './commentCount'
+import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
 import followers from './followers'
 import Following from './following'
@@ -82,6 +84,8 @@ const user: {
     __resolveType: GQLTransactionTargetTypeResolver
   }
   StripeAccount: GQLStripeAccountTypeResolver
+
+  CryptoWallet: GQLCryptoWalletTypeResolver
 } = {
   Query: {
     viewer: (root, _, { viewer }) => viewer,
@@ -117,6 +121,7 @@ const user: {
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
     group,
+    cryptoWallet,
   },
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
@@ -160,6 +165,13 @@ const user: {
   Transaction,
   TransactionTarget,
   StripeAccount,
+
+  CryptoWallet: {
+    id: ({ id }) =>
+      id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
+    address: ({ address }) => address,
+    createdAt: ({ createdAt }) => createdAt,
+  },
 }
 
 export default user

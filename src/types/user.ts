@@ -56,6 +56,12 @@ export default /* GraphQL */ `
     "Migrate articles from other service provider."
     migration(input: MigrationInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
 
+    "Update wallet."
+    putWallet(input: PutWalletInput!): CryptoWallet!
+
+    "Delete connected wallet."
+    deleteWallet(input: DeleteWalletInput!): Boolean!
+
     ##############
     #     OSS    #
     ##############
@@ -232,6 +238,9 @@ export default /* GraphQL */ `
 
     "Type of group."
     group: UserGroup!
+
+    "Connected wallet."
+    cryptoWallet: CryptoWallet
   }
 
   type UserSettings {
@@ -500,6 +509,12 @@ export default /* GraphQL */ `
     users(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
+  type CryptoWallet {
+    id: ID!
+    address: String!
+    createdAt: DateTime!
+  }
+
   input UserInput {
     userName: String!
   }
@@ -596,6 +611,17 @@ export default /* GraphQL */ `
   input MigrationInput {
     type: MigrationType
     files: [Upload]!
+  }
+
+  input PutWalletInput {
+    id: ID
+    address: String!
+    signedMessage: String!
+    signature: String!
+  }
+
+  input DeleteWalletInput {
+    id: ID!
   }
 
   enum BadgeType {

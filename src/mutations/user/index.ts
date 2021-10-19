@@ -4,10 +4,12 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
+import deleteWallet from './deleteWallet'
 import generateLikerId from './generateLikerId'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
+import putWallet from './putWallet'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
@@ -47,6 +49,8 @@ export default {
     addCredit,
     payTo,
     payout,
+    putWallet,
+    deleteWallet,
     connectStripeAccount,
     toggleUsersBadge,
   },
