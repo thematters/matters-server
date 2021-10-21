@@ -14,15 +14,15 @@ const resolver: MutationToResetLikerIdResolver = async (
     throw new ForbiddenError("user doesn't exist or have a liker id")
   }
 
+  await atomService.deleteMany({
+    table: 'user_oauth_likecoin',
+    where: { likerId: user.likerId },
+  })
+
   const updatedUser = await atomService.update({
     table: 'user',
     where: { id: dbId },
     data: { updatedAt: new Date(), likerId: null },
-  })
-
-  await atomService.deleteMany({
-    table: 'user_oauth_likecoin',
-    where: { likerId: user.likerId },
   })
 
   return updatedUser
