@@ -16,6 +16,7 @@ exports.seed = function (knex, Promise) {
           email: 'test1@matters.news',
           email_verified: true,
           mobile: '999',
+          liker_id: 'test_liker_id',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
         {

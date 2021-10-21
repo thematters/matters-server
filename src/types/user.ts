@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Generate or claim a Liker ID through LikeCoin"
     generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Reset Liker ID"
+    resetLikerId(input: ResetLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Update user information."
     updateUserInfo(input: UpdateUserInfoInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -566,6 +569,10 @@ export default /* GraphQL */ `
   input UserLoginInput {
     email: String! @constraint(format: "email")
     password: String!
+  }
+
+  input ResetLikerIdInput {
+    id: ID!
   }
 
   input UpdateNotificationSettingInput {

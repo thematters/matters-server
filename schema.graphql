@@ -205,6 +205,9 @@ type Mutation {
   """Generate or claim a Liker ID through LikeCoin"""
   generateLikerId: User!
 
+  """Reset Liker ID"""
+  resetLikerId(input: ResetLikerIdInput!): User!
+
   """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
 
@@ -2523,6 +2526,10 @@ input UserRegisterInput {
 input UserLoginInput {
   email: String!
   password: String!
+}
+
+input ResetLikerIdInput {
+  id: ID!
 }
 
 input UpdateNotificationSettingInput {
