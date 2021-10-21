@@ -1,18 +1,26 @@
 import { recoverPersonalSignature } from 'eth-sig-util'
 import Web3 from 'web3'
 
+import { DB_NOTICE_TYPE } from 'common/enums'
 import {
   AuthenticationError,
   CryptoWalletExistsError,
   EntityNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { MutationToPutWalletResolver } from 'definitions'
+import {
+  GQLCryptoWalletSignaturePurpose,
+  MutationToPutWalletResolver,
+  NoticeCryptoAirdropParams,
+  NoticeCryptoConnectedParams
+} from 'definitions'
+
+type BaseNoticeParams = Omit<NoticeCryptoAirdropParams | NoticeCryptoConnectedParams, 'event'>
 
 const resolver: MutationToPutWalletResolver = async (
   _,
-  { input: { id, address, signedMessage, signature } },
-  { viewer, dataSources: { atomService } }
+  { input: { id, address, purpose, signedMessage, signature } },
+  { viewer, dataSources: { atomService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -78,7 +86,53 @@ const resolver: MutationToPutWalletResolver = async (
     })
   }
 
-  // TODO: send email if it's successful
+  if (wallet) {
+    // store signature for confirmation
+    await atomService.create({
+      table: 'crypto_wallet_signature',
+      data: { address, signature, purpose },
+    })
+
+    // send notice and email to inform user
+    const noticeData: BaseNoticeParams = {
+      recipientId: viewer.id,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'crypto_wallet',
+          entity: wallet,
+        },
+      ],
+    }
+
+    const emailData = {
+      cryptoWallet: { address: wallet.address },
+      language: viewer.language,
+      recipient: {
+        displayName: viewer.displayName,
+      },
+      to: viewer.email,
+    }
+
+    switch (purpose) {
+      case GQLCryptoWalletSignaturePurpose.airdrop: {
+        notificationService.trigger({
+          ...noticeData,
+          event: DB_NOTICE_TYPE.crypto_wallet_airdrop,
+        })
+        notificationService.mail.sendCryptoWalletAirdrop(emailData)
+        break
+      }
+      case GQLCryptoWalletSignaturePurpose.connect: {
+        notificationService.trigger({
+          ...noticeData,
+          event: DB_NOTICE_TYPE.crypto_wallet_connected,
+        })
+        notificationService.mail.sendCryptoWalletConnected(emailData)
+        break
+      }
+    }
+  }
 
   return wallet
 }
