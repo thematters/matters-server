@@ -5,7 +5,7 @@ import { MutationToResetLikerIdResolver } from 'definitions'
 const resolver: MutationToResetLikerIdResolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { atomService, userService }, knex }
+  { viewer, dataSources: { atomService, userService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.dataloader.load(dbId)
@@ -21,7 +21,7 @@ const resolver: MutationToResetLikerIdResolver = async (
 
   const updatedUser = await atomService.update({
     table: 'user',
-    where: { id: dbId },
+    where: { id: user.id },
     data: { updatedAt: new Date(), likerId: null },
   })
 

@@ -868,6 +868,7 @@ describe('topics & chapters', () => {
 describe('likecoin', () => {
   test('reset liker id', async () => {
     const server = await testClient({
+      isAuth: true,
       isAdmin: true,
     })
 
@@ -876,18 +877,15 @@ describe('likecoin', () => {
       query: GET_USER_BY_USERNAME,
       variables: { input: { userName: 'test1' } },
     })
-    expect(_get(data, 'user.likerId')).toBeTruthy()
 
     // reset
-    const userId = toGlobalId({
-      type: NODE_TYPES.User,
-      id: _get(data, 'user.id'),
-    })
     const resetResult = await server.executeOperation({
       query: RESET_USER_LIKER_ID,
-      variables: { input: { id: userId } },
+      variables: { input: { id: _get(data, 'user.id') } },
     })
-    expect(_get(resetResult, 'resetLikerId.id')).toBe(_get(data, 'user.id'))
-    expect(_get(resetResult, 'resetLikerId.likerId')).toBeFalsy()
+    expect(_get(resetResult, 'data.resetLikerId.id')).toBe(
+      _get(data, 'user.id')
+    )
+    expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
   })
 })
