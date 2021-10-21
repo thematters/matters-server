@@ -12,10 +12,13 @@ import {
   GQLCryptoWalletSignaturePurpose,
   MutationToPutWalletResolver,
   NoticeCryptoAirdropParams,
-  NoticeCryptoConnectedParams
+  NoticeCryptoConnectedParams,
 } from 'definitions'
 
-type BaseNoticeParams = Omit<NoticeCryptoAirdropParams | NoticeCryptoConnectedParams, 'event'>
+type BaseNoticeParams = Omit<
+  NoticeCryptoAirdropParams | NoticeCryptoConnectedParams,
+  'event'
+>
 
 const resolver: MutationToPutWalletResolver = async (
   _,
