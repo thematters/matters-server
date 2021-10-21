@@ -357,6 +357,35 @@ const RESET_USER_LIKER_ID = /* GraphQL */ `
   }
 `
 
+const GET_VIEWER_CRYPTO_WALLET = /* GraphQL */ `
+  query {
+    viewer {
+      id
+      info {
+        cryptoWallet {
+          id
+          address
+        }
+      }
+    }
+  }
+`
+
+const PUT_CRYPTO_WALLET = /* GraphQL */ `
+  mutation PutCryptoWallet($input: PutWalletInput!) {
+    putWallet(input: $input) {
+      id
+      address
+    }
+  }
+`
+
+const DELETE_CRYPTO_WALLET = /* GraphQL */ `
+  mutation DeleteCryptoWallet($input: DeleteWalletInput!) {
+    deleteWallet(input: $input)
+  }
+`
+
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -887,5 +916,96 @@ describe('likecoin', () => {
       _get(data, 'user.id')
     )
     expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
+  })
+})
+
+describe('crypto wallet', () => {
+  const errorPath = 'errors.0.extensions.code'
+
+  // public testing account
+  const address = '0x863628762A68Ec012396b1Fb9A27F4e343510FCe'
+  const signedMessage =
+    '0x5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02'
+  const signature =
+    '0xfe46556233144863cf5c1ac84b914cdc13d378f1a3ffba1669453b312b78cb9120c2' +
+    '0bd2729288214f2db1c8170673d5d6d09d809a142e01825524b03b7b85b51c'
+
+  let wallet: Record<string, any>
+
+  test('test validator before wallet connection', async () => {
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_CRYPTO_WALLET,
+      variables: {},
+    })
+    expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
+
+    const [failedResult1, failedResult2] = await Promise.all([
+      server.executeOperation({
+        query: PUT_CRYPTO_WALLET,
+        variables: {
+          input: {
+            address,
+            purpose: 'airdrop',
+            signedMessage: `${signedMessage}0x`,
+            signature,
+          },
+        },
+      }),
+      server.executeOperation({
+        query: PUT_CRYPTO_WALLET,
+        variables: {
+          input: {
+            address: `${address}0x`,
+            purpose: 'airdrop',
+            signedMessage,
+            signature,
+          },
+        },
+      }),
+    ])
+    expect(_get(failedResult1, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(failedResult2, errorPath)).toBe('BAD_USER_INPUT')
+  })
+
+  test('connect wallet', async () => {
+    const server = await testClient({ isAuth: true })
+    const baseInput = {
+      query: PUT_CRYPTO_WALLET,
+      variables: {
+        input: {
+          address,
+          purpose: 'airdrop',
+          signedMessage,
+          signature,
+        },
+      },
+    }
+    const putResult = await server.executeOperation(baseInput)
+    wallet = _get(putResult, 'data.putWallet', {})
+    expect(wallet.address).toBe(address)
+
+    // make sure user cannot reconnect existing wallet
+    const failedResult = await server.executeOperation(baseInput)
+    expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
+  })
+
+  test('disconnected wallet', async () => {
+    const server = await testClient({ isAuth: true })
+    const deleteResult = await server.executeOperation({
+      query: DELETE_CRYPTO_WALLET,
+      variables: {
+        input: {
+          id: wallet.id,
+        },
+      },
+    })
+    expect(_get(deleteResult, 'data.deleteWallet')).toBeTruthy()
+
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_CRYPTO_WALLET,
+      variables: {},
+    })
+    expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
   })
 })
