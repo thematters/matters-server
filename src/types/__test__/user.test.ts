@@ -82,6 +82,7 @@ const GET_USER_BY_USERNAME = /* GraphQL */ `
     user(input: $input) {
       id
       userName
+      likerId
     }
   }
 `
@@ -344,6 +345,15 @@ const SEND_VERIFICATION_CODE = /* GraphQL */ `
 const CONFIRM_VERIFICATION_CODE = /* GraphQL */ `
   mutation ConfirmVerificationCode($input: ConfirmVerificationCodeInput!) {
     confirmVerificationCode(input: $input)
+  }
+`
+
+const RESET_USER_LIKER_ID = /* GraphQL */ `
+  mutation ResetLikerId($input: ResetLikerIdInput!) {
+    resetLikerId(input: $input) {
+      id
+      likerId
+    }
   }
 `
 
@@ -852,5 +862,32 @@ describe('topics & chapters', () => {
     })
 
     expect(_get(data, 'deleteTopics')).toBe(true)
+  })
+})
+
+describe('likecoin', () => {
+  test('reset liker id', async () => {
+    const server = await testClient({
+      isAdmin: true,
+    })
+
+    // check if exists
+    const { data } = await server.executeOperation({
+      query: GET_USER_BY_USERNAME,
+      variables: { input: { userName: 'test1' } },
+    })
+    expect(_get(data, 'user.likerId')).toBeTruthy()
+
+    // reset
+    const userId = toGlobalId({
+      type: NODE_TYPES.User,
+      id: _get(data, 'user.id'),
+    })
+    const resetResult = await server.executeOperation({
+      query: RESET_USER_LIKER_ID,
+      variables: { input: { id: userId } },
+    })
+    expect(_get(resetResult, 'resetLikerId.id')).toBe(_get(data, 'user.id'))
+    expect(_get(resetResult, 'resetLikerId.likerId')).toBeFalsy()
   })
 })
