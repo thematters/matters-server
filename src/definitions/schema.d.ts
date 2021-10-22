@@ -243,6 +243,11 @@ export interface GQLMutation {
   generateLikerId: GQLUser
 
   /**
+   * Reset Liker ID
+   */
+  resetLikerId: GQLUser
+
+  /**
    * Update user information.
    */
   updateUserInfo: GQLUser
@@ -3359,6 +3364,10 @@ export interface GQLUserLoginInput {
   password: string
 }
 
+export interface GQLResetLikerIdInput {
+  id: string
+}
+
 export interface GQLUpdateNotificationSettingInput {
   type: GQLNotificationSettingType
   enabled: boolean
@@ -4169,6 +4178,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
+  resetLikerId?: MutationToResetLikerIdResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
@@ -4863,6 +4873,18 @@ export interface MutationToGenerateLikerIdResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToResetLikerIdArgs {
+  input: GQLResetLikerIdInput
+}
+export interface MutationToResetLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToResetLikerIdArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
