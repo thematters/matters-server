@@ -8,6 +8,7 @@ import generateLikerId from './generateLikerId'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
+import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
@@ -33,6 +34,7 @@ export default {
     userLogin,
     userLogout,
     generateLikerId,
+    resetLikerId,
     updateUserInfo,
     updateNotificationSetting,
     toggleSubscribePush,

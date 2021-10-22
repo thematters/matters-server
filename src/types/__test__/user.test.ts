@@ -82,6 +82,7 @@ const GET_USER_BY_USERNAME = /* GraphQL */ `
     user(input: $input) {
       id
       userName
+      likerId
     }
   }
 `
@@ -275,6 +276,15 @@ const SEND_VERIFICATION_CODE = /* GraphQL */ `
 const CONFIRM_VERIFICATION_CODE = /* GraphQL */ `
   mutation ConfirmVerificationCode($input: ConfirmVerificationCodeInput!) {
     confirmVerificationCode(input: $input)
+  }
+`
+
+const RESET_USER_LIKER_ID = /* GraphQL */ `
+  mutation ResetLikerId($input: ResetLikerIdInput!) {
+    resetLikerId(input: $input) {
+      id
+      likerId
+    }
   }
 `
 
@@ -646,5 +656,30 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
+  })
+})
+
+describe('likecoin', () => {
+  test('reset liker id', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // check if exists
+    const { data } = await server.executeOperation({
+      query: GET_USER_BY_USERNAME,
+      variables: { input: { userName: 'test1' } },
+    })
+
+    // reset
+    const resetResult = await server.executeOperation({
+      query: RESET_USER_LIKER_ID,
+      variables: { input: { id: _get(data, 'user.id') } },
+    })
+    expect(_get(resetResult, 'data.resetLikerId.id')).toBe(
+      _get(data, 'user.id')
+    )
+    expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
   })
 })
