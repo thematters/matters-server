@@ -89,51 +89,49 @@ const resolver: MutationToPutWalletResolver = async (
     })
   }
 
-  if (wallet) {
-    // store signature for confirmation
-    await atomService.create({
-      table: 'crypto_wallet_signature',
-      data: { address, signature, purpose },
-    })
+  // store signature for confirmation
+  await atomService.create({
+    table: 'crypto_wallet_signature',
+    data: { address, signedMessage, signature, purpose },
+  })
 
-    // send notice and email to inform user
-    const noticeData: BaseNoticeParams = {
-      recipientId: viewer.id,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'crypto_wallet',
-          entity: wallet,
-        },
-      ],
-    }
-
-    const emailData = {
-      cryptoWallet: { address: wallet.address },
-      language: viewer.language,
-      recipient: {
-        displayName: viewer.displayName,
+  // send notice and email to inform user
+  const noticeData: BaseNoticeParams = {
+    recipientId: viewer.id,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'crypto_wallet',
+        entity: wallet,
       },
-      to: viewer.email,
-    }
+    ],
+  }
 
-    switch (purpose) {
-      case GQLCryptoWalletSignaturePurpose.airdrop: {
-        notificationService.trigger({
-          ...noticeData,
-          event: DB_NOTICE_TYPE.crypto_wallet_airdrop,
-        })
-        notificationService.mail.sendCryptoWalletAirdrop(emailData)
-        break
-      }
-      case GQLCryptoWalletSignaturePurpose.connect: {
-        notificationService.trigger({
-          ...noticeData,
-          event: DB_NOTICE_TYPE.crypto_wallet_connected,
-        })
-        notificationService.mail.sendCryptoWalletConnected(emailData)
-        break
-      }
+  const emailData = {
+    cryptoWallet: { address: wallet.address },
+    language: viewer.language,
+    recipient: {
+      displayName: viewer.displayName,
+    },
+    to: viewer.email,
+  }
+
+  switch (purpose) {
+    case GQLCryptoWalletSignaturePurpose.airdrop: {
+      notificationService.trigger({
+        ...noticeData,
+        event: DB_NOTICE_TYPE.crypto_wallet_airdrop,
+      })
+      notificationService.mail.sendCryptoWalletAirdrop(emailData)
+      break
+    }
+    case GQLCryptoWalletSignaturePurpose.connect: {
+      notificationService.trigger({
+        ...noticeData,
+        event: DB_NOTICE_TYPE.crypto_wallet_connected,
+      })
+      notificationService.mail.sendCryptoWalletConnected(emailData)
+      break
     }
   }
 
