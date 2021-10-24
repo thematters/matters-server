@@ -105,6 +105,16 @@ export const trans = {
         `Matters | ${sender} 正在邀请你进入${circle}围炉，你现在可免费加入！`,
     }),
   },
+  cryptoWallet: {
+    airdrop: i18n({
+      zh_hant: 'Matters | 你已經成功參加空投！',
+      zh_hans: 'Matters | 你已经成功参加空投！',
+    }),
+    connected: i18n({
+      zh_hant: 'Matters | 你已經成功設定加密錢包！',
+      zh_hans: 'Matters | 你已经成功设定加密钱包！',
+    }),
+  },
 }
 
 const userService = new UserService()

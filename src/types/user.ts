@@ -60,10 +60,10 @@ export default /* GraphQL */ `
     migration(input: MigrationInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
 
     "Update wallet."
-    putWallet(input: PutWalletInput!): CryptoWallet!
+    putWallet(input: PutWalletInput!): CryptoWallet! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Delete connected wallet."
-    deleteWallet(input: DeleteWalletInput!): Boolean!
+    deleteWallet(input: DeleteWalletInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     ##############
     #     OSS    #
@@ -623,6 +623,7 @@ export default /* GraphQL */ `
   input PutWalletInput {
     id: ID
     address: String!
+    purpose: CryptoWalletSignaturePurpose!
     signedMessage: String!
     signature: String!
   }
@@ -716,5 +717,10 @@ export default /* GraphQL */ `
     appreciated
     default
     trendy
+  }
+
+  enum CryptoWalletSignaturePurpose {
+    airdrop
+    connect
   }
 `

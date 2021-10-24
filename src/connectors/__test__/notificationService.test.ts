@@ -68,6 +68,10 @@ describe('user notify setting', () => {
     circle_new_unsubscriber: true,
     circle_invitation: true,
 
+    // crypto
+    crypto_wallet_airdrop: true,
+    crypto_wallet_connected: true,
+
     // misc
     official_announcement: true,
     user_activated: true,

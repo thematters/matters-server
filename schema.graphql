@@ -1656,6 +1656,34 @@ enum CircleNoticeType {
   CircleInvitation
 }
 
+"""
+################################
+                               #
+            Crypto             #
+                               #
+################################
+"""
+type CryptoNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CryptoNoticeType!
+  target: CryptoWallet!
+}
+
+enum CryptoNoticeType {
+  CryptoWalletAirdrop
+  CryptoWalletConnected
+}
+
 """The notice type contains info about official announcement."""
 type OfficialAnnouncementNotice implements Notice {
   """Unique ID of this notice."""
@@ -2580,6 +2608,7 @@ input MigrationInput {
 input PutWalletInput {
   id: ID
   address: String!
+  purpose: CryptoWalletSignaturePurpose!
   signedMessage: String!
   signature: String!
 }
@@ -2673,6 +2702,11 @@ enum AuthorsType {
   appreciated
   default
   trendy
+}
+
+enum CryptoWalletSignaturePurpose {
+  airdrop
+  connect
 }
 
 union Response = Article | Comment
