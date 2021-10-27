@@ -9,6 +9,8 @@ const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   revised_article_published: true,
   revised_article_not_published: true,
   circle_new_article: true,
+  crypto_wallet_airdrop: true,
+  crypto_wallet_connected: true,
 }
 
 const entitiesOptional: Partial<Record<DBNoticeType, boolean>> = {
