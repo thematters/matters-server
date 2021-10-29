@@ -2,10 +2,13 @@ import { recoverPersonalSignature } from 'eth-sig-util'
 import Web3 from 'web3'
 
 import { DB_NOTICE_TYPE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   CryptoWalletExistsError,
   EntityNotFoundError,
+  ForbiddenError,
+  ServerError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -35,6 +38,25 @@ const resolver: MutationToPutWalletResolver = async (
 
   if (!Web3.utils.isAddress(address)) {
     throw new UserInputError('address is invalid')
+  }
+
+  if (!environment.nftAirdropStart || !environment.nftAirdropEnd) {
+    throw new ServerError('airdrop start or end time is invalid')
+  }
+
+  // check time limit
+  const now = Date.now()
+  const start = new Date(environment.nftAirdropStart).getTime()
+  const end = new Date(environment.nftAirdropEnd).getTime()
+
+  if (purpose === GQLCryptoWalletSignaturePurpose.airdrop) {
+    if (now < start || now >= end) {
+      throw new ForbiddenError('blocked by time limit')
+    }
+  } else {
+    if (now < end) {
+      throw new ForbiddenError('blocked by time limit')
+    }
   }
 
   // verify signature
