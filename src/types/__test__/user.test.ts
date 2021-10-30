@@ -1,4 +1,5 @@
 import _get from 'lodash/get'
+import _set from 'lodash/set'
 import _values from 'lodash/values'
 
 import {
@@ -988,6 +989,11 @@ describe('crypto wallet', () => {
     // make sure user cannot reconnect existing wallet
     const failedResult = await server.executeOperation(baseInput)
     expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
+
+    const failedResult2 = await server.executeOperation(
+      _set(baseInput, 'variables.input.purpose', 'connect')
+    )
+    expect(_get(failedResult2, errorPath)).toBe('FORBIDDEN')
   })
 
   test('disconnected wallet', async () => {
