@@ -18,17 +18,18 @@ const resolver: MutationToDeleteWalletResolver = async (
   // check if exist
   const wallet = await atomService.findFirst({
     table,
-    where: { id: walletId, userId: viewer.id },
+    where: { id: walletId, userId: viewer.id, archived: false },
   })
 
   if (!wallet) {
     throw new EntityNotFoundError('Wallet not found')
   }
 
-  // delete wallet
-  await atomService.deleteMany({
+  // archive wallet
+  await atomService.update({
     table,
-    where: { id: walletId },
+    where: { id: walletId, userId: viewer.id },
+    data: { archived: true },
   })
 
   return true

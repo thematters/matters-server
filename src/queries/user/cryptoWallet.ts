@@ -11,7 +11,7 @@ const resolver: UserInfoToCryptoWalletResolver = async (
 
   const wallet = await atomService.findFirst({
     table: 'crypto_wallet',
-    where: { userId: id },
+    where: { userId: id, archived: false },
   })
 
   return wallet

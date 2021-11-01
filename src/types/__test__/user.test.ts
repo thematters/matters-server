@@ -996,7 +996,7 @@ describe('crypto wallet', () => {
     expect(_get(failedResult2, errorPath)).toBe('FORBIDDEN')
   })
 
-  test('disconnected wallet', async () => {
+  test('delete wallet', async () => {
     const server = await testClient({ isAuth: true })
     const deleteResult = await server.executeOperation({
       query: DELETE_CRYPTO_WALLET,
