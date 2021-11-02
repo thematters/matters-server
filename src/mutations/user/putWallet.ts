@@ -2,10 +2,13 @@ import { recoverPersonalSignature } from 'eth-sig-util'
 import Web3 from 'web3'
 
 import { DB_NOTICE_TYPE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   CryptoWalletExistsError,
   EntityNotFoundError,
+  ForbiddenError,
+  ServerError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -37,6 +40,25 @@ const resolver: MutationToPutWalletResolver = async (
     throw new UserInputError('address is invalid')
   }
 
+  if (!environment.nftAirdropStart || !environment.nftAirdropEnd) {
+    throw new ServerError('airdrop start or end time is invalid')
+  }
+
+  // check time limit
+  const now = Date.now()
+  const start = new Date(environment.nftAirdropStart).getTime()
+  const end = new Date(environment.nftAirdropEnd).getTime()
+
+  if (purpose === GQLCryptoWalletSignaturePurpose.airdrop) {
+    if (now < start || now >= end) {
+      throw new ForbiddenError('blocked by time limit')
+    }
+  } else {
+    if (now < end) {
+      throw new ForbiddenError('blocked by time limit')
+    }
+  }
+
   // verify signature
   const verifiedAddress = recoverPersonalSignature({
     data: signedMessage,
@@ -50,14 +72,24 @@ const resolver: MutationToPutWalletResolver = async (
   let wallet
   const table = 'crypto_wallet'
 
+  // check address is using or not
+  const sameWallet = await atomService.findFirst({
+    table,
+    where: { address, archived: false },
+  })
+
+  if (sameWallet) {
+    throw new CryptoWalletExistsError('wallet exists')
+  }
+
   if (id) {
     // replace connected wallet
-    const item = await atomService.findFirst({
+    const viewerWallet = await atomService.findFirst({
       table,
-      where: { id, userId: viewer.id },
+      where: { id, userId: viewer.id, archived: false },
     })
 
-    if (!item) {
+    if (!viewerWallet) {
       throw new EntityNotFoundError('wallet not found')
     }
 
@@ -67,19 +99,13 @@ const resolver: MutationToPutWalletResolver = async (
       data: { address },
     })
   } else {
-    // connect a wallet
-    const [hasWallet, hasSameWallet] = await Promise.all([
-      atomService.findFirst({
-        table,
-        where: { userId: viewer.id },
-      }),
-      atomService.findFirst({
-        table,
-        where: { address },
-      }),
-    ])
+    // create a new wallet
+    const viewerWallet = await atomService.findFirst({
+      table,
+      where: { userId: viewer.id, archived: false },
+    })
 
-    if (hasWallet || hasSameWallet) {
+    if (viewerWallet) {
       throw new CryptoWalletExistsError('wallet exists')
     }
 

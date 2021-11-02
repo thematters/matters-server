@@ -82,6 +82,8 @@ jobs:
           MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
           MATTERS_STRIPE_SECRET: sk_test_foobar
           MATTERS_SENDGRID_API_KEY: SG.0-_abcabcabc.
+          MATTERS_NFT_AIRDROP_START: '2021-10-30T04:00:00Z'
+          MATTERS_NFT_AIRDROP_END: '2021-11-10T04:00:00Z'
 
       - name: Build
         run: npm run build
