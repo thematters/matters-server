@@ -20,7 +20,9 @@ export const sendCryptoWalletAirdrop = async ({
   }
   to: string
 }) => {
-  const templateId = EMAIL_TEMPLATE_ID.cryptoWalletAirdrop[language]
+  const templateId = language === 'en'
+    ? EMAIL_TEMPLATE_ID.cryptoWalletAirdropEnglish[language]
+    : EMAIL_TEMPLATE_ID.cryptoWalletAirdrop[language]
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
     templateId,
