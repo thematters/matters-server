@@ -61,7 +61,7 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-31aef6b89fa943a6858048e68cb3444b',
     zh_hans: 'd-86c7c745a8734d9fba38730f4316c926',
     en: 'd-31aef6b89fa943a6858048e68cb3444b',
-  }
+  },
 }
 
 const PROD_EMAIL_TEMPLATE_ID = {
