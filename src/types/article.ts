@@ -24,6 +24,20 @@ export default /* GraphQL */ `
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
+    ######################
+    # Article Containers #
+    ######################
+    "Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title."
+    putTopic(input: PutTopicInput!): Topic! @purgeCache(type: "${NODE_TYPES.Topic}")
+
+    "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
+    putChapter(input: PutChapterInput!): Chapter! @purgeCache(type: "${NODE_TYPES.Chapter}")
+
+    "Delete topics"
+    deleteTopics(input: DeleteTopicsInput!): Boolean!
+
+    "Sort topics"
+    sortTopics(input: SortTopicsInput!): [Topic!]! @purgeCache(type: "${NODE_TYPES.Topic}")
 
     ##############
     #     Tag    #
@@ -91,7 +105,7 @@ export default /* GraphQL */ `
     "Article cover's link."
     cover: String
 
-    "List of assets are belonged to this article."
+    "List of assets are belonged to this article (Only the author can access currently)."
     assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "A short summary for this article."
@@ -186,6 +200,64 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
+  "This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic."
+  type Chapter implements Node {
+    "Unique id of this chapter."
+    id: ID!
+
+    "Title of this chapter."
+    title: String!
+
+    "Description of this chapter."
+    description: String
+
+    "Number articles included in this chapter."
+    articleCount: Int!
+
+    "Articles included in this Chapter"
+    articles: [Article!]
+
+    "The topic that this Chapter belongs to."
+    topic: Topic! @logCache(type: "${NODE_TYPES.Topic}")
+  }
+
+
+  "This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types."
+  type Topic implements Node {
+    "Unique id of this topic."
+    id: ID!
+
+    "Title of this topic."
+    title: String!
+
+    "Cover of this topic."
+    cover: String
+
+    "Description of this topic."
+    description: String
+
+    "Number of chapters included in this topic."
+    chapterCount: Int!
+
+    "Number articles included in this topic."
+    articleCount: Int!
+
+    "List of chapters included in this topic."
+    chapters: [Chapter!]
+
+    "List of articles included in this topic."
+    articles: [Article!]
+
+    "Author of this topic."
+    author: User!
+
+    "Whether this topic is public or not."
+    public: Boolean!
+
+    "Latest published article on this topic"
+    latestArticle: Article
+  }
+
   "This type contains content, count and related data of an article tag."
   type Tag implements Node {
     "Unique id of this tag."
@@ -274,6 +346,17 @@ export default /* GraphQL */ `
     node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
+  type TopicConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TopicEdge!]
+  }
+
+  type TopicEdge {
+    cursor: String!
+    node: Topic! @logCache(type: "${NODE_TYPES.Topic}")
+  }
+
   type TagConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -318,6 +401,32 @@ export default /* GraphQL */ `
 
   input ReadArticleInput {
     id: ID!
+  }
+
+  input PutTopicInput {
+    id: ID
+    title: String
+    description: String
+    cover: ID
+    public: Boolean
+    articles: [ID!]
+    chapters: [ID!]
+  }
+
+  input PutChapterInput {
+    id: ID
+    title: String
+    description: String
+    topic: ID
+    articles: [ID!]
+  }
+
+  input DeleteTopicsInput {
+    ids: [ID!]!
+  }
+
+  input SortTopicsInput {
+    ids: [ID!]!
   }
 
   input ToggleRecommendInput {

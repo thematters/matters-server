@@ -44,10 +44,13 @@ export enum DB_NOTICE_TYPE {
   payment_payout = 'payment_payout',
 
   // circle
-  circle_new_follower = 'circle_new_follower',
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
   circle_invitation = 'circle_invitation',
+
+  // crypto
+  crypto_wallet_airdrop = 'crypto_wallet_airdrop',
+  crypto_wallet_connected = 'crypto_wallet_connected',
 
   // misc
   official_announcement = 'official_announcement',

@@ -5,7 +5,7 @@ test('valid contents', async () => {
     // link:mention
     {
       content:
-        '<a class="mention" href="/@hi176" target="_blank" data-display-name="Matty" data-user-name="hi176" data-id="VXNlcjoxNDk0OQ"><span>@Matty</span></a>',
+        '<a class="mention" href="/@hi176" rel="noopener noreferrer" target="_blank" data-display-name="Matty" data-user-name="hi176" data-id="VXNlcjoxNDk0OQ"><span>@Matty</span></a>',
     },
     // link:embed
     {
@@ -36,6 +36,10 @@ test('valid contents', async () => {
     {
       content:
         '<figure class="embed-code"><div class="iframe-container"><iframe src="https://jsfiddle.net/yokev33205/efcd46mb/embedded/" frameborder="0" allowfullscreen="false" sandbox="allow-scripts allow-same-origin allow-popups"></iframe></div><figcaption><span></span></figcaption></figure>',
+    },
+    {
+      content:
+        '<pre class="ql-syntax" spellcheck="false">Pre1\n</pre><p>Para2</p><p>Para3</p>',
     },
   ]
 

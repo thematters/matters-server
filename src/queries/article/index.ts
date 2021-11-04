@@ -15,6 +15,9 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
+import chapterArticleCount from './chapter/articleCount'
+import chapterArticles from './chapter/articles'
+import chapterTopic from './chapter/topic'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -46,10 +49,18 @@ import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
 import tagSelected from './tag/selected'
 import tags from './tags'
+import topicArticleCount from './topic/articleCount'
+import topicArticles from './topic/articles'
+import topicAuthor from './topic/author'
+import topicChapterCount from './topic/chapterCount'
+import topicChapters from './topic/chapters'
+import topicCover from './topic/cover'
+import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
 import userTags from './user/tags'
+import userTopics from './user/topics'
 
 export default {
   Query: {
@@ -58,6 +69,7 @@ export default {
   User: {
     articles: userArticles,
     tags: userTags,
+    topics: userTopics,
   },
   Article: {
     content,
@@ -118,6 +130,23 @@ export default {
     oss: (root: any) => root,
     cover: tagCover,
     participants: tagParticipants,
+  },
+  Topic: {
+    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
+    cover: topicCover,
+    chapterCount: topicChapterCount,
+    articleCount: topicArticleCount,
+    chapters: topicChapters,
+    articles: topicArticles,
+    author: topicAuthor,
+    latestArticle: topicLatestArticle,
+  },
+  Chapter: {
+    id: ({ id }: { id: string }) =>
+      toGlobalId({ type: NODE_TYPES.Chapter, id }),
+    articleCount: chapterArticleCount,
+    articles: chapterArticles,
+    topic: chapterTopic,
   },
   ArticleAccess: {
     type: articleAccess.type,

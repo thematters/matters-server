@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.26.0",
+  "version": "3.27.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -63,6 +63,7 @@
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",
     "dotenv": "^10.0.0",
+    "eth-sig-util": "^3.0.1",
     "express": "4.17.1",
     "fastest-levenshtein": "^1.0.12",
     "firebase-admin": "^9.11.0",
@@ -99,6 +100,7 @@
     "typescript": "^4.3.5",
     "uuid": "^8.3.2",
     "validator": "^13.6.0",
+    "web3": "^1.6.0",
     "winston": "^3.3.3",
     "winston-transport": "^4.4.0",
     "xss": "^1.0.9"
@@ -135,6 +137,7 @@
     "chokidar": "^3.5.2",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.8.3",
+    "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^7.0.1",
     "jest": "^27.0.6",

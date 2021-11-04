@@ -49,7 +49,8 @@ exports.up = async (knex) => {
   const envLabel = `[${process.env['MATTERS_ENV']}]`
 
   if (!process.env['MATTERS_ENV'] || !secret) {
-    throw new Error('`MATTERS_ENV` and `MATTERS_STRIPE_SECRET` are required.')
+    console.error('`MATTERS_ENV` and `MATTERS_STRIPE_SECRET` are required.')
+    return
   }
 
   // retrieve active and trialing subscriptions

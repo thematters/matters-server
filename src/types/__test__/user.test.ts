@@ -1,4 +1,5 @@
 import _get from 'lodash/get'
+import _set from 'lodash/set'
 import _values from 'lodash/values'
 
 import {
@@ -208,7 +209,7 @@ const GET_VIEWER_STATUS = /* GraphQL */ `
     }
   }
 `
-const GET_VIEWER_RECOMMENDATION = (list: string) => `
+const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: ConnectionArgs!) {
   viewer {
     recommendation {
@@ -224,23 +225,23 @@ query($input: ConnectionArgs!) {
 }
 `
 
-const GET_VIEWER_RECOMMENDATION_TAGS = `
-query($input: RecommendInput!) {
-  viewer {
-    recommendation {
-      tags(input: $input) {
-        edges {
-          node {
-            id
+const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
+  query ($input: RecommendInput!) {
+    viewer {
+      recommendation {
+        tags(input: $input) {
+          edges {
+            node {
+              id
+            }
           }
         }
       }
     }
   }
-}
 `
 
-const GET_AUTHOR_RECOMMENDATION = (list: string) => `
+const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: RecommendInput!) {
   viewer {
     recommendation {
@@ -268,6 +269,75 @@ const GET_VIEWER_BADGES = /* GraphQL */ `
   }
 `
 
+const GET_VIEWER_TOPICS = /* GraphQL */ `
+  query {
+    viewer {
+      topics(input: { first: 10 }) {
+        totalCount
+        edges {
+          node {
+            id
+            cover
+            author {
+              id
+            }
+            chapterCount
+            articleCount
+            chapters {
+              id
+              articles {
+                id
+              }
+            }
+            articles {
+              id
+            }
+            public
+          }
+        }
+      }
+    }
+  }
+`
+
+const PUT_TOPIC = /* GraphQL */ `
+  mutation PutTopic($input: PutTopicInput!) {
+    putTopic(input: $input) {
+      id
+      title
+      articles {
+        id
+      }
+    }
+  }
+`
+
+const PUT_CHAPTER = /* GraphQL */ `
+  mutation PutChapter($input: PutChapterInput!) {
+    putChapter(input: $input) {
+      id
+      title
+      articles {
+        id
+      }
+    }
+  }
+`
+
+const DELETE_TOPICS = /* GraphQL */ `
+  mutation DeleteTopics($input: DeleteTopicsInput!) {
+    deleteTopics(input: $input)
+  }
+`
+
+const SORT_TOPICS = /* GraphQL */ `
+  mutation SortTopics($input: SortTopicsInput!) {
+    sortTopics(input: $input) {
+      id
+    }
+  }
+`
+
 const SEND_VERIFICATION_CODE = /* GraphQL */ `
   mutation SendVerificationCode($input: SendVerificationCodeInput!) {
     sendVerificationCode(input: $input)
@@ -285,6 +355,35 @@ const RESET_USER_LIKER_ID = /* GraphQL */ `
       id
       likerId
     }
+  }
+`
+
+const GET_VIEWER_CRYPTO_WALLET = /* GraphQL */ `
+  query {
+    viewer {
+      id
+      info {
+        cryptoWallet {
+          id
+          address
+        }
+      }
+    }
+  }
+`
+
+const PUT_CRYPTO_WALLET = /* GraphQL */ `
+  mutation PutCryptoWallet($input: PutWalletInput!) {
+    putWallet(input: $input) {
+      id
+      address
+    }
+  }
+`
+
+const DELETE_CRYPTO_WALLET = /* GraphQL */ `
+  mutation DeleteCryptoWallet($input: DeleteWalletInput!) {
+    deleteWallet(input: $input)
   }
 `
 
@@ -443,9 +542,9 @@ describe('user query fields', () => {
     const circles = _get(data, 'viewer.following.circles.edges')
     const users = _get(data, 'viewer.following.users.edges')
     const tags = _get(data, 'viewer.following.tags.edges')
-    expect(circles.length).toBe(0)
-    expect(users.length).toBeTruthy()
-    expect(tags.length).toBeTruthy()
+    expect(Array.isArray(circles)).toBe(true)
+    expect(Array.isArray(users)).toBe(true)
+    expect(Array.isArray(tags)).toBe(true)
   })
 
   test('retrive UserStatus', async () => {
@@ -659,6 +758,143 @@ describe('verification code', () => {
   })
 })
 
+const TOPIC_ID_1 = toGlobalId({ type: NODE_TYPES.Topic, id: 1 })
+const TOPIC_ID_2 = toGlobalId({ type: NODE_TYPES.Topic, id: 2 })
+
+describe('topics & chapters', () => {
+  test('get user topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_TOPICS,
+      variables: {},
+    })
+
+    expect(_get(data, 'viewer.topics.totalCount')).toBeGreaterThan(0)
+
+    const firstTopic = _get(data, 'viewer.topics.edges.0.node')
+
+    expect(_get(firstTopic, 'id')).toBeDefined()
+    expect(_get(firstTopic, 'chapterCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'articleCount')).toBeGreaterThan(0)
+    expect(_get(firstTopic, 'chapters.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'chapters.0.articles.0.id')).toBeDefined()
+    expect(_get(firstTopic, 'articles.0.id')).toBeDefined()
+  })
+
+  test('create topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'topic 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: { input: { title } },
+    })
+
+    expect(_get(created, 'putTopic.title')).toBe(title)
+  })
+
+  test('update topic', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'topic 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_TOPIC,
+      variables: {
+        input: {
+          id: TOPIC_ID_1,
+          title,
+          articles,
+        },
+      },
+    })
+
+    expect(_get(updated, 'putTopic.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putTopic.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
+  })
+
+  test('create chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // create
+    const title = 'chapter 123'
+    const { data: created } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: {
+        input: { title, topic: TOPIC_ID_1 },
+      },
+    })
+
+    expect(_get(created, 'putChapter.title')).toBe(title)
+  })
+
+  test('update chapter', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const title = 'chapter 345'
+    const articles = ['QXJ0aWNsZTox', 'QXJ0aWNsZTo0']
+    const { data: updated } = await server.executeOperation({
+      query: PUT_CHAPTER,
+      variables: {
+        input: { id: 'Q2hhcHRlcjox', title, articles },
+      },
+    })
+
+    expect(_get(updated, 'putChapter.title')).toEqual(title)
+    expect(
+      (_get(updated, 'putChapter.articles') as [{ id: string }]).map(
+        ({ id }) => id
+      )
+    ).toEqual(articles)
+  })
+
+  test('sort topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: SORT_TOPICS,
+      variables: {
+        input: { ids: [TOPIC_ID_2, TOPIC_ID_1] },
+      },
+    })
+
+    expect(_get(data, 'sortTopics.0.id')).toBe(TOPIC_ID_2)
+    expect(_get(data, 'sortTopics.1.id')).toBe(TOPIC_ID_1)
+  })
+
+  test('delete topics', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: DELETE_TOPICS,
+      variables: {
+        input: { ids: [] },
+      },
+    })
+
+    expect(_get(data, 'deleteTopics')).toBe(true)
+  })
+})
+
 describe('likecoin', () => {
   test('reset liker id', async () => {
     const server = await testClient({
@@ -681,5 +917,101 @@ describe('likecoin', () => {
       _get(data, 'user.id')
     )
     expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
+  })
+})
+
+describe('crypto wallet', () => {
+  const errorPath = 'errors.0.extensions.code'
+
+  // public testing account
+  const address = '0x863628762A68Ec012396b1Fb9A27F4e343510FCe'
+  const signedMessage =
+    '0x5f16f4c7f149ac4f9510d9cf8cf384038ad348b3bcdc01915f95de12df9d1b02'
+  const signature =
+    '0xfe46556233144863cf5c1ac84b914cdc13d378f1a3ffba1669453b312b78cb9120c2' +
+    '0bd2729288214f2db1c8170673d5d6d09d809a142e01825524b03b7b85b51c'
+
+  let wallet: Record<string, any>
+
+  test('test validator before wallet connection', async () => {
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_CRYPTO_WALLET,
+      variables: {},
+    })
+    expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
+
+    const [failedResult1, failedResult2] = await Promise.all([
+      server.executeOperation({
+        query: PUT_CRYPTO_WALLET,
+        variables: {
+          input: {
+            address,
+            purpose: 'airdrop',
+            signedMessage: `${signedMessage}0x`,
+            signature,
+          },
+        },
+      }),
+      server.executeOperation({
+        query: PUT_CRYPTO_WALLET,
+        variables: {
+          input: {
+            address: `${address}0x`,
+            purpose: 'airdrop',
+            signedMessage,
+            signature,
+          },
+        },
+      }),
+    ])
+    expect(_get(failedResult1, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(failedResult2, errorPath)).toBe('BAD_USER_INPUT')
+  })
+
+  test('connect wallet', async () => {
+    const server = await testClient({ isAuth: true })
+    const baseInput = {
+      query: PUT_CRYPTO_WALLET,
+      variables: {
+        input: {
+          address,
+          purpose: 'airdrop',
+          signedMessage,
+          signature,
+        },
+      },
+    }
+    const putResult = await server.executeOperation(baseInput)
+    wallet = _get(putResult, 'data.putWallet', {})
+    expect(wallet.address).toBe(address)
+
+    // make sure user cannot reconnect existing wallet
+    const failedResult = await server.executeOperation(baseInput)
+    expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
+
+    const failedResult2 = await server.executeOperation(
+      _set(baseInput, 'variables.input.purpose', 'connect')
+    )
+    expect(_get(failedResult2, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('delete wallet', async () => {
+    const server = await testClient({ isAuth: true })
+    const deleteResult = await server.executeOperation({
+      query: DELETE_CRYPTO_WALLET,
+      variables: {
+        input: {
+          id: wallet.id,
+        },
+      },
+    })
+    expect(_get(deleteResult, 'data.deleteWallet')).toBeTruthy()
+
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_CRYPTO_WALLET,
+      variables: {},
+    })
+    expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
   })
 })

@@ -3,6 +3,8 @@ import * as xss from 'xss'
 const CUSTOM_WHITELIST = {
   source: ['src', 'type'],
   iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox'],
+  pre: ['spellcheck'],
+  a: ['target', 'href', 'title', 'rel'],
 }
 
 const IFRAME_SANDBOX_WHITELIST = [

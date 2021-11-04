@@ -288,10 +288,39 @@ export default /* GraphQL */ `
   }
 
   enum CircleNoticeType {
-    CircleNewFollower
+    CircleNewFollower # deprecated
     CircleNewSubscriber
     CircleNewUnsubscriber
     CircleInvitation
+  }
+
+
+  #################################
+  #                               #
+  #            Crypto             #
+  #                               #
+  #################################
+  type CryptoNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "List of notice actors."
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
+
+    type: CryptoNoticeType!
+
+    target: CryptoWallet!
+  }
+
+  enum CryptoNoticeType {
+    CryptoWalletAirdrop
+    CryptoWalletConnected
   }
 
   #################################

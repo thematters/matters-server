@@ -10,7 +10,7 @@ export default /* GraphQL */ `
     putCircle(input: PutCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Follow or unfollow a Circle."
-    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "No longer in use")
 
     "Subscribe a Circle."
     subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
@@ -19,7 +19,7 @@ export default /* GraphQL */ `
     unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Add or remove Circle's articles"
-    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "No longer in use")
 
     "Invite others to join circle"
     invite(input: InviteCircleInput!): [Invitation!]
@@ -30,16 +30,16 @@ export default /* GraphQL */ `
     id: ID!
 
     "Circle avatar's link."
-    avatar: String
+    avatar: String @deprecated(reason: "No longer in use")
 
     "Circle cover's link."
-    cover: String
+    cover: String @deprecated(reason: "No longer in use")
 
     "Slugified name of this Circle."
-    name: String!
+    name: String! @deprecated(reason: "No longer in use")
 
     "Human readable name of this Circle."
-    displayName: String!
+    displayName: String! @deprecated(reason: "No longer in use")
 
     "A short description of this Circle."
     description: String
@@ -51,33 +51,31 @@ export default /* GraphQL */ `
     owner: User! @logCache(type: "${NODE_TYPES.User}")
 
     "List of Circle member."
-    members(input: ConnectionArgs!): MemberConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    members(input: ConnectionArgs!): MemberConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer in use")
 
     "List of Circle follower."
-    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer in use")
 
     "List of works belong to this Circle."
-    works(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    works(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer in use")
 
     "State of this Circle."
-    state: CircleState!
+    state: CircleState! @deprecated(reason: "No longer in use")
 
     "Created time."
-    createdAt: DateTime!
+    createdAt: DateTime! @deprecated(reason: "No longer in use")
 
     "Updated time."
-    updatedAt: DateTime!
+    updatedAt: DateTime! @deprecated(reason: "No longer in use")
 
     # Privae fields
 
     "This value determines if current viewer is following Circle or not."
-    isFollower: Boolean!
+    isFollower: Boolean! @deprecated(reason: "No longer in use")
 
     "This value determines if current viewer is Member or not."
-    isMember: Boolean!
+    isMember: Boolean! @deprecated(reason: "No longer in use")
 
-    "Setting of this Circle."
-    setting: CircleSetting!
 
     "Invitations belonged to this Circle."
     invites: Invites!
@@ -95,14 +93,6 @@ export default /* GraphQL */ `
 
     "Circles whiches user has subscribed."
     subscribedCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @logCache(type: "${NODE_TYPES.Circle}")
-  }
-
-  type CircleSetting {
-    "Whether broadcast is enabled or not."
-    enableBroadcast: Boolean!
-
-    "Whther discussion is enabled or not."
-    enableDiscussion: Boolean!
   }
 
   type Member {
@@ -130,10 +120,10 @@ export default /* GraphQL */ `
     state: PriceState!
 
     "Created time."
-    createdAt: DateTime!
+    createdAt: DateTime! @deprecated(reason: "No longer in use")
 
     "Updated time."
-    updatedAt: DateTime!
+    updatedAt: DateTime! @deprecated(reason: "No longer in use")
   }
 
   type CircleConnection implements Connection {
@@ -290,16 +280,16 @@ export default /* GraphQL */ `
     id: ID
 
     "Unique ID of a Circle's avatar."
-    avatar: ID
+    avatar: ID # @deprecated(reason: "No longer in use")
 
     "Unique ID of a Circle's cover."
-    cover: ID
+    cover: ID # @deprecated(reason: "No longer in use")
 
     "Slugified name of a Circle."
-    name: String
+    name: String # @deprecated(reason: "No longer in use")
 
     "Human readable name of this Circle."
-    displayName: String
+    displayName: String # @deprecated(reason: "No longer in use")
 
     "A short description of this Circle."
     description: String
