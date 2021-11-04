@@ -516,6 +516,23 @@ export default /* GraphQL */ `
     id: ID!
     address: String!
     createdAt: DateTime!
+
+    """NFT assets owned by this wallet address"""
+    nfts: [NFTAsset!]
+  }
+
+  """ NFT Asset """
+  type NFTAsset {
+    id: ID!
+    name: String!
+    description: String
+    imageUrl: String!
+    imagePreviewUrl: String
+    imageOriginalUrl: String!
+    contractAddress: String!
+    collectionName: String!
+    tokenMetadata: String
+    openseaPermalink: String!
   }
 
   input UserInput {

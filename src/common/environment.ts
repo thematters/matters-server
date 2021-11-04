@@ -99,6 +99,9 @@ export const environment = {
   openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
   nftAirdropStart: process.env.MATTERS_NFT_AIRDROP_START || '',
   nftAirdropEnd: process.env.MATTERS_NFT_AIRDROP_END || '',
+  openseaAPIBase: process.env.MATTERS_OPENSEA_API_BASE || '',
+  openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || '',
+  nftContractAddress: process.env.MATTERS_NFT_CONTRACT_ADDRESS || '',
 }
 
 export const isLocal = environment.env === 'local'

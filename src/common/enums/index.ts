@@ -174,6 +174,7 @@ export enum NODE_TYPES {
   Invitation = 'Invitation',
   Announcement = 'Announcement',
   CryptoWallet = 'CryptoWallet',
+  CryptoWalletNFTAsset = 'NFTAsset',
 
   // Unions & Interfaces
   Node = 'Node',
