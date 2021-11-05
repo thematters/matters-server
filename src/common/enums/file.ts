@@ -10,6 +10,8 @@ export const ASSET_TYPE = {
   circleCover: 'circleCover',
   announcementCover: 'announcementCover',
   topicCover: 'topicCover',
+
+  imgCached: 'img-cached',
 }
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
