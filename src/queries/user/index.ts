@@ -1,4 +1,5 @@
 import { NODE_TYPES } from 'common/enums'
+import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import OpenSeaService from 'connectors/opensea'
 import {
@@ -187,8 +188,9 @@ const user: {
     address: ({ address }) => address,
     createdAt: ({ createdAt }) => createdAt,
     nfts: async ({ address }) => {
-      const osService = new OpenSeaService()
-      const assets = await osService.getAssets({ owner: address })
+      const oseaService = new OpenSeaService()
+      const assets = await oseaService.getAssets({ owner: address })
+
       return assets
         .filter(
           // testnet takes longer to refresh
@@ -212,9 +214,9 @@ const user: {
             id: toGlobalId({ type: NODE_TYPES.CryptoWalletNFTAsset, id }),
             name,
             description,
-            imageUrl: image_url,
-            imagePreviewUrl: image_preview_url,
-            imageOriginalUrl: image_original_url || '',
+            imageUrl: `${environment.domain}/img-cache/${image_url}`,
+            imagePreviewUrl: `${environment.domain}/img-cache/${image_preview_url}`,
+            // imageOriginalUrl: image_original_url || '',
             contractAddress: asset_contract.address,
             collectionName: collection.name,
             tokenMetadata: token_metadata,

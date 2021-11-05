@@ -51,6 +51,9 @@ import * as routes from './routes'
   // Pay
   app.use('/pay', routes.pay)
 
+  // Pay
+  app.use('/img-cache', routes.imgCache)
+
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
   )

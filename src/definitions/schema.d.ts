@@ -2727,6 +2727,11 @@ export const enum GQLAssetType {
   circleCover = 'circleCover',
   announcementCover = 'announcementCover',
   topicCover = 'topicCover',
+
+  /**
+   * img-cached
+   */
+  imgCached = 'imgCached',
 }
 
 export const enum GQLEntityType {
