@@ -55,7 +55,7 @@
     "apollo-server-core": "^3.0.2",
     "apollo-server-express": "^3.0.2",
     "aws-sdk": "^2.954.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bcrypt": "^5.0.1",
     "bodybuilder": "^2.4.0",
     "bull": "^3.26.0",
