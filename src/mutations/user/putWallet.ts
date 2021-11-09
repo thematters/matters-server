@@ -96,7 +96,7 @@ const resolver: MutationToPutWalletResolver = async (
     wallet = await atomService.update({
       table,
       where: { id, userId: viewer.id },
-      data: { address },
+      data: { address, updatedAt: new Date() },
     })
   } else {
     // create a new wallet
@@ -118,7 +118,7 @@ const resolver: MutationToPutWalletResolver = async (
   // store signature for confirmation
   await atomService.create({
     table: 'crypto_wallet_signature',
-    data: { address, signedMessage, signature, purpose },
+    data: { userId: viewer.id, address, signedMessage, signature, purpose },
   })
 
   // send notice and email to inform user
