@@ -951,7 +951,7 @@ describe('crypto wallet', () => {
     '0xfe46556233144863cf5c1ac84b914cdc13d378f1a3ffba1669453b312b78cb9120c2' +
     '0bd2729288214f2db1c8170673d5d6d09d809a142e01825524b03b7b85b51c'
 
-  const address2 = '0x863628762A68Ec012396b1Fb9A27F4e343510FCe'
+  const address2 = '0xE3077092b48E945bcba59E0c1AC0e16b0a8da550'
   const signedMessage2 = 'test'
   const signature2 =
     '0xec0716daf1aaba2e778b54f0317d827e428231bec436c9a24eb5c53a1843b04565ce86' +
