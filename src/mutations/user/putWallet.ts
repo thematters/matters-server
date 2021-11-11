@@ -48,13 +48,14 @@ const resolver: MutationToPutWalletResolver = async (
   const now = Date.now()
   const start = new Date(environment.nftAirdropStart).getTime()
   const end = new Date(environment.nftAirdropEnd).getTime()
+  const connectStart = new Date(environment.nftConnectStart).getTime()
 
   if (purpose === GQLCryptoWalletSignaturePurpose.airdrop) {
     if (now < start || now >= end) {
       throw new ForbiddenError('blocked by time limit')
     }
   } else {
-    if (now < end) {
+    if (now < connectStart) {
       throw new ForbiddenError('blocked by time limit')
     }
   }
