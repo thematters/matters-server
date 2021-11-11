@@ -11,6 +11,7 @@ import {
   ServerError,
   UserInputError,
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
 import {
   GQLCryptoWalletSignaturePurpose,
   MutationToPutWalletResolver,
@@ -48,13 +49,14 @@ const resolver: MutationToPutWalletResolver = async (
   const now = Date.now()
   const start = new Date(environment.nftAirdropStart).getTime()
   const end = new Date(environment.nftAirdropEnd).getTime()
+  const connectStart = new Date(environment.nftConnectStart).getTime()
 
   if (purpose === GQLCryptoWalletSignaturePurpose.airdrop) {
     if (now < start || now >= end) {
       throw new ForbiddenError('blocked by time limit')
     }
   } else {
-    if (now < end) {
+    if (now < connectStart) {
       throw new ForbiddenError('blocked by time limit')
     }
   }
@@ -83,20 +85,29 @@ const resolver: MutationToPutWalletResolver = async (
   }
 
   if (id) {
+    const { id: dbId } = fromGlobalId(id)
+
     // replace connected wallet
     const viewerWallet = await atomService.findFirst({
       table,
-      where: { id, userId: viewer.id, archived: false },
+      where: { id: dbId, userId: viewer.id, archived: false },
     })
 
     if (!viewerWallet) {
       throw new EntityNotFoundError('wallet not found')
     }
 
-    wallet = await atomService.update({
+    // archive wallet
+    await atomService.update({
       table,
-      where: { id, userId: viewer.id },
-      data: { address },
+      where: { id: dbId, userId: viewer.id },
+      data: { updatedAt: new Date(), archived: true },
+    })
+
+    // create a new wallet
+    wallet = await atomService.create({
+      table,
+      data: { userId: viewer.id, address },
     })
   } else {
     // create a new wallet
@@ -118,7 +129,7 @@ const resolver: MutationToPutWalletResolver = async (
   // store signature for confirmation
   await atomService.create({
     table: 'crypto_wallet_signature',
-    data: { address, signedMessage, signature, purpose },
+    data: { userId: viewer.id, address, signedMessage, signature, purpose },
   })
 
   // send notice and email to inform user

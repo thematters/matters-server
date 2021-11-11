@@ -3454,6 +3454,27 @@ export interface GQLCryptoWallet {
   id: string
   address: string
   createdAt: GQLDateTime
+
+  /**
+   * NFT assets owned by this wallet address
+   */
+  nfts?: Array<GQLNFTAsset>
+}
+
+/**
+ *  NFT Asset
+ */
+export interface GQLNFTAsset {
+  id: string
+  name: string
+  description?: string
+  imageUrl: string
+  imagePreviewUrl?: string
+  imageOriginalUrl: string
+  contractAddress: string
+  collectionName: string
+  tokenMetadata?: string
+  openseaPermalink: string
 }
 
 export interface GQLUserInput {
@@ -4125,6 +4146,7 @@ export interface GQLResolver {
   CircleRecommendationActivity?: GQLCircleRecommendationActivityTypeResolver
   Following?: GQLFollowingTypeResolver
   CryptoWallet?: GQLCryptoWalletTypeResolver
+  NFTAsset?: GQLNFTAssetTypeResolver
   Response?: {
     __resolveType: GQLResponseTypeResolver
   }
@@ -11490,6 +11512,7 @@ export interface GQLCryptoWalletTypeResolver<TParent = any> {
   id?: CryptoWalletToIdResolver<TParent>
   address?: CryptoWalletToAddressResolver<TParent>
   createdAt?: CryptoWalletToCreatedAtResolver<TParent>
+  nfts?: CryptoWalletToNftsResolver<TParent>
 }
 
 export interface CryptoWalletToIdResolver<TParent = any, TResult = any> {
@@ -11511,6 +11534,133 @@ export interface CryptoWalletToAddressResolver<TParent = any, TResult = any> {
 }
 
 export interface CryptoWalletToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CryptoWalletToNftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLNFTAssetTypeResolver<TParent = any> {
+  id?: NFTAssetToIdResolver<TParent>
+  name?: NFTAssetToNameResolver<TParent>
+  description?: NFTAssetToDescriptionResolver<TParent>
+  imageUrl?: NFTAssetToImageUrlResolver<TParent>
+  imagePreviewUrl?: NFTAssetToImagePreviewUrlResolver<TParent>
+  imageOriginalUrl?: NFTAssetToImageOriginalUrlResolver<TParent>
+  contractAddress?: NFTAssetToContractAddressResolver<TParent>
+  collectionName?: NFTAssetToCollectionNameResolver<TParent>
+  tokenMetadata?: NFTAssetToTokenMetadataResolver<TParent>
+  openseaPermalink?: NFTAssetToOpenseaPermalinkResolver<TParent>
+}
+
+export interface NFTAssetToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToImageUrlResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToImagePreviewUrlResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToImageOriginalUrlResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToContractAddressResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToCollectionNameResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToTokenMetadataResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NFTAssetToOpenseaPermalinkResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

@@ -1,5 +1,6 @@
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import OpenSeaService from 'connectors/opensea'
 import {
   GQLAppreciationTypeResolver,
   GQLCryptoWalletTypeResolver,
@@ -56,6 +57,20 @@ import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
+
+interface OpenSeaNFTAsset {
+  id: number
+  name: string
+  description: string | null
+  image_url: string
+  image_preview_url: string
+  image_thumbnail_url: string
+  image_original_url: string
+  asset_contract: Record<string, any>
+  collection: Record<string, any>
+  token_metadata: string
+  permalink: string
+}
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -171,6 +186,42 @@ const user: {
       id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
     address: ({ address }) => address,
     createdAt: ({ createdAt }) => createdAt,
+    nfts: async ({ address }) => {
+      const osService = new OpenSeaService()
+      const assets = await osService.getAssets({ owner: address })
+      return assets
+        .filter(
+          // testnet takes longer to refresh
+          // if no image_original_url, there's no way can show it
+          ({ image_original_url }: OpenSeaNFTAsset) => !!image_original_url
+        )
+        .map(
+          ({
+            id,
+            name,
+            description,
+            image_url,
+            image_preview_url,
+            image_thumbnail_url,
+            image_original_url,
+            asset_contract,
+            collection,
+            token_metadata,
+            permalink,
+          }: OpenSeaNFTAsset) => ({
+            id: toGlobalId({ type: NODE_TYPES.CryptoWalletNFTAsset, id }),
+            name,
+            description,
+            imageUrl: image_url,
+            imagePreviewUrl: image_preview_url,
+            imageOriginalUrl: image_original_url || '',
+            contractAddress: asset_contract.address,
+            collectionName: collection.name,
+            tokenMetadata: token_metadata,
+            openseaPermalink: permalink,
+          })
+        )
+    },
   },
 }
 

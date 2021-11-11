@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.27.0",
+  "version": "3.28.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -50,6 +50,7 @@
     "@slack/web-api": "^5.11.0",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
+    "apollo-datasource-rest": "^3.3.0",
     "apollo-server-cache-redis": "^3.0.2",
     "apollo-server-core": "^3.0.2",
     "apollo-server-express": "^3.0.2",
@@ -106,7 +107,6 @@
     "xss": "^1.0.9"
   },
   "devDependencies": {
-    "@apollo/rover": "^0.1.9",
     "@types/bcrypt": "^5.0.0",
     "@types/bull": "^3.15.2",
     "@types/cookie": "^0.4.1",
