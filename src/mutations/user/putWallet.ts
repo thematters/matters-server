@@ -97,10 +97,17 @@ const resolver: MutationToPutWalletResolver = async (
       throw new EntityNotFoundError('wallet not found')
     }
 
-    wallet = await atomService.update({
+    // archive wallet
+    await atomService.update({
       table,
       where: { id: dbId, userId: viewer.id },
-      data: { address, updatedAt: new Date() },
+      data: { address, updatedAt: new Date(), archived: true },
+    })
+
+    // create a new wallet
+    wallet = await atomService.create({
+      table,
+      data: { userId: viewer.id, address },
     })
   } else {
     // create a new wallet
