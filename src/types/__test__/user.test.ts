@@ -989,7 +989,7 @@ describe('crypto wallet', () => {
     expect(_get(failedResult2, errorPath)).toBe('BAD_USER_INPUT')
   })
 
-  test('connect wallet', async () => {
+  test('connect wallet for airdrop', async () => {
     const server = await testClient({ isAuth: true })
     const baseInput = {
       query: PUT_CRYPTO_WALLET,
@@ -1010,14 +1010,45 @@ describe('crypto wallet', () => {
     const failedResult = await server.executeOperation(baseInput)
     expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
 
-    const failedResult2 = await server.executeOperation(
-      _set(baseInput, 'variables.input.purpose', 'connect')
-    )
-    expect(_get(failedResult2, errorPath)).toBe('FORBIDDEN')
+    // delete wallet
+    const deleteResult = await server.executeOperation({
+      query: DELETE_CRYPTO_WALLET,
+      variables: {
+        input: {
+          id: wallet.id,
+        },
+      },
+    })
+    expect(_get(deleteResult, 'data.deleteWallet')).toBeTruthy()
+
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_CRYPTO_WALLET,
+      variables: {},
+    })
+    expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
   })
 
-  test('delete wallet', async () => {
+  test('connect wallet for normal usage', async () => {
     const server = await testClient({ isAuth: true })
+    const baseInput = {
+      query: PUT_CRYPTO_WALLET,
+      variables: {
+        input: {
+          address,
+          purpose: 'connect',
+          signedMessage,
+          signature,
+        },
+      },
+    }
+    const putResult = await server.executeOperation(baseInput)
+    wallet = _get(putResult, 'data.putWallet', {})
+    expect(wallet.address).toBe(address)
+
+    // make sure user cannot reconnect existing wallet
+    const failedResult = await server.executeOperation(baseInput)
+    expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
+
     const deleteResult = await server.executeOperation({
       query: DELETE_CRYPTO_WALLET,
       variables: {
