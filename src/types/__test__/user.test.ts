@@ -961,7 +961,7 @@ describe('crypto wallet', () => {
     })
     expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
 
-    const [failedResult1, failedResult2] = await Promise.all([
+    const [failedResult1, failedResult2, failedResult3] = await Promise.all([
       server.executeOperation({
         query: PUT_CRYPTO_WALLET,
         variables: {
@@ -977,16 +977,28 @@ describe('crypto wallet', () => {
         query: PUT_CRYPTO_WALLET,
         variables: {
           input: {
+            address,
+            purpose: 'connect',
+            signedMessage: `${signedMessage}0x`,
+            signature,
+          },
+        },
+      }),
+      server.executeOperation({
+        query: PUT_CRYPTO_WALLET,
+        variables: {
+          input: {
             address: `${address}0x`,
-            purpose: 'airdrop',
+            purpose: 'connect',
             signedMessage,
             signature,
           },
         },
       }),
     ])
-    expect(_get(failedResult1, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(failedResult1, errorPath)).toBe('FORBIDDEN')
     expect(_get(failedResult2, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(failedResult3, errorPath)).toBe('BAD_USER_INPUT')
   })
 
   test('connect wallet', async () => {
@@ -996,7 +1008,7 @@ describe('crypto wallet', () => {
       variables: {
         input: {
           address,
-          purpose: 'airdrop',
+          purpose: 'connect',
           signedMessage,
           signature,
         },
@@ -1011,7 +1023,7 @@ describe('crypto wallet', () => {
     expect(_get(failedResult, errorPath)).toBe('CRYPTO_WALLET_EXISTS')
 
     const failedResult2 = await server.executeOperation(
-      _set(baseInput, 'variables.input.purpose', 'connect')
+      _set(baseInput, 'variables.input.purpose', 'airdrop')
     )
     expect(_get(failedResult2, errorPath)).toBe('FORBIDDEN')
   })
