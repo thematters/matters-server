@@ -101,7 +101,7 @@ const resolver: MutationToPutWalletResolver = async (
     await atomService.update({
       table,
       where: { id: dbId, userId: viewer.id },
-      data: { address, updatedAt: new Date(), archived: true },
+      data: { updatedAt: new Date(), archived: true },
     })
 
     // create a new wallet
