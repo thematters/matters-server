@@ -11,6 +11,7 @@ import {
   ServerError,
   UserInputError,
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
 import {
   GQLCryptoWalletSignaturePurpose,
   MutationToPutWalletResolver,
@@ -84,10 +85,12 @@ const resolver: MutationToPutWalletResolver = async (
   }
 
   if (id) {
+    const { id: dbId } = fromGlobalId(id)
+
     // replace connected wallet
     const viewerWallet = await atomService.findFirst({
       table,
-      where: { id, userId: viewer.id, archived: false },
+      where: { id: dbId, userId: viewer.id, archived: false },
     })
 
     if (!viewerWallet) {
@@ -96,7 +99,7 @@ const resolver: MutationToPutWalletResolver = async (
 
     wallet = await atomService.update({
       table,
-      where: { id, userId: viewer.id },
+      where: { id: dbId, userId: viewer.id },
       data: { address, updatedAt: new Date() },
     })
   } else {
