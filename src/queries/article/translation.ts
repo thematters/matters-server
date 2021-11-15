@@ -1,27 +1,35 @@
+import { makeSummary } from '@matters/matters-html-formatter'
+
 import { gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const resolver: ArticleToTranslationResolver = async (
-  { content: originContent, title: originTitle },
+  { content: originContent, title: originTitle, summary: originSummary },
   { input },
   { viewer }
 ) => {
-  const title = await gcp.translate({
-    content: originTitle,
-    target: input ? input.language : viewer.language,
-  })
+  const target = input && input.language ? input.language : viewer.language
 
-  const content = await gcp.translate({
-    content: originContent,
-    target: input ? input.language : viewer.language,
-  })
+  const [title, content, summary] = await Promise.all([
+    gcp.translate({
+      content: originTitle,
+      target,
+    }),
+    gcp.translate({
+      content: originContent,
+      target,
+    }),
+    gcp.translate({
+      content: originSummary || makeSummary(originContent),
+      target,
+    }),
+  ])
 
   return title && content
     ? {
-        // obsolete
-        originLanguage: '',
         title,
         content,
+        summary,
       }
     : null
 }
