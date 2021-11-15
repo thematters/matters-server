@@ -20,7 +20,10 @@ export const sendCryptoWalletConnected = async ({
   }
   to: string
 }) => {
-  const templateId = EMAIL_TEMPLATE_ID.cryptoWalletConnected[language]
+  const templateId =
+    language === 'en'
+      ? EMAIL_TEMPLATE_ID.cryptoWalletConnectedEnglish[language]
+      : EMAIL_TEMPLATE_ID.cryptoWalletConnected[language]
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
     templateId,

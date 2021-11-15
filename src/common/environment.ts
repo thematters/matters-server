@@ -34,6 +34,12 @@ if (process.env.MATTERS_OICD_PRIVATE_KEY) {
   }
 }
 
+export const isLocal = process.env.MATTERS_ENV === 'local'
+export const isTest = process.env.MATTERS_ENV === 'test'
+export const isDev = process.env.MATTERS_ENV === 'development'
+export const isStage = process.env.MATTERS_ENV === 'stage'
+export const isProd = process.env.MATTERS_ENV === 'production'
+
 /**
  * Here are all environment variables that server needs. Please add prefix
  * `MATTERS_` before environment variables.
@@ -99,13 +105,12 @@ export const environment = {
   openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
   nftAirdropStart: process.env.MATTERS_NFT_AIRDROP_START || '',
   nftAirdropEnd: process.env.MATTERS_NFT_AIRDROP_END || '',
-  openseaAPIBase: process.env.MATTERS_OPENSEA_API_BASE || '',
-  openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || '',
+  nftConnectStart: process.env.MATTERS_NFT_CONNECT_START || '',
+  openseaAPIBase:
+    process.env.MATTERS_OPENSEA_API_BASE ||
+    (isProd
+      ? 'https://api.opensea.io/api/v1'
+      : 'https://rinkeby-api.opensea.io/api/v1'),
+  openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
   nftContractAddress: process.env.MATTERS_NFT_CONTRACT_ADDRESS || '',
 }
-
-export const isLocal = environment.env === 'local'
-export const isTest = environment.env === 'test'
-export const isDev = environment.env === 'development'
-export const isStage = environment.env === 'stage'
-export const isProd = environment.env === 'production'

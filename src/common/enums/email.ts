@@ -62,6 +62,11 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-86c7c745a8734d9fba38730f4316c926',
     en: 'd-31aef6b89fa943a6858048e68cb3444b',
   },
+  cryptoWalletConnectedEnglish: {
+    zh_hant: 'd-d6cda598bf864066aaad7f6a9365b5f4',
+    zh_hans: 'd-487f85cd5a744b80b2eefed2097e544d',
+    en: 'd-d6cda598bf864066aaad7f6a9365b5f4',
+  },
 }
 
 const PROD_EMAIL_TEMPLATE_ID = {
@@ -125,6 +130,11 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-5b647f86c7974fdd810f4f4a9069668c',
     zh_hans: 'd-b26064fee5d6442f9220614164d49400',
     en: 'd-5b647f86c7974fdd810f4f4a9069668c',
+  },
+  cryptoWalletConnectedEnglish: {
+    zh_hant: 'd-790f9117fca6426087fce36dfa041b8e',
+    zh_hans: 'd-c3e01486b5744194a646c46e271d6120',
+    en: 'd-790f9117fca6426087fce36dfa041b8e',
   },
 }
 
