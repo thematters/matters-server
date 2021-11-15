@@ -10,20 +10,18 @@ const resolver: ArticleToTranslationResolver = async (
 ) => {
   const target = input && input.language ? input.language : viewer.language
 
-  const [title, content, summary] = await Promise.all([
-    gcp.translate({
-      content: originTitle,
-      target,
-    }),
-    gcp.translate({
-      content: originContent,
-      target,
-    }),
-    gcp.translate({
-      content: originSummary || makeSummary(originContent),
-      target,
-    }),
-  ])
+  const [title, content, summary] = await Promise.all(
+    [
+      originTitle,
+      originContent,
+      originSummary || makeSummary(originContent),
+    ].map((text) =>
+      gcp.translate({
+        content: text,
+        target,
+      })
+    )
+  )
 
   return title && content
     ? {
