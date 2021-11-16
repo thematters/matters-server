@@ -796,6 +796,7 @@ export interface GQLArticleOSS {
 export interface GQLArticleTranslation {
   title?: string
   content?: string
+  summary?: string
 }
 
 export interface GQLTagOSS {
@@ -6379,6 +6380,7 @@ export interface ArticleOSSToInRecommendNewestResolver<
 export interface GQLArticleTranslationTypeResolver<TParent = any> {
   title?: ArticleTranslationToTitleResolver<TParent>
   content?: ArticleTranslationToContentResolver<TParent>
+  summary?: ArticleTranslationToSummaryResolver<TParent>
 }
 
 export interface ArticleTranslationToTitleResolver<
@@ -6394,6 +6396,18 @@ export interface ArticleTranslationToTitleResolver<
 }
 
 export interface ArticleTranslationToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTranslationToSummaryResolver<
   TParent = any,
   TResult = any
 > {

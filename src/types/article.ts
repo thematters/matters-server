@@ -327,6 +327,7 @@ export default /* GraphQL */ `
   type ArticleTranslation {
     title: String
     content: String
+    summary: String
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
