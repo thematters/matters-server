@@ -3,7 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
 import _ from 'lodash'
-import { nanoid } from 'nanoid'
+import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
@@ -1202,7 +1202,13 @@ export class UserService extends BaseService {
     strong?: boolean
     expiredAt?: Date
   }) => {
-    const code = strong ? nanoid(40) : _.random(100000, 999999)
+    const code = strong
+      ? nanoid(40)
+      : customAlphabet(
+          // alphanumeric
+          '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+          8
+        )()
 
     return this.baseCreate(
       {
