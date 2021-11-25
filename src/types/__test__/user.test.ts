@@ -372,26 +372,6 @@ const GET_VIEWER_CRYPTO_WALLET = /* GraphQL */ `
   }
 `
 
-const GET_VIEWER_CRYPTO_WALLET_WITH_NFTS = /* GraphQL */ `
-  query {
-    viewer {
-      id
-      info {
-        cryptoWallet {
-          id
-          address
-
-          nfts {
-            name
-            imageUrl
-            contractAddress
-          }
-        }
-      }
-    }
-  }
-`
-
 const PUT_CRYPTO_WALLET = /* GraphQL */ `
   mutation PutCryptoWallet($input: PutWalletInput!) {
     putWallet(input: $input) {
@@ -951,6 +931,12 @@ describe('crypto wallet', () => {
     '0xfe46556233144863cf5c1ac84b914cdc13d378f1a3ffba1669453b312b78cb9120c2' +
     '0bd2729288214f2db1c8170673d5d6d09d809a142e01825524b03b7b85b51c'
 
+  const address2 = '0xE3077092b48E945bcba59E0c1AC0e16b0a8da550'
+  const signedMessage2 = 'test'
+  const signature2 =
+    '0xec0716daf1aaba2e778b54f0317d827e428231bec436c9a24eb5c53a1843b04565ce86' +
+    '8f87c27459beef5abcc34133c97b57abb38694a5f9acce5e3bbcc682bd1b'
+
   let wallet: Record<string, any>
 
   test('test validator before wallet connection', async () => {
@@ -1028,7 +1014,7 @@ describe('crypto wallet', () => {
     expect(_get(data, 'viewer.info.cryptoWallet')).toBeNull()
   })
 
-  test('connect wallet for normal usage', async () => {
+  test('connect and update wallet', async () => {
     const server = await testClient({ isAuth: true })
     const baseInput = {
       query: PUT_CRYPTO_WALLET,
@@ -1044,6 +1030,23 @@ describe('crypto wallet', () => {
     const putResult = await server.executeOperation(baseInput)
     wallet = _get(putResult, 'data.putWallet', {})
     expect(wallet.address).toBe(address)
+
+    // update wallet
+    const base2Input = {
+      query: PUT_CRYPTO_WALLET,
+      variables: {
+        input: {
+          id: wallet.id,
+          address: address2,
+          purpose: 'connect',
+          signedMessage: signedMessage2,
+          signature: signature2,
+        },
+      },
+    }
+    const putResult2 = await server.executeOperation(base2Input)
+    wallet = _get(putResult2, 'data.putWallet', {})
+    expect(wallet.address).toBe(address2)
 
     // make sure user cannot reconnect existing wallet
     const failedResult = await server.executeOperation(baseInput)
@@ -1096,68 +1099,6 @@ describe('crypto wallet', () => {
     expect(_get(get2data, 'viewer.info.cryptoWallet')).not.toBeNull()
     expect(_get(get2data, 'viewer.info.cryptoWallet.address')).toBe(address)
     // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).toEqual([])
-
-    const deleteResult = await server.executeOperation({
-      query: DELETE_CRYPTO_WALLET,
-      variables: {
-        input: {
-          id: wallet.id,
-        },
-      },
-    })
-    expect(_get(deleteResult, 'data.deleteWallet')).toBeTruthy()
-  })
-
-  test('test wallet with assets', async () => {
-    const server = await testClient({ isAuth: true })
-    const { data: get1data } = await server.executeOperation({
-      query: GET_VIEWER_CRYPTO_WALLET,
-      variables: {},
-    })
-    expect(_get(get1data, 'viewer.info.cryptoWallet')).toBeNull()
-
-    /*
-      address: "0x0Ec18c1D8df059422101dada0e96bB6D24e7877E"
-      purpose: "airdrop"
-      signature: "0x3a7cb8a752f4b281a18b892a1a1fe0bde750f1a5eb06617c4b9a6ad4cbdc88c022ccda3af8c5314d3472a76e0547058df2121653e687becfb3ae9448336692a91b"
-      signedMessage: "matters.news wants you to sign in with your Ethereum account:\n0x0Ec18c1D8df059422101dada0e96bB6D24e7877E\n\nURI: https://matters.news\nVersion: 1\nChain ID: 4\nNonce: 1636090011958\nIssued At: 2021-11-05T05:26:51.958Z"
-    */
-
-    const address1 = '0x0Ec18c1D8df059422101dada0e96bB6D24e7877E'
-    const putResult = await server.executeOperation({
-      query: PUT_CRYPTO_WALLET,
-      variables: {
-        input: {
-          address: '0x0Ec18c1D8df059422101dada0e96bB6D24e7877E',
-          purpose: 'airdrop',
-          signedMessage: `matters.news wants you to sign in with your Ethereum account:
-${address1}
-
-URI: https://matters.news
-Version: 1
-Chain ID: 4
-Nonce: 1636090011958
-Issued At: 2021-11-05T05:26:51.958Z`,
-          signature:
-            '0x3a7cb8a752f4b281a18b892a1a1fe0bde750f1a5eb06617c4b9a6ad4cbdc88c022ccda3af8c5314d3472a76e0547058df2121653e687becfb3ae9448336692a91b',
-        },
-      },
-    })
-    wallet = _get(putResult, 'data.putWallet', {})
-    expect(wallet.address).toBe(address1)
-
-    const { data: get2data } = await server.executeOperation({
-      query: GET_VIEWER_CRYPTO_WALLET_WITH_NFTS,
-      variables: {},
-    })
-    expect(_get(get2data, 'viewer.info.cryptoWallet')).not.toBeNull()
-    expect(_get(get2data, 'viewer.info.cryptoWallet.address')).toBe(address1)
-    expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).not.toBeNull()
-    expect(
-      _get(get2data, 'viewer.info.cryptoWallet.nfts.length')
-    ).toBeGreaterThanOrEqual(1)
-    // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).toHaveLength(1)
-    // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts.0.')).toHaveLength(1)
 
     const deleteResult = await server.executeOperation({
       query: DELETE_CRYPTO_WALLET,
