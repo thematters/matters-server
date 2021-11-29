@@ -372,26 +372,6 @@ const GET_VIEWER_CRYPTO_WALLET = /* GraphQL */ `
   }
 `
 
-const GET_VIEWER_CRYPTO_WALLET_WITH_NFTS = /* GraphQL */ `
-  query {
-    viewer {
-      id
-      info {
-        cryptoWallet {
-          id
-          address
-
-          nfts {
-            name
-            imageUrl
-            contractAddress
-          }
-        }
-      }
-    }
-  }
-`
-
 const PUT_CRYPTO_WALLET = /* GraphQL */ `
   mutation PutCryptoWallet($input: PutWalletInput!) {
     putWallet(input: $input) {
@@ -1119,68 +1099,6 @@ describe('crypto wallet', () => {
     expect(_get(get2data, 'viewer.info.cryptoWallet')).not.toBeNull()
     expect(_get(get2data, 'viewer.info.cryptoWallet.address')).toBe(address)
     // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).toEqual([])
-
-    const deleteResult = await server.executeOperation({
-      query: DELETE_CRYPTO_WALLET,
-      variables: {
-        input: {
-          id: wallet.id,
-        },
-      },
-    })
-    expect(_get(deleteResult, 'data.deleteWallet')).toBeTruthy()
-  })
-
-  test('test wallet with assets', async () => {
-    const server = await testClient({ isAuth: true })
-    const { data: get1data } = await server.executeOperation({
-      query: GET_VIEWER_CRYPTO_WALLET,
-      variables: {},
-    })
-    expect(_get(get1data, 'viewer.info.cryptoWallet')).toBeNull()
-
-    /*
-      address: "0x0Ec18c1D8df059422101dada0e96bB6D24e7877E"
-      purpose: "airdrop"
-      signature: "0x3a7cb8a752f4b281a18b892a1a1fe0bde750f1a5eb06617c4b9a6ad4cbdc88c022ccda3af8c5314d3472a76e0547058df2121653e687becfb3ae9448336692a91b"
-      signedMessage: "matters.news wants you to sign in with your Ethereum account:\n0x0Ec18c1D8df059422101dada0e96bB6D24e7877E\n\nURI: https://matters.news\nVersion: 1\nChain ID: 4\nNonce: 1636090011958\nIssued At: 2021-11-05T05:26:51.958Z"
-    */
-
-    const address1 = '0x0Ec18c1D8df059422101dada0e96bB6D24e7877E'
-    const putResult = await server.executeOperation({
-      query: PUT_CRYPTO_WALLET,
-      variables: {
-        input: {
-          address: '0x0Ec18c1D8df059422101dada0e96bB6D24e7877E',
-          purpose: 'airdrop',
-          signedMessage: `matters.news wants you to sign in with your Ethereum account:
-${address1}
-
-URI: https://matters.news
-Version: 1
-Chain ID: 4
-Nonce: 1636090011958
-Issued At: 2021-11-05T05:26:51.958Z`,
-          signature:
-            '0x3a7cb8a752f4b281a18b892a1a1fe0bde750f1a5eb06617c4b9a6ad4cbdc88c022ccda3af8c5314d3472a76e0547058df2121653e687becfb3ae9448336692a91b',
-        },
-      },
-    })
-    wallet = _get(putResult, 'data.putWallet', {})
-    expect(wallet.address).toBe(address1)
-
-    const { data: get2data } = await server.executeOperation({
-      query: GET_VIEWER_CRYPTO_WALLET_WITH_NFTS,
-      variables: {},
-    })
-    expect(_get(get2data, 'viewer.info.cryptoWallet')).not.toBeNull()
-    expect(_get(get2data, 'viewer.info.cryptoWallet.address')).toBe(address1)
-    expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).not.toBeNull()
-    expect(
-      _get(get2data, 'viewer.info.cryptoWallet.nfts.length')
-    ).toBeGreaterThanOrEqual(1)
-    // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts')).toHaveLength(1)
-    // expect(_get(get2data, 'viewer.info.cryptoWallet.nfts.0.')).toHaveLength(1)
 
     const deleteResult = await server.executeOperation({
       query: DELETE_CRYPTO_WALLET,
