@@ -528,7 +528,7 @@ export default /* GraphQL */ `
     description: String
     imageUrl: String!
     imagePreviewUrl: String
-    imageOriginalUrl: String!
+    """imageOriginalUrl: String!"""
     contractAddress: String!
     collectionName: String!
     tokenMetadata: String
