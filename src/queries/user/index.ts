@@ -1,5 +1,5 @@
 import { NODE_TYPES } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isLocal } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import OpenSeaService from 'connectors/opensea'
 import {
@@ -72,6 +72,8 @@ interface OpenSeaNFTAsset {
   token_metadata: string
   permalink: string
 }
+
+const protocolScheme = isLocal ? 'http://' : 'https://'
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -214,8 +216,8 @@ const user: {
             id: toGlobalId({ type: NODE_TYPES.CryptoWalletNFTAsset, id }),
             name,
             description,
-            imageUrl: `${environment.domain}/img-cache/${image_url}`,
-            imagePreviewUrl: `${environment.domain}/img-cache/${image_preview_url}`,
+            imageUrl: `${protocolScheme}${environment.domain}/img-cache/${image_url}`,
+            imagePreviewUrl: `${protocolScheme}${environment.domain}/img-cache/${image_preview_url}`,
             // imageOriginalUrl: image_original_url || '',
             contractAddress: asset_contract.address,
             collectionName: collection.name,
