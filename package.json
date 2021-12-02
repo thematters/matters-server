@@ -50,7 +50,7 @@
     "@slack/web-api": "^6.5.1",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
-    "apollo-datasource-rest": "^3.3.0",
+    "apollo-datasource-rest": "^3.4.0",
     "apollo-server-cache-redis": "^3.0.2",
     "apollo-server-core": "^3.0.2",
     "apollo-server-express": "^3.0.2",
