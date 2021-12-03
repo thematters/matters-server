@@ -74,6 +74,32 @@ export class AWSService {
 
     const key = `${folder}/${uuid}.${extension}`
 
+    // check if already exists
+    try {
+      const data = await this.s3
+        .headObject({
+          Bucket: this.s3Bucket,
+          Key: key,
+        })
+        .promise()
+
+      if (
+        data.ContentLength === buffer.length &&
+        data.ContentType === mimetype
+      ) {
+        // console.log(new Date(), 'existed, return early:', data)
+        return key
+      }
+    } catch (err) {
+      switch (err.code) {
+        case 'NotFound':
+          break
+        default:
+          console.error(new Date(), 'ERROR:', err)
+          throw err
+      }
+    }
+
     await this.s3
       .upload({
         Body: buffer,
