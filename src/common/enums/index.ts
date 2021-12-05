@@ -18,6 +18,7 @@ export * from './verification'
 export * from './file'
 export * from './hardcode'
 export * from './cors'
+export * from './routes'
 
 export const GRAPHQL_COST_LIMIT = 500
 
