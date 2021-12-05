@@ -86,7 +86,9 @@ export class AWSService {
     })
 
     const disposition = origRes.headers['content-disposition']
-    if (!filename) { filename = getFileName(disposition, origUrl) }
+    if (!filename) {
+      filename = getFileName(disposition, origUrl)
+    }
 
     const upload = {
       createReadStream: () => origRes.data,

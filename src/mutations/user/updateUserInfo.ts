@@ -52,9 +52,9 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   // check avatar
   if (input.avatar) {
     const avatarAssetUUID = input.avatar
-    let asset = await systemService.findAssetByUUID(avatarAssetUUID)
+    let asset
 
-    if (!asset && input.avatar?.startsWith(imgCacheServicePrefix)) {
+    if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1) // new URL(
       // )
       console.log(`setting with:`, origUrl)
@@ -92,6 +92,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
         console.log(`created new asset mapping:`, asset)
       }
+    } else {
+      asset = await systemService.findAssetByUUID(avatarAssetUUID)
     }
 
     if (
