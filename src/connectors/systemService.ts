@@ -11,6 +11,7 @@ import { BaseService } from 'connectors'
 import {
   GQLFeatureFlag,
   GQLFeatureName,
+  ItemData,
   SkippedListItemType,
   Viewer,
 } from 'definitions'
@@ -156,6 +157,37 @@ export class SystemService extends BaseService {
    * Find asset by a given uuid
    */
   findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')
+
+  findAssetOrCreateByPath = async (
+    path: string,
+    data: ItemData,
+    entityTypeId: string,
+    entityId: string
+  ) =>
+    // this.baseFindOrCreate({ path }, data, 'asset')
+    this.knex.transaction(async (trx) => {
+      // const [newAsset] = await trx.find(asset).into('asset').returning('*')
+      let asset = await trx('asset').select().where({ path }).first()
+      if (!asset) {
+        ;[asset] = await trx.insert(data).into('asset').returning('*')
+      }
+
+      const assetMData = {
+        assetId: asset.id,
+        entityTypeId,
+        entityId,
+      }
+      const assetMResultId = await trx('asset_map')
+        .select('id')
+        .where(assetMData)
+        .first()
+      if (!assetMResultId) {
+        // [assetMResultId] =
+        await trx.insert(assetMData).into('asset_map')
+      }
+
+      return asset
+    })
 
   /**
    * Find assets by given uuids

@@ -119,4 +119,8 @@ export const environment = {
 }
 
 const protocolScheme = isLocal ? 'http://' : 'https://'
-export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${IMG_CACHE_PATH}`
+export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${
+  IMG_CACHE_PATH || '/img-cache'
+}`
+
+console.log(`exported:`, { imgCacheServicePrefix })

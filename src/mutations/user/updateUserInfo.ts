@@ -54,10 +54,16 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     const avatarAssetUUID = input.avatar
     let asset
 
+    // const prefix = 'https://server-develop.matters.news/img-cache'
+    console.log(
+      `updateUserInfo:`,
+      input,
+      { imgCacheServicePrefix },
+      input.avatar?.startsWith(imgCacheServicePrefix),
+    )
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
-      const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1) // new URL(
-      // )
-      console.log(`setting with:`, origUrl)
+      const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
+      console.log(`setting avatar with:`, origUrl)
 
       let keyPath: string | undefined
       try {
@@ -68,6 +74,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       } catch (err) {
         // ...
         console.error(`baseServerSideUploadFile error:`, err)
+	throw err
       }
       if (keyPath) {
         console.log(`fetched new path:`, keyPath)
@@ -84,7 +91,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         }
 
         // insert a new uuid item
-        asset = await systemService.createAssetAndAssetMap(
+        asset = await systemService.findAssetOrCreateByPath(
+          keyPath,
           assetItem,
           entityTypeId,
           viewer.id // relatedEntityId
