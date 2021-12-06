@@ -43,7 +43,7 @@
       "ContainerDirectory": "/var/app/tslint.json"
     },
     {
-      "HostDirectory": "/var/app/current/.ebextensions",
+      "HostDirectory": "/var/app/.ebextensions",
       "ContainerDirectory": "/var/app/.ebextensions"
     }
   ],
