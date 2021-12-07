@@ -1,5 +1,5 @@
 // import { DataSourceConfig } from 'apollo-datasource'
-import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
+import { Request, RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 
 // import { CacheService } from 'connectors'
 import { CACHE_TTL } from 'common/enums'
@@ -28,8 +28,8 @@ export class OpenSeaService extends RESTDataSource {
   }
 
   didEncounterError(error: Error, _request: Request) {
-    console.error(new Date(), 'ERROR:', err, 'with request:', _request)
-    throw error;
+    console.error(new Date(), 'ERROR:', error, 'with request:', _request)
+    throw error
   }
 
   async getAssets({
