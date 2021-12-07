@@ -159,7 +159,7 @@ export class SystemService extends BaseService {
   findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')
 
   findAssetOrCreateByPath = async (
-    path: string,
+    // path: string,
     data: ItemData,
     entityTypeId: string,
     entityId: string
@@ -167,9 +167,21 @@ export class SystemService extends BaseService {
     // this.baseFindOrCreate({ path }, data, 'asset')
     this.knex.transaction(async (trx) => {
       // const [newAsset] = await trx.find(asset).into('asset').returning('*')
-      let asset = await trx('asset').select().where({ path }).first()
+      const { path, type, authorId, uuid } = data
+      let asset = await trx('asset')
+        .select()
+        .where({ path, type, authorId })
+        .first()
       if (!asset) {
-        ;[asset] = await trx.insert(data).into('asset').returning('*')
+        ;[asset] = await trx
+          .insert({
+            path,
+            type,
+            authorId,
+            uuid: uuid || v4(),
+          })
+          .into('asset')
+          .returning('*')
       }
 
       const assetMData = {

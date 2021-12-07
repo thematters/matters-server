@@ -1,5 +1,4 @@
 import { has, isEmpty, isNil, omitBy } from 'lodash'
-import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
@@ -59,7 +58,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       `updateUserInfo:`,
       input,
       { imgCacheServicePrefix },
-      input.avatar?.startsWith(imgCacheServicePrefix),
+      input.avatar?.startsWith(imgCacheServicePrefix)
     )
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
@@ -74,7 +73,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       } catch (err) {
         // ...
         console.error(`baseServerSideUploadFile error:`, err)
-	throw err
+        throw err
       }
       if (keyPath) {
         console.log(`fetched new path:`, keyPath)
@@ -84,7 +83,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         )
 
         const assetItem: ItemData = {
-          uuid: v4(),
+          // uuid: v4(),
           authorId: viewer.id,
           type: ASSET_TYPE.avatar,
           path: keyPath,
@@ -92,7 +91,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
         // insert a new uuid item
         asset = await systemService.findAssetOrCreateByPath(
-          keyPath,
+          // keyPath,
           assetItem,
           entityTypeId,
           viewer.id // relatedEntityId
