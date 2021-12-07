@@ -154,7 +154,7 @@ export const getViewerFromReq = async ({
     userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''
 
   if (!token) {
-    logger.info('User is not logged in, viewing as guest')
+    // logger.info('User is not logged in, viewing as guest')
     return getViewerFromUser(user, group)
   }
 
