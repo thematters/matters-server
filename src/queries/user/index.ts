@@ -1,5 +1,5 @@
 import { NODE_TYPES } from 'common/enums'
-import { environment, isLocal } from 'common/environment'
+import { imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import OpenSeaService from 'connectors/opensea'
 import {
@@ -61,6 +61,7 @@ import Wallet from './wallet'
 
 interface OpenSeaNFTAsset {
   id: number
+  token_id: string
   name: string
   description: string | null
   image_url: string
@@ -73,7 +74,8 @@ interface OpenSeaNFTAsset {
   permalink: string
 }
 
-const protocolScheme = isLocal ? 'http://' : 'https://'
+// const protocolScheme = isLocal ? 'http://' : 'https://'
+// const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${IMG_CACHE_PATH}`
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -202,6 +204,7 @@ const user: {
         .map(
           ({
             id,
+            token_id,
             name,
             description,
             image_url,
@@ -213,11 +216,14 @@ const user: {
             token_metadata,
             permalink,
           }: OpenSeaNFTAsset) => ({
-            id: toGlobalId({ type: NODE_TYPES.CryptoWalletNFTAsset, id }),
+            id: toGlobalId({
+              type: NODE_TYPES.CryptoWalletNFTAsset,
+              id: `${asset_contract.symbol}#${token_id}`,
+            }),
             name,
             description,
-            imageUrl: `${protocolScheme}${environment.domain}/img-cache/${image_url}`,
-            imagePreviewUrl: `${protocolScheme}${environment.domain}/img-cache/${image_preview_url}`,
+            imageUrl: `${imgCacheServicePrefix}/${image_url}`,
+            imagePreviewUrl: `${imgCacheServicePrefix}/${image_preview_url}`,
             // imageOriginalUrl: image_original_url || '',
             contractAddress: asset_contract.address,
             collectionName: collection.name,
