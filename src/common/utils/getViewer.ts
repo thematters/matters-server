@@ -44,7 +44,7 @@ export const getUserGroup = ({
       num = parseInt(last, 10) || 0
     }
   } catch (error) {
-    logger.error("ERROR:", error, { id, ip })
+    logger.error('ERROR:', error, { id, ip })
   }
   return num % 2 === 0 ? 'a' : 'b'
 }
