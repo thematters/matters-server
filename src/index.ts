@@ -6,7 +6,7 @@ import helmet from 'helmet'
 import 'module-alias/register'
 import requestIp from 'request-ip'
 
-import { CORS_OPTIONS } from 'common/enums'
+import { CORS_OPTIONS, IMG_CACHE_PATH } from 'common/enums'
 import { environment } from 'common/environment'
 
 import * as routes from './routes'
@@ -50,6 +50,9 @@ import * as routes from './routes'
 
   // Pay
   app.use('/pay', routes.pay)
+
+  // Image Cache Service for server side caching image, e.g. NFT images & others
+  app.use(IMG_CACHE_PATH, routes.imgCache)
 
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)

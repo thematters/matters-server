@@ -1,4 +1,5 @@
 import { NODE_TYPES } from 'common/enums'
+import { imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import OpenSeaService from 'connectors/opensea'
 import {
@@ -60,6 +61,7 @@ import Wallet from './wallet'
 
 interface OpenSeaNFTAsset {
   id: number
+  token_id: string
   name: string
   description: string | null
   image_url: string
@@ -71,6 +73,9 @@ interface OpenSeaNFTAsset {
   token_metadata: string
   permalink: string
 }
+
+// const protocolScheme = isLocal ? 'http://' : 'https://'
+// const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${IMG_CACHE_PATH}`
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -187,8 +192,9 @@ const user: {
     address: ({ address }) => address,
     createdAt: ({ createdAt }) => createdAt,
     nfts: async ({ address }) => {
-      const osService = new OpenSeaService()
-      const assets = await osService.getAssets({ owner: address })
+      const oseaService = new OpenSeaService()
+      const assets = await oseaService.getAssets({ owner: address })
+
       return assets
         .filter(
           // testnet takes longer to refresh
@@ -198,6 +204,7 @@ const user: {
         .map(
           ({
             id,
+            token_id,
             name,
             description,
             image_url,
@@ -209,12 +216,15 @@ const user: {
             token_metadata,
             permalink,
           }: OpenSeaNFTAsset) => ({
-            id: toGlobalId({ type: NODE_TYPES.CryptoWalletNFTAsset, id }),
+            id: toGlobalId({
+              type: NODE_TYPES.CryptoWalletNFTAsset,
+              id: `${asset_contract.symbol}#${token_id}`,
+            }),
             name,
             description,
-            imageUrl: image_url,
-            imagePreviewUrl: image_preview_url,
-            imageOriginalUrl: image_original_url || '',
+            imageUrl: `${imgCacheServicePrefix}/${image_url}`,
+            imagePreviewUrl: `${imgCacheServicePrefix}/${image_preview_url}`,
+            // imageOriginalUrl: image_original_url || '',
             contractAddress: asset_contract.address,
             collectionName: collection.name,
             tokenMetadata: token_metadata,

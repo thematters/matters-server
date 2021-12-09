@@ -2727,6 +2727,11 @@ export const enum GQLAssetType {
   circleCover = 'circleCover',
   announcementCover = 'announcementCover',
   topicCover = 'topicCover',
+
+  /**
+   * img-cached
+   */
+  imgCached = 'imgCached',
 }
 
 export const enum GQLEntityType {
@@ -3471,7 +3476,10 @@ export interface GQLNFTAsset {
   description?: string
   imageUrl: string
   imagePreviewUrl?: string
-  imageOriginalUrl: string
+
+  /**
+   * imageOriginalUrl: String!
+   */
   contractAddress: string
   collectionName: string
   tokenMetadata?: string
@@ -11571,7 +11579,6 @@ export interface GQLNFTAssetTypeResolver<TParent = any> {
   description?: NFTAssetToDescriptionResolver<TParent>
   imageUrl?: NFTAssetToImageUrlResolver<TParent>
   imagePreviewUrl?: NFTAssetToImagePreviewUrlResolver<TParent>
-  imageOriginalUrl?: NFTAssetToImageOriginalUrlResolver<TParent>
   contractAddress?: NFTAssetToContractAddressResolver<TParent>
   collectionName?: NFTAssetToCollectionNameResolver<TParent>
   tokenMetadata?: NFTAssetToTokenMetadataResolver<TParent>
@@ -11615,18 +11622,6 @@ export interface NFTAssetToImageUrlResolver<TParent = any, TResult = any> {
 }
 
 export interface NFTAssetToImagePreviewUrlResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NFTAssetToImageOriginalUrlResolver<
   TParent = any,
   TResult = any
 > {

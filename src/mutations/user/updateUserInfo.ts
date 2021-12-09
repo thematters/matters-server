@@ -1,6 +1,7 @@
 import { has, isEmpty, isNil, omitBy } from 'lodash'
 
 import { ASSET_TYPE } from 'common/enums'
+import { imgCacheServicePrefix } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -18,7 +19,12 @@ import {
   isValidPaymentPassword,
   isValidUserName,
 } from 'common/utils'
-import { MutationToUpdateUserInfoResolver } from 'definitions'
+import { aws } from 'connectors'
+import {
+  GQLAssetType,
+  ItemData,
+  MutationToUpdateUserInfoResolver,
+} from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -45,7 +51,58 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   // check avatar
   if (input.avatar) {
     const avatarAssetUUID = input.avatar
-    const asset = await systemService.findAssetByUUID(avatarAssetUUID)
+    let asset
+
+    // const prefix = 'https://server-develop.matters.news/img-cache'
+    console.log(
+      `updateUserInfo:`,
+      input,
+      { imgCacheServicePrefix },
+      input.avatar?.startsWith(imgCacheServicePrefix)
+    )
+    if (input.avatar?.startsWith(imgCacheServicePrefix)) {
+      const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
+      console.log(`setting avatar with:`, origUrl)
+
+      let keyPath: string | undefined
+      try {
+        keyPath = await aws.baseServerSideUploadFile(
+          GQLAssetType.imgCached,
+          origUrl
+        )
+      } catch (err) {
+        // ...
+        console.error(`baseServerSideUploadFile error:`, err)
+        throw err
+      }
+      if (keyPath) {
+        console.log(`fetched new path:`, keyPath)
+
+        const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
+          'user' // entityType
+        )
+
+        const assetItem: ItemData = {
+          // uuid: v4(),
+          authorId: viewer.id,
+          type: ASSET_TYPE.avatar,
+          path: keyPath,
+        }
+
+        // insert a new uuid item
+        asset = await systemService.findAssetOrCreateByPath(
+          // keyPath,
+          assetItem,
+          entityTypeId,
+          viewer.id // relatedEntityId
+        )
+
+        console.log(`created new asset mapping:`, asset)
+      }
+    } else {
+      asset = await systemService.findAssetByUUID(avatarAssetUUID)
+    }
+
     if (
       !asset ||
       asset.type !== ASSET_TYPE.avatar ||

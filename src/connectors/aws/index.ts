@@ -1,9 +1,11 @@
 import * as AWS from 'aws-sdk'
+import axios from 'axios'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
-import { LOCAL_S3_ENDPOINT } from 'common/enums'
+import { LOCAL_S3_ENDPOINT, UPLOAD_IMAGE_SIZE_LIMIT } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
+import { getFileName } from 'common/utils'
 import { GQLAssetType } from 'definitions'
 
 export class AWSService {
@@ -54,6 +56,61 @@ export class AWSService {
     return environment.awsS3Bucket
   }
 
+  // check existence
+  baseHeadFile = async (
+    folder: GQLAssetType,
+    upload: any,
+    uuid: string
+  ): Promise<string> => {
+    // the upload stream is read-only once
+    // ...
+    const key = `${folder}/${uuid}...`
+    return key
+  }
+
+  // server side fetch and cache an image url
+  // throws any axios error
+  baseServerSideUploadFile = async (
+    folder: GQLAssetType,
+    origUrl: string,
+    filename?: string
+  ): Promise<string | undefined> => {
+    // so far, supports OpenSea's caching layer only: https://lh3.googleusercontent...
+    if (!origUrl?.match(/^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\//)) {
+      return
+    }
+
+    const origRes = await axios.get(origUrl, {
+      responseType: 'stream',
+      maxContentLength: UPLOAD_IMAGE_SIZE_LIMIT,
+    })
+
+    const disposition = origRes.headers['content-disposition']
+    if (!filename) {
+      filename = getFileName(disposition, origUrl)
+    }
+
+    const upload = {
+      createReadStream: () => origRes.data,
+      mimetype: origRes.headers['content-type'],
+      encoding: 'utf8',
+      filename,
+    }
+
+    // const uuid = v4()
+    const pathname = origUrl.substring(origUrl.lastIndexOf('/') + 1)
+    const key = await this.baseUploadFile(
+      GQLAssetType.imgCached,
+      upload,
+      pathname
+    )
+
+    return key
+    const newPath = `${aws.s3Endpoint}/${key}`
+
+    return newPath
+  }
+
   /**
    * Upload file to AWS S3.
    */
@@ -73,6 +130,32 @@ export class AWSService {
     }
 
     const key = `${folder}/${uuid}.${extension}`
+
+    // check if already exists
+    try {
+      const data = await this.s3
+        .headObject({
+          Bucket: this.s3Bucket,
+          Key: key,
+        })
+        .promise()
+
+      if (
+        data.ContentLength === buffer.length &&
+        data.ContentType === mimetype
+      ) {
+        // console.log(new Date(), 'existed, return early:', data)
+        return key
+      }
+    } catch (err) {
+      switch (err.code) {
+        case 'NotFound':
+          break
+        default:
+          console.error(new Date(), 'ERROR:', err)
+          throw err
+      }
+    }
 
     await this.s3
       .upload({

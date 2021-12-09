@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.29.0",
+  "version": "3.30.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -50,7 +50,7 @@
     "@slack/web-api": "^6.5.1",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
-    "apollo-datasource-rest": "^3.3.0",
+    "apollo-datasource-rest": "^3.4.0",
     "apollo-server-cache-redis": "^3.0.2",
     "apollo-server-core": "^3.0.2",
     "apollo-server-express": "^3.0.2",
@@ -81,7 +81,7 @@
     "graphql-upload": "^12.0.0",
     "helmet": "^4.6.0",
     "ipfs-http-client": "^50.1.2",
-    "js-base64": "^3.6.1",
+    "js-base64": "^3.7.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.20.0",
     "lodash": "^4.17.21",
@@ -101,7 +101,7 @@
     "typescript": "^4.3.5",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
-    "web3": "^1.6.0",
+    "web3": "^1.6.1",
     "winston": "^3.3.3",
     "winston-transport": "^4.4.0",
     "xss": "^1.0.9"
@@ -133,7 +133,7 @@
     "@types/uuid": "^8.3.1",
     "@types/validator": "^13.6.3",
     "@types/winston": "^2.4.4",
-    "@types/ws": "^7.4.7",
+    "@types/ws": "^8.2.1",
     "chokidar": "^3.5.2",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.8.3",
@@ -146,13 +146,13 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
-    "ts-jest": "^27.0.4",
+    "ts-jest": "^27.0.7",
     "ts-node": "^10.1.0",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0"
   },
   "optionalDependencies": {
-    "bufferutil": "^4.0.3",
+    "bufferutil": "^4.0.5",
     "utf-8-validate": "^5.0.5"
   },
   "_moduleAliases": {

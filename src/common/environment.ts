@@ -1,6 +1,9 @@
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
+
+import { IMG_CACHE_PATH } from 'common/enums'
+
 dotenv.config()
 
 let firebaseCert = {}
@@ -114,3 +117,10 @@ export const environment = {
   openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
   nftContractAddress: process.env.MATTERS_NFT_CONTRACT_ADDRESS || '',
 }
+
+const protocolScheme = isLocal ? 'http://' : 'https://'
+export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${
+  IMG_CACHE_PATH || '/img-cache'
+}`
+
+console.log(`exported:`, { imgCacheServicePrefix })

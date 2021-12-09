@@ -1983,6 +1983,9 @@ enum AssetType {
   circleCover
   announcementCover
   topicCover
+
+  """img-cached"""
+  imgCached
 }
 
 enum EntityType {
@@ -2514,7 +2517,8 @@ type NFTAsset {
   description: String
   imageUrl: String!
   imagePreviewUrl: String
-  imageOriginalUrl: String!
+
+  """imageOriginalUrl: String!"""
   contractAddress: String!
   collectionName: String!
   tokenMetadata: String
