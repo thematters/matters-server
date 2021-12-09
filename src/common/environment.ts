@@ -123,4 +123,4 @@ export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${
   IMG_CACHE_PATH || '/img-cache'
 }`
 
-console.log(`exported:`, { imgCacheServicePrefix })
+// console.log(`exported:`, { imgCacheServicePrefix })

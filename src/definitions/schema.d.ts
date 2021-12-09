@@ -3462,6 +3462,11 @@ export interface GQLCryptoWallet {
   createdAt: GQLDateTime
 
   /**
+   *  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query
+   */
+  hasNFTs: boolean
+
+  /**
    * NFT assets owned by this wallet address
    */
   nfts?: Array<GQLNFTAsset>
@@ -11534,6 +11539,7 @@ export interface GQLCryptoWalletTypeResolver<TParent = any> {
   id?: CryptoWalletToIdResolver<TParent>
   address?: CryptoWalletToAddressResolver<TParent>
   createdAt?: CryptoWalletToCreatedAtResolver<TParent>
+  hasNFTs?: CryptoWalletToHasNFTsResolver<TParent>
   nfts?: CryptoWalletToNftsResolver<TParent>
 }
 
@@ -11556,6 +11562,15 @@ export interface CryptoWalletToAddressResolver<TParent = any, TResult = any> {
 }
 
 export interface CryptoWalletToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CryptoWalletToHasNFTsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -39,7 +39,7 @@ import isFollowee from './isFollowee'
 import isFollower from './isFollower'
 import Liker from './liker'
 import likerId from './liker/likerId'
-import nfts from './nfts'
+import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
 import { boost, score } from './oss'
 import ownCircles from './ownCircles'
@@ -172,6 +172,8 @@ const user: {
       id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
     address: ({ address }) => address,
     createdAt: ({ createdAt }) => createdAt,
+
+    hasNFTs,
     nfts,
   },
 }

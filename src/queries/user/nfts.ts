@@ -1,8 +1,13 @@
-import { NODE_TYPES } from 'common/enums'
+import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
+import { CacheService } from 'connectors'
 import OpenSeaService from 'connectors/opensea'
-import { UserToAvatarResolver } from 'definitions'
+import {
+  // UserToAvatarResolver,
+  CryptoWalletToHasNFTsResolver,
+  CryptoWalletToNftsResolver,
+} from 'definitions'
 
 interface OpenSeaNFTAsset {
   id: number
@@ -19,12 +24,39 @@ interface OpenSeaNFTAsset {
   permalink: string
 }
 
-const resolver: UserToAvatarResolver = async ({ address }) => {
+const getAssetsByOwner = async (owner: string) => {
   const oseaService = new OpenSeaService()
-  const assets = await oseaService.getAssets({ owner: address })
+  return oseaService.getAssets({ owner })
+}
+
+export const hasNFTs: CryptoWalletToHasNFTsResolver = async ({ address }) => {
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+
+  const assets = await cacheService.getObject({
+    keys: { type: 'traveloggers', id: address },
+    getter: async () => {
+      const assets0 = await getAssetsByOwner(address)
+      return JSON.stringify(assets0)
+    },
+    expire: CACHE_TTL.LONG,
+  })
+
+  return Array.isArray(assets) && assets.length > 0
+}
+
+export const nfts: CryptoWalletToNftsResolver = async ({ address }) => {
+  const assets = await getAssetsByOwner(address)
+
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+  await cacheService.storeObject({
+    // keys: { type, id, field, args }
+    keys: { type: 'traveloggers', id: address },
+    data: assets,
+    expire: CACHE_TTL.LONG,
+  })
 
   return assets
-    .filter(
+    ?.filter(
       // testnet takes longer to refresh
       // if no image_original_url, there's no way can show it
       ({ image_original_url }: OpenSeaNFTAsset) => !!image_original_url
@@ -57,5 +89,3 @@ const resolver: UserToAvatarResolver = async ({ address }) => {
       })
     )
 }
-
-export default resolver

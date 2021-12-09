@@ -22,5 +22,6 @@ export const CACHE_KEYWORD = '__invalid_nodes__'
 // redis cache for apq keys or resolver returned objects
 export const CACHE_PREFIX = {
   OBJECTS: 'cache-objects',
+  NFTS: 'cache-opensea-nfts',
   OPERATION_LOG: 'operation-log',
 }

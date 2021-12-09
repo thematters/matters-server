@@ -1,6 +1,7 @@
 import { DataSourceConfig } from 'apollo-datasource'
 import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 
+// import { CacheService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 
