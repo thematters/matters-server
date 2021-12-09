@@ -53,6 +53,7 @@ export default class OpenSeaService extends RESTDataSource {
     } catch (err) {
       logger.error(err)
       console.error(new Date(), 'ERROR:', err)
+      return []
     }
   }
 }
