@@ -2,7 +2,7 @@ import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
-import OpenSeaService from 'connectors/opensea'
+// import OpenSeaService from 'connectors/opensea'
 import {
   // UserToAvatarResolver,
   CryptoWalletToHasNFTsResolver,
@@ -24,28 +24,33 @@ interface OpenSeaNFTAsset {
   permalink: string
 }
 
-const getAssetsByOwner = async (owner: string) => {
+/* const getAssetsByOwner = async (owner: string) => {
   const oseaService = new OpenSeaService()
   return oseaService.getAssets({ owner })
-}
+} */
 
-export const hasNFTs: CryptoWalletToHasNFTsResolver = async ({ address }) => {
+export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
+  { address },
+  _,
+  { dataSources: { openseaService } }
+) => {
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
 
   const assets = await cacheService.getObject({
     keys: { type: 'traveloggers', id: address },
-    getter: async () => {
-      const assets0 = await getAssetsByOwner(address)
-      return JSON.stringify(assets0)
-    },
+    getter: () => openseaService.getAssets({ owner: address }),
     expire: CACHE_TTL.LONG,
   })
 
   return Array.isArray(assets) && assets.length > 0
 }
 
-export const nfts: CryptoWalletToNftsResolver = async ({ address }) => {
-  const assets = await getAssetsByOwner(address)
+export const nfts: CryptoWalletToNftsResolver = async (
+  { address },
+  _,
+  { dataSources: { openseaService } }
+) => {
+  const assets = await openseaService.getAssets({ owner: address }) // getAssetsByOwner(address)
 
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
   await cacheService.storeObject({

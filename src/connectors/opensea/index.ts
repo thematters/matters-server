@@ -1,11 +1,12 @@
-import { DataSourceConfig } from 'apollo-datasource'
+// import { DataSourceConfig } from 'apollo-datasource'
 import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 
 // import { CacheService } from 'connectors'
+import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 
-export default class OpenSeaService extends RESTDataSource {
+export class OpenSeaService extends RESTDataSource {
   apiKey?: string | undefined
 
   constructor() {
@@ -15,14 +16,20 @@ export default class OpenSeaService extends RESTDataSource {
     // or https://api.opensea.io/api/v1/assets?asset_contract_address=<...>&owner=<...>
     this.baseURL = environment.openseaAPIBase
     this.apiKey = environment.openseaAPIKey
+
     // this.initialize(config)
-    this.initialize({} as DataSourceConfig<any>)
+    // this.initialize({} as DataSourceConfig<any>)
   }
 
   willSendRequest(request: RequestOptions) {
     if (this.apiKey) {
       request.headers.set('X-API-KEY', this.apiKey)
     }
+  }
+
+  didEncounterError(error: Error, _request: Request) {
+    console.error(new Date(), 'ERROR:', err, 'with request:', _request)
+    throw error;
   }
 
   async getAssets({
@@ -40,20 +47,31 @@ export default class OpenSeaService extends RESTDataSource {
         })}, with baseURL: "${this.baseURL}"`
       )
 
-      const data = await this.get('assets', {
-        // Query parameters
-        owner,
-        asset_contract_address,
-        order_direction: 'desc',
-        offset: 0,
-        limit: 20,
-      })
+      const data = await this.get(
+        'assets',
+        {
+          // Query parameters
+          owner,
+          asset_contract_address,
+          order_direction: 'desc',
+          offset: 0,
+          limit: 20,
+        },
+        {
+          cacheOptions: {
+            // use 1 hour caching, override server-side provided cache-control: max-age=300
+            ttl: CACHE_TTL.MEDIUM,
+          },
+        }
+      )
 
       logger.info(`fetched ${data.assets?.length} assets.`)
+
       return data.assets
     } catch (err) {
       logger.error(err)
       console.error(new Date(), 'ERROR:', err)
+
       return []
     }
   }

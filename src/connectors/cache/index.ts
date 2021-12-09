@@ -53,9 +53,9 @@ export class CacheService {
     keys,
     data,
     expire = CACHE_TTL.SHORT,
-  }: KeyInfo & {
+  }: {
     keys: KeyInfo
-    data: string
+    data: any
     expire?: number
   }) => {
     if (!this.redis || !this.redis.client) {
@@ -77,7 +77,7 @@ export class CacheService {
     expire = CACHE_TTL.SHORT,
   }: KeyInfo & {
     keys: KeyInfo
-    getter: () => Promise<string | undefined>
+    getter: () => Promise<any>
     expire?: number
   }) => {
     const isNil = (tested: any) => {
@@ -100,7 +100,7 @@ export class CacheService {
 
     // get the data if there is none
     if (isNil(data) && getter) {
-      data = (await getter()) as string
+      data = await getter()
 
       if (!isNil(data)) {
         this.storeObject({
