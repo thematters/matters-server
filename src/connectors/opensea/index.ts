@@ -28,7 +28,7 @@ export class OpenSeaService extends RESTDataSource {
   }
 
   didEncounterError(error: Error, _request: Request) {
-    console.error(new Date(), 'ERROR:', error, 'with request:', _request)
+    console.error(new Date(), 'ERROR:', error, 'with request:', _request.headers, _request)
     throw error
   }
 
