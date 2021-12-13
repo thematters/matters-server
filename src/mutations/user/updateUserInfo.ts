@@ -53,13 +53,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     const avatarAssetUUID = input.avatar
     let asset
 
-    // const prefix = 'https://server-develop.matters.news/img-cache'
-    /* console.log(
-      `updateUserInfo:`,
-      input,
-      { imgCacheServicePrefix },
-      input.avatar?.startsWith(imgCacheServicePrefix)
-    ) */
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
       console.log(`setting avatar with:`, origUrl)
