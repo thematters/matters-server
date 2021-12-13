@@ -1,13 +1,17 @@
+import psl from 'psl'
+
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_STATUS,
+  VERIFICATION_DOMAIN_WHITELIST,
 } from 'common/enums'
 import {
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
   ForbiddenError,
+  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { gcp } from 'connectors'
@@ -62,6 +66,16 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     user = await userService.findByEmail(email)
     if (!user) {
       throw new EmailNotFoundError('cannot find email')
+    }
+  }
+
+  // check redirectUrl
+  if (redirectUrl) {
+    const url = new URL(redirectUrl)
+    const tld = url?.hostname ? psl.get(url.hostname) : null
+
+    if (tld && !VERIFICATION_DOMAIN_WHITELIST.includes(tld)) {
+      throw new UserInputError('"redirectUrl" is invalid.')
     }
   }
 
