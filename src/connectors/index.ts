@@ -19,3 +19,5 @@ export * from './userService'
 export * from './notificationService'
 export * from './oauthService'
 export * from './paymentService'
+
+export * from './opensea'

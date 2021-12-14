@@ -10,6 +10,7 @@ import {
   DraftService,
   NotificationService,
   OAuthService,
+  OpenSeaService,
   PaymentService,
   SystemService,
   TagService,
@@ -84,6 +85,7 @@ export type DataSources = {
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
   paymentService: InstanceType<typeof PaymentService>
+  openseaService: InstanceType<typeof OpenSeaService>
 }
 
 export type BasicTableName =

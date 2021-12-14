@@ -25,7 +25,11 @@ export const reverseMap = _.assign.apply(_, reverseList)
 // list of languages that we support
 export const supportList = _.keys(reverseMap)
 
-export const getLanguage = (acceptLanguage: string) => {
+export const getLanguage = (acceptLanguage?: string) => {
+  if (!acceptLanguage) {
+    return LANGUAGE.zh_hant
+  }
+
   try {
     // parse quality values
     const requestList = acceptLanguage
@@ -41,6 +45,7 @@ export const getLanguage = (acceptLanguage: string) => {
     }
   } catch (err) {
     logger.error(err)
+    console.error(new Date(), 'ERROR:', err, { acceptLanguage })
   }
 
   return LANGUAGE.zh_hant
