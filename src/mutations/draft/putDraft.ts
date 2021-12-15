@@ -2,7 +2,6 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
@@ -25,11 +24,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
-import {
-  GQLArticleAccessType,
-  ItemData,
-  MutationToPutDraftResolver,
-} from 'definitions'
+import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -149,19 +144,6 @@ const resolver: MutationToPutDraftResolver = async (
     circleId = cId
   }
 
-  // check license
-  const checkLicense = (access?: GQLArticleAccessType) => {
-    const isARR = license === ARTICLE_LICENSE_TYPE.arr
-    const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
-
-    if (isARR && !isPaywall) {
-      throw new ForbiddenError(
-        'ARR (All Right Reserved) license can only be used by paywalled content.'
-      )
-    }
-  }
-  checkLicense(accessType)
-
   // check if tags includes matty's tag
   const isMatty = viewer.id === environment.mattyId
   const mattyTagId = environment.mattyChoiceTagId
@@ -234,9 +216,6 @@ const resolver: MutationToPutDraftResolver = async (
     if (data?.summary?.length > 200) {
       throw new UserInputError('summary reach length limit')
     }
-
-    // check license
-    checkLicense(accessType || draft.access)
 
     // handle candidate cover
     const isUpdateContent = content || content === ''
