@@ -2,7 +2,6 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -182,7 +181,7 @@ const resolver: MutationToPutDraftResolver = async (
       collection: collectionIds,
       circleId,
       access: accessType,
-      license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
     },
     _.isNil
   )

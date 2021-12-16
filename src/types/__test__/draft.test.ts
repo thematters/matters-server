@@ -102,9 +102,18 @@ describe('put draft', () => {
     })
     expect(_get(changeResult, 'license')).toBe(ARTICLE_LICENSE_TYPE.arr)
 
+    // after changing only tags, the license and accessType should remain unchanged
+    const changeTagsResult = await putDraft({
+      draft: { id: draftId, tags: ['arr license test'] },
+    })
+    expect(_get(changeTagsResult, 'license')).toBe(ARTICLE_LICENSE_TYPE.arr)
+
     // reset license
     const resetResult1 = await putDraft({
-      draft: { id: draftId, license: null as any },
+      draft: {
+        id: draftId,
+        license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
+      },
     })
     expect(_get(resetResult1, 'license')).toBe(
       ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
