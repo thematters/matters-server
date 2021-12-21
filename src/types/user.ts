@@ -521,7 +521,7 @@ export default /* GraphQL */ `
     hasNFTs: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     """NFT assets owned by this wallet address"""
-    nfts: [NFTAsset!] @cacheControl(maxAge: ${CACHE_TTL.MEDIUM}, scope: PRIVATE)
+    nfts: [NFTAsset!]
   }
 
   """ NFT Asset """

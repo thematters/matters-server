@@ -144,7 +144,6 @@ export class AWSService {
         data.ContentLength === buffer.length &&
         data.ContentType === mimetype
       ) {
-        // console.log(new Date(), 'existed, return early:', data)
         return key
       }
     } catch (err) {
