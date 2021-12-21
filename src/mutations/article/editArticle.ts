@@ -3,7 +3,6 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
@@ -456,17 +455,6 @@ const resolver: MutationToEditArticleResolver = async (
    * License
    */
   const resetLicense = license === null
-
-  // check license
-  const isARR = license === ARTICLE_LICENSE_TYPE.arr
-  const isPaywall =
-    (accessType || currAccess?.access) === ARTICLE_ACCESS_TYPE.paywall
-
-  if (isARR && !isPaywall) {
-    throw new ForbiddenError(
-      'ARR (All Right Reserved) license can only be used by paywalled content.'
-    )
-  }
 
   if (license || resetLicense) {
     // we wont increase twice if the article will be republish later

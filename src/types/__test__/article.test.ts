@@ -476,9 +476,8 @@ describe('edit article', () => {
       ARTICLE_LICENSE_TYPE.cc_0
     )
 
-    // forbid to ARR if it's not a paywalled article
-    const errorPath = 'errors.0.extensions.code'
-    const forbidResult = await server.executeOperation({
+    // change license to ARR should succeed
+    const changeResult = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -487,7 +486,9 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(forbidResult, errorPath)).toBe('FORBIDDEN')
+    expect(_get(changeResult, 'data.editArticle.license')).toBe(
+      ARTICLE_LICENSE_TYPE.arr
+    )
 
     // reset license
     const resetResult1 = await server.executeOperation({

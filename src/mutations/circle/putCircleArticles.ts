@@ -2,7 +2,6 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
@@ -147,15 +146,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   const editLicense = async (draftId: string) => {
-    const isARR = license === ARTICLE_LICENSE_TYPE.arr
-    const isPaywall = accessType === ARTICLE_ACCESS_TYPE.paywall
-
-    if (isARR && !isPaywall) {
-      throw new ForbiddenError(
-        'ARR (All Right Reserved) license can only be used by paywalled content.'
-      )
-    }
-
     await atomService.update({
       table: 'draft',
       where: { id: draftId },

@@ -8,8 +8,6 @@ import { GQLAssetType } from 'definitions'
 export const imgCache = Router()
 
 imgCache.get('/*', async (req: Request, res: Response) => {
-  // console.log(new Date(), 'reached here:', req.url, req.params)
-
   let viewer
   try {
     viewer = await getViewerFromReq({ req })

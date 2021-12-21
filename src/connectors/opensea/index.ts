@@ -1,7 +1,5 @@
-// import { DataSourceConfig } from 'apollo-datasource'
-import { Request, RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
+import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 
-// import { CacheService } from 'connectors'
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -16,27 +14,12 @@ export class OpenSeaService extends RESTDataSource {
     // or https://api.opensea.io/api/v1/assets?asset_contract_address=<...>&owner=<...>
     this.baseURL = environment.openseaAPIBase
     this.apiKey = environment.openseaAPIKey
-
-    // this.initialize(config)
-    // this.initialize({} as DataSourceConfig<any>)
   }
 
   willSendRequest(request: RequestOptions) {
     if (this.apiKey) {
       request.headers.set('X-API-KEY', this.apiKey)
     }
-  }
-
-  didEncounterError(error: Error, _request: Request) {
-    console.error(
-      new Date(),
-      'ERROR:',
-      error,
-      'with request:',
-      _request.headers,
-      _request
-    )
-    throw error
   }
 
   async getAssets({
@@ -47,17 +30,9 @@ export class OpenSeaService extends RESTDataSource {
     asset_contract_address?: string
   }) {
     try {
-      logger.info(
-        `fetching assets for address ${JSON.stringify({
-          owner,
-          asset_contract_address,
-        })}, with baseURL: "${this.baseURL}"`
-      )
-
       const data = await this.get(
         'assets',
         {
-          // Query parameters
           owner,
           asset_contract_address,
           order_direction: 'desc',
@@ -72,7 +47,9 @@ export class OpenSeaService extends RESTDataSource {
         }
       )
 
-      logger.info(`fetched ${data.assets?.length} assets.`)
+      logger.info(
+        `fetched ${data.assets?.length} assets for owner: "${owner}".`
+      )
 
       return data.assets
     } catch (err) {

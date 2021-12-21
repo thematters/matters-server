@@ -63,7 +63,7 @@ query UserProfilePrivate($input: UserInput!) {
       cryptoWallet {
         id
         address
-        # hasNFTs
+        hasNFTs
         nfts {
           id
           name
@@ -81,7 +81,7 @@ query UserProfilePrivate($input: UserInput!) {
 }`,
       variables: {
         input: {
-          userName: 'iltzvcrhvueq',
+          userName: 'iltzvcrhvueq', // need some other prod user names when testing prod server
         },
       },
     }),
@@ -91,7 +91,7 @@ query UserProfilePrivate($input: UserInput!) {
   )
 
   // if (res.status === 200) {
-  console.log(new Date().toISOString(), JSON.stringify(res.headers), res.body)
+  //  console.log((new Date).toISOString(), JSON.stringify(res.headers), res.body);
 
   check(res, {
     'post status was 200': (r) => r.status == 200,
