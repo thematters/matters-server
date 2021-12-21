@@ -15,7 +15,10 @@ import * as routes from './routes'
    * Init
    */
   // Sentry
-  Sentry.init({ dsn: environment.sentryDsn })
+  Sentry.init({
+    dsn: environment.sentryDsn,
+    sampleRate: 0.1,
+  })
 
   // Firebase
   try {
