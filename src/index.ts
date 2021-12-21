@@ -14,10 +14,17 @@ import * as routes from './routes'
   /**
    * Init
    */
+
   // Sentry
   Sentry.init({
     dsn: environment.sentryDsn,
     sampleRate: 0.1,
+    ignoreErrors: [
+      'ActionLimitExceededError',
+      'ArticleNotFoundError',
+      'ForbiddenError',
+      'ForbiddenByStateError',
+    ],
   })
 
   // Firebase
