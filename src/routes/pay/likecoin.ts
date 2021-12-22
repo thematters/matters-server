@@ -215,7 +215,7 @@ likecoinRouter.post('/', async (req, res, next) => {
       throw new Error('callback has no "metadata"')
     }
 
-    const txState = metadata.state || ''
+    const txState = metadata.likePay?.state || metadata.state || ''
     logger.info(`callback tx:${txHash}, state: ${txState}`)
 
     let trans = (
@@ -332,7 +332,7 @@ likecoinRouter.post('/', async (req, res, next) => {
 
     res.json({ received: true })
   } catch (error) {
-    const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${req.body}`
+    const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${JSON.stringify(req.body)}`
     logger.error(errMsg)
     next(errMsg)
   }
