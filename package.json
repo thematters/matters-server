@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.30.1",
+  "version": "3.31.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -46,7 +46,7 @@
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^7.4.5",
-    "@sentry/node": "^6.15.0",
+    "@sentry/node": "^6.16.1",
     "@slack/web-api": "^6.5.1",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
