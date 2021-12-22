@@ -53,12 +53,20 @@ export default () => {
             })
           }
 
-          // transfer viewer's temporary LikerID to his own LikerID
           if (viewer.likerId) {
             const fromLiker = await userService.findLiker({
               likerId: viewer.likerId,
             })
 
+            // forbid to change current liker id
+            if (fromLiker?.accountType === 'general') {
+              return done(null, undefined, {
+                code: OAUTH_CALLBACK_ERROR_CODE.likerExists,
+                message: 'liker already exists.',
+              })
+            }
+
+            // transfer viewer's temporary LikerID to his own LikerID
             if (
               fromLiker &&
               fromLiker.accountType === 'temporal' &&
