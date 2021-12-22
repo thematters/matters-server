@@ -332,7 +332,9 @@ likecoinRouter.post('/', async (req, res, next) => {
 
     res.json({ received: true })
   } catch (error) {
-    const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${JSON.stringify(req.body)}`
+    const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${JSON.stringify(
+      req.body
+    )}`
     logger.error(errMsg)
     next(errMsg)
   }
