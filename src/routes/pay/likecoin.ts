@@ -215,14 +215,25 @@ likecoinRouter.post('/', async (req, res, next) => {
       throw new Error('callback has no "metadata"')
     }
 
-    const trans = (
+    const txState = metadata.likePay?.state || metadata.state || ''
+    logger.info(`callback tx:${txHash}, state: ${txState}`)
+
+    let trans = (
       await paymentService.findTransactions({
         providerTxId: tx.txHash,
       })
     )[0]
 
     if (!trans) {
-      throw new Error(`counld not find tx hash`)
+      trans = (
+        await paymentService.findTransactions({
+          providerTxId: txState,
+        })
+      )[0]
+
+      if (!trans) {
+        throw new Error(`counld not find tx hash`)
+      }
     }
 
     // check like chain tx state
@@ -321,7 +332,9 @@ likecoinRouter.post('/', async (req, res, next) => {
 
     res.json({ received: true })
   } catch (error) {
-    const errMsg = `webhook err: ${error}, tx hash: ${txHash}`
+    const errMsg = `webhook err: ${error}, tx hash: ${txHash}, request: ${JSON.stringify(
+      req.body
+    )}`
     logger.error(errMsg)
     next(errMsg)
   }
