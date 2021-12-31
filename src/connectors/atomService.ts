@@ -1,6 +1,6 @@
 import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
-import Knex from 'knex'
+import { Knex } from 'knex'
 
 import { EntityNotFoundError } from 'common/errors'
 import logger from 'common/logger'
@@ -22,6 +22,7 @@ interface FindFirstInput {
   select?: string[]
   where: Record<string, any>
   whereIn?: [string, string[]]
+  orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
 }
 
 interface FindManyInput {
@@ -137,11 +138,15 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for getting the first record in rows.
    */
-  findFirst = async ({ table, where, whereIn }: FindFirstInput) => {
+  findFirst = async ({ table, where, whereIn, orderBy }: FindFirstInput) => {
     const query = this.knex.select().from(table).where(where)
 
     if (whereIn) {
       query.whereIn(...whereIn)
+    }
+
+    if (orderBy) {
+      query.orderBy(orderBy)
     }
 
     return query.first()
@@ -236,7 +241,10 @@ export class AtomService extends DataSource {
   upsert = async ({ table, where, create, update }: UpsertInput) => {
     // TODO: Use onConflict instead
     // @see {@url https://github.com/knex/knex/pull/3763}
-    const record = await this.knex(table).select().where(where).first()
+    const record = await this.knex(table)
+      .select()
+      .where(where as Record<string, any>)
+      .first()
 
     // create
     if (!record) {
@@ -245,7 +253,7 @@ export class AtomService extends DataSource {
 
     // update
     const [updatedRecord] = await this.knex(table)
-      .where(where)
+      .where(where as Record<string, any>)
       .update(update)
       .returning('*')
 
@@ -260,7 +268,7 @@ export class AtomService extends DataSource {
   deleteMany = async ({ table, where, whereIn }: DeleteManyInput) => {
     const action = this.knex(table)
     if (where) {
-      action.where(where)
+      action.where(where as Record<string, any>)
     }
     if (whereIn) {
       action.whereIn(...whereIn)
@@ -289,7 +297,10 @@ export class AtomService extends DataSource {
    * A Prisma like method for getting max.
    */
   max = async ({ table, where, column }: MaxInput) => {
-    const record = await this.knex(table).max(column).where(where).first()
+    const record = await this.knex(table)
+      .max(column)
+      .where(where as Record<string, any>)
+      .first()
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 

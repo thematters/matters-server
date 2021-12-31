@@ -1,6 +1,6 @@
 import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
-import Knex from 'knex'
+import { Knex } from 'knex'
 
 import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 import {

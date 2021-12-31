@@ -1,6 +1,6 @@
 import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'

@@ -12,8 +12,8 @@ const resolver: UserToCommentedArticlesResolver = async (
   const { take, skip } = fromConnectionArgs(input)
 
   const base = knex
-    .select('article.*')
-    .max('comment.id', { as: '_comment_id_' })
+    .select('article.*', 'comment.id as _comment_id_')
+    // .max('comment.id', { as: '_comment_id_' })
     .from('comment')
     .innerJoin('article', 'comment.target_id', 'article.id')
     .where({

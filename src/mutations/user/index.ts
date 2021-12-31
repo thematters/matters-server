@@ -6,6 +6,7 @@ import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
 import deleteWallet from './deleteWallet'
 import generateLikerId from './generateLikerId'
+import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
@@ -36,6 +37,7 @@ export default {
     userLogin,
     userLogout,
     generateLikerId,
+    generateSigningMessage,
     resetLikerId,
     updateUserInfo,
     updateNotificationSetting,

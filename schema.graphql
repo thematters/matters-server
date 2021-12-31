@@ -199,6 +199,12 @@ type Mutation {
   """Login user."""
   userLogin(input: UserLoginInput!): AuthResult!
 
+  """get signing message."""
+  generateSigningMessage(address: String!): SigningMessageResult!
+
+  """Login/Signup via a wallet."""
+  walletLogin(input: WalletLoginInput!): AuthResult!
+
   """Logout user."""
   userLogout: Boolean!
 
@@ -2234,6 +2240,9 @@ type UserInfo {
   """Type of group."""
   group: UserGroup!
 
+  """Login address"""
+  ethAddress: String
+
   """Connected wallet."""
   cryptoWallet: CryptoWallet
 }
@@ -2361,6 +2370,13 @@ type Badge {
 type AuthResult {
   auth: Boolean!
   token: String
+}
+
+type SigningMessageResult {
+  nonce: String!
+  signingMessage: String!
+  createdAt: DateTime!
+  expiredAt: DateTime!
 }
 
 type UserConnection implements Connection {
@@ -2582,6 +2598,20 @@ input UserLoginInput {
   password: String!
 }
 
+input WalletLoginInput {
+  ethAddress: String!
+
+  """optionally, the client side can resolve with Alchemy APIs"""
+  ensLabel: String
+
+  """the message being sign'ed, including nonce"""
+  signedMessage: String!
+
+  """sign'ed by wallet"""
+  signature: String!
+  nonce: String!
+}
+
 input ResetLikerIdInput {
   id: ID!
 }
@@ -2733,6 +2763,8 @@ enum AuthorsType {
 enum CryptoWalletSignaturePurpose {
   airdrop
   connect
+  signup
+  login
 }
 
 union Response = Article | Comment

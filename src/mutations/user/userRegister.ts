@@ -178,7 +178,7 @@ const resolver: MutationToUserRegisterResolver = async (
     })
   )
 
-  const { token, user } = await userService.login({ ...input, email })
+  const { token, user } = await userService.loginByEmail({ ...input, email })
 
   setCookie({ req, res, token, user })
 

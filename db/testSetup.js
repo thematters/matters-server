@@ -40,8 +40,18 @@ module.exports = async () => {
   await knex.migrate.latest()
   await knex.seed.run()
 
+  const matty = await knex('user')
+    .select('id')
+    .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
+    .first()
+  const count = await knex('user').count().first()
+  console.log(new Date(), 'got matty?', { matty, count })
+
   // re-run specific migrations after seeding
-  const tasks = ['20200904104135_create_curation_tag_materialized.js']
+  const tasks = [
+    // '20200904104135_create_curation_tag_materialized.js',
+    '20201103090135_recreate_curation_tag_materialized.js',
+  ]
   for (const task of tasks) {
     await knex.migrate.down({ name: task })
     await knex.migrate.up({ name: task })

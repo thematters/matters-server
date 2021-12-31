@@ -406,12 +406,10 @@ export class PaymentService extends BaseService {
             sender_id = ${userId} and currency = 'HKD' and (state = 'succeeded' or state = 'pending')
         ) as src`)
       )
-      .sum('src.amount as amount')
+      .sum('src.amount', { as: 'amount' })
+      .first()
 
-    if (!result || !result[0]) {
-      return 0
-    }
-    return parseInt(result[0].amount || 0, 10)
+    return parseInt(result?.amount || 0, 10)
   }
 
   countPendingPayouts = async ({ userId }: { userId: string }) => {

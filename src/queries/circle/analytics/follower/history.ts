@@ -1,4 +1,4 @@
-import Knex from 'knex'
+import { Knex } from 'knex'
 
 import { CIRCLE_ACTION } from 'common/enums'
 import { CircleFollowerAnalyticsToHistoryResolver } from 'definitions'

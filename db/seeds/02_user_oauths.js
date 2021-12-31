@@ -5,9 +5,6 @@ exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {
-      return knex(table).insert([])
-    })
-    .then(function () {
       return knex(table_likecoin)
         .del()
         .then(function () {

@@ -302,6 +302,14 @@ export class EmailNotFoundError extends ApolloError {
   }
 }
 
+export class EthAddressNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'USER_ETH_ADDRESS_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'EthAddressNotFoundError' })
+  }
+}
+
 export class PasswordInvalidError extends ApolloError {
   constructor(message: string) {
     super(message, 'USER_PASSWORD_INVALID')

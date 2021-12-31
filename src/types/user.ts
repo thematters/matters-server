@@ -25,6 +25,12 @@ export default /* GraphQL */ `
     "Login user."
     userLogin(input: UserLoginInput!): AuthResult!
 
+    "get signing message."
+    generateSigningMessage(address: String!): SigningMessageResult!
+
+    "Login/Signup via a wallet."
+    walletLogin(input: WalletLoginInput!): AuthResult!
+
     "Logout user."
     userLogout: Boolean!
 
@@ -242,6 +248,9 @@ export default /* GraphQL */ `
     "Type of group."
     group: UserGroup!
 
+    "Login address"
+    ethAddress: String
+
     "Connected wallet."
     cryptoWallet: CryptoWallet
   }
@@ -361,6 +370,13 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+  }
+
+  type SigningMessageResult {
+    nonce: String!
+    signingMessage: String!
+    createdAt: DateTime!
+    expiredAt: DateTime!
   }
 
   type UserConnection implements Connection {
@@ -591,6 +607,24 @@ export default /* GraphQL */ `
     password: String!
   }
 
+  input WalletLoginInput {
+    ethAddress: String!
+
+    "optionally, the client side can resolve with Alchemy APIs"
+    ensLabel: String
+
+    ### publicKey: String! // the JSON.stringify'ed pub key of signing key
+    "the message being sign'ed, including nonce"
+    signedMessage: String!
+
+    "sign'ed by wallet"
+    signature: String!
+
+    nonce: String!
+
+    ### code: String          // the gcr recapture code might be necessary for anti-spam; can be added later if spam activities showing high """
+  }
+
   input ResetLikerIdInput {
     id: ID!
   }
@@ -742,5 +776,7 @@ export default /* GraphQL */ `
   enum CryptoWalletSignaturePurpose {
     airdrop
     connect
+    signup
+    login
   }
 `
