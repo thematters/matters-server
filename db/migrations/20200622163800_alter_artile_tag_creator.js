@@ -3,7 +3,7 @@ const table = 'article_tag'
 exports.up = async (knex) => {
   // add creator column
   await knex.schema.table(table, function (t) {
-    t.bigInteger('creator').unsigned().defaultTo()
+    t.bigInteger('creator').unsigned()
   })
 
   // update article tag creator

@@ -255,6 +255,16 @@ export interface GQLMutation {
   userLogin: GQLAuthResult
 
   /**
+   * get signing message.
+   */
+  generateSigningMessage: string
+
+  /**
+   * Login/Signup via a wallet.
+   */
+  walletLogin: GQLAuthResult
+
+  /**
    * Logout user.
    */
   userLogout: boolean
@@ -3084,6 +3094,11 @@ export interface GQLUserInfo {
   group: GQLUserGroup
 
   /**
+   * Login address
+   */
+  ethAddress?: string
+
+  /**
    * Connected wallet.
    */
   cryptoWallet?: GQLCryptoWallet
@@ -3544,6 +3559,25 @@ export interface GQLUserLoginInput {
   password: string
 }
 
+export interface GQLWalletLoginInput {
+  ethAddress: string
+
+  /**
+   * optionally, the client side can resolve with Alchemy APIs
+   */
+  ensLabel?: string
+
+  /**
+   * the message being sign'ed, including nonce
+   */
+  signed_message: string
+
+  /**
+   * sign'ed by wallet
+   */
+  signature: string
+}
+
 export interface GQLResetLikerIdInput {
   id: string
 }
@@ -3695,6 +3729,8 @@ export const enum GQLAuthorsType {
 export const enum GQLCryptoWalletSignaturePurpose {
   airdrop = 'airdrop',
   connect = 'connect',
+  signup = 'signup',
+  login = 'login',
 }
 
 export type GQLResponse = GQLArticle | GQLComment
@@ -4375,6 +4411,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   changeEmail?: MutationToChangeEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
+  generateSigningMessage?: MutationToGenerateSigningMessageResolver<TParent>
+  walletLogin?: MutationToWalletLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   resetLikerId?: MutationToResetLikerIdResolver<TParent>
@@ -5101,6 +5139,33 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserLoginArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToGenerateSigningMessageArgs {
+  address: string
+}
+export interface MutationToGenerateSigningMessageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToGenerateSigningMessageArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToWalletLoginArgs {
+  input: GQLWalletLoginInput
+}
+export interface MutationToWalletLoginResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToWalletLoginArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10185,6 +10250,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
   profileCover?: UserInfoToProfileCoverResolver<TParent>
   group?: UserInfoToGroupResolver<TParent>
+  ethAddress?: UserInfoToEthAddressResolver<TParent>
   cryptoWallet?: UserInfoToCryptoWalletResolver<TParent>
 }
 
@@ -10255,6 +10321,15 @@ export interface UserInfoToProfileCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToGroupResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToEthAddressResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

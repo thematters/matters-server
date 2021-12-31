@@ -4,9 +4,9 @@ const table_likecoin = 'user_oauth_likecoin'
 exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
-    .then(function () {
+    /* .then(function () {
       return knex(table).insert([])
-    })
+    }) */
     .then(function () {
       return knex(table_likecoin)
         .del()
