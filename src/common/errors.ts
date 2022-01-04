@@ -376,6 +376,13 @@ export class LikerUserIdExistsError extends ApolloError {
   }
 }
 
+export class LikeCoinWebhookError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKECOIN_WEBHOOK_ERROR')
+    Object.defineProperty(this, 'name', { value: 'LikeCoinWebhookError' })
+  }
+}
+
 /*********************************
  *                               *
  *             OAuth             *

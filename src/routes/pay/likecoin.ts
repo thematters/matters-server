@@ -5,6 +5,7 @@ import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
+import { LikeCoinWebhookError } from 'common/errors'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
 import {
@@ -46,10 +47,7 @@ likecoinRouter.get('/', async (req, res) => {
 
   const paymentService = new PaymentService()
 
-  // TODO: REMOVE
   const userService = new UserService()
-  // TODO: REMOVE
-  const notificationService = new NotificationService()
 
   try {
     const { tx_hash, state, success } = req.query
@@ -77,7 +75,6 @@ likecoinRouter.get('/', async (req, res) => {
       throw new Error('could not found tx id passing from like pay')
     }
 
-    // TODO: remove <--
     // check like chain tx state
     const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
@@ -112,63 +109,12 @@ likecoinRouter.get('/', async (req, res) => {
       throw new Error('like pay failure')
     }
 
-    /**
-     * trigger notifications
-     */
-    const sender = await userService.baseFindById(updatedTx.senderId)
-    const recipient = await userService.baseFindById(updatedTx.recipientId)
-
-    // send to sender
-    notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
-      },
-    })
-
-    // send to recipient
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
-      recipientId: recipient.id,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'transaction',
-          entity: updatedTx,
-        },
-      ],
-    })
-    notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonationLikeCoin',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
-      },
-    })
-
     // manaully invalidate cache
     invalidateCache({
       id: updatedTx.targetId,
       typeId: updatedTx.targetType,
       userService,
     })
-    // TODO: -->
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
@@ -207,12 +153,12 @@ likecoinRouter.post('/', async (req, res, next) => {
   try {
     const { tx, metadata } = req.body
     if (!tx || !tx.txHash) {
-      throw new Error('callback has no "tx"')
+      throw new LikeCoinWebhookError('callback has no "tx"')
     }
     txHash = tx.txHash
 
     if (!metadata) {
-      throw new Error('callback has no "metadata"')
+      throw new LikeCoinWebhookError('callback has no "metadata"')
     }
 
     const txState = metadata.likePay?.state || metadata.state || ''
@@ -232,17 +178,15 @@ likecoinRouter.post('/', async (req, res, next) => {
       )[0]
 
       if (!trans) {
-        throw new Error(`counld not find tx hash`)
+        throw new LikeCoinWebhookError(`counld not find tx hash`)
       }
     }
 
     // check like chain tx state
     // 1 like is 10^9 nanolike
     const rate = Math.pow(10, 9)
-    const cosmosData = await userService.likecoin.getCosmosTxData({
-      hash: tx.txHash,
-    })
-    const cosmosAmount = NP.divide(cosmosData.amount, rate)
+    const amount = tx.amount?.amount || 0
+    const cosmosAmount = NP.divide(amount, rate)
     const cosmosState =
       tx.status === 'success'
         ? TRANSACTION_STATE.succeeded
@@ -259,9 +203,11 @@ likecoinRouter.post('/', async (req, res, next) => {
       updatedAt: new Date(),
     }
 
-    // correct amount if it changed via LikePay
-    if (trans.amount !== cosmosAmount) {
-      updateParams.amount = cosmosAmount
+    // check if webhook posted correct amount
+    if (Math.round(trans.amount) !== cosmosAmount) {
+      throw new LikeCoinWebhookError(
+        `incorrect amount: ${trans.amount} != ${cosmosAmount}`
+      )
     }
 
     // update transaction
@@ -273,7 +219,7 @@ likecoinRouter.post('/', async (req, res, next) => {
         typeId: updatedTx.targetType,
         userService,
       })
-      throw new Error(`like pay failure`)
+      throw new LikeCoinWebhookError(`like pay failure`)
     }
 
     // notification
