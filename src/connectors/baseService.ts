@@ -138,7 +138,7 @@ export class BaseService extends DataSource {
       const [result] = await this.knex(table || this.table)
         .insert(data)
         .returning('*')
-      logger.info(`Inserted id ${result.id} to ${table}`)
+      logger.info(`Inserted id ${result.id} to ${table || this.table}`)
       return result
     } catch (err) {
       logger.error(err)

@@ -33,6 +33,7 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
       purpose: GQLCryptoWalletSignaturePurpose.signup,
       // orderBy: [{column: 'id', order: 'desc'}],
     },
+    orderBy: [{ column: 'id', order: 'desc' }],
   })
 
   // e.g. 'ek4j3nbum7ql'
@@ -56,6 +57,8 @@ Expiration Time: ${expiredAt.toISOString()}
 Resources:
 - https://matters.news/community
 - ...`
+
+  console.log(new Date(), 'lastUsed:', lastUsed)
 
   const purpose = lastUsed?.userId
     ? GQLCryptoWalletSignaturePurpose.login

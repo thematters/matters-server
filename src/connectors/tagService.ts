@@ -70,6 +70,9 @@ export class TagService extends BaseService {
   findByContent = async ({ content }: { content: string }) =>
     this.knex.select().from(this.table).where({ content })
 
+  findByContentIn = async (contentIn: string[]) =>
+    this.knex.select().from(this.table).whereIn('content', contentIn)
+
   /**
    * Find tags by a given article id.
    *
@@ -845,5 +848,21 @@ export class TagService extends BaseService {
     await this.baseBatchDelete(tagIds)
 
     return newTag
+  }
+
+  // follow tags by content
+  followTags = async (userId: string, tags: string[]) => {
+    const items = await this.findByContentIn(tags)
+    // console.log(new Date, 'AUTO_FOLLOW_TAGS:', AUTO_FOLLOW_TAGS, items)
+
+    await Promise.all(
+      items
+        .filter(Boolean)
+        .map((tag) =>
+          this.follow({ targetId: tag.id, userId }).then((err) =>
+            console.error(new Date(), `follow ${tag} failed:`, err)
+          )
+        )
+    )
   }
 }

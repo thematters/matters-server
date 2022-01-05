@@ -24,6 +24,7 @@ import {
 import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
+  EthAddressNotFoundError,
   PasswordInvalidError,
   ServerError,
   UserInputError,
@@ -181,7 +182,7 @@ export class UserService extends BaseService {
       if (user && user.state === USER_STATE.archived && archivedCallback) {
         await archivedCallback().catch((error) => logger.error)
       }
-      throw new EmailNotFoundError(
+      throw new EthAddressNotFoundError(
         'Cannot find user with such ethAddress, login failed.'
       )
     }

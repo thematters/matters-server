@@ -4,7 +4,7 @@ import Web3 from 'web3'
 import { AUTO_FOLLOW_TAGS } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  EntityNotFoundError,
+  // EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -26,6 +26,7 @@ const resolver: MutationToWalletLoginResolver = async (
     res,
     dataSources: { userService, atomService, systemService, tagService },
   } = context
+
   // TODO: check viewer to connect wallet if already has a user
 
   if (!ethAddress || !Web3.utils.isAddress(ethAddress)) {
@@ -37,7 +38,7 @@ const resolver: MutationToWalletLoginResolver = async (
   const lastSigning = await atomService.findFirst({
     table: sig_table,
     where: {
-      ethAddress,
+      address: ethAddress,
       nonce,
       // purpose: GQLCryptoWalletSignaturePurpose.signup,
     },
@@ -45,8 +46,12 @@ const resolver: MutationToWalletLoginResolver = async (
   })
 
   if (!lastSigning) {
-    throw new EntityNotFoundError('wallet not found')
+    throw new EthAddressNotFoundError(
+      `wallet signing for "${ethAddress}" not found`
+    )
   }
+
+  console.log(new Date(), 'lastSigning:', lastSigning)
 
   // TODO: check if expired
 
@@ -102,9 +107,11 @@ const resolver: MutationToWalletLoginResolver = async (
   try {
     return await tryLogin()
   } catch (err) {
+    console.error(new Date(), 'ERROR:', err)
+
     // if no such ethAddress
     if (err instanceof EthAddressNotFoundError) {
-      console.error(new Date(), 'ERROR:', err)
+      // console.error(new Date(), 'ERROR:', err)
     } else {
       throw err
     }
@@ -117,29 +124,14 @@ const resolver: MutationToWalletLoginResolver = async (
   })
 
   // auto follow matty
-  await userService.follow(newUser.id, environment.mattyId)
+  await userService
+    .follow(newUser.id, environment.mattyId)
+    .then((err) => console.error(new Date(), 'follow matty failed:', err))
 
   // auto follow tags
-  const items = await Promise.all(
-    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content }))
-  )
-  await Promise.all(
-    items.map((tags) => {
-      const tag = tags[0]
-      if (tag) {
-        return tagService.follow({ targetId: tag.id, userId: newUser.id })
-      }
-    })
-  )
+  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
 
-  if (environment.mattyChoiceTagId) {
-    await tagService.follow({
-      targetId: environment.mattyChoiceTagId,
-      userId: newUser.id,
-    })
-  }
-
-  // skip notification email
+  // skip notification email, there's no email yet
 
   return tryLogin()
 }

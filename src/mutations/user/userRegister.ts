@@ -115,24 +115,7 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.follow(newUser.id, environment.mattyId)
 
   // auto follow tags
-  const items = await Promise.all(
-    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content }))
-  )
-  await Promise.all(
-    items.map((tags) => {
-      const tag = tags[0]
-      if (tag) {
-        return tagService.follow({ targetId: tag.id, userId: newUser.id })
-      }
-    })
-  )
-
-  if (environment.mattyChoiceTagId) {
-    await tagService.follow({
-      targetId: environment.mattyChoiceTagId,
-      userId: newUser.id,
-    })
-  }
+  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
 
   // mark code status as used
   await userService.markVerificationCodeAs({
