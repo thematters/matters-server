@@ -3542,8 +3542,9 @@ export interface GQLResetPasswordInput {
 }
 
 export interface GQLChangeEmailInput {
-  oldEmail: string
-  oldEmailCodeId: string
+  oldEmail?: string
+  oldEmailCodeId?: string
+  ethAddress?: string
   newEmail: string
   newEmailCodeId: string
 }

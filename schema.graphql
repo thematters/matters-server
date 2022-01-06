@@ -2574,8 +2574,9 @@ input ResetPasswordInput {
 }
 
 input ChangeEmailInput {
-  oldEmail: String!
-  oldEmailCodeId: ID!
+  oldEmail: String
+  oldEmailCodeId: ID
+  ethAddress: String
   newEmail: String!
   newEmailCodeId: ID!
 }

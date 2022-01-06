@@ -2,6 +2,7 @@ import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeInvalidError,
   EmailExistsError,
+  UserInputError,
   UserNotFoundError,
 } from 'common/errors'
 import {
@@ -15,6 +16,8 @@ const resolver: MutationToChangeEmailResolver = async (
     input: {
       oldEmail: rawOldEmail,
       oldEmailCodeId,
+      ethAddress,
+      // signature
       newEmail: rawNewEmail,
       newEmailCodeId,
     },
@@ -24,14 +27,18 @@ const resolver: MutationToChangeEmailResolver = async (
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
 
-  const [oldCode] = await userService.findVerificationCodes({
-    where: {
-      uuid: oldEmailCodeId,
-      email: oldEmail,
-      type: GQLVerificationCodeType.email_reset,
-      status: VERIFICATION_CODE_STATUS.verified,
-    },
-  })
+  let oldCode
+  if (oldEmail && oldEmailCodeId) {
+    ;[oldCode] = await userService.findVerificationCodes({
+      where: {
+        uuid: oldEmailCodeId,
+        email: oldEmail,
+        type: GQLVerificationCodeType.email_reset,
+        status: VERIFICATION_CODE_STATUS.verified,
+      },
+    })
+  }
+
   const [newCode] = await userService.findVerificationCodes({
     where: {
       uuid: newEmailCodeId,
@@ -42,12 +49,19 @@ const resolver: MutationToChangeEmailResolver = async (
   })
 
   // check codes
-  if (!oldCode || !newCode) {
-    throw new CodeInvalidError('code does not exists')
+  if (!newCode) {
+    throw new CodeInvalidError('new code does not exists')
   }
 
-  // check email
-  const user = await userService.findByEmail(oldCode.email)
+  if (!oldCode && !ethAddress) {
+    throw new UserInputError('change by either oldemail or ethAddress')
+  }
+
+  const user = ethAddress
+    ? await userService.findByEthAddress(ethAddress)
+    : // otherwise; check email
+      await userService.findByEmail(oldCode.email)
+
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }
@@ -55,6 +69,11 @@ const resolver: MutationToChangeEmailResolver = async (
   // check new email
   const isNewEmailExisted = await userService.findByEmail(newCode.email)
   if (isNewEmailExisted) {
+    throw new EmailExistsError('email already exists')
+  }
+
+  if (ethAddress && user.email) {
+    // TODO: change email 2nd time should require signature?
     throw new EmailExistsError('email already exists')
   }
 
