@@ -86,10 +86,12 @@ const resolver: MutationToChangeEmailResolver = async (
   })
 
   // mark code status as used
-  await userService.markVerificationCodeAs({
-    codeId: oldCode.id,
-    status: VERIFICATION_CODE_STATUS.used,
-  })
+  if (oldCode) {
+    await userService.markVerificationCodeAs({
+      codeId: oldCode.id,
+      status: VERIFICATION_CODE_STATUS.used,
+    })
+  }
   await userService.markVerificationCodeAs({
     codeId: newCode.id,
     status: VERIFICATION_CODE_STATUS.used,
