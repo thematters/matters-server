@@ -4,6 +4,10 @@ import Web3 from 'web3'
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
 
+import {
+  CRYPTO_SIGNATURE_TIMEOUT,
+  CRYPTO_WALLET_SIGNATURE_STATUS,
+} from 'common/enums'
 import { UserInputError } from 'common/errors'
 import {
   GQLCryptoWalletSignaturePurpose,
@@ -40,7 +44,7 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   const nonce = nanoid()
 
   const createdAt = new Date()
-  const expiredAt = new Date(+createdAt + 10 * 60e3) // 10 minutes
+  const expiredAt = new Date(+createdAt + CRYPTO_SIGNATURE_TIMEOUT) // 10 minutes
 
   // create the message to be sign'ed
   const signingMessage = `Matters.News wants you to sign in with your Ethereum account:
@@ -64,6 +68,19 @@ Resources:
     ? GQLCryptoWalletSignaturePurpose.login
     : GQLCryptoWalletSignaturePurpose.signup // or login, if already have this address signup before
 
+  // retire old active codes
+  await atomService.updateMany({
+    table,
+    where: {
+      address,
+      // status: CRYPTO_WALLET_SIGNATURE_STATUS.active,
+    },
+    data: {
+      status: CRYPTO_WALLET_SIGNATURE_STATUS.inactive,
+      updatedAt: new Date(),
+    },
+  })
+
   const res = await atomService.create({
     table,
     data: {
@@ -71,6 +88,7 @@ Resources:
       signedMessage: signingMessage,
       nonce,
       purpose,
+      status: CRYPTO_WALLET_SIGNATURE_STATUS.active,
       createdAt,
       expiredAt,
     },

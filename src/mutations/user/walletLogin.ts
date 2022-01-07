@@ -1,9 +1,10 @@
 import { recoverPersonalSignature } from 'eth-sig-util'
 import Web3 from 'web3'
 
-import { AUTO_FOLLOW_TAGS } from 'common/enums'
+import { AUTO_FOLLOW_TAGS, CRYPTO_WALLET_SIGNATURE_STATUS } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  CodeExpiredError,
   // EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
@@ -40,6 +41,7 @@ const resolver: MutationToWalletLoginResolver = async (
     where: {
       address: ethAddress,
       nonce,
+      status: CRYPTO_WALLET_SIGNATURE_STATUS.active,
       // purpose: GQLCryptoWalletSignaturePurpose.signup,
     },
     orderBy: [{ column: 'id', order: 'desc' }],
@@ -53,7 +55,20 @@ const resolver: MutationToWalletLoginResolver = async (
 
   console.log(new Date(), 'lastSigning:', lastSigning)
 
-  // TODO: check if expired
+  if (lastSigning.expiredAt < new Date()) {
+    await atomService.update({
+      table: sig_table,
+      where: {
+        id: lastSigning.id,
+        // purpose: GQLCryptoWalletSignaturePurpose.signup,
+      },
+      data: {
+        status: CRYPTO_WALLET_SIGNATURE_STATUS.expired,
+      },
+    })
+
+    throw new CodeExpiredError('signing request has exipred')
+  }
 
   // verify signature
   const verifiedAddress = recoverPersonalSignature({
@@ -83,7 +98,6 @@ const resolver: MutationToWalletLoginResolver = async (
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
 
-    // TODO: update crypto_wallet_signature record
     await atomService.update({
       table: sig_table,
       where: {
@@ -96,7 +110,9 @@ const resolver: MutationToWalletLoginResolver = async (
         signature,
         userId: user.id,
         updatedAt: new Date(),
-        expiredAt: null, // check if expired before reset to null
+        // expiredAt: null, // check if expired before reset to null
+        status: CRYPTO_WALLET_SIGNATURE_STATUS.used,
+        usedAt: new Date(),
       },
     })
 

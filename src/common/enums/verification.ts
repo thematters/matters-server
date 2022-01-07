@@ -19,3 +19,11 @@ export const VERIFICATION_CODE_EXIPRED_AFTER = MINUTE * 5 // 5 mins
 export const CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER = DAY * 180 // 6 months
 
 export const VERIFICATION_DOMAIN_WHITELIST = ['matters.news']
+
+export enum CRYPTO_WALLET_SIGNATURE_STATUS {
+  active = 'active',
+  inactive = 'inactive',
+  // verified = 'verified',
+  expired = 'expired',
+  used = 'used',
+}
