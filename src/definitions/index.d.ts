@@ -64,6 +64,7 @@ export type Viewer = (User | { id: null }) & {
   authMode: AuthMode
   oauthClient?: OAuthClient
   agentHash?: string
+  token?: string
   group: 'a' | 'b'
 }
 

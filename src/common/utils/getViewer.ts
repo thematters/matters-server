@@ -49,9 +49,13 @@ export const getUserGroup = ({
   return num % 2 === 0 ? 'a' : 'b'
 }
 
-export const getViewerFromUser = async (user: any, group?: string) => {
+export const getViewerFromUser = async (
+  user: any,
+  group?: string,
+  token?: string
+) => {
   // overwrite default by user
-  const viewer = { role: USER_ROLE.visitor, ...user }
+  const viewer = { role: USER_ROLE.visitor, ...user, token }
 
   // append uesr group
   viewer.group = group ? group : getUserGroup(user)
@@ -84,7 +88,7 @@ const getUser = async (token: string, agentHash: string) => {
       if (agentHash) {
         await systemService
           .saveAgentHash(agentHash, user.email)
-          .catch((error) => logger.error)
+          .catch((error) => logger.error(error))
       }
       throw new ForbiddenByStateError('user has been deleted')
     }
@@ -173,5 +177,5 @@ export const getViewerFromReq = async ({
     throw err
   }
 
-  return getViewerFromUser(user, group)
+  return getViewerFromUser(user, group, token as string)
 }

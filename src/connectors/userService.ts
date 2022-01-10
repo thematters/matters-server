@@ -194,7 +194,9 @@ export class UserService extends BaseService {
       expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
     })
 
-    logger.info(`User logged in with uuid ${user.uuid}.`)
+    logger.info(
+      `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`
+    )
     return {
       token,
       user,
