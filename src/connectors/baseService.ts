@@ -38,16 +38,11 @@ export class BaseService extends DataSource {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
-    const result = await this.knex
-      .select()
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> =>
+    this.knex // .select()
       .from(table || this.table)
       .where({ id })
-    if (result && result.length > 0) {
-      return result[0]
-    }
-    return null
-  }
+      .first()
 
   /**
    * Find items by given ids.

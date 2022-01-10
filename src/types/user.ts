@@ -585,7 +585,6 @@ export default /* GraphQL */ `
   input ChangeEmailInput {
     oldEmail: String @constraint(format: "email")
     oldEmailCodeId: ID
-    ethAddress: String
     newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }

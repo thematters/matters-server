@@ -1,8 +1,10 @@
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
+  AuthenticationError,
   CodeInvalidError,
   EmailExistsError,
-  UserInputError,
+  EmailNotFoundError,
+  // UserInputError,
   UserNotFoundError,
 } from 'common/errors'
 import {
@@ -16,14 +18,18 @@ const resolver: MutationToChangeEmailResolver = async (
     input: {
       oldEmail: rawOldEmail,
       oldEmailCodeId,
-      ethAddress,
-      // signature
+      // ethAddress,
+      // signature,
       newEmail: rawNewEmail,
       newEmailCodeId,
     },
   },
   { viewer, dataSources: { userService, atomService } }
 ) => {
+  if (!viewer.id) {
+    throw new AuthenticationError('visitor has no permission')
+  }
+
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
 
@@ -53,18 +59,22 @@ const resolver: MutationToChangeEmailResolver = async (
     throw new CodeInvalidError('new code does not exists')
   }
 
-  if (!oldCode && !ethAddress) {
-    throw new UserInputError('change by either oldemail or ethAddress')
-  }
-
-  const user = ethAddress
-    ? await userService.findByEthAddress(ethAddress)
-    : // otherwise; check email
-      await userService.findByEmail(oldCode.email)
+  const user = await userService.baseFindById(viewer.id)
 
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }
+
+  // the email has to be null (at signup), or has to match the given oldEmail
+  if (user.email && user.email !== oldEmail) {
+    throw new EmailNotFoundError('the provided oldemail does not match DB record')
+  }
+
+  /* const user = ethAddress
+    ? await userService.findByEthAddress(ethAddress)
+    : // otherwise; check email
+      await userService.findByEmail(oldCode.email)
+  */
 
   // check new email
   const isNewEmailExisted = await userService.findByEmail(newCode.email)
@@ -72,10 +82,10 @@ const resolver: MutationToChangeEmailResolver = async (
     throw new EmailExistsError('email already exists')
   }
 
-  if (ethAddress && user.email) {
+  /* if (ethAddress && user.email) {
     // TODO: change email 2nd time should require signature?
     throw new EmailExistsError('email already exists')
-  }
+  } */
 
   const newUser = await atomService.update({
     table: 'user',
@@ -92,10 +102,15 @@ const resolver: MutationToChangeEmailResolver = async (
       status: VERIFICATION_CODE_STATUS.used,
     })
   }
-  await userService.markVerificationCodeAs({
-    codeId: newCode.id,
-    status: VERIFICATION_CODE_STATUS.used,
-  })
+
+  await Promise.all(
+    [oldCode?.id, newCode?.id].filter(Boolean).map((codeId) =>
+      userService.markVerificationCodeAs({
+        codeId,
+        status: VERIFICATION_CODE_STATUS.used,
+      })
+    )
+  )
 
   return newUser
 }

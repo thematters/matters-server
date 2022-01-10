@@ -31,5 +31,5 @@ test('create and delete asset', async () => {
 
   await service.baseDelete(asset.id, 'asset')
   const result = await service.baseFindById(asset.id, 'asset')
-  expect(result).toBeNull()
+  expect(result).toBeUndefined()
 })
