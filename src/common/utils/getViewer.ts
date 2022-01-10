@@ -44,14 +44,18 @@ export const getUserGroup = ({
       num = parseInt(last, 10) || 0
     }
   } catch (error) {
-    logger.error('ERROR:', error, { id, ip })
+    // logger.error('ERROR:', error, { id, ip })
   }
   return num % 2 === 0 ? 'a' : 'b'
 }
 
-export const getViewerFromUser = async (user: any, group?: string) => {
+export const getViewerFromUser = async (
+  user: any,
+  group?: string,
+  token?: string
+) => {
   // overwrite default by user
-  const viewer = { role: USER_ROLE.visitor, ...user }
+  const viewer = { role: USER_ROLE.visitor, ...user, token }
 
   // append uesr group
   viewer.group = group ? group : getUserGroup(user)
@@ -84,7 +88,7 @@ const getUser = async (token: string, agentHash: string) => {
       if (agentHash) {
         await systemService
           .saveAgentHash(agentHash, user.email)
-          .catch((error) => logger.error)
+          .catch((error) => logger.error(error))
       }
       throw new ForbiddenByStateError('user has been deleted')
     }
@@ -146,9 +150,9 @@ export const getViewerFromReq = async ({
   }
 
   // get user from token, use cookie first then 'x-access-token'
-  const token =
+  const token: string =
     cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
-    headers['x-access-token'] ||
+    headers['x-access-token'] as string ||
     ''
   const group =
     userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''
@@ -159,7 +163,7 @@ export const getViewerFromReq = async ({
   }
 
   try {
-    const userDB = await getUser(token as string, agentHash)
+    const userDB = await getUser(token, agentHash)
 
     // overwrite request by user settings
     user = { ...user, ...userDB }
@@ -173,5 +177,5 @@ export const getViewerFromReq = async ({
     throw err
   }
 
-  return getViewerFromUser(user, group)
+  return getViewerFromUser(user, group, token)
 }

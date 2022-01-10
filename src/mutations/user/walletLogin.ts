@@ -1,9 +1,11 @@
 import { recoverPersonalSignature } from 'eth-sig-util'
+import { Knex } from 'knex'
 import Web3 from 'web3'
 
 import { AUTO_FOLLOW_TAGS } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  CryptoWalletExistsError,
   // EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
@@ -37,11 +39,19 @@ const resolver: MutationToWalletLoginResolver = async (
 
   const lastSigning = await atomService.findFirst({
     table: sig_table,
-    where: {
+    where: (builder: Knex.QueryBuilder) =>
+      builder
+        .where({
+          address: ethAddress,
+          nonce,
+        })
+        .whereNull('signature')
+        .whereRaw('expired_at > CURRENT_TIMESTMAP'),
+    /* {
       address: ethAddress,
       nonce,
       // purpose: GQLCryptoWalletSignaturePurpose.signup,
-    },
+    }, */
     orderBy: [{ column: 'id', order: 'desc' }],
   })
 
@@ -63,6 +73,38 @@ const resolver: MutationToWalletLoginResolver = async (
 
   if (ethAddress.toLowerCase() !== verifiedAddress) {
     throw new UserInputError('signature is not valid')
+  }
+
+  // link eth address
+  if (viewer.id && viewer.token) {
+    // const user = await userService.baseFindById(viewer.id)
+
+    if (viewer.ethAddress) {
+      throw new CryptoWalletExistsError('user already has eth address')
+    }
+
+    await atomService.update({
+      table: sig_table,
+      where: {
+        id: lastSigning.id,
+        // purpose: GQLCryptoWalletSignaturePurpose.signup,
+      },
+      data: {
+        // address: ethAddress,
+        signedMessage,
+        signature,
+        userId: viewer.id, // user.id,
+        updatedAt: new Date(),
+        expiredAt: null, // check if expired before reset to null
+      },
+    })
+
+    await userService.baseUpdate(viewer.id, {
+      updatedAt: new Date(),
+      ethAddress: verifiedAddress, // save the lower case ones
+    })
+
+    return { token: viewer.token, auth: true }
   }
 
   // const user = userService.findByEthAddress(ethAddress)
