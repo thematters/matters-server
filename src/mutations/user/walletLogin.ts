@@ -46,7 +46,7 @@ const resolver: MutationToWalletLoginResolver = async (
           nonce,
         })
         .whereNull('signature')
-        .whereRaw('expired_at > CURRENT_TIMESTMAP'),
+        .whereRaw('expired_at > CURRENT_TIMESTAMP'),
     /* {
       address: ethAddress,
       nonce,
