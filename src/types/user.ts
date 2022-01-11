@@ -370,6 +370,13 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+    type: AuthResultType!
+  }
+
+  enum AuthResultType {
+    Login
+    Signup
+    LinkAccount
   }
 
   type SigningMessageResult {

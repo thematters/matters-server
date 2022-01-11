@@ -152,7 +152,7 @@ export const getViewerFromReq = async ({
   // get user from token, use cookie first then 'x-access-token'
   const token: string =
     cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
-    headers['x-access-token'] as string ||
+    (headers['x-access-token'] as string) ||
     ''
   const group =
     userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''

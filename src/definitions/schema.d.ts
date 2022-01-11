@@ -3279,6 +3279,13 @@ export interface GQLBadge {
 export interface GQLAuthResult {
   auth: boolean
   token?: string
+  type: GQLAuthResultType
+}
+
+export const enum GQLAuthResultType {
+  Login = 'Login',
+  Signup = 'Signup',
+  LinkAccount = 'LinkAccount',
 }
 
 export interface GQLSigningMessageResult {
@@ -10923,6 +10930,7 @@ export interface BadgeToTypeResolver<TParent = any, TResult = any> {
 export interface GQLAuthResultTypeResolver<TParent = any> {
   auth?: AuthResultToAuthResolver<TParent>
   token?: AuthResultToTokenResolver<TParent>
+  type?: AuthResultToTypeResolver<TParent>
 }
 
 export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
@@ -10935,6 +10943,15 @@ export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
 }
 
 export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AuthResultToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -67,7 +67,9 @@ const resolver: MutationToChangeEmailResolver = async (
 
   // the email has to be null (at signup), or has to match the given oldEmail
   if (user.email && user.email !== oldEmail) {
-    throw new EmailNotFoundError('the provided oldemail does not match DB record')
+    throw new EmailNotFoundError(
+      'the provided oldemail does not match DB record'
+    )
   }
 
   /* const user = ethAddress

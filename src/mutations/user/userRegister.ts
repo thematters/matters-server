@@ -26,6 +26,7 @@ import {
   setCookie,
 } from 'common/utils'
 import {
+  GQLAuthResultType,
   GQLVerificationCodeType,
   MutationToUserRegisterResolver,
 } from 'definitions'
@@ -165,7 +166,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   setCookie({ req, res, token, user })
 
-  return { token, auth: true }
+  return { token, auth: true, type: GQLAuthResultType.Signup }
 }
 
 export default resolver

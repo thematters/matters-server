@@ -14,6 +14,7 @@ import { getViewerFromUser, setCookie } from 'common/utils'
 import {
   // GQLCryptoWalletSignaturePurpose,
   AuthMode,
+  GQLAuthResultType,
   MutationToWalletLoginResolver,
 } from 'definitions'
 
@@ -104,7 +105,11 @@ const resolver: MutationToWalletLoginResolver = async (
       ethAddress: verifiedAddress, // save the lower case ones
     })
 
-    return { token: viewer.token, auth: true }
+    return {
+      token: viewer.token,
+      auth: true,
+      type: GQLAuthResultType.LinkAccount,
+    }
   }
 
   // const user = userService.findByEthAddress(ethAddress)
@@ -112,7 +117,9 @@ const resolver: MutationToWalletLoginResolver = async (
   const archivedCallback = async () =>
     systemService.saveAgentHash(viewer.agentHash || '')
 
-  const tryLogin = async () => {
+  const tryLogin = async (
+    type: GQLAuthResultType = GQLAuthResultType.Login
+  ) => {
     const { token, user } = await userService.loginByEthAddress({
       // ...input,
       ethAddress, // : verifiedAddress,
@@ -142,12 +149,12 @@ const resolver: MutationToWalletLoginResolver = async (
       },
     })
 
-    return { token, auth: true }
+    return { token, auth: true, type }
   }
 
   // try Login if already exists
   try {
-    return await tryLogin()
+    return await tryLogin(GQLAuthResultType.Login)
   } catch (err) {
     console.error(new Date(), 'ERROR:', err)
 
@@ -175,7 +182,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
   // skip notification email, there's no email yet
 
-  return tryLogin()
+  return tryLogin(GQLAuthResultType.Signup)
 }
 
 export default resolver

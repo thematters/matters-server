@@ -1,5 +1,9 @@
 import { getViewerFromUser, setCookie } from 'common/utils'
-import { AuthMode, MutationToUserLoginResolver } from 'definitions'
+import {
+  AuthMode,
+  GQLAuthResultType,
+  MutationToUserLoginResolver,
+} from 'definitions'
 
 const resolver: MutationToUserLoginResolver = async (
   root,
@@ -27,7 +31,8 @@ const resolver: MutationToUserLoginResolver = async (
   context.viewer.authMode = user.role as AuthMode
   context.viewer.scope = {}
 
-  return { token, auth: true }
+  // return { token, auth: true }
+  return { token, auth: true, type: GQLAuthResultType.Login }
 }
 
 export default resolver
