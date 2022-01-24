@@ -132,18 +132,22 @@ const resolver: MutationToWalletLoginResolver = async (
   /**
    * Login
    */
-  try {
-    return await tryLogin(GQLAuthResultType.Login)
-  } catch (err) {
-    const isNoEthAddress = err instanceof EthAddressNotFoundError
-    if (!isNoEthAddress) {
-      throw err
+  if (!email || !codeId) {
+    try {
+      return await tryLogin(GQLAuthResultType.Login)
+    } catch (err) {
+      const isNoEthAddress = err instanceof EthAddressNotFoundError
+      if (!isNoEthAddress) {
+        throw err
+      }
     }
   }
 
   /**
    * SignUp
    */
+  if (!email || !codeId) return
+
   // check verification code
   const [code] = await userService.findVerificationCodes({
     where: {
