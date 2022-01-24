@@ -6,13 +6,13 @@ const resolver: QueryToUserResolver = async (
   { viewer, dataSources: { userService } },
   info
 ) => {
-  if (!userName || !ethAddress) {
+  if (!userName && !ethAddress) {
     return
   }
 
   if (userName) {
     return userService.findByUserName(userName)
-  } else {
+  } else if (ethAddress) {
     return userService.findByEthAddress(ethAddress)
   }
 }
