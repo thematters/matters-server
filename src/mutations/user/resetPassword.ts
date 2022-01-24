@@ -1,6 +1,7 @@
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeInvalidError,
+  ForbiddenError,
   PasswordInvalidError,
   UserNotFoundError,
 } from 'common/errors'
@@ -45,6 +46,11 @@ const resolver: MutationToResetPasswordResolver = async (
       )
     }
   } else {
+    // forbid wallet login user to (re)set password
+    if (!user.password) {
+      throw new ForbiddenError('wallet user cannot reset account password')
+    }
+
     if (!isValidPassword(password)) {
       throw new PasswordInvalidError('invalid user password')
     }

@@ -55,7 +55,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
-      console.log(`setting avatar with:`, origUrl)
 
       let keyPath: string | undefined
       try {
@@ -69,8 +68,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         throw err
       }
       if (keyPath) {
-        console.log(`fetched new path:`, keyPath)
-
         const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
           'user' // entityType
         )
@@ -89,8 +86,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
           entityTypeId,
           viewer.id // relatedEntityId
         )
-
-        console.log(`created new asset mapping:`, asset)
       }
     } else {
       asset = await systemService.findAssetByUUID(avatarAssetUUID)

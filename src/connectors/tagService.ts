@@ -853,7 +853,6 @@ export class TagService extends BaseService {
   // follow tags by content
   followTags = async (userId: string, tags: string[]) => {
     const items = await this.findByContentIn(tags)
-    // console.log(new Date, 'AUTO_FOLLOW_TAGS:', AUTO_FOLLOW_TAGS, items)
 
     await Promise.all(
       items

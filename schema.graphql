@@ -2242,6 +2242,7 @@ type UserInfo {
 
   """Login address"""
   ethAddress: String
+  isWalletAuth: Boolean!
 
   """Connected wallet."""
   cryptoWallet: CryptoWallet
@@ -2553,7 +2554,8 @@ type NFTAsset {
 }
 
 input UserInput {
-  userName: String!
+  userName: String
+  ethAddress: String
 }
 
 input SendVerificationCodeInput {
@@ -2581,8 +2583,8 @@ input ResetPasswordInput {
 }
 
 input ChangeEmailInput {
-  oldEmail: String
-  oldEmailCodeId: ID
+  oldEmail: String!
+  oldEmailCodeId: ID!
   newEmail: String!
   newEmailCodeId: ID!
 }
@@ -2608,15 +2610,20 @@ input UserLoginInput {
 input WalletLoginInput {
   ethAddress: String!
 
-  """optionally, the client side can resolve with Alchemy APIs"""
-  ensLabel: String
-
   """the message being sign'ed, including nonce"""
   signedMessage: String!
 
   """sign'ed by wallet"""
   signature: String!
+
+  """nonce from generateSigningMessage"""
   nonce: String!
+
+  """required for wallet register"""
+  email: String!
+
+  """email verification code, required for wallet register"""
+  codeId: ID!
 }
 
 input ResetLikerIdInput {

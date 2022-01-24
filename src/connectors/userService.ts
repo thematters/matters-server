@@ -2,7 +2,7 @@ import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
-import _ from 'lodash'
+import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
@@ -25,12 +25,17 @@ import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
   EthAddressNotFoundError,
+  NameInvalidError,
   PasswordInvalidError,
   ServerError,
   UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { generatePasswordhash } from 'common/utils'
+import {
+  generatePasswordhash,
+  isValidUserName,
+  makeUserName,
+} from 'common/utils'
 import { BaseService, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
@@ -270,6 +275,27 @@ export class UserService extends BaseService {
       .first()
     const count = parseInt(result ? (result.count as string) : '0', 10)
     return count > 0
+  }
+
+  /**
+   * Programatically generate user name
+   */
+  generateUserName = async (email: string) => {
+    let retries = 0
+    const mainName = makeUserName(email)
+    let userName = mainName
+    while (
+      !isValidUserName(userName) ||
+      (await this.checkUserNameExists(userName))
+    ) {
+      if (retries >= 20) {
+        throw new NameInvalidError('cannot generate user name')
+      }
+      userName = `${mainName}${random(1, 999)}`
+      retries += 1
+    }
+
+    return userName
   }
 
   /**
