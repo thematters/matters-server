@@ -2,17 +2,19 @@ import { QueryToUserResolver } from 'definitions'
 
 const resolver: QueryToUserResolver = async (
   root,
-  { input: { userName } },
+  { input: { userName, ethAddress } },
   { viewer, dataSources: { userService } },
   info
 ) => {
-  if (!userName) {
+  if (!userName || !ethAddress) {
     return
   }
 
-  const user = await userService.findByUserName(userName)
-
-  return user
+  if (userName) {
+    return userService.findByUserName(userName)
+  } else {
+    return userService.findByEthAddress(ethAddress)
+  }
 }
 
 export default resolver

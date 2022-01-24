@@ -251,6 +251,8 @@ export default /* GraphQL */ `
     "Login address"
     ethAddress: String
 
+    isWalletAuth: Boolean!
+
     "Connected wallet."
     cryptoWallet: CryptoWallet
   }
@@ -562,7 +564,8 @@ export default /* GraphQL */ `
   }
 
   input UserInput {
-    userName: String!
+    userName: String
+    ethAddress: String
   }
 
   input SendVerificationCodeInput {
@@ -590,8 +593,8 @@ export default /* GraphQL */ `
   }
 
   input ChangeEmailInput {
-    oldEmail: String @constraint(format: "email")
-    oldEmailCodeId: ID
+    oldEmail: String! @constraint(format: "email")
+    oldEmailCodeId: ID!
     newEmail: String! @constraint(format: "email")
     newEmailCodeId: ID!
   }
@@ -617,19 +620,20 @@ export default /* GraphQL */ `
   input WalletLoginInput {
     ethAddress: String!
 
-    "optionally, the client side can resolve with Alchemy APIs"
-    ensLabel: String
-
-    ### publicKey: String! // the JSON.stringify'ed pub key of signing key
     "the message being sign'ed, including nonce"
     signedMessage: String!
 
     "sign'ed by wallet"
     signature: String!
 
+    "nonce from generateSigningMessage"
     nonce: String!
 
-    ### code: String          // the gcr recapture code might be necessary for anti-spam; can be added later if spam activities showing high """
+    "required for wallet register"
+    email: String! @constraint(format: "email")
+
+    "email verification code, required for wallet register"
+    codeId: ID!
   }
 
   input ResetLikerIdInput {

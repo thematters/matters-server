@@ -3097,6 +3097,7 @@ export interface GQLUserInfo {
    * Login address
    */
   ethAddress?: string
+  isWalletAuth: boolean
 
   /**
    * Connected wallet.
@@ -3521,7 +3522,8 @@ export interface GQLNFTAsset {
 }
 
 export interface GQLUserInput {
-  userName: string
+  userName?: string
+  ethAddress?: string
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3549,8 +3551,8 @@ export interface GQLResetPasswordInput {
 }
 
 export interface GQLChangeEmailInput {
-  oldEmail?: string
-  oldEmailCodeId?: string
+  oldEmail: string
+  oldEmailCodeId: string
   newEmail: string
   newEmailCodeId: string
 }
@@ -3577,11 +3579,6 @@ export interface GQLWalletLoginInput {
   ethAddress: string
 
   /**
-   * optionally, the client side can resolve with Alchemy APIs
-   */
-  ensLabel?: string
-
-  /**
    * the message being sign'ed, including nonce
    */
   signedMessage: string
@@ -3590,7 +3587,21 @@ export interface GQLWalletLoginInput {
    * sign'ed by wallet
    */
   signature: string
+
+  /**
+   * nonce from generateSigningMessage
+   */
   nonce: string
+
+  /**
+   * required for wallet register
+   */
+  email: string
+
+  /**
+   * email verification code, required for wallet register
+   */
+  codeId: string
 }
 
 export interface GQLResetLikerIdInput {
@@ -10267,6 +10278,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   profileCover?: UserInfoToProfileCoverResolver<TParent>
   group?: UserInfoToGroupResolver<TParent>
   ethAddress?: UserInfoToEthAddressResolver<TParent>
+  isWalletAuth?: UserInfoToIsWalletAuthResolver<TParent>
   cryptoWallet?: UserInfoToCryptoWalletResolver<TParent>
 }
 
@@ -10346,6 +10358,15 @@ export interface UserInfoToGroupResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToEthAddressResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToIsWalletAuthResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

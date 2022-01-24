@@ -2,35 +2,40 @@ import { recoverPersonalSignature } from 'eth-sig-util'
 import { Knex } from 'knex'
 import Web3 from 'web3'
 
-import { AUTO_FOLLOW_TAGS } from 'common/enums'
+import { AUTO_FOLLOW_TAGS, VERIFICATION_CODE_STATUS } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  CodeInvalidError,
   CryptoWalletExistsError,
-  // EntityNotFoundError,
+  EmailExistsError,
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
 import { getViewerFromUser, setCookie } from 'common/utils'
 import {
-  // GQLCryptoWalletSignaturePurpose,
   AuthMode,
   GQLAuthResultType,
+  GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
 
 const resolver: MutationToWalletLoginResolver = async (
-  _, // root
-  { input: { ethAddress, nonce, signedMessage, signature } },
-  context // { viewer, req, res, dataSources: { userService, atomService, systemService } }
+  _,
+  { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
+  context
 ) => {
   const {
     viewer,
     req,
     res,
-    dataSources: { userService, atomService, systemService, tagService },
+    dataSources: {
+      userService,
+      atomService,
+      systemService,
+      tagService,
+      notificationService,
+    },
   } = context
-
-  // TODO: check viewer to connect wallet if already has a user
 
   if (!ethAddress || !Web3.utils.isAddress(ethAddress)) {
     throw new UserInputError('address is invalid')
@@ -42,17 +47,9 @@ const resolver: MutationToWalletLoginResolver = async (
     table: sig_table,
     where: (builder: Knex.QueryBuilder) =>
       builder
-        .where({
-          address: ethAddress,
-          nonce,
-        })
+        .where({ address: ethAddress, nonce })
         .whereNull('signature')
         .whereRaw('expired_at > CURRENT_TIMESTAMP'),
-    /* {
-      address: ethAddress,
-      nonce,
-      // purpose: GQLCryptoWalletSignaturePurpose.signup,
-    }, */
     orderBy: [{ column: 'id', order: 'desc' }],
   })
 
@@ -62,41 +59,31 @@ const resolver: MutationToWalletLoginResolver = async (
     )
   }
 
-  console.log(new Date(), 'lastSigning:', lastSigning)
-
-  // TODO: check if expired
-
   // verify signature
   const verifiedAddress = recoverPersonalSignature({
     data: signedMessage,
     sig: signature,
   })
 
-  if (ethAddress.toLowerCase() !== verifiedAddress) {
+  if (ethAddress.toLowerCase() !== verifiedAddress.toLowerCase()) {
     throw new UserInputError('signature is not valid')
   }
 
-  // link eth address
+  /**
+   * Link
+   */
   if (viewer.id && viewer.token) {
-    // const user = await userService.baseFindById(viewer.id)
-
     if (viewer.ethAddress) {
       throw new CryptoWalletExistsError('user already has eth address')
     }
 
     await atomService.update({
       table: sig_table,
-      where: {
-        id: lastSigning.id,
-        // purpose: GQLCryptoWalletSignaturePurpose.signup,
-      },
+      where: { id: lastSigning.id },
       data: {
-        // address: ethAddress,
-        signedMessage,
         signature,
-        userId: viewer.id, // user.id,
+        userId: viewer.id,
         updatedAt: new Date(),
-        expiredAt: null, // check if expired before reset to null
       },
     })
 
@@ -112,17 +99,12 @@ const resolver: MutationToWalletLoginResolver = async (
     }
   }
 
-  // const user = userService.findByEthAddress(ethAddress)
-
   const archivedCallback = async () =>
     systemService.saveAgentHash(viewer.agentHash || '')
 
-  const tryLogin = async (
-    type: GQLAuthResultType = GQLAuthResultType.Login
-  ) => {
+  const tryLogin = async (type: GQLAuthResultType) => {
     const { token, user } = await userService.loginByEthAddress({
-      // ...input,
-      ethAddress, // : verifiedAddress,
+      ethAddress,
       archivedCallback,
     })
 
@@ -132,16 +114,11 @@ const resolver: MutationToWalletLoginResolver = async (
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
 
-    // TODO: update crypto_wallet_signature record
+    // update crypto_wallet_signature record
     await atomService.update({
       table: sig_table,
-      where: {
-        id: lastSigning.id,
-        // purpose: GQLCryptoWalletSignaturePurpose.signup,
-      },
+      where: { id: lastSigning.id },
       data: {
-        address: ethAddress,
-        signedMessage,
         signature,
         userId: user.id,
         updatedAt: new Date(),
@@ -152,24 +129,46 @@ const resolver: MutationToWalletLoginResolver = async (
     return { token, auth: true, type }
   }
 
-  // try Login if already exists
+  /**
+   * Login
+   */
   try {
     return await tryLogin(GQLAuthResultType.Login)
   } catch (err) {
-    console.error(new Date(), 'ERROR:', err)
-
-    // if no such ethAddress
-    if (err instanceof EthAddressNotFoundError) {
-      // console.error(new Date(), 'ERROR:', err)
-    } else {
+    const isNoEthAddress = err instanceof EthAddressNotFoundError
+    if (!isNoEthAddress) {
       throw err
     }
   }
 
-  // Signup otherwise
+  /**
+   * SignUp
+   */
+  // check verification code
+  const [code] = await userService.findVerificationCodes({
+    where: {
+      uuid: codeId,
+      email,
+      type: GQLVerificationCodeType.register,
+      status: VERIFICATION_CODE_STATUS.verified,
+    },
+  })
+
+  // check codes
+  if (!code) {
+    throw new CodeInvalidError('code does not exists')
+  }
+
+  // check email
+  const otherUser = await userService.findByEmail(email)
+  if (otherUser) {
+    throw new EmailExistsError('email address has already been registered')
+  }
+
+  const userName = await userService.generateUserName(email)
   const newUser = await userService.create({
-    userName: ethAddress,
-    displayName: ethAddress,
+    userName,
+    displayName: userName,
     ethAddress: verifiedAddress, // save the lower case ones
   })
 
@@ -181,7 +180,18 @@ const resolver: MutationToWalletLoginResolver = async (
   // auto follow tags
   await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
 
-  // skip notification email, there's no email yet
+  // mark code status as used
+  await userService.markVerificationCodeAs({
+    codeId: code.id,
+    status: VERIFICATION_CODE_STATUS.used,
+  })
+
+  // send email
+  notificationService.mail.sendRegisterSuccess({
+    to: email,
+    recipient: { displayName: userName },
+    language: viewer.language,
+  })
 
   return tryLogin(GQLAuthResultType.Signup)
 }

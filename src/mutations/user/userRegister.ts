@@ -1,5 +1,3 @@
-import { random } from 'lodash'
-
 import {
   AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
@@ -22,7 +20,6 @@ import {
   isValidEmail,
   isValidPassword,
   isValidUserName,
-  makeUserName,
   setCookie,
 } from 'common/utils'
 import {
@@ -90,20 +87,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
     newUserName = userName
   } else {
-    // Programatically generate user name
-    let retries = 0
-    const mainName = makeUserName(email)
-    newUserName = mainName
-    while (
-      !isValidUserName(newUserName) ||
-      (await userService.checkUserNameExists(newUserName))
-    ) {
-      if (retries >= 20) {
-        throw new NameInvalidError('cannot generate user name')
-      }
-      newUserName = `${mainName}${random(1, 999)}`
-      retries += 1
-    }
+    newUserName = await userService.generateUserName(email)
   }
 
   const newUser = await userService.create({

@@ -10,14 +10,12 @@ import {
   MutationToGenerateSigningMessageResolver,
 } from 'definitions'
 
-// const addressRegex = /0x[a-zA-Z0-9]{40}/
-
 const resolver: MutationToGenerateSigningMessageResolver = async (
-  _, // root
+  _,
   { address },
   { viewer, dataSources: { atomService } }
 ) => {
-  // TODO: check address is a valid one,
+  // check address is a valid one,
   if (!address || !Web3.utils.isAddress(address)) {
     throw new UserInputError('address is invalid')
   }
@@ -25,20 +23,14 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   const table = 'crypto_wallet_signature'
 
   // and not already in-use by anyone
-
   const lastUsed = await atomService.findFirst({
     table,
-    where: {
-      address,
-      purpose: GQLCryptoWalletSignaturePurpose.signup,
-      // orderBy: [{column: 'id', order: 'desc'}],
-    },
+    where: { address, purpose: GQLCryptoWalletSignaturePurpose.signup },
     orderBy: [{ column: 'id', order: 'desc' }],
   })
 
   // e.g. 'ek4j3nbum7ql'
   const nonce = nanoid()
-
   const createdAt = new Date()
   const expiredAt = new Date(+createdAt + 10 * 60e3) // 10 minutes
 
@@ -55,16 +47,15 @@ Nonce: ${nonce}
 Issued At: ${createdAt.toISOString()}
 Expiration Time: ${expiredAt.toISOString()}
 Resources:
+- https://matters.news/about
 - https://matters.news/community
-- ...`
-
-  console.log(new Date(), 'lastUsed:', lastUsed)
+- https://matters.news/guide`
 
   const purpose = lastUsed?.userId
     ? GQLCryptoWalletSignaturePurpose.login
-    : GQLCryptoWalletSignaturePurpose.signup // or login, if already have this address signup before
+    : GQLCryptoWalletSignaturePurpose.signup
 
-  const res = await atomService.create({
+  await atomService.create({
     table,
     data: {
       address,
@@ -75,9 +66,6 @@ Resources:
       expiredAt,
     },
   })
-
-  // check res: no error
-  console.log('created signup/login:', res)
 
   return {
     nonce,
