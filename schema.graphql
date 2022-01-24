@@ -2620,10 +2620,10 @@ input WalletLoginInput {
   nonce: String!
 
   """required for wallet register"""
-  email: String!
+  email: String
 
   """email verification code, required for wallet register"""
-  codeId: ID!
+  codeId: ID
 }
 
 input ResetLikerIdInput {

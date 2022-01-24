@@ -3596,12 +3596,12 @@ export interface GQLWalletLoginInput {
   /**
    * required for wallet register
    */
-  email: string
+  email?: string
 
   /**
    * email verification code, required for wallet register
    */
-  codeId: string
+  codeId?: string
 }
 
 export interface GQLResetLikerIdInput {
