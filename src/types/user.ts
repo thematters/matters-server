@@ -630,10 +630,10 @@ export default /* GraphQL */ `
     nonce: String!
 
     "required for wallet register"
-    email: String! @constraint(format: "email")
+    email: String @constraint(format: "email")
 
     "email verification code, required for wallet register"
-    codeId: ID!
+    codeId: ID
   }
 
   input ResetLikerIdInput {
