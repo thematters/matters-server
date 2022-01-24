@@ -9,7 +9,7 @@ const resolver: UserInfoToIsWalletAuthResolver = async (
     return false
   }
 
-  return viewer.ethAddress && !viewer.passwordHash
+  return !!viewer.ethAddress && !viewer.passwordHash
 }
 
 export default resolver
