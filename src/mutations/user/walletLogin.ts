@@ -1,8 +1,13 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { Knex } from 'knex'
 import Web3 from 'web3'
 
-import { AUTO_FOLLOW_TAGS, VERIFICATION_CODE_STATUS } from 'common/enums'
+import {
+  AUTO_FOLLOW_TAGS,
+  NODE_TYPES,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   CodeInvalidError,
@@ -12,6 +17,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { getViewerFromUser, setCookie } from 'common/utils'
+import { CacheService } from 'connectors'
 import {
   AuthMode,
   GQLAuthResultType,
@@ -24,6 +30,7 @@ const resolver: MutationToWalletLoginResolver = async (
   { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
   context
 ) => {
+  const cacheService = new CacheService()
   const {
     viewer,
     req,
@@ -90,6 +97,11 @@ const resolver: MutationToWalletLoginResolver = async (
     await userService.baseUpdate(viewer.id, {
       updatedAt: new Date(),
       ethAddress: verifiedAddress, // save the lower case ones
+    })
+
+    await invalidateFQC({
+      node: { type: NODE_TYPES.User, id: viewer.id },
+      redis: cacheService.redis,
     })
 
     return {
