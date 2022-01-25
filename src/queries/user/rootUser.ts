@@ -1,3 +1,5 @@
+import { CacheScope } from 'apollo-cache-control'
+
 import { CACHE_TTL } from 'common/enums'
 import { QueryToUserResolver } from 'definitions'
 
@@ -16,6 +18,7 @@ const resolver: QueryToUserResolver = async (
   } else if (ethAddress) {
     cacheControl.setCacheHint({
       maxAge: CACHE_TTL.INSTANT,
+      scope: CacheScope.Private,
     })
     return userService.findByEthAddress(ethAddress)
   }
