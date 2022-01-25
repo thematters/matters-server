@@ -1,10 +1,11 @@
+import { CACHE_TTL } from 'common/enums'
 import { QueryToUserResolver } from 'definitions'
 
 const resolver: QueryToUserResolver = async (
   root,
   { input: { userName, ethAddress } },
   { viewer, dataSources: { userService } },
-  info
+  { cacheControl }
 ) => {
   if (!userName && !ethAddress) {
     return
@@ -13,6 +14,9 @@ const resolver: QueryToUserResolver = async (
   if (userName) {
     return userService.findByUserName(userName)
   } else if (ethAddress) {
+    cacheControl.setCacheHint({
+      maxAge: CACHE_TTL.INSTANT,
+    })
     return userService.findByEthAddress(ethAddress)
   }
 }
