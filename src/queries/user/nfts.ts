@@ -2,9 +2,7 @@ import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
-// import OpenSeaService from 'connectors/opensea'
 import {
-  // UserToAvatarResolver,
   CryptoWalletToHasNFTsResolver,
   CryptoWalletToNftsResolver,
 } from 'definitions'
@@ -24,21 +22,18 @@ interface OpenSeaNFTAsset {
   permalink: string
 }
 
-/* const getAssetsByOwner = async (owner: string) => {
-  const oseaService = new OpenSeaService()
-  return oseaService.getAssets({ owner })
-} */
-
 export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
-  { address },
+  { userId, address },
   _,
-  { dataSources: { openseaService } }
+  { dataSources: { userService, openseaService } }
 ) => {
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
 
+  const user = await userService.baseFindById(userId)
+  const owner = user?.ethAddress || address
   const assets = await cacheService.getObject({
-    keys: { type: 'traveloggers', id: address },
-    getter: () => openseaService.getAssets({ owner: address }),
+    keys: { type: 'traveloggers', id: owner },
+    getter: () => openseaService.getAssets({ owner }),
     expire: CACHE_TTL.LONG,
   })
 
@@ -46,16 +41,17 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
 }
 
 export const nfts: CryptoWalletToNftsResolver = async (
-  { address },
+  { userId, address },
   _,
-  { dataSources: { openseaService } }
+  { dataSources: { userService, openseaService } }
 ) => {
-  const assets = await openseaService.getAssets({ owner: address }) // getAssetsByOwner(address)
+  const user = await userService.baseFindById(userId)
+  const owner = user?.ethAddress || address
+  const assets = await openseaService.getAssets({ owner })
 
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
   await cacheService.storeObject({
-    // keys: { type, id, field, args }
-    keys: { type: 'traveloggers', id: address },
+    keys: { type: 'traveloggers', id: owner },
     data: assets,
     expire: CACHE_TTL.LONG,
   })
@@ -86,7 +82,6 @@ export const nfts: CryptoWalletToNftsResolver = async (
         description,
         imageUrl: `${imgCacheServicePrefix}/${image_url}`,
         imagePreviewUrl: `${imgCacheServicePrefix}/${image_preview_url}`,
-        // imageOriginalUrl: image_original_url || '',
         contractAddress: asset_contract.address,
         collectionName: collection.name,
         tokenMetadata: token_metadata,
