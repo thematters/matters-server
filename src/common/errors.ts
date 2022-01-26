@@ -302,6 +302,14 @@ export class EmailNotFoundError extends ApolloError {
   }
 }
 
+export class EthAddressNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'USER_ETH_ADDRESS_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'EthAddressNotFoundError' })
+  }
+}
+
 export class PasswordInvalidError extends ApolloError {
   constructor(message: string) {
     super(message, 'USER_PASSWORD_INVALID')
@@ -373,6 +381,13 @@ export class LikerUserIdExistsError extends ApolloError {
     super(message, 'LIKER_USER_ID_EXISTS')
 
     Object.defineProperty(this, 'name', { value: 'LikerUserIdExistsError' })
+  }
+}
+
+export class LikeCoinWebhookError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKECOIN_WEBHOOK_ERROR')
+    Object.defineProperty(this, 'name', { value: 'LikeCoinWebhookError' })
   }
 }
 

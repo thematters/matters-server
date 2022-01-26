@@ -15,6 +15,7 @@ exports.seed = function (knex, Promise) {
           description: 'test user 1 description',
           email: 'test1@matters.news',
           email_verified: true,
+          state: 'active',
           mobile: '999',
           liker_id: 'test_liker_id',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
@@ -53,6 +54,7 @@ exports.seed = function (knex, Promise) {
           display_name: 'admin1',
           email: 'admin1@matters.news',
           role: 'admin',
+          state: 'active',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           payment_password_hash: bcrypt.hashSync('123456', BCRYPT_ROUNDS),
         },
@@ -62,6 +64,7 @@ exports.seed = function (knex, Promise) {
           display_name: 'matty',
           email: 'hi@matters.news',
           role: 'admin',
+          state: 'active',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
         {

@@ -1,18 +1,27 @@
+import { CacheScope } from 'apollo-cache-control'
+
+import { CACHE_TTL } from 'common/enums'
 import { QueryToUserResolver } from 'definitions'
 
 const resolver: QueryToUserResolver = async (
   root,
-  { input: { userName } },
+  { input: { userName, ethAddress } },
   { viewer, dataSources: { userService } },
-  info
+  { cacheControl }
 ) => {
-  if (!userName) {
+  if (!userName && !ethAddress) {
     return
   }
 
-  const user = await userService.findByUserName(userName)
-
-  return user
+  if (userName) {
+    return userService.findByUserName(userName)
+  } else if (ethAddress) {
+    cacheControl.setCacheHint({
+      maxAge: CACHE_TTL.INSTANT,
+      scope: CacheScope.Private,
+    })
+    return userService.findByEthAddress(ethAddress)
+  }
 }
 
 export default resolver

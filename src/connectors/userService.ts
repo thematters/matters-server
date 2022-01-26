@@ -2,7 +2,7 @@ import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
-import _ from 'lodash'
+import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
@@ -24,11 +24,18 @@ import {
 import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
+  EthAddressNotFoundError,
+  NameInvalidError,
   PasswordInvalidError,
   ServerError,
+  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { generatePasswordhash } from 'common/utils'
+import {
+  generatePasswordhash,
+  isValidUserName,
+  makeUserName,
+} from 'common/utils'
 import { BaseService, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
@@ -64,34 +71,49 @@ export class UserService extends BaseService {
    * Create a new user.
    */
   create = async ({
-    email,
     userName,
     displayName,
-    description,
+    // description,
     password,
+    email,
+    ethAddress,
   }: {
-    email: string
     userName: string
-    displayName: string
-    description?: string
-    password: string
+    displayName?: string
+    // description?: string
+    password?: string
+    email?: string
+    ethAddress?: string
   }) => {
-    const avatar = null
+    // const avatar = null
+    if (!email && !ethAddress) {
+      throw new UserInputError(
+        'email and ethAddress cannot be both empty to create user'
+      )
+    }
 
     const uuid = v4()
-    const passwordHash = await generatePasswordhash(password)
-    const user = await this.baseCreate({
-      uuid,
-      email,
-      emailVerified: true,
-      userName,
-      displayName,
-      description,
-      avatar,
-      passwordHash,
-      agreeOn: new Date(),
-      state: USER_STATE.onboarding,
-    })
+    const passwordHash = password
+      ? await generatePasswordhash(password)
+      : undefined
+    const user = await this.baseCreate(
+      _.omitBy(
+        {
+          uuid,
+          email,
+          emailVerified: true,
+          userName,
+          displayName,
+          // description,
+          // avatar,
+          passwordHash,
+          agreeOn: new Date(),
+          state: USER_STATE.onboarding,
+          ethAddress,
+        },
+        _.isNil
+      )
+    )
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
     await this.addToSearch(user)
@@ -116,7 +138,7 @@ export class UserService extends BaseService {
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
-  login = async ({
+  loginByEmail = async ({
     email,
     password,
     archivedCallback,
@@ -142,6 +164,44 @@ export class UserService extends BaseService {
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
+    return {
+      token,
+      user,
+    }
+  }
+
+  /**
+   * Login user and return jwt token. Default to expires in 24 * 90 hours
+   */
+  loginByEthAddress = async ({
+    ethAddress,
+    archivedCallback,
+  }: {
+    ethAddress: string
+    archivedCallback?: () => Promise<any>
+  }) => {
+    const user = await this.findByEthAddress(ethAddress)
+
+    if (!user || user.state === USER_STATE.archived) {
+      // record agent hash if state is archived
+      if (user && user.state === USER_STATE.archived && archivedCallback) {
+        await archivedCallback().catch((error) => logger.error)
+      }
+      throw new EthAddressNotFoundError(
+        'Cannot find user with such ethAddress, login failed.'
+      )
+    }
+
+    // no password; caller of this has verified eth signature
+    // await this.verifyPassword({ password, hash: user.passwordHash })
+
+    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+    })
+
+    logger.info(
+      `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`
+    )
     return {
       token,
       user,
@@ -184,6 +244,18 @@ export class UserService extends BaseService {
     this.knex.select().from(this.table).where({ userName }).first()
 
   /**
+   * Find users by a ether address.
+   */
+  findByEthAddress = async (ethAddress: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        ethAddress: ethAddress.toLowerCase(), // ethAddress case insensitive
+      })
+      .first()
+
+  /**
    * Check is username editable
    */
   isUserNameEditable = async (userId: string) => {
@@ -203,6 +275,27 @@ export class UserService extends BaseService {
       .first()
     const count = parseInt(result ? (result.count as string) : '0', 10)
     return count > 0
+  }
+
+  /**
+   * Programatically generate user name
+   */
+  generateUserName = async (email: string) => {
+    let retries = 0
+    const mainName = makeUserName(email)
+    let userName = mainName
+    while (
+      !isValidUserName(userName) ||
+      (await this.checkUserNameExists(userName))
+    ) {
+      if (retries >= 20) {
+        throw new NameInvalidError('cannot generate user name')
+      }
+      userName = `${mainName}${random(1, 999)}`
+      retries += 1
+    }
+
+    return userName
   }
 
   /**

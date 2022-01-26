@@ -621,9 +621,9 @@ export class ArticleService extends BaseService {
           [articleId, APPRECIATION_PURPOSE.appreciateSubsidy],
         ]
       )
-      .sum('amount')
+      .sum('amount', { as: 'sum' })
       .first()
-    return parseInt(result.sum || '0', 10)
+    return parseInt(result?.sum || '0', 10)
   }
 
   /**
@@ -1129,11 +1129,11 @@ export class ArticleService extends BaseService {
     state: string
   }) => {
     const query = this.makeResponseQuery({ id, order, state, fields: '' })
-    const { count, max, min } = await query
+    const { count, max, min } = (await query
       .max('seq')
       .min('seq')
       .count()
-      .first()
+      .first()) as Record<string, any>
     return {
       count: parseInt(count, 10),
       max: parseInt(max, 10),
@@ -1179,7 +1179,7 @@ export class ArticleService extends BaseService {
       .count()
       .first()
 
-    return parseInt(result.count || '0', 10)
+    return parseInt((result?.count as string) || '0', 10)
   }
 
   /**

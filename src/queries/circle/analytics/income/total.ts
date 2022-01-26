@@ -31,13 +31,10 @@ const resolver: CircleIncomeAnalyticsToTotalResolver = async (
       targetType: entityTypeId,
       targetId: price.id,
     })
-    .sum('amount as total')
+    .sum('amount', { as: 'total' })
+    .first()
 
-  if (!result || !result[0]) {
-    return 0
-  }
-
-  return parseInt(result[0].total || 0, 10)
+  return parseInt((result?.total as string) || '0', 10)
 }
 
 export default resolver

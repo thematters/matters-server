@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'

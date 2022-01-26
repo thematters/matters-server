@@ -1,6 +1,6 @@
 import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'
@@ -38,16 +38,11 @@ export class BaseService extends DataSource {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
-    const result = await this.knex
-      .select()
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> =>
+    this.knex // .select()
       .from(table || this.table)
       .where({ id })
-    if (result && result.length > 0) {
-      return result[0]
-    }
-    return null
-  }
+      .first()
 
   /**
    * Find items by given ids.
@@ -138,7 +133,7 @@ export class BaseService extends DataSource {
       const [result] = await this.knex(table || this.table)
         .insert(data)
         .returning('*')
-      logger.info(`Inserted id ${result.id} to ${table}`)
+      logger.info(`Inserted id ${result.id} to ${table || this.table}`)
       return result
     } catch (err) {
       logger.error(err)

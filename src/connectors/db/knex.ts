@@ -1,4 +1,4 @@
-import Knex from 'knex'
+import { knex as knexInstantiator } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
 import { environment } from 'common/environment'
@@ -7,7 +7,7 @@ import { MaterializedView } from 'definitions'
 // @ts-ignore
 import knexConfig from '../../../knexfile'
 
-export const knex = Knex({
+export const knex = knexInstantiator({
   ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
 })

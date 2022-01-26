@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
 import {

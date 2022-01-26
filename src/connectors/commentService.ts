@@ -135,14 +135,14 @@ export class CommentService extends BaseService {
    * Find id range with given filter
    */
   range = async (where: CommentFilter) => {
-    const { count, max, min } = await this.knex
+    const { count, max, min } = (await this.knex
       .select()
       .from(this.table)
       .where(where)
       .min('id')
       .max('id')
       .count()
-      .first()
+      .first()) as Record<string, any>
 
     return {
       count: parseInt(count, 10),

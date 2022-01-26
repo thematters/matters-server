@@ -12,7 +12,7 @@ exports.up = async (knex) => {
     t.integer('word_count')
     t.string('data_hash')
     t.string('media_hash')
-    t.string('language').defaultTo()
+    t.string('language')
 
     // versioning
     t.bigInteger('prev_draft_id').unsigned()

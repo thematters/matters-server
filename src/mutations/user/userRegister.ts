@@ -1,5 +1,3 @@
-import { random } from 'lodash'
-
 import {
   AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
@@ -22,10 +20,10 @@ import {
   isValidEmail,
   isValidPassword,
   isValidUserName,
-  makeUserName,
   setCookie,
 } from 'common/utils'
 import {
+  GQLAuthResultType,
   GQLVerificationCodeType,
   MutationToUserRegisterResolver,
 } from 'definitions'
@@ -89,20 +87,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
     newUserName = userName
   } else {
-    // Programatically generate user name
-    let retries = 0
-    const mainName = makeUserName(email)
-    newUserName = mainName
-    while (
-      !isValidUserName(newUserName) ||
-      (await userService.checkUserNameExists(newUserName))
-    ) {
-      if (retries >= 20) {
-        throw new NameInvalidError('cannot generate user name')
-      }
-      newUserName = `${mainName}${random(1, 999)}`
-      retries += 1
-    }
+    newUserName = await userService.generateUserName(email)
   }
 
   const newUser = await userService.create({
@@ -115,24 +100,7 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.follow(newUser.id, environment.mattyId)
 
   // auto follow tags
-  const items = await Promise.all(
-    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content }))
-  )
-  await Promise.all(
-    items.map((tags) => {
-      const tag = tags[0]
-      if (tag) {
-        return tagService.follow({ targetId: tag.id, userId: newUser.id })
-      }
-    })
-  )
-
-  if (environment.mattyChoiceTagId) {
-    await tagService.follow({
-      targetId: environment.mattyChoiceTagId,
-      userId: newUser.id,
-    })
-  }
+  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
 
   // mark code status as used
   await userService.markVerificationCodeAs({
@@ -178,11 +146,11 @@ const resolver: MutationToUserRegisterResolver = async (
     })
   )
 
-  const { token, user } = await userService.login({ ...input, email })
+  const { token, user } = await userService.loginByEmail({ ...input, email })
 
   setCookie({ req, res, token, user })
 
-  return { token, auth: true }
+  return { token, auth: true, type: GQLAuthResultType.Signup }
 }
 
 export default resolver

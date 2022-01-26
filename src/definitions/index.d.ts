@@ -1,6 +1,6 @@
 import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
-import Knex from 'knex'
+import { Knex } from 'knex'
 
 import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 import {
@@ -41,6 +41,7 @@ export type User = {
   createdAt: string
   updatedAt: string
   agreeOn: string
+  ethAddress: string
 }
 
 export type UserRole = 'admin' | 'user'
@@ -64,6 +65,7 @@ export type Viewer = (User | { id: null }) & {
   authMode: AuthMode
   oauthClient?: OAuthClient
   agentHash?: string
+  token?: string
   group: 'a' | 'b'
 }
 

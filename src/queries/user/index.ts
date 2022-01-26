@@ -37,6 +37,7 @@ import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
 import isFollower from './isFollower'
+import isWalletAuth from './isWalletAuth'
 import Liker from './liker'
 import likerId from './liker/likerId'
 import { hasNFTs, nfts } from './nfts'
@@ -122,6 +123,7 @@ const user: {
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
     group,
+    isWalletAuth,
     cryptoWallet,
   },
   UserSettings: {

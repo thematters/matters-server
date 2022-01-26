@@ -663,7 +663,7 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, newest and icymi', async () => {
+  test('retrieve articles from hottest, newest and icymi', async () => {
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
 
     const lists = ['hottest', 'newest', 'icymi']
@@ -682,7 +682,7 @@ describe('user recommendations', () => {
     }
   })
 
-  test('retrive tags from tags', async () => {
+  test('retrieve tags from tags', async () => {
     await refreshView(MATERIALIZED_VIEW.curation_tag_materialized)
     await refreshView(MATERIALIZED_VIEW.tag_count_materialized)
 

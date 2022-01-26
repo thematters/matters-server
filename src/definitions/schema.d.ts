@@ -255,6 +255,16 @@ export interface GQLMutation {
   userLogin: GQLAuthResult
 
   /**
+   * get signing message.
+   */
+  generateSigningMessage: GQLSigningMessageResult
+
+  /**
+   * Login/Signup via a wallet.
+   */
+  walletLogin: GQLAuthResult
+
+  /**
    * Logout user.
    */
   userLogout: boolean
@@ -3084,6 +3094,12 @@ export interface GQLUserInfo {
   group: GQLUserGroup
 
   /**
+   * Login address
+   */
+  ethAddress?: string
+  isWalletAuth: boolean
+
+  /**
    * Connected wallet.
    */
   cryptoWallet?: GQLCryptoWallet
@@ -3264,6 +3280,20 @@ export interface GQLBadge {
 export interface GQLAuthResult {
   auth: boolean
   token?: string
+  type: GQLAuthResultType
+}
+
+export const enum GQLAuthResultType {
+  Login = 'Login',
+  Signup = 'Signup',
+  LinkAccount = 'LinkAccount',
+}
+
+export interface GQLSigningMessageResult {
+  nonce: string
+  signingMessage: string
+  createdAt: GQLDateTime
+  expiredAt: GQLDateTime
 }
 
 export interface GQLUserConnection extends GQLConnection {
@@ -3492,7 +3522,8 @@ export interface GQLNFTAsset {
 }
 
 export interface GQLUserInput {
-  userName: string
+  userName?: string
+  ethAddress?: string
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3542,6 +3573,35 @@ export interface GQLUserRegisterInput {
 export interface GQLUserLoginInput {
   email: string
   password: string
+}
+
+export interface GQLWalletLoginInput {
+  ethAddress: string
+
+  /**
+   * the message being sign'ed, including nonce
+   */
+  signedMessage: string
+
+  /**
+   * sign'ed by wallet
+   */
+  signature: string
+
+  /**
+   * nonce from generateSigningMessage
+   */
+  nonce: string
+
+  /**
+   * required for wallet register
+   */
+  email?: string
+
+  /**
+   * email verification code, required for wallet register
+   */
+  codeId?: string
 }
 
 export interface GQLResetLikerIdInput {
@@ -3695,6 +3755,8 @@ export const enum GQLAuthorsType {
 export const enum GQLCryptoWalletSignaturePurpose {
   airdrop = 'airdrop',
   connect = 'connect',
+  signup = 'signup',
+  login = 'login',
 }
 
 export type GQLResponse = GQLArticle | GQLComment
@@ -4137,6 +4199,7 @@ export interface GQLResolver {
   ReadHistory?: GQLReadHistoryTypeResolver
   Badge?: GQLBadgeTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
+  SigningMessageResult?: GQLSigningMessageResultTypeResolver
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   ReadHistoryConnection?: GQLReadHistoryConnectionTypeResolver
@@ -4375,6 +4438,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   changeEmail?: MutationToChangeEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
+  generateSigningMessage?: MutationToGenerateSigningMessageResolver<TParent>
+  walletLogin?: MutationToWalletLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   resetLikerId?: MutationToResetLikerIdResolver<TParent>
@@ -5101,6 +5166,33 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserLoginArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToGenerateSigningMessageArgs {
+  address: string
+}
+export interface MutationToGenerateSigningMessageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToGenerateSigningMessageArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToWalletLoginArgs {
+  input: GQLWalletLoginInput
+}
+export interface MutationToWalletLoginResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToWalletLoginArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10185,6 +10277,8 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
   profileCover?: UserInfoToProfileCoverResolver<TParent>
   group?: UserInfoToGroupResolver<TParent>
+  ethAddress?: UserInfoToEthAddressResolver<TParent>
+  isWalletAuth?: UserInfoToIsWalletAuthResolver<TParent>
   cryptoWallet?: UserInfoToCryptoWalletResolver<TParent>
 }
 
@@ -10255,6 +10349,24 @@ export interface UserInfoToProfileCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToGroupResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToEthAddressResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToIsWalletAuthResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -10839,6 +10951,7 @@ export interface BadgeToTypeResolver<TParent = any, TResult = any> {
 export interface GQLAuthResultTypeResolver<TParent = any> {
   auth?: AuthResultToAuthResolver<TParent>
   token?: AuthResultToTokenResolver<TParent>
+  type?: AuthResultToTypeResolver<TParent>
 }
 
 export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
@@ -10851,6 +10964,70 @@ export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
 }
 
 export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AuthResultToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLSigningMessageResultTypeResolver<TParent = any> {
+  nonce?: SigningMessageResultToNonceResolver<TParent>
+  signingMessage?: SigningMessageResultToSigningMessageResolver<TParent>
+  createdAt?: SigningMessageResultToCreatedAtResolver<TParent>
+  expiredAt?: SigningMessageResultToExpiredAtResolver<TParent>
+}
+
+export interface SigningMessageResultToNonceResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SigningMessageResultToSigningMessageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SigningMessageResultToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SigningMessageResultToExpiredAtResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

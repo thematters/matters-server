@@ -37,13 +37,10 @@ const resolver: CircleIncomeAnalyticsToThisMonthResolver = async (
       knex.raw(`date_trunc('month', current_date + interval '1' month)`)
     )
     .andWhere('created_at', '>=', knex.raw(`date_trunc('month', current_date)`))
-    .sum('amount as total')
+    .sum('amount', { as: 'total' })
+    .first()
 
-  if (!result || !result[0]) {
-    return 0
-  }
-
-  return parseInt(result[0].total || 0, 10)
+  return parseInt((result?.total as string) || '0', 10)
 }
 
 export default resolver

@@ -33,4 +33,8 @@ export const RESERVED_CIRCLE_NAMES = [
   'tos',
 ]
 
-export const AUTO_FOLLOW_TAGS = ['Matters新人打卡', '玩轉Matters實用指南']
+export const AUTO_FOLLOW_TAGS = [
+  'Matters新人打卡',
+  '玩轉Matters實用指南',
+  'Matters 每日精選',
+]

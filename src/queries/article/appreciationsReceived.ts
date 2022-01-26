@@ -24,7 +24,8 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
     })
     .count()
     .first()
-  const totalCount = parseInt(record.count || '0', 10)
+
+  const totalCount = parseInt((record?.count as string) || '0', 10)
 
   return connectionFromPromisedArray(
     articleService.findAppreciations({

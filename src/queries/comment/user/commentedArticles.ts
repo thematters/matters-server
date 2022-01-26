@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash'
+// import { cloneDeep } from 'lodash'
 
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
@@ -12,8 +12,8 @@ const resolver: UserToCommentedArticlesResolver = async (
   const { take, skip } = fromConnectionArgs(input)
 
   const base = knex
-    .select('article.*')
-    .max('comment.id', { as: '_comment_id_' })
+    .select('article.*', knex.raw('MAX(comment.id) as _comment_id_'))
+    // .max('comment.id', { as: '_comment_id_' })
     .from('comment')
     .innerJoin('article', 'comment.target_id', 'article.id')
     .where({
@@ -24,7 +24,7 @@ const resolver: UserToCommentedArticlesResolver = async (
     .groupBy('article.id')
     .orderBy('_comment_id_', 'desc')
 
-  const countQuery = knex.count().from(cloneDeep(base).as('base')).first()
+  const countQuery = knex.count().from(base.as('base')).first()
   const articlesQuery = base.offset(skip).limit(take)
 
   const [count, articles] = await Promise.all([countQuery, articlesQuery])

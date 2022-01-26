@@ -231,7 +231,7 @@ describe('Anonymous query and mutation', () => {
  *
  * mode: 'oauth'
  */
-describe('OAuth viewer qeury and mutation', () => {
+describe('OAuth viewer query and mutation', () => {
   test('query with public and private fields', async () => {
     const { context, server } = await prepare({
       email: defaultTestUser.email,

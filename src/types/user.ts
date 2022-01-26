@@ -25,6 +25,12 @@ export default /* GraphQL */ `
     "Login user."
     userLogin(input: UserLoginInput!): AuthResult!
 
+    "get signing message."
+    generateSigningMessage(address: String!): SigningMessageResult!
+
+    "Login/Signup via a wallet."
+    walletLogin(input: WalletLoginInput!): AuthResult!
+
     "Logout user."
     userLogout: Boolean!
 
@@ -242,6 +248,11 @@ export default /* GraphQL */ `
     "Type of group."
     group: UserGroup!
 
+    "Login address"
+    ethAddress: String
+
+    isWalletAuth: Boolean!
+
     "Connected wallet."
     cryptoWallet: CryptoWallet
   }
@@ -361,6 +372,20 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+    type: AuthResultType!
+  }
+
+  enum AuthResultType {
+    Login
+    Signup
+    LinkAccount
+  }
+
+  type SigningMessageResult {
+    nonce: String!
+    signingMessage: String!
+    createdAt: DateTime!
+    expiredAt: DateTime!
   }
 
   type UserConnection implements Connection {
@@ -539,7 +564,8 @@ export default /* GraphQL */ `
   }
 
   input UserInput {
-    userName: String!
+    userName: String
+    ethAddress: String
   }
 
   input SendVerificationCodeInput {
@@ -589,6 +615,25 @@ export default /* GraphQL */ `
   input UserLoginInput {
     email: String! @constraint(format: "email")
     password: String!
+  }
+
+  input WalletLoginInput {
+    ethAddress: String!
+
+    "the message being sign'ed, including nonce"
+    signedMessage: String!
+
+    "sign'ed by wallet"
+    signature: String!
+
+    "nonce from generateSigningMessage"
+    nonce: String!
+
+    "required for wallet register"
+    email: String @constraint(format: "email")
+
+    "email verification code, required for wallet register"
+    codeId: ID
   }
 
   input ResetLikerIdInput {
@@ -742,5 +787,7 @@ export default /* GraphQL */ `
   enum CryptoWalletSignaturePurpose {
     airdrop
     connect
+    signup
+    login
   }
 `
