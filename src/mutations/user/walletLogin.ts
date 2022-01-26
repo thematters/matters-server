@@ -70,9 +70,9 @@ const resolver: MutationToWalletLoginResolver = async (
   const verifiedAddress = recoverPersonalSignature({
     data: signedMessage,
     sig: signature,
-  })
+  }).toLowerCase()
 
-  if (ethAddress.toLowerCase() !== verifiedAddress.toLowerCase()) {
+  if (ethAddress.toLowerCase() !== verifiedAddress) {
     throw new UserInputError('signature is not valid')
   }
 
@@ -93,6 +93,11 @@ const resolver: MutationToWalletLoginResolver = async (
         updatedAt: new Date(),
       },
     })
+
+    const user = await userService.findByEthAddress(verifiedAddress)
+    if (user) {
+      throw new CryptoWalletExistsError('eth address already has a user')
+    }
 
     await userService.baseUpdate(viewer.id, {
       updatedAt: new Date(),
