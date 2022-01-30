@@ -1,5 +1,3 @@
-import { cloneDeep } from 'lodash'
-
 import { INVITATION_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { InvitesToAcceptedResolver } from 'definitions'
@@ -32,8 +30,8 @@ const resolver: InvitesToAcceptedResolver = async (
     .groupBy('user_id')
     .orderBy('accepted_at', 'desc')
 
-  const countQuery = knex.count().from(cloneDeep(base).as('base')).first()
-  const invitesQuery = base.offset(skip).limit(take)
+  const countQuery = knex.count().from(base.as('base')).first()
+  const invitesQuery = base.clone().offset(skip).limit(take)
 
   const [count, invites] = await Promise.all([countQuery, invitesQuery])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
