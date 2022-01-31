@@ -188,6 +188,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
   const userName = await userService.generateUserName(email)
   const newUser = await userService.create({
+    email,
     userName,
     displayName: userName,
     ethAddress: verifiedAddress, // save the lower case ones
