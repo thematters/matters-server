@@ -47,7 +47,7 @@ const resolver: MutationToResetPasswordResolver = async (
     }
   } else {
     // forbid wallet login user to (re)set password
-    if (!user.password) {
+    if (!user.passwordHash) {
       throw new ForbiddenError('wallet user cannot reset account password')
     }
 
