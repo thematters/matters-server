@@ -3489,7 +3489,6 @@ export interface GQLFollowing {
 export interface GQLCryptoWallet {
   id: string
   address: string
-  createdAt: GQLDateTime
 
   /**
    *  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query
@@ -11715,7 +11714,6 @@ export interface FollowingToUsersResolver<TParent = any, TResult = any> {
 export interface GQLCryptoWalletTypeResolver<TParent = any> {
   id?: CryptoWalletToIdResolver<TParent>
   address?: CryptoWalletToAddressResolver<TParent>
-  createdAt?: CryptoWalletToCreatedAtResolver<TParent>
   hasNFTs?: CryptoWalletToHasNFTsResolver<TParent>
   nfts?: CryptoWalletToNftsResolver<TParent>
 }
@@ -11730,15 +11728,6 @@ export interface CryptoWalletToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface CryptoWalletToAddressResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoWalletToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
