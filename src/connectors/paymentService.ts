@@ -667,6 +667,7 @@ export class PaymentService extends BaseService {
       .whereIn('state', [
         SUBSCRIPTION_STATE.active,
         SUBSCRIPTION_STATE.trialing,
+        SUBSCRIPTION_STATE.pastDue,
       ])
 
     return subscriptions || []
