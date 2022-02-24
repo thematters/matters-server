@@ -42,6 +42,7 @@ const resolver: MutationToWalletLoginResolver = async (
       tagService,
       notificationService,
     },
+    knex,
   } = context
 
   if (!ethAddress || !Web3.utils.isAddress(ethAddress)) {
@@ -90,7 +91,7 @@ const resolver: MutationToWalletLoginResolver = async (
       data: {
         signature,
         userId: viewer.id,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
 
@@ -100,8 +101,15 @@ const resolver: MutationToWalletLoginResolver = async (
     }
 
     await userService.baseUpdate(viewer.id, {
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
       ethAddress: verifiedAddress, // save the lower case ones
+    })
+
+    // archive wallet
+    await atomService.update({
+      table: 'crypto_wallet',
+      where: { userId: viewer.id, archived: false },
+      data: { updatedAt: knex.fn.now(), archived: true },
     })
 
     await invalidateFQC({
