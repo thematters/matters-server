@@ -540,7 +540,7 @@ export default /* GraphQL */ `
   type CryptoWallet {
     id: ID!
     address: String!
-    createdAt: DateTime!
+    # createdAt: DateTime!
 
     """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next \`nfts\` query """
     hasNFTs: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})

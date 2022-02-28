@@ -42,6 +42,7 @@ const resolver: MutationToWalletLoginResolver = async (
       tagService,
       notificationService,
     },
+    knex,
   } = context
 
   if (!ethAddress || !Web3.utils.isAddress(ethAddress)) {
@@ -79,18 +80,14 @@ const resolver: MutationToWalletLoginResolver = async (
   /**
    * Link
    */
-  if (viewer.id && viewer.token) {
-    if (viewer.ethAddress) {
-      throw new CryptoWalletExistsError('user already has eth address')
-    }
-
+  if (viewer.id && viewer.token && !viewer.ethAddress) {
     await atomService.update({
       table: sig_table,
       where: { id: lastSigning.id },
       data: {
         signature,
         userId: viewer.id,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
 
@@ -100,8 +97,15 @@ const resolver: MutationToWalletLoginResolver = async (
     }
 
     await userService.baseUpdate(viewer.id, {
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
       ethAddress: verifiedAddress, // save the lower case ones
+    })
+
+    // archive crypto_wallet entry
+    await atomService.update({
+      table: 'crypto_wallet',
+      where: { userId: viewer.id, archived: false },
+      data: { updatedAt: knex.fn.now(), archived: true },
     })
 
     await invalidateFQC({

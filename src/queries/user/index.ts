@@ -173,7 +173,7 @@ const user: {
     id: ({ id }) =>
       id ? toGlobalId({ type: NODE_TYPES.CryptoWallet, id }) : '',
     address: ({ address }) => address,
-    createdAt: ({ createdAt }) => createdAt,
+    // createdAt: ({ createdAt }) => createdAt,
 
     hasNFTs,
     nfts,
