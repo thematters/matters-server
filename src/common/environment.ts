@@ -106,16 +106,17 @@ export const environment = {
   slackStripeAlertChannel: process.env.MATTERS_SLACK_STRIPE_ALERT_CHANNEL || '',
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
   openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
-  nftAirdropStart: process.env.MATTERS_NFT_AIRDROP_START || '',
-  nftAirdropEnd: process.env.MATTERS_NFT_AIRDROP_END || '',
-  nftConnectStart: process.env.MATTERS_NFT_CONNECT_START || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
       ? 'https://api.opensea.io/api/v1'
       : 'https://rinkeby-api.opensea.io/api/v1'),
   openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
-  nftContractAddress: process.env.MATTERS_NFT_CONTRACT_ADDRESS || '',
+  traveloggersContractAddress: process.env.MATTERS_LOGRS_CONTRACT_ADDRESS || '',
+  logbookContractAddress: process.env.MATTERS_LOGBOOK_CONTRACT_ADDRESS || '',
+  logbookClaimerPrivateKey:
+    process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
+  alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
 }
 
 const protocolScheme = isLocal ? 'http://' : 'https://'

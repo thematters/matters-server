@@ -24,7 +24,7 @@ export class OpenSeaService extends RESTDataSource {
 
   async getAssets({
     owner,
-    asset_contract_address = environment.nftContractAddress,
+    asset_contract_address = environment.traveloggersContractAddress,
   }: {
     owner: string
     asset_contract_address?: string

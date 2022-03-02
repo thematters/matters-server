@@ -1,16 +1,15 @@
 import addCredit from './addCredit'
 import changeEmail from './changeEmail'
+import claimLogbooks from './claimLogbooks'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
-import deleteWallet from './deleteWallet'
 import generateLikerId from './generateLikerId'
 import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
-import putWallet from './putWallet'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
@@ -55,9 +54,8 @@ export default {
     addCredit,
     payTo,
     payout,
-    putWallet,
-    deleteWallet,
     connectStripeAccount,
     toggleUsersBadge,
+    claimLogbooks,
   },
 }
