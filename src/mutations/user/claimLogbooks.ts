@@ -3,7 +3,11 @@ import { ethers } from 'ethers'
 import { Knex } from 'knex'
 
 import { environment, isProd } from 'common/environment'
-import { EthAddressNotFoundError, UserInputError } from 'common/errors'
+import {
+  EntityNotFoundError,
+  EthAddressNotFoundError,
+  UserInputError,
+} from 'common/errors'
 import { alchemy, AlchemyNetwork } from 'connectors'
 import {
   GQLSigningMessagePurpose,
@@ -52,7 +56,13 @@ const resolver: MutationToClaimLogbooksResolver = async (
     contract: environment.traveloggersContractAddress,
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
-  const tokenIds = traveloggersNFTs.ownedNfts.map((item) => item.id.tokenId)
+  const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
+    ethers.BigNumber.from(item.id.tokenId).toString()
+  )
+
+  if (tokenIds.length <= 0) {
+    throw new EntityNotFoundError('no logbooks to claim')
+  }
 
   // filter unclaimed token ids
   const provider = new ethers.providers.AlchemyProvider(
@@ -74,18 +84,28 @@ const resolver: MutationToClaimLogbooksResolver = async (
     signer
   )
 
-  const unclaimedTokenIds = (
-    await Promise.all([tokenIds.map((tokenId) => contract.ownerOf(tokenId))])
-  ).filter(Boolean)
+  const unclaimedTokenIds = []
+  for (const tokenId of tokenIds) {
+    try {
+      await contract.ownerOf(tokenId)
+    } catch (e) {
+      unclaimedTokenIds.push(tokenId)
+    }
+  }
+
+  if (unclaimedTokenIds.length <= 0) {
+    throw new EntityNotFoundError('no logbooks to claim')
+  }
 
   // send tx to claim tokens
   const iface = new ethers.utils.Interface(abi)
   const calldata = unclaimedTokenIds.map((tokenId) =>
     iface.encodeFunctionData('claim', [ethAddress, tokenId])
   )
+
   const tx = await contract.multicall(calldata)
-  const receipt = (await tx.wait()) as ethers.providers.TransactionResponse
-  const txHash = receipt.hash
+  const receipt = (await tx.wait()) as ethers.providers.TransactionReceipt
+  const txHash = receipt.transactionHash
 
   // update crypto_wallet_signature record
   await atomService.update({
