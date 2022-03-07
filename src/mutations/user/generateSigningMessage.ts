@@ -1,18 +1,17 @@
-// import { recoverPersonalSignature } from 'eth-sig-util'
 import { customAlphabet } from 'nanoid'
 import Web3 from 'web3'
 
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
-
 import { UserInputError } from 'common/errors'
 import {
-  GQLCryptoWalletSignaturePurpose,
+  GQLSigningMessagePurpose,
   MutationToGenerateSigningMessageResolver,
 } from 'definitions'
 
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
+
 const resolver: MutationToGenerateSigningMessageResolver = async (
   _,
-  { address },
+  { input: { address, purpose } },
   { viewer, dataSources: { atomService } }
 ) => {
   // check address is a valid one,
@@ -21,13 +20,6 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   }
 
   const table = 'crypto_wallet_signature'
-
-  // and not already in-use by anyone
-  const lastUsed = await atomService.findFirst({
-    table,
-    where: { address, purpose: GQLCryptoWalletSignaturePurpose.signup },
-    orderBy: [{ column: 'id', order: 'desc' }],
-  })
 
   // e.g. 'ek4j3nbum7ql'
   const nonce = nanoid()
@@ -51,9 +43,17 @@ Resources:
 - https://matters.news/community
 - https://matters.news/guide`
 
-  const purpose = lastUsed?.userId
-    ? GQLCryptoWalletSignaturePurpose.login
-    : GQLCryptoWalletSignaturePurpose.signup
+  if (!purpose) {
+    // and not already in-use by anyone
+    const lastUsed = await atomService.findFirst({
+      table,
+      where: { address, purpose: GQLSigningMessagePurpose.signup },
+      orderBy: [{ column: 'id', order: 'desc' }],
+    })
+    purpose = lastUsed?.userId
+      ? GQLSigningMessagePurpose.login
+      : GQLSigningMessagePurpose.signup
+  }
 
   await atomService.create({
     table,
@@ -69,6 +69,7 @@ Resources:
 
   return {
     nonce,
+    purpose,
     signingMessage,
     createdAt,
     expiredAt,

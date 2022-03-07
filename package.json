@@ -65,6 +65,7 @@
     "dataloader": "^2.0.0",
     "dotenv": "^10.0.0",
     "eth-sig-util": "^3.0.1",
+    "ethers": "^5.5.4",
     "express": "4.17.1",
     "fastest-levenshtein": "^1.0.12",
     "firebase-admin": "^10.0.0",
