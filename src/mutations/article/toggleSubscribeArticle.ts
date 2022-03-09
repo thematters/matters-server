@@ -27,10 +27,25 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const article = await atomService.findFirst({
-    table: 'article',
-    where: { id: dbId, state: ARTICLE_STATE.active },
-  })
+  // banned and archived articles shall still be abled to be unsubscribed
+  const article =
+    enabled === false
+      ? await atomService.findFirst({
+          table: 'article',
+          where: { id: dbId },
+          whereIn: [
+            'state',
+            [
+              ARTICLE_STATE.active,
+              ARTICLE_STATE.archived,
+              ARTICLE_STATE.banned,
+            ],
+          ],
+        })
+      : await atomService.findFirst({
+          table: 'article',
+          where: { id: dbId, state: ARTICLE_STATE.active },
+        })
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
