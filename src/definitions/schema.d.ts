@@ -538,8 +538,14 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Drafts linked to this article.
+   * @deprecated Use Article.draft instead
    */
   drafts?: Array<GQLDraft>
+
+  /**
+   * Newest draft linked to this article.
+   */
+  draft: GQLDraft
 
   /**
    * Revision Count
@@ -5531,6 +5537,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
+  draft?: ArticleToDraftResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
@@ -5898,6 +5905,15 @@ export interface ArticleToReadTimeResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToDraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

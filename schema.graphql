@@ -376,7 +376,10 @@ type Article implements Node {
   readTime: Float!
 
   """Drafts linked to this article."""
-  drafts: [Draft!]
+  drafts: [Draft!] @deprecated(reason: "Use Article.draft instead")
+
+  """Newest draft linked to this article."""
+  draft: Draft!
 
   """Revision Count"""
   revisionCount: Int!

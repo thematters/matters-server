@@ -6,8 +6,9 @@ const resolver: ArticleToRevisedAtResolver = async (
   _,
   { dataSources: { atomService } }
 ) => {
-  const drafts = await atomService.findMany({
+  const draft = await atomService.findFirst({
     table: 'draft',
+    select: ['created_at'],
     where: {
       articleId,
       archived: true,
@@ -16,10 +17,10 @@ const resolver: ArticleToRevisedAtResolver = async (
     orderBy: [{ column: 'created_at', order: 'desc' }],
   })
 
-  if (drafts.length <= 1) {
+  if (!draft) {
     return
   }
-  return drafts[0].createdAt
+  return draft.createdAt
 }
 
 export default resolver
