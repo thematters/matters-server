@@ -538,8 +538,19 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Drafts linked to this article.
+   * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
    */
   drafts?: Array<GQLDraft>
+
+  /**
+   * Newest unpublished draft linked to this article.
+   */
+  newestUnpublishedDraft: GQLDraft
+
+  /**
+   * Newest published draft linked to this article.
+   */
+  newestPublishedDraft: GQLDraft
 
   /**
    * Revision Count
@@ -5531,6 +5542,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
+  newestUnpublishedDraft?: ArticleToNewestUnpublishedDraftResolver<TParent>
+  newestPublishedDraft?: ArticleToNewestPublishedDraftResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
@@ -5898,6 +5911,30 @@ export interface ArticleToReadTimeResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToNewestUnpublishedDraftResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToNewestPublishedDraftResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
