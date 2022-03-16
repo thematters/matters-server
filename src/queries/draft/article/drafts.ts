@@ -10,8 +10,8 @@ const resolver: ArticleToDraftsResolver = async (
   info
 ) => {
   const drafts = await Promise.all([
-    publishedResolver(parent, args, context, info),
     unpublishedResolver(parent, args, context, info),
+    publishedResolver(parent, args, context, info),
   ])
 
   return drafts.filter((draft) => draft)
