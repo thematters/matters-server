@@ -94,11 +94,7 @@ jobs:
           MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
           MATTERS_STRIPE_SECRET: sk_test_foobar
           MATTERS_SENDGRID_API_KEY: SG.0-_abcabcabc.
-          MATTERS_NFT_AIRDROP_START: '2021-10-30T04:00:00Z'
-          MATTERS_NFT_AIRDROP_END: '2022-11-11T04:00:00Z'
-          MATTERS_NFT_CONNECT_START: '2021-11-11T04:00:00Z'
           MATTERS_OPENSEA_API_BASE: 'https://rinkeby-api.opensea.io/api/v1'
-          MATTERS_NFT_CONTRACT_ADDRESS: '0xae89d81ab5c668661200fa9c6ed45fe1707f7097'
 
       - name: Build
         run: npm run build

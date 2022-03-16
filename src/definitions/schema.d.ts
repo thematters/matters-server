@@ -255,7 +255,7 @@ export interface GQLMutation {
   userLogin: GQLAuthResult
 
   /**
-   * get signing message.
+   * Get signing message.
    */
   generateSigningMessage: GQLSigningMessageResult
 
@@ -320,14 +320,9 @@ export interface GQLMutation {
   migration?: boolean
 
   /**
-   * Update wallet.
+   * Let Traveloggers owner claims a Logbook, returns transaction hash
    */
-  putWallet: GQLCryptoWallet
-
-  /**
-   * Delete connected wallet.
-   */
-  deleteWallet: boolean
+  claimLogbooks: GQLClaimLogbooksResult
 
   /**
    * Update state of a user, used in OSS.
@@ -543,8 +538,19 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Drafts linked to this article.
+   * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
    */
   drafts?: Array<GQLDraft>
+
+  /**
+   * Newest unpublished draft linked to this article.
+   */
+  newestUnpublishedDraft: GQLDraft
+
+  /**
+   * Newest published draft linked to this article.
+   */
+  newestPublishedDraft: GQLDraft
 
   /**
    * Revision Count
@@ -3291,6 +3297,7 @@ export const enum GQLAuthResultType {
 
 export interface GQLSigningMessageResult {
   nonce: string
+  purpose: GQLSigningMessagePurpose
   signingMessage: string
   createdAt: GQLDateTime
   expiredAt: GQLDateTime
@@ -3574,6 +3581,11 @@ export interface GQLUserLoginInput {
   password: string
 }
 
+export interface GQLGenerateSigningMessageInput {
+  address: string
+  purpose?: GQLSigningMessagePurpose
+}
+
 export interface GQLWalletLoginInput {
   ethAddress: string
 
@@ -3652,16 +3664,35 @@ export interface GQLMigrationInput {
   files: Array<GQLUpload | null>
 }
 
-export interface GQLPutWalletInput {
-  id?: string
-  address: string
-  purpose: GQLCryptoWalletSignaturePurpose
+export interface GQLClaimLogbooksInput {
+  ethAddress: string
+
+  /**
+   * the message being sign'ed, including nonce
+   */
   signedMessage: string
+
+  /**
+   * sign'ed by wallet
+   */
   signature: string
+
+  /**
+   * nonce from generateSigningMessage
+   */
+  nonce: string
 }
 
-export interface GQLDeleteWalletInput {
-  id: string
+export interface GQLClaimLogbooksResult {
+  /**
+   * claimed token ids
+   */
+  ids?: Array<string>
+
+  /**
+   * transaction hash
+   */
+  txHash: string
 }
 
 export const enum GQLBadgeType {
@@ -3756,6 +3787,14 @@ export const enum GQLCryptoWalletSignaturePurpose {
   connect = 'connect',
   signup = 'signup',
   login = 'login',
+}
+
+export const enum GQLSigningMessagePurpose {
+  airdrop = 'airdrop',
+  connect = 'connect',
+  signup = 'signup',
+  login = 'login',
+  claimLogbook = 'claimLogbook',
 }
 
 export type GQLResponse = GQLArticle | GQLComment
@@ -4223,6 +4262,7 @@ export interface GQLResolver {
   Following?: GQLFollowingTypeResolver
   CryptoWallet?: GQLCryptoWalletTypeResolver
   NFTAsset?: GQLNFTAssetTypeResolver
+  ClaimLogbooksResult?: GQLClaimLogbooksResultTypeResolver
   Response?: {
     __resolveType: GQLResponseTypeResolver
   }
@@ -4450,8 +4490,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   migration?: MutationToMigrationResolver<TParent>
-  putWallet?: MutationToPutWalletResolver<TParent>
-  deleteWallet?: MutationToDeleteWalletResolver<TParent>
+  claimLogbooks?: MutationToClaimLogbooksResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
@@ -5171,7 +5210,7 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToGenerateSigningMessageArgs {
-  address: string
+  input: GQLGenerateSigningMessageInput
 }
 export interface MutationToGenerateSigningMessageResolver<
   TParent = any,
@@ -5344,25 +5383,13 @@ export interface MutationToMigrationResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutWalletArgs {
-  input: GQLPutWalletInput
+export interface MutationToClaimLogbooksArgs {
+  input: GQLClaimLogbooksInput
 }
-export interface MutationToPutWalletResolver<TParent = any, TResult = any> {
+export interface MutationToClaimLogbooksResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToPutWalletArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToDeleteWalletArgs {
-  input: GQLDeleteWalletInput
-}
-export interface MutationToDeleteWalletResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToDeleteWalletArgs,
+    args: MutationToClaimLogbooksArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5515,6 +5542,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
+  newestUnpublishedDraft?: ArticleToNewestUnpublishedDraftResolver<TParent>
+  newestPublishedDraft?: ArticleToNewestPublishedDraftResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
@@ -5882,6 +5911,30 @@ export interface ArticleToReadTimeResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToNewestUnpublishedDraftResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToNewestPublishedDraftResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -10982,12 +11035,25 @@ export interface AuthResultToTypeResolver<TParent = any, TResult = any> {
 
 export interface GQLSigningMessageResultTypeResolver<TParent = any> {
   nonce?: SigningMessageResultToNonceResolver<TParent>
+  purpose?: SigningMessageResultToPurposeResolver<TParent>
   signingMessage?: SigningMessageResultToSigningMessageResolver<TParent>
   createdAt?: SigningMessageResultToCreatedAtResolver<TParent>
   expiredAt?: SigningMessageResultToExpiredAtResolver<TParent>
 }
 
 export interface SigningMessageResultToNonceResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SigningMessageResultToPurposeResolver<
   TParent = any,
   TResult = any
 > {
@@ -11848,6 +11914,35 @@ export interface NFTAssetToTokenMetadataResolver<TParent = any, TResult = any> {
 }
 
 export interface NFTAssetToOpenseaPermalinkResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLClaimLogbooksResultTypeResolver<TParent = any> {
+  ids?: ClaimLogbooksResultToIdsResolver<TParent>
+  txHash?: ClaimLogbooksResultToTxHashResolver<TParent>
+}
+
+export interface ClaimLogbooksResultToIdsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ClaimLogbooksResultToTxHashResolver<
   TParent = any,
   TResult = any
 > {
