@@ -101,11 +101,11 @@ class GCP {
 
     // fail for less than 0.5
     if (score < 0.5) {
-      return false
+      console.log("very likely bot traffic:", data)
     }
 
     // pass
-    return true
+    return score > 0.0
   }
 }
 
