@@ -10,7 +10,7 @@ const resolver: ArticleToDraftsResolver = async (
   info
 ) => {
   const drafts = await Promise.all([
-    unpublishedResolver(parent, args, context, info),
+    unpublishedResolver(parent, args, context, info),	// keep pending unpublished before published
     publishedResolver(parent, args, context, info),
   ])
 
