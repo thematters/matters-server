@@ -48,10 +48,11 @@ export class DraftService extends BaseService {
 
   /**
    * Find unpublished drafts by a given author id (user).
+   * select only ['id'] by default, DO NOT select '*'
    */
-  findUnpublishedByAuthor = (authorId: string) =>
+  findUnpublishedByAuthor = (authorId: string, select: [string] = ['id']) =>
     this.knex
-      .select()
+      .select(select)
       .from(this.table)
       .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })

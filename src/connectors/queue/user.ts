@@ -2,7 +2,8 @@ import Queue from 'bull'
 
 import {
   ASSET_TYPE,
-  MINUTE,
+  HOUR,
+  // MINUTE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -34,7 +35,7 @@ class UserQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2, // every 2 minutes
+          every: HOUR * 2, // every 2 hours, TODO: need parameterize to change at runtime
         },
       }
     )
