@@ -1,20 +1,24 @@
+import { PUBLISH_STATE } from 'common/enums'
+import { correctHtml } from 'common/utils'
 import { ArticleToDraftsResolver } from 'definitions'
 
-import publishedResolver from './newestPublishedDraft'
-import unpublishedResolver from './newestUnpublishedDraft'
-
 const resolver: ArticleToDraftsResolver = async (
-  parent,
-  args,
-  context,
-  info
+  { articleId },
+  _,
+  { knex }
 ) => {
-  const drafts = await Promise.all([
-    unpublishedResolver(parent, args, context, info),	// keep pending unpublished before published
-    publishedResolver(parent, args, context, info),
-  ])
+  let drafts = await knex
+    .from('draft')
+    .where({ articleId })
+    .whereIn('publish_state', [PUBLISH_STATE.published, PUBLISH_STATE.pending])
+    .orderBy('created_at', 'desc')
 
-  return drafts.filter((draft) => draft)
+  drafts = drafts.map((draft) => ({
+    ...draft,
+    content: correctHtml(draft.content),
+  }))
+
+  return drafts
 }
 
 export default resolver
