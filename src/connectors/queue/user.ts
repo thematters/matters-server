@@ -34,7 +34,7 @@ class UserQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2, // every 2 minutes
+          every: MINUTE * 20, // every 20 minutes
         },
       }
     )
