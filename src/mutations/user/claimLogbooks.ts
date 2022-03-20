@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { ethers } from 'ethers'
 import { Knex } from 'knex'
@@ -96,6 +97,28 @@ const resolver: MutationToClaimLogbooksResolver = async (
     throw new EntityNotFoundError('no logbooks to claim')
   }
 
+  // get max gas from gas station
+  let maxFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
+  let maxPriorityFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
+  try {
+    const { data } = await axios({
+      method: 'get',
+      url: isProd
+        ? 'https://gasstation-mainnet.matic.network/v2'
+        : 'https://gasstation-mumbai.matic.today/v2',
+    })
+    maxFeePerGas = ethers.utils.parseUnits(
+      Math.ceil(data.fast.maxFee) + '',
+      'gwei'
+    )
+    maxPriorityFeePerGas = ethers.utils.parseUnits(
+      Math.ceil(data.fast.maxPriorityFee) + '',
+      'gwei'
+    )
+  } catch {
+    // ignore
+  }
+
   // send tx to claim tokens
   const iface = new ethers.utils.Interface(abi)
   const calldata = unclaimedTokenIds.map((tokenId) =>
@@ -103,7 +126,8 @@ const resolver: MutationToClaimLogbooksResolver = async (
   )
 
   const tx = await contract.multicall(calldata, {
-    maxPriorityFeePerGas: 40000000000, // 40 gwei
+    maxFeePerGas,
+    maxPriorityFeePerGas,
   })
   const receipt = (await tx.wait()) as ethers.providers.TransactionReceipt
   const txHash = receipt.transactionHash
