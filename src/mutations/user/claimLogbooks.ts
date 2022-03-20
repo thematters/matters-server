@@ -107,9 +107,12 @@ const resolver: MutationToClaimLogbooksResolver = async (
         ? 'https://gasstation-mainnet.matic.network/v2'
         : 'https://gasstation-mumbai.matic.today/v2',
     })
-    maxFeePerGas = ethers.utils.parseUnits(data.fast.maxFee + '', 'gwei')
+    maxFeePerGas = ethers.utils.parseUnits(
+      Math.ceil(data.fast.maxFee) + '',
+      'gwei'
+    )
     maxPriorityFeePerGas = ethers.utils.parseUnits(
-      data.fast.maxPriorityFee + '',
+      Math.ceil(data.fast.maxPriorityFee) + '',
       'gwei'
     )
   } catch {
