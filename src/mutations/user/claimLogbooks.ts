@@ -102,7 +102,9 @@ const resolver: MutationToClaimLogbooksResolver = async (
     iface.encodeFunctionData('claim', [ethAddress, tokenId])
   )
 
-  const tx = await contract.multicall(calldata)
+  const tx = await contract.multicall(calldata, {
+    maxPriorityFeePerGas: 40000000000, // 40 gwei
+  })
   const receipt = (await tx.wait()) as ethers.providers.TransactionReceipt
   const txHash = receipt.transactionHash
 
