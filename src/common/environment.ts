@@ -117,7 +117,6 @@ export const environment = {
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
-  infuraApiKey: process.env.MATTERS_INFURA_API_KEY || '',
 }
 
 const protocolScheme = isLocal ? 'http://' : 'https://'
