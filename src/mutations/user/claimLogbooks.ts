@@ -65,9 +65,9 @@ const resolver: MutationToClaimLogbooksResolver = async (
   }
 
   // filter unclaimed token ids
-  const provider = new ethers.providers.AlchemyProvider(
+  const provider = new ethers.providers.InfuraProvider(
     isProd ? 'matic' : 'maticmum',
-    environment.alchemyApiKey
+    environment.infuraApiKey
   )
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
