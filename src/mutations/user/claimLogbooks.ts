@@ -65,9 +65,8 @@ const resolver: MutationToClaimLogbooksResolver = async (
   }
 
   // filter unclaimed token ids
-  const provider = new ethers.providers.AlchemyProvider(
-    isProd ? 'matic' : 'maticmum',
-    environment.alchemyApiKey
+  const provider = new ethers.providers.JsonRpcProvider(
+    isProd ? 'https://polygon-rpc.com/' : 'https://rpc-mumbai.matic.today'
   )
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
