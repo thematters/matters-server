@@ -127,7 +127,10 @@ const resolver: MutationToPayToResolver = async (
         throw new ForbiddenError('viewer or recipient has no liker id')
       }
       // insert a pending transaction
-      const pendingTxId = v4()
+      const { id: targetTypeId } = await targetService.baseFindEntityTypeId(
+        targetType
+      )
+      const pendingTxId = `${v4()}-${targetTypeId}-${target.id}`
       transaction = await paymentService.createTransaction({
         ...baseParams,
         state: TRANSACTION_STATE.pending,
