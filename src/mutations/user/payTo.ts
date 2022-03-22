@@ -7,6 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -128,7 +129,7 @@ const resolver: MutationToPayToResolver = async (
       }
       // insert a pending transaction
       const { id: targetTypeId } = await targetService.baseFindEntityTypeId(
-        targetType
+        TRANSACTION_TARGET_TYPE.article
       )
       const pendingTxId = `${v4()}-${targetTypeId}-${target.id}`
       transaction = await paymentService.createTransaction({
