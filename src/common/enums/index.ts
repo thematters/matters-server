@@ -1,4 +1,9 @@
-import { NotificationType, SkippedListItemType } from 'definitions'
+import {
+  GQLArticleAccessType,
+  GQLArticleLicenseType,
+  NotificationType,
+  SkippedListItemType,
+} from 'definitions'
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
@@ -72,15 +77,15 @@ export const ARTICLE_STATE = {
   banned: 'banned',
 }
 
-export const ARTICLE_ACCESS_TYPE = {
-  public: 'public',
-  paywall: 'paywall',
+export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
+  public: GQLArticleAccessType.public,
+  paywall: GQLArticleAccessType.paywall,
 }
 
-export const ARTICLE_LICENSE_TYPE = {
-  cc_0: 'cc_0',
-  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
-  arr: 'arr',
+export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
+  cc_0: GQLArticleLicenseType.cc_0, //  'cc_0',
+  cc_by_nc_nd_2: GQLArticleLicenseType.cc_by_nc_nd_2, // 'cc_by_nc_nd_2',
+  arr: GQLArticleLicenseType.arr, // 'arr',
 }
 
 export const PUBLISH_STATE = {

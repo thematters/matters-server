@@ -1,4 +1,3 @@
-import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
 import {
@@ -7,6 +6,7 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { GQLArticleLicenseType } from 'definitions'
 
 import * as articleAccess from './access'
 import appreciateLeft from './appreciateLeft'
@@ -37,6 +37,7 @@ import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
+import summary from './summary'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -73,13 +74,7 @@ export default {
   },
   Article: {
     content,
-    summary: ({
-      summary,
-      content: cont,
-    }: {
-      summary?: string
-      content: string
-    }) => summary || makeSummary(cont),
+    summary,
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -114,7 +109,7 @@ export default {
     revisedAt,
     access: (root: any) => root,
     revisionCount,
-    license: ({ license }: { license: any }) =>
+    license: ({ license }: { license?: GQLArticleLicenseType }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
   },
   Tag: {
