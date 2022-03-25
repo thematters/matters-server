@@ -318,6 +318,15 @@ export class PasswordInvalidError extends ApolloError {
   }
 }
 
+export class PasswordNotAvailableError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'USER_PASSWORD_NOT_AVAILABLE')
+
+    // For wallet login users
+    Object.defineProperty(this, 'name', { value: 'PasswordNotAvailableError' })
+  }
+}
+
 export class UserFollowFailedError extends ApolloError {
   constructor(message: string) {
     super(message, 'USER_FOLLOW_FAILED')

@@ -27,6 +27,7 @@ import {
   EthAddressNotFoundError,
   NameInvalidError,
   PasswordInvalidError,
+  PasswordNotAvailableError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -155,6 +156,12 @@ export class UserService extends BaseService {
         await archivedCallback().catch((error) => logger.error)
       }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
+    }
+
+    if (!user.passwordHash) {
+      throw new PasswordNotAvailableError(
+        'Password login not available for this user, login failed.'
+      )
     }
 
     await this.verifyPassword({ password, hash: user.passwordHash })
