@@ -20,6 +20,11 @@ const resolver: UserInfoToCryptoWalletResolver = async (
     where: { userId: id, archived: false },
   })
 
+  if (wallet) {
+    // userId to override id
+    return { id, userId: id, address: wallet.address }
+  }
+
   return wallet
 }
 
