@@ -180,6 +180,9 @@ export default /* GraphQL */ `
     "specific condition for rule data out"
     exclude: SearchExclude
 
+    "should include tags used by author"
+    includeAuthorTags: Boolean
+
     "whether this search operation should be recorded in search history"
     record: Boolean
     oss: Boolean

@@ -795,6 +795,38 @@ export interface GQLTag extends GQLNode {
   deleted: boolean
 }
 
+/**
+ * This type contains content, count and related statistics data of a tag.
+ */
+export interface GQLTagSearchResult extends GQLNode {
+  /**
+   * Unique id of this tag.
+   */
+  id: string
+
+  /**
+   * Content of this tag.
+   */
+  content: string
+
+  /**
+   * Time of this tag was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Tag's cover link.
+   */
+  cover?: string
+
+  /**
+   * Description of this tag.
+   */
+  description?: string
+  numArticles: number
+  numAuthors: number
+}
+
 export interface GQLArticleAccess {
   type: GQLArticleAccessType
   secret?: string
@@ -2377,6 +2409,7 @@ export type GQLPossibleNodeTypeNames =
   | 'Chapter'
   | 'Topic'
   | 'Tag'
+  | 'TagSearchResult'
   | 'Circle'
   | 'Comment'
   | 'Draft'
@@ -2388,6 +2421,7 @@ export interface GQLNodeNameMap {
   Chapter: GQLChapter
   Topic: GQLTopic
   Tag: GQLTag
+  TagSearchResult: GQLTagSearchResult
   Circle: GQLCircle
   Comment: GQLComment
   Draft: GQLDraft
@@ -2605,6 +2639,11 @@ export interface GQLSearchInput {
    * specific condition for rule data out
    */
   exclude?: GQLSearchExclude
+
+  /**
+   * should include tags used by author
+   */
+  includeAuthorTags?: boolean
 
   /**
    * whether this search operation should be recorded in search history
@@ -4145,6 +4184,7 @@ export interface GQLResolver {
   Chapter?: GQLChapterTypeResolver
   Topic?: GQLTopicTypeResolver
   Tag?: GQLTagTypeResolver
+  TagSearchResult?: GQLTagSearchResultTypeResolver
   ArticleAccess?: GQLArticleAccessTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   ArticleTranslation?: GQLArticleTranslationTypeResolver
@@ -6431,6 +6471,94 @@ export interface TagToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToDeletedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagSearchResultTypeResolver<TParent = any> {
+  id?: TagSearchResultToIdResolver<TParent>
+  content?: TagSearchResultToContentResolver<TParent>
+  createdAt?: TagSearchResultToCreatedAtResolver<TParent>
+  cover?: TagSearchResultToCoverResolver<TParent>
+  description?: TagSearchResultToDescriptionResolver<TParent>
+  numArticles?: TagSearchResultToNumArticlesResolver<TParent>
+  numAuthors?: TagSearchResultToNumAuthorsResolver<TParent>
+}
+
+export interface TagSearchResultToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToDescriptionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToNumArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToNumAuthorsResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -9186,6 +9314,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Chapter'
     | 'Topic'
     | 'Tag'
+    | 'TagSearchResult'
     | 'Circle'
     | 'Comment'
     | 'Draft'
@@ -9195,6 +9324,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
         | 'Chapter'
         | 'Topic'
         | 'Tag'
+        | 'TagSearchResult'
         | 'Circle'
         | 'Comment'
         | 'Draft'

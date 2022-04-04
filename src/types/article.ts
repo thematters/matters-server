@@ -316,6 +316,30 @@ export default /* GraphQL */ `
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
+  "This type contains content, count and related statistics data of a tag."
+  type TagSearchResult implements Node {
+    "Unique id of this tag."
+    id: ID!
+
+    "Content of this tag."
+    content: String!
+
+    "Time of this tag was created."
+    createdAt: DateTime!
+
+    "Tag's cover link."
+    cover: String
+
+    "Description of this tag."
+    description: String
+
+    numArticles: Int!
+    numAuthors: Int!
+
+    ## numArticlesR3m: Int!
+    ## numAuthorsR3m: Int!
+  }
+
   type ArticleAccess {
     type: ArticleAccessType!
     secret: String
