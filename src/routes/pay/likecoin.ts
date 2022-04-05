@@ -3,7 +3,14 @@ import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import NP from 'number-precision'
 
-import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
+import {
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import { LikeCoinWebhookError } from 'common/errors'
 import logger from 'common/logger'
@@ -176,10 +183,6 @@ likecoinRouter.post('/', async (req, res, next) => {
           providerTxId: txState,
         })
       )[0]
-
-      if (!trans) {
-        throw new LikeCoinWebhookError(`counld not find tx hash`)
-      }
     }
 
     // check like chain tx state
@@ -196,35 +199,73 @@ likecoinRouter.post('/', async (req, res, next) => {
         ? TRANSACTION_STATE.failed
         : TRANSACTION_STATE.pending
 
-    const updateParams: Record<string, any> = {
-      id: trans.id,
-      provider_tx_id: tx.txHash,
-      state: cosmosState,
-      updatedAt: new Date(),
-    }
+    // if both state and txHash cannot be found in transaction table
+    // try to add as a new transaction record
+    let resultTx
+    if (!trans) {
+      const fromLikerId = tx.fromId
+      const toLikerId = tx.toId //
+      const fromUser = await userService.findByLikerId(fromLikerId)
+      const toUser = await userService.findByLikerId(toLikerId)
 
-    // check if webhook posted correct amount
-    if (Math.round(trans.amount) !== cosmosAmount) {
-      throw new LikeCoinWebhookError(
-        `incorrect amount: ${trans.amount} != ${cosmosAmount}`
-      )
-    }
+      if (!fromUser) {
+        throw new LikeCoinWebhookError(
+          `cannot find sender for liker: ${fromLikerId}`
+        )
+      }
+      if (!toUser) {
+        throw new LikeCoinWebhookError(
+          `cannot find recipient for liker: ${fromLikerId}`
+        )
+      }
 
-    // update transaction
-    const updatedTx = await paymentService.baseUpdate(trans.id, updateParams)
-
-    if (cosmosState === TRANSACTION_STATE.failed) {
-      invalidateCache({
-        id: updatedTx.targetId,
-        typeId: updatedTx.targetType,
-        userService,
+      // insert transaction
+      const createdTx = await paymentService.createTransaction({
+        amount: cosmosAmount,
+        fee: 0,
+        state: cosmosState,
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.LIKE,
+        provider: PAYMENT_PROVIDER.likecoin,
+        providerTxId: tx.txHash,
+        recipientId: toUser.id,
+        senderId: fromUser.id,
+        remark: `created via webhook: ${txState}`,
       })
-      throw new LikeCoinWebhookError(`like pay failure`)
+      resultTx = createdTx
+      logger.info(`likecoin tx created via webhook: ${createdTx.id}`)
+    } else {
+      const updateParams: Record<string, any> = {
+        id: trans.id,
+        provider_tx_id: tx.txHash,
+        state: cosmosState,
+        updatedAt: new Date(),
+      }
+
+      // check if webhook posted correct amount
+      if (Math.round(trans.amount) !== cosmosAmount) {
+        throw new LikeCoinWebhookError(
+          `incorrect amount: ${trans.amount} != ${cosmosAmount}`
+        )
+      }
+
+      // update transaction
+      const updatedTx = await paymentService.baseUpdate(trans.id, updateParams)
+
+      if (cosmosState === TRANSACTION_STATE.failed) {
+        invalidateCache({
+          id: updatedTx.targetId,
+          typeId: updatedTx.targetType,
+          userService,
+        })
+        throw new LikeCoinWebhookError(`like pay failure`)
+      }
+      resultTx = updatedTx
     }
 
     // notification
-    const sender = await userService.baseFindById(updatedTx.senderId)
-    const recipient = await userService.baseFindById(updatedTx.recipientId)
+    const sender = await userService.baseFindById(resultTx.senderId)
+    const recipient = await userService.baseFindById(resultTx.recipientId)
 
     // to sender
     notificationService.mail.sendPayment({
@@ -237,8 +278,8 @@ likecoinRouter.post('/', async (req, res, next) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
+        amount: numRound(resultTx.amount),
+        currency: resultTx.currency,
       },
     })
     // to recipient
@@ -250,7 +291,7 @@ likecoinRouter.post('/', async (req, res, next) => {
         {
           type: 'target',
           entityTable: 'transaction',
-          entity: updatedTx,
+          entity: resultTx,
         },
       ],
     })
@@ -264,15 +305,15 @@ likecoinRouter.post('/', async (req, res, next) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
+        amount: numRound(resultTx.amount),
+        currency: resultTx.currency,
       },
     })
 
     // manaully invalidate cache
     invalidateCache({
-      id: updatedTx.targetId,
-      typeId: updatedTx.targetType,
+      id: resultTx.targetId,
+      typeId: resultTx.targetType,
       userService,
     })
 
