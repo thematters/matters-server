@@ -169,6 +169,7 @@ export type View =
   | 'article_hottest_view'
   | 'transaction_delta_view'
   | 'article_value_view'
+  | 'mat_views.tags_lasts'
 
 export type MaterializedView =
   | 'article_count_materialized'

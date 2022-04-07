@@ -207,40 +207,63 @@ const userIndexDef = {
 
 const indices = ['article', 'user', 'tag']
 
-;(async () => {
+async function main() {
   const es = new elasticsearch.Client({
     node: `http://${environment.esHost}:${environment.esPort}`,
   })
-  for (const idx of indices) {
-    const exists = await es.indices.exists({ index: idx })
-    if (exists.statusCode !== 404) {
-      logger.info(`deleting es index: ${idx} ...`)
-      await es.indices.delete({ index: idx })
-    }
-  }
+
+  logger.info(
+    `connecting node: http://${environment.esHost}:${environment.esPort}`
+  )
+
+  await Promise.all(
+    indices.map(async (idx) => {
+      const exists = await es.indices.exists({ index: idx })
+      if (exists.statusCode !== 404) {
+        logger.info(`deleting es index: ${idx} ...`)
+        await es.indices.delete({ index: idx })
+      }
+    })
+  )
 
   logger.info('creating indices: article, user, tag ...')
-  await es.indices.create({
-    index: 'article',
-    body: articleIndexDef,
-  })
-  await es.indices.create({
-    index: 'user',
-    body: userIndexDef,
-  })
-  await es.indices.create({ index: 'tag' })
+  await Promise.all([
+    es.indices.create({
+      index: 'article',
+      body: articleIndexDef,
+    }),
+    es.indices.create({
+      index: 'user',
+      body: userIndexDef,
+    }),
+    es.indices.create({ index: 'tag' }),
+  ])
 
-  logger.info('indexing articles ...')
+  // logger.info('indexing articles ...')
   const articleService = new ArticleService()
-  await articleService.initSearch()
+  // await articleService.initSearch()
 
-  logger.info('indexing users...')
+  // logger.info('indexing users...')
   const userService = new UserService()
-  await userService.initSearch()
+  // await userService.initSearch()
 
-  logger.info('indexing tags...')
+  // logger.info('indexing tags...')
   const tagService = new TagService()
-  await tagService.initSearch()
+
+  logger.info('indexing: article, user, tag ...')
+  await Promise.all([
+    articleService.initSearch(),
+    userService.initSearch(),
+    tagService.initSearch(),
+  ])
+
   logger.info('done.')
   process.exit()
-})()
+}
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(new Date(), 'ERROR:', err)
+    process.exit(1)
+  })
+}
