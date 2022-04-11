@@ -80,11 +80,7 @@ const resolver: MutationToWalletLoginResolver = async (
   /**
    * Link
    */
-  if (viewer.id && viewer.token) {
-    if (viewer.ethAddress) {
-      throw new CryptoWalletExistsError('user already has eth address')
-    }
-
+  if (viewer.id && viewer.token && !viewer.ethAddress) {
     await atomService.update({
       table: sig_table,
       where: { id: lastSigning.id },
@@ -105,7 +101,6 @@ const resolver: MutationToWalletLoginResolver = async (
       ethAddress: verifiedAddress, // save the lower case ones
     })
 
-    // archive wallet
     await atomService.update({
       table: 'crypto_wallet',
       where: { userId: viewer.id, archived: false },

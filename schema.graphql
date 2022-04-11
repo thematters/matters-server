@@ -199,8 +199,8 @@ type Mutation {
   """Login user."""
   userLogin(input: UserLoginInput!): AuthResult!
 
-  """get signing message."""
-  generateSigningMessage(address: String!): SigningMessageResult!
+  """Get signing message."""
+  generateSigningMessage(input: GenerateSigningMessageInput!): SigningMessageResult!
 
   """Login/Signup via a wallet."""
   walletLogin(input: WalletLoginInput!): AuthResult!
@@ -238,11 +238,8 @@ type Mutation {
   """Migrate articles from other service provider."""
   migration(input: MigrationInput!): Boolean
 
-  """Update wallet."""
-  putWallet(input: PutWalletInput!): CryptoWallet!
-
-  """Delete connected wallet."""
-  deleteWallet(input: DeleteWalletInput!): Boolean!
+  """Let Traveloggers owner claims a Logbook, returns transaction hash"""
+  claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
@@ -379,7 +376,13 @@ type Article implements Node {
   readTime: Float!
 
   """Drafts linked to this article."""
-  drafts: [Draft!]
+  drafts: [Draft!] @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
+
+  """Newest unpublished draft linked to this article."""
+  newestUnpublishedDraft: Draft!
+
+  """Newest published draft linked to this article."""
+  newestPublishedDraft: Draft!
 
   """Revision Count"""
   revisionCount: Int!
@@ -536,6 +539,28 @@ type Tag implements Node {
   oss: TagOSS!
   remark: String
   deleted: Boolean!
+}
+
+"""
+This type contains content, count and related statistics data of a tag.
+"""
+type TagSearchResult implements Node {
+  """Unique id of this tag."""
+  id: ID!
+
+  """Content of this tag."""
+  content: String!
+
+  """Time of this tag was created."""
+  createdAt: DateTime!
+
+  """Tag's cover link."""
+  cover: String
+
+  """Description of this tag."""
+  description: String
+  numArticles: Int!
+  numAuthors: Int!
 }
 
 type ArticleAccess {
@@ -1860,6 +1885,9 @@ input SearchInput {
   """specific condition for rule data out"""
   exclude: SearchExclude
 
+  """should include tags used by author"""
+  includeAuthorTags: Boolean
+
   """whether this search operation should be recorded in search history"""
   record: Boolean
   oss: Boolean
@@ -2382,6 +2410,7 @@ enum AuthResultType {
 
 type SigningMessageResult {
   nonce: String!
+  purpose: SigningMessagePurpose!
   signingMessage: String!
   createdAt: DateTime!
   expiredAt: DateTime!
@@ -2606,6 +2635,11 @@ input UserLoginInput {
   password: String!
 }
 
+input GenerateSigningMessageInput {
+  address: String!
+  purpose: SigningMessagePurpose
+}
+
 input WalletLoginInput {
   ethAddress: String!
 
@@ -2674,16 +2708,25 @@ input MigrationInput {
   files: [Upload]!
 }
 
-input PutWalletInput {
-  id: ID
-  address: String!
-  purpose: CryptoWalletSignaturePurpose!
+input ClaimLogbooksInput {
+  ethAddress: String!
+
+  """the message being sign'ed, including nonce"""
   signedMessage: String!
+
+  """sign'ed by wallet"""
   signature: String!
+
+  """nonce from generateSigningMessage"""
+  nonce: String!
 }
 
-input DeleteWalletInput {
-  id: ID!
+type ClaimLogbooksResult {
+  """claimed token ids"""
+  ids: [ID!]
+
+  """transaction hash"""
+  txHash: String!
 }
 
 enum BadgeType {
@@ -2778,6 +2821,14 @@ enum CryptoWalletSignaturePurpose {
   connect
   signup
   login
+}
+
+enum SigningMessagePurpose {
+  airdrop
+  connect
+  signup
+  login
+  claimLogbook
 }
 
 union Response = Article | Comment

@@ -181,7 +181,13 @@ export default /* GraphQL */ `
     readTime: Float!
 
     "Drafts linked to this article."
-    drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
+    drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}") @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
+
+    "Newest unpublished draft linked to this article."
+    newestUnpublishedDraft: Draft! @logCache(type: "${NODE_TYPES.Draft}")
+
+    "Newest published draft linked to this article."
+    newestPublishedDraft: Draft! @logCache(type: "${NODE_TYPES.Draft}")
 
     "Revision Count"
     revisionCount: Int!
@@ -308,6 +314,30 @@ export default /* GraphQL */ `
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  "This type contains content, count and related statistics data of a tag."
+  type TagSearchResult implements Node {
+    "Unique id of this tag."
+    id: ID!
+
+    "Content of this tag."
+    content: String!
+
+    "Time of this tag was created."
+    createdAt: DateTime!
+
+    "Tag's cover link."
+    cover: String
+
+    "Description of this tag."
+    description: String
+
+    numArticles: Int!
+    numAuthors: Int!
+
+    ## numArticlesR3m: Int!
+    ## numAuthorsR3m: Int!
   }
 
   type ArticleAccess {

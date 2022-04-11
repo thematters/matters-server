@@ -11,14 +11,19 @@ const resolver: UserInfoToCryptoWalletResolver = async (
 
   const user = await userService.baseFindById(id)
   if (user.ethAddress) {
-    // fake a crypto_wallet
-    return { userId: id, address: user.ethAddress }
+    // fake a crypto_wallet, use userId as hasNFTs cache layer
+    return { id, userId: id, address: user.ethAddress }
   }
 
   const wallet = await atomService.findFirst({
     table: 'crypto_wallet',
     where: { userId: id, archived: false },
   })
+
+  if (wallet) {
+    // userId to override id
+    return { id, userId: id, address: wallet.address }
+  }
 
   return wallet
 }

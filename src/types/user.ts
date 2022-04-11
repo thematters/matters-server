@@ -25,8 +25,8 @@ export default /* GraphQL */ `
     "Login user."
     userLogin(input: UserLoginInput!): AuthResult!
 
-    "get signing message."
-    generateSigningMessage(address: String!): SigningMessageResult!
+    "Get signing message."
+    generateSigningMessage(input: GenerateSigningMessageInput!): SigningMessageResult!
 
     "Login/Signup via a wallet."
     walletLogin(input: WalletLoginInput!): AuthResult!
@@ -65,11 +65,8 @@ export default /* GraphQL */ `
     "Migrate articles from other service provider."
     migration(input: MigrationInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
 
-    "Update wallet."
-    putWallet(input: PutWalletInput!): CryptoWallet! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
-
-    "Delete connected wallet."
-    deleteWallet(input: DeleteWalletInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
+    "Let Traveloggers owner claims a Logbook, returns transaction hash"
+    claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
     ##############
     #     OSS    #
@@ -383,6 +380,7 @@ export default /* GraphQL */ `
 
   type SigningMessageResult {
     nonce: String!
+    purpose: SigningMessagePurpose!
     signingMessage: String!
     createdAt: DateTime!
     expiredAt: DateTime!
@@ -617,6 +615,11 @@ export default /* GraphQL */ `
     password: String!
   }
 
+  input GenerateSigningMessageInput {
+    address: String!
+    purpose: SigningMessagePurpose
+  }
+
   input WalletLoginInput {
     ethAddress: String!
 
@@ -685,16 +688,25 @@ export default /* GraphQL */ `
     files: [Upload]!
   }
 
-  input PutWalletInput {
-    id: ID
-    address: String!
-    purpose: CryptoWalletSignaturePurpose!
+  input ClaimLogbooksInput {
+    ethAddress: String!
+
+    "the message being sign'ed, including nonce"
     signedMessage: String!
+
+    "sign'ed by wallet"
     signature: String!
+
+    "nonce from generateSigningMessage"
+    nonce: String!
   }
 
-  input DeleteWalletInput {
-    id: ID!
+  type ClaimLogbooksResult {
+    # claimed token ids
+    ids: [ID!]
+
+    # transaction hash
+    txHash: String!
   }
 
   enum BadgeType {
@@ -789,5 +801,13 @@ export default /* GraphQL */ `
     connect
     signup
     login
+  }
+
+  enum SigningMessagePurpose {
+    airdrop
+    connect
+    signup
+    login
+    claimLogbook
   }
 `
