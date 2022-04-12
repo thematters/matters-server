@@ -141,19 +141,20 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(
-      tags.map(stripPunctPrefixSuffix).filter(Boolean)
-    )
+    tags = uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
 
     // create tag records
     const dbTags = (await Promise.all(
       tags.map((tag: string) =>
-        tagService.create({
-          content: tag,
-          creator: article.authorId,
-          editors: tagEditors,
-          owner: article.authorId,
-        })
+        tagService.create(
+          {
+            content: tag,
+            creator: article.authorId,
+            editors: tagEditors,
+            owner: article.authorId,
+          },
+          ['id', 'content']
+        )
       )
     )) as unknown as [{ id: string; content: string }]
 

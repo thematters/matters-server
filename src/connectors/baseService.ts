@@ -134,11 +134,15 @@ export class BaseService extends DataSource {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData, table?: TableName) => {
+  baseCreate = async (
+    data: ItemData,
+    table?: TableName,
+    columns: string[] = ['*']
+  ) => {
     try {
       const [result] = await this.knex(table || this.table)
         .insert(data)
-        .returning('*')
+        .returning(columns)
       logger.info(`Inserted id ${result.id} to ${table || this.table}`)
       return result
     } catch (err) {

@@ -59,16 +59,19 @@ const resolver: MutationToPutTagResolver = async (
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
-    const newTag = await tagService.create({
-      content: tagContent,
-      creator: viewer.id,
-      description,
-      editors: _uniq(
-        environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
-      ),
-      owner: viewer.id,
-      cover: coverId,
-    })
+    const newTag = await tagService.create(
+      {
+        content: tagContent,
+        creator: viewer.id,
+        description,
+        editors: _uniq(
+          environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+        ),
+        owner: viewer.id,
+        cover: coverId,
+      }
+      // ['id', 'content', 'description', 'creator', 'editors', 'owner', 'cover']
+    )
 
     return newTag
   } else {
