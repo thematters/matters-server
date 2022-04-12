@@ -126,6 +126,9 @@ export default {
     cover: tagCover,
     participants: tagParticipants,
   },
+  TagSearchResult: {
+    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+  },
   Topic: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
     cover: topicCover,

@@ -169,6 +169,7 @@ export enum NODE_TYPES {
   Draft = 'Draft',
   User = 'User',
   Tag = 'Tag',
+  TagSearchResult = 'TagSearchResult',
   Appreciation = 'Appreciation',
   Transaction = 'Transaction',
   Circle = 'Circle',
