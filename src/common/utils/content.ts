@@ -4,8 +4,17 @@ import cloneDeep from 'lodash/cloneDeep'
 import flow from 'lodash/flow'
 
 export const countWords = (html: string) => {
-  const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\w+/g)
-  return matches ? matches.length : 0
+  const content = stripHtml(html).trim()
+  const matches = content.match(/[\u4e00-\u9fcc]|\w+/g)
+
+  if (matches) {
+    return matches.length
+  }else if (content.length > 0) {
+    // fallback for characters outside the range defined in regular expression
+    return content.split(/\s+/g).length
+  } else {
+    return 0
+  }
 }
 
 /**
