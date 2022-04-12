@@ -9,7 +9,7 @@ export const countWords = (html: string) => {
 
   if (matches) {
     return matches.length
-  }else if (content.length > 0) {
+  } else if (content.length > 0) {
     // fallback for characters outside the range defined in regular expression
     return content.split(/\s+/g).length
   } else {

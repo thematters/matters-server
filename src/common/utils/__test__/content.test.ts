@@ -1,4 +1,4 @@
-import { correctNestedBrTag, correctSelfClosingHtmlTag } from 'common/utils'
+import { correctNestedBrTag, correctSelfClosingHtmlTag, countWords } from 'common/utils'
 
 test('correctSelfClosingHtmlTag', async () => {
   const htmls = [
@@ -229,5 +229,30 @@ test('correctNestedBrTag', async () => {
 
   htmls.forEach(({ data, toBe }) => {
     expect(correctNestedBrTag()(data)).toBe(toBe)
+  })
+})
+
+test('correctNestedBrTag', async () => {
+  const contents = [
+    {
+      data: '3个字',
+      count: 3,
+    },
+    {
+      data: '  ',
+      count: 0,
+    },
+    {
+      data: ' со мной всю потёртый, с местами отслоившейся краской ',
+      count: 3,
+    },
+    {
+      data: 'hello world. ',
+      count: 2,
+    },
+  ]
+
+  contents.forEach(({ data, count }) => {
+    expect(countWords(data)).toBe(count)
   })
 })
