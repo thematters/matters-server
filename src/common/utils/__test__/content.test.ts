@@ -1,4 +1,8 @@
-import { correctNestedBrTag, correctSelfClosingHtmlTag, countWords } from 'common/utils'
+import {
+  correctNestedBrTag,
+  correctSelfClosingHtmlTag,
+  countWords,
+} from 'common/utils'
 
 test('correctSelfClosingHtmlTag', async () => {
   const htmls = [
