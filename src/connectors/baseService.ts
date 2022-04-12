@@ -98,23 +98,29 @@ export class BaseService extends DataSource {
    */
   baseFind = async ({
     table,
+    select = ['*'],
     where,
+    orderBy, // = [{ column: 'id', order: 'desc' }],
     skip,
     take,
   }: {
     table?: TableName
-    where?: { [key: string]: any }
+    // where?: { [key: string]: any }
+    select?: string[]
+    where?: Record<string, any>
+    orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
     skip?: number
     take?: number
   }) => {
-    const query = this.knex
-      .select()
-      .from(table || this.table)
-      .orderBy('id', 'desc')
+    const query = this.knex.select(select).from(table || this.table)
 
     if (where) {
       query.where(where)
     }
+    if (orderBy) {
+      query.orderBy(orderBy)
+    }
+
     if (skip) {
       query.offset(skip)
     }

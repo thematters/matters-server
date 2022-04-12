@@ -179,6 +179,7 @@ export class PaymentService extends BaseService {
 
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
+    remark,
   }: {
     amount: number
     fee?: number
@@ -195,6 +196,7 @@ export class PaymentService extends BaseService {
 
     targetId?: string
     targetType?: TRANSACTION_TARGET_TYPE
+    remark?: string
   }) => {
     let targetTypeId
     if (targetId && targetType) {
@@ -217,6 +219,7 @@ export class PaymentService extends BaseService {
       recipientId,
       targetId,
       targetType: targetTypeId,
+      remark,
     })
   }
 

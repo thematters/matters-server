@@ -541,6 +541,28 @@ type Tag implements Node {
   deleted: Boolean!
 }
 
+"""
+This type contains content, count and related statistics data of a tag.
+"""
+type TagSearchResult implements Node {
+  """Unique id of this tag."""
+  id: ID!
+
+  """Content of this tag."""
+  content: String!
+
+  """Time of this tag was created."""
+  createdAt: DateTime!
+
+  """Tag's cover link."""
+  cover: String
+
+  """Description of this tag."""
+  description: String
+  numArticles: Int!
+  numAuthors: Int!
+}
+
 type ArticleAccess {
   type: ArticleAccessType!
   secret: String
@@ -1862,6 +1884,9 @@ input SearchInput {
 
   """specific condition for rule data out"""
   exclude: SearchExclude
+
+  """should include tags used by author"""
+  includeAuthorTags: Boolean
 
   """whether this search operation should be recorded in search history"""
   record: Boolean

@@ -1,5 +1,6 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import { Knex } from 'knex'
 import _ from 'lodash'
 
 import {
@@ -13,6 +14,9 @@ import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
+
+const TAGS_VIEW = 'mat_views.tags_lasts'
+const AUTHORS_VIEW = 'mat_views.authors_lasts'
 
 export class TagService extends BaseService {
   constructor() {
@@ -362,17 +366,26 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
   initSearch = async () => {
-    const tags = await this.knex(this.table).select(
-      'id',
-      'content',
-      'description'
-    )
+    const tags = await this.knex
+      .from(TAGS_VIEW)
+      .select(
+        'id',
+        'content',
+        'description',
+        'num_articles',
+        'num_authors',
+        'created_at',
+        'span_days',
+        'earliest_use',
+        'latest_use'
+      )
+
+    // console.log(new Date(), `selected: ${tags.length} tags:`, tags.slice(0, 5))
+    logger.info(`selected: ${tags.length} tags:`)
 
     return this.es.indexManyItems({
       index: this.table,
-      items: tags.map((tag) => ({
-        ...tag,
-      })),
+      items: tags, // .map((tag) => ({...tag,})),
     })
   }
 
@@ -424,32 +437,111 @@ export class TagService extends BaseService {
     key,
     take,
     skip,
+    includeAuthorTags,
+    viewerId,
   }: {
     key: string
     author?: string
     take: number
     skip: number
+    includeAuthorTags?: boolean
+    viewerId?: string | null
   }) => {
     const body = bodybuilder()
       .query('match', 'content', key)
+      .sort([
+        { numArticles: 'desc' },
+        { numAuthors: 'desc' },
+        { createdAt: 'asc' }, // prefer earlier created one if same number of articles
+      ])
       .from(skip)
       .size(take)
       .build()
 
     try {
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
+      const ids = new Set<string>()
+      let totalCount: number = 0
+      if (includeAuthorTags && viewerId) {
+        const [res, res2] = await Promise.all([
+          this.knex
+            .from(this.knex.ref(AUTHORS_VIEW).as('a'))
+            .joinRaw(
+              'CROSS JOIN jsonb_to_recordset(top_tags) AS x(id int, num_articles int, last_use timestamptz)'
+            )
+            .where('a.id', viewerId)
+            .select('x.id'),
+          // also get the tags use from last articles in recent days
+          this.knex
+            .from('article_tag AS at')
+            .join('article AS a', 'at.article_id', 'a.id')
+            .where('a.author_id', viewerId)
+            .andWhere(
+              'at.created_at',
+              '>=',
+              this.knex.raw(`CURRENT_DATE - '7 days' ::interval`)
+            )
+            .select(this.knex.raw('DISTINCT at.tag_id ::int')),
+        ])
+        // ids.push(...res.map(({ id }) => id))
+        // ids.push(...res2.map(({ tagId }) => tagId))
+        res.forEach(({ id }) => ids.add(id))
+        res2.forEach(({ tagId }) => ids.add(tagId))
+        console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
+      }
+
+      if (key) {
+        const result = await this.es.client.search({
+          index: this.table,
+          body,
+        })
+
+        console.log(
+          'ES search of:',
+          body,
+          'result:',
+          result.body?.hits?.hits,
+          result
+        )
+        const { hits } = result.body
+
+        // ids.push(...hits.hits.map(({ _id }: { _id: any }) => _id))
+        hits.hits.forEach(
+          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
+            ids.add(_source?.id)
+        )
+
+        totalCount = hits.total.value
+      }
+
+      const tags = await this.baseFind({
+        table: TAGS_VIEW, // 'mat_views.tags_lasts',
+        select: [
+          'id',
+          'content',
+          'description',
+          'num_articles',
+          'num_authors',
+          'created_at',
+        ],
+        where: (builder: Knex.QueryBuilder) =>
+          builder.whereIn('id', Array.from(ids)),
+        orderBy: [
+          { column: 'num_articles', order: 'desc' },
+          { column: 'created_at', order: 'asc' },
+        ],
+        take,
+        skip,
       })
+      console.log('found:', ids, 'search from lasts:', tags)
 
-      const { hits } = result.body
-
-      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
-      const tags = await this.baseFindByIds(ids, this.table)
-
-      return { nodes: tags, totalCount: hits.total.value }
+      return {
+        // /** tslint:disable-next-line:prefer-object-spread */
+        nodes: tags.map((t) => Object.assign(t, { __type: 'TagSearchResult' })), // tslint:disable-line
+        totalCount, // : hits.total.value,
+      }
     } catch (err) {
       logger.error(err)
+      console.error(new Date(), 'ERROR:', err)
       throw new ServerError('tag search failed')
     }
   }
