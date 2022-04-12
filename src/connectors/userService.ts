@@ -263,6 +263,18 @@ export class UserService extends BaseService {
       .first()
 
   /**
+   * Find user by liker id
+   */
+  findByLikerId = async (likerId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        likerId: likerId.toLowerCase(),
+      })
+      .first()
+
+  /**
    * Check is username editable
    */
   isUserNameEditable = async (userId: string) => {
