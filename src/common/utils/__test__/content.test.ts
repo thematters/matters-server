@@ -236,7 +236,7 @@ test('correctNestedBrTag', async () => {
   })
 })
 
-test('correctNestedBrTag', async () => {
+test('countWords', async () => {
   const contents = [
     {
       data: '3个字',
@@ -248,7 +248,7 @@ test('correctNestedBrTag', async () => {
     },
     {
       data: ' со мной всю потёртый, с местами отслоившейся краской ',
-      count: 3,
+      count: 8,
     },
     {
       data: 'hello world. ',
