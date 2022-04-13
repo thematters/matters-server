@@ -89,7 +89,7 @@ export default /* GraphQL */ `
     title: String
     summary: String
     content: String
-    tags: [String]
+    tags: [String!]
     cover: ID
     collection: [ID]
     circle: ID

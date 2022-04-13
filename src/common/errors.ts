@@ -255,6 +255,14 @@ export class DuplicateTagError extends ApolloError {
   }
 }
 
+export class TooManyTagsForArticleError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'TOO_MANY_TAGS_FOR_ARTICLE')
+
+    Object.defineProperty(this, 'name', { value: 'TooManyTagsForArticleError' })
+  }
+}
+
 export class TagEditorsReachLimitError extends ApolloError {
   constructor(message: string) {
     super(message, 'TAG_EDITORS_REACH_LIMIT')

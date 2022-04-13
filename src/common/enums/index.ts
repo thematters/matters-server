@@ -238,3 +238,5 @@ export enum ActivityType {
   UserBookmarkArticleActivity = 'UserBookmarkArticleActivity',
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
+
+export const TAGS_PER_ARTICLE_LIMIT = 20
