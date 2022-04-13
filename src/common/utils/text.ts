@@ -6,12 +6,16 @@ import { distance } from 'fastest-levenshtein'
 export const measureDiffs = (source: string, target: string) =>
   distance(source, target)
 
+const nonAlphaNumUni = String.raw`[^\p{Letter}\p{Number}]+`
+const prefixOrSuffixNonAlphaNum = new RegExp(
+  `(^${nonAlphaNumUni}|${nonAlphaNumUni}$)`,
+  'gu'
+)
+
 export const stripPunctPrefixSuffix = (content: string) =>
-  `${content}`
-    .trim() // strip white space in both ends
-    .replace(/^[^-+.\p{Letter}\p{Number}]+/gu, '') // strip prefix punctuation (non alpha-number)
-    .replace(/[^-+.\p{Letter}\p{Number}]+$/gu, '') // strip suffix punctuation (non alpha-number)
-    .trim() // strip white space again
+  `${content}`.replace(prefixOrSuffixNonAlphaNum, '') // strip prefix or suffix punct
+
+const anyNonAlphaNum = new RegExp(nonAlphaNumUni, 'gu')
 
 // to simulate slugify at DB server side
 // https://github.com/thematters/matters-metabase/blob/master/sql/stale-tags-create-table-view.sql#L2-L13
@@ -19,5 +23,5 @@ export const stripPunctPrefixSuffix = (content: string) =>
 export const tagSlugify = (content: string) =>
   `${content}`
     .toLowerCase()
-    .replace(/[^\p{Letter}\p{Number}]+/gu, '-') // replace all non alpha-number to `-`, including spaces and punctuations
+    .replace(anyNonAlphaNum, '-') // replace all non alpha-number to `-`, including spaces and punctuations
     .replace(/(^-+|-+$)/g, '') // strip leading or trailing `-` if there's any

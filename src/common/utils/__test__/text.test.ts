@@ -8,7 +8,7 @@ test('stripPunctPrefixSuffix', () => {
     { tag: '#LikeCoin#', expected: 'LikeCoin' },
     { tag: '#Likecoin', expected: 'Likecoin' },
 
-    // { tag: 'CATCHPLAY+', expected: 'CATCHPLAY' },
+    { tag: 'CATCHPLAY+', expected: 'CATCHPLAY' },
 
     { tag: '#小說', expected: '小說' },
     { tag: '＃小說', expected: '小說' },
