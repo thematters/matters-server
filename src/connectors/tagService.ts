@@ -1,6 +1,5 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { Knex } from 'knex'
 import _ from 'lodash'
 
 import {
@@ -501,8 +500,6 @@ export class TagService extends BaseService {
             )
             .select(this.knex.raw('DISTINCT at.tag_id ::int')),
         ])
-        // ids.push(...res.map(({ id }) => id))
-        // ids.push(...res2.map(({ tagId }) => tagId))
         res.forEach(({ id }) => ids.add(id))
         res2.forEach(({ tagId }) => ids.add(tagId))
         // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
@@ -514,16 +511,8 @@ export class TagService extends BaseService {
           body,
         })
 
-        /* console.log(
-          'ES search of:',
-          body,
-          'result:',
-          result.body?.hits?.hits,
-          result
-        ) */
         const { hits } = result.body
 
-        // ids.push(...hits.hits.map(({ _id }: { _id: any }) => _id))
         hits.hits.forEach(
           ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
             ids.add(_source?.id)
@@ -532,26 +521,30 @@ export class TagService extends BaseService {
         totalCount = hits.total.value
       }
 
-      const tags = await this.baseFind({
-        table: TAGS_VIEW, // 'mat_views.tags_lasts',
-        select: [
+      const queryTags = this.knex
+        .select(
           'id',
           'content',
           'description',
           'num_articles',
           'num_authors',
-          'created_at',
-        ],
-        where: (builder: Knex.QueryBuilder) =>
-          builder.whereIn('id', Array.from(ids)),
-        orderBy: [
-          { column: 'num_articles', order: 'desc' },
-          { column: 'created_at', order: 'asc' },
-        ],
-        take,
-        skip,
-      })
-      // console.log('found:', ids, 'search from lasts:', tags)
+          'created_at'
+        )
+        .from(TAGS_VIEW)
+        .whereIn('id', Array.from(ids))
+        .orderByRaw('content = ? DESC NULLS LAST', [key]) // always show exact match at first
+        .orderBy('num_articles', 'desc')
+        .orderBy('created_at', 'asc')
+
+      if (skip) {
+        queryTags.offset(skip)
+      }
+      if (take) {
+        queryTags.limit(take)
+      }
+
+      const tags = await queryTags
+      console.log('found:', ids, 'search from lasts:', tags)
 
       return {
         // /** tslint:disable-next-line:prefer-object-spread */
