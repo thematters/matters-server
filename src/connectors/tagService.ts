@@ -9,6 +9,7 @@ import {
   TAG_ACTION,
   VIEW,
 } from 'common/enums'
+import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { tagSlugify } from 'common/utils'
@@ -546,7 +547,9 @@ export class TagService extends BaseService {
       }
 
       const tags = await queryTags
-      console.log('found:', ids, 'search from lasts:', tags)
+      if (!isProd) {
+        console.log('found:', ids, 'search from lasts:', tags)
+      }
 
       return {
         // /** tslint:disable-next-line:prefer-object-spread */
