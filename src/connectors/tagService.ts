@@ -532,7 +532,9 @@ export class TagService extends BaseService {
         )
         .from(TAGS_VIEW)
         .whereIn('id', Array.from(ids))
-        .orderByRaw('content = ? DESC NULLS LAST', [key]) // always show exact match at first
+        .orderByRaw('content = ? DESC', [key]) // always show exact match at first
+        .orderByRaw('content ~* ? DESC', [key]) // then show inclusive match, by regular expression, case insensitive
+        .orderBy('num_authors', 'desc')
         .orderBy('num_articles', 'desc')
         .orderBy('created_at', 'asc')
 
