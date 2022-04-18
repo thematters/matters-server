@@ -468,6 +468,7 @@ export class TagService extends BaseService {
     const body = bodybuilder()
       .query('match', 'content', key)
       .sort([
+        { _score: 'desc' },
         { numArticles: 'desc' },
         { numAuthors: 'desc' },
         { createdAt: 'asc' }, // prefer earlier created one if same number of articles
@@ -504,7 +505,7 @@ export class TagService extends BaseService {
         // ids.push(...res2.map(({ tagId }) => tagId))
         res.forEach(({ id }) => ids.add(id))
         res2.forEach(({ tagId }) => ids.add(tagId))
-        console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
+        // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
       if (key) {
@@ -513,13 +514,13 @@ export class TagService extends BaseService {
           body,
         })
 
-        console.log(
+        /* console.log(
           'ES search of:',
           body,
           'result:',
           result.body?.hits?.hits,
           result
-        )
+        ) */
         const { hits } = result.body
 
         // ids.push(...hits.hits.map(({ _id }: { _id: any }) => _id))
@@ -550,7 +551,7 @@ export class TagService extends BaseService {
         take,
         skip,
       })
-      console.log('found:', ids, 'search from lasts:', tags)
+      // console.log('found:', ids, 'search from lasts:', tags)
 
       return {
         // /** tslint:disable-next-line:prefer-object-spread */
@@ -559,7 +560,7 @@ export class TagService extends BaseService {
       }
     } catch (err) {
       logger.error(err)
-      console.error(new Date(), 'ERROR:', err)
+      // console.error(new Date(), 'ERROR:', err)
       throw new ServerError('tag search failed')
     }
   }
