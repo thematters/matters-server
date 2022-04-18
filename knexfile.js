@@ -1,3 +1,5 @@
+const { name, version } = require('./package.json')
+
 const baseConfig = {
   client: 'postgresql',
   connection: {
@@ -5,6 +7,7 @@ const baseConfig = {
     user: process.env.MATTERS_PG_USER,
     password: process.env.MATTERS_PG_PASSWORD,
     database: process.env.MATTERS_PG_DATABASE,
+    application_name: `${name}/${version}`,
   },
   migrations: {
     tableName: 'knex_migrations',

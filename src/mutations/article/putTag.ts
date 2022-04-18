@@ -1,6 +1,5 @@
 import _replace from 'lodash/replace'
 import _some from 'lodash/some'
-import _trim from 'lodash/trim'
 import _uniq from 'lodash/uniq'
 
 import { ASSET_TYPE, USER_STATE } from 'common/enums'
@@ -15,7 +14,7 @@ import {
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, isValidTagName } from 'common/utils'
+import { fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
@@ -47,35 +46,32 @@ const resolver: MutationToPutTagResolver = async (
     coverId = null
   }
 
-  const tagContent = content ? _trim(content) : ''
+  const tagContent = content ? stripPunctPrefixSuffix(content) : ''
 
-  if (tagContent && !isValidTagName(tagContent)) {
+  if (!tagContent) {
     throw new NameInvalidError('invalid tag name')
   }
 
   if (!id) {
-    // create tag
-    // check tag content
-    if (!tagContent) {
-      throw new UserInputError('"content" is required in creation')
-    }
-
     // check if any same tag content exists
     const tags = await tagService.findByContent({ content: tagContent })
     if (tags.length > 0) {
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
-    const newTag = await tagService.create({
-      content: tagContent,
-      creator: viewer.id,
-      description,
-      editors: _uniq(
-        environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
-      ),
-      owner: viewer.id,
-      cover: coverId,
-    })
+    const newTag = await tagService.create(
+      {
+        content: tagContent,
+        creator: viewer.id,
+        description,
+        editors: _uniq(
+          environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+        ),
+        owner: viewer.id,
+        cover: coverId,
+      }
+      // ['id', 'content', 'description', 'creator', 'editors', 'owner', 'cover']
+    )
 
     return newTag
   } else {

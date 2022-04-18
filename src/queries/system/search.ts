@@ -51,7 +51,7 @@ const resolver: QueryToSearchResolver = async (
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
       return {
-        nodes: nodes.map((node: GQLNode) => ({ ...node, __type: input.type })),
+        nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
         totalCount,
       }
     })

@@ -27,6 +27,7 @@ import {
   EthAddressNotFoundError,
   NameInvalidError,
   PasswordInvalidError,
+  PasswordNotAvailableError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -157,6 +158,12 @@ export class UserService extends BaseService {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
+    if (!user.passwordHash) {
+      throw new PasswordNotAvailableError(
+        'Password login not available for this user, login failed.'
+      )
+    }
+
     await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
@@ -252,6 +259,18 @@ export class UserService extends BaseService {
       .from(this.table)
       .where({
         ethAddress: ethAddress.toLowerCase(), // ethAddress case insensitive
+      })
+      .first()
+
+  /**
+   * Find user by liker id
+   */
+  findByLikerId = async (likerId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        likerId: likerId.toLowerCase(),
       })
       .first()
 

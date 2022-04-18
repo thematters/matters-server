@@ -255,6 +255,14 @@ export class DuplicateTagError extends ApolloError {
   }
 }
 
+export class TooManyTagsForArticleError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'TOO_MANY_TAGS_FOR_ARTICLE')
+
+    Object.defineProperty(this, 'name', { value: 'TooManyTagsForArticleError' })
+  }
+}
+
 export class TagEditorsReachLimitError extends ApolloError {
   constructor(message: string) {
     super(message, 'TAG_EDITORS_REACH_LIMIT')
@@ -315,6 +323,15 @@ export class PasswordInvalidError extends ApolloError {
     super(message, 'USER_PASSWORD_INVALID')
 
     Object.defineProperty(this, 'name', { value: 'PasswordInvalidError' })
+  }
+}
+
+export class PasswordNotAvailableError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'USER_PASSWORD_NOT_AVAILABLE')
+
+    // For wallet login users
+    Object.defineProperty(this, 'name', { value: 'PasswordNotAvailableError' })
   }
 }
 

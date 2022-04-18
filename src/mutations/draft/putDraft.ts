@@ -8,6 +8,7 @@ import {
   CIRCLE_STATE,
   NODE_TYPES,
   PUBLISH_STATE,
+  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -20,9 +21,15 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NotAllowAddOfficialTagError,
+  TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
+import {
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  sanitize,
+  stripPunctPrefixSuffix,
+} from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
@@ -37,6 +44,7 @@ const resolver: MutationToPutDraftResolver = async (
       systemService,
       userService,
     },
+    knex,
   }
 ) => {
   const {
@@ -44,13 +52,16 @@ const resolver: MutationToPutDraftResolver = async (
     title,
     summary,
     content,
-    tags,
+    // tags,
     cover,
     collection,
     circle: circleGlobalId,
     accessType,
     license,
   } = input
+  const tags = _.uniq(
+    (input.tags || []).map(stripPunctPrefixSuffix).filter(Boolean)
+  )
 
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -153,12 +164,17 @@ const resolver: MutationToPutDraftResolver = async (
     })
     if (
       mattyTag &&
-      tags &&
-      tags.length > 0 &&
+      // tags &&
+      // tags.length > 0 &&
       tags.includes(mattyTag.content)
     ) {
       throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
+  }
+  if (tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+    throw new TooManyTagsForArticleError(
+      `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+    )
   }
 
   // assemble data
@@ -167,7 +183,7 @@ const resolver: MutationToPutDraftResolver = async (
   const resetCircle = circleGlobalId === null
   const resetCollection =
     collection === null || (collection && collection.length === 0)
-  const resetTags = tags === null || (tags && tags.length === 0)
+  const resetTags = tags.length === 0
 
   const data: ItemData = _.omitBy(
     {
@@ -176,7 +192,7 @@ const resolver: MutationToPutDraftResolver = async (
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && sanitize(content),
-      tags,
+      tags: tags.length === 0 ? null : tags,
       cover: coverId,
       collection: collectionIds,
       circleId,
@@ -249,12 +265,12 @@ const resolver: MutationToPutDraftResolver = async (
     // update
     return draftService.baseUpdate(dbId, {
       ...data,
-      updatedAt: new Date(),
       // reset fields
       summary: resetSummary ? null : data.summary || draft.summary,
       collection: resetCollection ? null : data.collection || draft.collection,
       tags: resetTags ? null : data.tags || draft.tags,
       circleId: resetCircle ? null : data.circleId || draft.circleId,
+      updatedAt: knex.fn.now(),
     })
   }
 
