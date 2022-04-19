@@ -2,7 +2,7 @@
  * This migration script is for generating curation tags ID list.
  *
  */
- const view = 'curation_tag_materialized'
+const view = 'curation_tag_materialized'
 
 exports.up = async (knex) => {
   // drop current materialized view
@@ -36,7 +36,7 @@ exports.down = async (knex) => {
     return
   }
 
-   // drop current materialized view
+  // drop current materialized view
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${view}`)
 
   // recreate previous version of materialized view
