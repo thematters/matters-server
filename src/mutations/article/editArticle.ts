@@ -152,19 +152,27 @@ const resolver: MutationToEditArticleResolver = async (
     }
 
     // create tag records
-    const dbTags = (await Promise.all(
-      tags.map((tag: string) =>
-        tagService.create(
-          {
-            content: tag,
-            creator: article.authorId,
-            editors: tagEditors,
-            owner: article.authorId,
-          },
-          ['id', 'content']
+    const dbTags = (
+      await Promise.all(
+        tags.map(async (tag: string) =>
+          tagService.create(
+            {
+              content: tag,
+              creator: article.authorId,
+              editors: tagEditors,
+              owner: article.authorId,
+            },
+            ['id', 'content']
+          )
         )
       )
-    )) as unknown as [{ id: string; content: string }]
+    )
+      // eslint-disable-next-line no-shadow
+      // tslint:disable-next-line
+      .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
+      { id: string; content: string }
+    ]
+    console.log('new dbTags:', dbTags)
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
     const oldIds = (
@@ -291,7 +299,7 @@ const resolver: MutationToEditArticleResolver = async (
     const diff = difference(newIds, oldIds)
 
     // gather data
-    newIds.map((articleId: string, index: number) => {
+    newIds.forEach((articleId: string, index: number) => {
       const indexOf = oldIds.indexOf(articleId)
       if (indexOf < 0) {
         addItems.push({ entranceId: article.id, articleId, order: index })
@@ -432,7 +440,6 @@ const resolver: MutationToEditArticleResolver = async (
    */
   const isUpdatingContent = !!content
   const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
-  const shouldRepublish = isUpdatingContent || isUpdatingCircleOrAccess
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
@@ -441,30 +448,11 @@ const resolver: MutationToEditArticleResolver = async (
       )
     }
   }
-  const increaseRevisionCount = async () => {
-    checkRevisionCount()
-
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: {
-        revisionCount: (article.revisionCount || 0) + 1,
-        updatedAt: knex.fn.now(),
-      },
-    })
-  }
 
   /**
    * License
    */
-  const resetLicense = license === null
-
-  if (license || resetLicense) {
-    // we wont increase twice if the article will be republish later
-    if (!shouldRepublish) {
-      await increaseRevisionCount()
-    }
-
+  if (license !== draft.license) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
@@ -522,8 +510,6 @@ const resolver: MutationToEditArticleResolver = async (
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
       license: currDraft?.license,
-      // createdAt: new Date(),
-      // updatedAt: new Date(),
     }
     const revisedDraft = await draftService.baseCreate(data)
 
@@ -544,7 +530,10 @@ const resolver: MutationToEditArticleResolver = async (
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
-    await republish(content)
+    if (diffs > 0) {
+      // only republish when have changes
+      await republish(content)
+    }
   } else if (isUpdatingCircleOrAccess) {
     await republish()
   }
