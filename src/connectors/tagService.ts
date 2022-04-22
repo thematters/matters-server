@@ -1,6 +1,5 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { Knex } from 'knex'
 import _ from 'lodash'
 
 import {
@@ -10,8 +9,10 @@ import {
   TAG_ACTION,
   VIEW,
 } from 'common/enums'
+import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
+import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
@@ -140,28 +141,45 @@ export class TagService extends BaseService {
    * Create a tag, but return one if it's existing.
    *
    */
-  create = async ({
-    content,
-    cover,
-    creator,
-    description,
-    editors,
-    owner,
-  }: {
-    content: string
-    cover?: string
-    creator: string
-    description?: string
-    editors: string[]
-    owner: string
-  }) => {
-    const item = await this.knex(this.table).select().where({ content }).first()
+  create = async (
+    {
+      content,
+      cover,
+      creator,
+      description,
+      editors,
+      owner,
+    }: {
+      content: string
+      cover?: string
+      creator: string
+      description?: string
+      editors: string[]
+      owner: string
+    },
+    columns: string[] = ['*']
+  ) => {
+    let item
+
+    try {
+      item = await this.knex
+        .from(TAGS_VIEW)
+        // .select(['id', 'content', 'description'])
+        .select(columns)
+        .where({
+          slug: tagSlugify(content),
+        })
+        .first()
+    } catch (err) {
+      console.error(new Date(), `ERROR:`, err)
+    }
 
     // create
     if (!item) {
       const tag = await this.baseCreate(
         { content, cover, creator, description, editors, owner },
-        this.table
+        this.table,
+        columns
       )
 
       // add tag into search engine
@@ -450,6 +468,7 @@ export class TagService extends BaseService {
     const body = bodybuilder()
       .query('match', 'content', key)
       .sort([
+        { _score: 'desc' },
         { numArticles: 'desc' },
         { numAuthors: 'desc' },
         { createdAt: 'asc' }, // prefer earlier created one if same number of articles
@@ -482,11 +501,9 @@ export class TagService extends BaseService {
             )
             .select(this.knex.raw('DISTINCT at.tag_id ::int')),
         ])
-        // ids.push(...res.map(({ id }) => id))
-        // ids.push(...res2.map(({ tagId }) => tagId))
         res.forEach(({ id }) => ids.add(id))
         res2.forEach(({ tagId }) => ids.add(tagId))
-        console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
+        // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
       if (key) {
@@ -495,16 +512,8 @@ export class TagService extends BaseService {
           body,
         })
 
-        console.log(
-          'ES search of:',
-          body,
-          'result:',
-          result.body?.hits?.hits,
-          result
-        )
         const { hits } = result.body
 
-        // ids.push(...hits.hits.map(({ _id }: { _id: any }) => _id))
         hits.hits.forEach(
           ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
             ids.add(_source?.id)
@@ -513,26 +522,34 @@ export class TagService extends BaseService {
         totalCount = hits.total.value
       }
 
-      const tags = await this.baseFind({
-        table: TAGS_VIEW, // 'mat_views.tags_lasts',
-        select: [
+      const queryTags = this.knex
+        .select(
           'id',
           'content',
           'description',
           'num_articles',
           'num_authors',
-          'created_at',
-        ],
-        where: (builder: Knex.QueryBuilder) =>
-          builder.whereIn('id', Array.from(ids)),
-        orderBy: [
-          { column: 'num_articles', order: 'desc' },
-          { column: 'created_at', order: 'asc' },
-        ],
-        take,
-        skip,
-      })
-      console.log('found:', ids, 'search from lasts:', tags)
+          'created_at'
+        )
+        .from(TAGS_VIEW)
+        .whereIn('id', Array.from(ids))
+        .orderByRaw('content = ? DESC', [key]) // always show exact match at first
+        .orderByRaw('content ~* ? DESC', [key]) // then show inclusive match, by regular expression, case insensitive
+        .orderBy('num_authors', 'desc')
+        .orderBy('num_articles', 'desc')
+        .orderBy('created_at', 'asc')
+
+      if (skip) {
+        queryTags.offset(skip)
+      }
+      if (take) {
+        queryTags.limit(take)
+      }
+
+      const tags = await queryTags
+      if (!isProd) {
+        console.log('found:', ids, 'search from lasts:', tags)
+      }
 
       return {
         // /** tslint:disable-next-line:prefer-object-spread */
@@ -541,7 +558,7 @@ export class TagService extends BaseService {
       }
     } catch (err) {
       logger.error(err)
-      console.error(new Date(), 'ERROR:', err)
+      // console.error(new Date(), 'ERROR:', err)
       throw new ServerError('tag search failed')
     }
   }

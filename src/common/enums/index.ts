@@ -169,6 +169,7 @@ export enum NODE_TYPES {
   Draft = 'Draft',
   User = 'User',
   Tag = 'Tag',
+  TagSearchResult = 'TagSearchResult',
   Appreciation = 'Appreciation',
   Transaction = 'Transaction',
   Circle = 'Circle',
@@ -237,3 +238,5 @@ export enum ActivityType {
   UserBookmarkArticleActivity = 'UserBookmarkArticleActivity',
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
+
+export const TAGS_PER_ARTICLE_LIMIT = 20

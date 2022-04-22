@@ -325,12 +325,15 @@ class PublicationQueue extends BaseQueue {
       // create tag records, return tag record if already exists
       const dbTags = (await Promise.all(
         tags.map((tag: string) =>
-          this.tagService.create({
-            content: tag,
-            creator: article.authorId,
-            editors: tagEditors,
-            owner: article.authorId,
-          })
+          this.tagService.create(
+            {
+              content: tag,
+              creator: article.authorId,
+              editors: tagEditors,
+              owner: article.authorId,
+            },
+            ['id', 'content']
+          )
         )
       )) as unknown as [{ id: string; content: string }]
 

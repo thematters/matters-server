@@ -1922,7 +1922,7 @@ export interface GQLPutDraftInput {
   title?: string
   summary?: string
   content?: string
-  tags?: Array<string | null>
+  tags?: Array<string>
   cover?: string
   collection?: Array<string | null>
   circle?: string

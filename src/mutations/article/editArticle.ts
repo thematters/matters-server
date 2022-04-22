@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/matters-html-formatter'
-import { difference, flow, trim, uniq } from 'lodash'
+import { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -12,6 +12,7 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PUBLISH_STATE,
+  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -25,17 +26,17 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NameInvalidError,
   NotAllowAddOfficialTagError,
+  TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import {
   correctHtml,
   fromGlobalId,
-  isValidTagName,
   measureDiffs,
   sanitize,
   stripClass,
+  stripPunctPrefixSuffix,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToEditArticleResolver } from 'definitions'
@@ -122,13 +123,13 @@ const resolver: MutationToEditArticleResolver = async (
       ).map(({ id: articleId }: { id: string }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       })
     }
 
     await articleService.baseUpdate(dbId, {
       sticky,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   }
 
@@ -142,24 +143,26 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags)
-      .map((tag) => {
-        if (!isValidTagName(tag)) {
-          throw new NameInvalidError(`invalid tag: ${tag}`)
-        }
-        return trim(tag)
-      })
-      .filter((t) => !!t)
+    tags = uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+
+    if (tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+      throw new TooManyTagsForArticleError(
+        `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
 
     // create tag records
     const dbTags = (await Promise.all(
       tags.map((tag: string) =>
-        tagService.create({
-          content: tag,
-          creator: article.authorId,
-          editors: tagEditors,
-          owner: article.authorId,
-        })
+        tagService.create(
+          {
+            content: tag,
+            creator: article.authorId,
+            editors: tagEditors,
+            owner: article.authorId,
+          },
+          ['id', 'content']
+        )
       )
     )) as unknown as [{ id: string; content: string }]
 
@@ -216,12 +219,12 @@ const resolver: MutationToEditArticleResolver = async (
 
     await articleService.baseUpdate(dbId, {
       cover: asset.id,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   } else if (resetCover) {
     await articleService.baseUpdate(dbId, {
       cover: null,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   }
 
@@ -305,8 +308,8 @@ const resolver: MutationToEditArticleResolver = async (
           table: 'collection',
           data: {
             ...item,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            // createdAt: new Date(),
+            // updatedAt: knex.fn.now(),
           },
         })
       ),
@@ -314,7 +317,7 @@ const resolver: MutationToEditArticleResolver = async (
         atomService.update({
           table: 'collection',
           where: { entranceId: item.entranceId, articleId: item.articleId },
-          data: { order: item.order },
+          data: { order: item.order, updatedAt: knex.fn.now() },
         })
       ),
     ])
@@ -399,7 +402,7 @@ const resolver: MutationToEditArticleResolver = async (
       table: 'article_circle',
       where: data,
       create: { ...data, access: accessType },
-      update: { ...data, access: accessType, updatedAt: new Date() },
+      update: { ...data, access: accessType, updatedAt: knex.fn.now() },
     })
   } else if (resetCircle) {
     await atomService.deleteMany({
@@ -419,7 +422,7 @@ const resolver: MutationToEditArticleResolver = async (
       data: {
         summary: summary || null,
         summaryCustomized: !!summary,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
   }
@@ -446,7 +449,7 @@ const resolver: MutationToEditArticleResolver = async (
       where: { id: article.id },
       data: {
         revisionCount: (article.revisionCount || 0) + 1,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
   }
@@ -467,7 +470,7 @@ const resolver: MutationToEditArticleResolver = async (
       where: { id: article.draftId },
       data: {
         license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
   }
@@ -519,8 +522,8 @@ const resolver: MutationToEditArticleResolver = async (
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
       license: currDraft?.license,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      // createdAt: new Date(),
+      // updatedAt: new Date(),
     }
     const revisedDraft = await draftService.baseCreate(data)
 
