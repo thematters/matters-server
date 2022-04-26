@@ -40,6 +40,14 @@ describe('put draft', () => {
     expect(_get(result, 'tags.0')).toBe(tags[0])
     expect(_get(result, 'tags.1')).toBe(tags[1])
 
+    // should retain the tags after setting something else, without changing tags
+    const tagsResult1 = await putDraft({
+      draft: { id: draftId, summary: 'any-summary' },
+    })
+    expect(_get(tagsResult1, 'tags.length')).toBe(2)
+    expect(_get(tagsResult1, 'tags.0')).toBe(tags[0])
+    expect(_get(tagsResult1, 'tags.1')).toBe(tags[1])
+
     // reset tags
     const resetResult1 = await putDraft({
       draft: { id: draftId, tags: null as any },
