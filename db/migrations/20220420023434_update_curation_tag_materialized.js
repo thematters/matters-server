@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   // recreate new materialized view
   await knex.raw(`
     CREATE MATERIALIZED VIEW ${view} AS
-    SELECT t.id, 1/(SUM(t1.sum_read_time)+1) AS uuid, SUM(t1.sum_read_time) AS sum_read_time_top_n
+    SELECT t.id, RANDOM() AS uuid, SUM(t1.sum_read_time) AS sum_read_time_top_n
     FROM tag t JOIN
       (
           SELECT at.tag_id, at.article_id, a.title, art.sum_read_time, rank() over (partition by at.tag_id order by art.sum_read_time desc)
