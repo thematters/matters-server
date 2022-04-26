@@ -22,6 +22,6 @@ const anyNonAlphaNum = new RegExp(nonAlphaNumUni, 'gu')
 // might be able to use under more scenarios
 export const tagSlugify = (content: string) =>
   `${content}`
-    .toLowerCase()
+    // .toLowerCase()
     .replace(anyNonAlphaNum, '-') // replace all non alpha-number to `-`, including spaces and punctuations
     .replace(/(^-+|-+$)/g, '') // strip leading or trailing `-` if there's any

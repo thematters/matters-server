@@ -825,6 +825,11 @@ export interface GQLTagSearchResult extends GQLNode {
   description?: string
   numArticles: number
   numAuthors: number
+
+  /**
+   * List of how many articles were attached with this tag.
+   */
+  articles: GQLArticleConnection
 }
 
 export interface GQLArticleAccess {
@@ -6493,6 +6498,7 @@ export interface GQLTagSearchResultTypeResolver<TParent = any> {
   description?: TagSearchResultToDescriptionResolver<TParent>
   numArticles?: TagSearchResultToNumArticlesResolver<TParent>
   numAuthors?: TagSearchResultToNumAuthorsResolver<TParent>
+  articles?: TagSearchResultToArticlesResolver<TParent>
 }
 
 export interface TagSearchResultToIdResolver<TParent = any, TResult = any> {
@@ -6568,6 +6574,21 @@ export interface TagSearchResultToNumAuthorsResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToArticlesArgs {
+  input: GQLTagArticlesInput
+}
+export interface TagSearchResultToArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: TagSearchResultToArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

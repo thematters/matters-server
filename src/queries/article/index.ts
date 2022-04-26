@@ -49,6 +49,7 @@ import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
 import tagSelected from './tag/selected'
+import tagArticlesSearchResult from './tag/tagArticlesSearchResult'
 import tags from './tags'
 import topicArticleCount from './topic/articleCount'
 import topicArticles from './topic/articles'
@@ -128,6 +129,7 @@ export default {
   },
   TagSearchResult: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+    articles: tagArticlesSearchResult,
   },
   Topic: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),

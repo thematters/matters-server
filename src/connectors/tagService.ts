@@ -165,11 +165,8 @@ export class TagService extends BaseService {
     try {
       item = await this.knex
         .from(TAGS_VIEW)
-        // .select(['id', 'content', 'description'])
         .select(columns)
-        .where({
-          slug: tagSlugify(content),
-        })
+        .where('slug', tagSlugify(content))
         .first()
     } catch (err) {
       logger.error(err)
@@ -225,17 +222,15 @@ export class TagService extends BaseService {
     )
 
     const result = await this.knex
-      .from((knex: any) => {
-        const source = knex
-          .select('author_id')
+      .from(function (this: Knex.QueryBuilder) {
+        this.select('author_id')
           .from(subquery)
           .groupBy('author_id')
+          .as('source')
 
         if (exclude) {
-          source.whereNotIn('author_id', exclude)
+          this.whereNotIn('author_id', exclude)
         }
-
-        source.as('source')
       })
       .count()
       .first()
@@ -646,17 +641,18 @@ export class TagService extends BaseService {
     oss?: boolean
   }) => {
     const curation = this.findCurationTags({ mattyId, fields: ['id'] })
-    const query = this.knex.select(fields).from((knex: any) => {
-      const source = knex
-        .select()
-        .from(
-          oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
-        )
-        .whereNotIn('id', curation)
-        .orderByRaw('tag_score DESC NULLS LAST')
-        .orderBy('count', 'desc')
-      source.as('source')
-    })
+    const query = this.knex
+      .select(fields)
+      .from(function (this: Knex.QueryBuilder) {
+        this.select()
+          .from(
+            oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
+          )
+          .whereNotIn('id', curation)
+          .orderByRaw('tag_score DESC NULLS LAST')
+          .orderBy('count', 'desc')
+          .as('source')
+      })
     return query
   }
 
@@ -788,21 +784,43 @@ export class TagService extends BaseService {
    * Count tags by a given tag text.
    */
   countArticles = async ({
-    id,
+    id: tagId,
     selected,
+    withSynonyms,
   }: {
     id: string
     selected?: boolean
+    withSynonyms?: boolean
   }) => {
-    const result = await this.knex('article_tag')
+    const query = this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
-      .where({
-        tagId: id,
-        state: ARTICLE_STATE.active,
-        ...(selected === true ? { selected } : {}),
-      })
       .first()
+
+    const knex = this.knex
+    query.where(function (this: Knex.QueryBuilder) {
+      this.where('tag_id', tagId)
+      if (withSynonyms) {
+        this.orWhereIn(
+          'tag_id',
+          knex
+            .from(knex.ref(TAGS_VIEW).as('t'))
+            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+            .where('t.id', tagId)
+            .select('x.id')
+        )
+      }
+    })
+
+    query.andWhere({
+      // tagId: id,
+      state: ARTICLE_STATE.active,
+      ...(selected === true ? { selected } : {}),
+    })
+
+    console.log('countArticles:', { sql: query.toString(), tagId })
+
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -815,6 +833,7 @@ export class TagService extends BaseService {
     take,
     selected,
     sortBy,
+    withSynonyms,
   }: {
     id: string
     skip?: number
@@ -822,16 +841,33 @@ export class TagService extends BaseService {
     filter?: { [key: string]: any }
     selected?: boolean
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
+    withSynonyms?: boolean
   }) => {
     const query = this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
-      .where({
-        tagId,
-        state: ARTICLE_STATE.active,
-        ...(selected === true ? { selected } : {}),
-      })
+
+    const knex = this.knex
+    query.where(function (this: Knex.QueryBuilder) {
+      this.where('tag_id', tagId)
+      if (withSynonyms) {
+        this.orWhereIn(
+          'tag_id',
+          knex
+            .from(knex.ref(TAGS_VIEW).as('t'))
+            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+            .where('t.id', tagId)
+            .select('x.id')
+        )
+      }
+    })
+
+    query.andWhere({
+      // tagId,
+      state: ARTICLE_STATE.active,
+      ...(selected === true ? { selected } : {}),
+    })
     if (sortBy === 'byHottestDesc') {
       query
         .leftJoin('article_hottest_materialized AS ah', 'ah.id', 'article.id')
@@ -846,7 +882,7 @@ export class TagService extends BaseService {
       query.limit(take)
     }
 
-    console.log('findArticleIds:', { sql: query.toString() })
+    console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 

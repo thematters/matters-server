@@ -561,6 +561,9 @@ type TagSearchResult implements Node {
   description: String
   numArticles: Int!
   numAuthors: Int!
+
+  """List of how many articles were attached with this tag."""
+  articles(input: TagArticlesInput!): ArticleConnection!
 }
 
 type ArticleAccess {

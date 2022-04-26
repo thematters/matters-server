@@ -338,6 +338,9 @@ export default /* GraphQL */ `
 
     ## numArticlesR3m: Int!
     ## numAuthorsR3m: Int!
+
+    "List of how many articles were attached with this tag."
+    articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   type ArticleAccess {

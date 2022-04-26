@@ -25,11 +25,11 @@ test('tagSlugify', () => {
   const pairs = [
     { tag: '', expected: '' },
 
-    { tag: '#LikeCoin', expected: 'likecoin' },
-    { tag: '#LikeCoin#', expected: 'likecoin' },
-    { tag: '#Likecoin', expected: 'likecoin' },
+    { tag: '#LikeCoin', expected: 'LikeCoin' },
+    { tag: '#LikeCoin#', expected: 'LikeCoin' },
+    { tag: '#Likecoin', expected: 'Likecoin' },
 
-    { tag: 'CATCHPLAY+', expected: 'catchplay' },
+    { tag: 'CATCHPLAY+', expected: 'CATCHPLAY' },
 
     { tag: '#小說', expected: '小說' },
     { tag: '＃小說', expected: '小說' },
@@ -40,7 +40,7 @@ test('tagSlugify', () => {
 
     { tag: '簽？不簽？', expected: '簽-不簽' },
 
-    { tag: '#华人VPN', expected: '华人vpn' },
+    { tag: '#华人VPN', expected: '华人VPN' },
   ]
 
   pairs.forEach(({ tag, expected }) => expect(tagSlugify(tag)).toBe(expected))
