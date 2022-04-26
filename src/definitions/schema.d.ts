@@ -1004,11 +1004,17 @@ export interface GQLDeleteArticlesTagsInput {
   articles?: Array<string>
 }
 
+export const enum GQLTagArticlesSortBy {
+  byHottestDesc = 'byHottestDesc',
+  byCreatedAtDesc = 'byCreatedAtDesc',
+}
+
 export interface GQLTagArticlesInput {
   after?: string
   first?: number
   oss?: boolean
   selected?: boolean
+  sortBy?: GQLTagArticlesSortBy
 }
 
 export interface GQLTagSelectedInput {

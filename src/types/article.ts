@@ -515,11 +515,17 @@ export default /* GraphQL */ `
     articles: [ID!]
   }
 
+  enum TagArticlesSortBy {
+    byHottestDesc
+    byCreatedAtDesc
+  }
+
   input TagArticlesInput {
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
     selected: Boolean
+    sortBy: TagArticlesSortBy = byCreatedAtDesc
   }
 
   input TagSelectedInput {

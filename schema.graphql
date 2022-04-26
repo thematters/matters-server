@@ -738,11 +738,17 @@ input DeleteArticlesTagsInput {
   articles: [ID!]
 }
 
+enum TagArticlesSortBy {
+  byHottestDesc
+  byCreatedAtDesc
+}
+
 input TagArticlesInput {
   after: String
   first: Int
   oss: Boolean
   selected: Boolean
+  sortBy: TagArticlesSortBy = byCreatedAtDesc
 }
 
 input TagSelectedInput {
