@@ -95,6 +95,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
       sticky
       state
       license
+      revisionCount
     }
   }
 `
@@ -475,6 +476,7 @@ describe('edit article', () => {
     expect(_get(result, 'data.editArticle.license')).toBe(
       ARTICLE_LICENSE_TYPE.cc_0
     )
+    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
 
     // change license to ARR should succeed
     const changeResult = await server.executeOperation({
@@ -489,6 +491,7 @@ describe('edit article', () => {
     expect(_get(changeResult, 'data.editArticle.license')).toBe(
       ARTICLE_LICENSE_TYPE.arr
     )
+    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
 
     // reset license
     const resetResult1 = await server.executeOperation({
@@ -504,6 +507,9 @@ describe('edit article', () => {
       _get(resetResult1, 'data.editArticle.summary.length')
     ).toBeGreaterThan(0)
     expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
+
+    // should be still 0, after whatever how many times changing license
+    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
 
   test('archive article', async () => {

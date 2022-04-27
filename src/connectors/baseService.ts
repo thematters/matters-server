@@ -137,12 +137,18 @@ export class BaseService extends DataSource {
   baseCreate = async (
     data: ItemData,
     table?: TableName,
-    columns: string[] = ['*']
+    columns: string[] = ['*'],
+    // onConflict?: [ 'ignore' ] | [ 'merge' ],
+    modifier?: (builder: Knex.QueryBuilder) => void
   ) => {
     try {
-      const [result] = await this.knex(table || this.table)
+      const query = this.knex(table || this.table)
         .insert(data)
         .returning(columns)
+      if (modifier) {
+        query.modify(modifier)
+      }
+      const [result] = await query
       logger.info(`Inserted id ${result.id} to ${table || this.table}`)
       return result
     } catch (err) {

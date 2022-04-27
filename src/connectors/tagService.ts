@@ -1,5 +1,6 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import { Knex } from 'knex'
 import _ from 'lodash'
 
 import {
@@ -171,7 +172,7 @@ export class TagService extends BaseService {
         })
         .first()
     } catch (err) {
-      console.error(new Date(), `ERROR:`, err)
+      logger.error(err)
     }
 
     // create
@@ -179,7 +180,10 @@ export class TagService extends BaseService {
       const tag = await this.baseCreate(
         { content, cover, creator, description, editors, owner },
         this.table,
-        columns
+        columns,
+        (builder: Knex.QueryBuilder) => {
+          builder.onConflict('content').merge({ deleted: false })
+        }
       )
 
       // add tag into search engine
