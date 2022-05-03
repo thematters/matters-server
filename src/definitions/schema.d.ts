@@ -781,6 +781,11 @@ export interface GQLTag extends GQLNode {
   participants: GQLUserConnection
 
   /**
+   * Tags recommended based on relations to current tag.
+   */
+  recommended: GQLTagSearchResultConnection
+
+  /**
    * This value determines if it is official.
    */
   isOfficial?: boolean
@@ -889,6 +894,17 @@ export interface GQLTagConnection extends GQLConnection {
 export interface GQLTagEdge {
   cursor: string
   node: GQLTag
+}
+
+export interface GQLTagSearchResultConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLTagSearchResultEdge>
+}
+
+export interface GQLTagSearchResultEdge {
+  cursor: string
+  node: GQLTagSearchResult
 }
 
 export interface GQLArticleInput {
@@ -2456,6 +2472,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
   | 'TopicConnection'
   | 'TagConnection'
+  | 'TagSearchResultConnection'
   | 'CircleConnection'
   | 'MemberConnection'
   | 'InvitationConnection'
@@ -2478,6 +2495,7 @@ export interface GQLConnectionNameMap {
   ArticleConnection: GQLArticleConnection
   TopicConnection: GQLTopicConnection
   TagConnection: GQLTagConnection
+  TagSearchResultConnection: GQLTagSearchResultConnection
   CircleConnection: GQLCircleConnection
   MemberConnection: GQLMemberConnection
   InvitationConnection: GQLInvitationConnection
@@ -4206,6 +4224,8 @@ export interface GQLResolver {
   TopicEdge?: GQLTopicEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
+  TagSearchResultConnection?: GQLTagSearchResultConnectionTypeResolver
+  TagSearchResultEdge?: GQLTagSearchResultEdgeTypeResolver
   Circle?: GQLCircleTypeResolver
   Member?: GQLMemberTypeResolver
   Price?: GQLPriceTypeResolver
@@ -6316,6 +6336,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   participants?: TagToParticipantsResolver<TParent>
+  recommended?: TagToRecommendedResolver<TParent>
   isOfficial?: TagToIsOfficialResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
@@ -6449,6 +6470,18 @@ export interface TagToParticipantsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToParticipantsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToRecommendedArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToRecommendedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToRecommendedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6942,6 +6975,77 @@ export interface TagEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface TagEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagSearchResultConnectionTypeResolver<TParent = any> {
+  totalCount?: TagSearchResultConnectionToTotalCountResolver<TParent>
+  pageInfo?: TagSearchResultConnectionToPageInfoResolver<TParent>
+  edges?: TagSearchResultConnectionToEdgesResolver<TParent>
+}
+
+export interface TagSearchResultConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagSearchResultEdgeTypeResolver<TParent = any> {
+  cursor?: TagSearchResultEdgeToCursorResolver<TParent>
+  node?: TagSearchResultEdgeToNodeResolver<TParent>
+}
+
+export interface TagSearchResultEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -9409,6 +9513,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ArticleConnection'
     | 'TopicConnection'
     | 'TagConnection'
+    | 'TagSearchResultConnection'
     | 'CircleConnection'
     | 'MemberConnection'
     | 'InvitationConnection'
@@ -9429,6 +9534,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
         | 'ArticleConnection'
         | 'TopicConnection'
         | 'TagConnection'
+        | 'TagSearchResultConnection'
         | 'CircleConnection'
         | 'MemberConnection'
         | 'InvitationConnection'

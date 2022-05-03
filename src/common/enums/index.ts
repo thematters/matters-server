@@ -240,3 +240,5 @@ export enum ActivityType {
 }
 
 export const TAGS_PER_ARTICLE_LIMIT = 20
+
+export const TAGS_RECOMMENDED_LIMIT = 100

@@ -528,6 +528,9 @@ type Tag implements Node {
   """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
+  """Tags recommended based on relations to current tag."""
+  recommended(input: ConnectionArgs!): TagSearchResultConnection!
+
   """This value determines if it is official."""
   isOfficial: Boolean
 
@@ -623,6 +626,17 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+type TagSearchResultConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TagSearchResultEdge!]
+}
+
+type TagSearchResultEdge {
+  cursor: String!
+  node: TagSearchResult!
 }
 
 input ArticleInput {

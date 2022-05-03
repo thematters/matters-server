@@ -8,6 +8,7 @@ import {
   DEFAULT_TAKE_PER_PAGE,
   MATERIALIZED_VIEW,
   TAG_ACTION,
+  TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
 import { isProd } from 'common/environment'
@@ -1027,5 +1028,107 @@ export class TagService extends BaseService {
         )
       )
     )
+  }
+
+  /**
+   * Find Tags recommended based on relations to current tag.
+   * top100 at most
+   *
+   */
+  findRelatedTags = async ({
+    id,
+    skip,
+    take,
+    exclude,
+  }: {
+    id: string
+    skip?: number
+    take?: number
+    exclude?: string[]
+  }) => {
+    const countRels = await this.knex
+      .from(TAGS_VIEW)
+      .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
+      .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
+      .first()
+    console.log('findRelatedTags:: countRels:', { countRels })
+
+    const ids = new Set<string>()
+
+    // append some results from elasticsearch
+    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+      const body = bodybuilder()
+        .query('match', 'content', countRels.content)
+        .size(TAGS_RECOMMENDED_LIMIT)
+        .build()
+
+      const result = await this.es.client.search({
+        index: this.table,
+        body,
+      })
+
+      const { hits } = result.body
+
+      hits.hits
+        // ?.slice(0, TAGS_RECOMMENDED_LIMIT)
+        .forEach(
+          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
+            ids.add(_source?.id)
+        )
+
+      // totalCount = hits.total.value
+    }
+
+    const subquery = this.knex
+      .from(TAGS_VIEW)
+      .joinRaw(
+        'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
+      )
+      .select('x.*')
+      .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
+
+    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+      subquery.unionAll(
+        this.knex
+          .from(TAGS_VIEW)
+          .select(
+            'id AS tag_rel_id',
+            'num_articles AS count_rel',
+            this.knex.raw('NULL AS count_common'), // unknown
+            this.knex.raw('0.0 AS similarity')
+          )
+          .whereIn('id', Array.from(ids))
+      )
+    }
+
+    console.log('findRelatedTags:: countRels:', {
+      countRels,
+      subquery: subquery.toString(),
+    })
+
+    const query = this.knex
+      .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))
+      .join(this.knex.ref(TAGS_VIEW).as('t'), 'x.tag_rel_id', 't.id')
+      // .whereIn('id', subquery)
+      .select(
+        'x.*',
+        'id',
+        'content',
+        'num_articles',
+        'num_authors',
+        'created_at',
+        'cover',
+        'description'
+      )
+      .orderByRaw('x.similarity DESC NULLS LAST')
+
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take || take === 0) {
+      query.limit(take)
+    }
+
+    return query
   }
 }

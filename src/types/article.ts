@@ -305,6 +305,9 @@ export default /* GraphQL */ `
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Tags recommended based on relations to current tag."
+    recommended(input: ConnectionArgs!): TagSearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "This value determines if it is official."
     isOfficial: Boolean
 
@@ -400,6 +403,17 @@ export default /* GraphQL */ `
   type TagEdge {
     cursor: String!
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
+  }
+
+  type TagSearchResultConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TagSearchResultEdge!]
+  }
+
+  type TagSearchResultEdge {
+    cursor: String!
+    node: TagSearchResult! @logCache(type: "${NODE_TYPES.TagSearchResult}")
   }
 
   input ArticleInput {

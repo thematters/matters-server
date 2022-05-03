@@ -48,6 +48,7 @@ import tagIsOfficial from './tag/isOfficial'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
+import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
 import tagArticlesSearchResult from './tag/tagArticlesSearchResult'
 import tags from './tags'
@@ -126,10 +127,12 @@ export default {
     oss: (root: any) => root,
     cover: tagCover,
     participants: tagParticipants,
+    recommended: tagsRecommended,
   },
   TagSearchResult: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticlesSearchResult,
+    cover: tagCover,
   },
   Topic: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
