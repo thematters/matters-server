@@ -1,7 +1,7 @@
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { TagToArticlesResolver } from 'definitions'
+import { TagSearchResultToArticlesResolver } from 'definitions'
 
-const resolver: TagToArticlesResolver = async (
+const resolver: TagSearchResultToArticlesResolver = async (
   { id },
   { input },
   { dataSources: { tagService, articleService } }
@@ -10,17 +10,18 @@ const resolver: TagToArticlesResolver = async (
   const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, articleIds] = await Promise.all([
-    tagService.countArticles({ id, selected }),
+    tagService.countArticles({ id, selected, withSynonyms: true }),
     tagService.findArticleIds({
       id,
       skip,
       take,
       selected,
       sortBy: sortBy as 'byHottestDesc' | 'byCreatedAtDesc' | undefined,
+      withSynonyms: true,
     }),
   ])
 
-  console.log('tagArticlesResolver:', {
+  console.log('tagSearchResultArticlesResolver:', {
     selected,
     sortBy,
   })

@@ -561,6 +561,9 @@ type TagSearchResult implements Node {
   description: String
   numArticles: Int!
   numAuthors: Int!
+
+  """List of how many articles were attached with this tag."""
+  articles(input: TagArticlesInput!): ArticleConnection!
 }
 
 type ArticleAccess {
@@ -738,11 +741,17 @@ input DeleteArticlesTagsInput {
   articles: [ID!]
 }
 
+enum TagArticlesSortBy {
+  byHottestDesc
+  byCreatedAtDesc
+}
+
 input TagArticlesInput {
   after: String
   first: Int
   oss: Boolean
   selected: Boolean
+  sortBy: TagArticlesSortBy = byCreatedAtDesc
 }
 
 input TagSelectedInput {
