@@ -340,6 +340,7 @@ export class LikeCoin {
 
   /**
    * Check if user is a civic liker
+   * this is public API from api.liker.co, does not need accessToken
    */
   isCivicLiker = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
     const res = await this.request({
