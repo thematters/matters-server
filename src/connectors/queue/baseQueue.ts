@@ -1,4 +1,5 @@
 import Queue from 'bull'
+import { Knex } from 'knex'
 
 import logger from 'common/logger'
 import {
@@ -11,6 +12,7 @@ import {
   TagService,
   UserService,
 } from 'connectors'
+import { knex } from 'connectors/db'
 
 import { createQueue, CustomQueueOpts } from './utils'
 
@@ -25,6 +27,7 @@ export class BaseQueue {
   notificationService: InstanceType<typeof NotificationService>
   atomService: InstanceType<typeof AtomService>
   cacheService: InstanceType<typeof CacheService>
+  knex: Knex
 
   constructor(queueName: string, customOpts?: CustomQueueOpts) {
     this.q = createQueue(queueName, customOpts)
@@ -37,6 +40,8 @@ export class BaseQueue {
     this.notificationService = new NotificationService()
     this.atomService = new AtomService()
     this.cacheService = new CacheService()
+
+    this.knex = knex
 
     this.startScheduledJobs()
   }

@@ -3,7 +3,7 @@ import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-import { trim, uniq } from 'lodash'
+// import { trim, uniq } from 'lodash'
 
 import {
   DB_NOTICE_TYPE,
@@ -21,6 +21,7 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
+  stripPunctPrefixSuffix,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -119,8 +120,9 @@ class PublicationQueue extends BaseQueue {
         archived: true,
         publishState: PUBLISH_STATE.published,
         pinState: PIN_STATE.pinned,
-        updatedAt: new Date(),
+        updatedAt: this.knex.fn.now(), // new Date(),
       })
+
       job.progress(30)
 
       // Note: the following steps won't affect the publication.
@@ -185,6 +187,39 @@ class PublicationQueue extends BaseQueue {
         })
         job.progress(80)
 
+        const liker = await this.userService.findLiker({ userId: author.id })!
+
+        if (draft.iscnPublish && liker) {
+          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+            liker,
+          })
+
+          const iscnId = await this.userService.likecoin.iscnPublish({
+            mediaHash: `hash://sha256/${mediaHash}`,
+            ipfsHash: `ipfs://${dataHash}`,
+            cosmosWallet, // 'TBD',
+            userName: `${displayName} (@${userName})`,
+            title: draft.title,
+            description: summary,
+            datePublished: article.createdAt?.toISOString().substring(0, 10),
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+            tags, // after stripped, not raw draft.tags,
+
+            // for liker auth&headers info
+            liker,
+            // likerIp,
+            // userAgent,
+          })
+          console.log('got iscnId:', iscnId)
+
+          await Promise.all([
+            this.articleService.baseUpdate(article.id, { iscnId }),
+            this.draftService.baseUpdate(draft.id, { iscnId }),
+          ])
+
+          job.progress(85)
+        }
+
         // Step 8: trigger notifications
         this.notificationService.trigger({
           event: DB_NOTICE_TYPE.article_published,
@@ -243,8 +278,8 @@ class PublicationQueue extends BaseQueue {
       entranceId: article.id,
       articleId,
       order: index,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      // createdAt: new Date(), // default to CURRENT_TIMESTAMP
+      // updatedAt: new Date(), // default to CURRENT_TIMESTAMP
     }))
     await this.articleService.baseBatchCreate(items, 'collection')
 
@@ -294,7 +329,7 @@ class PublicationQueue extends BaseQueue {
       table: 'article_circle',
       where: data,
       create: { ...data, access: draft.access },
-      update: { ...data, access: draft.access, updatedAt: new Date() },
+      update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
     })
 
     await invalidateFQC({
@@ -318,9 +353,10 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      tags = uniq(tags)
-        .map(trim)
-        .filter((t) => !!t)
+      // tags = uniq(tags) .map(trim) .filter((t) => !!t)
+      tags = Array.from(
+        new Set(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+      )
 
       // create tag records, return tag record if already exists
       const dbTags = (await Promise.all(

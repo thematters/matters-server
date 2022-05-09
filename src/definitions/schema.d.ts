@@ -568,6 +568,11 @@ export interface GQLArticle extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * the iscnId if published to ISCN
+   */
+  iscnId?: string
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -913,6 +918,11 @@ export interface GQLArticleInput {
 
 export interface GQLPublishArticleInput {
   id: string
+
+  /**
+   * whether publish to ISCN
+   */
+  iscnPublish?: boolean
 }
 
 export interface GQLEditArticleInput {
@@ -926,11 +936,12 @@ export interface GQLEditArticleInput {
   collection?: Array<string>
   circle?: string
   accessType?: GQLArticleAccessType
+  license?: GQLArticleLicenseType
 
   /**
-   * License Type, `ARR` is only for paywalled article
+   * whether publish to ISCN
    */
-  license?: GQLArticleLicenseType
+  iscnPublish?: boolean
 }
 
 export interface GQLAppreciateArticleInput {
@@ -1596,10 +1607,6 @@ export interface GQLPutCircleArticlesInput {
    * Access Type, `public` or `paywall` only.
    */
   accessType: GQLArticleAccessType
-
-  /**
-   * License Type, `ARR` is only for paywalled article
-   */
   license?: GQLArticleLicenseType
 }
 
@@ -1926,6 +1933,11 @@ export interface GQLDraft extends GQLNode {
    * License Type
    */
   license: GQLArticleLicenseType
+
+  /**
+   * whether publish to ISCN
+   */
+  iscnPublish?: boolean
 }
 
 export interface GQLDraftConnection extends GQLConnection {
@@ -1954,11 +1966,12 @@ export interface GQLPutDraftInput {
   collection?: Array<string | null>
   circle?: string
   accessType?: GQLArticleAccessType
+  license?: GQLArticleLicenseType
 
   /**
-   * License Type, `ARR` is only for paywalled article
+   * whether publish to ISCN
    */
-  license?: GQLArticleLicenseType
+  iscnPublish?: boolean
 }
 
 export interface GQLDeleteDraftInput {
@@ -5618,6 +5631,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
+  iscnId?: ArticleToIscnIdResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -6033,6 +6047,15 @@ export interface ArticleToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToIscnIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8295,6 +8318,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
+  iscnPublish?: DraftToIscnPublishResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -8457,6 +8481,15 @@ export interface DraftToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToIscnPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

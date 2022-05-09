@@ -66,6 +66,9 @@ export default /* GraphQL */ `
 
     "License Type"
     license: ArticleLicenseType!
+
+    "whether publish to ISCN"
+    iscnPublish: Boolean
   }
 
   type DraftConnection implements Connection {
@@ -94,9 +97,10 @@ export default /* GraphQL */ `
     collection: [ID]
     circle: ID
     accessType: ArticleAccessType
-
-    "License Type, \`ARR\` is only for paywalled article"
     license: ArticleLicenseType
+
+    "whether publish to ISCN"
+    iscnPublish: Boolean
   }
 
   input DeleteDraftInput {

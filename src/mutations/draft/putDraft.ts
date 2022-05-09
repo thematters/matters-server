@@ -68,6 +68,7 @@ const resolver: MutationToPutDraftResolver = async (
     circle: circleGlobalId,
     accessType,
     license,
+    iscnPublish,
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -200,6 +201,7 @@ const resolver: MutationToPutDraftResolver = async (
       circleId,
       access: accessType,
       license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      iscnPublish,
     },
     _.isUndefined // to drop only undefined // _.isNil
   )

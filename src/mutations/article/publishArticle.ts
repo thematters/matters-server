@@ -10,8 +10,8 @@ import { MutationToPublishArticleResolver } from 'definitions'
 
 const resolver: MutationToPublishArticleResolver = async (
   _,
-  { input: { id } },
-  { viewer, dataSources: { draftService } }
+  { input: { id, iscnPublish } },
+  { viewer, dataSources: { draftService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -43,7 +43,8 @@ const resolver: MutationToPublishArticleResolver = async (
 
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
-    updatedAt: new Date(),
+    iscnPublish,
+    updatedAt: knex.fn.now(),
   })
 
   // add job to queue

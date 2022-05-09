@@ -56,6 +56,7 @@ const resolver: MutationToEditArticleResolver = async (
       circle: circleGlobalId,
       accessType,
       license,
+      iscnPublish,
     },
   },
   {
@@ -510,6 +511,7 @@ const resolver: MutationToEditArticleResolver = async (
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
       license: currDraft?.license,
+      iscnPublish,
     }
     const revisedDraft = await draftService.baseCreate(data)
 

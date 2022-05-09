@@ -17,9 +17,9 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
-import { isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import logger from 'common/logger'
-import { countWords, fromGlobalId } from 'common/utils'
+import { countWords, fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
 import { GQLArticleAccessType } from 'definitions'
 
@@ -117,7 +117,7 @@ class RevisionQueue extends BaseQueue {
           archived: true,
           publishState: PUBLISH_STATE.published,
           pinState: PIN_STATE.pinned,
-          updatedAt: new Date(),
+          updatedAt: this.knex.fn.now(), // new Date(),
         })
         job.progress(40)
 
@@ -141,7 +141,7 @@ class RevisionQueue extends BaseQueue {
             wordCount,
             revisionCount,
             slug: slugify(draft.title),
-            updatedAt: new Date(),
+            updatedAt: this.knex.fn.now(), // new Date(),
           }
         )
         job.progress(50)
@@ -170,6 +170,41 @@ class RevisionQueue extends BaseQueue {
             displayName,
           })
           job.progress(70)
+
+          const liker = await this.userService.findLiker({ userId: author.id })!
+          if (draft.iscnPublish && liker) {
+            const cosmosWallet =
+              await this.userService.likecoin.getCosmosWallet({
+                liker,
+              })
+
+            const iscnId = await this.userService.likecoin.iscnPublish({
+              mediaHash: `hash://sha256/${mediaHash}`,
+              ipfsHash: `ipfs://${dataHash}`,
+              cosmosWallet, // 'TBD',
+              userName: `${displayName} (@${userName})`,
+              title: draft.title,
+              description: summary,
+              datePublished: article.created_at?.toISOString().substring(0, 10),
+              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+              tags: Array.from(
+                new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+              ), // after stripped, not raw draft.tags,
+
+              // for liker auth&headers info
+              liker,
+              // likerIp,
+              // userAgent,
+            })
+            console.log('got iscnId:', iscnId)
+
+            await Promise.all([
+              this.articleService.baseUpdate(article.id, { iscnId }),
+              this.draftService.baseUpdate(draft.id, { iscnId }),
+            ])
+
+            job.progress(85)
+          }
 
           // Step 8: handle newly added mentions
           await this.handleMentions({
@@ -249,7 +284,10 @@ class RevisionQueue extends BaseQueue {
     await this.atomService.update({
       table: 'article_circle',
       where: { articleId: article.id, circleId },
-      data: { secret, updatedAt: new Date() },
+      data: {
+        secret,
+        updatedAt: this.knex.fn.now(), // new Date()
+      },
     })
   }
 
