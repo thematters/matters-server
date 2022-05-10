@@ -11,7 +11,8 @@ export const CORS_OPTIONS: CorsOptions = {
       /githubpreview\.dev$/.test(origin)
     const isMatters = /\/\/(.*\.)?matters\.news$/.test(origin)
     const isApolloStudio = /\/\/(.*\.)?apollographql\.com$/.test(origin)
-    const isAllowed = isLocalDev || isMatters || isApolloStudio
+    const isVercelPreview = /\.vercel\.app$/.test(origin)
+    const isAllowed = isLocalDev || isMatters || isApolloStudio || isVercelPreview
 
     callback(null, isAllowed)
   },
