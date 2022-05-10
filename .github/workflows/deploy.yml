@@ -67,7 +67,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --force
 
       - name: Lint
         run: |
