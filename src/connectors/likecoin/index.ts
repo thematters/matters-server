@@ -142,7 +142,12 @@ export class LikeCoin {
         const err = _.get(e, 'response.data')
 
         // refresh token and retry once
-        if (retries < 1 && liker && err === ERROR_CODES.TOKEN_EXPIRED) {
+        if (
+          retries < 1 &&
+          liker &&
+          (err === ERROR_CODES.TOKEN_EXPIRED ||
+            err === ERROR_CODES.LOGIN_NEEDED)
+        ) {
           accessToken = await this.refreshToken({ liker })
           retries++
           continue // return await makeRequest({ accessToken })

@@ -18,6 +18,7 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
+import { LikerISCNPublishFailureError } from 'common/errors'
 import logger from 'common/logger'
 import { countWords, fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
@@ -110,15 +111,54 @@ class RevisionQueue extends BaseQueue {
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
 
+        const author = await this.userService.baseFindById(article.authorId)
+        const { userName, displayName } = author
+        const liker = (await this.userService.findLiker({ userId: author.id }))!
+        let iscnId
+        if (draft.iscnPublish) {
+          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+            liker,
+          })
+
+          iscnId = await this.userService.likecoin.iscnPublish({
+            mediaHash: `hash://sha256/${mediaHash}`,
+            ipfsHash: `ipfs://${dataHash}`,
+            cosmosWallet, // 'TBD',
+            userName: `${displayName} (@${userName})`,
+            title: draft.title,
+            description: summary,
+            datePublished: article.created_at?.toISOString().substring(0, 10),
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+            tags: Array.from(
+              new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+            ), // after stripped, not raw draft.tags,
+
+            // for liker auth&headers info
+            liker,
+            // likerIp,
+            // userAgent,
+          })
+          // console.log('got iscnId:', iscnId)
+
+          if (!iscnId) {
+            throw new LikerISCNPublishFailureError('iscn publishing failure')
+          }
+        }
+
         // Step 3: update draft
-        await this.draftService.baseUpdate(draft.id, {
-          dataHash,
-          mediaHash,
-          archived: true,
-          publishState: PUBLISH_STATE.published,
-          pinState: PIN_STATE.pinned,
-          updatedAt: this.knex.fn.now(), // new Date(),
-        })
+        await Promise.all([
+          this.draftService.baseUpdate(draft.id, {
+            dataHash,
+            mediaHash,
+            archived: true,
+            iscnId,
+            publishState: PUBLISH_STATE.published,
+            pinState: PIN_STATE.pinned,
+            updatedAt: this.knex.fn.now(), // new Date(),
+          }),
+          this.articleService.baseUpdate(article.id, { iscnId }),
+        ])
+
         job.progress(40)
 
         // Step 4: update secret
@@ -161,8 +201,6 @@ class RevisionQueue extends BaseQueue {
           job.progress(60)
 
           // Step 7: add to search
-          const author = await this.userService.baseFindById(article.authorId)
-          const { userName, displayName } = author
           await this.articleService.addToSearch({
             ...article,
             content: draft.content,
@@ -170,41 +208,6 @@ class RevisionQueue extends BaseQueue {
             displayName,
           })
           job.progress(70)
-
-          const liker = await this.userService.findLiker({ userId: author.id })!
-          if (draft.iscnPublish && liker) {
-            const cosmosWallet =
-              await this.userService.likecoin.getCosmosWallet({
-                liker,
-              })
-
-            const iscnId = await this.userService.likecoin.iscnPublish({
-              mediaHash: `hash://sha256/${mediaHash}`,
-              ipfsHash: `ipfs://${dataHash}`,
-              cosmosWallet, // 'TBD',
-              userName: `${displayName} (@${userName})`,
-              title: draft.title,
-              description: summary,
-              datePublished: article.created_at?.toISOString().substring(0, 10),
-              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-              tags: Array.from(
-                new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
-              ), // after stripped, not raw draft.tags,
-
-              // for liker auth&headers info
-              liker,
-              // likerIp,
-              // userAgent,
-            })
-            console.log('got iscnId:', iscnId)
-
-            await Promise.all([
-              this.articleService.baseUpdate(article.id, { iscnId }),
-              this.draftService.baseUpdate(draft.id, { iscnId }),
-            ])
-
-            job.progress(85)
-          }
 
           // Step 8: handle newly added mentions
           await this.handleMentions({

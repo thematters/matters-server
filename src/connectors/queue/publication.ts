@@ -24,7 +24,7 @@ import {
   fromGlobalId,
   stripPunctPrefixSuffix,
 } from 'common/utils'
-import { UserOAuthLikeCoin } from 'definitions'
+// import { UserOAuthLikeCoin } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -92,9 +92,9 @@ class PublicationQueue extends BaseQueue {
 
       const author = await this.userService.baseFindById(draft.authorId)
       const { userName, displayName } = author
-      const liker = await this.userService.findLiker({
+      const liker = (await this.userService.findLiker({
         userId: author.id,
-      }) as NonNullable<UserOAuthLikeCoin>
+      }))! // as NonNullable<UserOAuthLikeCoin>
       const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
         liker,
       })
@@ -149,25 +149,27 @@ class PublicationQueue extends BaseQueue {
           throw new LikerISCNPublishFailureError('iscn publishing failure')
         }
 
-        await this.articleService.baseUpdate(article.id, { iscnId })
         // this.draftService.baseUpdate(draft.id, { iscnId }),
 
         job.progress(25)
       }
 
       // Step 4: update draft
-      const publishedDraft = await this.draftService.baseUpdate(draft.id, {
-        articleId: article.id,
-        summary,
-        wordCount,
-        dataHash,
-        mediaHash,
-        archived: true,
-        iscnId,
-        publishState: PUBLISH_STATE.published,
-        pinState: PIN_STATE.pinned,
-        updatedAt: this.knex.fn.now(), // new Date(),
-      })
+      const [publishedDraft] = await Promise.all([
+        this.draftService.baseUpdate(draft.id, {
+          articleId: article.id,
+          summary,
+          wordCount,
+          dataHash,
+          mediaHash,
+          archived: true,
+          iscnId,
+          publishState: PUBLISH_STATE.published,
+          pinState: PIN_STATE.pinned,
+          updatedAt: this.knex.fn.now(), // new Date(),
+        }),
+        this.articleService.baseUpdate(article.id, { iscnId }),
+      ])
 
       job.progress(30)
 
@@ -243,14 +245,16 @@ class PublicationQueue extends BaseQueue {
         job.progress(95)
 
         // Step 9: invalidate user cache
-        await invalidateFQC({
-          node: { type: NODE_TYPES.Draft, id: draft.id },
-          redis: this.cacheService.redis,
-        })
-        await invalidateFQC({
-          node: { type: NODE_TYPES.User, id: article.authorId },
-          redis: this.cacheService.redis,
-        })
+        await Promise.all([
+          invalidateFQC({
+            node: { type: NODE_TYPES.Draft, id: draft.id },
+            redis: this.cacheService.redis,
+          }),
+          invalidateFQC({
+            node: { type: NODE_TYPES.User, id: article.authorId },
+            redis: this.cacheService.redis,
+          }),
+        ])
         job.progress(100)
       } catch (e) {
         // ignore errors caused by these steps
