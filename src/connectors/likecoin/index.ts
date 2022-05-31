@@ -5,6 +5,7 @@ import _ from 'lodash'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
+  LikerISCNPublishWithoutWalletError,
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from 'common/errors'
@@ -538,6 +539,10 @@ export class LikeCoin {
     // userAgent?: string
   }) => {
     const endpoint = `${ENDPOINTS.iscnPublish}`
+
+    if (!(cosmosWallet && liker)) {
+      throw new LikerISCNPublishWithoutWalletError('no liker or no wallet')
+    }
 
     const postData = {
       recordNotes: 'Add IPFS fingerprint (by Matters.News)',

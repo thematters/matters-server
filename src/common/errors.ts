@@ -401,6 +401,22 @@ export class LikerUserIdExistsError extends ApolloError {
   }
 }
 
+export class LikerISCNPublishWithoutWalletError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_WALLET_NOT_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'likerWalletNotExistsError' })
+  }
+}
+
+export class LikerISCNPublishFailureError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_ISCN_PUBLISH_FAILURE')
+
+    Object.defineProperty(this, 'name', { value: 'iscnPublishFailureError' })
+  }
+}
+
 export class LikeCoinWebhookError extends ApolloError {
   constructor(message: string) {
     super(message, 'LIKECOIN_WEBHOOK_ERROR')
