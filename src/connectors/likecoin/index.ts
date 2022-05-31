@@ -137,33 +137,28 @@ export class LikeCoin {
       // call makeRequest at most twice
       try {
         return await makeRequest()
-        // accessToken, // : liker ? liker.accessToken : undefined,
       } catch (e) {
         const err = _.get(e, 'response.data')
 
-        // refresh token and retry once
-        if (
-          retries < 1 &&
-          liker &&
-          (err === ERROR_CODES.TOKEN_EXPIRED ||
-            err === ERROR_CODES.LOGIN_NEEDED)
-        ) {
-          accessToken = await this.refreshToken({ liker })
-          retries++
-          continue // return await makeRequest({ accessToken })
-        }
-
         switch (err) {
+          case ERROR_CODES.TOKEN_EXPIRED:
+          case ERROR_CODES.LOGIN_NEEDED:
+            if (liker && retries++ < 1) {
+              accessToken = await this.refreshToken({ liker })
+              continue
+            }
+            break
+
           case ERROR_CODES.EMAIL_ALREADY_USED:
             throw new LikerEmailExistsError('email already used.')
           case ERROR_CODES.OAUTH_USER_ID_ALREADY_USED:
             throw new LikerUserIdExistsError('user id already used.')
 
           // notify client to prompt the user for reauthentication.
-          case ERROR_CODES.LOGIN_NEEDED:
+          // case ERROR_CODES.LOGIN_NEEDED: // was not re-trying
           case ERROR_CODES.INSUFFICIENT_PERMISSION:
             throw new OAuthTokenInvalidError(
-              "token hasn's permission to access the resource, please reauth."
+              'token has no permission to access the resource, please reauth.'
             )
         }
 
