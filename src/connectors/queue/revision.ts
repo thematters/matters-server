@@ -18,7 +18,6 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
-import { LikerISCNPublishFailureError } from 'common/errors'
 import logger from 'common/logger'
 import { countWords, fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
@@ -113,9 +112,12 @@ class RevisionQueue extends BaseQueue {
 
         const author = await this.userService.baseFindById(article.authorId)
         const { userName, displayName } = author
-        const liker = (await this.userService.findLiker({ userId: author.id }))!
+
         let iscnId
         if (draft.iscnPublish) {
+          const liker = (await this.userService.findLiker({
+            userId: author.id,
+          }))!
           const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
             liker,
           })
@@ -140,9 +142,9 @@ class RevisionQueue extends BaseQueue {
           })
           // console.log('got iscnId:', iscnId)
 
-          if (!iscnId) {
-            throw new LikerISCNPublishFailureError('iscn publishing failure')
-          }
+          // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
+
+          job.progress(35)
         }
 
         // Step 3: update draft

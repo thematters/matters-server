@@ -16,7 +16,6 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
-import { LikerISCNPublishFailureError } from 'common/errors'
 import logger from 'common/logger'
 import {
   countWords,
@@ -24,7 +23,6 @@ import {
   fromGlobalId,
   stripPunctPrefixSuffix,
 } from 'common/utils'
-// import { UserOAuthLikeCoin } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -90,15 +88,6 @@ class PublicationQueue extends BaseQueue {
       } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
-      const author = await this.userService.baseFindById(draft.authorId)
-      const { userName, displayName } = author
-      const liker = (await this.userService.findLiker({
-        userId: author.id,
-      }))! // as NonNullable<UserOAuthLikeCoin>
-      const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
-        liker,
-      })
-
       // Step 3: create an article
       let article
       const articleData = {
@@ -121,11 +110,18 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
-      const tags = await this.handleTags({ draft, article })
-      // job.progress(50)
+      const author = await this.userService.baseFindById(draft.authorId)
+      const { userName, displayName } = author
 
       let iscnId
       if (draft.iscnPublish) {
+        const liker = (await this.userService.findLiker({
+          userId: author.id,
+        }))! // as NonNullable<UserOAuthLikeCoin>
+        const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+          liker,
+        })
+
         // const iscnId = await
         iscnId = await this.userService.likecoin.iscnPublish({
           mediaHash: `hash://sha256/${mediaHash}`,
@@ -136,7 +132,10 @@ class PublicationQueue extends BaseQueue {
           description: summary,
           datePublished: article.createdAt?.toISOString().substring(0, 10),
           url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-          tags, // after stripped, not raw draft.tags,
+          // tags, // after stripped, not raw draft.tags,
+          tags: Array.from(
+            new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+          ), // after stripped, not raw draft.tags,
 
           // for liker auth&headers info
           liker,
@@ -145,9 +144,7 @@ class PublicationQueue extends BaseQueue {
         })
         // console.log('got iscnId:', iscnId)
 
-        if (!iscnId) {
-          throw new LikerISCNPublishFailureError('iscn publishing failure')
-        }
+        // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
 
         // this.draftService.baseUpdate(draft.id, { iscnId }),
 
@@ -181,6 +178,9 @@ class PublicationQueue extends BaseQueue {
 
         await this.handleCircle({ draft, article, secret: key })
         job.progress(45)
+
+        const tags = await this.handleTags({ draft, article })
+        job.progress(50)
 
         await this.handleMentions({ draft, article })
         job.progress(60)
