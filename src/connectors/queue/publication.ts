@@ -113,7 +113,7 @@ class PublicationQueue extends BaseQueue {
       const author = await this.userService.baseFindById(draft.authorId)
       const { userName, displayName } = author
 
-      let iscnId
+      let iscnId = null
       if (draft.iscnPublish) {
         const liker = (await this.userService.findLiker({
           userId: author.id,
@@ -122,7 +122,6 @@ class PublicationQueue extends BaseQueue {
           liker,
         })
 
-        // const iscnId = await
         iscnId = await this.userService.likecoin.iscnPublish({
           mediaHash: `hash://sha256/${mediaHash}`,
           ipfsHash: `ipfs://${dataHash}`,
@@ -165,7 +164,7 @@ class PublicationQueue extends BaseQueue {
           pinState: PIN_STATE.pinned,
           updatedAt: this.knex.fn.now(), // new Date(),
         }),
-        this.articleService.baseUpdate(article.id, { iscnId }),
+        iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
       ])
 
       job.progress(30)

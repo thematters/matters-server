@@ -113,7 +113,7 @@ class RevisionQueue extends BaseQueue {
         const author = await this.userService.baseFindById(article.authorId)
         const { userName, displayName } = author
 
-        let iscnId
+        let iscnId = null
         if (draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
             userId: author.id,
@@ -158,7 +158,7 @@ class RevisionQueue extends BaseQueue {
             pinState: PIN_STATE.pinned,
             updatedAt: this.knex.fn.now(), // new Date(),
           }),
-          this.articleService.baseUpdate(article.id, { iscnId }),
+          iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
 
         job.progress(40)
