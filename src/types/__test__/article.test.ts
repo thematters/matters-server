@@ -192,6 +192,21 @@ describe('publish article', () => {
     const { publishState } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
   })
+
+  test('create a draft & publish with iscn', async () => {
+    jest.setTimeout(10000)
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+      iscnPublish: true,
+    }
+    const resDraft = await putDraft({ draft })
+    expect(_get(resDraft, 'id')).not.toBeNull()
+    expect(_get(resDraft, 'iscnPublish')).toBe(true)
+
+    const { publishState } = await publishArticle({ id: resDraft.id })
+    expect(publishState).toBe(PUBLISH_STATE.pending)
+  })
 })
 
 describe('toggle article state', () => {

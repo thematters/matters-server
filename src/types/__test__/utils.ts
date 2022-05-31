@@ -148,6 +148,8 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
         title
         content
         createdAt
+        iscnPublish
+        article { id iscnId }
       }
     }
   `
@@ -193,6 +195,7 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         content
         createdAt
         license
+        iscnPublish
       }
     }
   `
