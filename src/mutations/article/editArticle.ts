@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/matters-html-formatter'
-import { difference, flow, uniq } from 'lodash'
+import lodash, { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -440,6 +440,7 @@ const resolver: MutationToEditArticleResolver = async (
    * Revision Count
    */
   const isUpdatingContent = !!content
+  const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
@@ -495,24 +496,27 @@ const resolver: MutationToEditArticleResolver = async (
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
-    const data: Record<string, any> = {
-      uuid: v4(),
-      authorId: currDraft.authorId,
-      articleId: currArticle.id,
-      title: currDraft.title,
-      summary: currDraft.summary,
-      summaryCustomized: currDraft.summaryCustomized,
-      content: pipe(cleanedContent),
-      tags: currTagContents,
-      cover: currArticle.cover,
-      collection: currCollectionIds,
-      archived: false,
-      publishState: PUBLISH_STATE.pending,
-      circleId: currArticleCircle?.circleId,
-      access: currArticleCircle?.access,
-      license: currDraft?.license,
-      iscnPublish,
-    }
+    const data: Record<string, any> = lodash.omitBy(
+      {
+        uuid: v4(),
+        authorId: currDraft.authorId,
+        articleId: currArticle.id,
+        title: currDraft.title,
+        summary: currDraft.summary,
+        summaryCustomized: currDraft.summaryCustomized,
+        content: pipe(cleanedContent),
+        tags: currTagContents,
+        cover: currArticle.cover,
+        collection: currCollectionIds,
+        archived: false,
+        publishState: PUBLISH_STATE.pending,
+        circleId: currArticleCircle?.circleId,
+        access: currArticleCircle?.access,
+        license: currDraft?.license,
+        iscnPublish,
+      },
+      lodash.isUndefined // to drop only undefined // _.isNil
+    )
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
@@ -536,7 +540,7 @@ const resolver: MutationToEditArticleResolver = async (
       // only republish when have changes
       await republish(content)
     }
-  } else if (isUpdatingCircleOrAccess) {
+  } else if (isUpdatingCircleOrAccess || isUpdatingISCNPublish) {
     await republish()
   }
 
