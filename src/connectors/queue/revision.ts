@@ -156,6 +156,28 @@ class RevisionQueue extends BaseQueue {
           const author = await this.userService.baseFindById(article.authorId)
           const { userName, displayName } = author
 
+          // Step 6: copy previous draft asset maps for current draft
+          // Note: collection and tags are handled in edit resolver.
+          // @see src/mutations/article/editArticle.ts
+          const { id: entityTypeId } =
+            await this.systemService.baseFindEntityTypeId('draft')
+          await this.systemService.copyAssetMapEntities({
+            source: preDraft.id,
+            target: draft.id,
+            entityTypeId,
+          })
+          job.progress(60)
+
+          // Step 7: add to search
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          job.progress(70)
+
+          // Step: iscn publishing
           let iscnId = null
           if (draft.iscnPublish) {
             const liker = (await this.userService.findLiker({
@@ -184,39 +206,20 @@ class RevisionQueue extends BaseQueue {
               // likerIp,
               // userAgent,
             })
-            // console.log('got iscnId:', iscnId)
+
+            console.log('draft.iscnPublish:', { iscnId })
           }
 
           // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
+
           if (draft.iscnPublish != null) {
-            // either set to true or false, but not omit (undefined)
+            // handling both cases of set to true or false, but not omit (undefined)
             await Promise.all([
               this.draftService.baseUpdate(draft.id, { iscnId }),
               this.articleService.baseUpdate(article.id, { iscnId }),
             ])
           }
-          job.progress(55)
-
-          // Step 6: copy previous draft asset maps for current draft
-          // Note: collection and tags are handled in edit resolver.
-          // @see src/mutations/article/editArticle.ts
-          const { id: entityTypeId } =
-            await this.systemService.baseFindEntityTypeId('draft')
-          await this.systemService.copyAssetMapEntities({
-            source: preDraft.id,
-            target: draft.id,
-            entityTypeId,
-          })
-          job.progress(60)
-
-          // Step 7: add to search
-          await this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-          job.progress(70)
+          job.progress(85)
 
           // Step 8: handle newly added mentions
           await this.handleMentions({
