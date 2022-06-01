@@ -110,55 +110,18 @@ class RevisionQueue extends BaseQueue {
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
 
-        const author = await this.userService.baseFindById(article.authorId)
-        const { userName, displayName } = author
-
-        let iscnId = null
-        if (draft.iscnPublish) {
-          const liker = (await this.userService.findLiker({
-            userId: author.id,
-          }))!
-          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
-            liker,
-          })
-
-          iscnId = await this.userService.likecoin.iscnPublish({
-            mediaHash: `hash://sha256/${mediaHash}`,
-            ipfsHash: `ipfs://${dataHash}`,
-            cosmosWallet, // 'TBD',
-            userName: `${displayName} (@${userName})`,
-            title: draft.title,
-            description: summary,
-            datePublished: article.created_at?.toISOString().substring(0, 10),
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-            tags: Array.from(
-              new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
-            ), // after stripped, not raw draft.tags,
-
-            // for liker auth&headers info
-            liker,
-            // likerIp,
-            // userAgent,
-          })
-          // console.log('got iscnId:', iscnId)
-
-          // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
-
-          job.progress(35)
-        }
-
         // Step 3: update draft
         await Promise.all([
           this.draftService.baseUpdate(draft.id, {
             dataHash,
             mediaHash,
             archived: true,
-            iscnId,
+            // iscnId,
             publishState: PUBLISH_STATE.published,
             pinState: PIN_STATE.pinned,
             updatedAt: this.knex.fn.now(), // new Date(),
           }),
-          iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
+          // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
 
         job.progress(40)
@@ -190,6 +153,50 @@ class RevisionQueue extends BaseQueue {
 
         // Note: the following steps won't affect the publication.
         try {
+          const author = await this.userService.baseFindById(article.authorId)
+          const { userName, displayName } = author
+
+          let iscnId = null
+          if (draft.iscnPublish) {
+            const liker = (await this.userService.findLiker({
+              userId: author.id,
+            }))!
+            const cosmosWallet =
+              await this.userService.likecoin.getCosmosWallet({
+                liker,
+              })
+
+            iscnId = await this.userService.likecoin.iscnPublish({
+              mediaHash: `hash://sha256/${mediaHash}`,
+              ipfsHash: `ipfs://${dataHash}`,
+              cosmosWallet, // 'TBD',
+              userName: `${displayName} (@${userName})`,
+              title: draft.title,
+              description: summary,
+              datePublished: article.created_at?.toISOString().substring(0, 10),
+              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+              tags: Array.from(
+                new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+              ), // after stripped, not raw draft.tags,
+
+              // for liker auth&headers info
+              liker,
+              // likerIp,
+              // userAgent,
+            })
+            // console.log('got iscnId:', iscnId)
+          }
+
+          // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
+          if (draft.iscnPublish != null) {
+            // either set to true or false, but not omit (undefined)
+            await Promise.all([
+              this.draftService.baseUpdate(draft.id, { iscnId }),
+              this.articleService.baseUpdate(article.id, { iscnId }),
+            ])
+          }
+          job.progress(55)
+
           // Step 6: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
           // @see src/mutations/article/editArticle.ts

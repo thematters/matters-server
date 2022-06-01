@@ -110,46 +110,6 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
-      const author = await this.userService.baseFindById(draft.authorId)
-      const { userName, displayName } = author
-
-      let iscnId = null
-      if (draft.iscnPublish) {
-        const liker = (await this.userService.findLiker({
-          userId: author.id,
-        }))! // as NonNullable<UserOAuthLikeCoin>
-        const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
-          liker,
-        })
-
-        iscnId = await this.userService.likecoin.iscnPublish({
-          mediaHash: `hash://sha256/${mediaHash}`,
-          ipfsHash: `ipfs://${dataHash}`,
-          cosmosWallet, // 'TBD',
-          userName: `${displayName} (@${userName})`,
-          title: draft.title,
-          description: summary,
-          datePublished: article.createdAt?.toISOString().substring(0, 10),
-          url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-          // tags, // after stripped, not raw draft.tags,
-          tags: Array.from(
-            new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
-          ), // after stripped, not raw draft.tags,
-
-          // for liker auth&headers info
-          liker,
-          // likerIp,
-          // userAgent,
-        })
-        // console.log('got iscnId:', iscnId)
-
-        // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
-
-        // this.draftService.baseUpdate(draft.id, { iscnId }),
-
-        job.progress(25)
-      }
-
       // Step 4: update draft
       const [publishedDraft] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -159,18 +119,63 @@ class PublicationQueue extends BaseQueue {
           dataHash,
           mediaHash,
           archived: true,
-          iscnId,
+          // iscnId,
           publishState: PUBLISH_STATE.published,
           pinState: PIN_STATE.pinned,
           updatedAt: this.knex.fn.now(), // new Date(),
         }),
-        iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
+        // this.articleService.baseUpdate(article.id, { iscnId }),
       ])
 
       job.progress(30)
 
       // Note: the following steps won't affect the publication.
       try {
+        const author = await this.userService.baseFindById(draft.authorId)
+        const { userName, displayName } = author
+
+        let iscnId = null
+        if (draft.iscnPublish) {
+          const liker = (await this.userService.findLiker({
+            userId: author.id,
+          }))! // as NonNullable<UserOAuthLikeCoin>
+          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+            liker,
+          })
+
+          iscnId = await this.userService.likecoin.iscnPublish({
+            mediaHash: `hash://sha256/${mediaHash}`,
+            ipfsHash: `ipfs://${dataHash}`,
+            cosmosWallet, // 'TBD',
+            userName: `${displayName} (@${userName})`,
+            title: draft.title,
+            description: summary,
+            datePublished: article.createdAt?.toISOString().substring(0, 10),
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+            // tags, // after stripped, not raw draft.tags,
+            tags: Array.from(
+              new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+            ), // after stripped, not raw draft.tags,
+
+            // for liker auth&headers info
+            liker,
+            // likerIp,
+            // userAgent,
+          })
+          // console.log('got iscnId:', iscnId)
+        }
+
+        // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
+
+        if (draft.iscnPublish != null) {
+          // either set to true or false, but not omit (undefined)
+          await Promise.all([
+            this.draftService.baseUpdate(draft.id, { iscnId }),
+            this.articleService.baseUpdate(article.id, { iscnId }),
+          ])
+        }
+        job.progress(35)
+
         // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
         job.progress(40)
