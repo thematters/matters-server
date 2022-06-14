@@ -115,6 +115,7 @@ class RevisionQueue extends BaseQueue {
           this.draftService.baseUpdate(draft.id, {
             dataHash,
             mediaHash,
+            wordCount,
             archived: true,
             // iscnId,
             publishState: PUBLISH_STATE.published,
