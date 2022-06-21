@@ -593,10 +593,19 @@ export class LikeCoin {
     const data = _.get(res, 'data')
 
     if (!data) {
+      console.error('iscnPublish with no data:', res)
       throw res
     }
 
-    console.log('iscnPublish posted results:', res)
+    if (!data.iscnId) {
+      console.error(
+        'iscnPublish failed posted results:',
+        res,
+        'with:',
+        postData
+      )
+    }
+
     return data.iscnId
   }
 

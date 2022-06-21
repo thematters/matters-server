@@ -33,6 +33,7 @@ export const newest: RecommendationToNewestResolver = async (
       knex
         // .select('article.id', 'article.draft_id')
         .select('draft.*')
+        .distinctOn('article.id')
         .from('article')
         .join('draft', 'draft.article_id', 'article.id')
         .where({
@@ -40,7 +41,10 @@ export const newest: RecommendationToNewestResolver = async (
           'draft.publish_state': PUBLISH_STATE.published,
         })
         // .whereIn('draft.publish_state', [PUBLISH_STATE.published])
-        .orderBy('article.id', 'desc')
+        .orderBy([
+          { column: 'article.id', order: 'desc' },
+          { column: 'draft.id', order: 'desc' },
+        ])
         .limit(MAX_ITEM_COUNT * 2)
         .as('draft')
     )
