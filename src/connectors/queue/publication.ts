@@ -73,7 +73,7 @@ class PublicationQueue extends BaseQueue {
   ) => {
     const { draftId, iscnPublish } = job.data as {
       draftId: string
-      iscnPublish: boolean
+      iscnPublish?: boolean
     }
     const draft = await this.draftService.baseFindById(draftId)
 

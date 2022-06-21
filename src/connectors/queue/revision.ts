@@ -27,6 +27,7 @@ import { BaseQueue } from './baseQueue'
 
 interface RevisedArticleData {
   draftId: string
+  iscnPublish?: boolean
 }
 
 class RevisionQueue extends BaseQueue {
@@ -67,7 +68,7 @@ class RevisionQueue extends BaseQueue {
    */
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
     async (job, done) => {
-      const { draftId } = job.data as RevisedArticleData
+      const { draftId, iscnPublish } = job.data as RevisedArticleData
 
       const draft = await this.draftService.baseFindById(draftId)
 
@@ -136,7 +137,8 @@ class RevisionQueue extends BaseQueue {
         job.progress(45)
 
         // Step 5: update back to article
-        const revisionCount = (article.revisionCount || 0) + 1
+        const revisionCount =
+          (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
           article.id,
           {
@@ -185,7 +187,7 @@ class RevisionQueue extends BaseQueue {
 
           // Step: iscn publishing
           let iscnId = null
-          if (draft.iscnPublish) {
+          if (iscnPublish || draft.iscnPublish != null) {
             const liker = (await this.userService.findLiker({
               userId: author.id,
             }))!

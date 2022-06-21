@@ -596,6 +596,7 @@ export class LikeCoin {
       throw res
     }
 
+    console.log('iscnPublish posted results:', res)
     return data.iscnId
   }
 
