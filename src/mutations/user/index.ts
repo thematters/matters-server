@@ -12,6 +12,7 @@ import payout from './payout'
 import payTo from './payTo'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
+import resetWallet from './resetWallet'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
@@ -37,6 +38,7 @@ export default {
     userLogin,
     userLogout,
     walletLogin,
+    resetWallet,
     generateLikerId,
     generateSigningMessage,
     resetLikerId,

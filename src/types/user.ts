@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Login/Signup via a wallet."
     walletLogin(input: WalletLoginInput!): AuthResult!
 
+    "Reset crypto wallet."
+    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Logout user."
     userLogout: Boolean!
 
@@ -640,6 +643,10 @@ export default /* GraphQL */ `
   }
 
   input ResetLikerIdInput {
+    id: ID!
+  }
+
+  input ResetWalletInput {
     id: ID!
   }
 

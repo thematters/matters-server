@@ -265,6 +265,11 @@ export interface GQLMutation {
   walletLogin: GQLAuthResult
 
   /**
+   * Reset crypto wallet.
+   */
+  resetWallet: GQLUser
+
+  /**
    * Logout user.
    */
   userLogout: boolean
@@ -3700,6 +3705,10 @@ export interface GQLResetLikerIdInput {
   id: string
 }
 
+export interface GQLResetWalletInput {
+  id: string
+}
+
 export interface GQLUpdateNotificationSettingInput {
   type: GQLNotificationSettingType
   enabled: boolean
@@ -4563,6 +4572,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userLogin?: MutationToUserLoginResolver<TParent>
   generateSigningMessage?: MutationToGenerateSigningMessageResolver<TParent>
   walletLogin?: MutationToWalletLoginResolver<TParent>
+  resetWallet?: MutationToResetWalletResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   resetLikerId?: MutationToResetLikerIdResolver<TParent>
@@ -5315,6 +5325,18 @@ export interface MutationToWalletLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToWalletLoginArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToResetWalletArgs {
+  input: GQLResetWalletInput
+}
+export interface MutationToResetWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToResetWalletArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

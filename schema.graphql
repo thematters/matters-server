@@ -205,6 +205,9 @@ type Mutation {
   """Login/Signup via a wallet."""
   walletLogin(input: WalletLoginInput!): AuthResult!
 
+  """Reset crypto wallet."""
+  resetWallet(input: ResetWalletInput!): User!
+
   """Logout user."""
   userLogout: Boolean!
 
@@ -2692,6 +2695,10 @@ input WalletLoginInput {
 }
 
 input ResetLikerIdInput {
+  id: ID!
+}
+
+input ResetWalletInput {
   id: ID!
 }
 
