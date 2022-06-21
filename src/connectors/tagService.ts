@@ -405,7 +405,7 @@ export class TagService extends BaseService {
       )
 
     // console.log(new Date(), `selected: ${tags.length} tags:`, tags.slice(0, 5))
-    logger.info(`selected: ${tags.length} tags:`)
+    // logger.info(`selected: ${tags.length} tags:`)
 
     return this.es.indexManyItems({
       index: this.table,
@@ -819,7 +819,7 @@ export class TagService extends BaseService {
       ...(selected === true ? { selected } : {}),
     })
 
-    console.log('countArticles:', { sql: query.toString(), tagId })
+    // console.log('countArticles:', { sql: query.toString(), tagId })
 
     const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -883,7 +883,7 @@ export class TagService extends BaseService {
       query.limit(take)
     }
 
-    console.log('findArticleIds:', { sql: query.toString(), tagId })
+    // console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 
@@ -1051,7 +1051,7 @@ export class TagService extends BaseService {
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    console.log('findRelatedTags:: countRels:', { countRels })
+    // console.log('findRelatedTags:: countRels:', { countRels })
 
     const ids = new Set<string>()
 
@@ -1101,10 +1101,7 @@ export class TagService extends BaseService {
       )
     }
 
-    console.log('findRelatedTags:: countRels:', {
-      countRels,
-      subquery: subquery.toString(),
-    })
+    // console.log('findRelatedTags:: countRels:', { countRels, subquery: subquery.toString(), })
 
     const query = this.knex
       .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))

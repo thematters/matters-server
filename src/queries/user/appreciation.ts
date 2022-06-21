@@ -66,7 +66,10 @@ export const Appreciation: GQLAppreciationTypeResolver = {
       case APPRECIATION_PURPOSE.firstPost:
         return trans.firstPost(viewer.language, {})
       default:
-        logger.error(`appreciation purpose ${trx.purpose} no match`)
+        if (trx.purpose != null) {
+          // skip logging for null or undefined
+          logger.error(`appreciation purpose ${trx.purpose} no match`)
+        }
         return ''
     }
   },

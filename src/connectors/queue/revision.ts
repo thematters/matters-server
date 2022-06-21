@@ -178,6 +178,11 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(70)
 
+          logger.info(
+            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish}:`
+          )
+          console.log(`iscnPublish:`, job.data, draft)
+
           // Step: iscn publishing
           let iscnId = null
           if (draft.iscnPublish) {
@@ -210,6 +215,10 @@ class RevisionQueue extends BaseQueue {
 
             console.log('draft.iscnPublish:', { iscnId })
           }
+
+          logger.info(
+            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
+          )
 
           // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
 
@@ -259,6 +268,8 @@ class RevisionQueue extends BaseQueue {
         } catch (e) {
           // ignore errors caused by these steps
           logger.error(e)
+
+          console.error(new Date(), 'job failed at optional step:', job)
         }
 
         done(null, {

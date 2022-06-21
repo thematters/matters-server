@@ -32,10 +32,16 @@ class PublicationQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishArticle = ({ draftId }: { draftId: string }) => {
+  publishArticle = ({
+    draftId,
+    iscnPublish,
+  }: {
+    draftId: string
+    iscnPublish?: boolean
+  }) => {
     return this.q.add(
       QUEUE_JOB.publishArticle,
-      { draftId },
+      { draftId, iscnPublish },
       {
         priority: QUEUE_PRIORITY.CRITICAL,
       }
@@ -65,7 +71,10 @@ class PublicationQueue extends BaseQueue {
     job,
     done
   ) => {
-    const { draftId } = job.data as { draftId: string }
+    const { draftId, iscnPublish } = job.data as {
+      draftId: string
+      iscnPublish: boolean
+    }
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
@@ -192,11 +201,14 @@ class PublicationQueue extends BaseQueue {
         })
         job.progress(80)
 
-        logger.info(`iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish}:`)
+        logger.info(
+          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish}: ${iscnPublish}`
+        )
+        console.log(`iscnPublish:`, job.data, draft)
 
         // Step: iscn publishing
         let iscnId = null
-        if (draft.iscnPublish) {
+        if (iscnPublish || draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
             userId: author.id,
           }))! // as NonNullable<UserOAuthLikeCoin>
@@ -227,7 +239,9 @@ class PublicationQueue extends BaseQueue {
           console.log('draft.iscnPublish:', { iscnId })
         }
 
-        logger.info(`iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`)
+        logger.info(
+          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
+        )
 
         // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
 
@@ -270,7 +284,7 @@ class PublicationQueue extends BaseQueue {
         // ignore errors caused by these steps
         logger.error(e)
 
-        console.error(new Date, 'job failed at optional step:', job)
+        console.error(new Date(), 'job failed at optional step:', job)
       }
 
       done(null, {
