@@ -226,9 +226,7 @@ class PublicationQueue extends BaseQueue {
             datePublished: article.createdAt?.toISOString().substring(0, 10),
             url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
             // tags, // after stripped, not raw draft.tags,
-            tags: Array.from(
-              new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
-            ), // after stripped, not raw draft.tags,
+            tags,
 
             // for liker auth&headers info
             liker,

@@ -203,9 +203,13 @@ class RevisionQueue extends BaseQueue {
               description: summary,
               datePublished: article.created_at?.toISOString().substring(0, 10),
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-              tags: Array.from(
-                new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
-              ), // after stripped, not raw draft.tags,
+              tags:
+                draft.tags &&
+                Array.from(
+                  new Set(
+                    draft.tags.map(stripPunctPrefixSuffix).filter(Boolean)
+                  )
+                ), // after stripped, not raw draft.tags,
 
               // for liker auth&headers info
               liker,

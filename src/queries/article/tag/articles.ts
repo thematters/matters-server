@@ -20,10 +20,7 @@ const resolver: TagToArticlesResolver = async (
     }),
   ])
 
-  console.log('tagArticlesResolver:', {
-    selected,
-    sortBy,
-  })
+  // console.log('tagArticlesResolver:', { selected, sortBy, })
 
   return connectionFromPromisedArray(
     articleService.draftLoader.loadMany(articleIds),
