@@ -225,8 +225,7 @@ class PublicationQueue extends BaseQueue {
             description: summary,
             datePublished: article.createdAt?.toISOString().substring(0, 10),
             url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-            // tags, // after stripped, not raw draft.tags,
-            tags,
+            tags, // after stripped, not raw draft.tags,
 
             // for liker auth&headers info
             liker,
@@ -241,9 +240,7 @@ class PublicationQueue extends BaseQueue {
           `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
         )
 
-        // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
-
-        if (draft.iscnPublish != null) {
+        if (iscnPublish || draft.iscnPublish != null) {
           // handling both cases of set to true or false, but not omit (undefined)
           await Promise.all([
             this.draftService.baseUpdate(draft.id, { iscnId }),

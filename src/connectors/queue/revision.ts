@@ -138,7 +138,8 @@ class RevisionQueue extends BaseQueue {
 
         // Step 5: update back to article
         const revisionCount =
-          (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
+          (article.revisionCount || 0) +
+          (iscnPublish || draft.iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
           article.id,
           {
@@ -205,13 +206,9 @@ class RevisionQueue extends BaseQueue {
               description: summary,
               datePublished: article.created_at?.toISOString().substring(0, 10),
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-              tags:
-                draft.tags &&
-                Array.from(
-                  new Set(
-                    draft.tags.map(stripPunctPrefixSuffix).filter(Boolean)
-                  )
-                ), // after stripped, not raw draft.tags,
+              tags: Array.from(
+                new Set(draft.tags?.map(stripPunctPrefixSuffix).filter(Boolean))
+              ), // after stripped, not raw draft.tags,
 
               // for liker auth&headers info
               liker,
@@ -228,7 +225,7 @@ class RevisionQueue extends BaseQueue {
 
           // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
 
-          if (draft.iscnPublish != null) {
+          if (iscnPublish || draft.iscnPublish != null) {
             // handling both cases of set to true or false, but not omit (undefined)
             await Promise.all([
               this.draftService.baseUpdate(draft.id, { iscnId }),
