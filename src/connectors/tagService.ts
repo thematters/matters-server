@@ -1042,11 +1042,13 @@ export class TagService extends BaseService {
    */
   findRelatedTags = async ({
     id,
+    content: tagContent,
     skip,
     take,
     exclude,
   }: {
     id: string
+    content?: string
     skip?: number
     take?: number
     exclude?: string[]
@@ -1056,18 +1058,16 @@ export class TagService extends BaseService {
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    console.log('findRelatedTags:: countRels:', { countRels })
+    console.log('findRelatedTags:: countRels:', { countRels, tagContent })
 
-    if (!countRels?.count) {
-      return []
-    }
+    const countRelsCount = countRels?.count || 0
 
     const ids = new Set<string>()
 
     // append some results from elasticsearch
-    if (countRels?.count < TAGS_RECOMMENDED_LIMIT) {
+    if (countRelsCount < TAGS_RECOMMENDED_LIMIT && tagContent) {
       const body = bodybuilder()
-        .query('match', 'content', countRels.content)
+        .query('match', 'content', tagContent)
         .size(TAGS_RECOMMENDED_LIMIT)
         .build()
 
@@ -1092,7 +1092,7 @@ export class TagService extends BaseService {
       .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
 
-    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+    if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
       subquery.unionAll(
         this.knex
           .from(TAGS_VIEW)
@@ -1105,8 +1105,6 @@ export class TagService extends BaseService {
           .whereIn('id', Array.from(ids))
       )
     }
-
-    // console.log('findRelatedTags:: countRels:', { countRels, subquery: subquery.toString(), })
 
     const query = this.knex
       .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))

@@ -6,7 +6,7 @@ import {
 import { TagToRecommendedResolver } from 'definitions'
 
 const resolver: TagToRecommendedResolver = async (
-  { id, owner },
+  { id, content, owner },
   { input },
   { dataSources: { tagService, userService } }
 ) => {
@@ -16,7 +16,7 @@ const resolver: TagToRecommendedResolver = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const related = tagService.findRelatedTags({ id, take, skip })
+  const related = tagService.findRelatedTags({ id, content, take, skip })
 
   return connectionFromPromisedArray(related, input)
 }

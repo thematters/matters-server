@@ -140,6 +140,12 @@ class PublicationQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
+        console.info(
+          `start optional steps of publishing for draft id: ${draft.id}:`,
+          draft,
+          job
+        )
+
         const author = await this.userService.baseFindById(draft.authorId)
         const { userName, displayName } = author
 
@@ -233,7 +239,11 @@ class PublicationQueue extends BaseQueue {
             // userAgent,
           })
 
-          console.log('draft.iscnPublish:', { iscnId })
+          console.log('draft.iscnPublish result:', {
+            iscnId,
+            articleId: article.id,
+            title: article.title,
+          })
         }
 
         logger.info(
