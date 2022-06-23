@@ -602,7 +602,7 @@ export class LikeCoin {
         type: 'iscnPublish',
         id: userName,
         field: 'likerId',
-        args: { likerId: liker.likerId },
+        args: { likerId: liker.likerId, mediaHash },
       },
       data: {
         postData,
