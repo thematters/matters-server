@@ -1051,12 +1051,16 @@ export class TagService extends BaseService {
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    // console.log('findRelatedTags:: countRels:', { countRels })
+    console.log('findRelatedTags:: countRels:', { countRels })
+
+    if (!countRels?.count) {
+      return []
+    }
 
     const ids = new Set<string>()
 
     // append some results from elasticsearch
-    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+    if (countRels?.count < TAGS_RECOMMENDED_LIMIT) {
       const body = bodybuilder()
         .query('match', 'content', countRels.content)
         .size(TAGS_RECOMMENDED_LIMIT)
@@ -1069,14 +1073,10 @@ export class TagService extends BaseService {
 
       const { hits } = result.body
 
-      hits.hits
-        // ?.slice(0, TAGS_RECOMMENDED_LIMIT)
-        .forEach(
-          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-            ids.add(_source?.id)
-        )
-
-      // totalCount = hits.total.value
+      hits.hits.forEach(
+        ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
+          ids.add(_source?.id)
+      )
     }
 
     const subquery = this.knex
