@@ -78,6 +78,12 @@ class PublicationQueue extends BaseQueue {
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
+    console.log(
+      `handlePublishArticle: progress 0 of initial publishing for draftId: ${draft?.id}:`,
+      // job,
+      draft
+    )
+
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       job.progress(100)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
@@ -119,6 +125,12 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
+      console.log(
+        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
+        // job,
+        article
+      )
+
       // Step 4: update draft
       const [publishedDraft] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -144,9 +156,9 @@ class PublicationQueue extends BaseQueue {
         const { userName, displayName } = author
 
         console.log(
-          `handlePublishArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
           job,
-          draft
+          publishedDraft // draft
         )
 
         // Step 5: handle collection, circles, tags & mentions
@@ -194,18 +206,6 @@ class PublicationQueue extends BaseQueue {
           article.id
         )
         job.progress(75)
-
-        // Step 7: add to search
-        await this.articleService.addToSearch({
-          id: article.id,
-          title: draft.title,
-          content: draft.content,
-          authorId: article.authorId,
-          userName,
-          displayName,
-          tags,
-        })
-        job.progress(80)
 
         console.log(`before iscnPublish:`, job.data, draft)
 
@@ -260,6 +260,18 @@ class PublicationQueue extends BaseQueue {
             }),
           ])
         }
+        job.progress(80)
+
+        // Step 7: add to search
+        await this.articleService.addToSearch({
+          id: article.id,
+          title: draft.title,
+          content: draft.content,
+          authorId: article.authorId,
+          userName,
+          displayName,
+          tags,
+        })
         job.progress(85)
 
         // Step 8: trigger notifications

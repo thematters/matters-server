@@ -56,7 +56,7 @@ export const createQueue = (
 
   queue.on('progress', (job, progress) => {
     // A job's progress was updated!
-    // logger.info(`Job#${job.id} progress was updated: ${progress}.`)
+    logger.info(`Job#${job.id}/${job.name} progress was updated: ${progress}.`)
   })
 
   queue.on('completed', (job, result) => {

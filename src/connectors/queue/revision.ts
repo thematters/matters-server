@@ -73,6 +73,12 @@ class RevisionQueue extends BaseQueue {
       const draft = await this.draftService.baseFindById(draftId)
 
       // Step 1: checks
+      console.log(
+        `handlePublishRevisedArticle: progress 0 of revise publishing for draftId: ${draft?.id}:`,
+        // job,
+        draft
+      )
+
       if (!draft) {
         job.progress(100)
         done(null, `Revision draft ${draftId} not found`)
@@ -110,6 +116,12 @@ class RevisionQueue extends BaseQueue {
           key,
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
+
+        console.log(
+          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}: articleId: ${article.id}:`,
+          // job,
+          article
+        )
 
         // Step 3: update draft
         await Promise.all([
@@ -161,7 +173,7 @@ class RevisionQueue extends BaseQueue {
           const { userName, displayName } = author
 
           console.log(
-            `handlePublishRevisedArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+            `handlePublishRevisedArticle: start optional steps of publishing for draft id: ${draft.id}:`,
             job,
             draft
           )
