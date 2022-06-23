@@ -36,7 +36,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install Dependencies
-        run: npm ci && npm i @apollo/rover
+        run: npm ci --force && npm i @apollo/rover
 
       - name: Push Schema (develop)
         if: github.base_ref == 'develop'
