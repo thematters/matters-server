@@ -140,14 +140,14 @@ class PublicationQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
-        console.info(
-          `start optional steps of publishing for draft id: ${draft.id}:`,
-          draft,
-          job
-        )
-
         const author = await this.userService.baseFindById(draft.authorId)
         const { userName, displayName } = author
+
+        console.log(
+          `handlePublishArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+          job,
+          draft
+        )
 
         // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
@@ -207,10 +207,7 @@ class PublicationQueue extends BaseQueue {
         })
         job.progress(80)
 
-        logger.info(
-          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish}: ${iscnPublish}`
-        )
-        console.log(`iscnPublish:`, job.data, draft)
+        console.log(`before iscnPublish:`, job.data, draft)
 
         // Step: iscn publishing
         let iscnId = null
@@ -253,8 +250,14 @@ class PublicationQueue extends BaseQueue {
         if (iscnPublish || draft.iscnPublish != null) {
           // handling both cases of set to true or false, but not omit (undefined)
           await Promise.all([
-            this.draftService.baseUpdate(draft.id, { iscnId }),
-            this.articleService.baseUpdate(article.id, { iscnId }),
+            this.draftService.baseUpdate(draft.id, {
+              iscnId,
+              updatedAt: this.knex.fn.now(),
+            }),
+            this.articleService.baseUpdate(article.id, {
+              iscnId,
+              updatedAt: this.knex.fn.now(),
+            }),
           ])
         }
         job.progress(85)
@@ -289,7 +292,7 @@ class PublicationQueue extends BaseQueue {
         // ignore errors caused by these steps
         logger.error(e)
 
-        console.error(new Date(), 'job failed at optional step:', job)
+        console.error(new Date(), 'job failed at optional step:', job, draft)
       }
 
       done(null, {

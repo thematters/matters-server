@@ -149,7 +149,8 @@ export class BaseService extends DataSource {
         query.modify(modifier)
       }
       const [result] = await query
-      logger.info(`Inserted id ${result.id} to ${table || this.table}`)
+      // logger.info(`Inserted id ${result.id} to ${table || this.table}`)
+
       return result
     } catch (err) {
       logger.error(err)
@@ -194,7 +195,8 @@ export class BaseService extends DataSource {
       .where(where)
       .update(data)
       .returning('*')
-    logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+    // logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+
     return updatedItem
   }
 

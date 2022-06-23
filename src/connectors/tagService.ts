@@ -1058,7 +1058,7 @@ export class TagService extends BaseService {
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    console.log('findRelatedTags:: countRels:', { countRels, tagContent })
+    // console.log('findRelatedTags: countRels:', { countRels, tagContent })
 
     const countRelsCount = countRels?.count || 0
 

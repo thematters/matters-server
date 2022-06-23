@@ -47,14 +47,12 @@ export class OpenSeaService extends RESTDataSource {
         }
       )
 
-      logger.info(
-        `fetched ${data.assets?.length} assets for owner: "${owner}".`
-      )
+      // logger.info(`fetched ${data.assets?.length} assets for owner: "${owner}".`)
 
       return data.assets
     } catch (err) {
       logger.error(err)
-      console.error(new Date(), 'ERROR:', err)
+      // console.error(new Date(), 'ERROR:', err)
 
       return []
     }

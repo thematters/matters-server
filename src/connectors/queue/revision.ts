@@ -121,7 +121,7 @@ class RevisionQueue extends BaseQueue {
             // iscnId,
             publishState: PUBLISH_STATE.published,
             pinState: PIN_STATE.pinned,
-            updatedAt: this.knex.fn.now(), // new Date(),
+            updatedAt: this.knex.fn.now(),
           }),
           // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
@@ -150,7 +150,7 @@ class RevisionQueue extends BaseQueue {
             wordCount,
             revisionCount,
             slug: slugify(draft.title),
-            updatedAt: this.knex.fn.now(), // new Date(),
+            updatedAt: this.knex.fn.now(),
           }
         )
         job.progress(50)
@@ -159,6 +159,12 @@ class RevisionQueue extends BaseQueue {
         try {
           const author = await this.userService.baseFindById(article.authorId)
           const { userName, displayName } = author
+
+          console.log(
+            `handlePublishRevisedArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+            job,
+            draft
+          )
 
           // Step 6: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
@@ -181,10 +187,7 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(70)
 
-          logger.info(
-            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish}:`
-          )
-          console.log(`iscnPublish:`, job.data, draft)
+          console.log(`before iscnPublish:`, job.data, draft)
 
           // Step: iscn publishing
           let iscnId = null
@@ -216,20 +219,28 @@ class RevisionQueue extends BaseQueue {
               // userAgent,
             })
 
-            console.log('draft.iscnPublish:', { iscnId })
+            console.log('draft.iscnPublish result:', {
+              iscnId,
+              articleId: article.id,
+              title: article.title,
+            })
           }
 
           logger.info(
             `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
           )
 
-          // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
-
           if (iscnPublish || draft.iscnPublish != null) {
             // handling both cases of set to true or false, but not omit (undefined)
             await Promise.all([
-              this.draftService.baseUpdate(draft.id, { iscnId }),
-              this.articleService.baseUpdate(article.id, { iscnId }),
+              this.draftService.baseUpdate(draft.id, {
+                iscnId,
+                updatedAt: this.knex.fn.now(),
+              }),
+              this.articleService.baseUpdate(article.id, {
+                iscnId,
+                updatedAt: this.knex.fn.now(),
+              }),
             ])
           }
           job.progress(85)
@@ -272,7 +283,7 @@ class RevisionQueue extends BaseQueue {
           // ignore errors caused by these steps
           logger.error(e)
 
-          console.error(new Date(), 'job failed at optional step:', job)
+          console.error(new Date(), 'job failed at optional step:', job, draft)
         }
 
         done(null, {
