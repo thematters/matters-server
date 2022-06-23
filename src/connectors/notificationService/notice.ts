@@ -548,10 +548,23 @@ class Notice extends BaseService {
       payment_received_donation: true,
       payment_payout: true,
 
-      // circle
-      circle_new_subscriber: true,
-      circle_new_unsubscriber: true,
+      // circle owners
+      circle_new_subscriber: setting.circleNewSubscriber,
+      circle_new_unsubscriber: setting.circleNewUnsubscriber,
       circle_invitation: true,
+      circle_new_follower: setting.circleNewFollower,
+      circle_new_discussion: setting.circleNewDiscussion,
+      circle_member_boradcast: setting.circleMemberBoradcast,
+      circle_member_new_discussion: setting.circleMemberNewDiscussion,
+      circle_member_new_discussion_reply:
+        setting.circleMemberNewDiscussionReply,
+
+      // in circle
+      in_circle_new_article: setting.inCircleNewArticle,
+      in_circle_new_boradcast: setting.inCircleNewBoradcast,
+      in_circle_new_boradcast_reply: setting.inCircleNewBoradcastReply,
+      in_circle_new_discussion: setting.inCircleNewDiscussion,
+      in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 
       // crypto
       crypto_wallet_airdrop: true,

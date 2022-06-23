@@ -32,7 +32,6 @@ export enum DB_NOTICE_TYPE {
   circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
   article_new_comment = 'article_new_comment',
   subscribed_article_new_comment = 'subscribed_article_new_comment',
-  circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment
   comment_new_reply = 'comment_new_reply',
@@ -43,10 +42,23 @@ export enum DB_NOTICE_TYPE {
   payment_received_donation = 'payment_received_donation',
   payment_payout = 'payment_payout',
 
-  // circle
+  // circle owners
   circle_new_subscriber = 'circle_new_subscriber',
+  circle_new_follower = 'circle_new_follower',
+  circle_new_broadcast = 'circle_new_broadcast',
+  circle_new_discussion = 'circle_new_discussion',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
   circle_invitation = 'circle_invitation',
+  circle_member_boradcast = 'circle_member_boradcast',
+  circle_member_new_discussion = 'circle_member_new_discussion',
+  circle_member_new_discussion_reply = 'circle_member_new_discussion_reply',
+
+  // members in circle
+  in_circle_new_article = 'in_circle_new_article',
+  in_circle_new_boradcast = 'in_circle_new_boradcast',
+  in_circle_new_boradcast_reply = 'in_circle_new_boradcast_reply',
+  in_circle_new_discussion = 'in_circle_new_discussion',
+  in_circle_new_discussion_reply = 'in_circle_new_discussion_reply',
 
   // crypto
   crypto_wallet_airdrop = 'crypto_wallet_airdrop',

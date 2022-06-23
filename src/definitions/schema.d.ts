@@ -2195,6 +2195,7 @@ export const enum GQLCommentNoticeType {
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
   CircleNewBroadcast = 'CircleNewBroadcast',
+  CircleNewDiscussion = 'CircleNewDiscussion',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -3356,8 +3357,26 @@ export interface GQLNotificationSetting {
   articleNewSubscription: boolean
   articleSubscribedNewComment: boolean
   articleCommentPinned: boolean
+
+  /**
+   * for circle owners
+   */
+  circleNewSubscriber: boolean
   circleNewFollower: boolean
+  circleNewUnsubscriber: boolean
   circleNewDiscussion: boolean
+  circleMemberBoradcast: boolean
+  circleMemberNewDiscussion: boolean
+  circleMemberNewDiscussionReply: boolean
+
+  /**
+   * for circle members
+   */
+  inCircleNewArticle: boolean
+  inCircleNewBoradcast: boolean
+  inCircleNewBoradcastReply: boolean
+  inCircleNewDiscussion: boolean
+  inCircleNewDiscussionReply: boolean
 }
 
 export interface GQLReadHistory {
@@ -3828,8 +3847,26 @@ export const enum GQLNotificationSettingType {
   articleNewSubscription = 'articleNewSubscription',
   articleSubscribedNewComment = 'articleSubscribedNewComment',
   articleCommentPinned = 'articleCommentPinned',
+
+  /**
+   * for circle owners
+   */
+  circleNewSubscriber = 'circleNewSubscriber',
   circleNewFollower = 'circleNewFollower',
+  circleNewUnsubscriber = 'circleNewUnsubscriber',
   circleNewDiscussion = 'circleNewDiscussion',
+  circleMemberBoradcast = 'circleMemberBoradcast',
+  circleMemberNewDiscussion = 'circleMemberNewDiscussion',
+  circleMemberNewDiscussionReply = 'circleMemberNewDiscussionReply',
+
+  /**
+   * for circle members
+   */
+  inCircleNewArticle = 'inCircleNewArticle',
+  inCircleNewBoradcast = 'inCircleNewBoradcast',
+  inCircleNewBoradcastReply = 'inCircleNewBoradcastReply',
+  inCircleNewDiscussion = 'inCircleNewDiscussion',
+  inCircleNewDiscussionReply = 'inCircleNewDiscussionReply',
 }
 
 export const enum GQLUserState {
@@ -11146,8 +11183,18 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   articleNewSubscription?: NotificationSettingToArticleNewSubscriptionResolver<TParent>
   articleSubscribedNewComment?: NotificationSettingToArticleSubscribedNewCommentResolver<TParent>
   articleCommentPinned?: NotificationSettingToArticleCommentPinnedResolver<TParent>
+  circleNewSubscriber?: NotificationSettingToCircleNewSubscriberResolver<TParent>
   circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
+  circleNewUnsubscriber?: NotificationSettingToCircleNewUnsubscriberResolver<TParent>
   circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<TParent>
+  circleMemberBoradcast?: NotificationSettingToCircleMemberBoradcastResolver<TParent>
+  circleMemberNewDiscussion?: NotificationSettingToCircleMemberNewDiscussionResolver<TParent>
+  circleMemberNewDiscussionReply?: NotificationSettingToCircleMemberNewDiscussionReplyResolver<TParent>
+  inCircleNewArticle?: NotificationSettingToInCircleNewArticleResolver<TParent>
+  inCircleNewBoradcast?: NotificationSettingToInCircleNewBoradcastResolver<TParent>
+  inCircleNewBoradcastReply?: NotificationSettingToInCircleNewBoradcastReplyResolver<TParent>
+  inCircleNewDiscussion?: NotificationSettingToInCircleNewDiscussionResolver<TParent>
+  inCircleNewDiscussionReply?: NotificationSettingToInCircleNewDiscussionReplyResolver<TParent>
 }
 
 export interface NotificationSettingToEnableResolver<
@@ -11258,6 +11305,18 @@ export interface NotificationSettingToArticleCommentPinnedResolver<
   ): TResult
 }
 
+export interface NotificationSettingToCircleNewSubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface NotificationSettingToCircleNewFollowerResolver<
   TParent = any,
   TResult = any
@@ -11270,7 +11329,115 @@ export interface NotificationSettingToCircleNewFollowerResolver<
   ): TResult
 }
 
+export interface NotificationSettingToCircleNewUnsubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface NotificationSettingToCircleNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberBoradcastResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberNewDiscussionReplyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewBoradcastResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewBoradcastReplyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewDiscussionReplyResolver<
   TParent = any,
   TResult = any
 > {

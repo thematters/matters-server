@@ -63,10 +63,22 @@ describe('user notify setting', () => {
     payment_received_donation: true,
     payment_payout: true,
 
-    // circle
+    // circle owners
     circle_new_subscriber: true,
     circle_new_unsubscriber: true,
     circle_invitation: true,
+    circle_new_follower: true,
+    circle_new_discussion: true,
+    circle_member_boradcast: true,
+    circle_member_new_discussion: true,
+    circle_member_new_discussion_reply: true,
+
+    // in circle
+    in_circle_new_article: true,
+    in_circle_new_boradcast: true,
+    in_circle_new_boradcast_reply: false,
+    in_circle_new_discussion: true,
+    in_circle_new_discussion_reply: false,
 
     // crypto
     crypto_wallet_airdrop: true,
