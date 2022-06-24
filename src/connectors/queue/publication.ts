@@ -56,6 +56,39 @@ class PublicationQueue extends BaseQueue {
       return
     }
 
+    this.q
+      .on('error', (err) => {
+        // An error occured.
+        console.error('PublicationQueue: job error unhandled:', err)
+      })
+      .on('waiting', (jobId) => {
+        // A Job is waiting to be processed as soon as a worker is idling.
+      })
+      .on('progress', (job, progress) => {
+        // A job's progress was updated!
+        console.log(
+          `PublicationQueue: Job#${job.id}/${job.name} progress:`,
+          { progress, data: job.data },
+          job
+        )
+      })
+      .on('failed', (job, err) => {
+        // A job failed with reason `err`!
+        console.error('PublicationQueue: job failed:', err, job)
+      })
+      .on('completed', (job, result) => {
+        // A job successfully completed with a `result`.
+        console.log(
+          'PublicationQueue: job completed:',
+          { result, data: job.data },
+          job
+        )
+      })
+      .on('removed', (job) => {
+        // A job successfully removed.
+        console.log('PublicationQueue: job removed:', job)
+      })
+
     // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,
@@ -78,6 +111,12 @@ class PublicationQueue extends BaseQueue {
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
+    console.log(
+      `handlePublishArticle: progress 0 of initial publishing for draftId: ${draft?.id}:`,
+      // job,
+      draft
+    )
+
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       job.progress(100)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
@@ -119,6 +158,12 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
+      console.log(
+        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
+        // job,
+        article
+      )
+
       // Step 4: update draft
       const [publishedDraft] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -138,15 +183,17 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(30)
 
+      let iscnId = null
+
       // Note: the following steps won't affect the publication.
       try {
         const author = await this.userService.baseFindById(draft.authorId)
         const { userName, displayName } = author
 
         console.log(
-          `handlePublishArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
           job,
-          draft
+          publishedDraft // draft
         )
 
         // Step 5: handle collection, circles, tags & mentions
@@ -195,22 +242,9 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        // Step 7: add to search
-        await this.articleService.addToSearch({
-          id: article.id,
-          title: draft.title,
-          content: draft.content,
-          authorId: article.authorId,
-          userName,
-          displayName,
-          tags,
-        })
-        job.progress(80)
-
         console.log(`before iscnPublish:`, job.data, draft)
 
         // Step: iscn publishing
-        let iscnId = null
         if (iscnPublish || draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
             userId: author.id,
@@ -260,6 +294,18 @@ class PublicationQueue extends BaseQueue {
             }),
           ])
         }
+        job.progress(80)
+
+        // Step 7: add to search
+        await this.articleService.addToSearch({
+          id: article.id,
+          title: draft.title,
+          content: draft.content,
+          authorId: article.authorId,
+          userName,
+          displayName,
+          tags,
+        })
         job.progress(85)
 
         // Step 8: trigger notifications
@@ -300,6 +346,8 @@ class PublicationQueue extends BaseQueue {
         draftId: publishedDraft.id,
         dataHash: publishedDraft.dataHash,
         mediaHash: publishedDraft.mediaHash,
+        iscnPublish: iscnPublish || draft.iscnPublish,
+        iscnId,
       })
     } catch (e) {
       await this.draftService.baseUpdate(draft.id, {

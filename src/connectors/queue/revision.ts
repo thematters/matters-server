@@ -55,6 +55,39 @@ class RevisionQueue extends BaseQueue {
       return
     }
 
+    this.q
+      .on('error', (err) => {
+        // An error occured.
+        console.error('RevisionQueue: job error unhandled:', err)
+      })
+      .on('waiting', (jobId) => {
+        // A Job is waiting to be processed as soon as a worker is idling.
+      })
+      .on('progress', (job, progress) => {
+        // A job's progress was updated!
+        console.log(
+          `RevisionQueue: Job#${job.id}/${job.name} progress progress:`,
+          { progress, data: job.data },
+          job
+        )
+      })
+      .on('failed', (job, err) => {
+        // A job failed with reason `err`!
+        console.error('RevisionQueue: job failed:', err, job)
+      })
+      .on('completed', (job, result) => {
+        // A job successfully completed with a `result`.
+        console.log(
+          'RevisionQueue: job completed:',
+          { result, data: job.data },
+          job
+        )
+      })
+      .on('removed', (job) => {
+        // A job successfully removed.
+        console.log('RevisionQueue: job removed:', job)
+      })
+
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,
@@ -73,6 +106,12 @@ class RevisionQueue extends BaseQueue {
       const draft = await this.draftService.baseFindById(draftId)
 
       // Step 1: checks
+      console.log(
+        `handlePublishRevisedArticle: progress 0 of revise publishing for draftId: ${draft?.id}:`,
+        // job,
+        draft
+      )
+
       if (!draft) {
         job.progress(100)
         done(null, `Revision draft ${draftId} not found`)
@@ -110,6 +149,12 @@ class RevisionQueue extends BaseQueue {
           key,
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
+
+        console.log(
+          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}: articleId: ${article.id}:`,
+          // job,
+          article
+        )
 
         // Step 3: update draft
         await Promise.all([
@@ -155,13 +200,15 @@ class RevisionQueue extends BaseQueue {
         )
         job.progress(50)
 
+        let iscnId = null
+
         // Note: the following steps won't affect the publication.
         try {
           const author = await this.userService.baseFindById(article.authorId)
           const { userName, displayName } = author
 
           console.log(
-            `handlePublishRevisedArticle:: start optional steps of publishing for draft id: ${draft.id}:`,
+            `handlePublishRevisedArticle: start optional steps of publishing for draft id: ${draft.id}:`,
             job,
             draft
           )
@@ -178,19 +225,9 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
-          // Step 7: add to search
-          await this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-          job.progress(70)
-
           console.log(`before iscnPublish:`, job.data, draft)
 
           // Step: iscn publishing
-          let iscnId = null
           if (iscnPublish || draft.iscnPublish != null) {
             const liker = (await this.userService.findLiker({
               userId: author.id,
@@ -243,7 +280,16 @@ class RevisionQueue extends BaseQueue {
               }),
             ])
           }
-          job.progress(85)
+          job.progress(70)
+
+          // Step 7: add to search
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          job.progress(80)
 
           // Step 8: handle newly added mentions
           await this.handleMentions({
@@ -291,6 +337,8 @@ class RevisionQueue extends BaseQueue {
           draftId: draft.id,
           dataHash,
           mediaHash,
+          iscnPublish: iscnPublish || draft.iscnPublish,
+          iscnId,
         })
       } catch (e) {
         await this.draftService.baseUpdate(draft.id, {
