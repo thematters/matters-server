@@ -1020,13 +1020,18 @@ export class TagService extends BaseService {
     const items = await this.findByContentIn(tags)
 
     await Promise.all(
-      items.filter(Boolean).map((tag) =>
-        this.follow({ targetId: tag.id, userId }).then((err) =>
-          console.error(new Date(), `follow "${tag.content}" failed:`, err, {
-            tag,
-          })
+      items
+        .filter(Boolean)
+        .map((tag) =>
+          this.follow({ targetId: tag.id, userId }).catch((err) =>
+            console.error(
+              new Date(),
+              `ERROR: follow "${tag.id}-${tag.content}" failed:`,
+              err,
+              tag
+            )
+          )
         )
-      )
     )
   }
 
