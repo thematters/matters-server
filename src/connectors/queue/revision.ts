@@ -190,15 +190,6 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
-          // Step 7: add to search
-          await this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-          job.progress(70)
-
           console.log(`before iscnPublish:`, job.data, draft)
 
           // Step: iscn publishing
@@ -255,7 +246,16 @@ class RevisionQueue extends BaseQueue {
               }),
             ])
           }
-          job.progress(85)
+          job.progress(70)
+
+          // Step 7: add to search
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          job.progress(80)
 
           // Step 8: handle newly added mentions
           await this.handleMentions({

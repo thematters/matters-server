@@ -76,7 +76,7 @@ export class BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('job completed:', result, job)
+        console.log('job completed:', { result }, job)
       })
       .on('removed', (job) => {
         // A job successfully removed.

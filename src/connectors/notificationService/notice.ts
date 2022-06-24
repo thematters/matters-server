@@ -3,7 +3,7 @@ import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
 import { DAY, DB_NOTICE_TYPE } from 'common/enums'
-import logger from 'common/logger'
+// import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   DBNoticeType,
@@ -48,7 +48,7 @@ class Notice extends BaseService {
         })
         .into('notice_detail')
         .returning('*')
-      logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
+      // logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
 
       // create notice
       const [{ id: noticeId }] = await trx
@@ -59,18 +59,19 @@ class Notice extends BaseService {
         })
         .into('notice')
         .returning('*')
-      logger.info(`Inserted id ${noticeId} to notice`)
+      // logger.info(`Inserted id ${noticeId} to notice`)
 
       // create notice actorId
       if (actorId) {
-        const [{ id: noticeActorId }] = await trx
+        // const [{ id: noticeActorId }] =
+        await trx
           .insert({
             noticeId,
             actorId,
           })
           .into('notice_actor')
           .returning('*')
-        logger.info(`Inserted id ${noticeActorId} to notice_actor`)
+        // logger.info(`Inserted id ${noticeActorId} to notice_actor`)
       }
 
       // craete notice entities
@@ -87,7 +88,8 @@ class Notice extends BaseService {
                 .from('entity_type')
                 .where({ table: entityTable })
                 .first()
-              const [{ id: noticeEntityId }] = await trx
+              // const [{ id: noticeEntityId }] =
+              await trx
                 .insert({
                   type: entityType,
                   entityTypeId,
@@ -96,7 +98,7 @@ class Notice extends BaseService {
                 })
                 .into('notice_entity')
                 .returning('*')
-              logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
+              // logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
             }
           )
         )
@@ -116,22 +118,20 @@ class Notice extends BaseService {
   }): Promise<void> {
     await this.knex.transaction(async (trx) => {
       // add actor
-      const [{ id: noticeActorId }] = await trx
+      await trx
         .insert({
           noticeId,
           actorId,
         })
         .into('notice_actor')
         .returning('*')
-      logger.info(
-        `[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`
-      )
+      // logger.info(`[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`)
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: new Date() })
-      logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
+      // logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
     })
   }
 
