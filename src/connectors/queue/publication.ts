@@ -56,6 +56,31 @@ class PublicationQueue extends BaseQueue {
       return
     }
 
+    this.q
+      .on('error', (err) => {
+        // An error occured.
+        console.error('PublicationQueue: job error unhandled:', err)
+      })
+      .on('waiting', (jobId) => {
+        // A Job is waiting to be processed as soon as a worker is idling.
+      })
+      .on('progress', (job, progress) => {
+        // A job's progress was updated!
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, { progress, data: job.data }, job)
+      })
+      .on('failed', (job, err) => {
+        // A job failed with reason `err`!
+        console.error('PublicationQueue: job failed:', err, job)
+      })
+      .on('completed', (job, result) => {
+        // A job successfully completed with a `result`.
+        console.log('PublicationQueue: job completed:', { result, data: job.data  }, job)
+      })
+      .on('removed', (job) => {
+        // A job successfully removed.
+        console.log('PublicationQueue: job removed:', job)
+      })
+
     // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,

@@ -58,31 +58,6 @@ export class BaseQueue {
    * Producers
    */
   clearDelayedJobs = async () => {
-    this.q
-      .on('error', (err) => {
-        // An error occured.
-        console.error('job error unhandled:', err)
-      })
-      .on('waiting', (jobId) => {
-        // A Job is waiting to be processed as soon as a worker is idling.
-      })
-      .on('progress', (job, progress) => {
-        // A job's progress was updated!
-        console.log('job progress:', progress, job)
-      })
-      .on('failed', (job, err) => {
-        // A job failed with reason `err`!
-        console.error('job failed:', err, job)
-      })
-      .on('completed', (job, result) => {
-        // A job successfully completed with a `result`.
-        console.log('job completed:', { result }, job)
-      })
-      .on('removed', (job) => {
-        // A job successfully removed.
-        console.log('job removed:', job)
-      })
-
     try {
       const jobs = await this.q.getDelayed()
       jobs.forEach(async (job) => {
