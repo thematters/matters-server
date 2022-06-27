@@ -604,18 +604,25 @@ export class TagService extends BaseService {
     const query = this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
+      .orderByRaw('num_authors_r3m DESC NULLS LAST')
+      .orderByRaw('num_articles_r3m DESC NULLS LAST')
+      .orderByRaw('span_days DESC NULLS LAST')
+    /*
       .orderBy([
         { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
         { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
         { column: 'span_days', order: 'desc', nulls: 'last' },
-      ])
+      ]) */
 
-    if (take || take === 0) {
+    if (take !== undefined) {
+      // neither undefined nor null, check both
       query.limit(take)
     }
-    if (skip || skip === 0) {
-      query.offset(take)
+    if (skip !== undefined) {
+      query.offset(skip)
     }
+
+    console.log('findTopTags: use query:', query.toString())
 
     return query
   }

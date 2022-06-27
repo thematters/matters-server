@@ -29,9 +29,11 @@ export const tags: RecommendationToTagsResolver = async (
     const curationTags = await tagService.findTopTags({
       take: limit * draw,
     })
+
     const chunks = chunk(curationTags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
     const filteredTags = chunks[index] || []
+
     return connectionFromPromisedArray(
       tagService.dataloader.loadMany(filteredTags.map((tag) => tag.id)),
       input,
@@ -47,8 +49,9 @@ export const tags: RecommendationToTagsResolver = async (
     skip,
     take,
   })
+
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(items.map((item) => item.id)),
+    tagService.dataloader.loadMany(items.map((item) => `${item.id}`)),
     input,
     totalCount
   )
