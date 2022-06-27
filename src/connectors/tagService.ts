@@ -18,9 +18,6 @@ import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
-const TAGS_VIEW = 'mat_views.tags_lasts'
-const AUTHORS_VIEW = 'mat_views.authors_lasts'
-
 export class TagService extends BaseService {
   constructor() {
     super('tag')
@@ -165,7 +162,7 @@ export class TagService extends BaseService {
 
     try {
       item = await this.knex
-        .from(TAGS_VIEW)
+        .from(VIEW.tags_lasts_view)
         .select(columns)
         .where('slug', tagSlugify(content))
         .first()
@@ -391,7 +388,7 @@ export class TagService extends BaseService {
    *********************************/
   initSearch = async () => {
     const tags = await this.knex
-      .from(TAGS_VIEW)
+      .from(VIEW.tags_lasts_view)
       .select(
         'id',
         'content',
@@ -489,7 +486,7 @@ export class TagService extends BaseService {
       if (includeAuthorTags && viewerId) {
         const [res, res2] = await Promise.all([
           this.knex
-            .from(this.knex.ref(AUTHORS_VIEW).as('a'))
+            .from(this.knex.ref(VIEW.authors_lasts_view).as('a'))
             .joinRaw(
               'CROSS JOIN jsonb_to_recordset(top_tags) AS x(id int, num_articles int, last_use timestamptz)'
             )
@@ -537,7 +534,7 @@ export class TagService extends BaseService {
           'num_authors',
           'created_at'
         )
-        .from(TAGS_VIEW)
+        .from(VIEW.tags_lasts_view)
         .whereIn('id', Array.from(ids))
         .orderByRaw('content = ? DESC', [key]) // always show exact match at first
         .orderByRaw('content ~* ? DESC', [key]) // then show inclusive match, by regular expression, case insensitive
@@ -603,16 +600,37 @@ export class TagService extends BaseService {
     return tag.tagScore || 0
   }
 
+  findTopTags = ({ take = 50, skip }: { take?: number; skip?: number }) => {
+    const query = this.knex
+      .select('id')
+      .from(VIEW.tags_lasts_view)
+      .orderBy([
+        { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
+        { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
+        { column: 'span_days', order: 'desc', nulls: 'last' },
+      ])
+
+    if (take || take === 0) {
+      query.limit(take)
+    }
+    if (skip || skip === 0) {
+      query.offset(take)
+    }
+
+    return query
+  }
+
   /**
+   * Dead code: to be removed (in next release)
    * Find curation-like tags.
    *
    */
   findCurationTags = ({
-    mattyId,
+    // mattyId,
     fields = ['*'],
     take,
   }: {
-    mattyId: string
+    // mattyId: string
     fields?: any[]
     take?: number
   }) => {
@@ -629,19 +647,23 @@ export class TagService extends BaseService {
   }
 
   /**
+   * Dead code: to be removed (in next release)
    * Find non-curation-like tags based on score order.
    *
    */
   findNonCurationTags = ({
-    mattyId,
+    // mattyId,
     fields = ['*'],
     oss = false,
   }: {
-    mattyId: string
+    // mattyId: string
     fields?: any[]
     oss?: boolean
   }) => {
-    const curation = this.findCurationTags({ mattyId, fields: ['id'] })
+    const curation = this.findCurationTags({
+      // mattyId,
+      fields: ['id'],
+    })
     const query = this.knex
       .select(fields)
       .from(function (this: Knex.QueryBuilder) {
@@ -658,6 +680,7 @@ export class TagService extends BaseService {
   }
 
   /**
+   * Dead code: to be removed (in next release)
    * Find curation-like and non-curation-like tags in specific order.
    *
    */
@@ -673,11 +696,11 @@ export class TagService extends BaseService {
     oss?: boolean
   }) => {
     const curation = this.findCurationTags({
-      mattyId,
+      // mattyId,
       fields: ['id', this.knex.raw('1 as type')],
     })
     const nonCuration = this.findNonCurationTags({
-      mattyId,
+      // mattyId,
       fields: ['id', this.knex.raw('2 as type')],
       oss,
     })
@@ -805,7 +828,7 @@ export class TagService extends BaseService {
         this.orWhereIn(
           'tag_id',
           knex
-            .from(knex.ref(TAGS_VIEW).as('t'))
+            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
             .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
             .where('t.id', tagId)
             .select('x.id')
@@ -856,7 +879,7 @@ export class TagService extends BaseService {
         this.orWhereIn(
           'tag_id',
           knex
-            .from(knex.ref(TAGS_VIEW).as('t'))
+            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
             .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
             .where('t.id', tagId)
             .select('x.id')
@@ -1054,11 +1077,10 @@ export class TagService extends BaseService {
     exclude?: string[]
   }) => {
     const countRels = await this.knex
-      .from(TAGS_VIEW)
+      .from(VIEW.tags_lasts_view)
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    // console.log('findRelatedTags: countRels:', { countRels, tagContent })
 
     const countRelsCount = countRels?.count || 0
 
@@ -1085,7 +1107,7 @@ export class TagService extends BaseService {
     }
 
     const subquery = this.knex
-      .from(TAGS_VIEW)
+      .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
       )
@@ -1095,7 +1117,7 @@ export class TagService extends BaseService {
     if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
       subquery.unionAll(
         this.knex
-          .from(TAGS_VIEW)
+          .from(VIEW.tags_lasts_view)
           .select(
             'id AS tag_rel_id',
             'num_articles AS count_rel',
@@ -1108,7 +1130,7 @@ export class TagService extends BaseService {
 
     const query = this.knex
       .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))
-      .join(this.knex.ref(TAGS_VIEW).as('t'), 'x.tag_rel_id', 't.id')
+      .join(this.knex.ref(VIEW.tags_lasts_view).as('t'), 'x.tag_rel_id', 't.id')
       // .whereIn('id', subquery)
       .select(
         'x.*',

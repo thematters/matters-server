@@ -1,6 +1,7 @@
 import { chunk } from 'lodash'
 
-import { environment } from 'common/environment'
+import { VIEW } from 'common/enums'
+// import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { RecommendationToTagsResolver } from 'definitions'
@@ -8,7 +9,7 @@ import { RecommendationToTagsResolver } from 'definitions'
 export const tags: RecommendationToTagsResolver = async (
   { id },
   { input },
-  { viewer, dataSources: { tagService, userService } }
+  { viewer, dataSources: { tagService } }
 ) => {
   const { filter, oss = false } = input
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 5 })
@@ -25,8 +26,7 @@ export const tags: RecommendationToTagsResolver = async (
     const draw = input.first || 5
     const limit = 50
 
-    const curationTags = await tagService.findCurationTags({
-      mattyId: environment.mattyId,
+    const curationTags = await tagService.findTopTags({
       take: limit * draw,
     })
     const chunks = chunk(curationTags, draw)
@@ -39,11 +39,11 @@ export const tags: RecommendationToTagsResolver = async (
     )
   }
 
-  // query all tags by specific logic (curation concat non-curation)
-  const totalCount = await tagService.baseCount()
-  const items = await tagService.findArrangedTags({
-    mattyId: environment.mattyId,
-    oss,
+  const totalCount = await tagService.baseCount(
+    undefined, // where
+    VIEW.tags_lasts_view
+  )
+  const items = await tagService.findTopTags({
     skip,
     take,
   })
