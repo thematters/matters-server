@@ -665,7 +665,9 @@ describe('user recommendations', () => {
       variables: { input: { first: 1 } },
     })
     const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
-    expect(fromGlobalId(tag.id).type).toBe('Tag')
+    if (tag) {
+      expect(fromGlobalId(tag.id).type).toBe('Tag')
+    }
   })
 
   test('retrive users from authors', async () => {
