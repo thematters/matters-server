@@ -358,10 +358,10 @@ const RESET_USER_LIKER_ID = /* GraphQL */ `
   }
 `
 
-const RESET_USER_WALLET = /* GraphQL */`
+const RESET_USER_WALLET = /* GraphQL */ `
   mutation ResetWallet($input: ResetWalletInput!) {
     resetWallet(input: $input) {
-      id,
+      id
       info {
         ethAddress
       }
@@ -915,7 +915,7 @@ describe('crypto wallet', () => {
     // check if exists
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
-      variables: { input: { userName: 'test1'} },
+      variables: { input: { userName: 'test1' } },
     })
 
     // reset
@@ -923,9 +923,27 @@ describe('crypto wallet', () => {
       query: RESET_USER_WALLET,
       variables: { input: { id: _get(data, 'user.id') } },
     })
-    expect(_get(resetResult, 'data.resetWallet.id')).toBe(
-      _get(data, 'user.id')
-    )
+    expect(_get(resetResult, 'data.resetWallet.id')).toBe(_get(data, 'user.id'))
     expect(_get(resetResult, 'data.resetWallet.info.ethAddress')).toBeFalsy()
+  })
+
+  test('reset wallet forbidden', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // check if exists
+    const { data } = await server.executeOperation({
+      query: GET_USER_BY_USERNAME,
+      variables: { input: { userName: 'test10' } },
+    })
+
+    // reset
+    const resetResult = await server.executeOperation({
+      query: RESET_USER_WALLET,
+      variables: { input: { id: _get(data, 'user.id') } },
+    })
+    expect(_get(resetResult, 'data.resetWallet.id')).toBeFalsy()
   })
 })

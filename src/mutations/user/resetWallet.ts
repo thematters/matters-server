@@ -14,6 +14,12 @@ const resolver: MutationToResetWalletResolver = async (
     throw new ForbiddenError("user doesn't exist or have a crypto wallet")
   }
 
+  if (!user.passwordHash) {
+    throw new ForbiddenError(
+      'user registered with crypto wallet is not allowed'
+    )
+  }
+
   const updatedUser = await atomService.update({
     table: 'user',
     where: { id: user.id },
