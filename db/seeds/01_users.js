@@ -19,6 +19,7 @@ exports.seed = function (knex, Promise) {
           mobile: '999',
           liker_id: 'test_liker_id',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
+          eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
@@ -92,6 +93,14 @@ exports.seed = function (knex, Promise) {
           email: 'test9@matters.news',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           state: 'active',
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000010',
+          user_name: 'test10',
+          display_name: 'test10',
+          email: 'test10@matters.news',
+          state: 'active',
+          eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
         },
       ])
     })
