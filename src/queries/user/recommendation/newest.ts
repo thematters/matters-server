@@ -33,14 +33,17 @@ export const newest: RecommendationToNewestResolver = async (
       knex
         // .select('article.id', 'article.draft_id')
         .select('draft.*')
+        .distinctOn('article.id')
         .from('article')
         .join('draft', 'draft.article_id', 'article.id')
         .where({
           'article.state': ARTICLE_STATE.active,
           'draft.publish_state': PUBLISH_STATE.published,
         })
-        // .whereIn('draft.publish_state', [PUBLISH_STATE.published])
-        .orderBy('article.id', 'desc')
+        .orderBy([
+          { column: 'article.id', order: 'desc' }, // first order must be same as DISTINCT ON
+          { column: 'draft.id', order: 'desc' },
+        ])
         .limit(MAX_ITEM_COUNT * 2)
         .as('draft')
     )
@@ -84,7 +87,7 @@ knex
 
   const [countRecord, drafts] = await Promise.all([
     knex.select().from(baseQuery.clone()).count().first(),
-    baseQuery.orderBy('draft.id', 'desc').offset(skip).limit(take),
+    baseQuery.orderBy('draft.article_id', 'desc').offset(skip).limit(take),
   ])
 
   // console.log(`send query:`, { query: baseQuery.toString() })

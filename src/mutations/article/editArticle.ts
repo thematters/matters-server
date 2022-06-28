@@ -520,9 +520,15 @@ const resolver: MutationToEditArticleResolver = async (
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle({
-      draftId: revisedDraft.id,
-    })
+    revisionQueue.publishRevisedArticle(
+      // lodash.omitBy(
+      {
+        draftId: revisedDraft.id,
+        iscnPublish,
+      }
+      //  lodash.isUndefined
+      // ) as RevisedArticleData
+    )
   }
 
   if (isUpdatingContent) {

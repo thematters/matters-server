@@ -405,7 +405,7 @@ export class TagService extends BaseService {
       )
 
     // console.log(new Date(), `selected: ${tags.length} tags:`, tags.slice(0, 5))
-    logger.info(`selected: ${tags.length} tags:`)
+    // logger.info(`selected: ${tags.length} tags:`)
 
     return this.es.indexManyItems({
       index: this.table,
@@ -819,7 +819,7 @@ export class TagService extends BaseService {
       ...(selected === true ? { selected } : {}),
     })
 
-    console.log('countArticles:', { sql: query.toString(), tagId })
+    // console.log('countArticles:', { sql: query.toString(), tagId })
 
     const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -883,7 +883,7 @@ export class TagService extends BaseService {
       query.limit(take)
     }
 
-    console.log('findArticleIds:', { sql: query.toString(), tagId })
+    // console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 
@@ -1020,13 +1020,18 @@ export class TagService extends BaseService {
     const items = await this.findByContentIn(tags)
 
     await Promise.all(
-      items.filter(Boolean).map((tag) =>
-        this.follow({ targetId: tag.id, userId }).then((err) =>
-          console.error(new Date(), `follow "${tag.content}" failed:`, err, {
-            tag,
-          })
+      items
+        .filter(Boolean)
+        .map((tag) =>
+          this.follow({ targetId: tag.id, userId }).catch((err) =>
+            console.error(
+              new Date(),
+              `ERROR: follow "${tag.id}-${tag.content}" failed:`,
+              err,
+              tag
+            )
+          )
         )
-      )
     )
   }
 
@@ -1037,11 +1042,13 @@ export class TagService extends BaseService {
    */
   findRelatedTags = async ({
     id,
+    content: tagContent,
     skip,
     take,
     exclude,
   }: {
     id: string
+    content?: string
     skip?: number
     take?: number
     exclude?: string[]
@@ -1051,14 +1058,16 @@ export class TagService extends BaseService {
       .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
-    console.log('findRelatedTags:: countRels:', { countRels })
+    // console.log('findRelatedTags: countRels:', { countRels, tagContent })
+
+    const countRelsCount = countRels?.count || 0
 
     const ids = new Set<string>()
 
     // append some results from elasticsearch
-    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+    if (countRelsCount < TAGS_RECOMMENDED_LIMIT && tagContent) {
       const body = bodybuilder()
-        .query('match', 'content', countRels.content)
+        .query('match', 'content', tagContent)
         .size(TAGS_RECOMMENDED_LIMIT)
         .build()
 
@@ -1069,14 +1078,10 @@ export class TagService extends BaseService {
 
       const { hits } = result.body
 
-      hits.hits
-        // ?.slice(0, TAGS_RECOMMENDED_LIMIT)
-        .forEach(
-          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-            ids.add(_source?.id)
-        )
-
-      // totalCount = hits.total.value
+      hits.hits.forEach(
+        ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
+          ids.add(_source?.id)
+      )
     }
 
     const subquery = this.knex
@@ -1087,7 +1092,7 @@ export class TagService extends BaseService {
       .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
 
-    if (countRels.count < TAGS_RECOMMENDED_LIMIT) {
+    if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
       subquery.unionAll(
         this.knex
           .from(TAGS_VIEW)
@@ -1100,11 +1105,6 @@ export class TagService extends BaseService {
           .whereIn('id', Array.from(ids))
       )
     }
-
-    console.log('findRelatedTags:: countRels:', {
-      countRels,
-      subquery: subquery.toString(),
-    })
 
     const query = this.knex
       .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))

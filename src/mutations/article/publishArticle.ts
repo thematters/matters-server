@@ -48,7 +48,7 @@ const resolver: MutationToPublishArticleResolver = async (
   })
 
   // add job to queue
-  publicationQueue.publishArticle({ draftId: draftDBId })
+  publicationQueue.publishArticle({ draftId: draftDBId, iscnPublish })
 
   return draftPending
 }

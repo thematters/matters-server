@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
+import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
@@ -10,7 +11,7 @@ import {
   OAuthTokenInvalidError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { knex } from 'connectors'
+import { CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
@@ -66,9 +67,11 @@ const ENDPOINTS = {
  */
 export class LikeCoin {
   knex: Knex
+  cache: CacheService
 
   constructor() {
     this.knex = knex
+    this.cache = new CacheService('likecoin')
   }
 
   /**
@@ -579,7 +582,7 @@ export class LikeCoin {
       keywords: tags, // ["matrix","recursion","keyword3"]
     }
 
-    // console.log('iscnPublish with postData:', JSON.stringify(postData))
+    console.log('iscnPublish with postData:', JSON.stringify(postData))
 
     const res = await this.request({
       endpoint,
@@ -590,10 +593,36 @@ export class LikeCoin {
       data: postData,
       liker,
     })
+
     const data = _.get(res, 'data')
 
+    this.cache.storeObject({
+      // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
+      keys: {
+        type: 'iscnPublish',
+        id: userName,
+        field: 'likerId',
+        args: { likerId: liker.likerId, mediaHash },
+      },
+      data: {
+        postData,
+        resData: data,
+      },
+      expire: CACHE_TTL.LONG, // save for 1 day
+    })
+
     if (!data) {
+      console.error('iscnPublish with no data:', res)
       throw res
+    }
+
+    if (!data.iscnId) {
+      console.error(
+        'iscnPublish failed posted results:',
+        res,
+        'with:',
+        postData
+      )
     }
 
     return data.iscnId

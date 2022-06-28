@@ -44,9 +44,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       ({ id: aid }: { id: any }) => aid
     )
 
-    logger.info(
-      `[recommendation] article ${articleId}, title ${title}, ES result ${relatedArticleIds}`
-    )
+    // logger.info(`[recommendation] article ${articleId}, title ${title}, ES result ${relatedArticleIds}`)
 
     // get articles
     articles = await articleService.dataloader
@@ -74,9 +72,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
         skip,
       })
 
-      logger.info(
-        `[recommendation] article ${articleId}, title ${title}, tag result ${articleIds} `
-      )
+      // logger.info(`[recommendation] article ${articleId}, title ${title}, tag result ${articleIds} `)
 
       // get articles and append
       const articlesFromTag = await articleService.dataloader.loadMany(
@@ -92,11 +88,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     const articlesFromAuthor = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active,
     })
-    logger.info(
-      `[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(
-        ({ id: aid }: { id: string }) => aid
-      )} `
-    )
+    // logger.info(`[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(({ id: aid }: { id: string }) => aid)} `)
     articles = addRec(articles, articlesFromAuthor)
   }
 

@@ -27,6 +27,7 @@ import { BaseQueue } from './baseQueue'
 
 interface RevisedArticleData {
   draftId: string
+  iscnPublish?: boolean
 }
 
 class RevisionQueue extends BaseQueue {
@@ -54,6 +55,31 @@ class RevisionQueue extends BaseQueue {
       return
     }
 
+    this.q
+      .on('error', (err) => {
+        // An error occured.
+        console.error('RevisionQueue: job error unhandled:', err)
+      })
+      .on('waiting', (jobId) => {
+        // A Job is waiting to be processed as soon as a worker is idling.
+      })
+      .on('progress', (job, progress) => {
+        // A job's progress was updated!
+        console.log(`RevisionQueue: Job#${job.id}/${job.name} progress progress:`, { progress, data: job.data }, job)
+      })
+      .on('failed', (job, err) => {
+        // A job failed with reason `err`!
+        console.error('RevisionQueue: job failed:', err, job)
+      })
+      .on('completed', (job, result) => {
+        // A job successfully completed with a `result`.
+        console.log('RevisionQueue: job completed:', { result, data: job.data }, job)
+      })
+      .on('removed', (job) => {
+        // A job successfully removed.
+        console.log('RevisionQueue: job removed:', job)
+      })
+
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,
@@ -67,11 +93,17 @@ class RevisionQueue extends BaseQueue {
    */
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
     async (job, done) => {
-      const { draftId } = job.data as RevisedArticleData
+      const { draftId, iscnPublish } = job.data as RevisedArticleData
 
       const draft = await this.draftService.baseFindById(draftId)
 
       // Step 1: checks
+      console.log(
+        `handlePublishRevisedArticle: progress 0 of revise publishing for draftId: ${draft?.id}:`,
+        // job,
+        draft
+      )
+
       if (!draft) {
         job.progress(100)
         done(null, `Revision draft ${draftId} not found`)
@@ -110,6 +142,12 @@ class RevisionQueue extends BaseQueue {
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
 
+        console.log(
+          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}: articleId: ${article.id}:`,
+          // job,
+          article
+        )
+
         // Step 3: update draft
         await Promise.all([
           this.draftService.baseUpdate(draft.id, {
@@ -120,7 +158,7 @@ class RevisionQueue extends BaseQueue {
             // iscnId,
             publishState: PUBLISH_STATE.published,
             pinState: PIN_STATE.pinned,
-            updatedAt: this.knex.fn.now(), // new Date(),
+            updatedAt: this.knex.fn.now(),
           }),
           // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
@@ -136,7 +174,9 @@ class RevisionQueue extends BaseQueue {
         job.progress(45)
 
         // Step 5: update back to article
-        const revisionCount = (article.revisionCount || 0) + 1
+        const revisionCount =
+          (article.revisionCount || 0) +
+          (iscnPublish || draft.iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
           article.id,
           {
@@ -147,7 +187,7 @@ class RevisionQueue extends BaseQueue {
             wordCount,
             revisionCount,
             slug: slugify(draft.title),
-            updatedAt: this.knex.fn.now(), // new Date(),
+            updatedAt: this.knex.fn.now(),
           }
         )
         job.progress(50)
@@ -156,6 +196,12 @@ class RevisionQueue extends BaseQueue {
         try {
           const author = await this.userService.baseFindById(article.authorId)
           const { userName, displayName } = author
+
+          console.log(
+            `handlePublishRevisedArticle: start optional steps of publishing for draft id: ${draft.id}:`,
+            job,
+            draft
+          )
 
           // Step 6: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
@@ -169,18 +215,11 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
-          // Step 7: add to search
-          await this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-          job.progress(70)
+          console.log(`before iscnPublish:`, job.data, draft)
 
           // Step: iscn publishing
           let iscnId = null
-          if (draft.iscnPublish) {
+          if (iscnPublish || draft.iscnPublish != null) {
             const liker = (await this.userService.findLiker({
               userId: author.id,
             }))!
@@ -199,7 +238,7 @@ class RevisionQueue extends BaseQueue {
               datePublished: article.created_at?.toISOString().substring(0, 10),
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
               tags: Array.from(
-                new Set(draft.tags.map(stripPunctPrefixSuffix).filter(Boolean))
+                new Set(draft.tags?.map(stripPunctPrefixSuffix).filter(Boolean))
               ), // after stripped, not raw draft.tags,
 
               // for liker auth&headers info
@@ -208,19 +247,40 @@ class RevisionQueue extends BaseQueue {
               // userAgent,
             })
 
-            console.log('draft.iscnPublish:', { iscnId })
+            console.log('draft.iscnPublish result:', {
+              iscnId,
+              articleId: article.id,
+              title: article.title,
+            })
           }
 
-          // if (!iscnId) { throw new LikerISCNPublishFailureError('iscn publishing failure') }
+          logger.info(
+            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
+          )
 
-          if (draft.iscnPublish != null) {
+          if (iscnPublish || draft.iscnPublish != null) {
             // handling both cases of set to true or false, but not omit (undefined)
             await Promise.all([
-              this.draftService.baseUpdate(draft.id, { iscnId }),
-              this.articleService.baseUpdate(article.id, { iscnId }),
+              this.draftService.baseUpdate(draft.id, {
+                iscnId,
+                updatedAt: this.knex.fn.now(),
+              }),
+              this.articleService.baseUpdate(article.id, {
+                iscnId,
+                updatedAt: this.knex.fn.now(),
+              }),
             ])
           }
-          job.progress(85)
+          job.progress(70)
+
+          // Step 7: add to search
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          job.progress(80)
 
           // Step 8: handle newly added mentions
           await this.handleMentions({
@@ -259,6 +319,8 @@ class RevisionQueue extends BaseQueue {
         } catch (e) {
           // ignore errors caused by these steps
           logger.error(e)
+
+          console.error(new Date(), 'job failed at optional step:', job, draft)
         }
 
         done(null, {
