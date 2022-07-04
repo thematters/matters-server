@@ -2,6 +2,7 @@ import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import {
@@ -70,6 +71,20 @@ const resolver: MutationToToggleFollowCircleResolver = async (
             userId: viewer.id,
             targetId: circleId,
           },
+        })
+
+        // trigger notificaiton
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_new_follower,
+          actorId: viewer.id,
+          recipientId: circle.owner,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'circle',
+              entity: circle,
+            },
+          ],
         })
       }
       break

@@ -67,7 +67,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --force
 
       - name: Lint
         run: |
@@ -214,7 +214,7 @@ jobs:
         if: github.base_ref == 'master'
         run: |
           sudo apt-get update \
-          sudo apt-get install openvpn \
+          && sudo apt-get install openvpn \
           && echo $VPN_CONFIG | base64 -d >> $VPN_CONFIG_PATH \
           && echo $VPN_AUTH | base64 -d >> $VPN_AUTH_PATH \
           && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
@@ -227,7 +227,7 @@ jobs:
 
       - name: Check DB Connection
         if: github.base_ref == 'master'
-        run: nc -zv -w 2 $MATTERS_PG_HOST 5432
+        run: nc -zv -w 5 $MATTERS_PG_HOST 5432
         env:
           MATTERS_PG_HOST: ${{ secrets.PROD_PG_HOST }}
 

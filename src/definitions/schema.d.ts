@@ -265,6 +265,11 @@ export interface GQLMutation {
   walletLogin: GQLAuthResult
 
   /**
+   * Reset crypto wallet.
+   */
+  resetWallet: GQLUser
+
+  /**
    * Logout user.
    */
   userLogout: boolean
@@ -568,6 +573,11 @@ export interface GQLArticle extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * the iscnId if published to ISCN
+   */
+  iscnId?: string
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -781,6 +791,11 @@ export interface GQLTag extends GQLNode {
   participants: GQLUserConnection
 
   /**
+   * Tags recommended based on relations to current tag.
+   */
+  recommended: GQLTagSearchResultConnection
+
+  /**
    * This value determines if it is official.
    */
   isOfficial?: boolean
@@ -825,6 +840,11 @@ export interface GQLTagSearchResult extends GQLNode {
   description?: string
   numArticles: number
   numAuthors: number
+
+  /**
+   * List of how many articles were attached with this tag.
+   */
+  articles: GQLArticleConnection
 }
 
 export interface GQLArticleAccess {
@@ -886,12 +906,28 @@ export interface GQLTagEdge {
   node: GQLTag
 }
 
+export interface GQLTagSearchResultConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLTagSearchResultEdge>
+}
+
+export interface GQLTagSearchResultEdge {
+  cursor: string
+  node: GQLTagSearchResult
+}
+
 export interface GQLArticleInput {
   mediaHash: string
 }
 
 export interface GQLPublishArticleInput {
   id: string
+
+  /**
+   * whether publish to ISCN
+   */
+  iscnPublish?: boolean
 }
 
 export interface GQLEditArticleInput {
@@ -905,11 +941,12 @@ export interface GQLEditArticleInput {
   collection?: Array<string>
   circle?: string
   accessType?: GQLArticleAccessType
+  license?: GQLArticleLicenseType
 
   /**
-   * License Type, `ARR` is only for paywalled article
+   * whether publish to ISCN
    */
-  license?: GQLArticleLicenseType
+  iscnPublish?: boolean
 }
 
 export interface GQLAppreciateArticleInput {
@@ -1004,11 +1041,17 @@ export interface GQLDeleteArticlesTagsInput {
   articles?: Array<string>
 }
 
+export const enum GQLTagArticlesSortBy {
+  byHottestDesc = 'byHottestDesc',
+  byCreatedAtDesc = 'byCreatedAtDesc',
+}
+
 export interface GQLTagArticlesInput {
   after?: string
   first?: number
   oss?: boolean
   selected?: boolean
+  sortBy?: GQLTagArticlesSortBy
 }
 
 export interface GQLTagSelectedInput {
@@ -1569,10 +1612,6 @@ export interface GQLPutCircleArticlesInput {
    * Access Type, `public` or `paywall` only.
    */
   accessType: GQLArticleAccessType
-
-  /**
-   * License Type, `ARR` is only for paywalled article
-   */
   license?: GQLArticleLicenseType
 }
 
@@ -1899,6 +1938,11 @@ export interface GQLDraft extends GQLNode {
    * License Type
    */
   license: GQLArticleLicenseType
+
+  /**
+   * whether publish to ISCN
+   */
+  iscnPublish?: boolean
 }
 
 export interface GQLDraftConnection extends GQLConnection {
@@ -1922,16 +1966,17 @@ export interface GQLPutDraftInput {
   title?: string
   summary?: string
   content?: string
-  tags?: Array<string | null>
+  tags?: Array<string>
   cover?: string
   collection?: Array<string | null>
   circle?: string
   accessType?: GQLArticleAccessType
+  license?: GQLArticleLicenseType
 
   /**
-   * License Type, `ARR` is only for paywalled article
+   * whether publish to ISCN
    */
-  license?: GQLArticleLicenseType
+  iscnPublish?: boolean
 }
 
 export interface GQLDeleteDraftInput {
@@ -2150,6 +2195,7 @@ export const enum GQLCommentNoticeType {
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
   CircleNewBroadcast = 'CircleNewBroadcast',
+  CircleNewDiscussion = 'CircleNewDiscussion',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -2445,6 +2491,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
   | 'TopicConnection'
   | 'TagConnection'
+  | 'TagSearchResultConnection'
   | 'CircleConnection'
   | 'MemberConnection'
   | 'InvitationConnection'
@@ -2467,6 +2514,7 @@ export interface GQLConnectionNameMap {
   ArticleConnection: GQLArticleConnection
   TopicConnection: GQLTopicConnection
   TagConnection: GQLTagConnection
+  TagSearchResultConnection: GQLTagSearchResultConnection
   CircleConnection: GQLCircleConnection
   MemberConnection: GQLMemberConnection
   InvitationConnection: GQLInvitationConnection
@@ -3309,8 +3357,26 @@ export interface GQLNotificationSetting {
   articleNewSubscription: boolean
   articleSubscribedNewComment: boolean
   articleCommentPinned: boolean
+
+  /**
+   * for circle owners
+   */
+  circleNewSubscriber: boolean
   circleNewFollower: boolean
+  circleNewUnsubscriber: boolean
   circleNewDiscussion: boolean
+  circleMemberBoradcast: boolean
+  circleMemberNewDiscussion: boolean
+  circleMemberNewDiscussionReply: boolean
+
+  /**
+   * for circle members
+   */
+  inCircleNewArticle: boolean
+  inCircleNewBoradcast: boolean
+  inCircleNewBoradcastReply: boolean
+  inCircleNewDiscussion: boolean
+  inCircleNewDiscussionReply: boolean
 }
 
 export interface GQLReadHistory {
@@ -3658,6 +3724,10 @@ export interface GQLResetLikerIdInput {
   id: string
 }
 
+export interface GQLResetWalletInput {
+  id: string
+}
+
 export interface GQLUpdateNotificationSettingInput {
   type: GQLNotificationSettingType
   enabled: boolean
@@ -3777,8 +3847,26 @@ export const enum GQLNotificationSettingType {
   articleNewSubscription = 'articleNewSubscription',
   articleSubscribedNewComment = 'articleSubscribedNewComment',
   articleCommentPinned = 'articleCommentPinned',
+
+  /**
+   * for circle owners
+   */
+  circleNewSubscriber = 'circleNewSubscriber',
   circleNewFollower = 'circleNewFollower',
+  circleNewUnsubscriber = 'circleNewUnsubscriber',
   circleNewDiscussion = 'circleNewDiscussion',
+  circleMemberBoradcast = 'circleMemberBoradcast',
+  circleMemberNewDiscussion = 'circleMemberNewDiscussion',
+  circleMemberNewDiscussionReply = 'circleMemberNewDiscussionReply',
+
+  /**
+   * for circle members
+   */
+  inCircleNewArticle = 'inCircleNewArticle',
+  inCircleNewBoradcast = 'inCircleNewBoradcast',
+  inCircleNewBoradcastReply = 'inCircleNewBoradcastReply',
+  inCircleNewDiscussion = 'inCircleNewDiscussion',
+  inCircleNewDiscussionReply = 'inCircleNewDiscussionReply',
 }
 
 export const enum GQLUserState {
@@ -4195,6 +4283,8 @@ export interface GQLResolver {
   TopicEdge?: GQLTopicEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
+  TagSearchResultConnection?: GQLTagSearchResultConnectionTypeResolver
+  TagSearchResultEdge?: GQLTagSearchResultEdgeTypeResolver
   Circle?: GQLCircleTypeResolver
   Member?: GQLMemberTypeResolver
   Price?: GQLPriceTypeResolver
@@ -4519,6 +4609,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userLogin?: MutationToUserLoginResolver<TParent>
   generateSigningMessage?: MutationToGenerateSigningMessageResolver<TParent>
   walletLogin?: MutationToWalletLoginResolver<TParent>
+  resetWallet?: MutationToResetWalletResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   resetLikerId?: MutationToResetLikerIdResolver<TParent>
@@ -5276,6 +5367,18 @@ export interface MutationToWalletLoginResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToResetWalletArgs {
+  input: GQLResetWalletInput
+}
+export interface MutationToResetWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToResetWalletArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToUserLogoutResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -5587,6 +5690,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
+  iscnId?: ArticleToIscnIdResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -6010,6 +6114,15 @@ export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToIscnIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -6305,6 +6418,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   participants?: TagToParticipantsResolver<TParent>
+  recommended?: TagToRecommendedResolver<TParent>
   isOfficial?: TagToIsOfficialResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
@@ -6443,6 +6557,18 @@ export interface TagToParticipantsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToRecommendedArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToRecommendedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToRecommendedArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface TagToIsOfficialResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -6487,6 +6613,7 @@ export interface GQLTagSearchResultTypeResolver<TParent = any> {
   description?: TagSearchResultToDescriptionResolver<TParent>
   numArticles?: TagSearchResultToNumArticlesResolver<TParent>
   numAuthors?: TagSearchResultToNumAuthorsResolver<TParent>
+  articles?: TagSearchResultToArticlesResolver<TParent>
 }
 
 export interface TagSearchResultToIdResolver<TParent = any, TResult = any> {
@@ -6562,6 +6689,21 @@ export interface TagSearchResultToNumAuthorsResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToArticlesArgs {
+  input: GQLTagArticlesInput
+}
+export interface TagSearchResultToArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: TagSearchResultToArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6915,6 +7057,77 @@ export interface TagEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface TagEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagSearchResultConnectionTypeResolver<TParent = any> {
+  totalCount?: TagSearchResultConnectionToTotalCountResolver<TParent>
+  pageInfo?: TagSearchResultConnectionToPageInfoResolver<TParent>
+  edges?: TagSearchResultConnectionToEdgesResolver<TParent>
+}
+
+export interface TagSearchResultConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagSearchResultEdgeTypeResolver<TParent = any> {
+  cursor?: TagSearchResultEdgeToCursorResolver<TParent>
+  node?: TagSearchResultEdgeToNodeResolver<TParent>
+}
+
+export interface TagSearchResultEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -8164,6 +8377,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
+  iscnPublish?: DraftToIscnPublishResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -8326,6 +8540,15 @@ export interface DraftToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToIscnPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9382,6 +9605,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ArticleConnection'
     | 'TopicConnection'
     | 'TagConnection'
+    | 'TagSearchResultConnection'
     | 'CircleConnection'
     | 'MemberConnection'
     | 'InvitationConnection'
@@ -9402,6 +9626,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
         | 'ArticleConnection'
         | 'TopicConnection'
         | 'TagConnection'
+        | 'TagSearchResultConnection'
         | 'CircleConnection'
         | 'MemberConnection'
         | 'InvitationConnection'
@@ -10958,8 +11183,18 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   articleNewSubscription?: NotificationSettingToArticleNewSubscriptionResolver<TParent>
   articleSubscribedNewComment?: NotificationSettingToArticleSubscribedNewCommentResolver<TParent>
   articleCommentPinned?: NotificationSettingToArticleCommentPinnedResolver<TParent>
+  circleNewSubscriber?: NotificationSettingToCircleNewSubscriberResolver<TParent>
   circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
+  circleNewUnsubscriber?: NotificationSettingToCircleNewUnsubscriberResolver<TParent>
   circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<TParent>
+  circleMemberBoradcast?: NotificationSettingToCircleMemberBoradcastResolver<TParent>
+  circleMemberNewDiscussion?: NotificationSettingToCircleMemberNewDiscussionResolver<TParent>
+  circleMemberNewDiscussionReply?: NotificationSettingToCircleMemberNewDiscussionReplyResolver<TParent>
+  inCircleNewArticle?: NotificationSettingToInCircleNewArticleResolver<TParent>
+  inCircleNewBoradcast?: NotificationSettingToInCircleNewBoradcastResolver<TParent>
+  inCircleNewBoradcastReply?: NotificationSettingToInCircleNewBoradcastReplyResolver<TParent>
+  inCircleNewDiscussion?: NotificationSettingToInCircleNewDiscussionResolver<TParent>
+  inCircleNewDiscussionReply?: NotificationSettingToInCircleNewDiscussionReplyResolver<TParent>
 }
 
 export interface NotificationSettingToEnableResolver<
@@ -11070,6 +11305,18 @@ export interface NotificationSettingToArticleCommentPinnedResolver<
   ): TResult
 }
 
+export interface NotificationSettingToCircleNewSubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface NotificationSettingToCircleNewFollowerResolver<
   TParent = any,
   TResult = any
@@ -11082,7 +11329,115 @@ export interface NotificationSettingToCircleNewFollowerResolver<
   ): TResult
 }
 
+export interface NotificationSettingToCircleNewUnsubscriberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface NotificationSettingToCircleNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberBoradcastResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToCircleMemberNewDiscussionReplyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewBoradcastResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewBoradcastReplyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToInCircleNewDiscussionReplyResolver<
   TParent = any,
   TResult = any
 > {

@@ -9,6 +9,6 @@ RUN apt-get update && apt-get -y install curl \
 # install dependencies
 WORKDIR /var/app
 COPY package*.json ./
-RUN npm i
+RUN npm install --force
 
 CMD ["npm", "run", "start"]

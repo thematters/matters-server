@@ -11,10 +11,15 @@ const resolver: ArticleToSummaryResolver = async (
   context,
   info
 ) => {
-  const { summary, content: cont } = parent
+  const { summary, content: cont, summaryCustomized } = parent
   const accessType = await accessTypeResolver(parent, args, context, info)
 
+  // console.log(new Date(), 'in article summary:', { access, summary, cont, parent, args, })
+
   if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
+    if (!summaryCustomized) {
+      return '' // drop pre-computed summary if not summaryCustomized
+    }
     return summary || ''
   }
 

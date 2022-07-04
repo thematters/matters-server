@@ -11,6 +11,7 @@ exports.seed = function (knex, Promise) {
           title: 'test draft 1',
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
+          publish_state: 'unpublished',
           tags: ['tag1', 'tag2'],
         },
         {
@@ -19,6 +20,7 @@ exports.seed = function (knex, Promise) {
           title: 'test draft 2',
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
+          publish_state: 'published',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -26,6 +28,7 @@ exports.seed = function (knex, Promise) {
           title: 'test draft 3',
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
+          publish_state: 'published',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -33,6 +36,7 @@ exports.seed = function (knex, Promise) {
           title: 'test draft 4',
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
+          publish_state: 'published',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000005',
@@ -40,6 +44,7 @@ exports.seed = function (knex, Promise) {
           title: 'test draft 5',
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
+          publish_state: 'published',
         },
       ])
     })

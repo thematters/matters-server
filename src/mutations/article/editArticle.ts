@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/matters-html-formatter'
-import { difference, flow, trim, uniq } from 'lodash'
+import lodash, { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -12,6 +12,7 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PUBLISH_STATE,
+  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -25,17 +26,17 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NameInvalidError,
   NotAllowAddOfficialTagError,
+  TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import {
   correctHtml,
   fromGlobalId,
-  isValidTagName,
   measureDiffs,
   sanitize,
   stripClass,
+  stripPunctPrefixSuffix,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToEditArticleResolver } from 'definitions'
@@ -55,6 +56,7 @@ const resolver: MutationToEditArticleResolver = async (
       circle: circleGlobalId,
       accessType,
       license,
+      iscnPublish,
     },
   },
   {
@@ -122,13 +124,13 @@ const resolver: MutationToEditArticleResolver = async (
       ).map(({ id: articleId }: { id: string }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       })
     }
 
     await articleService.baseUpdate(dbId, {
       sticky,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   }
 
@@ -142,26 +144,36 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags)
-      .map((tag) => {
-        if (!isValidTagName(tag)) {
-          throw new NameInvalidError(`invalid tag: ${tag}`)
-        }
-        return trim(tag)
-      })
-      .filter((t) => !!t)
+    tags = uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+
+    if (tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+      throw new TooManyTagsForArticleError(
+        `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
 
     // create tag records
-    const dbTags = (await Promise.all(
-      tags.map((tag: string) =>
-        tagService.create({
-          content: tag,
-          creator: article.authorId,
-          editors: tagEditors,
-          owner: article.authorId,
-        })
+    const dbTags = (
+      await Promise.all(
+        tags.map(async (tag: string) =>
+          tagService.create(
+            {
+              content: tag,
+              creator: article.authorId,
+              editors: tagEditors,
+              owner: article.authorId,
+            },
+            ['id', 'content']
+          )
+        )
       )
-    )) as unknown as [{ id: string; content: string }]
+    )
+      // eslint-disable-next-line no-shadow
+      // tslint:disable-next-line
+      .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
+      { id: string; content: string }
+    ]
+    console.log('new dbTags:', dbTags)
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
     const oldIds = (
@@ -216,12 +228,12 @@ const resolver: MutationToEditArticleResolver = async (
 
     await articleService.baseUpdate(dbId, {
       cover: asset.id,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   } else if (resetCover) {
     await articleService.baseUpdate(dbId, {
       cover: null,
-      updatedAt: new Date(),
+      updatedAt: knex.fn.now(),
     })
   }
 
@@ -288,7 +300,7 @@ const resolver: MutationToEditArticleResolver = async (
     const diff = difference(newIds, oldIds)
 
     // gather data
-    newIds.map((articleId: string, index: number) => {
+    newIds.forEach((articleId: string, index: number) => {
       const indexOf = oldIds.indexOf(articleId)
       if (indexOf < 0) {
         addItems.push({ entranceId: article.id, articleId, order: index })
@@ -305,8 +317,8 @@ const resolver: MutationToEditArticleResolver = async (
           table: 'collection',
           data: {
             ...item,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            // createdAt: new Date(),
+            // updatedAt: knex.fn.now(),
           },
         })
       ),
@@ -314,7 +326,7 @@ const resolver: MutationToEditArticleResolver = async (
         atomService.update({
           table: 'collection',
           where: { entranceId: item.entranceId, articleId: item.articleId },
-          data: { order: item.order },
+          data: { order: item.order, updatedAt: knex.fn.now() },
         })
       ),
     ])
@@ -399,7 +411,7 @@ const resolver: MutationToEditArticleResolver = async (
       table: 'article_circle',
       where: data,
       create: { ...data, access: accessType },
-      update: { ...data, access: accessType, updatedAt: new Date() },
+      update: { ...data, access: accessType, updatedAt: knex.fn.now() },
     })
   } else if (resetCircle) {
     await atomService.deleteMany({
@@ -419,7 +431,7 @@ const resolver: MutationToEditArticleResolver = async (
       data: {
         summary: summary || null,
         summaryCustomized: !!summary,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
   }
@@ -428,8 +440,8 @@ const resolver: MutationToEditArticleResolver = async (
    * Revision Count
    */
   const isUpdatingContent = !!content
+  const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
-  const shouldRepublish = isUpdatingContent || isUpdatingCircleOrAccess
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
@@ -438,36 +450,17 @@ const resolver: MutationToEditArticleResolver = async (
       )
     }
   }
-  const increaseRevisionCount = async () => {
-    checkRevisionCount()
-
-    await atomService.update({
-      table: 'article',
-      where: { id: article.id },
-      data: {
-        revisionCount: (article.revisionCount || 0) + 1,
-        updatedAt: new Date(),
-      },
-    })
-  }
 
   /**
    * License
    */
-  const resetLicense = license === null
-
-  if (license || resetLicense) {
-    // we wont increase twice if the article will be republish later
-    if (!shouldRepublish) {
-      await increaseRevisionCount()
-    }
-
+  if (license !== draft.license) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
       data: {
         license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(),
       },
     })
   }
@@ -503,31 +496,39 @@ const resolver: MutationToEditArticleResolver = async (
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
-    const data: Record<string, any> = {
-      uuid: v4(),
-      authorId: currDraft.authorId,
-      articleId: currArticle.id,
-      title: currDraft.title,
-      summary: currDraft.summary,
-      summaryCustomized: currDraft.summaryCustomized,
-      content: pipe(cleanedContent),
-      tags: currTagContents,
-      cover: currArticle.cover,
-      collection: currCollectionIds,
-      archived: false,
-      publishState: PUBLISH_STATE.pending,
-      circleId: currArticleCircle?.circleId,
-      access: currArticleCircle?.access,
-      license: currDraft?.license,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+    const data: Record<string, any> = lodash.omitBy(
+      {
+        uuid: v4(),
+        authorId: currDraft.authorId,
+        articleId: currArticle.id,
+        title: currDraft.title,
+        summary: currDraft.summary,
+        summaryCustomized: currDraft.summaryCustomized,
+        content: pipe(cleanedContent),
+        tags: currTagContents,
+        cover: currArticle.cover,
+        collection: currCollectionIds,
+        archived: false,
+        publishState: PUBLISH_STATE.pending,
+        circleId: currArticleCircle?.circleId,
+        access: currArticleCircle?.access,
+        license: currDraft?.license,
+        iscnPublish,
+      },
+      lodash.isUndefined // to drop only undefined // _.isNil
+    )
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle({
-      draftId: revisedDraft.id,
-    })
+    revisionQueue.publishRevisedArticle(
+      // lodash.omitBy(
+      {
+        draftId: revisedDraft.id,
+        iscnPublish,
+      }
+      //  lodash.isUndefined
+      // ) as RevisedArticleData
+    )
   }
 
   if (isUpdatingContent) {
@@ -541,8 +542,11 @@ const resolver: MutationToEditArticleResolver = async (
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
-    await republish(content)
-  } else if (isUpdatingCircleOrAccess) {
+    if (diffs > 0) {
+      // only republish when have changes
+      await republish(content)
+    }
+  } else if (isUpdatingCircleOrAccess || isUpdatingISCNPublish) {
     await republish()
   }
 

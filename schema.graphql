@@ -205,6 +205,9 @@ type Mutation {
   """Login/Signup via a wallet."""
   walletLogin(input: WalletLoginInput!): AuthResult!
 
+  """Reset crypto wallet."""
+  resetWallet(input: ResetWalletInput!): User!
+
   """Logout user."""
   userLogout: Boolean!
 
@@ -393,6 +396,9 @@ type Article implements Node {
   """License Type"""
   license: ArticleLicenseType!
 
+  """the iscnId if published to ISCN"""
+  iscnId: String
+
   """
   #############
        OSS    #
@@ -528,6 +534,9 @@ type Tag implements Node {
   """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
+  """Tags recommended based on relations to current tag."""
+  recommended(input: ConnectionArgs!): TagSearchResultConnection!
+
   """This value determines if it is official."""
   isOfficial: Boolean
 
@@ -561,6 +570,9 @@ type TagSearchResult implements Node {
   description: String
   numArticles: Int!
   numAuthors: Int!
+
+  """List of how many articles were attached with this tag."""
+  articles(input: TagArticlesInput!): ArticleConnection!
 }
 
 type ArticleAccess {
@@ -622,12 +634,26 @@ type TagEdge {
   node: Tag!
 }
 
+type TagSearchResultConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TagSearchResultEdge!]
+}
+
+type TagSearchResultEdge {
+  cursor: String!
+  node: TagSearchResult!
+}
+
 input ArticleInput {
   mediaHash: String!
 }
 
 input PublishArticleInput {
   id: ID!
+
+  """whether publish to ISCN"""
+  iscnPublish: Boolean
 }
 
 input EditArticleInput {
@@ -641,9 +667,10 @@ input EditArticleInput {
   collection: [ID!]
   circle: ID
   accessType: ArticleAccessType
-
-  """License Type, `ARR` is only for paywalled article"""
   license: ArticleLicenseType
+
+  """whether publish to ISCN"""
+  iscnPublish: Boolean
 }
 
 input AppreciateArticleInput {
@@ -738,11 +765,17 @@ input DeleteArticlesTagsInput {
   articles: [ID!]
 }
 
+enum TagArticlesSortBy {
+  byHottestDesc
+  byCreatedAtDesc
+}
+
 input TagArticlesInput {
   after: String
   first: Int
   oss: Boolean
   selected: Boolean
+  sortBy: TagArticlesSortBy = byCreatedAtDesc
 }
 
 input TagSelectedInput {
@@ -1122,8 +1155,6 @@ input PutCircleArticlesInput {
 
   """Access Type, `public` or `paywall` only."""
   accessType: ArticleAccessType!
-
-  """License Type, `ARR` is only for paywalled article"""
   license: ArticleLicenseType
 }
 
@@ -1376,6 +1407,9 @@ type Draft implements Node {
 
   """License Type"""
   license: ArticleLicenseType!
+
+  """whether publish to ISCN"""
+  iscnPublish: Boolean
 }
 
 type DraftConnection implements Connection {
@@ -1399,14 +1433,15 @@ input PutDraftInput {
   title: String
   summary: String
   content: String
-  tags: [String]
+  tags: [String!]
   cover: ID
   collection: [ID]
   circle: ID
   accessType: ArticleAccessType
-
-  """License Type, `ARR` is only for paywalled article"""
   license: ArticleLicenseType
+
+  """whether publish to ISCN"""
+  iscnPublish: Boolean
 }
 
 input DeleteDraftInput {
@@ -1554,6 +1589,7 @@ enum CommentNoticeType {
   ArticleNewComment
   SubscribedArticleNewComment
   CircleNewBroadcast
+  CircleNewDiscussion
 }
 
 type CommentCommentNotice implements Notice {
@@ -2383,8 +2419,22 @@ type NotificationSetting {
   articleNewSubscription: Boolean!
   articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
+
+  """for circle owners"""
+  circleNewSubscriber: Boolean!
   circleNewFollower: Boolean!
+  circleNewUnsubscriber: Boolean!
   circleNewDiscussion: Boolean!
+  circleMemberBoradcast: Boolean!
+  circleMemberNewDiscussion: Boolean!
+  circleMemberNewDiscussionReply: Boolean!
+
+  """for circle members"""
+  inCircleNewArticle: Boolean!
+  inCircleNewBoradcast: Boolean!
+  inCircleNewBoradcastReply: Boolean!
+  inCircleNewDiscussion: Boolean!
+  inCircleNewDiscussionReply: Boolean!
 }
 
 type ReadHistory {
@@ -2663,6 +2713,10 @@ input ResetLikerIdInput {
   id: ID!
 }
 
+input ResetWalletInput {
+  id: ID!
+}
+
 input UpdateNotificationSettingInput {
   type: NotificationSettingType!
   enabled: Boolean!
@@ -2772,8 +2826,22 @@ enum NotificationSettingType {
   articleNewSubscription
   articleSubscribedNewComment
   articleCommentPinned
+
+  """for circle owners"""
+  circleNewSubscriber
   circleNewFollower
+  circleNewUnsubscriber
   circleNewDiscussion
+  circleMemberBoradcast
+  circleMemberNewDiscussion
+  circleMemberNewDiscussionReply
+
+  """for circle members"""
+  inCircleNewArticle
+  inCircleNewBoradcast
+  inCircleNewBoradcastReply
+  inCircleNewDiscussion
+  inCircleNewDiscussionReply
 }
 
 enum UserState {

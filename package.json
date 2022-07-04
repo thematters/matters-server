@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "4.0.4",
+  "version": "4.3.3",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -88,7 +88,7 @@
     "lodash": "^4.17.21",
     "mime-types": "^2.1.31",
     "module-alias": "^2.2.2",
-    "nanoid": "^3.1.23",
+    "nanoid": "^3.1.31",
     "number-precision": "^1.5.0",
     "oauth2-server": "^3.1.1",
     "objection": "^3.0.1",

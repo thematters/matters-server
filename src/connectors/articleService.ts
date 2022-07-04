@@ -756,6 +756,7 @@ export class ArticleService extends BaseService {
       .select('tag_id')
       .from('article_tag')
       .where({ articleId })
+      .orderBy('created_at', 'desc')
 
     return result.map(({ tagId }: { tagId: string }) => tagId)
   }

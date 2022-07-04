@@ -198,6 +198,8 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
+    "the iscnId if published to ISCN"
+    iscnId: String
 
     ##############
     #     OSS    #
@@ -305,6 +307,9 @@ export default /* GraphQL */ `
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Tags recommended based on relations to current tag."
+    recommended(input: ConnectionArgs!): TagSearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "This value determines if it is official."
     isOfficial: Boolean
 
@@ -338,6 +343,9 @@ export default /* GraphQL */ `
 
     ## numArticlesR3m: Int!
     ## numAuthorsR3m: Int!
+
+    "List of how many articles were attached with this tag."
+    articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   type ArticleAccess {
@@ -399,12 +407,26 @@ export default /* GraphQL */ `
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
+  type TagSearchResultConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TagSearchResultEdge!]
+  }
+
+  type TagSearchResultEdge {
+    cursor: String!
+    node: TagSearchResult! @logCache(type: "${NODE_TYPES.TagSearchResult}")
+  }
+
   input ArticleInput {
     mediaHash: String!
   }
 
   input PublishArticleInput {
     id: ID!
+
+    "whether publish to ISCN"
+    iscnPublish: Boolean
   }
 
   input EditArticleInput {
@@ -418,9 +440,10 @@ export default /* GraphQL */ `
     collection: [ID!]
     circle: ID
     accessType: ArticleAccessType
-
-    "License Type, \`ARR\` is only for paywalled article"
     license: ArticleLicenseType
+
+    "whether publish to ISCN"
+    iscnPublish: Boolean
   }
 
   input AppreciateArticleInput {
@@ -515,11 +538,17 @@ export default /* GraphQL */ `
     articles: [ID!]
   }
 
+  enum TagArticlesSortBy {
+    byHottestDesc
+    byCreatedAtDesc
+  }
+
   input TagArticlesInput {
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
     selected: Boolean
+    sortBy: TagArticlesSortBy = byCreatedAtDesc
   }
 
   input TagSelectedInput {

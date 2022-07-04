@@ -106,10 +106,22 @@ const notice: {
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
         payment_payout: NOTICE_TYPE.TransactionNotice,
 
-        // circle
+        // circle owners
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
         circle_new_unsubscriber: NOTICE_TYPE.CircleNotice,
         circle_invitation: NOTICE_TYPE.CircleNotice,
+        circle_new_follower: NOTICE_TYPE.CircleNotice,
+        circle_new_discussion: NOTICE_TYPE.CircleNotice,
+        circle_member_boradcast: NOTICE_TYPE.CircleNotice,
+        circle_member_new_discussion: NOTICE_TYPE.CircleNotice,
+        circle_member_new_discussion_reply: NOTICE_TYPE.CircleNotice,
+
+        // in circle
+        in_circle_new_article: NOTICE_TYPE.CircleNotice,
+        in_circle_new_boradcast: NOTICE_TYPE.CircleNotice,
+        in_circle_new_boradcast_reply: NOTICE_TYPE.CircleNotice,
+        in_circle_new_discussion: NOTICE_TYPE.CircleNotice,
+        in_circle_new_discussion_reply: NOTICE_TYPE.CircleNotice,
 
         // crypto
         crypto_wallet_airdrop: NOTICE_TYPE.CryptoNotice,

@@ -95,11 +95,13 @@ export function connectionFromArray<T>(
 }
 
 export function connectionFromPromisedArray<T>(
-  dataPromise: Promise<T[]>,
+  dataPromise: Promise<T[]> | T[],
   args: ConnectionArguments,
   totalCount?: number
 ): Promise<Connection<T>> {
-  return dataPromise.then((data) => connectionFromArray(data, args, totalCount))
+  return Promise.resolve(dataPromise).then((data) =>
+    connectionFromArray(data, args, totalCount)
+  )
 }
 
 export const loadManyFilterError = (items: Array<Item | Error>) => {

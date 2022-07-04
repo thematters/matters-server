@@ -4,6 +4,8 @@
 *.swp
 *.rdb
 *.log
+*~
+
 yarn.lock
 node_modules
 build

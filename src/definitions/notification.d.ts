@@ -174,6 +174,14 @@ export interface NoticeCircleNewBroadcastParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
+export interface NoticeCircleNewDiscussionParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_discussion
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
 // Comment-Comment
 export interface NoticeCommentNewReplyParams
   extends NotificationRequiredParams {
@@ -290,6 +298,14 @@ export interface NoticeCircleNewSubscriberParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
+export interface NoticeCircleNewFollowerParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_follower
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+}
+
 export interface NoticeCircleNewUnsubscriberParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.circle_new_unsubscriber
@@ -397,6 +413,7 @@ export type NotificationPrarms =
   | NoticeCircleDiscussionMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
   | NoticeCircleNewBroadcastParams
+  | NoticeCircleNewDiscussionParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
   | NoticeCircleBroadcastNewReplyParams
@@ -413,6 +430,7 @@ export type NotificationPrarms =
   | NoticePaymentPayoutParams
   // Circle
   | NoticeCircleNewSubscriberParams
+  | NoticeCircleNewFollowerParams
   | NoticeCircleNewUnsubscriberParams
   | NoticeCircleInvitationParams
   // Official

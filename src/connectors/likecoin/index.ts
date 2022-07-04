@@ -2,14 +2,16 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
+import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
+  LikerISCNPublishWithoutWalletError,
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { knex } from 'connectors'
+import { CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
@@ -53,6 +55,7 @@ const ENDPOINTS = {
   like: '/like/likebutton',
   rate: '/misc/price',
   superlike: '/like/share',
+  iscnPublish: '/iscn/new?claim=1',
   cosmosTx: '/cosmos/lcd/txs',
 }
 
@@ -64,9 +67,11 @@ const ENDPOINTS = {
  */
 export class LikeCoin {
   knex: Knex
+  cache: CacheService
 
   constructor() {
     this.knex = knex
+    this.cache = new CacheService('likecoin')
   }
 
   /**
@@ -81,7 +86,8 @@ export class LikeCoin {
     headers = {},
     ...axiosOptions
   }: RequestProps) => {
-    const makeRequest = ({ accessToken }: { accessToken?: string }) => {
+    let accessToken = liker?.accessToken
+    const makeRequest = () => {
       // Headers
       if (accessToken) {
         headers = {
@@ -129,39 +135,39 @@ export class LikeCoin {
       })
     }
 
-    try {
-      return await makeRequest({
-        accessToken: liker ? liker.accessToken : undefined,
-      })
-    } catch (e) {
-      const data = _.get(e, 'response.data')
+    let retries = 0
+    while (retries < 2) {
+      // call makeRequest at most twice
+      try {
+        return await makeRequest()
+      } catch (e) {
+        const err = _.get(e, 'response.data')
 
-      // refresh token and retry once
-      if (liker && data === ERROR_CODES.TOKEN_EXPIRED) {
-        const accessToken = await this.refreshToken({ liker })
-        return makeRequest({ accessToken })
+        switch (err) {
+          case ERROR_CODES.TOKEN_EXPIRED:
+          case ERROR_CODES.LOGIN_NEEDED:
+            if (liker && retries++ < 1) {
+              accessToken = await this.refreshToken({ liker })
+              continue
+            }
+            break
+
+          case ERROR_CODES.EMAIL_ALREADY_USED:
+            throw new LikerEmailExistsError('email already used.')
+          case ERROR_CODES.OAUTH_USER_ID_ALREADY_USED:
+            throw new LikerUserIdExistsError('user id already used.')
+
+          // notify client to prompt the user for reauthentication.
+          // case ERROR_CODES.LOGIN_NEEDED: // was not re-trying
+          case ERROR_CODES.INSUFFICIENT_PERMISSION:
+            throw new OAuthTokenInvalidError(
+              'token has no permission to access the resource, please reauth.'
+            )
+        }
+
+        logger.error(e)
+        throw e
       }
-
-      if (data === ERROR_CODES.EMAIL_ALREADY_USED) {
-        throw new LikerEmailExistsError('email already used.')
-      }
-
-      if (data === ERROR_CODES.OAUTH_USER_ID_ALREADY_USED) {
-        throw new LikerUserIdExistsError('user id already used.')
-      }
-
-      // notify client to prompt the user for reauthentication.
-      if (
-        data === ERROR_CODES.LOGIN_NEEDED ||
-        data === ERROR_CODES.INSUFFICIENT_PERMISSION
-      ) {
-        throw new OAuthTokenInvalidError(
-          "token hasn's permission to access the resource, please reauth."
-        )
-      }
-
-      logger.error(e)
-      throw e
     }
   }
 
@@ -189,7 +195,7 @@ export class LikeCoin {
           accessToken: data.access_token,
           refreshToken: data.refresh_token,
           scope: data.scope,
-          updatedAt: new Date(),
+          updatedAt: knex.fn.now(), // new Date(),
         })
     } catch (e) {
       logger.error(e)
@@ -339,9 +345,21 @@ export class LikeCoin {
     const res = await this.request({
       endpoint: `/users/id/${liker.likerId}/min`,
       method: 'GET',
-      liker,
+      // liker,
     })
     return !!_.get(res, 'data.isSubscribedCivicLiker')
+  }
+
+  /**
+   * Check if user is a civic liker
+   */
+  getCosmosWallet = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+    const res = await this.request({
+      endpoint: `/users/id/${liker.likerId}/min`,
+      method: 'GET',
+      // liker,
+    })
+    return _.get(res, 'data.cosmosWallet')
   }
 
   /**
@@ -494,6 +512,120 @@ export class LikeCoin {
     }
 
     return data.canSuperLike
+  }
+
+  iscnPublish = async ({
+    mediaHash,
+    ipfsHash,
+    cosmosWallet,
+    userName,
+    title,
+    description,
+    datePublished,
+    url,
+    tags,
+    liker,
+  }: // likerIp,
+  // userAgent,
+  {
+    mediaHash: string
+    ipfsHash: string
+    cosmosWallet: string
+    userName: string
+    title: string
+    description: string
+    datePublished: string // in format like 'YYYY-mm-dd' // "datePublished": "2019-04-19",
+    url: string
+    tags: string[]
+    liker: UserOAuthLikeCoin
+    // likerIp?: string
+    // userAgent?: string
+  }) => {
+    const endpoint = `${ENDPOINTS.iscnPublish}`
+
+    if (!(cosmosWallet && liker)) {
+      throw new LikerISCNPublishWithoutWalletError('no liker or no wallet')
+    }
+
+    const postData = {
+      recordNotes: 'Add IPFS fingerprint (by Matters.News)',
+      contentFingerprints: [
+        // "hash://sha256/9564b85669d5e96ac969dd0161b8475bbced9e5999c6ec598da718a3045d6f2e",
+        mediaHash,
+        ipfsHash, // "ipfs://QmNrgEMcUygbKzZeZgYFosdd27VE9KnWbyUD73bKZJ3bGi111"
+      ],
+      stakeholders: [
+        {
+          entity: {
+            '@id': `did:cosmos:${cosmosWallet}`,
+            name: userName,
+          },
+          rewardProportion: 100,
+          contributionType: 'http://schema.org/author',
+        },
+        {
+          rewardProportion: 0,
+          contributionType: 'http://schema.org/publisher',
+          entity: {
+            name: 'Matters.News',
+          },
+          // "footprint": "https://en.wikipedia.org/wiki/Fibonacci_number",
+          // "description": "The blog post referred the matrix form of computing Fibonacci numbers."
+        },
+      ],
+      type: 'Article',
+      name: title, // "使用矩陣計算遞歸關係式",
+      description, // "description": "An article on computing recursive function with matrix multiplication.",
+      datePublished, // "datePublished": "2019-04-19",
+      url, // "url": "https://nnkken.github.io/post/recursive-relation/",
+      // "usageInfo": "https://creativecommons.org/licenses/by/4.0",
+      keywords: tags, // ["matrix","recursion","keyword3"]
+    }
+
+    console.log('iscnPublish with postData:', JSON.stringify(postData))
+
+    const res = await this.request({
+      endpoint,
+      // ip: likerIp,
+      // userAgent,
+      withClientCredential: true,
+      method: 'POST',
+      data: postData,
+      liker,
+    })
+
+    const data = _.get(res, 'data')
+
+    this.cache.storeObject({
+      // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
+      keys: {
+        type: 'iscnPublish',
+        id: userName,
+        field: 'likerId',
+        args: { likerId: liker.likerId, mediaHash },
+      },
+      data: {
+        postData,
+        resData: data,
+      },
+      expire: CACHE_TTL.LONG, // save for 1 day
+    })
+
+    if (!data) {
+      console.error('iscnPublish with no data:', res)
+      throw res
+    }
+
+    if (!data.iscnId) {
+      console.error(
+        'iscnPublish failed posted results:',
+        res,
+        'with:',
+        postData
+      )
+    }
+
+    return data.iscnId
   }
 
   getCosmosTxData = async ({ hash }: { hash: string }) => {

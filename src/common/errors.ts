@@ -255,6 +255,14 @@ export class DuplicateTagError extends ApolloError {
   }
 }
 
+export class TooManyTagsForArticleError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'TOO_MANY_TAGS_FOR_ARTICLE')
+
+    Object.defineProperty(this, 'name', { value: 'TooManyTagsForArticleError' })
+  }
+}
+
 export class TagEditorsReachLimitError extends ApolloError {
   constructor(message: string) {
     super(message, 'TAG_EDITORS_REACH_LIMIT')
@@ -390,6 +398,22 @@ export class LikerUserIdExistsError extends ApolloError {
     super(message, 'LIKER_USER_ID_EXISTS')
 
     Object.defineProperty(this, 'name', { value: 'LikerUserIdExistsError' })
+  }
+}
+
+export class LikerISCNPublishWithoutWalletError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_WALLET_NOT_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'likerWalletNotExistsError' })
+  }
+}
+
+export class LikerISCNPublishFailureError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_ISCN_PUBLISH_FAILURE')
+
+    Object.defineProperty(this, 'name', { value: 'iscnPublishFailureError' })
   }
 }
 

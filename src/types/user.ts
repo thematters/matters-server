@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Login/Signup via a wallet."
     walletLogin(input: WalletLoginInput!): AuthResult!
 
+    "Reset crypto wallet."
+    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Logout user."
     userLogout: Boolean!
 
@@ -353,8 +356,25 @@ export default /* GraphQL */ `
     articleNewSubscription: Boolean!
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
-    circleNewFollower: Boolean! # deprecated
+
+    # circleNewFollower: Boolean! # deprecated
+    # circleNewDiscussion: Boolean!
+
+    "for circle owners"
+    circleNewSubscriber: Boolean!
+    circleNewFollower: Boolean!
+    circleNewUnsubscriber: Boolean!
     circleNewDiscussion: Boolean!
+    circleMemberBoradcast: Boolean!
+    circleMemberNewDiscussion: Boolean!
+    circleMemberNewDiscussionReply: Boolean!
+
+    "for circle members"
+    inCircleNewArticle: Boolean!
+    inCircleNewBoradcast: Boolean!
+    inCircleNewBoradcastReply: Boolean!
+    inCircleNewDiscussion: Boolean!
+    inCircleNewDiscussionReply: Boolean!
   }
 
   type ReadHistory {
@@ -643,6 +663,10 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  input ResetWalletInput {
+    id: ID!
+  }
+
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
     enabled: Boolean!
@@ -752,8 +776,22 @@ export default /* GraphQL */ `
     articleNewSubscription
     articleSubscribedNewComment
     articleCommentPinned
+
+    "for circle owners"
+    circleNewSubscriber
     circleNewFollower
+    circleNewUnsubscriber
     circleNewDiscussion
+    circleMemberBoradcast
+    circleMemberNewDiscussion
+    circleMemberNewDiscussionReply
+
+    "for circle members"
+    inCircleNewArticle
+    inCircleNewBoradcast
+    inCircleNewBoradcastReply
+    inCircleNewDiscussion
+    inCircleNewDiscussionReply
   }
 
   enum UserState {

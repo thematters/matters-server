@@ -14,11 +14,14 @@ test('findArticleIds', async () => {
 
 test('create', async () => {
   const content = 'foo'
-  const tag = await tagService.create({
-    content,
-    creator: '0',
-    editors: [],
-    owner: '0',
-  })
+  const tag = await tagService.create(
+    {
+      content,
+      creator: '0',
+      editors: [],
+      owner: '0',
+    },
+    ['id', 'content']
+  )
   expect(tag.content).toEqual(content)
 })

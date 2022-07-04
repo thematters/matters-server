@@ -8,6 +8,7 @@ import {
   CIRCLE_STATE,
   NODE_TYPES,
   PUBLISH_STATE,
+  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -20,10 +21,26 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NotAllowAddOfficialTagError,
+  TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
+import {
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  sanitize,
+  stripPunctPrefixSuffix,
+} from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
+
+function sanitizeTags(tags: string[] | null | undefined) {
+  if (Array.isArray(tags)) {
+    tags = _.uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+    if (tags.length === 0) {
+      return null
+    }
+  }
+  return tags
+}
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -37,6 +54,7 @@ const resolver: MutationToPutDraftResolver = async (
       systemService,
       userService,
     },
+    knex,
   }
 ) => {
   const {
@@ -44,20 +62,27 @@ const resolver: MutationToPutDraftResolver = async (
     title,
     summary,
     content,
-    tags,
+    // tags,
     cover,
     collection,
     circle: circleGlobalId,
     accessType,
     license,
+    iscnPublish,
   } = input
-
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.state === USER_STATE.frozen) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  const tags = sanitizeTags(input.tags)
+  if (Array.isArray(tags) && tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+    throw new TooManyTagsForArticleError(
+      `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+    )
   }
 
   // check for asset existence
@@ -78,7 +103,7 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check for collection existence
   // add to dbId array if ok
-  let collectionIds = null
+  let collectionIds // leave as undefined // = null
   if (collection) {
     collectionIds = await Promise.all(
       collection.map(async (articleGlobalId) => {
@@ -118,7 +143,7 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // check circle
-  let circleId = null
+  let circleId // leave as undefined // = null
   if (circleGlobalId) {
     const { id: cId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
@@ -151,12 +176,7 @@ const resolver: MutationToPutDraftResolver = async (
       table: 'tag',
       where: { id: mattyTagId },
     })
-    if (
-      mattyTag &&
-      tags &&
-      tags.length > 0 &&
-      tags.includes(mattyTag.content)
-    ) {
+    if (mattyTag && tags?.includes(mattyTag.content)) {
       throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
   }
@@ -167,7 +187,6 @@ const resolver: MutationToPutDraftResolver = async (
   const resetCircle = circleGlobalId === null
   const resetCollection =
     collection === null || (collection && collection.length === 0)
-  const resetTags = tags === null || (tags && tags.length === 0)
 
   const data: ItemData = _.omitBy(
     {
@@ -176,14 +195,15 @@ const resolver: MutationToPutDraftResolver = async (
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && sanitize(content),
-      tags,
+      tags, // : input.tags === undefined ? undefined : tags,
       cover: coverId,
       collection: collectionIds,
       circleId,
       access: accessType,
       license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      iscnPublish,
     },
-    _.isNil
+    _.isUndefined // to drop only undefined // _.isNil
   )
 
   // Update
@@ -249,12 +269,12 @@ const resolver: MutationToPutDraftResolver = async (
     // update
     return draftService.baseUpdate(dbId, {
       ...data,
-      updatedAt: new Date(),
       // reset fields
       summary: resetSummary ? null : data.summary || draft.summary,
       collection: resetCollection ? null : data.collection || draft.collection,
-      tags: resetTags ? null : data.tags || draft.tags,
+      // tags: resetTags ? null : data.tags || draft.tags,
       circleId: resetCircle ? null : data.circleId || draft.circleId,
+      updatedAt: knex.fn.now(),
     })
   }
 

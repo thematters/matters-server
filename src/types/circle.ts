@@ -335,7 +335,6 @@ export default /* GraphQL */ `
     "Access Type, \`public\` or \`paywall\` only."
     accessType: ArticleAccessType!
 
-    "License Type, \`ARR\` is only for paywalled article"
     license: ArticleLicenseType
   }
 

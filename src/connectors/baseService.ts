@@ -134,12 +134,23 @@ export class BaseService extends DataSource {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData, table?: TableName) => {
+  baseCreate = async (
+    data: ItemData,
+    table?: TableName,
+    columns: string[] = ['*'],
+    // onConflict?: [ 'ignore' ] | [ 'merge' ],
+    modifier?: (builder: Knex.QueryBuilder) => void
+  ) => {
     try {
-      const [result] = await this.knex(table || this.table)
+      const query = this.knex(table || this.table)
         .insert(data)
-        .returning('*')
-      logger.info(`Inserted id ${result.id} to ${table || this.table}`)
+        .returning(columns)
+      if (modifier) {
+        query.modify(modifier)
+      }
+      const [result] = await query
+      // logger.info(`Inserted id ${result.id} to ${table || this.table}`)
+
       return result
     } catch (err) {
       logger.error(err)
@@ -184,7 +195,8 @@ export class BaseService extends DataSource {
       .where(where)
       .update(data)
       .returning('*')
-    logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+    // logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+
     return updatedItem
   }
 
@@ -222,7 +234,7 @@ export class BaseService extends DataSource {
       .into(table || this.table)
       .returning('*')
 
-    logger.info(`Updated id ${id} in ${table || this.table}`)
+    // logger.info(`Updated id ${id} in ${table || this.table}`)
     return updatedItem
   }
   /**

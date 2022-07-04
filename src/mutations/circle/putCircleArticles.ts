@@ -134,8 +134,9 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
       license: currDraft?.license,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      iscnPublish: currDraft.iscnPublish,
+      // createdAt: new Date(),
+      // updatedAt: new Date(),
     }
     const revisedDraft = await draftService.baseCreate(data)
 
@@ -151,7 +152,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       where: { id: draftId },
       data: {
         license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(), // new Date(),
       },
     })
   }
@@ -191,7 +192,12 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         table: 'article_circle',
         where: data,
         create: { ...data, access: accessType },
-        update: { ...data, access: accessType, updatedAt: new Date() },
+        update: {
+          ...data,
+          access: accessType,
+          updatedAt: knex.fn.now(),
+          // new Date(),
+        },
       })
 
       await editLicense(article.draftId)
