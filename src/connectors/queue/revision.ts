@@ -19,7 +19,7 @@ import {
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import logger from 'common/logger'
-import { countWords, fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
+import { countWords, fromGlobalId, stripAllPunct } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
 import { GQLArticleAccessType } from 'definitions'
 
@@ -238,7 +238,7 @@ class RevisionQueue extends BaseQueue {
               datePublished: article.created_at?.toISOString().substring(0, 10),
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
               tags: Array.from(
-                new Set(draft.tags?.map(stripPunctPrefixSuffix).filter(Boolean))
+                new Set(draft.tags?.map(stripAllPunct).filter(Boolean))
               ), // after stripped, not raw draft.tags,
 
               // for liker auth&headers info

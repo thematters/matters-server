@@ -21,7 +21,7 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  stripPunctPrefixSuffix,
+  stripAllPunct,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -437,9 +437,7 @@ class PublicationQueue extends BaseQueue {
         : [article.authorId]
 
       // tags = uniq(tags) .map(trim) .filter((t) => !!t)
-      tags = Array.from(
-        new Set(tags.map(stripPunctPrefixSuffix).filter(Boolean))
-      )
+      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
 
       // create tag records, return tag record if already exists
       const dbTags = (await Promise.all(

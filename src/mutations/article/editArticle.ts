@@ -35,8 +35,8 @@ import {
   fromGlobalId,
   measureDiffs,
   sanitize,
+  stripAllPunct,
   stripClass,
-  stripPunctPrefixSuffix,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToEditArticleResolver } from 'definitions'
@@ -144,7 +144,7 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+    tags = uniq(tags.map(stripAllPunct).filter(Boolean))
 
     if (tags.length >= TAGS_PER_ARTICLE_LIMIT) {
       throw new TooManyTagsForArticleError(

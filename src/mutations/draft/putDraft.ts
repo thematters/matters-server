@@ -28,13 +28,13 @@ import {
   extractAssetDataFromHtml,
   fromGlobalId,
   sanitize,
-  stripPunctPrefixSuffix,
+  stripAllPunct,
 } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 function sanitizeTags(tags: string[] | null | undefined) {
   if (Array.isArray(tags)) {
-    tags = _.uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+    tags = _.uniq(tags.map(stripAllPunct).filter(Boolean))
     if (tags.length === 0) {
       return null
     }

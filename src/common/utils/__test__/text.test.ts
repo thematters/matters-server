@@ -1,6 +1,6 @@
-import { stripPunctPrefixSuffix, tagSlugify } from 'common/utils'
+import { stripAllPunct, tagSlugify } from 'common/utils'
 
-test('stripPunctPrefixSuffix', () => {
+test('stripAllPunct', () => {
   const pairs = [
     { tag: '', expected: '' },
 
@@ -14,10 +14,14 @@ test('stripPunctPrefixSuffix', () => {
     { tag: '＃小說', expected: '小說' },
     { tag: '＃小說＃', expected: '小說' },
     { tag: '＃小說 ＃ ', expected: '小說' },
+
+    // strip all nonAlphaNumber to a single space
+    { tag: '＃亞森．羅蘋 ＃ ', expected: '亞森 羅蘋' },
+    { tag: '蜘蛛人：返校日 2022 #', expected: '蜘蛛人 返校日 2022' },
   ]
 
   pairs.forEach(({ tag, expected }) =>
-    expect(stripPunctPrefixSuffix(tag)).toBe(expected)
+    expect(stripAllPunct(tag)).toBe(expected)
   )
 })
 

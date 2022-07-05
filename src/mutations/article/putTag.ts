@@ -14,7 +14,7 @@ import {
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
+import { fromGlobalId, stripAllPunct } from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
@@ -46,7 +46,7 @@ const resolver: MutationToPutTagResolver = async (
     coverId = null
   }
 
-  const tagContent = content ? stripPunctPrefixSuffix(content) : ''
+  const tagContent = content ? stripAllPunct(content) : ''
 
   if (!tagContent) {
     throw new NameInvalidError('invalid tag name')
