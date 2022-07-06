@@ -17,23 +17,19 @@ const resolver: CircleToWorksResolver = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const countQuery = knex
+  const query = knex
     .from('article_circle')
     .innerJoin('article', 'article.id', 'article_circle.article_id')
     .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
-    .count()
-    .first()
 
-  const articlesQuery = knex
-    .select()
-    .from('article_circle')
-    .innerJoin('article', 'article.id', 'article_circle.article_id')
-    .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
-    .orderBy('article_circle.updated_at', 'desc')
-    .offset(skip)
-    .limit(take)
+  // console.log('base query:', query.toString())
 
-  const [count, articles] = await Promise.all([countQuery, articlesQuery])
+  const [count, articles] = await Promise.all([
+    // countQuery,
+    query.clone().count().first(),
+    // articlesQuery,
+    query.orderBy('article_circle.article_id', 'desc').offset(skip).limit(take),
+  ])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
   return connectionFromPromisedArray(
