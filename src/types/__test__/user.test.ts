@@ -358,6 +358,17 @@ const RESET_USER_LIKER_ID = /* GraphQL */ `
   }
 `
 
+const RESET_USER_WALLET = /* GraphQL */ `
+  mutation ResetWallet($input: ResetWalletInput!) {
+    resetWallet(input: $input) {
+      id
+      info {
+        ethAddress
+      }
+    }
+  }
+`
+
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -891,5 +902,48 @@ describe('likecoin', () => {
       _get(data, 'user.id')
     )
     expect(_get(resetResult, 'data.resetLikerId.likerId')).toBeFalsy()
+  })
+})
+
+describe('crypto wallet', () => {
+  test('reset wallet', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // check if exists
+    const { data } = await server.executeOperation({
+      query: GET_USER_BY_USERNAME,
+      variables: { input: { userName: 'test1' } },
+    })
+
+    // reset
+    const resetResult = await server.executeOperation({
+      query: RESET_USER_WALLET,
+      variables: { input: { id: _get(data, 'user.id') } },
+    })
+    expect(_get(resetResult, 'data.resetWallet.id')).toBe(_get(data, 'user.id'))
+    expect(_get(resetResult, 'data.resetWallet.info.ethAddress')).toBeFalsy()
+  })
+
+  test('reset wallet forbidden', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // check if exists
+    const { data } = await server.executeOperation({
+      query: GET_USER_BY_USERNAME,
+      variables: { input: { userName: 'test10' } },
+    })
+
+    // reset
+    const resetResult = await server.executeOperation({
+      query: RESET_USER_WALLET,
+      variables: { input: { id: _get(data, 'user.id') } },
+    })
+    expect(_get(resetResult, 'data.resetWallet.id')).toBeFalsy()
   })
 })
