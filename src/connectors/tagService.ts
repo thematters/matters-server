@@ -515,14 +515,13 @@ export class TagService extends BaseService {
           body,
         })
 
-        const { hits } = result.body
+        const { hits } = result
 
         hits.hits.forEach(
-          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-            ids.add(_source?.id)
+          hit => ids.add(hit._id)
         )
 
-        totalCount = hits.total.value
+        totalCount = hits.total as number
       }
 
       const queryTags = this.knex
@@ -1105,11 +1104,10 @@ export class TagService extends BaseService {
         body,
       })
 
-      const { hits } = result.body
+      const { hits } = result
 
       hits.hits.forEach(
-        ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-          ids.add(_source?.id)
+        hit => ids.add(hit._id)
       )
     }
 
