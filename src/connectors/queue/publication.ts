@@ -81,7 +81,7 @@ class PublicationQueue extends BaseQueue {
         // A job successfully completed with a `result`.
         console.log('PublicationQueue: job completed:', {
           result,
-          data: job.data,
+          inputData: job.data,
         })
       })
 

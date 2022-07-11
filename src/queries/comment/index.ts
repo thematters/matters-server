@@ -1,4 +1,8 @@
-import { ARTICLE_PIN_COMMENT_LIMIT, NODE_TYPES } from 'common/enums'
+import {
+  ARTICLE_PIN_COMMENT_LIMIT,
+  COMMENT_TYPE_REVERSE,
+  NODE_TYPES,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import articleCommentCount from './article/commentCount'
@@ -47,6 +51,7 @@ export default {
     comments,
     parentComment,
     fromDonator,
+    type: ({ type }: { type: string }) => COMMENT_TYPE_REVERSE[type],
     node,
   },
   Circle: {

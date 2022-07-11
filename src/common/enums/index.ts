@@ -62,6 +62,9 @@ export const COMMENT_TYPE = {
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
 }
+export const COMMENT_TYPE_REVERSE = Object.fromEntries(
+  Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
+)
 
 export const USER_STATE = {
   frozen: 'frozen',

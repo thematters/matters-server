@@ -1200,6 +1200,7 @@ type Comment implements Node {
 
   """State of this comment."""
   state: CommentState!
+  type: CommentType!
 
   """Time of this comment was created."""
   createdAt: DateTime!
@@ -2417,6 +2418,7 @@ type NotificationSetting {
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
+  articleNewCollected: Boolean!
   articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
 
@@ -2425,9 +2427,11 @@ type NotificationSetting {
   circleNewFollower: Boolean!
   circleNewUnsubscriber: Boolean!
   circleNewDiscussion: Boolean!
-  circleMemberBoradcast: Boolean!
-  circleMemberNewDiscussion: Boolean!
-  circleMemberNewDiscussionReply: Boolean!
+
+  """deprecated"""
+  circleMemberBoradcast: Boolean! @deprecated(reason: "Merged into following")
+  circleMemberNewDiscussion: Boolean! @deprecated(reason: "Merged into following")
+  circleMemberNewDiscussionReply: Boolean! @deprecated(reason: "Merged into following")
 
   """for circle members"""
   inCircleNewArticle: Boolean!
@@ -2824,6 +2828,7 @@ enum NotificationSettingType {
   articleNewComment
   articleNewAppreciation
   articleNewSubscription
+  articleNewCollected
   articleSubscribedNewComment
   articleCommentPinned
 

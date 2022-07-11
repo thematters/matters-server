@@ -76,7 +76,10 @@ class RevisionQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('RevisionQueue: job completed:', { result, data: job.data })
+        console.log('RevisionQueue: job completed:', {
+          result,
+          inputData: job.data,
+        })
       })
 
     // publish revised article

@@ -33,6 +33,22 @@ export const sendDailySummary = async ({
     article_mentioned_you: NoticeItem[]
     comment_new_reply: NoticeItem[]
     comment_mentioned_you: NoticeItem[]
+
+    circle_new_subscriber: NoticeItem[]
+    circle_new_follower: NoticeItem[]
+    circle_new_unsubscriber: NoticeItem[]
+    circle_invitation: NoticeItem[]
+    circle_new_broadcast: NoticeItem[]
+    circle_new_discussion: NoticeItem[]
+    circle_member_boradcast: NoticeItem[]
+    circle_member_new_discussion: NoticeItem[]
+    circle_member_new_discussion_reply: NoticeItem[]
+
+    in_circle_new_article: NoticeItem[]
+    in_circle_new_boradcast: NoticeItem[]
+    in_circle_new_boradcast_reply: NoticeItem[]
+    in_circle_new_discussion: NoticeItem[]
+    in_circle_new_discussion_reply: NoticeItem[]
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
@@ -89,6 +105,72 @@ export const sendDailySummary = async ({
     }))
   )
 
+  // circle owners
+  const circle_new_subscriber = await Promise.all(
+    notices.circle_new_subscriber.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      actorCount: actors.length > 3 ? actors.length : false,
+    }))
+  )
+  const circle_new_follower = await Promise.all(
+    notices.circle_new_follower.map(async ({ actors = [] }) => ({
+      actors: await getActors(actors),
+      actorCount: actors.length > 3 ? actors.length : false,
+    }))
+  )
+  const circle_new_unsubscriber = await Promise.all(
+    notices.circle_new_unsubscriber.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      actorCount: actors.length > 3 ? actors.length : false,
+    }))
+  )
+  const circle_new_broadcast = await Promise.all(
+    notices.circle_new_broadcast.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      comment: await getCommentDigest(entities && entities.target),
+    }))
+  )
+  const circle_new_discussion = await Promise.all(
+    notices.circle_new_discussion.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      comment: await getCommentDigest(entities && entities.target),
+    }))
+  )
+
+  // for members in circle
+  const in_circle_new_article = await Promise.all(
+    notices.in_circle_new_article.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      article: await getArticleDigest(entities && entities.target),
+    }))
+  )
+  const in_circle_new_boradcast = await Promise.all(
+    notices.in_circle_new_boradcast.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      comment: await getCommentDigest(entities && entities.target),
+    }))
+  )
+  const in_circle_new_boradcast_reply = await Promise.all(
+    notices.in_circle_new_boradcast_reply.map(
+      async ({ actors = [], entities }) => ({
+        actor: await getUserDigest(actors[0]),
+        comment: await getCommentDigest(entities && entities.target),
+      })
+    )
+  )
+  const in_circle_new_discussion = await Promise.all(
+    notices.in_circle_new_discussion.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      comment: await getCommentDigest(entities && entities.target),
+    }))
+  )
+  const in_circle_new_discussion_reply = await Promise.all(
+    notices.in_circle_new_discussion.map(async ({ actors = [], entities }) => ({
+      actor: await getUserDigest(actors[0]),
+      comment: await getCommentDigest(entities && entities.target),
+    }))
+  )
+
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
     templateId,
@@ -123,6 +205,20 @@ export const sendDailySummary = async ({
             article_mentioned_you,
             comment_new_reply,
             comment_mentioned_you,
+
+            // to circle owners
+            circle_new_subscriber,
+            circle_new_follower,
+            circle_new_unsubscriber,
+            circle_new_broadcast,
+            circle_new_discussion,
+
+            // for members in circle
+            in_circle_new_article,
+            in_circle_new_boradcast,
+            in_circle_new_boradcast_reply,
+            in_circle_new_discussion,
+            in_circle_new_discussion_reply,
           },
         },
       },
