@@ -1589,6 +1589,7 @@ enum CommentNoticeType {
   ArticleNewComment
   SubscribedArticleNewComment
   CircleNewBroadcast
+  CircleNewDiscussion
 }
 
 type CommentCommentNotice implements Notice {
@@ -2418,8 +2419,22 @@ type NotificationSetting {
   articleNewSubscription: Boolean!
   articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
+
+  """for circle owners"""
+  circleNewSubscriber: Boolean!
   circleNewFollower: Boolean!
+  circleNewUnsubscriber: Boolean!
   circleNewDiscussion: Boolean!
+  circleMemberBoradcast: Boolean!
+  circleMemberNewDiscussion: Boolean!
+  circleMemberNewDiscussionReply: Boolean!
+
+  """for circle members"""
+  inCircleNewArticle: Boolean!
+  inCircleNewBoradcast: Boolean!
+  inCircleNewBoradcastReply: Boolean!
+  inCircleNewDiscussion: Boolean!
+  inCircleNewDiscussionReply: Boolean!
 }
 
 type ReadHistory {
@@ -2811,8 +2826,22 @@ enum NotificationSettingType {
   articleNewSubscription
   articleSubscribedNewComment
   articleCommentPinned
+
+  """for circle owners"""
+  circleNewSubscriber
   circleNewFollower
+  circleNewUnsubscriber
   circleNewDiscussion
+  circleMemberBoradcast
+  circleMemberNewDiscussion
+  circleMemberNewDiscussionReply
+
+  """for circle members"""
+  inCircleNewArticle
+  inCircleNewBoradcast
+  inCircleNewBoradcastReply
+  inCircleNewDiscussion
+  inCircleNewDiscussionReply
 }
 
 enum UserState {

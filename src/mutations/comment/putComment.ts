@@ -270,7 +270,7 @@ const resolver: MutationToPutCommentResolver = async (
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
-        updatedAt: new Date(),
+        updatedAt: knex.fn.now(), // new Date(),
       },
     })
   } else {
@@ -408,8 +408,12 @@ const resolver: MutationToPutCommentResolver = async (
       })
     }
 
-    // notify cirlce members and followers
-    if (circle && isCircleBroadcast && isLevel1Comment) {
+    // notify cirlce owner & members & followers
+    if (
+      circle &&
+      isLevel1Comment &&
+      (isCircleBroadcast || isCircleDiscussion)
+    ) {
       // retrieve circle members and followers
       const members = await knex
         .from('circle_subscription_item as csi')
@@ -435,20 +439,39 @@ const resolver: MutationToPutCommentResolver = async (
         ...followers.map((f) => f.userId),
       ])
 
-      recipients.forEach((recipientId) => {
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_broadcast,
-          actorId: viewer.id,
-          recipientId,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'comment',
-              entity: newComment,
-            },
-          ],
+      if (isCircleBroadcast) {
+        recipients.forEach((recipientId) => {
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_new_broadcast,
+            actorId: viewer.id,
+            recipientId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
         })
-      })
+      }
+
+      if (isCircleDiscussion) {
+        recipients.forEach((recipientId) => {
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_new_discussion,
+            actorId: viewer.id,
+            recipientId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
+        })
+      }
     }
   }
 

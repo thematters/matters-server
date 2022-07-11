@@ -65,11 +65,7 @@ class RevisionQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(
-          `RevisionQueue: Job#${job.id}/${job.name} progress progress:`,
-          { progress, data: job.data },
-          job
-        )
+        console.log(`RevisionQueue: Job#${job.id}/${job.name} progress progress:`, { progress, data: job.data }, job)
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -77,11 +73,7 @@ class RevisionQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log(
-          'RevisionQueue: job completed:',
-          { result, data: job.data },
-          job
-        )
+        console.log('RevisionQueue: job completed:', { result, data: job.data }, job)
       })
       .on('removed', (job) => {
         // A job successfully removed.

@@ -62,9 +62,7 @@ export const createQueue = (
   queue.on('completed', (job, result) => {
     // A job successfully completed with a `result`.
     logger.info(
-      `Job#${job.id}/${job.name} has been completed: ${JSON.stringify({
-        result,
-      })}.`
+      `Job#${job.id}/${job.name} has been completed: ${JSON.stringify(result)}.`
     )
   })
 

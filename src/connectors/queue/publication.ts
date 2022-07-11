@@ -66,11 +66,7 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(
-          `PublicationQueue: Job#${job.id}/${job.name} progress:`,
-          { progress, data: job.data },
-          job
-        )
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, { progress, data: job.data }, job)
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -78,11 +74,7 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log(
-          'PublicationQueue: job completed:',
-          { result, data: job.data },
-          job
-        )
+        console.log('PublicationQueue: job completed:', { result, data: job.data  }, job)
       })
       .on('removed', (job) => {
         // A job successfully removed.

@@ -20,14 +20,13 @@ export const newest: RecommendationToNewestResolver = async (
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const query = knex
-    .select('draft_id', 'article_set.id')
+    .select('article_set.draft_id', 'article_set.id')
     .from(
       knex
-        .select('id', 'draft_id')
+        .select()
         .from('article')
-        .where({ state: ARTICLE_STATE.active })
         .orderBy('id', 'desc')
-        .limit(MAX_ITEM_COUNT + 100) // add some extra to cover excluded ones in settings
+        .limit(MAX_ITEM_COUNT + 100) // add some extra to cover excluded ones
         .as('article_set')
     )
     .leftJoin(
@@ -35,18 +34,16 @@ export const newest: RecommendationToNewestResolver = async (
       'article_set.id',
       'setting.article_id'
     )
-    .where(function () {
+    .where({ state: ARTICLE_STATE.active })
+    .andWhere(function () {
       if (!oss) {
-        // this.where({ inNewest: true }).orWhereNull('in_newest')
-        this.whereRaw('in_newest IS NOT false')
+        this.where({ inNewest: true }).orWhereNull('in_newest')
       }
     })
     .as('newest')
 
-  console.log('base query:', query.toString())
-
-  const [_countRecord, articles] = await Promise.all([
-    MAX_ITEM_COUNT, // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
+  const [countRecord, articles] = await Promise.all([
+    knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
     knex
       .select()
       .from(query.clone().limit(MAX_ITEM_COUNT))
@@ -55,9 +52,14 @@ export const newest: RecommendationToNewestResolver = async (
       .limit(take),
   ])
 
+  const totalCount = parseInt(
+    countRecord ? (countRecord.count as string) : '0',
+    10
+  )
+
   return connectionFromPromisedArray(
     draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
     input,
-    MAX_ITEM_COUNT // totalCount
+    totalCount
   )
 }
