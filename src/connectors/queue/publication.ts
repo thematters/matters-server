@@ -66,7 +66,11 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, { progress, data: job.data }, job)
+        console.log(
+          `PublicationQueue: Job#${job.id}/${job.name} progress:`,
+          { progress, data: job.data },
+          job
+        )
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -74,7 +78,11 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('PublicationQueue: job completed:', { result, data: job.data  }, job)
+        console.log(
+          'PublicationQueue: job completed:',
+          { result, data: job.data },
+          job
+        )
       })
       .on('removed', (job) => {
         // A job successfully removed.
@@ -175,8 +183,6 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(30)
 
-      let iscnId = null
-
       // Note: the following steps won't affect the publication.
       try {
         const author = await this.userService.baseFindById(draft.authorId)
@@ -237,6 +243,7 @@ class PublicationQueue extends BaseQueue {
         console.log(`before iscnPublish:`, job.data, draft)
 
         // Step: iscn publishing
+        let iscnId = null
         if (iscnPublish || draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
             userId: author.id,
@@ -338,8 +345,6 @@ class PublicationQueue extends BaseQueue {
         draftId: publishedDraft.id,
         dataHash: publishedDraft.dataHash,
         mediaHash: publishedDraft.mediaHash,
-        iscnPublish: iscnPublish || draft.iscnPublish,
-        iscnId,
       })
     } catch (e) {
       await this.draftService.baseUpdate(draft.id, {
