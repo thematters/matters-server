@@ -41,6 +41,8 @@ export default /* GraphQL */ `
     "State of this comment."
     state: CommentState!
 
+    type: CommentType!
+
     "Time of this comment was created."
     createdAt: DateTime!
 

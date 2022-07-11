@@ -517,7 +517,7 @@ class Notice extends BaseService {
       circle_new_article: true,
 
       // article-article
-      article_new_collected: true,
+      article_new_collected: setting.articleNewCollected,
 
       // comment
       comment_pinned: setting.articleCommentPinned,

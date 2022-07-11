@@ -1200,6 +1200,7 @@ type Comment implements Node {
 
   """State of this comment."""
   state: CommentState!
+  type: CommentType!
 
   """Time of this comment was created."""
   createdAt: DateTime!
@@ -2417,6 +2418,7 @@ type NotificationSetting {
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
+  articleNewCollected: Boolean!
   articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
 
@@ -2824,6 +2826,7 @@ enum NotificationSettingType {
   articleNewComment
   articleNewAppreciation
   articleNewSubscription
+  articleNewCollected
   articleSubscribedNewComment
   articleCommentPinned
 

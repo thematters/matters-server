@@ -354,6 +354,7 @@ export default /* GraphQL */ `
     articleNewComment: Boolean!
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
+    articleNewCollected: Boolean!
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
 
@@ -365,9 +366,9 @@ export default /* GraphQL */ `
     circleNewFollower: Boolean!
     circleNewUnsubscriber: Boolean!
     circleNewDiscussion: Boolean!
-    circleMemberBoradcast: Boolean!
-    circleMemberNewDiscussion: Boolean!
-    circleMemberNewDiscussionReply: Boolean!
+    circleMemberBoradcast: Boolean! # deprecated
+    circleMemberNewDiscussion: Boolean! # deprecated
+    circleMemberNewDiscussionReply: Boolean! # deprecated
 
     "for circle members"
     inCircleNewArticle: Boolean!
@@ -774,6 +775,7 @@ export default /* GraphQL */ `
     articleNewComment
     articleNewAppreciation
     articleNewSubscription
+    articleNewCollected
     articleSubscribedNewComment
     articleCommentPinned
 

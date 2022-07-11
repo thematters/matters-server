@@ -1661,6 +1661,7 @@ export interface GQLComment extends GQLNode {
    * State of this comment.
    */
   state: GQLCommentState
+  type: GQLCommentType
 
   /**
    * Time of this comment was created.
@@ -3355,6 +3356,7 @@ export interface GQLNotificationSetting {
   articleNewComment: boolean
   articleNewAppreciation: boolean
   articleNewSubscription: boolean
+  articleNewCollected: boolean
   articleSubscribedNewComment: boolean
   articleCommentPinned: boolean
 
@@ -3845,6 +3847,7 @@ export const enum GQLNotificationSettingType {
   articleNewComment = 'articleNewComment',
   articleNewAppreciation = 'articleNewAppreciation',
   articleNewSubscription = 'articleNewSubscription',
+  articleNewCollected = 'articleNewCollected',
   articleSubscribedNewComment = 'articleSubscribedNewComment',
   articleCommentPinned = 'articleCommentPinned',
 
@@ -8140,6 +8143,7 @@ export interface MonthlyDatumToDateResolver<TParent = any, TResult = any> {
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
+  type?: CommentToTypeResolver<TParent>
   createdAt?: CommentToCreatedAtResolver<TParent>
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
@@ -8165,6 +8169,15 @@ export interface CommentToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -11181,6 +11194,7 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   articleNewComment?: NotificationSettingToArticleNewCommentResolver<TParent>
   articleNewAppreciation?: NotificationSettingToArticleNewAppreciationResolver<TParent>
   articleNewSubscription?: NotificationSettingToArticleNewSubscriptionResolver<TParent>
+  articleNewCollected?: NotificationSettingToArticleNewCollectedResolver<TParent>
   articleSubscribedNewComment?: NotificationSettingToArticleSubscribedNewCommentResolver<TParent>
   articleCommentPinned?: NotificationSettingToArticleCommentPinnedResolver<TParent>
   circleNewSubscriber?: NotificationSettingToCircleNewSubscriberResolver<TParent>
@@ -11270,6 +11284,18 @@ export interface NotificationSettingToArticleNewAppreciationResolver<
 }
 
 export interface NotificationSettingToArticleNewSubscriptionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToArticleNewCollectedResolver<
   TParent = any,
   TResult = any
 > {

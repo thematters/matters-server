@@ -66,7 +66,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, { progress, data: job.data }, job)
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, {
+          progress,
+          data: job.data,
+        })
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -74,7 +77,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('PublicationQueue: job completed:', { result, data: job.data  }, job)
+        console.log('PublicationQueue: job completed:', {
+          result,
+          inputData: job.data,
+        })
       })
       .on('removed', (job) => {
         // A job successfully removed.
@@ -329,7 +335,7 @@ class PublicationQueue extends BaseQueue {
         // ignore errors caused by these steps
         logger.error(e)
 
-        console.error(new Date(), 'job failed at optional step:', job, draft)
+        console.error(new Date(), 'job failed at optional step:', e, job, draft)
       }
 
       done(null, {
