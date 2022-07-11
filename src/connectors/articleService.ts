@@ -564,14 +564,14 @@ export class ArticleService extends BaseService {
         field: 'embedding_vector',
         query_vector: factors,
         k: 10,
-        num_candidates: size
+        num_candidates: size,
       },
       filter: {
         bool: {
-            must: { term: {state: ARTICLE_STATE.active}},
-            must_not: {'term': { id }}
-        }
-      }
+          must: { term: { state: ARTICLE_STATE.active } },
+          must_not: { term: { id } },
+        },
+      },
     }
 
     const body = await this.es.client.knnSearch(searchBody)

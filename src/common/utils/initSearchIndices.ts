@@ -6,7 +6,7 @@ import logger from 'common/logger'
 import { ArticleService, TagService, UserService } from 'connectors'
 
 const articleIndexDef = {
-  index: "article",
+  index: 'article',
   settings: {
     analysis: {
       analyzer: {
@@ -116,7 +116,7 @@ const articleIndexDef = {
 }
 
 const userIndexDef = {
-  index: "user",
+  index: 'user',
   settings: {
     analysis: {
       analyzer: {

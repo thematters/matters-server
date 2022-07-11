@@ -517,9 +517,7 @@ export class TagService extends BaseService {
 
         const { hits } = result
 
-        hits.hits.forEach(
-          hit => ids.add(hit._id)
-        )
+        hits.hits.forEach((hit) => ids.add(hit._id))
 
         totalCount = hits.total as number
       }
@@ -1106,9 +1104,7 @@ export class TagService extends BaseService {
 
       const { hits } = result
 
-      hits.hits.forEach(
-        hit => ids.add(hit._id)
-      )
+      hits.hits.forEach((hit) => ids.add(hit._id))
     }
 
     const subquery = this.knex
