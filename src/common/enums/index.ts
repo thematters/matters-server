@@ -62,7 +62,7 @@ export const COMMENT_TYPE = {
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
 }
-export const COMMENT_TYPE_REVERSE = Object.fromEntries(
+export const COMMENT_TYPES_REVERSED = Object.fromEntries(
   Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
 )
 
