@@ -38,6 +38,10 @@ jobs:
         image: elasticsearch:8.2.3
         ports:
           - 9200:9200
+        env:
+          discovery.seed_hosts=localhost
+          cluster.initial_master_nodes=node1
+          xpack.security.enabled=false
       ipfs:
         image: ipfs/go-ipfs:v0.9.1
         ports:
