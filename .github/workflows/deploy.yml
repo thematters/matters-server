@@ -39,8 +39,7 @@ jobs:
         ports:
           - 9200:9200
         env:
-          discovery.seed_hosts: localhost
-          cluster.initial_master_nodes: node1
+          discovery.type: single-node
           xpack.security.enabled: false
       ipfs:
         image: ipfs/go-ipfs:v0.9.1
