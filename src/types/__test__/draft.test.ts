@@ -34,7 +34,11 @@ describe('put draft', () => {
   })
 
   test('edit draft tags', async () => {
-    const tags = ['abc', '123']
+    const tags = [
+      'abc',
+      '123',
+      'tags too long | too long | too long | too long | too long', // will be omitted
+    ]
     const result = await putDraft({ draft: { id: draftId, tags } })
     expect(_get(result, 'tags.length')).toBe(2)
     expect(_get(result, 'tags.0')).toBe(tags[0])

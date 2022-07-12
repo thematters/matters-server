@@ -1,8 +1,4 @@
-import _replace from 'lodash/replace'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
-
-import { ASSET_TYPE, USER_STATE } from 'common/enums'
+import { ASSET_TYPE, MAX_TAG_CONTENT_LENGTH, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
@@ -48,7 +44,7 @@ const resolver: MutationToPutTagResolver = async (
 
   const tagContent = content ? stripAllPunct(content) : ''
 
-  if (!tagContent) {
+  if (!(tagContent && tagContent.length <= MAX_TAG_CONTENT_LENGTH)) {
     throw new NameInvalidError('invalid tag name')
   }
 
@@ -64,8 +60,10 @@ const resolver: MutationToPutTagResolver = async (
         content: tagContent,
         creator: viewer.id,
         description,
-        editors: _uniq(
-          environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+        editors: Array.from(
+          new Set(
+            environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+          )
         ),
         owner: viewer.id,
         cover: coverId,
@@ -84,7 +82,7 @@ const resolver: MutationToPutTagResolver = async (
 
     // update only allow: owner, editor, matty
     const isOwner = tag.owner === viewer.id
-    const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
+    const isEditor = !!tag.editors?.some((editor: any) => editor === viewer.id)
     const isMatty = viewer.id === environment.mattyId
     const isMaintainer = isOwner || isEditor || isMatty
 

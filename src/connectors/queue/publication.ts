@@ -3,10 +3,12 @@ import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-// import { trim, uniq } from 'lodash'
 
 import {
   DB_NOTICE_TYPE,
+
+  // tag related
+  MAX_TAG_CONTENT_LENGTH,
   NODE_TYPES,
   PIN_STATE,
   PUBLISH_STATE,
@@ -66,7 +68,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, { progress, data: job.data }, job)
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, {
+          progress,
+          data: job.data,
+        })
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -74,11 +79,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('PublicationQueue: job completed:', { result, data: job.data  }, job)
-      })
-      .on('removed', (job) => {
-        // A job successfully removed.
-        console.log('PublicationQueue: job removed:', job)
+        console.log('PublicationQueue: job completed:', {
+          result,
+          data: job.data,
+        })
       })
 
     // publish article
@@ -105,7 +109,6 @@ class PublicationQueue extends BaseQueue {
     // Step 1: checks
     console.log(
       `handlePublishArticle: progress 0 of initial publishing for draftId: ${draft?.id}:`,
-      // job,
       draft
     )
 
@@ -152,7 +155,6 @@ class PublicationQueue extends BaseQueue {
 
       console.log(
         `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
-        // job,
         article
       )
 
@@ -182,7 +184,6 @@ class PublicationQueue extends BaseQueue {
 
         console.log(
           `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
-          job,
           publishedDraft // draft
         )
 
@@ -268,9 +269,10 @@ class PublicationQueue extends BaseQueue {
           })
         }
 
-        logger.info(
-          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
-        )
+        console.log(`iscnPublish for draft id: ${draft.id} "${draft.title}":`, {
+          iscnId,
+          draft,
+        })
 
         if (iscnPublish || draft.iscnPublish != null) {
           // handling both cases of set to true or false, but not omit (undefined)
@@ -329,7 +331,7 @@ class PublicationQueue extends BaseQueue {
         // ignore errors caused by these steps
         logger.error(e)
 
-        console.error(new Date(), 'job failed at optional step:', job, draft)
+        console.error(new Date(), 'job failed at optional step:', e, job, draft)
       }
 
       done(null, {
@@ -436,8 +438,13 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      // tags = uniq(tags) .map(trim) .filter((t) => !!t)
-      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
+      tags = Array.from(
+        new Set(
+          tags
+            .map(stripAllPunct)
+            .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
+        )
+      )
 
       // create tag records, return tag record if already exists
       const dbTags = (await Promise.all(
