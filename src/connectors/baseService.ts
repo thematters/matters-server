@@ -172,11 +172,13 @@ export class BaseService extends DataSource {
     data,
     table,
     createOptions,
+    updateUpdatedAt,
   }: {
     where: { [key: string]: any }
     data: ItemData
     table?: TableName
     createOptions?: { [key: string]: any }
+    updateUpdatedAt?: boolean
   }) => {
     const tableName = table || this.table
     const item = await this.knex(tableName).select().where(where).first()
@@ -193,7 +195,10 @@ export class BaseService extends DataSource {
     // update
     const [updatedItem] = await this.knex(tableName)
       .where(where)
-      .update(data)
+      .update({
+        ...data,
+        ...(updateUpdatedAt ? { updatedAt: knex.fn.now() } : null),
+      })
       .returning('*')
     // logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
 

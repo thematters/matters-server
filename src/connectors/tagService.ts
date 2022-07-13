@@ -14,7 +14,6 @@ import {
 import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
@@ -162,9 +161,9 @@ export class TagService extends BaseService {
 
     try {
       item = await this.knex
-        .from(VIEW.tags_lasts_view)
+        .from(this.table)
         .select(columns)
-        .where('slug', tagSlugify(content))
+        .where('content', content)
         .first()
     } catch (err) {
       logger.error(err)
@@ -371,6 +370,51 @@ export class TagService extends BaseService {
       .where({ userId, targetId, action: TAG_ACTION.follow })
       .first()
     return !!result
+  }
+
+  isActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+  }) => {
+    const result = await this.knex
+      .select()
+      .from('action_tag')
+      .where({ userId, action, targetId })
+      .first()
+    return !!result
+  }
+
+  setActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+    enabled,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+    enabled: boolean
+  }) => {
+    const data = {
+      userId,
+      action,
+      targetId,
+    }
+    if (enabled) {
+      return this.baseUpdateOrCreate({
+        where: data,
+        data,
+        table: 'action_tag',
+        updateUpdatedAt: true,
+      })
+    } else {
+      return this.knex.from('action_tag').where(data).del()
+    }
   }
 
   countFollowers = async (targetId: string) => {
