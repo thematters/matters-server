@@ -84,6 +84,9 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
+  """pin or unpin tag."""
+  togglePinTag(input: ToggleItemInput!): Tag!
+
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
@@ -2161,6 +2164,9 @@ type User implements Node {
 
   """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
+
+  """Tags pinned by current user."""
+  pinnedTags(input: ConnectionArgs!): TagConnection!
 
   """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!

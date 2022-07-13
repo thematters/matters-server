@@ -78,6 +78,11 @@ export interface GQLMutation {
   toggleFollowTag: GQLTag
 
   /**
+   * pin or unpin tag.
+   */
+  togglePinTag: GQLTag
+
+  /**
    * Create or update tag.
    */
   putTag: GQLTag
@@ -2968,6 +2973,11 @@ export interface GQLUser extends GQLNode {
   tags: GQLTagConnection
 
   /**
+   * Tags pinned by current user.
+   */
+  pinnedTags: GQLTagConnection
+
+  /**
    * Drafts authored by current user.
    */
   drafts: GQLDraftConnection
@@ -4582,6 +4592,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTopics?: MutationToDeleteTopicsResolver<TParent>
   sortTopics?: MutationToSortTopicsResolver<TParent>
   toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
+  togglePinTag?: MutationToTogglePinTagResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
   updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
@@ -4777,6 +4788,18 @@ export interface MutationToToggleFollowTagResolver<
   (
     parent: TParent,
     args: MutationToToggleFollowTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToTogglePinTagArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToTogglePinTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToTogglePinTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10209,6 +10232,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   articles?: UserToArticlesResolver<TParent>
   topics?: UserToTopicsResolver<TParent>
   tags?: UserToTagsResolver<TParent>
+  pinnedTags?: UserToPinnedTagsResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
@@ -10342,6 +10366,18 @@ export interface UserToTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPinnedTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToPinnedTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToPinnedTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

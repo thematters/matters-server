@@ -120,6 +120,9 @@ export default /* GraphQL */ `
     "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Tags pinned by current user."
+    pinnedTags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 

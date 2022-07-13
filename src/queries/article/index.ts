@@ -62,7 +62,7 @@ import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
-import userTags from './user/tags'
+// import userTags from './user/tags'
 import userTopics from './user/topics'
 
 export default {
@@ -71,7 +71,7 @@ export default {
   },
   User: {
     articles: userArticles,
-    tags: userTags,
+    // tags: userTags,
     topics: userTopics,
   },
   Article: {

@@ -136,6 +136,30 @@ export class TagService extends BaseService {
       .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
       .orderBy('id', 'desc')
 
+  findPinnedTagsByUserId = async ({
+    userId,
+    skip,
+    take,
+  }: {
+    userId: string
+    skip?: number
+    take?: number
+  }) =>
+    this.knex
+      .select('target_id AS id')
+      .from('action_tag')
+      .where({ userId, action: TAG_ACTION.pin })
+      .orderBy('updated_at', 'desc') // update updated_at to re-order
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined) {
+          this.offset(skip)
+        }
+      })
+
   /**
    * Create a tag, but return one if it's existing.
    *
@@ -296,6 +320,7 @@ export class TagService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   follow = async ({
     targetId,
     userId,
@@ -315,6 +340,7 @@ export class TagService extends BaseService {
     })
   }
 
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   unfollow = async ({
     targetId,
     userId,
@@ -363,6 +389,7 @@ export class TagService extends BaseService {
    * Determine if an user followed a tag or not by a given id.
    *
    */
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   isFollower = async ({
     userId,
     targetId,
@@ -371,11 +398,56 @@ export class TagService extends BaseService {
     targetId: string
   }) => {
     const result = await this.knex
-      .select()
+      .select('id')
       .from('action_tag')
       .where({ userId, targetId, action: TAG_ACTION.follow })
       .first()
     return !!result
+  }
+
+  isActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+  }) => {
+    const result = await this.knex
+      .select('id')
+      .from('action_tag')
+      .where({ userId, action, targetId })
+      .first()
+    return !!result
+  }
+
+  setActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+    enabled,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+    enabled: boolean
+  }) => {
+    const data = {
+      userId,
+      action,
+      targetId,
+    }
+    if (enabled) {
+      return this.baseUpdateOrCreate({
+        where: data,
+        data,
+        table: 'action_tag',
+        updateUpdatedAt: true,
+      })
+    } else {
+      return this.knex.from('action_tag').where(data).del()
+    }
   }
 
   countFollowers = async (targetId: string) => {
