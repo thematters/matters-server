@@ -401,9 +401,6 @@ export class TagService extends BaseService {
         'latest_use'
       )
 
-    // console.log(new Date(), `selected: ${tags.length} tags:`, tags.slice(0, 5))
-    // logger.info(`selected: ${tags.length} tags:`)
-
     return this.es.indexManyItems({
       index: this.table,
       items: tags, // .map((tag) => ({...tag,})),
@@ -600,27 +597,54 @@ export class TagService extends BaseService {
     return tag.tagScore || 0
   }
 
-  findTopTags = ({ take = 50, skip }: { take?: number; skip?: number }) => {
+  findTopTags = ({
+    take = 50,
+    skip,
+    top = 'r3m',
+  }: {
+    take?: number
+    skip?: number
+    top?: 'r1w' | 'r1m' | 'r3m'
+  }) => {
     const query = this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
-      .orderByRaw('num_authors_r3m DESC NULLS LAST')
-      .orderByRaw('num_articles_r3m DESC NULLS LAST')
+      .modify(function (this: Knex.QueryBuilder) {
+        switch (top) {
+          case 'r1w':
+            this.orderByRaw(
+              'num_authors_r1w DESC NULLS LAST, num_articles_r1w DESC NULLS LAST'
+            )
+          // no break to fallthrough
+          case 'r1m':
+            this.orderByRaw(
+              'num_authors_r1m DESC NULLS LAST, num_articles_r1m DESC NULLS LAST'
+            )
+          // no break to fallthrough
+          case 'r3m':
+            // always use recent3months as fallback
+            this.orderByRaw(
+              'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
+            )
+          /* this orderBy does not work as documented
+               .orderBy([
+               { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
+               { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
+               { column: 'span_days', order: 'desc', nulls: 'last' },
+               ]) */
+        }
+      })
+      // last fallback
       .orderByRaw('span_days DESC NULLS LAST')
-    /*
-      .orderBy([
-        { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
-        { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
-        { column: 'span_days', order: 'desc', nulls: 'last' },
-      ]) */
-
-    if (take !== undefined) {
-      // neither undefined nor null, check both
-      query.limit(take)
-    }
-    if (skip !== undefined) {
-      query.offset(skip)
-    }
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined) {
+          this.offset(skip)
+        }
+      })
 
     console.log('findTopTags: use query:', query.toString())
 
