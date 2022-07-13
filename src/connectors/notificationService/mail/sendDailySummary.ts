@@ -127,5 +127,15 @@ export const sendDailySummary = async ({
         },
       },
     ],
+    trackingSettings: {
+      ganalytics: {
+        enable: true,
+        utmSource: 'matters',
+        utmMedium: 'email',
+        // utmTerm?: string;
+        utmContent: 'dailySummary',
+        // utmCampaign?: string;
+      },
+    },
   })
 }

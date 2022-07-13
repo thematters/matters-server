@@ -20,22 +20,7 @@ class MailService {
       return
     }
 
-    await this.mail.send({
-      ...params,
-      // mailSettings: {
-      //   sandboxMode: {
-      //     enable: isDev
-      //   }
-      // }
-      trackingSettings: {
-        ganalytics: {
-          enable: false,
-        },
-        clickTracking: {
-          enable: false,
-        },
-      },
-    })
+    await this.mail.send(params)
   }
 }
 
