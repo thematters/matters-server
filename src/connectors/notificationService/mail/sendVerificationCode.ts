@@ -56,5 +56,15 @@ export const sendVerificationCode = async ({
         },
       },
     ],
+    trackingSettings: {
+      ganalytics: {
+        enable: true,
+        utmSource: 'matters',
+        utmMedium: 'email',
+        // utmTerm?: string;
+        utmContent: type,
+        // utmCampaign?: string;
+      },
+    },
   })
 }
