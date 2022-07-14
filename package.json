@@ -84,7 +84,7 @@
     "ipfs-http-client": "^50.1.2",
     "js-base64": "^3.7.2",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.95.15",
+    "knex": "^2.1.0",
     "lodash": "^4.17.21",
     "mime-types": "^2.1.31",
     "module-alias": "^2.2.2",

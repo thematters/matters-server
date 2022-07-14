@@ -175,7 +175,15 @@ export class TagService extends BaseService {
       const tag = await this.baseCreate(
         { content, cover, creator, description, editors, owner },
         this.table,
-        columns
+        columns,
+        (builder: Knex.QueryBuilder) => {
+          builder
+            .onConflict(
+              // ignore only on content conflict and NOT deleted.
+              this.knex.raw('(content) WHERE NOT deleted')
+            )
+            .merge({ deleted: false })
+        }
       )
 
       // add tag into search engine
