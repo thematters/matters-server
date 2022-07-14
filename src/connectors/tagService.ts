@@ -176,9 +176,6 @@ export class TagService extends BaseService {
         { content, cover, creator, description, editors, owner },
         this.table,
         columns,
-        (builder: Knex.QueryBuilder) => {
-          builder.onConflict('content').merge({ deleted: false })
-        }
       )
 
       // add tag into search engine

@@ -67,8 +67,7 @@ class RevisionQueue extends BaseQueue {
         // A job's progress was updated!
         console.log(
           `RevisionQueue: Job#${job.id}/${job.name} progress progress:`,
-          { progress, data: job.data },
-          job
+          { progress, jobData: job.data }
         )
       })
       .on('failed', (job, err) => {
@@ -77,15 +76,10 @@ class RevisionQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log(
-          'RevisionQueue: job completed:',
-          { result, data: job.data },
-          job
-        )
-      })
-      .on('removed', (job) => {
-        // A job successfully removed.
-        console.log('RevisionQueue: job removed:', job)
+        console.log('RevisionQueue: job completed:', {
+          result,
+          jobData: job.data,
+        })
       })
 
     // publish revised article
@@ -108,7 +102,6 @@ class RevisionQueue extends BaseQueue {
       // Step 1: checks
       console.log(
         `handlePublishRevisedArticle: progress 0 of revise publishing for draftId: ${draft?.id}:`,
-        // job,
         draft
       )
 
@@ -151,8 +144,7 @@ class RevisionQueue extends BaseQueue {
         job.progress(30)
 
         console.log(
-          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}: articleId: ${article.id}:`,
-          // job,
+          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}:`,
           article
         )
 
@@ -209,7 +201,6 @@ class RevisionQueue extends BaseQueue {
 
           console.log(
             `handlePublishRevisedArticle: start optional steps of publishing for draft id: ${draft.id}:`,
-            job,
             draft
           )
 
@@ -225,7 +216,7 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
-          console.log(`before iscnPublish:`, job.data, draft)
+          console.log(`before iscnPublish:`, { draft, jobData: job.data })
 
           // Step: iscn publishing
           if (iscnPublish || draft.iscnPublish != null) {
@@ -263,8 +254,13 @@ class RevisionQueue extends BaseQueue {
             })
           }
 
-          logger.info(
-            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
+          console.log(
+            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`,
+            {
+              iscnId,
+              articleId: article.id,
+              title: article.title,
+            }
           )
 
           if (iscnPublish || draft.iscnPublish != null) {
@@ -272,10 +268,12 @@ class RevisionQueue extends BaseQueue {
             await Promise.all([
               this.draftService.baseUpdate(draft.id, {
                 iscnId,
+                iscnPublish: iscnPublish || draft.iscnPublish,
                 updatedAt: this.knex.fn.now(),
               }),
               this.articleService.baseUpdate(article.id, {
                 iscnId,
+                // iscnPublish: iscnPublish || draft.iscnPublish,
                 updatedAt: this.knex.fn.now(),
               }),
             ])
@@ -325,11 +323,17 @@ class RevisionQueue extends BaseQueue {
             }),
           ])
           job.progress(100)
-        } catch (e) {
+        } catch (err) {
           // ignore errors caused by these steps
-          logger.error(e)
+          logger.error(err)
 
-          console.error(new Date(), 'job failed at optional step:', job, draft)
+          console.error(
+            new Date(),
+            'job failed at optional step:',
+            err,
+            job,
+            draft
+          )
         }
 
         done(null, {

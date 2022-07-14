@@ -66,11 +66,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(
-          `PublicationQueue: Job#${job.id}/${job.name} progress:`,
-          { progress, data: job.data },
-          job
-        )
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, {
+          progress,
+          jobData: job.data,
+        })
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -78,15 +77,10 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log(
-          'PublicationQueue: job completed:',
-          { result, data: job.data },
-          job
-        )
-      })
-      .on('removed', (job) => {
-        // A job successfully removed.
-        console.log('PublicationQueue: job removed:', job)
+        console.log('PublicationQueue: job completed:', {
+          result,
+          jobData: job.data,
+        })
       })
 
     // publish article
@@ -159,8 +153,7 @@ class PublicationQueue extends BaseQueue {
       job.progress(20)
 
       console.log(
-        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
-        // job,
+        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}:`,
         article
       )
 
@@ -191,8 +184,7 @@ class PublicationQueue extends BaseQueue {
         const { userName, displayName } = author
 
         console.log(
-          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
-          job,
+          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}:`,
           publishedDraft // draft
         )
 
@@ -242,7 +234,7 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        console.log(`before iscnPublish:`, job.data, draft)
+        console.log(`before iscnPublish:`, { draft, jobData: job.data })
 
         // Step: iscn publishing
         if (iscnPublish || draft.iscnPublish) {
@@ -277,8 +269,13 @@ class PublicationQueue extends BaseQueue {
           })
         }
 
-        logger.info(
-          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`
+        console.log(
+          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`,
+          {
+            iscnId,
+            articleId: article.id,
+            title: article.title,
+          }
         )
 
         if (iscnPublish || draft.iscnPublish != null) {
@@ -286,10 +283,12 @@ class PublicationQueue extends BaseQueue {
           await Promise.all([
             this.draftService.baseUpdate(draft.id, {
               iscnId,
+              iscnPublish: iscnPublish || draft.iscnPublish,
               updatedAt: this.knex.fn.now(),
             }),
             this.articleService.baseUpdate(article.id, {
               iscnId,
+              // iscnPublish: iscnPublish || draft.iscnPublish,
               updatedAt: this.knex.fn.now(),
             }),
           ])
@@ -334,11 +333,17 @@ class PublicationQueue extends BaseQueue {
           }),
         ])
         job.progress(100)
-      } catch (e) {
+      } catch (err) {
         // ignore errors caused by these steps
-        logger.error(e)
+        logger.error(err)
 
-        console.error(new Date(), 'job failed at optional step:', job, draft)
+        console.error(
+          new Date(),
+          'job failed at optional step:',
+          err,
+          job,
+          draft
+        )
       }
 
       done(null, {
