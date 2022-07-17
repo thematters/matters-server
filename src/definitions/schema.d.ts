@@ -78,11 +78,6 @@ export interface GQLMutation {
   toggleFollowTag: GQLTag
 
   /**
-   * pin or unpin tag.
-   */
-  togglePinTag: GQLTag
-
-  /**
    * Create or update tag.
    */
   putTag: GQLTag
@@ -850,11 +845,6 @@ export interface GQLTagSearchResult extends GQLNode {
    * List of how many articles were attached with this tag.
    */
   articles: GQLArticleConnection
-
-  /**
-   * This value determines if this article is selected by this tag or not.
-   */
-  selected: boolean
 }
 
 export interface GQLArticleAccess {
@@ -3097,16 +3087,15 @@ export interface GQLRecommendation {
   /**
    * Global tag list, sort by activities in recent 14 days.
    */
-  tags: GQLTagSearchResultConnection
+  tags: GQLTagConnection
 
   /**
    * Hottest tag list
    */
-  hottestTags: GQLTagSearchResultConnection
+  hottestTags: GQLTagConnection
 
   /**
    * Selected tag list
-   * @deprecated rarely in use
    */
   selectedTags: GQLTagConnection
 
@@ -4593,7 +4582,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTopics?: MutationToDeleteTopicsResolver<TParent>
   sortTopics?: MutationToSortTopicsResolver<TParent>
   toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
-  togglePinTag?: MutationToTogglePinTagResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
   updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
@@ -4789,18 +4777,6 @@ export interface MutationToToggleFollowTagResolver<
   (
     parent: TParent,
     args: MutationToToggleFollowTagArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToTogglePinTagArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToTogglePinTagResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToTogglePinTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6656,7 +6632,6 @@ export interface GQLTagSearchResultTypeResolver<TParent = any> {
   numArticles?: TagSearchResultToNumArticlesResolver<TParent>
   numAuthors?: TagSearchResultToNumAuthorsResolver<TParent>
   articles?: TagSearchResultToArticlesResolver<TParent>
-  selected?: TagSearchResultToSelectedResolver<TParent>
 }
 
 export interface TagSearchResultToIdResolver<TParent = any, TResult = any> {
@@ -6747,21 +6722,6 @@ export interface TagSearchResultToArticlesResolver<
   (
     parent: TParent,
     args: TagSearchResultToArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagSearchResultToSelectedArgs {
-  input: GQLTagSelectedInput
-}
-export interface TagSearchResultToSelectedResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: TagSearchResultToSelectedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

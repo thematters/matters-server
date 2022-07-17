@@ -84,9 +84,6 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
-  """pin or unpin tag."""
-  togglePinTag(input: ToggleItemInput!): Tag!
-
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
@@ -576,9 +573,6 @@ type TagSearchResult implements Node {
 
   """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
-
-  """This value determines if this article is selected by this tag or not."""
-  selected(input: TagSelectedInput!): Boolean!
 }
 
 type ArticleAccess {
@@ -2243,13 +2237,13 @@ type Recommendation {
   icymi(input: ConnectionArgs!): ArticleConnection!
 
   """Global tag list, sort by activities in recent 14 days."""
-  tags(input: RecommendInput!): TagSearchResultConnection!
+  tags(input: RecommendInput!): TagConnection!
 
   """Hottest tag list"""
-  hottestTags(input: RecommendInput!): TagSearchResultConnection!
+  hottestTags(input: RecommendInput!): TagConnection!
 
   """Selected tag list"""
-  selectedTags(input: RecommendInput!): TagConnection! @deprecated(reason: "rarely in use")
+  selectedTags(input: RecommendInput!): TagConnection!
 
   """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
