@@ -45,6 +45,9 @@ export default /* GraphQL */ `
     "Follow or unfollow tag."
     toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
+    "pin or unpin tag."
+    togglePinTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
+
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
@@ -346,6 +349,9 @@ export default /* GraphQL */ `
 
     "List of how many articles were attached with this tag."
     articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
+    "This value determines if this article is selected by this tag or not."
+    selected(input: TagSelectedInput!): Boolean!
   }
 
   type ArticleAccess {
