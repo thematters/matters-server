@@ -17,7 +17,6 @@ import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
-import togglePinTag from './togglePinTag'
 import toggleSubscribePush from './toggleSubscribePush'
 import toggleUsersBadge from './toggleUsersBadge'
 import updateNotificationSetting from './updateNotificationSetting'
@@ -48,7 +47,6 @@ export default {
     toggleSubscribePush,
     toggleBlockUser,
     toggleFollowTag,
-    togglePinTag,
     toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,
