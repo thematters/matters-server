@@ -70,7 +70,7 @@ class PublicationQueue extends BaseQueue {
         // A job's progress was updated!
         console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, {
           progress,
-          data: job.data,
+          jobData: job.data,
         })
       })
       .on('failed', (job, err) => {
@@ -81,7 +81,7 @@ class PublicationQueue extends BaseQueue {
         // A job successfully completed with a `result`.
         console.log('PublicationQueue: job completed:', {
           result,
-          inputData: job.data,
+          jobData: job.data,
         })
       })
 
@@ -154,7 +154,7 @@ class PublicationQueue extends BaseQueue {
       job.progress(20)
 
       console.log(
-        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
+        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}:`,
         article
       )
 
@@ -177,13 +177,15 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(30)
 
+      let iscnId = null
+
       // Note: the following steps won't affect the publication.
       try {
         const author = await this.userService.baseFindById(draft.authorId)
         const { userName, displayName } = author
 
         console.log(
-          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}: articleId: ${article.id}`,
+          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}:`,
           publishedDraft // draft
         )
 
@@ -233,10 +235,9 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        console.log(`before iscnPublish:`, job.data, draft)
+        console.log(`before iscnPublish:`, { draft, jobData: job.data })
 
         // Step: iscn publishing
-        let iscnId = null
         if (iscnPublish || draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
             userId: author.id,
@@ -269,20 +270,26 @@ class PublicationQueue extends BaseQueue {
           })
         }
 
-        console.log(`iscnPublish for draft id: ${draft.id} "${draft.title}":`, {
-          iscnId,
-          draft,
-        })
+        console.log(
+          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`,
+          {
+            iscnId,
+            articleId: article.id,
+            title: article.title,
+          }
+        )
 
         if (iscnPublish || draft.iscnPublish != null) {
           // handling both cases of set to true or false, but not omit (undefined)
           await Promise.all([
             this.draftService.baseUpdate(draft.id, {
               iscnId,
+              iscnPublish: iscnPublish || draft.iscnPublish,
               updatedAt: this.knex.fn.now(),
             }),
             this.articleService.baseUpdate(article.id, {
               iscnId,
+              // iscnPublish: iscnPublish || draft.iscnPublish,
               updatedAt: this.knex.fn.now(),
             }),
           ])
@@ -327,11 +334,17 @@ class PublicationQueue extends BaseQueue {
           }),
         ])
         job.progress(100)
-      } catch (e) {
+      } catch (err) {
         // ignore errors caused by these steps
-        logger.error(e)
+        logger.error(err)
 
-        console.error(new Date(), 'job failed at optional step:', e, job, draft)
+        console.error(
+          new Date(),
+          'job failed at optional step:',
+          err,
+          job,
+          draft
+        )
       }
 
       done(null, {
@@ -339,6 +352,8 @@ class PublicationQueue extends BaseQueue {
         draftId: publishedDraft.id,
         dataHash: publishedDraft.dataHash,
         mediaHash: publishedDraft.mediaHash,
+        iscnPublish: iscnPublish || draft.iscnPublish,
+        iscnId,
       })
     } catch (e) {
       await this.draftService.baseUpdate(draft.id, {

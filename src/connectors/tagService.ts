@@ -175,10 +175,7 @@ export class TagService extends BaseService {
       const tag = await this.baseCreate(
         { content, cover, creator, description, editors, owner },
         this.table,
-        columns,
-        (builder: Knex.QueryBuilder) => {
-          builder.onConflict('content').merge({ deleted: false })
-        }
+        columns
       )
 
       // add tag into search engine
@@ -604,6 +601,7 @@ export class TagService extends BaseService {
   }: {
     take?: number
     skip?: number
+    // recent 1 week, 1 month, or 3 months?
     top?: 'r1w' | 'r1m' | 'r3m'
   }) => {
     const query = this.knex

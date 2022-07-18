@@ -67,7 +67,7 @@ class RevisionQueue extends BaseQueue {
         // A job's progress was updated!
         console.log(
           `RevisionQueue: Job#${job.id}/${job.name} progress progress:`,
-          { progress, data: job.data }
+          { progress, jobData: job.data }
         )
       })
       .on('failed', (job, err) => {
@@ -78,7 +78,7 @@ class RevisionQueue extends BaseQueue {
         // A job successfully completed with a `result`.
         console.log('RevisionQueue: job completed:', {
           result,
-          inputData: job.data,
+          jobData: job.data,
         })
       })
 
@@ -144,7 +144,7 @@ class RevisionQueue extends BaseQueue {
         job.progress(30)
 
         console.log(
-          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}: articleId: ${article.id}:`,
+          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}:`,
           article
         )
 
@@ -192,6 +192,8 @@ class RevisionQueue extends BaseQueue {
         )
         job.progress(50)
 
+        let iscnId = null
+
         // Note: the following steps won't affect the publication.
         try {
           const author = await this.userService.baseFindById(article.authorId)
@@ -214,10 +216,9 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
-          console.log(`before iscnPublish:`, job.data, draft)
+          console.log(`before iscnPublish:`, { draft, jobData: job.data })
 
           // Step: iscn publishing
-          let iscnId = null
           if (iscnPublish || draft.iscnPublish != null) {
             const liker = (await this.userService.findLiker({
               userId: author.id,
@@ -253,7 +254,11 @@ class RevisionQueue extends BaseQueue {
 
           console.log(
             `iscnPublish for draft id: ${draft.id} "${draft.title}":`,
-            { iscnId, draft }
+            {
+              iscnId,
+              articleId: article.id,
+              title: article.title,
+            }
           )
 
           if (iscnPublish || draft.iscnPublish != null) {
@@ -261,10 +266,12 @@ class RevisionQueue extends BaseQueue {
             await Promise.all([
               this.draftService.baseUpdate(draft.id, {
                 iscnId,
+                iscnPublish: iscnPublish || draft.iscnPublish,
                 updatedAt: this.knex.fn.now(),
               }),
               this.articleService.baseUpdate(article.id, {
                 iscnId,
+                // iscnPublish: iscnPublish || draft.iscnPublish,
                 updatedAt: this.knex.fn.now(),
               }),
             ])
@@ -314,14 +321,14 @@ class RevisionQueue extends BaseQueue {
             }),
           ])
           job.progress(100)
-        } catch (e) {
+        } catch (err) {
           // ignore errors caused by these steps
-          logger.error(e)
+          logger.error(err)
 
           console.error(
             new Date(),
             'job failed at optional step:',
-            e,
+            err,
             job,
             draft
           )
@@ -332,6 +339,8 @@ class RevisionQueue extends BaseQueue {
           draftId: draft.id,
           dataHash,
           mediaHash,
+          iscnPublish: iscnPublish || draft.iscnPublish,
+          iscnId,
         })
       } catch (e) {
         await this.draftService.baseUpdate(draft.id, {
