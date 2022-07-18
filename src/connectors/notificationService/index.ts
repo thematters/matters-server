@@ -80,8 +80,18 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_add_editor:
       case DB_NOTICE_TYPE.tag_leave_editor:
       case DB_NOTICE_TYPE.circle_new_subscriber:
-      case DB_NOTICE_TYPE.circle_new_unsubscriber:
+      case DB_NOTICE_TYPE.circle_new_follower:
       case DB_NOTICE_TYPE.circle_new_broadcast:
+      case DB_NOTICE_TYPE.circle_new_unsubscriber:
+      case DB_NOTICE_TYPE.circle_new_discussion:
+      // case DB_NOTICE_TYPE.circle_member_boradcast:
+      // case DB_NOTICE_TYPE.circle_member_new_discussion:
+      // case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case DB_NOTICE_TYPE.in_circle_new_article:
+      case DB_NOTICE_TYPE.in_circle_new_boradcast:
+      case DB_NOTICE_TYPE.in_circle_new_boradcast_reply:
+      case DB_NOTICE_TYPE.in_circle_new_discussion:
+      case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -170,6 +180,8 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
+    console.log('notificationService.__trigger:', params)
+
     const userService = new UserService()
     const recipient = (await userService.dataloader.load(
       params.recipientId
@@ -181,6 +193,12 @@ export class NotificationService extends BaseService {
     }
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
+
+    console.log(
+      'notificationService.__trigger: noticeParams',
+      noticeParams,
+      recipient
+    )
     if (!noticeParams) {
       return
     }
@@ -199,6 +217,8 @@ export class NotificationService extends BaseService {
       event: params.event,
       setting: notifySetting,
     })
+
+    console.log('notificationService.__trigger:', { notifySetting, enable })
     if (!enable) {
       logger.info(
         `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
@@ -208,6 +228,8 @@ export class NotificationService extends BaseService {
 
     // Put Notice to DB
     const { created, bundled } = await this.notice.process(noticeParams)
+
+    console.log('notificationService.__trigger:', { created, bundled })
 
     if (!created && !bundled) {
       logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)

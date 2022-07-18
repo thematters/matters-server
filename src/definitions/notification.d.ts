@@ -322,6 +322,46 @@ export interface NoticeCircleInvitationParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
+export interface NoticeInCircleNewArticleParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.in_circle_new_article
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
+export interface NoticeInCircleNewBroadcastParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.in_circle_new_boradcast
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeInCircleNewDiscussionParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.in_circle_new_discussion
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeInCircleNewBroadcastReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.in_circle_new_boradcast_reply
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeInCircleNewDiscussionReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.in_circle_new_discussion_reply
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
 /**
  * System
  */
@@ -433,6 +473,12 @@ export type NotificationPrarms =
   | NoticeCircleNewFollowerParams
   | NoticeCircleNewUnsubscriberParams
   | NoticeCircleInvitationParams
+  // Circle members
+  | NoticeInCircleNewArticleParams
+  | NoticeInCircleNewBroadcastParams
+  | NoticeInCircleNewDiscussionParams
+  | NoticeInCircleNewBroadcastReplyParams
+  | NoticeInCircleNewDiscussionReplyParams
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams

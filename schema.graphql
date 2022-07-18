@@ -1723,10 +1723,16 @@ type CircleNotice implements Notice {
 }
 
 enum CircleNoticeType {
-  CircleNewFollower
   CircleNewSubscriber
+  CircleNewFollower
   CircleNewUnsubscriber
   CircleInvitation
+  CircleNewDiscussion
+  InCircleNewArticle
+  InCircleNewBoradcast
+  InCircleNewBoradcastReply
+  InCircleNewDiscussion
+  InCircleNewDiscussionReply
 }
 
 """

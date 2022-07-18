@@ -282,10 +282,27 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.circle_new_subscriber:
           return GQLCircleNoticeType.CircleNewSubscriber
+        case DB_NOTICE_TYPE.circle_new_follower:
+          return GQLCircleNoticeType.CircleNewFollower
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
           return GQLCircleNoticeType.CircleNewUnsubscriber
         case DB_NOTICE_TYPE.circle_invitation:
           return GQLCircleNoticeType.CircleInvitation
+
+        // case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.circle_new_discussion:
+          return GQLCircleNoticeType.CircleNewDiscussion
+
+        case DB_NOTICE_TYPE.in_circle_new_article:
+          return GQLCircleNoticeType.InCircleNewArticle
+        case DB_NOTICE_TYPE.in_circle_new_boradcast:
+          return GQLCircleNoticeType.InCircleNewBoradcast
+        case DB_NOTICE_TYPE.in_circle_new_boradcast_reply:
+          return GQLCircleNoticeType.InCircleNewBoradcastReply
+        case DB_NOTICE_TYPE.in_circle_new_discussion:
+          return GQLCircleNoticeType.InCircleNewDiscussion
+        case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
+          return GQLCircleNoticeType.InCircleNewDiscussionReply
       }
     },
     target: ({ entities, type }) => {
@@ -293,6 +310,15 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_subscriber:
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
         case DB_NOTICE_TYPE.circle_invitation:
+        case DB_NOTICE_TYPE.circle_new_follower:
+        case DB_NOTICE_TYPE.circle_new_discussion:
+
+        // Circle members
+        case DB_NOTICE_TYPE.in_circle_new_article:
+        case DB_NOTICE_TYPE.in_circle_new_boradcast:
+        case DB_NOTICE_TYPE.in_circle_new_boradcast_reply:
+        case DB_NOTICE_TYPE.in_circle_new_discussion:
+        case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
           return entities.target
       }
     },

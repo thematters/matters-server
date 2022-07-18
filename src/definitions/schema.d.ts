@@ -2376,10 +2376,16 @@ export interface GQLCircleNotice extends GQLNotice {
 }
 
 export const enum GQLCircleNoticeType {
-  CircleNewFollower = 'CircleNewFollower',
   CircleNewSubscriber = 'CircleNewSubscriber',
+  CircleNewFollower = 'CircleNewFollower',
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
   CircleInvitation = 'CircleInvitation',
+  CircleNewDiscussion = 'CircleNewDiscussion',
+  InCircleNewArticle = 'InCircleNewArticle',
+  InCircleNewBoradcast = 'InCircleNewBoradcast',
+  InCircleNewBoradcastReply = 'InCircleNewBoradcastReply',
+  InCircleNewDiscussion = 'InCircleNewDiscussion',
+  InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
 }
 
 /**
