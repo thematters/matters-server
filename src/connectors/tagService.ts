@@ -14,7 +14,7 @@ import {
 import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { tagSlugify } from 'common/utils'
+// import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
@@ -162,9 +162,9 @@ export class TagService extends BaseService {
 
     try {
       item = await this.knex
-        .from(VIEW.tags_lasts_view)
+        .from(this.table) // (VIEW.tags_lasts_view)
         .select(columns)
-        .where('slug', tagSlugify(content))
+        .where('content', content) // ('slug', tagSlugify(content))
         .first()
     } catch (err) {
       logger.error(err)
