@@ -559,6 +559,7 @@ This type contains content, count and related statistics data of a tag.
 type TagSearchResult implements Node {
   """Unique id of this tag."""
   id: ID!
+  tag: Tag!
 
   """Content of this tag."""
   content: String!

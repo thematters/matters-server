@@ -823,6 +823,7 @@ export interface GQLTagSearchResult extends GQLNode {
    * Unique id of this tag.
    */
   id: string
+  tag: GQLTag
 
   /**
    * Content of this tag.
@@ -6648,6 +6649,7 @@ export interface TagToDeletedResolver<TParent = any, TResult = any> {
 
 export interface GQLTagSearchResultTypeResolver<TParent = any> {
   id?: TagSearchResultToIdResolver<TParent>
+  tag?: TagSearchResultToTagResolver<TParent>
   content?: TagSearchResultToContentResolver<TParent>
   createdAt?: TagSearchResultToCreatedAtResolver<TParent>
   cover?: TagSearchResultToCoverResolver<TParent>
@@ -6658,6 +6660,15 @@ export interface GQLTagSearchResultTypeResolver<TParent = any> {
 }
 
 export interface TagSearchResultToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagSearchResultToTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
