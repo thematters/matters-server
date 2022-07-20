@@ -95,6 +95,7 @@ export default /* GraphQL */ `
     RevisedArticlePublished
     RevisedArticleNotPublished
     CircleNewArticle
+    # InCircleNewArticle
   }
 
   type ArticleArticleNotice implements Notice {
@@ -153,6 +154,13 @@ export default /* GraphQL */ `
     SubscribedArticleNewComment
     CircleNewBroadcast
     CircleNewDiscussion
+    CircleMemberNewDiscussion
+    CircleMemberNewDiscussionReply
+    CircleMemberNewBroadcastReply
+    InCircleNewBroadcast
+    InCircleNewBroadcastReply
+    InCircleNewDiscussion
+    InCircleNewDiscussionReply
   }
 
   type CommentCommentNotice implements Notice {

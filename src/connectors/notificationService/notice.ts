@@ -118,6 +118,7 @@ class Notice extends BaseService {
   }): Promise<void> {
     await this.knex.transaction(async (trx) => {
       // add actor
+      console.log('addNoticeActor:', { noticeId, actorId })
       await trx
         .insert({
           noticeId,
@@ -125,12 +126,14 @@ class Notice extends BaseService {
         })
         .into('notice_actor')
         .returning('*')
+        .onConflict(['actor_id', 'notice_id'])
+        .ignore() // .merge({ updatedAt: this.knex.fn.now(), })
       // logger.info(`[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`)
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
-        .update({ unread: true, updatedAt: new Date() })
+        .update({ unread: true, updatedAt: this.knex.fn.now() })
       // logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
     })
   }
@@ -146,6 +149,7 @@ class Notice extends BaseService {
 
     // bundle
     if (bundleables[0] && params.actorId && params.resend !== true) {
+      console.log('process bundleables:', { bundleables, params })
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
@@ -182,6 +186,7 @@ class Notice extends BaseService {
         ],
       ],
     })
+    console.log('findBundleables from:', notices)
     const bundleables: NoticeDetail[] = []
 
     // no notices have same details
@@ -227,6 +232,13 @@ class Notice extends BaseService {
         sourceEntities.forEach(({ type: sourceType, entityTable, entity }) => {
           const hash = `${sourceType}:${entityTable}:${entity.id}`
           sourceEntitiesHashMap[hash] = true
+        })
+        console.log('findBundleables:', {
+          notice: n,
+          sourceEntities,
+          targetEntities,
+          sourceEntitiesHashMap,
+          targetEntitiesHashMap,
         })
         if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
           bundleables.push(n)

@@ -171,7 +171,10 @@ export interface NoticeCircleNewBroadcastParams
   event: DB_NOTICE_TYPE.circle_new_broadcast
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>,
+    NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 export interface NoticeCircleNewDiscussionParams
@@ -179,7 +182,10 @@ export interface NoticeCircleNewDiscussionParams
   event: DB_NOTICE_TYPE.circle_new_discussion
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>,
+  ]
 }
 
 export interface NoticeCircleMemberBroadcastParams
@@ -187,7 +193,10 @@ export interface NoticeCircleMemberBroadcastParams
   event: DB_NOTICE_TYPE.circle_member_broadcast
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 export interface NoticeCircleMemberNewDiscussionParams
@@ -195,7 +204,10 @@ export interface NoticeCircleMemberNewDiscussionParams
   event: DB_NOTICE_TYPE.circle_member_new_discussion
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>,
+  ]
 }
 
 export interface NoticeCircleMemberNewDiscussionReplyParams
@@ -203,7 +215,10 @@ export interface NoticeCircleMemberNewDiscussionReplyParams
   event: DB_NOTICE_TYPE.circle_member_new_discussion_reply
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>,
+  ]
 }
 
 export interface NoticeCircleMemberNewBroadcastReplyParams
@@ -211,7 +226,10 @@ export interface NoticeCircleMemberNewBroadcastReplyParams
   event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>,
+  ]
 }
 
 // Comment-Comment
@@ -367,7 +385,10 @@ export interface NoticeInCircleNewBroadcastParams
   event: DB_NOTICE_TYPE.in_circle_new_broadcast
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 export interface NoticeInCircleNewDiscussionParams
@@ -375,7 +396,10 @@ export interface NoticeInCircleNewDiscussionParams
   event: DB_NOTICE_TYPE.in_circle_new_discussion
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 export interface NoticeInCircleNewBroadcastReplyParams
@@ -383,7 +407,10 @@ export interface NoticeInCircleNewBroadcastReplyParams
   event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 export interface NoticeInCircleNewDiscussionReplyParams
@@ -391,7 +418,10 @@ export interface NoticeInCircleNewDiscussionReplyParams
   event: DB_NOTICE_TYPE.in_circle_new_discussion_reply
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>
+    // NotificationEntity<'comment', 'comment'>
+  ]
 }
 
 /**

@@ -432,6 +432,24 @@ class PublicationQueue extends BaseQueue {
       update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
     })
 
+    const recipients = await this.userService.findCircleRecipients(
+      draft.circleId
+    )
+
+    recipients.forEach((recipientId: any) => {
+      this.notificationService.trigger({
+        event: DB_NOTICE_TYPE.circle_new_article,
+        recipientId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article,
+          },
+        ],
+      })
+    })
+
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: draft.circleId },
       redis: this.cacheService.redis,

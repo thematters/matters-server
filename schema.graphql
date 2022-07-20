@@ -1595,6 +1595,13 @@ enum CommentNoticeType {
   SubscribedArticleNewComment
   CircleNewBroadcast
   CircleNewDiscussion
+  CircleMemberNewDiscussion
+  CircleMemberNewDiscussionReply
+  CircleMemberNewBroadcastReply
+  InCircleNewBroadcast
+  InCircleNewBroadcastReply
+  InCircleNewDiscussion
+  InCircleNewDiscussionReply
 }
 
 type CommentCommentNotice implements Notice {

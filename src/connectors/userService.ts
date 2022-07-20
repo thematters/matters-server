@@ -9,9 +9,12 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
+  CIRCLE_ACTION,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
+  PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -797,6 +800,38 @@ export class UserService extends BaseService {
     }
 
     return query
+  }
+
+  // retrieve circle members and followers
+  findCircleRecipients = async (circleId: string) => {
+    const [members, followers] = await Promise.all([
+      this.knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': circleId,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ]),
+
+      this.knex
+        .from('action_circle')
+        .select('user_id')
+        .where({ target_id: circleId, action: CIRCLE_ACTION.follow }),
+    ])
+
+    return Array.from(
+      new Set([
+        // circle.owner, // add notice to circle owner
+        ...members.map((m) => m.userId),
+        ...followers.map((f) => f.userId),
+      ])
+    )
   }
 
   isFollowing = async ({

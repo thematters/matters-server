@@ -2203,6 +2203,13 @@ export const enum GQLCommentNoticeType {
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
   CircleNewBroadcast = 'CircleNewBroadcast',
   CircleNewDiscussion = 'CircleNewDiscussion',
+  CircleMemberNewDiscussion = 'CircleMemberNewDiscussion',
+  CircleMemberNewDiscussionReply = 'CircleMemberNewDiscussionReply',
+  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
+  InCircleNewBroadcast = 'InCircleNewBroadcast',
+  InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
+  InCircleNewDiscussion = 'InCircleNewDiscussion',
+  InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
