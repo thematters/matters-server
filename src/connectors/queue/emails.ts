@@ -120,8 +120,8 @@ class EmailsQueue extends BaseQueue {
               circle_invitation: filterNotices(
                 DB_NOTICE_TYPE.circle_invitation
               ),
-              circle_member_boradcast: filterNotices(
-                DB_NOTICE_TYPE.circle_member_boradcast
+              circle_member_broadcast: filterNotices(
+                DB_NOTICE_TYPE.circle_member_broadcast
               ),
               circle_member_new_discussion: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion
@@ -129,16 +129,19 @@ class EmailsQueue extends BaseQueue {
               circle_member_new_discussion_reply: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion_reply
               ),
+              circle_member_new_broadcast_reply: filterNotices(
+                DB_NOTICE_TYPE.circle_member_new_broadcast_reply
+              ),
 
               // members in circle
               in_circle_new_article: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion_reply
               ),
-              in_circle_new_boradcast: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_boradcast
+              in_circle_new_broadcast: filterNotices(
+                DB_NOTICE_TYPE.in_circle_new_broadcast
               ),
-              in_circle_new_boradcast_reply: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_boradcast_reply
+              in_circle_new_broadcast_reply: filterNotices(
+                DB_NOTICE_TYPE.in_circle_new_broadcast_reply
               ),
               in_circle_new_discussion: filterNotices(
                 DB_NOTICE_TYPE.in_circle_new_discussion

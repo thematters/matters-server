@@ -40,13 +40,14 @@ export const sendDailySummary = async ({
     circle_invitation: NoticeItem[]
     circle_new_broadcast: NoticeItem[]
     circle_new_discussion: NoticeItem[]
-    circle_member_boradcast: NoticeItem[]
+    circle_member_broadcast: NoticeItem[]
     circle_member_new_discussion: NoticeItem[]
     circle_member_new_discussion_reply: NoticeItem[]
+    circle_member_new_broadcast_reply: NoticeItem[]
 
     in_circle_new_article: NoticeItem[]
-    in_circle_new_boradcast: NoticeItem[]
-    in_circle_new_boradcast_reply: NoticeItem[]
+    in_circle_new_broadcast: NoticeItem[]
+    in_circle_new_broadcast_reply: NoticeItem[]
     in_circle_new_discussion: NoticeItem[]
     in_circle_new_discussion_reply: NoticeItem[]
   }
@@ -144,14 +145,14 @@ export const sendDailySummary = async ({
       article: await getArticleDigest(entities && entities.target),
     }))
   )
-  const in_circle_new_boradcast = await Promise.all(
-    notices.in_circle_new_boradcast.map(async ({ actors = [], entities }) => ({
+  const in_circle_new_broadcast = await Promise.all(
+    notices.in_circle_new_broadcast.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
       comment: await getCommentDigest(entities && entities.target),
     }))
   )
-  const in_circle_new_boradcast_reply = await Promise.all(
-    notices.in_circle_new_boradcast_reply.map(
+  const in_circle_new_broadcast_reply = await Promise.all(
+    notices.in_circle_new_broadcast_reply.map(
       async ({ actors = [], entities }) => ({
         actor: await getUserDigest(actors[0]),
         comment: await getCommentDigest(entities && entities.target),
@@ -215,8 +216,8 @@ export const sendDailySummary = async ({
 
             // for members in circle
             in_circle_new_article,
-            in_circle_new_boradcast,
-            in_circle_new_boradcast_reply,
+            in_circle_new_broadcast,
+            in_circle_new_broadcast_reply,
             in_circle_new_discussion,
             in_circle_new_discussion_reply,
           },

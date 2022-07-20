@@ -49,14 +49,15 @@ export enum DB_NOTICE_TYPE {
   circle_new_discussion = 'circle_new_discussion',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
   circle_invitation = 'circle_invitation',
-  circle_member_boradcast = 'circle_member_boradcast',
+  circle_member_broadcast = 'circle_member_broadcast',
   circle_member_new_discussion = 'circle_member_new_discussion',
   circle_member_new_discussion_reply = 'circle_member_new_discussion_reply',
+  circle_member_new_broadcast_reply = 'circle_member_new_broadcast_reply',
 
-  // members in circle
+  // members & followers in circle
   in_circle_new_article = 'in_circle_new_article',
-  in_circle_new_boradcast = 'in_circle_new_boradcast',
-  in_circle_new_boradcast_reply = 'in_circle_new_boradcast_reply',
+  in_circle_new_broadcast = 'in_circle_new_broadcast',
+  in_circle_new_broadcast_reply = 'in_circle_new_broadcast_reply',
   in_circle_new_discussion = 'in_circle_new_discussion',
   in_circle_new_discussion_reply = 'in_circle_new_discussion_reply',
 

@@ -182,6 +182,38 @@ export interface NoticeCircleNewDiscussionParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
+export interface NoticeCircleMemberBroadcastParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_member_broadcast
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleMemberNewDiscussionParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_member_new_discussion
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleMemberNewDiscussionReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_member_new_discussion_reply
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleMemberNewBroadcastReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
 // Comment-Comment
 export interface NoticeCommentNewReplyParams
   extends NotificationRequiredParams {
@@ -332,7 +364,7 @@ export interface NoticeInCircleNewArticleParams
 
 export interface NoticeInCircleNewBroadcastParams
   extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_boradcast
+  event: DB_NOTICE_TYPE.in_circle_new_broadcast
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'comment'>]
@@ -348,7 +380,7 @@ export interface NoticeInCircleNewDiscussionParams
 
 export interface NoticeInCircleNewBroadcastReplyParams
   extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_boradcast_reply
+  event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'comment'>]
@@ -454,6 +486,10 @@ export type NotificationPrarms =
   | NoticeSubscribedArticleNewCommentParams
   | NoticeCircleNewBroadcastParams
   | NoticeCircleNewDiscussionParams
+  | NoticeCircleMemberBroadcastParams
+  | NoticeCircleMemberNewDiscussionParams
+  | NoticeCircleMemberNewDiscussionReplyParams
+  | NoticeCircleMemberNewBroadcastReplyParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
   | NoticeCircleBroadcastNewReplyParams

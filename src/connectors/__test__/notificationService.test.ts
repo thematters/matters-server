@@ -69,14 +69,15 @@ describe('user notify setting', () => {
     circle_invitation: true,
     circle_new_follower: true,
     circle_new_discussion: true,
-    circle_member_boradcast: true,
+    circle_member_broadcast: true,
     circle_member_new_discussion: true,
     circle_member_new_discussion_reply: true,
+    circle_member_new_broadcast_reply: true,
 
     // in circle
     in_circle_new_article: true,
-    in_circle_new_boradcast: true,
-    in_circle_new_boradcast_reply: false,
+    in_circle_new_broadcast: true,
+    in_circle_new_broadcast_reply: false,
     in_circle_new_discussion: true,
     in_circle_new_discussion_reply: false,
 
@@ -104,6 +105,7 @@ describe('user notify setting', () => {
           event: type,
           setting: notifySetting,
         })
+        // console.log('check type:', {type, expected: defaultNoifySetting[type], actual: enable,})
         expect(enable).toBe(defaultNoifySetting[type])
       })
     )

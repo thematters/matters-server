@@ -369,15 +369,15 @@ export default /* GraphQL */ `
     circleNewFollower: Boolean!
     circleNewUnsubscriber: Boolean!
     circleNewDiscussion: Boolean!
-    # deprecated
-    circleMemberBoradcast: Boolean! @deprecated(reason: "Merged into following")
-    circleMemberNewDiscussion: Boolean! @deprecated(reason: "Merged into following")
-    circleMemberNewDiscussionReply: Boolean! @deprecated(reason: "Merged into following")
+    circleMemberBroadcast: Boolean! # deprecated
+    circleMemberNewDiscussion: Boolean!
+    circleMemberNewDiscussionReply: Boolean!
+    circleMemberNewBroadcastReply: Boolean!
 
     "for circle members"
     inCircleNewArticle: Boolean!
-    inCircleNewBoradcast: Boolean!
-    inCircleNewBoradcastReply: Boolean!
+    inCircleNewBroadcast: Boolean!
+    inCircleNewBroadcastReply: Boolean!
     inCircleNewDiscussion: Boolean!
     inCircleNewDiscussionReply: Boolean!
   }
@@ -502,7 +502,7 @@ export default /* GraphQL */ `
     actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
-    "Comment boardcast by actor"
+    "Comment broadcast by actor"
     node: Comment! @logCache(type: "${NODE_TYPES.Comment}")
 
     "Circle that comment belongs to"
@@ -788,14 +788,15 @@ export default /* GraphQL */ `
     circleNewFollower
     circleNewUnsubscriber
     circleNewDiscussion
-    circleMemberBoradcast
+    circleMemberBroadcast # deprecated
     circleMemberNewDiscussion
     circleMemberNewDiscussionReply
+    circleMemberNewBroadcastReply
 
     "for circle members"
     inCircleNewArticle
-    inCircleNewBoradcast
-    inCircleNewBoradcastReply
+    inCircleNewBroadcast
+    inCircleNewBroadcastReply
     inCircleNewDiscussion
     inCircleNewDiscussionReply
   }

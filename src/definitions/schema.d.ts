@@ -2381,9 +2381,14 @@ export const enum GQLCircleNoticeType {
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
   CircleInvitation = 'CircleInvitation',
   CircleNewDiscussion = 'CircleNewDiscussion',
+  CircleNewBroadcast = 'CircleNewBroadcast',
+  CircleMemberBroadcast = 'CircleMemberBroadcast',
+  CircleMemberNewDiscussion = 'CircleMemberNewDiscussion',
+  CircleMemberNewDiscussionReply = 'CircleMemberNewDiscussionReply',
+  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
   InCircleNewArticle = 'InCircleNewArticle',
-  InCircleNewBoradcast = 'InCircleNewBoradcast',
-  InCircleNewBoradcastReply = 'InCircleNewBoradcastReply',
+  InCircleNewBroadcast = 'InCircleNewBroadcast',
+  InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
   InCircleNewDiscussion = 'InCircleNewDiscussion',
   InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
 }
@@ -3384,31 +3389,17 @@ export interface GQLNotificationSetting {
   circleNewFollower: boolean
   circleNewUnsubscriber: boolean
   circleNewDiscussion: boolean
-
-  /**
-   * deprecated
-   * @deprecated Merged into following
-   */
-  circleMemberBoradcast: boolean
-
-  /**
-   *
-   * @deprecated Merged into following
-   */
+  circleMemberBroadcast: boolean
   circleMemberNewDiscussion: boolean
-
-  /**
-   *
-   * @deprecated Merged into following
-   */
   circleMemberNewDiscussionReply: boolean
+  circleMemberNewBroadcastReply: boolean
 
   /**
    * for circle members
    */
   inCircleNewArticle: boolean
-  inCircleNewBoradcast: boolean
-  inCircleNewBoradcastReply: boolean
+  inCircleNewBroadcast: boolean
+  inCircleNewBroadcastReply: boolean
   inCircleNewDiscussion: boolean
   inCircleNewDiscussionReply: boolean
 }
@@ -3557,7 +3548,7 @@ export interface GQLUserBroadcastCircleActivity {
   createdAt: GQLDateTime
 
   /**
-   * Comment boardcast by actor
+   * Comment broadcast by actor
    */
   node: GQLComment
 
@@ -3890,16 +3881,17 @@ export const enum GQLNotificationSettingType {
   circleNewFollower = 'circleNewFollower',
   circleNewUnsubscriber = 'circleNewUnsubscriber',
   circleNewDiscussion = 'circleNewDiscussion',
-  circleMemberBoradcast = 'circleMemberBoradcast',
+  circleMemberBroadcast = 'circleMemberBroadcast',
   circleMemberNewDiscussion = 'circleMemberNewDiscussion',
   circleMemberNewDiscussionReply = 'circleMemberNewDiscussionReply',
+  circleMemberNewBroadcastReply = 'circleMemberNewBroadcastReply',
 
   /**
    * for circle members
    */
   inCircleNewArticle = 'inCircleNewArticle',
-  inCircleNewBoradcast = 'inCircleNewBoradcast',
-  inCircleNewBoradcastReply = 'inCircleNewBoradcastReply',
+  inCircleNewBroadcast = 'inCircleNewBroadcast',
+  inCircleNewBroadcastReply = 'inCircleNewBroadcastReply',
   inCircleNewDiscussion = 'inCircleNewDiscussion',
   inCircleNewDiscussionReply = 'inCircleNewDiscussionReply',
 }
@@ -11269,12 +11261,13 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
   circleNewUnsubscriber?: NotificationSettingToCircleNewUnsubscriberResolver<TParent>
   circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<TParent>
-  circleMemberBoradcast?: NotificationSettingToCircleMemberBoradcastResolver<TParent>
+  circleMemberBroadcast?: NotificationSettingToCircleMemberBroadcastResolver<TParent>
   circleMemberNewDiscussion?: NotificationSettingToCircleMemberNewDiscussionResolver<TParent>
   circleMemberNewDiscussionReply?: NotificationSettingToCircleMemberNewDiscussionReplyResolver<TParent>
+  circleMemberNewBroadcastReply?: NotificationSettingToCircleMemberNewBroadcastReplyResolver<TParent>
   inCircleNewArticle?: NotificationSettingToInCircleNewArticleResolver<TParent>
-  inCircleNewBoradcast?: NotificationSettingToInCircleNewBoradcastResolver<TParent>
-  inCircleNewBoradcastReply?: NotificationSettingToInCircleNewBoradcastReplyResolver<TParent>
+  inCircleNewBroadcast?: NotificationSettingToInCircleNewBroadcastResolver<TParent>
+  inCircleNewBroadcastReply?: NotificationSettingToInCircleNewBroadcastReplyResolver<TParent>
   inCircleNewDiscussion?: NotificationSettingToInCircleNewDiscussionResolver<TParent>
   inCircleNewDiscussionReply?: NotificationSettingToInCircleNewDiscussionReplyResolver<TParent>
 }
@@ -11447,7 +11440,7 @@ export interface NotificationSettingToCircleNewDiscussionResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCircleMemberBoradcastResolver<
+export interface NotificationSettingToCircleMemberBroadcastResolver<
   TParent = any,
   TResult = any
 > {
@@ -11483,6 +11476,18 @@ export interface NotificationSettingToCircleMemberNewDiscussionReplyResolver<
   ): TResult
 }
 
+export interface NotificationSettingToCircleMemberNewBroadcastReplyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface NotificationSettingToInCircleNewArticleResolver<
   TParent = any,
   TResult = any
@@ -11495,7 +11500,7 @@ export interface NotificationSettingToInCircleNewArticleResolver<
   ): TResult
 }
 
-export interface NotificationSettingToInCircleNewBoradcastResolver<
+export interface NotificationSettingToInCircleNewBroadcastResolver<
   TParent = any,
   TResult = any
 > {
@@ -11507,7 +11512,7 @@ export interface NotificationSettingToInCircleNewBoradcastResolver<
   ): TResult
 }
 
-export interface NotificationSettingToInCircleNewBoradcastReplyResolver<
+export interface NotificationSettingToInCircleNewBroadcastReplyResolver<
   TParent = any,
   TResult = any
 > {

@@ -1728,9 +1728,14 @@ enum CircleNoticeType {
   CircleNewUnsubscriber
   CircleInvitation
   CircleNewDiscussion
+  CircleNewBroadcast
+  CircleMemberBroadcast
+  CircleMemberNewDiscussion
+  CircleMemberNewDiscussionReply
+  CircleMemberNewBroadcastReply
   InCircleNewArticle
-  InCircleNewBoradcast
-  InCircleNewBoradcastReply
+  InCircleNewBroadcast
+  InCircleNewBroadcastReply
   InCircleNewDiscussion
   InCircleNewDiscussionReply
 }
@@ -2440,16 +2445,15 @@ type NotificationSetting {
   circleNewFollower: Boolean!
   circleNewUnsubscriber: Boolean!
   circleNewDiscussion: Boolean!
-
-  """deprecated"""
-  circleMemberBoradcast: Boolean! @deprecated(reason: "Merged into following")
-  circleMemberNewDiscussion: Boolean! @deprecated(reason: "Merged into following")
-  circleMemberNewDiscussionReply: Boolean! @deprecated(reason: "Merged into following")
+  circleMemberBroadcast: Boolean!
+  circleMemberNewDiscussion: Boolean!
+  circleMemberNewDiscussionReply: Boolean!
+  circleMemberNewBroadcastReply: Boolean!
 
   """for circle members"""
   inCircleNewArticle: Boolean!
-  inCircleNewBoradcast: Boolean!
-  inCircleNewBoradcastReply: Boolean!
+  inCircleNewBroadcast: Boolean!
+  inCircleNewBroadcastReply: Boolean!
   inCircleNewDiscussion: Boolean!
   inCircleNewDiscussionReply: Boolean!
 }
@@ -2563,7 +2567,7 @@ type UserBroadcastCircleActivity {
   actor: User!
   createdAt: DateTime!
 
-  """Comment boardcast by actor"""
+  """Comment broadcast by actor"""
   node: Comment!
 
   """Circle that comment belongs to"""
@@ -2850,14 +2854,15 @@ enum NotificationSettingType {
   circleNewFollower
   circleNewUnsubscriber
   circleNewDiscussion
-  circleMemberBoradcast
+  circleMemberBroadcast
   circleMemberNewDiscussion
   circleMemberNewDiscussionReply
+  circleMemberNewBroadcastReply
 
   """for circle members"""
   inCircleNewArticle
-  inCircleNewBoradcast
-  inCircleNewBoradcastReply
+  inCircleNewBroadcast
+  inCircleNewBroadcastReply
   inCircleNewDiscussion
   inCircleNewDiscussionReply
 }

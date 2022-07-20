@@ -554,15 +554,16 @@ class Notice extends BaseService {
       circle_invitation: true,
       circle_new_follower: setting.circleNewFollower,
       circle_new_discussion: setting.circleNewDiscussion,
-      circle_member_boradcast: setting.circleMemberBoradcast,
+      circle_member_broadcast: setting.circleMemberBroadcast,
       circle_member_new_discussion: setting.circleMemberNewDiscussion,
       circle_member_new_discussion_reply:
         setting.circleMemberNewDiscussionReply,
+      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
 
       // in circle
       in_circle_new_article: setting.inCircleNewArticle,
-      in_circle_new_boradcast: setting.inCircleNewBoradcast,
-      in_circle_new_boradcast_reply: setting.inCircleNewBoradcastReply,
+      in_circle_new_broadcast: setting.inCircleNewBroadcast,
+      in_circle_new_broadcast_reply: setting.inCircleNewBroadcastReply,
       in_circle_new_discussion: setting.inCircleNewDiscussion,
       in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 

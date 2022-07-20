@@ -294,10 +294,15 @@ export default /* GraphQL */ `
     CircleNewUnsubscriber
     CircleInvitation
     CircleNewDiscussion
+    CircleNewBroadcast
+    CircleMemberBroadcast
+    CircleMemberNewDiscussion
+    CircleMemberNewDiscussionReply
+    CircleMemberNewBroadcastReply
 
     InCircleNewArticle
-    InCircleNewBoradcast
-    InCircleNewBoradcastReply
+    InCircleNewBroadcast
+    InCircleNewBroadcastReply
     InCircleNewDiscussion
     InCircleNewDiscussionReply
   }

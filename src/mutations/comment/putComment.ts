@@ -435,11 +435,27 @@ const resolver: MutationToPutCommentResolver = async (
         where: { targetId: circle.id, action: CIRCLE_ACTION.follow },
       })
       const recipients = _.uniq([
+        circle.owner, // add notice to circle owner
         ...members.map((m) => m.userId),
         ...followers.map((f) => f.userId),
       ])
 
       if (isCircleBroadcast) {
+        if (replyToComment?.type === COMMENT_TYPE.circleBroadcast) {
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply,
+            actorId: viewer.id,
+            recipientId: circle.owner,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
+        }
+
         recipients.forEach((recipientId) => {
           notificationService.trigger({
             event: DB_NOTICE_TYPE.circle_new_broadcast,
@@ -454,12 +470,79 @@ const resolver: MutationToPutCommentResolver = async (
             ],
           })
         })
+
+        // for in circle events
+        const eventInCircle =
+          replyToComment?.type === COMMENT_TYPE.circleBroadcast
+            ? DB_NOTICE_TYPE.in_circle_new_broadcast_reply
+            : DB_NOTICE_TYPE.in_circle_new_broadcast
+        recipients.forEach((recipientId) => {
+          notificationService.trigger({
+            event: eventInCircle,
+            actorId: viewer.id,
+            recipientId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
+        })
       }
 
       if (isCircleDiscussion) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_new_discussion,
+          actorId: viewer.id,
+          recipientId: circle.owner,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'comment',
+              entity: newComment,
+            },
+          ],
+        })
+        if (replyToComment?.type === COMMENT_TYPE.circleDiscussion) {
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_member_new_discussion_reply,
+            actorId: viewer.id,
+            recipientId: circle.owner,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
+        }
+
         recipients.forEach((recipientId) => {
           notificationService.trigger({
             event: DB_NOTICE_TYPE.circle_new_discussion,
+            actorId: viewer.id,
+            recipientId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'comment',
+                entity: newComment,
+              },
+            ],
+          })
+        })
+
+        // for in circle events
+        const eventInCircle =
+          replyToComment?.type === COMMENT_TYPE.circleDiscussion
+            ? DB_NOTICE_TYPE.in_circle_new_discussion_reply
+            : DB_NOTICE_TYPE.in_circle_new_discussion
+        recipients.forEach((recipientId) => {
+          notificationService.trigger({
+            event: eventInCircle,
             actorId: viewer.id,
             recipientId,
             entities: [

@@ -84,12 +84,13 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_new_broadcast:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
       case DB_NOTICE_TYPE.circle_new_discussion:
-      // case DB_NOTICE_TYPE.circle_member_boradcast:
-      // case DB_NOTICE_TYPE.circle_member_new_discussion:
-      // case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case DB_NOTICE_TYPE.circle_member_broadcast:
+      case DB_NOTICE_TYPE.circle_member_new_discussion:
+      case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case DB_NOTICE_TYPE.in_circle_new_article:
-      case DB_NOTICE_TYPE.in_circle_new_boradcast:
-      case DB_NOTICE_TYPE.in_circle_new_boradcast_reply:
+      case DB_NOTICE_TYPE.in_circle_new_broadcast:
+      case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:
       case DB_NOTICE_TYPE.in_circle_new_discussion:
       case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
         return {
