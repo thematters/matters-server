@@ -21,10 +21,7 @@ const resolver: TagSearchResultToArticlesResolver = async (
     }),
   ])
 
-  console.log('tagSearchResultArticlesResolver:', {
-    selected,
-    sortBy,
-  })
+  // console.log('tagSearchResultArticlesResolver:', { selected, sortBy, })
 
   return connectionFromPromisedArray(
     articleService.draftLoader.loadMany(articleIds),

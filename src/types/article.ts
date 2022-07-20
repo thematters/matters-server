@@ -328,6 +328,7 @@ export default /* GraphQL */ `
   type TagSearchResult implements Node {
     "Unique id of this tag."
     id: ID!
+    tag: Tag!
 
     "Content of this tag."
     content: String!

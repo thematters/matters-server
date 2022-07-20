@@ -6,7 +6,10 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { GQLArticleLicenseType } from 'definitions'
+import {
+  GQLArticleLicenseType,
+  TagSearchResultToTagResolver,
+} from 'definitions'
 
 import * as articleAccess from './access'
 import appreciateLeft from './appreciateLeft'
@@ -64,6 +67,12 @@ import translation from './translation'
 import userArticles from './user/articles'
 // import userTags from './user/tags'
 import userTopics from './user/topics'
+
+const tagSearchToTag: TagSearchResultToTagResolver = async (
+  { id },
+  _args,
+  { dataSources: { tagService } }
+) => tagService.dataloader.load(id)
 
 export default {
   Query: {
@@ -131,6 +140,7 @@ export default {
   },
   TagSearchResult: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+    tag: tagSearchToTag, // ({ id }: { id: string }, _: any, { dataSources: { tagService } }) => ,
     articles: tagArticlesSearchResult,
     cover: tagCover,
   },
