@@ -8,7 +8,7 @@ import {
 import { toGlobalId } from 'common/utils'
 import {
   GQLArticleLicenseType,
-  TagSearchResultToTagResolver,
+  // TagSearchResultToTagResolver,
 } from 'definitions'
 
 import * as articleAccess from './access'
@@ -54,6 +54,7 @@ import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
 import tagArticlesSearchResult from './tag/tagArticlesSearchResult'
+import tagSearchToTag from './tag/tagSearchToTag'
 import tags from './tags'
 import topicArticleCount from './topic/articleCount'
 import topicArticles from './topic/articles'
@@ -67,12 +68,6 @@ import translation from './translation'
 import userArticles from './user/articles'
 // import userTags from './user/tags'
 import userTopics from './user/topics'
-
-const tagSearchToTag: TagSearchResultToTagResolver = async (
-  { id },
-  _args,
-  { dataSources: { tagService } }
-) => tagService.dataloader.load(id)
 
 export default {
   Query: {
