@@ -1,3 +1,4 @@
+import { TAGS_RECOMMENDED_LIMIT } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -18,7 +19,7 @@ const resolver: TagToRecommendedResolver = async (
 
   const related = tagService.findRelatedTags({ id, content, take, skip })
 
-  return connectionFromPromisedArray(related, input)
+  return connectionFromPromisedArray(related, input, TAGS_RECOMMENDED_LIMIT)
 }
 
 export default resolver
