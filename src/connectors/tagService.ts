@@ -592,8 +592,11 @@ export class TagService extends BaseService {
         const { hits } = result
 
         hits.hits.forEach((hit) => ids.add(hit._id))
-
-        totalCount = hits.total as number
+        if (typeof hits.total === 'number') {
+          totalCount = hits.total
+        } else if (hits.total) {
+          totalCount = hits.total.value
+        }
       }
 
       const queryTags = this.knex

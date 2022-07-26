@@ -569,7 +569,7 @@ export class ArticleService extends BaseService {
       filter: {
         bool: {
           must: { term: { state: ARTICLE_STATE.active } },
-          must_not: { term: { id } },
+          must_not: { ids: { values: notIn.concat([id]) } },
         },
       },
     }
