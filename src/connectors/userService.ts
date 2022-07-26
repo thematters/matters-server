@@ -543,7 +543,7 @@ export class UserService extends BaseService {
         body,
       })
 
-      const { hits, suggest } = result.body as typeof result & {
+      const { hits, suggest } = result as typeof result & {
         hits: { hits: any[] }
         suggest: { userName: any[]; displayName: any[] }
       }

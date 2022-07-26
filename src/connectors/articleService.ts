@@ -502,7 +502,7 @@ export class ArticleService extends BaseService {
       }
       searchBody.notFilter('ids', { values: idsByTitle })
 
-      const { body } = await this.es.client.search({
+      const body = await this.es.client.search({
         index: this.table,
         body: searchBody.build(),
       })
@@ -551,43 +551,30 @@ export class ArticleService extends BaseService {
       id,
     })
 
-    const factors = _.get(scoreResult.body, '_source.embedding_vector')
+    const factors = _.get(scoreResult, '_source.embedding_vector')
 
     // return empty list if we don't have any score
     if (!factors) {
       return []
     }
 
-    const searchBody = bodybuilder()
-      .query('script_score', {
-        query: {
-          bool: {
-            must: [
-              {
-                exists: {
-                  field: 'embedding_vector',
-                },
-              },
-            ],
-          },
-        },
-        script: {
-          source:
-            "cosineSimilarity(params.query_vector, 'embedding_vector') + 1.0",
-          params: {
-            query_vector: factors,
-          },
-        },
-      })
-      .filter('term', { state: ARTICLE_STATE.active })
-      .notFilter('ids', { values: notIn.concat([id]) })
-      .size(size)
-      .build()
-
-    const { body } = await this.es.client.search({
+    const searchBody = {
       index: this.table,
-      body: searchBody,
-    })
+      knn: {
+        field: 'embedding_vector',
+        query_vector: factors,
+        k: 10,
+        num_candidates: size,
+      },
+      filter: {
+        bool: {
+          must: { term: { state: ARTICLE_STATE.active } },
+          must_not: { term: { id } },
+        },
+      },
+    }
+
+    const body = await this.es.client.knnSearch(searchBody)
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }

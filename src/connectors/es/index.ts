@@ -26,9 +26,13 @@ class ElasticSearch {
     for (const index of this.indices) {
       const exists = await this.client.indices.exists({ index })
       if (!exists) {
-        logger.info(`Creating index ${index}`)
-        await this.client.indices.create({ index })
-        logger.info(`Done`)
+        try {
+          logger.info(`Creating index ${index}`)
+          await this.client.indices.create({ index })
+          logger.info(`Done`)
+        } catch (e) {
+          logger.error((e as Error).message)
+        }
       }
     }
   }

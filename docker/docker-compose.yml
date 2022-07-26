@@ -55,6 +55,7 @@ services:
     environment:
       - 'ES_JAVA_OPTS=-Xms750m -Xmx750m'
       - 'discovery.type=single-node'
+      - 'xpack.security.enabled=false'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:

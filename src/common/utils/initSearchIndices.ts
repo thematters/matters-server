@@ -6,6 +6,7 @@ import logger from 'common/logger'
 import { ArticleService, TagService, UserService } from 'connectors'
 
 const articleIndexDef = {
+  index: 'article',
   settings: {
     analysis: {
       analyzer: {
@@ -106,8 +107,10 @@ const articleIndexDef = {
         },
       },
       embedding_vector: {
-        type: 'binary',
-        doc_values: true,
+        type: 'dense_vector',
+        dims: 20,
+        index: true,
+        similarity: 'l2_norm',
       },
       factor: { type: 'text' },
     },
@@ -115,6 +118,7 @@ const articleIndexDef = {
 }
 
 const userIndexDef = {
+  index: 'user',
   settings: {
     analysis: {
       analyzer: {
@@ -195,8 +199,10 @@ const userIndexDef = {
         analyzer: 'tsconvert',
       },
       embedding_vector: {
-        type: 'binary',
-        doc_values: true,
+        type: 'dense_vector',
+        dims: 20,
+        index: true,
+        similarity: 'l2_norm',
       },
       factor: {
         type: 'text',
@@ -219,7 +225,7 @@ async function main() {
   await Promise.all(
     indices.map(async (idx) => {
       const exists = await es.indices.exists({ index: idx })
-      if (exists.statusCode !== 404) {
+      if (exists) {
         logger.info(`deleting es index: ${idx} ...`)
         await es.indices.delete({ index: idx })
       }
@@ -228,14 +234,8 @@ async function main() {
 
   logger.info('creating indices: article, user, tag ...')
   await Promise.all([
-    es.indices.create({
-      index: 'article',
-      body: articleIndexDef,
-    }),
-    es.indices.create({
-      index: 'user',
-      body: userIndexDef,
-    }),
+    es.indices.create(articleIndexDef),
+    es.indices.create(userIndexDef),
     es.indices.create({ index: 'tag' }),
   ])
 
