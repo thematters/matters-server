@@ -538,10 +538,14 @@ type Tag implements Node {
   participants(input: ConnectionArgs!): UserConnection!
 
   """Tags recommended based on relations to current tag."""
-  recommended(input: ConnectionArgs!): TagSearchResultConnection!
+  recommended(input: ConnectionArgs!): TagConnection!
 
   """This value determines if it is official."""
   isOfficial: Boolean
+
+  """Counts of this tag."""
+  numArticles: Int
+  numAuthors: Int
 
   """
   #############
@@ -551,32 +555,6 @@ type Tag implements Node {
   oss: TagOSS!
   remark: String
   deleted: Boolean!
-}
-
-"""
-This type contains content, count and related statistics data of a tag.
-"""
-type TagSearchResult implements Node {
-  """Unique id of this tag."""
-  id: ID!
-  tag: Tag!
-
-  """Content of this tag."""
-  content: String!
-
-  """Time of this tag was created."""
-  createdAt: DateTime!
-
-  """Tag's cover link."""
-  cover: String
-
-  """Description of this tag."""
-  description: String
-  numArticles: Int!
-  numAuthors: Int!
-
-  """List of how many articles were attached with this tag."""
-  articles(input: TagArticlesInput!): ArticleConnection!
 }
 
 type ArticleAccess {
@@ -636,17 +614,6 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
-}
-
-type TagSearchResultConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TagSearchResultEdge!]
-}
-
-type TagSearchResultEdge {
-  cursor: String!
-  node: TagSearchResult!
 }
 
 input ArticleInput {

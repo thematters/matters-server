@@ -311,10 +311,17 @@ export default /* GraphQL */ `
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags recommended based on relations to current tag."
-    recommended(input: ConnectionArgs!): TagSearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    recommended(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "This value determines if it is official."
     isOfficial: Boolean
+
+    "Counts of this tag."
+    numArticles: Int
+    numAuthors: Int
+    ## numArticlesR3m: Int
+    ## numAuthorsR3m: Int
+
 
     ##############
     #     OSS    #
@@ -322,34 +329,6 @@ export default /* GraphQL */ `
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
-  }
-
-  "This type contains content, count and related statistics data of a tag."
-  type TagSearchResult implements Node {
-    "Unique id of this tag."
-    id: ID!
-    tag: Tag!
-
-    "Content of this tag."
-    content: String!
-
-    "Time of this tag was created."
-    createdAt: DateTime!
-
-    "Tag's cover link."
-    cover: String
-
-    "Description of this tag."
-    description: String
-
-    numArticles: Int!
-    numAuthors: Int!
-
-    ## numArticlesR3m: Int!
-    ## numAuthorsR3m: Int!
-
-    "List of how many articles were attached with this tag."
-    articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   type ArticleAccess {
@@ -409,17 +388,6 @@ export default /* GraphQL */ `
   type TagEdge {
     cursor: String!
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
-  }
-
-  type TagSearchResultConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [TagSearchResultEdge!]
-  }
-
-  type TagSearchResultEdge {
-    cursor: String!
-    node: TagSearchResult! @logCache(type: "${NODE_TYPES.TagSearchResult}")
   }
 
   input ArticleInput {
