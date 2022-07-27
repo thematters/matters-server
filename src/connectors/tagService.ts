@@ -629,8 +629,7 @@ export class TagService extends BaseService {
       }
 
       return {
-        // /** tslint:disable-next-line:prefer-object-spread */
-        nodes: tags.map((t) => Object.assign(t, { __type: 'TagSearchResult' })), // tslint:disable-line
+        nodes: tags,
         totalCount, // : hits.total.value,
       }
     } catch (err) {

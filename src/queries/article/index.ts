@@ -6,10 +6,7 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import {
-  GQLArticleLicenseType,
-  // TagSearchResultToTagResolver,
-} from 'definitions'
+import { GQLArticleLicenseType } from 'definitions'
 
 import * as articleAccess from './access'
 import appreciateLeft from './appreciateLeft'
@@ -53,8 +50,6 @@ import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
-import tagArticlesSearchResult from './tag/tagArticlesSearchResult'
-import tagSearchToTag from './tag/tagSearchToTag'
 import tags from './tags'
 import topicArticleCount from './topic/articleCount'
 import topicArticles from './topic/articles'
@@ -132,12 +127,6 @@ export default {
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
-  },
-  TagSearchResult: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
-    tag: tagSearchToTag, // ({ id }: { id: string }, _: any, { dataSources: { tagService } }) => ,
-    articles: tagArticlesSearchResult,
-    cover: tagCover,
   },
   Topic: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
