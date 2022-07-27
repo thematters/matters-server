@@ -231,7 +231,7 @@ describe('mutations on comment', () => {
 
   test('downvote a comment', async () => {
     const server = await testClient({ isAuth: true })
-    const { upvotes} = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
@@ -244,7 +244,7 @@ describe('mutations on comment', () => {
 
   test('unvote a comment', async () => {
     const server = await testClient({ isAuth: true })
-    const { upvotes} = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
       variables: {

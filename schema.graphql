@@ -1192,7 +1192,7 @@ type Comment implements Node {
   upvotes: Int!
 
   """The counting number of downvotes."""
-  downvotes: Int!
+  downvotes: Int! @deprecated(reason: "No longer in use in querying")
 
   """The value determines current user's vote."""
   myVote: Vote
@@ -1712,6 +1712,27 @@ enum CircleNoticeType {
   InCircleNewBroadcastReply
   InCircleNewDiscussion
   InCircleNewDiscussionReply
+}
+
+type CircleCommentNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CircleCommentNoticeType!
+  target: Circle!
+  comment: Comment!
+}
+
+enum CircleCommentNoticeType {
+  CircleNewBroadcast
 }
 
 """

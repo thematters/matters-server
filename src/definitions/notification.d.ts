@@ -172,6 +172,7 @@ export interface NoticeCircleNewBroadcastParams
   recipientId: string
   actorId: string
   entities: [
+    // NotificationEntity<'target', 'comment'>
     NotificationEntity<'target', 'circle'>,
     NotificationEntity<'comment', 'comment'>
   ]
