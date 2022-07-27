@@ -75,6 +75,10 @@ export default {
     topics: userTopics,
   },
   Article: {
+    // when the Article is duck'ing from a Draft it has articleId,
+    // otherwise when articleId is undefined, it's a native Article, just use 'id'
+    id: ({ articleId, id }: { articleId: string; id: string }) =>
+      toGlobalId({ type: NODE_TYPES.Article, id: articleId ?? id }),
     content,
     summary,
     appreciationsReceived,
@@ -86,8 +90,6 @@ export default {
     assets,
     collection,
     collectedBy,
-    id: ({ articleId }: { articleId: string }) =>
-      toGlobalId({ type: NODE_TYPES.Article, id: articleId }),
     hasAppreciate,
     canSuperLike,
     language,
