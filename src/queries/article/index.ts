@@ -45,6 +45,8 @@ import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import tagIsOfficial from './tag/isOfficial'
+import tagNumArticles from './tag/numArticles'
+import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
@@ -122,6 +124,8 @@ export default {
     owner: tagOwner,
     isFollower: tagIsFollower,
     isOfficial: tagIsOfficial,
+    numArticles: tagNumArticles,
+    numAuthors: tagNumAuthors,
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,

@@ -544,8 +544,8 @@ type Tag implements Node {
   isOfficial: Boolean
 
   """Counts of this tag."""
-  numArticles: Int
-  numAuthors: Int
+  numArticles: Int!
+  numAuthors: Int!
 
   """
   #############

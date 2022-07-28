@@ -317,8 +317,8 @@ export default /* GraphQL */ `
     isOfficial: Boolean
 
     "Counts of this tag."
-    numArticles: Int
-    numAuthors: Int
+    numArticles: Int!
+    numAuthors: Int!
     ## numArticlesR3m: Int
     ## numAuthorsR3m: Int
 
