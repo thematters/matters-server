@@ -4,6 +4,6 @@ const resolver: CommentToDownvotesResolver = (
   { id },
   _,
   { dataSources: { commentService } }
-) => commentService.countDownVote(id)
+) => 0
 
 export default resolver
