@@ -960,16 +960,15 @@ export class TagService extends BaseService {
    * Count article authors by a given tag id.
    */
   countAuthors = async ({ id: tagId }: { id: string }) => {
-    const query = this.knex('article_tag')
+    const result = await this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('author_id')
+      .where({
+        'article_tag.tag_id': tagId,
+        'article.state': ARTICLE_STATE.active,
+      })
       .first()
 
-    query.andWhere({
-      state: ARTICLE_STATE.active,
-    })
-
-    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
