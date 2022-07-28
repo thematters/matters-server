@@ -808,8 +808,8 @@ export interface GQLTag extends GQLNode {
   /**
    * Counts of this tag.
    */
-  numArticles?: number
-  numAuthors?: number
+  numArticles: number
+  numAuthors: number
 
   /**
    * #############

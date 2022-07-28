@@ -913,7 +913,7 @@ export class TagService extends BaseService {
       .returning('*')
 
   /**
-   * Count tags by a given tag text.
+   * Count articles by a given tag id.
    */
   countArticles = async ({
     id: tagId,
@@ -951,6 +951,23 @@ export class TagService extends BaseService {
     })
 
     // console.log('countArticles:', { sql: query.toString(), tagId })
+
+    const result = await query
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Count article authors by a given tag id.
+   */
+  countAuthors = async ({ id: tagId }: { id: string }) => {
+    const query = this.knex('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .countDistinct('author_id')
+      .first()
+
+    query.andWhere({
+      state: ARTICLE_STATE.active,
+    })
 
     const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
