@@ -62,7 +62,7 @@ export default /* GraphQL */ `
     upvotes: Int!
 
     "The counting number of downvotes."
-    downvotes: Int!
+    downvotes: Int! @deprecated(reason: "No longer in use in querying")
 
     "The value determines current user's vote."
     myVote: Vote
