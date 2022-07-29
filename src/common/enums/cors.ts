@@ -9,7 +9,7 @@ export const CORS_OPTIONS: CorsOptions = {
     }
 
     const isLocalDev = /(localhost|127\.0\.0\.1):\d+$/.test(origin)
-    const isMatters = /\/\/(.*\.)?matters\.news$/.test(origin)
+    const isMatters = /\/\/(.*\.)?matters\.news$/.test(origin) || /\/\/(.*\.)?mattersprotocol\.io$/.test(origin)
     const isApolloStudio = /\/\/(.*\.)?apollographql\.com$/.test(origin)
     const isDevPreview =
       !isProd &&
