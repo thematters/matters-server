@@ -55,7 +55,7 @@ export const setCookie = ({
   res.cookie(
     COOKIE_TOKEN_NAME,
     token,
-    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
+    getCookieOption({ req, httpOnly: true, sameSite: 'none' })
   )
   res.cookie(
     COOKIE_USER_GROUP,
@@ -72,7 +72,7 @@ export const setCookie = ({
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   res.clearCookie(
     COOKIE_TOKEN_NAME,
-    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
+    getCookieOption({ req, httpOnly: true, sameSite: 'none' })
   )
   res.clearCookie(
     COOKIE_USER_GROUP,
