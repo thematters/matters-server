@@ -589,14 +589,14 @@ export class TagService extends BaseService {
           body,
         })
 
-        const { hits } = result.body
+        const { hits } = result
 
-        hits.hits.forEach(
-          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-            ids.add(_source?.id)
-        )
-
-        totalCount = hits.total.value
+        hits.hits.forEach((hit) => ids.add(hit._id))
+        if (typeof hits.total === 'number') {
+          totalCount = hits.total
+        } else if (hits.total) {
+          totalCount = hits.total.value
+        }
       }
 
       const queryTags = this.knex
@@ -1222,12 +1222,9 @@ export class TagService extends BaseService {
         body,
       })
 
-      const { hits } = result.body
+      const { hits } = result
 
-      hits.hits.forEach(
-        ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-          ids.add(_source?.id)
-      )
+      hits.hits.forEach((hit) => ids.add(hit._id))
     }
 
     const subquery = this.knex

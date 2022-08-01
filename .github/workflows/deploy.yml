@@ -35,9 +35,12 @@ jobs:
         ports:
           - 6379:6379
       elasticsearch:
-        image: elasticsearch:5-alpine
+        image: elasticsearch:8.2.3
         ports:
           - 9200:9200
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
       ipfs:
         image: ipfs/go-ipfs:v0.9.1
         ports:

@@ -37,7 +37,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@elastic/elasticsearch": "^7.13.0",
+    "@elastic/elasticsearch": "^8.2.1",
     "@google-cloud/translate": "^6.2.6",
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^7.10.0",
@@ -57,7 +57,7 @@
     "aws-sdk": "^2.954.0",
     "axios": "^0.21.2",
     "bcrypt": "^5.0.1",
-    "bodybuilder": "^2.4.0",
+    "bodybuilder": "^2.5.0",
     "bull": "^3.26.0",
     "cheerio": "^1.0.0-rc.10",
     "cookie": "^0.4.1",
@@ -140,7 +140,7 @@
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^7.0.1",
-    "jest": "^27.0.6",
+    "jest": "^27.5.1",
     "knex-migrate": "^1.7.4",
     "nodemon": "^2.0.12",
     "npm-run-all": "^4.1.5",
