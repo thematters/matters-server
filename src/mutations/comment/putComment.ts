@@ -429,6 +429,7 @@ const resolver: MutationToPutCommentResolver = async (
                 entity: circle,
               },
               { type: 'comment', entityTable: 'comment', entity: newComment },
+              // {type: 'target', entityTable: 'comment', entity: newComment,},
             ],
           })
         })

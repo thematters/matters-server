@@ -231,7 +231,7 @@ describe('mutations on comment', () => {
 
   test('downvote a comment', async () => {
     const server = await testClient({ isAuth: true })
-    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await server.executeOperation({
       query: VOTE_COMMENT,
       variables: {
@@ -239,12 +239,12 @@ describe('mutations on comment', () => {
       },
     })
     expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
-    expect(_get(downvoteData, 'voteComment.downvotes')).toBe(downvotes + 1)
+    expect(_get(downvoteData, 'voteComment.downvotes')).toBe(0)
   })
 
   test('unvote a comment', async () => {
     const server = await testClient({ isAuth: true })
-    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
       variables: {
@@ -252,7 +252,7 @@ describe('mutations on comment', () => {
       },
     })
     expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
-    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(downvotes - 1)
+    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(0)
   })
 
   test('delete comment', async () => {

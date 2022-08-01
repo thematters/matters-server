@@ -45,6 +45,8 @@ import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import tagIsOfficial from './tag/isOfficial'
+import tagNumArticles from './tag/numArticles'
+import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
@@ -74,6 +76,10 @@ export default {
     topics: userTopics,
   },
   Article: {
+    // when the Article is duck'ing from a Draft it has articleId,
+    // otherwise when articleId is undefined, it's a native Article, just use 'id'
+    id: ({ articleId, id }: { articleId: string; id: string }) =>
+      toGlobalId({ type: NODE_TYPES.Article, id: articleId ?? id }),
     content,
     summary,
     appreciationsReceived,
@@ -85,8 +91,6 @@ export default {
     assets,
     collection,
     collectedBy,
-    id: ({ articleId }: { articleId: string }) =>
-      toGlobalId({ type: NODE_TYPES.Article, id: articleId }),
     hasAppreciate,
     canSuperLike,
     language,
@@ -122,6 +126,8 @@ export default {
     owner: tagOwner,
     isFollower: tagIsFollower,
     isOfficial: tagIsOfficial,
+    numArticles: tagNumArticles,
+    numAuthors: tagNumAuthors,
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,

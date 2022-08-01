@@ -315,6 +315,29 @@ export default /* GraphQL */ `
     InCircleNewDiscussionReply
   }
 
+  type CircleCommentNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "List of notice actors."
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
+
+    type: CircleCommentNoticeType!
+
+    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
+
+    comment: Comment! @logCache(type: "${NODE_TYPES.Comment}")
+  }
+
+  enum CircleCommentNoticeType {
+    CircleNewBroadcast
+  }
 
   #################################
   #                               #

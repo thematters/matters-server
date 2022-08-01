@@ -808,8 +808,8 @@ export interface GQLTag extends GQLNode {
   /**
    * Counts of this tag.
    */
-  numArticles?: number
-  numAuthors?: number
+  numArticles: number
+  numAuthors: number
 
   /**
    * #############
@@ -1658,6 +1658,7 @@ export interface GQLComment extends GQLNode {
 
   /**
    * The counting number of downvotes.
+   * @deprecated No longer in use in querying
    */
   downvotes: number
 
@@ -1988,6 +1989,7 @@ export type GQLPossibleNoticeTypeNames =
   | 'TagNotice'
   | 'TransactionNotice'
   | 'CircleNotice'
+  | 'CircleCommentNotice'
   | 'CryptoNotice'
   | 'OfficialAnnouncementNotice'
 
@@ -2002,6 +2004,7 @@ export interface GQLNoticeNameMap {
   TagNotice: GQLTagNotice
   TransactionNotice: GQLTransactionNotice
   CircleNotice: GQLCircleNotice
+  CircleCommentNotice: GQLCircleCommentNotice
   CryptoNotice: GQLCryptoNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
 }
@@ -2355,6 +2358,35 @@ export const enum GQLCircleNoticeType {
   InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
   InCircleNewDiscussion = 'InCircleNewDiscussion',
   InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
+}
+
+export interface GQLCircleCommentNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * List of notice actors.
+   */
+  actors?: Array<GQLUser>
+  type: GQLCircleCommentNoticeType
+  target: GQLCircle
+  comment: GQLComment
+}
+
+export const enum GQLCircleCommentNoticeType {
+  CircleNewBroadcast = 'CircleNewBroadcast',
 }
 
 /**
@@ -4315,6 +4347,7 @@ export interface GQLResolver {
   TagNotice?: GQLTagNoticeTypeResolver
   TransactionNotice?: GQLTransactionNoticeTypeResolver
   CircleNotice?: GQLCircleNoticeTypeResolver
+  CircleCommentNotice?: GQLCircleCommentNoticeTypeResolver
   CryptoNotice?: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
@@ -8505,6 +8538,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'CircleNotice'
+    | 'CircleCommentNotice'
     | 'CryptoNotice'
     | 'OfficialAnnouncementNotice'
     | Promise<
@@ -8517,6 +8551,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
         | 'TagNotice'
         | 'TransactionNotice'
         | 'CircleNotice'
+        | 'CircleCommentNotice'
         | 'CryptoNotice'
         | 'OfficialAnnouncementNotice'
       >
@@ -9244,6 +9279,97 @@ export interface CircleNoticeToTypeResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleNoticeToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleCommentNoticeTypeResolver<TParent = any> {
+  id?: CircleCommentNoticeToIdResolver<TParent>
+  unread?: CircleCommentNoticeToUnreadResolver<TParent>
+  createdAt?: CircleCommentNoticeToCreatedAtResolver<TParent>
+  actors?: CircleCommentNoticeToActorsResolver<TParent>
+  type?: CircleCommentNoticeToTypeResolver<TParent>
+  target?: CircleCommentNoticeToTargetResolver<TParent>
+  comment?: CircleCommentNoticeToCommentResolver<TParent>
+}
+
+export interface CircleCommentNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToActorsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToTypeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleCommentNoticeToCommentResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
