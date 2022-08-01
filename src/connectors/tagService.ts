@@ -7,6 +7,7 @@ import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
   MATERIALIZED_VIEW,
+  MAX_TAG_CONTENT_LENGTH,
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
@@ -162,7 +163,7 @@ export class TagService extends BaseService {
 
   /**
    * Create a tag, but return one if it's existing.
-   *
+   * update: this create may skip (return null) if content.length > MAX_TAG_CONTENT_LENGTH
    */
   create = async (
     {
@@ -182,45 +183,32 @@ export class TagService extends BaseService {
     },
     columns: string[] = ['*']
   ) => {
-    let item
+    const tag = await this.baseFindOrCreate({
+      where: { content },
+      data: { content, cover, creator, description, editors, owner },
+      table: this.table,
+      columns,
+      modifier: (builder: Knex.QueryBuilder) => {
+        builder
+          .onConflict(
+            // ignore only on content conflict and NOT deleted.
+            this.knex.raw('(content) WHERE NOT deleted')
+          )
+          .merge({ deleted: false })
+      },
+      skipCreate: content?.length > MAX_TAG_CONTENT_LENGTH,
+    })
 
-    try {
-      item = await this.knex
-        .from(this.table) // (VIEW.tags_lasts_view)
-        .select(columns)
-        .where('content', content) // ('slug', tagSlugify(content))
-        .first()
-    } catch (err) {
-      logger.error(err)
-    }
-
-    // create
-    if (!item) {
-      const tag = await this.baseCreate(
-        { content, cover, creator, description, editors, owner },
-        this.table,
-        columns,
-        (builder: Knex.QueryBuilder) => {
-          builder
-            .onConflict(
-              // ignore only on content conflict and NOT deleted.
-              this.knex.raw('(content) WHERE NOT deleted')
-            )
-            .merge({ deleted: false })
-        }
-      )
-
-      // add tag into search engine
+    // add tag into search engine
+    if (tag) {
       await this.addToSearch({
         id: tag.id,
         content: tag.content,
         description: tag.description,
       })
-
-      return tag
     }
 
-    return item
+    return tag
   }
 
   /**

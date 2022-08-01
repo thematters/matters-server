@@ -1,9 +1,16 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
+import {
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+  // PUBLISH_STATE
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { putDraft } from './utils'
+import {
+  // publishArticle,
+  putDraft,
+} from './utils'
 
 describe('put draft', () => {
   let draftId: string
@@ -37,18 +44,23 @@ describe('put draft', () => {
     const tags = [
       'abc',
       '123',
-      'tags too long | too long | too long | too long | too long', // will be omitted
+      'tags too long | too long | too long | too long | too long', // will be omitted at publishing time
     ]
-    const result = await putDraft({ draft: { id: draftId, tags } })
-    expect(_get(result, 'tags.length')).toBe(2)
-    expect(_get(result, 'tags.0')).toBe(tags[0])
-    expect(_get(result, 'tags.1')).toBe(tags[1])
+    const draft = await putDraft({ draft: { id: draftId, tags } })
+    expect(_get(draft, 'tags.length')).toBe(3)
+    expect(_get(draft, 'tags.0')).toBe(tags[0])
+    expect(_get(draft, 'tags.1')).toBe(tags[1])
+    // expect(_get(draft, 'tags.2')).toBe(tags[2])
+
+    // const { publishState } = await publishArticle({ id: draft.id })
+    // expect(publishState).toBe(PUBLISH_STATE.pending)
+    // to check dbTags.length should be 2;
 
     // should retain the tags after setting something else, without changing tags
     const tagsResult1 = await putDraft({
       draft: { id: draftId, summary: 'any-summary' },
     })
-    expect(_get(tagsResult1, 'tags.length')).toBe(2)
+    expect(_get(tagsResult1, 'tags.length')).toBe(3)
     expect(_get(tagsResult1, 'tags.0')).toBe(tags[0])
     expect(_get(tagsResult1, 'tags.1')).toBe(tags[1])
 

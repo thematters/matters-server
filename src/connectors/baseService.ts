@@ -212,17 +212,23 @@ export class BaseService extends DataSource {
     where,
     data,
     table,
+    columns = ['*'],
+    modifier,
+    skipCreate = false,
   }: {
     where: { [key: string]: any }
     data: ItemData
     table?: TableName
+    columns?: string[]
+    modifier?: (builder: Knex.QueryBuilder) => void
+    skipCreate?: boolean
   }) => {
     const tableName = table || this.table
-    const item = await this.knex(tableName).select().where(where).first()
+    const item = await this.knex(tableName).select(columns).where(where).first()
 
     // create
-    if (!item) {
-      return this.baseCreate(data, tableName)
+    if (!item && !skipCreate) {
+      return this.baseCreate(data, tableName, columns, modifier)
     }
 
     // find

@@ -8,7 +8,7 @@ import {
   DB_NOTICE_TYPE,
 
   // tag related
-  MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_CONTENT_LENGTH,
   NODE_TYPES,
   PIN_STATE,
   PUBLISH_STATE,
@@ -473,26 +473,27 @@ class PublicationQueue extends BaseQueue {
 
       tags = Array.from(
         new Set(
-          tags
-            .map(stripAllPunct)
-            .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
+          tags.map(stripAllPunct)
+          // .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
         )
       )
 
       // create tag records, return tag record if already exists
-      const dbTags = (await Promise.all(
-        tags.map((tag: string) =>
-          this.tagService.create(
-            {
-              content: tag,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
-            ['id', 'content']
+      const dbTags = (
+        (await Promise.all(
+          tags.map((tag: string) =>
+            this.tagService.create(
+              {
+                content: tag,
+                creator: article.authorId,
+                editors: tagEditors,
+                owner: article.authorId,
+              },
+              ['id', 'content']
+            )
           )
-        )
-      )) as unknown as [{ id: string; content: string }]
+        )) as unknown as [{ id: string; content: string }]
+      ).filter(Boolean)
 
       // create article_tag record
       await this.tagService.createArticleTags({
