@@ -76,7 +76,7 @@ const notice: {
         article_mentioned_you: NOTICE_TYPE.ArticleNotice,
         revised_article_published: NOTICE_TYPE.ArticleNotice,
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
-        circle_new_article: NOTICE_TYPE.ArticleNotice,
+        // circle_new_article: NOTICE_TYPE.ArticleNotice,
 
         // article-artilce
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
@@ -171,8 +171,7 @@ const notice: {
           return GQLArticleNoticeType.RevisedArticlePublished
         case DB_NOTICE_TYPE.revised_article_not_published:
           return GQLArticleNoticeType.RevisedArticleNotPublished
-        case DB_NOTICE_TYPE.circle_new_article:
-          return GQLArticleNoticeType.CircleNewArticle
+        // case DB_NOTICE_TYPE.circle_new_article: return GQLArticleNoticeType.CircleNewArticle
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>

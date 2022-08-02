@@ -29,7 +29,7 @@ describe('user notify setting', () => {
     article_mentioned_you: true,
     revised_article_published: true,
     revised_article_not_published: true,
-    circle_new_article: true,
+    // circle_new_article: true,
 
     // article-article
     article_new_collected: true,

@@ -526,7 +526,7 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      circle_new_article: true,
+      // circle_new_article: true,
 
       // article-article
       article_new_collected: setting.articleNewCollected,

@@ -206,7 +206,8 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       // notify
       recipients.forEach((recipientId: any) => {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_article,
+          event: DB_NOTICE_TYPE.in_circle_new_article,
+          actorId: viewer.id,
           recipientId,
           entities: [
             {

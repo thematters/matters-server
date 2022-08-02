@@ -9,7 +9,7 @@ export enum DB_NOTICE_TYPE {
   article_mentioned_you = 'article_mentioned_you',
   revised_article_published = 'revised_article_published',
   revised_article_not_published = 'revised_article_not_published',
-  circle_new_article = 'circle_new_article',
+  // circle_new_article = 'circle_new_article',
 
   // article-article
   article_new_collected = 'article_new_collected',

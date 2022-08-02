@@ -436,10 +436,13 @@ class PublicationQueue extends BaseQueue {
       draft.circleId
     )
 
+    const circle = await this.atomService.circleIdLoader.load(draft.circleId)
+
     recipients.forEach((recipientId: any) => {
       this.notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_new_article,
+        event: DB_NOTICE_TYPE.in_circle_new_article, // circle_new_article,
         recipientId,
+        actorId: circle.owner, // viewer.id,
         entities: [
           {
             type: 'target',
