@@ -541,7 +541,7 @@ export class PaymentService extends BaseService {
     const trx = await this.knex.transaction()
     try {
       // create subscription top up transaction
-      const transactionId = await trx('transaction')
+      const [trans] = await trx('transaction')
         .insert({
           amount,
           currency,
@@ -556,18 +556,16 @@ export class PaymentService extends BaseService {
           targetType: undefined,
           targetId: undefined,
         })
-        .returning('id')
+        .returning('*')
 
       // create circle invoice
-      await trx('circle_invoice')
-        .insert({
-          userId,
-          transactionId: transactionId[0],
-          subscriptionId,
-          provider: PAYMENT_PROVIDER.stripe,
-          providerInvoiceId,
-        })
-        .returning('id')
+      await trx('circle_invoice').insert({
+        userId,
+        transactionId: trans.id,
+        subscriptionId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerInvoiceId,
+      })
 
       // verify if it is OK to split the payment given the circle prices
       for (const p of prices) {
