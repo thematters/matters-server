@@ -415,23 +415,26 @@ class PublicationQueue extends BaseQueue {
     article: any
     secret: any
   }) => {
-    if (!draft.circleId || !draft.access) {
+    if (!draft.circleId) {
       return
     }
 
-    const data = {
-      articleId: article.id,
-      circleId: draft.circleId,
-      secret,
+    if (draft.access) {
+      const data = {
+        articleId: article.id,
+        circleId: draft.circleId,
+        secret,
+      }
+
+      await this.atomService.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: draft.access },
+        update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
+      })
     }
 
-    await this.atomService.upsert({
-      table: 'article_circle',
-      where: data,
-      create: { ...data, access: draft.access },
-      update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
-    })
-
+    // handle 'in_circle_new_article' notification
     const recipients = await this.userService.findCircleRecipients(
       draft.circleId
     )
