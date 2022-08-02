@@ -11,7 +11,7 @@ import {
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
-import { isProd } from 'common/environment'
+// import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 // import { tagSlugify } from 'common/utils'
@@ -555,7 +555,7 @@ export class TagService extends BaseService {
       .build()
 
     try {
-      const ids = new Set<string>()
+      const ids = new Set<number>()
       let totalCount: number = 0
       if (includeAuthorTags && viewerId) {
         const [res, res2] = await Promise.all([
@@ -578,8 +578,8 @@ export class TagService extends BaseService {
             )
             .select(this.knex.raw('DISTINCT at.tag_id ::int')),
         ])
-        res.forEach(({ id }) => ids.add(id))
-        res2.forEach(({ tagId }) => ids.add(tagId))
+        res.forEach(({ id }) => ids.add(+id))
+        res2.forEach(({ tagId }) => ids.add(+tagId))
         // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
@@ -591,7 +591,7 @@ export class TagService extends BaseService {
 
         const { hits } = result
 
-        hits.hits.forEach((hit) => ids.add(hit._id))
+        hits.hits.forEach((hit) => ids.add((hit._source as any)?.id))
         if (typeof hits.total === 'number') {
           totalCount = hits.total
         } else if (hits.total) {
@@ -615,18 +615,19 @@ export class TagService extends BaseService {
         .orderBy('num_authors', 'desc')
         .orderBy('num_articles', 'desc')
         .orderBy('created_at', 'asc')
+        .modify(function (this: Knex.QueryBuilder) {
+          if (take !== undefined) {
+            // neither undefined nor null, check both
+            this.limit(take)
+          }
+          if (skip !== undefined) {
+            this.offset(skip)
+          }
+        })
 
-      if (skip) {
-        queryTags.offset(skip)
-      }
-      if (take) {
-        queryTags.limit(take)
-      }
+      // console.log('searchTags: use query:', queryTags.toString())
 
       const tags = await queryTags
-      if (!isProd) {
-        console.log('found:', ids, 'search from lasts:', tags)
-      }
 
       return {
         nodes: tags,
@@ -677,20 +678,30 @@ export class TagService extends BaseService {
     take = 50,
     skip,
     top = 'r3m',
+    minAuthors,
   }: {
     take?: number
     skip?: number
     // recent 1 week, 1 month, or 3 months?
-    top?: 'r1w' | 'r1m' | 'r3m'
+    top?: 'r1w' | 'r2w' | 'r1m' | 'r3m'
+    minAuthors?: number
   }) => {
     const query = this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
       .modify(function (this: Knex.QueryBuilder) {
+        if (minAuthors) {
+          this.where('num_authors', '>=', minAuthors)
+        }
         switch (top) {
           case 'r1w':
             this.orderByRaw(
               'num_authors_r1w DESC NULLS LAST, num_articles_r1w DESC NULLS LAST'
+            )
+          // no break to fallthrough
+          case 'r2w':
+            this.orderByRaw(
+              'num_authors_r2w DESC NULLS LAST, num_articles_r2w DESC NULLS LAST'
             )
           // no break to fallthrough
           case 'r1m':
@@ -704,15 +715,18 @@ export class TagService extends BaseService {
               'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
             )
           /* this orderBy does not work as documented
-               .orderBy([
+            .orderBy([
                { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
                { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
                { column: 'span_days', order: 'desc', nulls: 'last' },
-               ]) */
+             ])
+          */
         }
       })
       // last fallback
+      .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
       .orderByRaw('span_days DESC NULLS LAST')
+      .orderByRaw('created_at') // ascending from earliest to latest
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined) {
           // neither undefined nor null, check both
@@ -723,7 +737,7 @@ export class TagService extends BaseService {
         }
       })
 
-    console.log('findTopTags: use query:', query.toString())
+    // console.log('findTopTags: use query:', query.toString())
 
     return query
   }
@@ -1202,30 +1216,17 @@ export class TagService extends BaseService {
   }) => {
     const countRels = await this.knex
       .from(VIEW.tags_lasts_view)
-      .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
+      .select([
+        'id',
+        'content',
+        this.knex.raw('jsonb_array_length(top_rels) AS count'),
+      ])
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
 
     const countRelsCount = countRels?.count || 0
 
-    const ids = new Set<string>()
-
-    // append some results from elasticsearch
-    if (countRelsCount < TAGS_RECOMMENDED_LIMIT && tagContent) {
-      const body = bodybuilder()
-        .query('match', 'content', tagContent)
-        .size(TAGS_RECOMMENDED_LIMIT)
-        .build()
-
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
-      })
-
-      const { hits } = result
-
-      hits.hits.forEach((hit) => ids.add(hit._id))
-    }
+    // console.log('countRelsCount:', { countRels })
 
     const subquery = this.knex
       .from(VIEW.tags_lasts_view)
@@ -1235,42 +1236,86 @@ export class TagService extends BaseService {
       .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
 
+    // append some results from elasticsearch
     if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
-      subquery.unionAll(
-        this.knex
-          .from(VIEW.tags_lasts_view)
-          .select(
-            'id AS tag_rel_id',
-            'num_articles AS count_rel',
-            this.knex.raw('NULL AS count_common'), // unknown
-            this.knex.raw('0.0 AS similarity')
-          )
-          .whereIn('id', Array.from(ids))
-      )
+      const ids = new Set<number>()
+      if (tagContent) {
+        const body = bodybuilder()
+          .query('match', 'content', tagContent)
+          .size(TAGS_RECOMMENDED_LIMIT) // at most 100
+          .build()
+
+        const result = await this.es.client.search({
+          index: this.table,
+          body,
+        })
+
+        // console.log('from es.client:', result?.hits?.hits)
+
+        const { hits } = result
+        if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
+          hits.hits.shift() // remove the exact match at first, if exists
+        }
+
+        hits.hits.forEach((hit) => ids.add((hit._source as any).id))
+
+        // console.log('from es.client:', ids)
+      }
+
+      if (ids.size > 0) {
+        subquery.unionAll(
+          this.knex
+            .from(VIEW.tags_lasts_view)
+            .select(
+              'id AS tag_rel_id',
+              'num_articles AS count_rel',
+              this.knex.raw('NULL AS count_common'), // unknown
+              this.knex.raw('NULL AS similarity')
+            )
+            .whereIn('id', Array.from(ids))
+            .modify(function (this: Knex.QueryBuilder) {
+              if (tagContent) {
+                this.whereNot('content', tagContent)
+              }
+            })
+        )
+      }
     }
 
     const query = this.knex
-      .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))
+      .from(subquery.as('x'))
       .join(this.knex.ref(VIEW.tags_lasts_view).as('t'), 'x.tag_rel_id', 't.id')
-      // .whereIn('id', subquery)
-      .select(
+      // .distinctOn('id')
+      .select([
         'x.*',
         'id',
         'content',
-        'num_articles',
-        'num_authors',
         'created_at',
         'cover',
-        'description'
-      )
+        'description',
+        'num_articles',
+        'num_authors',
+      ])
+      // .orderBy('id')
       .orderByRaw('x.similarity DESC NULLS LAST')
+      .orderByRaw(
+        'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
+      )
+      .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
+      .orderByRaw('span_days DESC NULLS LAST')
+      .orderByRaw('created_at') // ascending from earliest to latest
 
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined && Number.isFinite(take)) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          this.offset(skip)
+        }
+      })
+
+    // console.log('findRelatedTags: use query:', query.toString())
 
     return query
   }
