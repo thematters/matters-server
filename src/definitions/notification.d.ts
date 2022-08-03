@@ -16,6 +16,8 @@ export type NoticeEntityType =
   | 'reply'
   | 'collection'
   | 'tag'
+  | 'article'
+  | 'circle'
 
 export type NotificationType = DBNoticeType | OfficialNoticeExtendType
 
@@ -371,7 +373,10 @@ export interface NoticeInCircleNewArticleParams
   event: DB_NOTICE_TYPE.in_circle_new_article
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'article'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>,
+    NotificationEntity<'article', 'article'>
+  ]
 }
 
 export interface NoticeInCircleNewBroadcastParams

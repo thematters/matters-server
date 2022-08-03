@@ -446,6 +446,11 @@ class PublicationQueue extends BaseQueue {
         entities: [
           {
             type: 'target',
+            entityTable: 'circle',
+            entity: circle,
+          },
+          {
+            type: 'article',
             entityTable: 'article',
             entity: article,
           },

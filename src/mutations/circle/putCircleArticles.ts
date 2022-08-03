@@ -212,6 +212,11 @@ const resolver: MutationToPutCircleArticlesResolver = async (
           entities: [
             {
               type: 'target',
+              entityTable: 'circle',
+              entity: circle,
+            },
+            {
+              type: 'article',
               entityTable: 'article',
               entity: article,
             },
