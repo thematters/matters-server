@@ -81,7 +81,7 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_leave_editor:
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_follower:
-      case DB_NOTICE_TYPE.circle_new_broadcast:
+      // case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
       case DB_NOTICE_TYPE.circle_new_discussion:
       case DB_NOTICE_TYPE.circle_member_broadcast:

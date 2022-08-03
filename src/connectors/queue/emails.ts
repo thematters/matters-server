@@ -108,9 +108,7 @@ class EmailsQueue extends BaseQueue {
               circle_new_follower: filterNotices(
                 DB_NOTICE_TYPE.circle_new_follower
               ),
-              circle_new_broadcast: filterNotices(
-                DB_NOTICE_TYPE.circle_new_broadcast
-              ),
+              // circle_new_broadcast: filterNotices(DB_NOTICE_TYPE.circle_new_broadcast),
               circle_new_discussion: filterNotices(
                 DB_NOTICE_TYPE.circle_new_discussion
               ),

@@ -105,7 +105,7 @@ const notice: {
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
 
         // have both target circle, and comment
-        circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
+        // circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
 
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
@@ -130,7 +130,7 @@ const notice: {
 
         // in circle
         in_circle_new_article: NOTICE_TYPE.CircleArticleNotice,
-        in_circle_new_broadcast: NOTICE_TYPE.CircleNotice,
+        in_circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
         in_circle_new_broadcast_reply: NOTICE_TYPE.CircleNotice,
         in_circle_new_discussion: NOTICE_TYPE.CircleNotice,
         in_circle_new_discussion_reply: NOTICE_TYPE.CircleNotice,
@@ -240,8 +240,7 @@ const notice: {
           return GQLCommentNoticeType.ArticleNewComment
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return GQLCommentNoticeType.SubscribedArticleNewComment
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return GQLCommentNoticeType.CircleNewBroadcast
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return GQLCommentNoticeType.CircleNewBroadcast
         case DB_NOTICE_TYPE.circle_new_discussion:
           return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_member_new_discussion:
@@ -285,8 +284,7 @@ const notice: {
         case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
           return entities.target
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return entities.comment
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return entities.comment
 
         case DB_NOTICE_TYPE.in_circle_new_article:
           return entities.article
@@ -341,8 +339,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_invitation:
           return GQLCircleNoticeType.CircleInvitation
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return GQLCommentNoticeType.CircleNewBroadcast
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return GQLCommentNoticeType.CircleNewBroadcast
         case DB_NOTICE_TYPE.circle_new_discussion:
           return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_member_new_discussion:
@@ -370,7 +367,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
         case DB_NOTICE_TYPE.circle_invitation:
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        // case DB_NOTICE_TYPE.circle_new_broadcast:
         case DB_NOTICE_TYPE.circle_new_discussion:
         case DB_NOTICE_TYPE.circle_member_new_discussion:
         case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
@@ -389,19 +386,19 @@ const notice: {
   CircleCommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return GQLCircleCommentNoticeType.CircleNewBroadcast
       }
     },
     target: ({ entities, type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return entities.target
       }
     },
     comment: ({ entities, type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return entities.comment
       }
     },

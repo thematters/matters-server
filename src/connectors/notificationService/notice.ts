@@ -538,7 +538,7 @@ class Notice extends BaseService {
       circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      circle_new_broadcast: true,
+      // circle_new_broadcast: true,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,

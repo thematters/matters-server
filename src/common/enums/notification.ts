@@ -45,7 +45,7 @@ export enum DB_NOTICE_TYPE {
   // circle owners
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_follower = 'circle_new_follower',
-  circle_new_broadcast = 'circle_new_broadcast',
+  // circle_new_broadcast = 'circle_new_broadcast', // deprecated
   circle_new_discussion = 'circle_new_discussion',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
   circle_invitation = 'circle_invitation',

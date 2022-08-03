@@ -161,18 +161,6 @@ export interface NoticeSubscribedArticleNewCommentParams
   ]
 }
 
-export interface NoticeCircleNewBroadcastParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_new_broadcast
-  recipientId: string
-  actorId: string
-  entities: [
-    // NotificationEntity<'target', 'comment'>
-    NotificationEntity<'target', 'circle'>,
-    NotificationEntity<'comment', 'comment'>
-  ]
-}
-
 export interface NoticeCircleNewDiscussionParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.circle_new_discussion
@@ -385,8 +373,8 @@ export interface NoticeInCircleNewBroadcastParams
   actorId: string
   recipientId: string
   entities: [
-    NotificationEntity<'target', 'circle'>
-    // NotificationEntity<'comment', 'comment'>
+    NotificationEntity<'target', 'circle'>,
+    NotificationEntity<'comment', 'comment'>
   ]
 }
 
@@ -513,7 +501,7 @@ export type NotificationPrarms =
   | NoticeCircleBroadcastMentionedYouParams
   | NoticeCircleDiscussionMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeCircleNewBroadcastParams
+  // | NoticeCircleNewBroadcastParams // deprecated
   | NoticeCircleNewDiscussionParams
   | NoticeCircleMemberBroadcastParams
   | NoticeCircleMemberNewDiscussionParams

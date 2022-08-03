@@ -41,7 +41,7 @@ describe('user notify setting', () => {
     circle_discussion_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
-    circle_new_broadcast: true,
+    // circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,

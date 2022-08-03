@@ -38,7 +38,7 @@ export const sendDailySummary = async ({
     circle_new_follower: NoticeItem[]
     circle_new_unsubscriber: NoticeItem[]
     circle_invitation: NoticeItem[]
-    circle_new_broadcast: NoticeItem[]
+    // circle_new_broadcast: NoticeItem[]
     circle_new_discussion: NoticeItem[]
     circle_member_broadcast: NoticeItem[]
     circle_member_new_discussion: NoticeItem[]
@@ -125,12 +125,6 @@ export const sendDailySummary = async ({
       actorCount: actors.length > 3 ? actors.length : false,
     }))
   )
-  const circle_new_broadcast = await Promise.all(
-    notices.circle_new_broadcast.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target),
-    }))
-  )
   const circle_new_discussion = await Promise.all(
     notices.circle_new_discussion.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
@@ -211,7 +205,7 @@ export const sendDailySummary = async ({
             circle_new_subscriber,
             circle_new_follower,
             circle_new_unsubscriber,
-            circle_new_broadcast,
+            // circle_new_broadcast,
             circle_new_discussion,
 
             // for members in circle
