@@ -10,7 +10,7 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
-  MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_CONTENT_LENGTH,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -146,9 +146,8 @@ const resolver: MutationToEditArticleResolver = async (
       : [article.authorId]
 
     tags = uniq(
-      tags
-        .map(stripAllPunct)
-        .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
+      tags.map(stripAllPunct)
+      // .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
     )
 
     if (tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {

@@ -419,7 +419,7 @@ const resolver: MutationToPutCommentResolver = async (
       if (isCircleBroadcast) {
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_new_broadcast,
+            event: DB_NOTICE_TYPE.in_circle_new_broadcast, // circle_new_broadcast,
             actorId: viewer.id,
             recipientId,
             entities: [
@@ -478,7 +478,7 @@ const resolver: MutationToPutCommentResolver = async (
                   entityTable: 'circle',
                   entity: circle,
                 },
-                // {type: 'comment', entityTable: 'comment', entity: newComment,},
+                { type: 'comment', entityTable: 'comment', entity: newComment },
               ],
             })
           })
@@ -488,7 +488,9 @@ const resolver: MutationToPutCommentResolver = async (
       if (isCircleDiscussion) {
         if (viewer.id !== circle.owner) {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_member_new_discussion,
+            event: !isLevel1Comment // replyToComment?.type === COMMENT_TYPE.circleDiscussion
+              ? DB_NOTICE_TYPE.circle_member_new_discussion_reply
+              : DB_NOTICE_TYPE.circle_member_new_discussion,
             actorId: viewer.id,
             recipientId: circle.owner,
             entities: [
@@ -500,21 +502,6 @@ const resolver: MutationToPutCommentResolver = async (
               // {type: 'comment', entityTable: 'comment', entity: newComment,},
             ],
           })
-          if (replyToComment?.type === COMMENT_TYPE.circleDiscussion) {
-            notificationService.trigger({
-              event: DB_NOTICE_TYPE.circle_member_new_discussion_reply,
-              actorId: viewer.id,
-              recipientId: circle.owner,
-              entities: [
-                {
-                  type: 'target',
-                  entityTable: 'circle',
-                  entity: circle,
-                },
-                // {type: 'comment', entityTable: 'comment', entity: newComment,},
-              ],
-            })
-          }
         }
 
         recipients.forEach((recipientId: any) => {

@@ -16,6 +16,8 @@ export type NoticeEntityType =
   | 'reply'
   | 'collection'
   | 'tag'
+  | 'article'
+  | 'circle'
 
 export type NotificationType = DBNoticeType | OfficialNoticeExtendType
 
@@ -91,13 +93,6 @@ export interface NoticeRevisedArticleNotPublishedParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeCircleNewArticleParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_new_article
-  recipientId: string
-  entities: [NotificationEntity<'target', 'article'>]
-}
-
 // Article-Article
 export interface NoticeArticleNewCollectedParams
   extends NotificationRequiredParams {
@@ -162,18 +157,6 @@ export interface NoticeSubscribedArticleNewCommentParams
   actorId: string
   entities: [
     NotificationEntity<'target', 'article'>,
-    NotificationEntity<'comment', 'comment'>
-  ]
-}
-
-export interface NoticeCircleNewBroadcastParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_new_broadcast
-  recipientId: string
-  actorId: string
-  entities: [
-    // NotificationEntity<'target', 'comment'>
-    NotificationEntity<'target', 'circle'>,
     NotificationEntity<'comment', 'comment'>
   ]
 }
@@ -378,7 +361,10 @@ export interface NoticeInCircleNewArticleParams
   event: DB_NOTICE_TYPE.in_circle_new_article
   actorId: string
   recipientId: string
-  entities: [NotificationEntity<'target', 'article'>]
+  entities: [
+    NotificationEntity<'target', 'circle'>,
+    NotificationEntity<'article', 'article'>
+  ]
 }
 
 export interface NoticeInCircleNewBroadcastParams
@@ -387,8 +373,8 @@ export interface NoticeInCircleNewBroadcastParams
   actorId: string
   recipientId: string
   entities: [
-    NotificationEntity<'target', 'circle'>
-    // NotificationEntity<'comment', 'comment'>
+    NotificationEntity<'target', 'circle'>,
+    NotificationEntity<'comment', 'comment'>
   ]
 }
 
@@ -508,14 +494,14 @@ export type NotificationPrarms =
   | NoticeArticleMentionedYouParams
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
-  | NoticeCircleNewArticleParams
+  // | NoticeCircleNewArticleParams
   // Comment
   | NoticeCommentPinnedParams
   | NoticeCommentMentionedYouParams
   | NoticeCircleBroadcastMentionedYouParams
   | NoticeCircleDiscussionMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeCircleNewBroadcastParams
+  // | NoticeCircleNewBroadcastParams // deprecated
   | NoticeCircleNewDiscussionParams
   | NoticeCircleMemberBroadcastParams
   | NoticeCircleMemberNewDiscussionParams

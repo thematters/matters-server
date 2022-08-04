@@ -28,7 +28,8 @@ export const tags: RecommendationToTagsResolver = async (
 
     const curationTags = await tagService.findTopTags({
       take: limit * draw,
-      top: 'r1w',
+      top: 'r2w',
+      minAuthors: 5, // show at least 5 authors in the curation
     })
 
     const chunks = chunk(curationTags, draw)

@@ -1990,6 +1990,7 @@ export type GQLPossibleNoticeTypeNames =
   | 'TransactionNotice'
   | 'CircleNotice'
   | 'CircleCommentNotice'
+  | 'CircleArticleNotice'
   | 'CryptoNotice'
   | 'OfficialAnnouncementNotice'
 
@@ -2005,6 +2006,7 @@ export interface GQLNoticeNameMap {
   TransactionNotice: GQLTransactionNotice
   CircleNotice: GQLCircleNotice
   CircleCommentNotice: GQLCircleCommentNotice
+  CircleArticleNotice: GQLCircleArticleNotice
   CryptoNotice: GQLCryptoNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
 }
@@ -2385,8 +2387,37 @@ export interface GQLCircleCommentNotice extends GQLNotice {
   comment: GQLComment
 }
 
+export interface GQLCircleArticleNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * List of notice actors.
+   */
+  actors?: Array<GQLUser>
+  type: GQLCircleArticleNoticeType
+  target: GQLCircle
+  article: GQLArticle
+}
+
 export const enum GQLCircleCommentNoticeType {
   CircleNewBroadcast = 'CircleNewBroadcast',
+}
+
+export const enum GQLCircleArticleNoticeType {
+  InCircleNewArticle = 'InCircleNewArticle',
 }
 
 /**
@@ -4348,6 +4379,7 @@ export interface GQLResolver {
   TransactionNotice?: GQLTransactionNoticeTypeResolver
   CircleNotice?: GQLCircleNoticeTypeResolver
   CircleCommentNotice?: GQLCircleCommentNoticeTypeResolver
+  CircleArticleNotice?: GQLCircleArticleNoticeTypeResolver
   CryptoNotice?: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
@@ -8539,6 +8571,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TransactionNotice'
     | 'CircleNotice'
     | 'CircleCommentNotice'
+    | 'CircleArticleNotice'
     | 'CryptoNotice'
     | 'OfficialAnnouncementNotice'
     | Promise<
@@ -8552,6 +8585,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
         | 'TransactionNotice'
         | 'CircleNotice'
         | 'CircleCommentNotice'
+        | 'CircleArticleNotice'
         | 'CryptoNotice'
         | 'OfficialAnnouncementNotice'
       >
@@ -9367,6 +9401,97 @@ export interface CircleCommentNoticeToTargetResolver<
 }
 
 export interface CircleCommentNoticeToCommentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleArticleNoticeTypeResolver<TParent = any> {
+  id?: CircleArticleNoticeToIdResolver<TParent>
+  unread?: CircleArticleNoticeToUnreadResolver<TParent>
+  createdAt?: CircleArticleNoticeToCreatedAtResolver<TParent>
+  actors?: CircleArticleNoticeToActorsResolver<TParent>
+  type?: CircleArticleNoticeToTypeResolver<TParent>
+  target?: CircleArticleNoticeToTargetResolver<TParent>
+  article?: CircleArticleNoticeToArticleResolver<TParent>
+}
+
+export interface CircleArticleNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToActorsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToTypeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleArticleNoticeToArticleResolver<
   TParent = any,
   TResult = any
 > {

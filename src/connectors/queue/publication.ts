@@ -8,7 +8,7 @@ import {
   DB_NOTICE_TYPE,
 
   // tag related
-  MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_CONTENT_LENGTH,
   NODE_TYPES,
   PIN_STATE,
   PUBLISH_STATE,
@@ -415,34 +415,45 @@ class PublicationQueue extends BaseQueue {
     article: any
     secret: any
   }) => {
-    if (!draft.circleId || !draft.access) {
+    if (!draft.circleId) {
       return
     }
 
-    const data = {
-      articleId: article.id,
-      circleId: draft.circleId,
-      secret,
+    if (draft.access) {
+      const data = {
+        articleId: article.id,
+        circleId: draft.circleId,
+        secret,
+      }
+
+      await this.atomService.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: draft.access },
+        update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
+      })
     }
 
-    await this.atomService.upsert({
-      table: 'article_circle',
-      where: data,
-      create: { ...data, access: draft.access },
-      update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
-    })
-
+    // handle 'in_circle_new_article' notification
     const recipients = await this.userService.findCircleRecipients(
       draft.circleId
     )
 
+    const circle = await this.atomService.circleIdLoader.load(draft.circleId)
+
     recipients.forEach((recipientId: any) => {
       this.notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_new_article,
+        event: DB_NOTICE_TYPE.in_circle_new_article, // circle_new_article,
         recipientId,
+        actorId: circle.owner, // viewer.id,
         entities: [
           {
             type: 'target',
+            entityTable: 'circle',
+            entity: circle,
+          },
+          {
+            type: 'article',
             entityTable: 'article',
             entity: article,
           },
@@ -473,26 +484,27 @@ class PublicationQueue extends BaseQueue {
 
       tags = Array.from(
         new Set(
-          tags
-            .map(stripAllPunct)
-            .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
+          tags.map(stripAllPunct)
+          // .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
         )
       )
 
       // create tag records, return tag record if already exists
-      const dbTags = (await Promise.all(
-        tags.map((tag: string) =>
-          this.tagService.create(
-            {
-              content: tag,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
-            ['id', 'content']
+      const dbTags = (
+        (await Promise.all(
+          tags.map((tag: string) =>
+            this.tagService.create(
+              {
+                content: tag,
+                creator: article.authorId,
+                editors: tagEditors,
+                owner: article.authorId,
+              },
+              ['id', 'content']
+            )
           )
-        )
-      )) as unknown as [{ id: string; content: string }]
+        )) as unknown as [{ id: string; content: string }]
+      ).filter(Boolean)
 
       // create article_tag record
       await this.tagService.createArticleTags({
