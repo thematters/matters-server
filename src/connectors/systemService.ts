@@ -164,7 +164,6 @@ export class SystemService extends BaseService {
     entityTypeId: string,
     entityId: string
   ) =>
-    // this.baseFindOrCreate({ path }, data, 'asset')
     this.knex.transaction(async (trx) => {
       // const [newAsset] = await trx.find(asset).into('asset').returning('*')
       const { path, type, authorId, uuid } = data

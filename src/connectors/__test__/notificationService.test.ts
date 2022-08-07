@@ -29,7 +29,7 @@ describe('user notify setting', () => {
     article_mentioned_you: true,
     revised_article_published: true,
     revised_article_not_published: true,
-    circle_new_article: true,
+    // circle_new_article: true,
 
     // article-article
     article_new_collected: true,
@@ -41,7 +41,7 @@ describe('user notify setting', () => {
     circle_discussion_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
-    circle_new_broadcast: true,
+    // circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,

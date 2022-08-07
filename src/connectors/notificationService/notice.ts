@@ -526,7 +526,7 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      circle_new_article: true,
+      // circle_new_article: true,
 
       // article-article
       article_new_collected: setting.articleNewCollected,
@@ -538,7 +538,7 @@ class Notice extends BaseService {
       circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      circle_new_broadcast: true,
+      // circle_new_broadcast: true,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,

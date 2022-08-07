@@ -7,6 +7,8 @@ import {
   GQLArticleNoticeTypeResolver,
   GQLArticleTagNoticeType,
   GQLArticleTagNoticeTypeResolver,
+  GQLCircleArticleNoticeType,
+  GQLCircleArticleNoticeTypeResolver,
   GQLCircleCommentNoticeType,
   GQLCircleCommentNoticeTypeResolver,
   GQLCircleNoticeType,
@@ -39,6 +41,7 @@ enum NOTICE_TYPE {
   TagNotice = 'TagNotice',
   TransactionNotice = 'TransactionNotice',
   CircleNotice = 'CircleNotice',
+  CircleArticleNotice = 'CircleArticleNotice',
   CircleCommentNotice = 'CircleCommentNotice',
   CryptoNotice = 'CryptoNotice',
   OfficialAnnouncementNotice = 'OfficialAnnouncementNotice',
@@ -56,6 +59,7 @@ const notice: {
   CommentCommentNotice: GQLCommentCommentNoticeTypeResolver
   TransactionNotice: GQLTransactionNoticeTypeResolver
   CircleNotice: GQLCircleNoticeTypeResolver
+  CircleArticleNotice: GQLCircleArticleNoticeTypeResolver
   CircleCommentNotice: GQLCircleCommentNoticeTypeResolver
   CryptoNotice: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
@@ -76,7 +80,7 @@ const notice: {
         article_mentioned_you: NOTICE_TYPE.ArticleNotice,
         revised_article_published: NOTICE_TYPE.ArticleNotice,
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
-        circle_new_article: NOTICE_TYPE.ArticleNotice,
+        // circle_new_article: NOTICE_TYPE.ArticleNotice,
 
         // article-artilce
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
@@ -101,7 +105,7 @@ const notice: {
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
 
         // have both target circle, and comment
-        circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
+        // circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
 
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
@@ -125,8 +129,8 @@ const notice: {
         circle_member_new_broadcast_reply: NOTICE_TYPE.CircleNotice,
 
         // in circle
-        in_circle_new_article: NOTICE_TYPE.ArticleNotice,
-        in_circle_new_broadcast: NOTICE_TYPE.CircleNotice,
+        in_circle_new_article: NOTICE_TYPE.CircleArticleNotice,
+        in_circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
         in_circle_new_broadcast_reply: NOTICE_TYPE.CircleNotice,
         in_circle_new_discussion: NOTICE_TYPE.CircleNotice,
         in_circle_new_discussion_reply: NOTICE_TYPE.CircleNotice,
@@ -171,8 +175,7 @@ const notice: {
           return GQLArticleNoticeType.RevisedArticlePublished
         case DB_NOTICE_TYPE.revised_article_not_published:
           return GQLArticleNoticeType.RevisedArticleNotPublished
-        case DB_NOTICE_TYPE.circle_new_article:
-          return GQLArticleNoticeType.CircleNewArticle
+        // case DB_NOTICE_TYPE.circle_new_article: return GQLArticleNoticeType.CircleNewArticle
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
@@ -237,8 +240,7 @@ const notice: {
           return GQLCommentNoticeType.ArticleNewComment
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return GQLCommentNoticeType.SubscribedArticleNewComment
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return GQLCommentNoticeType.CircleNewBroadcast
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return GQLCommentNoticeType.CircleNewBroadcast
         case DB_NOTICE_TYPE.circle_new_discussion:
           return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_member_new_discussion:
@@ -282,8 +284,7 @@ const notice: {
         case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
           return entities.target
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return entities.comment
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return entities.comment
 
         case DB_NOTICE_TYPE.in_circle_new_article:
           return entities.article
@@ -338,8 +339,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_invitation:
           return GQLCircleNoticeType.CircleInvitation
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
-          return GQLCommentNoticeType.CircleNewBroadcast
+        // case DB_NOTICE_TYPE.circle_new_broadcast: return GQLCommentNoticeType.CircleNewBroadcast
         case DB_NOTICE_TYPE.circle_new_discussion:
           return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_member_new_discussion:
@@ -349,8 +349,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
           return GQLCircleNoticeType.CircleMemberNewBroadcastReply
 
-        case DB_NOTICE_TYPE.in_circle_new_article:
-          return GQLCircleNoticeType.InCircleNewArticle
+        // case DB_NOTICE_TYPE.in_circle_new_article: return GQLCircleArticleNoticeType.InCircleNewArticle
         case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return GQLCircleNoticeType.InCircleNewBroadcast
         case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:
@@ -368,7 +367,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
         case DB_NOTICE_TYPE.circle_invitation:
 
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        // case DB_NOTICE_TYPE.circle_new_broadcast:
         case DB_NOTICE_TYPE.circle_new_discussion:
         case DB_NOTICE_TYPE.circle_member_new_discussion:
         case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
@@ -387,21 +386,48 @@ const notice: {
   CircleCommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return GQLCircleCommentNoticeType.CircleNewBroadcast
       }
     },
     target: ({ entities, type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return entities.target
       }
     },
     comment: ({ entities, type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_new_broadcast:
+        case DB_NOTICE_TYPE.in_circle_new_broadcast:
           return entities.comment
       }
+    },
+  },
+  CircleArticleNotice: {
+    type: ({ type }) => {
+      // console.log('in CircleArticleNotice type:', { type })
+      switch (type) {
+        case DB_NOTICE_TYPE.in_circle_new_article:
+          return GQLCircleArticleNoticeType.InCircleNewArticle
+      }
+      // return GQLCircleArticleNoticeType.InCircleNewArticle
+    },
+    target: ({ entities, type }) => {
+      // console.log('in CircleArticleNotice target:', { entities, type })
+      switch (type) {
+        case DB_NOTICE_TYPE.in_circle_new_article:
+          return entities.target
+      }
+      // return entities.target
+    },
+    article: ({ entities, type }, _, { dataSources: { draftService } }) => {
+      // console.log('in CircleArticleNotice article:', { entities, type })
+      switch (type) {
+        case DB_NOTICE_TYPE.in_circle_new_article:
+          return draftService.dataloader.load(entities.article.draftId)
+        // return entities.article
+      }
+      // return entities.article
     },
   },
   CryptoNotice: {

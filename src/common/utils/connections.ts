@@ -191,11 +191,20 @@ export function connectionFromArrayWithKeys(
 
 export const fromConnectionArgs = (
   input: { first?: number | null; after?: string },
-  options?: { allowTakeAll?: boolean; defaultTake?: number }
+  options?: {
+    allowTakeAll?: boolean
+    defaultTake?: number
+    maxTake?: number
+    maxSkip?: number
+  }
 ) => {
   const { first, after } = input
-  const { allowTakeAll = false, defaultTake = DEFAULT_TAKE_PER_PAGE } =
-    options || {}
+  const {
+    allowTakeAll = false,
+    defaultTake = DEFAULT_TAKE_PER_PAGE,
+    maxTake = Infinity,
+    maxSkip = Infinity,
+  } = options || {}
 
   let take = first as number
   if (first === null && !allowTakeAll) {
@@ -204,8 +213,11 @@ export const fromConnectionArgs = (
   if (first === undefined) {
     take = defaultTake
   }
+  if (take > maxTake) {
+    take = maxTake
+  }
 
-  const skip = cursorToIndex(after) + 1
+  const skip = Math.min(cursorToIndex(after) + 1, maxSkip)
 
   return { take, skip }
 }
