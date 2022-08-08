@@ -12,6 +12,12 @@ import {
   updateUserDescription,
 } from './utils'
 
+import {
+  GQLKeywordInput
+} from 'definitions'
+import express from 'graphql-playground-middleware-express'
+
+
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
   content: `test-${Math.floor(Math.random() * 100)}`,
@@ -476,4 +482,44 @@ describe('manage user badges', () => {
     })
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
   })
+})
+
+interface BaseInput {
+  isAdmin?: boolean
+  isAuth?: boolean
+  isMatty?: boolean
+}
+
+type KeywordInput =  { keyword: GQLKeywordInput } & BaseInput
+
+const ADD_BLOCKED_SEARCH_KEYWORD = /* GraphQL */ `
+  mutation($input: KeywordInput!) {
+    addBlockedSearchKeyword(input: $input) {
+      keyword
+    }
+  }
+`
+export const addBlockedSearchKeyword = async(
+  { isAdmin = true,
+    isAuth = true,
+    isMatty = true,
+    keyword 
+  }: KeywordInput) => {
+    const server = await testClient({ isAdmin, isAuth, isMatty })
+    const result = await server.executeOperation({
+      query: ADD_BLOCKED_SEARCH_KEYWORD,
+      variables: { input: keyword }
+    })
+    const data = result?.data?.addBlockedSearchKeyword
+    return data
+  }
+
+describe('add blocked search keyword', () => {
+  test('create, query, update blocked search keyword'), async () => {
+    const blocked_keyword = { keyword: 'sea otter'}
+    //create
+    const createResult = await addBlockedSearchKeyword({ keyword : blocked_keyword  })
+
+    expect(createResult).toBe(true)
+  }
 })

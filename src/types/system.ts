@@ -17,6 +17,12 @@ export default /* GraphQL */ `
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
 
+    "Add blocked search keyword to blocked_search_word db"
+    addBlockedSearchKeyword(input:KeywordInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+
+    "Delete blocked search keywords from search_history db"
+    deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+
     ##############
     #     OSS    #
     ##############
@@ -27,6 +33,15 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+
+  input KeywordsInput {
+    keywords: [String!]
+  }
+
+  input KeywordInput {
+    keyword: String!
   }
 
   interface Node {

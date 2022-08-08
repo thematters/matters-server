@@ -217,6 +217,16 @@ export interface GQLMutation {
   logRecord?: boolean
 
   /**
+   * Add blocked search keyword to blocked_search_word db
+   */
+  addBlockedSearchKeyword?: boolean
+
+  /**
+   * Delete blocked search keywords from search_history db
+   */
+  deleteBlockedSearchKeywords?: boolean
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -2490,6 +2500,14 @@ export type GQLDateTime = any
 
 export type GQLUpload = any
 
+export interface GQLKeywordsInput {
+  keywords?: Array<string>
+}
+
+export interface GQLKeywordInput {
+  keyword: string
+}
+
 export interface GQLNode {
   id: string
 }
@@ -4644,6 +4662,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
   logRecord?: MutationToLogRecordResolver<TParent>
+  addBlockedSearchKeyword?: MutationToAddBlockedSearchKeywordResolver<TParent>
+  deleteBlockedSearchKeywords?: MutationToDeleteBlockedSearchKeywordsResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
@@ -5223,6 +5243,36 @@ export interface MutationToLogRecordResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToLogRecordArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToAddBlockedSearchKeywordArgs {
+  input: GQLKeywordInput
+}
+export interface MutationToAddBlockedSearchKeywordResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToAddBlockedSearchKeywordArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteBlockedSearchKeywordsArgs {
+  input: GQLKeywordsInput
+}
+export interface MutationToDeleteBlockedSearchKeywordsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteBlockedSearchKeywordsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6622,7 +6672,7 @@ export interface TagToParticipantsResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToRecommendedArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendInput
 }
 export interface TagToRecommendedResolver<TParent = any, TResult = any> {
   (

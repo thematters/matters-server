@@ -171,6 +171,12 @@ type Mutation {
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
+  """Add blocked search keyword to blocked_search_word db"""
+  addBlockedSearchKeyword(input: KeywordInput!): Boolean
+
+  """Delete blocked search keywords from search_history db"""
+  deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
   """
   #############
        OSS    #
@@ -538,7 +544,7 @@ type Tag implements Node {
   participants(input: ConnectionArgs!): UserConnection!
 
   """Tags recommended based on relations to current tag."""
-  recommended(input: ConnectionArgs!): TagConnection!
+  recommended(input: RecommendInput!): TagConnection!
 
   """This value determines if it is official."""
   isOfficial: Boolean
@@ -1805,6 +1811,14 @@ type OfficialAnnouncementNotice implements Notice {
 scalar DateTime
 
 scalar Upload
+
+input KeywordsInput {
+  keywords: [String!]
+}
+
+input KeywordInput {
+  keyword: String!
+}
 
 interface Node {
   id: ID!
