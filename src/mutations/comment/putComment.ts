@@ -340,7 +340,7 @@ const resolver: MutationToPutCommentResolver = async (
       : DB_NOTICE_TYPE.comment_new_reply
     const shouldNotifyParentCommentAuthor =
       isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
-    if (shouldNotifyParentCommentAuthor) {
+    if (isArticleType && shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
         event: replyEvent,
         actorId: viewer.id,
