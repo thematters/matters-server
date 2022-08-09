@@ -1,4 +1,4 @@
-import slugify from '@matters/slugify'
+// import slugify from '@matters/slugify'
 import { v4 } from 'uuid'
 
 import {
@@ -126,24 +126,23 @@ const resolver: MutationToAppreciateArticleResolver = async (
       throw new ForbiddenError('viewer or author has no liker id')
     }
 
-    const slug = slugify(node.title)
-    const canSuperLike = await userService.likecoin.canSuperLike({
+    // const slug = slugify(node.title)
+    const superLikeData = {
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
+      iscn_id: article.iscn_id,
+      url: `${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
-    })
+    }
+    const canSuperLike = await userService.likecoin.canSuperLike(superLikeData)
 
     if (!canSuperLike) {
       throw new ForbiddenError('cannot super like')
     }
 
     await userService.likecoin.superlike({
-      liker,
-      likerIp: viewer.ip,
-      userAgent: viewer.userAgent,
+      ...superLikeData,
       authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
     })
 
     // insert record
