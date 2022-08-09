@@ -51,7 +51,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.payment_payout:
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
-      // case DB_NOTICE_TYPE.circle_new_article:
       case DB_NOTICE_TYPE.crypto_wallet_airdrop:
       case DB_NOTICE_TYPE.crypto_wallet_connected:
         return {
@@ -70,8 +69,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
-      case DB_NOTICE_TYPE.circle_broadcast_new_reply:
-      case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
       case DB_NOTICE_TYPE.payment_received_donation:
@@ -81,13 +78,10 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_leave_editor:
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_follower:
-      // case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
-      case DB_NOTICE_TYPE.circle_new_discussion:
-      case DB_NOTICE_TYPE.circle_member_broadcast:
+      case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case DB_NOTICE_TYPE.circle_member_new_discussion:
       case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
-      case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case DB_NOTICE_TYPE.in_circle_new_article:
       case DB_NOTICE_TYPE.in_circle_new_broadcast:
       case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:

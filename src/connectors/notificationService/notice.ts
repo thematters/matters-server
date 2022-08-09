@@ -526,7 +526,6 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      // circle_new_article: true,
 
       // article-article
       article_new_collected: setting.articleNewCollected,
@@ -534,16 +533,13 @@ class Notice extends BaseService {
       // comment
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
-      circle_broadcast_mentioned_you: setting.mention,
-      circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      // circle_new_broadcast: true,
+      circle_broadcast_mentioned_you: setting.mention,
+      circle_discussion_mentioned_you: setting.mention,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
-      circle_broadcast_new_reply: true,
-      circle_discussion_new_reply: setting.circleNewDiscussion,
 
       // article-tag
       article_tag_has_been_added: true,
@@ -560,17 +556,17 @@ class Notice extends BaseService {
       payment_received_donation: true,
       payment_payout: true,
 
+      // circle
+      circle_invitation: true,
+
       // circle owners
       circle_new_subscriber: setting.circleNewSubscriber,
       circle_new_unsubscriber: setting.circleNewUnsubscriber,
-      circle_invitation: true,
       circle_new_follower: setting.circleNewFollower,
-      circle_new_discussion: setting.circleNewDiscussion,
-      circle_member_broadcast: setting.circleMemberBroadcast,
+      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
       circle_member_new_discussion: setting.circleMemberNewDiscussion,
       circle_member_new_discussion_reply:
         setting.circleMemberNewDiscussionReply,
-      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
 
       // in circle
       in_circle_new_article: setting.inCircleNewArticle,

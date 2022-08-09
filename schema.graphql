@@ -1508,7 +1508,6 @@ enum ArticleNoticeType {
   ArticleNewAppreciation
   RevisedArticlePublished
   RevisedArticleNotPublished
-  CircleNewArticle
 }
 
 type ArticleArticleNotice implements Notice {
@@ -1560,15 +1559,8 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewBroadcast
-  CircleNewDiscussion
-  CircleMemberNewDiscussion
-  CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewBroadcast
-  InCircleNewBroadcastReply
-  InCircleNewDiscussion
-  InCircleNewDiscussionReply
+  CircleBroadcastMentionedYou
+  CircleDiscussionMentionedYou
 }
 
 type CommentCommentNotice implements Notice {
@@ -1697,18 +1689,17 @@ type CircleNotice implements Notice {
 }
 
 enum CircleNoticeType {
+  CircleInvitation
+
+  """for circle owner"""
   CircleNewSubscriber
   CircleNewFollower
   CircleNewUnsubscriber
-  CircleInvitation
-  CircleNewDiscussion
-  CircleNewBroadcast
-  CircleMemberBroadcast
+  CircleMemberNewBroadcastReply
   CircleMemberNewDiscussion
   CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewArticle
-  InCircleNewBroadcast
+
+  """for circle members & followers"""
   InCircleNewBroadcastReply
   InCircleNewDiscussion
   InCircleNewDiscussionReply
@@ -1731,6 +1722,11 @@ type CircleCommentNotice implements Notice {
   comment: Comment!
 }
 
+enum CircleCommentNoticeType {
+  """for circle members & followers"""
+  InCircleNewBroadcast
+}
+
 type CircleArticleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1748,11 +1744,8 @@ type CircleArticleNotice implements Notice {
   article: Article!
 }
 
-enum CircleCommentNoticeType {
-  CircleNewBroadcast
-}
-
 enum CircleArticleNoticeType {
+  """for circle members & followers"""
   InCircleNewArticle
 }
 

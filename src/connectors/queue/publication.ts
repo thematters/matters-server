@@ -430,7 +430,11 @@ class PublicationQueue extends BaseQueue {
         table: 'article_circle',
         where: data,
         create: { ...data, access: draft.access },
-        update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
+        update: {
+          ...data,
+          access: draft.access,
+          updatedAt: this.knex.fn.now(),
+        },
       })
     }
 

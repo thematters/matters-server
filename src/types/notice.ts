@@ -94,8 +94,6 @@ export default /* GraphQL */ `
     ArticleNewAppreciation
     RevisedArticlePublished
     RevisedArticleNotPublished
-    CircleNewArticle
-    # InCircleNewArticle
   }
 
   type ArticleArticleNotice implements Notice {
@@ -123,7 +121,6 @@ export default /* GraphQL */ `
   }
 
 
-
   #################################
   #                               #
   #           Comment             #
@@ -149,18 +146,11 @@ export default /* GraphQL */ `
 
   enum CommentNoticeType {
     CommentPinned
-    CommentMentionedYou
+    CommentMentionedYou # article comment
     ArticleNewComment
     SubscribedArticleNewComment
-    CircleNewBroadcast
-    CircleNewDiscussion
-    CircleMemberNewDiscussion
-    CircleMemberNewDiscussionReply
-    CircleMemberNewBroadcastReply
-    InCircleNewBroadcast
-    InCircleNewBroadcastReply
-    InCircleNewDiscussion
-    InCircleNewDiscussionReply
+    CircleBroadcastMentionedYou # circle broadcast
+    CircleDiscussionMentionedYou # circle discussion
   }
 
   type CommentCommentNotice implements Notice {
@@ -297,19 +287,17 @@ export default /* GraphQL */ `
   }
 
   enum CircleNoticeType {
+    CircleInvitation
+
+    # for circle owner
     CircleNewSubscriber
     CircleNewFollower
     CircleNewUnsubscriber
-    CircleInvitation
-    CircleNewDiscussion
-    CircleNewBroadcast
-    CircleMemberBroadcast
+    CircleMemberNewBroadcastReply
     CircleMemberNewDiscussion
     CircleMemberNewDiscussionReply
-    CircleMemberNewBroadcastReply
 
-    InCircleNewArticle
-    InCircleNewBroadcast
+    # for circle members & followers
     InCircleNewBroadcastReply
     InCircleNewDiscussion
     InCircleNewDiscussionReply
@@ -335,6 +323,11 @@ export default /* GraphQL */ `
     comment: Comment! @logCache(type: "${NODE_TYPES.Comment}")
   }
 
+  enum CircleCommentNoticeType {
+    # for circle members & followers
+    InCircleNewBroadcast
+  }
+
   type CircleArticleNotice implements Notice {
     "Unique ID of this notice."
     id: ID!
@@ -355,11 +348,8 @@ export default /* GraphQL */ `
     article: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
-  enum CircleCommentNoticeType {
-    CircleNewBroadcast
-  }
-
   enum CircleArticleNoticeType {
+    # for circle members & followers
     InCircleNewArticle
   }
 

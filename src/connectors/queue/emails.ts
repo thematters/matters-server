@@ -101,25 +101,23 @@ class EmailsQueue extends BaseQueue {
                 DB_NOTICE_TYPE.comment_mentioned_you
               ),
 
-              // circle owners
+              // circle
+              circle_invitation: filterNotices(
+                DB_NOTICE_TYPE.circle_invitation
+              ),
+
+              // for circle owners
               circle_new_subscriber: filterNotices(
                 DB_NOTICE_TYPE.circle_new_subscriber
               ),
               circle_new_follower: filterNotices(
                 DB_NOTICE_TYPE.circle_new_follower
               ),
-              // circle_new_broadcast: filterNotices(DB_NOTICE_TYPE.circle_new_broadcast),
-              circle_new_discussion: filterNotices(
-                DB_NOTICE_TYPE.circle_new_discussion
-              ),
               circle_new_unsubscriber: filterNotices(
                 DB_NOTICE_TYPE.circle_new_unsubscriber
               ),
-              circle_invitation: filterNotices(
-                DB_NOTICE_TYPE.circle_invitation
-              ),
-              circle_member_broadcast: filterNotices(
-                DB_NOTICE_TYPE.circle_member_broadcast
+              circle_member_new_broadcast_reply: filterNotices(
+                DB_NOTICE_TYPE.circle_member_new_broadcast_reply
               ),
               circle_member_new_discussion: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion
@@ -127,11 +125,8 @@ class EmailsQueue extends BaseQueue {
               circle_member_new_discussion_reply: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion_reply
               ),
-              circle_member_new_broadcast_reply: filterNotices(
-                DB_NOTICE_TYPE.circle_member_new_broadcast_reply
-              ),
 
-              // members in circle
+              // for circle members & followers
               in_circle_new_article: filterNotices(
                 DB_NOTICE_TYPE.circle_member_new_discussion_reply
               ),

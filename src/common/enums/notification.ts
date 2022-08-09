@@ -9,7 +9,6 @@ export enum DB_NOTICE_TYPE {
   article_mentioned_you = 'article_mentioned_you',
   revised_article_published = 'revised_article_published',
   revised_article_not_published = 'revised_article_not_published',
-  // circle_new_article = 'circle_new_article',
 
   // article-article
   article_new_collected = 'article_new_collected',
@@ -28,33 +27,30 @@ export enum DB_NOTICE_TYPE {
   // comment
   comment_pinned = 'comment_pinned',
   comment_mentioned_you = 'comment_mentioned_you',
-  circle_broadcast_mentioned_you = 'circle_broadcast_mentioned_you',
-  circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
   article_new_comment = 'article_new_comment',
   subscribed_article_new_comment = 'subscribed_article_new_comment',
+  circle_broadcast_mentioned_you = 'circle_broadcast_mentioned_you',
+  circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
 
   // comment-comment
   comment_new_reply = 'comment_new_reply',
-  circle_broadcast_new_reply = 'circle_broadcast_new_reply',
-  circle_discussion_new_reply = 'circle_discussion_new_reply',
 
   // transaction
   payment_received_donation = 'payment_received_donation',
   payment_payout = 'payment_payout',
 
-  // circle owners
+  // circle
+  circle_invitation = 'circle_invitation',
+
+  // for circle owners
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_follower = 'circle_new_follower',
-  // circle_new_broadcast = 'circle_new_broadcast', // deprecated
-  circle_new_discussion = 'circle_new_discussion',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
-  circle_invitation = 'circle_invitation',
-  circle_member_broadcast = 'circle_member_broadcast',
+  circle_member_new_broadcast_reply = 'circle_member_new_broadcast_reply',
   circle_member_new_discussion = 'circle_member_new_discussion',
   circle_member_new_discussion_reply = 'circle_member_new_discussion_reply',
-  circle_member_new_broadcast_reply = 'circle_member_new_broadcast_reply',
 
-  // members & followers in circle
+  // for circle members & followers
   in_circle_new_article = 'in_circle_new_article',
   in_circle_new_broadcast = 'in_circle_new_broadcast',
   in_circle_new_broadcast_reply = 'in_circle_new_broadcast_reply',
