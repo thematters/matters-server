@@ -219,7 +219,7 @@ export interface GQLMutation {
   /**
    * Add blocked search keyword to blocked_search_word db
    */
-  addBlockedSearchKeyword?: boolean
+  addBlockedSearchKeyword: GQLBlockedSearchKeyword
 
   /**
    * Delete blocked search keywords from search_history db
@@ -2592,6 +2592,23 @@ export interface GQLConnectionNameMap {
   OAuthClientConnection: GQLOAuthClientConnection
 }
 
+export interface GQLBlockedSearchKeyword {
+  /**
+   * Unique ID of bloked search keyword.
+   */
+  id: string
+
+  /**
+   * Types of this search keyword.
+   */
+  searchKey: string
+
+  /**
+   * Time of this search keyword was created.
+   */
+  createdAt: GQLDateTime
+}
+
 /**
  * This type contains system-wise info and settings.
  */
@@ -4411,6 +4428,7 @@ export interface GQLResolver {
     __resolveType: GQLConnectionTypeResolver
   }
 
+  BlockedSearchKeyword?: GQLBlockedSearchKeywordTypeResolver
   Official?: GQLOfficialTypeResolver
   Feature?: GQLFeatureTypeResolver
   Announcement?: GQLAnnouncementTypeResolver
@@ -6672,7 +6690,7 @@ export interface TagToParticipantsResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToRecommendedArgs {
-  input: GQLRecommendInput
+  input: GQLConnectionArgs
 }
 export interface TagToRecommendedResolver<TParent = any, TResult = any> {
   (
@@ -9794,6 +9812,48 @@ export interface GQLConnectionTypeResolver<TParent = any> {
         | 'OAuthClientConnection'
       >
 }
+export interface GQLBlockedSearchKeywordTypeResolver<TParent = any> {
+  id?: BlockedSearchKeywordToIdResolver<TParent>
+  searchKey?: BlockedSearchKeywordToSearchKeyResolver<TParent>
+  createdAt?: BlockedSearchKeywordToCreatedAtResolver<TParent>
+}
+
+export interface BlockedSearchKeywordToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface BlockedSearchKeywordToSearchKeyResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface BlockedSearchKeywordToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLOfficialTypeResolver<TParent = any> {
   features?: OfficialToFeaturesResolver<TParent>
   announcements?: OfficialToAnnouncementsResolver<TParent>

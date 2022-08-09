@@ -18,7 +18,7 @@ export default /* GraphQL */ `
     logRecord(input: LogRecordInput!): Boolean
 
     "Add blocked search keyword to blocked_search_word db"
-    addBlockedSearchKeyword(input:KeywordInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+    addBlockedSearchKeyword(input:KeywordInput!): BlockedSearchKeyword! @auth(mode: "${AUTH_MODE.admin}")
 
     "Delete blocked search keywords from search_history db"
     deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
@@ -58,6 +58,18 @@ export default /* GraphQL */ `
   interface Connection {
     totalCount: Int!
     pageInfo: PageInfo!
+  }
+
+
+  type BlockedSearchKeyword {
+    "Unique ID of bloked search keyword."
+    id: ID!
+
+    "Types of this search keyword."
+    searchKey: String!
+
+    "Time of this search keyword was created."
+    createdAt: DateTime!
   }
 
   "This type contains system-wise info and settings."
