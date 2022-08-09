@@ -1,3 +1,5 @@
+const { exec, spawn, spawnSync } = require('child_process')
+
 require('dotenv').config()
 
 // MATTERS_ENV must be 'test' in order to run test cases
@@ -56,4 +58,49 @@ module.exports = async () => {
     await knex.migrate.down({ name: task })
     await knex.migrate.up({ name: task })
   }
+
+  // connect postgres container to run PSQL scripts
+  await runShellDBRollup()
+
+  const tables = await knex('information_schema.tables').select()
+  console.log(new Date(), `currently having ${tables.length} tables:`, tables)
+}
+
+async function runShellDBRollup() {
+  exec('pwd; ls -la; docker container ls -a', (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`)
+      return
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`)
+      return
+    }
+    console.log(`stdout: ${stdout}`)
+  })
+
+  return new Promise((fulfilled, rejected) => {
+    const sh = spawn('sh', [
+      '-xc',
+      `docker container exec postgres-db sh -xc 'pwd; ls -la; cd /db; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`,
+    ])
+
+    sh.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`)
+    })
+
+    sh.stderr.on('data', (data) => {
+      console.log(`stderr: ${data}`)
+    })
+
+    sh.on('error', (error) => {
+      console.log(`error: ${error.message}`)
+      rejected(error)
+    })
+
+    sh.on('close', (code) => {
+      console.log(`child process exited with code ${code}`)
+      fulfilled()
+    })
+  })
 }

@@ -14,6 +14,10 @@
 - Run `npm run start:dev`, then go to `http://localhost:4000/playground` to GraphQL Playground.
 - Run test cases: `npm run test`
 
+- Run db rollup process; use the same psql command line parameters if modified in .env; (hint `-d database` and `-U username`, and `-w` to read saved password of psqlrc)
+
+      (cd ./db; PSQL='psql -h localhost ... -w' bash -xe bin/refresh-lasts.sh )
+
 ### Docker
 
 - `cp .env.example .env`
