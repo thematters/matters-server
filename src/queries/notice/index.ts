@@ -420,11 +420,12 @@ const notice: {
       }
       // return entities.target
     },
-    article: ({ entities, type }) => {
+    article: ({ entities, type }, _, { dataSources: { draftService } }) => {
       // console.log('in CircleArticleNotice article:', { entities, type })
       switch (type) {
         case DB_NOTICE_TYPE.in_circle_new_article:
-          return entities.article
+          return draftService.dataloader.load(entities.article.draftId)
+        // return entities.article
       }
       // return entities.article
     },
