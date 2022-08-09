@@ -8,9 +8,13 @@ const resolver: MutationToAddBlockedSearchKeywordResolver = async (
 ) => {
   const table = 'blocked_search_keyword'
 
-  // create
-  if (!keyword) {
-    throw new UserInputError('required parameters missing: keyword')
+  const search_key = await atomService.findFirst({
+    table,
+    where: { search_key: keyword },
+  })
+
+  if (search_key) {
+    throw new UserInputError('blocked search keyword already exists.')
   }
 
   const newItem = await atomService.create({
