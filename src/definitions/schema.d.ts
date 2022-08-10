@@ -237,7 +237,7 @@ export interface GQLMutation {
   setFeature: GQLFeature
   toggleSeedingUsers: Array<GQLUser | null>
   putAnnouncement: GQLAnnouncement
-  deleteAnnouncements?: boolean
+  deleteAnnouncements: boolean
 
   /**
    * Send verification code for email.

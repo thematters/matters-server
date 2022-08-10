@@ -188,7 +188,7 @@ type Mutation {
   setFeature(input: SetFeatureInput!): Feature!
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
-  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean
+  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
