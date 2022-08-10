@@ -1508,6 +1508,7 @@ enum ArticleNoticeType {
   ArticleNewAppreciation
   RevisedArticlePublished
   RevisedArticleNotPublished
+  CircleNewArticle @deprecated(reason: "No longer in use")
 }
 
 type ArticleArticleNotice implements Notice {
@@ -1559,6 +1560,7 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
+  CircleNewBroadcast @deprecated(reason: "No longer in use")
   CircleBroadcastMentionedYou
   CircleDiscussionMentionedYou
 }

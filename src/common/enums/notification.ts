@@ -9,6 +9,7 @@ export enum DB_NOTICE_TYPE {
   article_mentioned_you = 'article_mentioned_you',
   revised_article_published = 'revised_article_published',
   revised_article_not_published = 'revised_article_not_published',
+  circle_new_article = 'circle_new_article', // deprecated
 
   // article-article
   article_new_collected = 'article_new_collected',
@@ -29,6 +30,7 @@ export enum DB_NOTICE_TYPE {
   comment_mentioned_you = 'comment_mentioned_you',
   article_new_comment = 'article_new_comment',
   subscribed_article_new_comment = 'subscribed_article_new_comment',
+  circle_new_broadcast = 'circle_new_broadcast', // deprecated
   circle_broadcast_mentioned_you = 'circle_broadcast_mentioned_you',
   circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
 

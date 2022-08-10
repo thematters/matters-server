@@ -2095,6 +2095,12 @@ export const enum GQLArticleNoticeType {
   ArticleNewAppreciation = 'ArticleNewAppreciation',
   RevisedArticlePublished = 'RevisedArticlePublished',
   RevisedArticleNotPublished = 'RevisedArticleNotPublished',
+
+  /**
+   *
+   * @deprecated No longer in use
+   */
+  CircleNewArticle = 'CircleNewArticle',
 }
 
 export interface GQLArticleArticleNotice extends GQLNotice {
@@ -2162,6 +2168,12 @@ export const enum GQLCommentNoticeType {
   CommentMentionedYou = 'CommentMentionedYou',
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
+
+  /**
+   *
+   * @deprecated No longer in use
+   */
+  CircleNewBroadcast = 'CircleNewBroadcast',
   CircleBroadcastMentionedYou = 'CircleBroadcastMentionedYou',
   CircleDiscussionMentionedYou = 'CircleDiscussionMentionedYou',
 }

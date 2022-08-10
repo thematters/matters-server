@@ -93,6 +93,14 @@ export interface NoticeRevisedArticleNotPublishedParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
+// deprecated
+export interface NoticeCircleNewArticleParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_article
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
 // Article-Article
 export interface NoticeArticleNewCollectedParams
   extends NotificationRequiredParams {
@@ -159,6 +167,14 @@ export interface NoticeSubscribedArticleNewCommentParams
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'comment', 'comment'>
   ]
+}
+
+export interface NoticeCircleNewBroadcastParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_broadcast
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
 }
 
 // Comment-Comment
@@ -434,10 +450,12 @@ export type NotificationPrarms =
   | NoticeArticleMentionedYouParams
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
+  | NoticeCircleNewArticleParams // deprecated
   // Comment
   | NoticeCommentPinnedParams
   | NoticeCommentMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
+  | NoticeCircleNewBroadcastParams // deprecated
   | NoticeCircleBroadcastMentionedYouParams
   | NoticeCircleDiscussionMentionedYouParams
   // Comment-Comment

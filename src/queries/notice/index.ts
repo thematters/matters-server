@@ -64,9 +64,7 @@ const notice: {
   CryptoNotice: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
 } = {
-  User: {
-    notices,
-  },
+  User: { notices },
   Notice: {
     __resolveType: ({ type }: { type: DBNoticeType }) => {
       const noticeTypeMap: Record<DBNoticeType, NOTICE_TYPE> = {
@@ -80,6 +78,7 @@ const notice: {
         article_mentioned_you: NOTICE_TYPE.ArticleNotice,
         revised_article_published: NOTICE_TYPE.ArticleNotice,
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
+        circle_new_article: NOTICE_TYPE.ArticleNotice, // deprecated
 
         // article-artilce
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
@@ -100,6 +99,7 @@ const notice: {
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
+        circle_new_broadcast: NOTICE_TYPE.CommentNotice, // deprecated
         circle_broadcast_mentioned_you: NOTICE_TYPE.CommentNotice,
         circle_discussion_mentioned_you: NOTICE_TYPE.CommentNotice,
 
@@ -168,6 +168,8 @@ const notice: {
           return GQLArticleNoticeType.RevisedArticlePublished
         case DB_NOTICE_TYPE.revised_article_not_published:
           return GQLArticleNoticeType.RevisedArticleNotPublished
+        case DB_NOTICE_TYPE.circle_new_article:
+          return GQLArticleNoticeType.CircleNewArticle
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
@@ -228,13 +230,27 @@ const notice: {
           return GQLCommentNoticeType.ArticleNewComment
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return GQLCommentNoticeType.SubscribedArticleNewComment
+        case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
+          return GQLCommentNoticeType.CircleNewBroadcast
         case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
           return GQLCommentNoticeType.CircleBroadcastMentionedYou
         case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
           return GQLCommentNoticeType.CircleDiscussionMentionedYou
       }
     },
-    target: ({ entities, type }) => entities.target,
+    target: ({ entities, type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_pinned:
+        case DB_NOTICE_TYPE.comment_mentioned_you:
+        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
+        case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
+          return entities.target
+        case DB_NOTICE_TYPE.article_new_comment:
+        case DB_NOTICE_TYPE.subscribed_article_new_comment:
+          return entities.comment
+      }
+    },
   },
   CommentCommentNotice: {
     type: ({ type }) => {

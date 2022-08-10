@@ -29,6 +29,7 @@ describe('user notify setting', () => {
     article_mentioned_you: true,
     revised_article_published: true,
     revised_article_not_published: true,
+    circle_new_article: true, // deprecated
 
     // article-article
     article_new_collected: true,
@@ -61,6 +62,7 @@ describe('user notify setting', () => {
 
     // circle
     circle_invitation: true,
+    circle_new_broadcast: true, // deprecated
 
     // circle owners
     circle_new_subscriber: true,

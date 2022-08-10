@@ -94,6 +94,7 @@ export default /* GraphQL */ `
     ArticleNewAppreciation
     RevisedArticlePublished
     RevisedArticleNotPublished
+    CircleNewArticle @deprecated(reason: "No longer in use")
   }
 
   type ArticleArticleNotice implements Notice {
@@ -149,6 +150,7 @@ export default /* GraphQL */ `
     CommentMentionedYou # article comment
     ArticleNewComment
     SubscribedArticleNewComment
+    CircleNewBroadcast @deprecated(reason: "No longer in use")
     CircleBroadcastMentionedYou # circle broadcast
     CircleDiscussionMentionedYou # circle discussion
   }
