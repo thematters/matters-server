@@ -286,6 +286,9 @@ export default /* GraphQL */ `
     type: CircleNoticeType!
 
     target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
+
+    "An optional arbitrary node, Comment for broadcast and discussion notices"
+    node: Node @logCache(type: "${NODE_TYPES.Node}")
   }
 
   enum CircleNoticeType {

@@ -108,13 +108,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
       event: DB_NOTICE_TYPE.comment_pinned,
       actorId: viewer.id,
       recipientId: comment.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'comment',
-          entity: comment,
-        },
-      ],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
   } else {
     pinnedComment = await atomService.update({

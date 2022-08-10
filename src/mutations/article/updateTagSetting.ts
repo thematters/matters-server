@@ -101,13 +101,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           event: DB_NOTICE_TYPE.tag_adoption,
           recipientId: participant.authorId,
           actorId: viewer.id,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'tag',
-              entity: tag,
-            },
-          ],
+          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
         })
       })
       break
@@ -136,13 +130,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
             event: DB_NOTICE_TYPE.tag_leave,
             recipientId: editor,
             actorId: viewer.id,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'tag',
-                entity: tag,
-              },
-            ],
+            entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
           })
         })
       }
@@ -210,13 +198,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           event: DB_NOTICE_TYPE.tag_add_editor,
           recipientId: recipient.id,
           actorId: viewer.id,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'tag',
-              entity: tag,
-            },
-          ],
+          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
         })
       })
       break
@@ -268,13 +250,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           event: DB_NOTICE_TYPE.tag_leave_editor,
           recipientId: tag.owner,
           actorId: viewer.id,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'tag',
-              entity: tag,
-            },
-          ],
+          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
         })
       }
       break

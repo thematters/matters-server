@@ -50,6 +50,7 @@ const resolver: MutationToPutCommentResolver = async (
       articleService,
       notificationService,
       userService,
+      systemService,
     },
     knex,
   }
@@ -373,6 +374,8 @@ const resolver: MutationToPutCommentResolver = async (
 
     if (circle && (isCircleBroadcast || isCircleDiscussion)) {
       const recipients = await userService.findCircleRecipients(circle.id)
+      const { id: commentEntityTypeId } =
+        await systemService.baseFindEntityTypeId('comment')
 
       // circle: notify members & followers for new broadcast
       if (isCircleBroadcast && isLevel1Comment) {
@@ -396,6 +399,7 @@ const resolver: MutationToPutCommentResolver = async (
           actorId: viewer.id,
           recipientId: circle.owner,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
+          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
         })
 
         recipients.forEach((recipientId: any) => {
@@ -406,6 +410,10 @@ const resolver: MutationToPutCommentResolver = async (
             entities: [
               { type: 'target', entityTable: 'circle', entity: circle },
             ],
+            data: {
+              entityTypeId: commentEntityTypeId,
+              entityId: newComment.id,
+            },
           })
         })
       }
@@ -419,6 +427,7 @@ const resolver: MutationToPutCommentResolver = async (
           actorId: viewer.id,
           recipientId: circle.owner,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
+          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
         })
 
         recipients.forEach((recipientId: any) => {
@@ -431,6 +440,10 @@ const resolver: MutationToPutCommentResolver = async (
             entities: [
               { type: 'target', entityTable: 'circle', entity: circle },
             ],
+            data: {
+              entityTypeId: commentEntityTypeId,
+              entityId: newComment.id,
+            },
           })
         })
       }

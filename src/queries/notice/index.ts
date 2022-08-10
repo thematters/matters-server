@@ -1,4 +1,6 @@
-import { DB_NOTICE_TYPE } from 'common/enums'
+import _capitalize from 'lodash/capitalize'
+
+import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
 import {
   DBNoticeType,
   GQLArticleArticleNoticeType,
@@ -308,6 +310,28 @@ const notice: {
       }
     },
     target: ({ entities }) => entities.target,
+    node: async (
+      { data }: { data: any },
+      _,
+      { dataSources: { systemService, commentService } }
+    ) => {
+      const { entityTypeId, entityId } = data || {}
+
+      if (!entityTypeId || !entityId) {
+        return
+      }
+
+      const entity = await systemService.baseFindEntityTypeTable(entityTypeId)
+      const entityType =
+        NODE_TYPES[
+          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
+        ]
+
+      if (entityType === NODE_TYPES.Comment) {
+        const comment = commentService.dataloader.load(entityId)
+        return { ...comment, __type: entityType }
+      }
+    },
   },
   CircleCommentNotice: {
     type: ({ type }) => {

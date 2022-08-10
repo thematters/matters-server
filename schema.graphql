@@ -1688,6 +1688,11 @@ type CircleNotice implements Notice {
   actors: [User!]
   type: CircleNoticeType!
   target: Circle!
+
+  """
+  An optional arbitrary node, Comment for broadcast and discussion notices
+  """
+  node: Node
 }
 
 enum CircleNoticeType {

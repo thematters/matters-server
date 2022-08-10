@@ -1,5 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
+import _capitalize from 'lodash/capitalize'
 
 import {
   DB_NOTICE_TYPE,
@@ -155,13 +156,7 @@ class PayToQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.payment_received_donation,
         actorId: sender.id,
         recipientId: recipient.id,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'transaction',
-            entity: tx,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
       })
 
       this.notificationService.mail.sendPayment({
@@ -185,7 +180,9 @@ class PayToQueue extends BaseQueue {
           tx.targetType
         )
         const entityType =
-          NODE_TYPES[(entity?.table as keyof typeof NODE_TYPES) || '']
+          NODE_TYPES[
+            (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
+          ]
         if (entityType && this.cacheService) {
           invalidateFQC({
             node: { type: entityType, id: tx.targetId },

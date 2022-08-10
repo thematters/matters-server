@@ -2346,6 +2346,11 @@ export interface GQLCircleNotice extends GQLNotice {
   actors?: Array<GQLUser>
   type: GQLCircleNoticeType
   target: GQLCircle
+
+  /**
+   * An optional arbitrary node, Comment for broadcast and discussion notices
+   */
+  node?: GQLNode
 }
 
 export const enum GQLCircleNoticeType {
@@ -9278,6 +9283,7 @@ export interface GQLCircleNoticeTypeResolver<TParent = any> {
   actors?: CircleNoticeToActorsResolver<TParent>
   type?: CircleNoticeToTypeResolver<TParent>
   target?: CircleNoticeToTargetResolver<TParent>
+  node?: CircleNoticeToNodeResolver<TParent>
 }
 
 export interface CircleNoticeToIdResolver<TParent = any, TResult = any> {
@@ -9326,6 +9332,15 @@ export interface CircleNoticeToTypeResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleNoticeToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

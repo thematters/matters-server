@@ -302,6 +302,7 @@ export interface NoticeCircleMemberNewBroadcastReplyParams
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 export interface NoticeCircleMemberNewDiscussionParams
@@ -310,6 +311,7 @@ export interface NoticeCircleMemberNewDiscussionParams
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 export interface NoticeCircleMemberNewDiscussionReplyParams
@@ -318,6 +320,7 @@ export interface NoticeCircleMemberNewDiscussionReplyParams
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 // For circle subscrbers & followers
@@ -349,6 +352,7 @@ export interface NoticeInCircleNewDiscussionParams
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 export interface NoticeInCircleNewBroadcastReplyParams
@@ -357,6 +361,7 @@ export interface NoticeInCircleNewBroadcastReplyParams
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 export interface NoticeInCircleNewDiscussionReplyParams
@@ -365,6 +370,7 @@ export interface NoticeInCircleNewDiscussionReplyParams
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 /**
@@ -510,8 +516,13 @@ export type NoticeEntity = {
 export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
 export type NoticeData = {
+  // used by official annoncement notices
   url?: string
+  // reason for banned/frozen users, not in used
   reason?: string
+  // arbitrary entity, used by circle broadcast/discussion notices
+  entityTypeId?: string
+  entityId?: string
 }
 
 export type NoticeDetail = {
@@ -538,5 +549,10 @@ export type PutNoticeParams = {
   entities?: NotificationEntity[]
   message?: NoticeMessage | null
   data?: NoticeData | null
-  resend?: boolean
+
+  resend?: boolean // used by circle invitation notice
+
+  bundle?: {
+    replaceData: boolean // used by circle broadcast/discussion notices
+  }
 }

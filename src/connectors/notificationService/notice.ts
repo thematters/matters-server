@@ -8,6 +8,7 @@ import { BaseService } from 'connectors'
 import {
   DBNoticeType,
   GQLNotificationSettingType,
+  NoticeData,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -139,6 +140,23 @@ class Notice extends BaseService {
   }
 
   /**
+   * Update data of existing notice
+   */
+  async updateNoticeData({
+    noticeId,
+    data,
+  }: {
+    noticeId: string
+    data: NoticeData
+  }): Promise<void> {
+    this.knex('notice_detail')
+      .update({ data })
+      .whereIn('id', function () {
+        this.select('notice_detail_id').from('notice').where({ id: noticeId })
+      })
+  }
+
+  /**
    * Process new event to determine
    * whether to bundle with old notice or create new notice or do nothing
    */
@@ -150,10 +168,19 @@ class Notice extends BaseService {
     // bundle
     if (bundleables[0] && params.actorId && params.resend !== true) {
       console.log('process bundleables:', { bundleables, params })
+
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
       })
+
+      if (params.bundle?.replaceData && params.data) {
+        await this.updateNoticeData({
+          noticeId: bundleables[0].id,
+          data: params.data,
+        })
+      }
+
       return { created: false, bundled: true }
     }
 
@@ -172,6 +199,7 @@ class Notice extends BaseService {
     entities,
     message = null,
     data = null,
+    bundle: { replaceData } = { replaceData: false },
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: [
@@ -197,7 +225,7 @@ class Notice extends BaseService {
     await Promise.all(
       notices.map(async (n) => {
         // skip if data isn't the same
-        if (!isEqual(n.data, data)) {
+        if (!isEqual(n.data, data) && !replaceData) {
           return
         }
 

@@ -81,14 +81,8 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_follower:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
-      case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
-      case DB_NOTICE_TYPE.circle_member_new_discussion:
-      case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
-      case DB_NOTICE_TYPE.in_circle_new_article:
       case DB_NOTICE_TYPE.in_circle_new_broadcast:
-      case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:
-      case DB_NOTICE_TYPE.in_circle_new_discussion:
-      case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
+      case DB_NOTICE_TYPE.in_circle_new_article:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -102,6 +96,20 @@ export class NotificationService extends BaseService {
           actorId: params.actorId,
           entities: params.entities,
           resend: true,
+        }
+      case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
+      case DB_NOTICE_TYPE.circle_member_new_discussion:
+      case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:
+      case DB_NOTICE_TYPE.in_circle_new_discussion:
+      case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { replaceData: true },
         }
       // act as official annonuncement
       case DB_NOTICE_TYPE.official_announcement:
