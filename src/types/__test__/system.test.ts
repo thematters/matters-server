@@ -477,3 +477,4 @@ describe('manage user badges', () => {
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
   })
 })
+
