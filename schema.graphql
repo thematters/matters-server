@@ -1567,8 +1567,6 @@ enum CommentNoticeType {
   ArticleNewComment
   SubscribedArticleNewComment
   CircleNewBroadcast @deprecated(reason: "No longer in use")
-  CircleBroadcastMentionedYou
-  CircleDiscussionMentionedYou
 }
 
 type CommentCommentNotice implements Notice {
@@ -1703,6 +1701,8 @@ type CircleNotice implements Notice {
 
 enum CircleNoticeType {
   CircleInvitation
+  CircleBroadcastMentionedYou
+  CircleDiscussionMentionedYou
 
   """for circle owner"""
   CircleNewSubscriber

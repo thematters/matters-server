@@ -151,8 +151,6 @@ export default /* GraphQL */ `
     ArticleNewComment
     SubscribedArticleNewComment
     CircleNewBroadcast @deprecated(reason: "No longer in use")
-    CircleBroadcastMentionedYou # circle broadcast
-    CircleDiscussionMentionedYou # circle discussion
   }
 
   type CommentCommentNotice implements Notice {
@@ -293,6 +291,8 @@ export default /* GraphQL */ `
 
   enum CircleNoticeType {
     CircleInvitation
+    CircleBroadcastMentionedYou
+    CircleDiscussionMentionedYou
 
     # for circle owner
     CircleNewSubscriber
@@ -306,6 +306,7 @@ export default /* GraphQL */ `
     InCircleNewBroadcastReply
     InCircleNewDiscussion
     InCircleNewDiscussionReply
+
   }
 
   type CircleCommentNotice implements Notice {

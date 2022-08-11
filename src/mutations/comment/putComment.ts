@@ -250,6 +250,10 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
+  const { id: commentEntityTypeId } = await systemService.baseFindEntityTypeId(
+    'comment'
+  )
+
   /**
    * Update
    */
@@ -374,8 +378,6 @@ const resolver: MutationToPutCommentResolver = async (
 
     if (circle && (isCircleBroadcast || isCircleDiscussion)) {
       const recipients = await userService.findCircleRecipients(circle.id)
-      const { id: commentEntityTypeId } =
-        await systemService.baseFindEntityTypeId('comment')
 
       // circle: notify members & followers for new broadcast
       if (isCircleBroadcast && isLevel1Comment) {
@@ -452,20 +454,31 @@ const resolver: MutationToPutCommentResolver = async (
 
   // article & circle: notify mentioned users
   if (data.mentionedUserIds) {
-    const mentionedEvent = isCircleBroadcast
-      ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
-      : isCircleDiscussion
-      ? DB_NOTICE_TYPE.circle_discussion_mentioned_you // circle
-      : DB_NOTICE_TYPE.comment_mentioned_you // article
     data.mentionedUserIds.forEach((userId: string) => {
-      notificationService.trigger({
-        event: mentionedEvent,
-        actorId: viewer.id,
-        recipientId: userId,
-        entities: [
-          { type: 'target', entityTable: 'comment', entity: newComment },
-        ],
-      })
+      if (isArticleType) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.comment_mentioned_you,
+          actorId: viewer.id,
+          recipientId: userId,
+          entities: [
+            { type: 'target', entityTable: 'comment', entity: newComment },
+          ],
+        })
+      } else {
+        const mentionedEvent = isCircleBroadcast
+          ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
+          : DB_NOTICE_TYPE.circle_discussion_mentioned_you // circle
+        notificationService.trigger({
+          event: mentionedEvent,
+          actorId: viewer.id,
+          recipientId: userId,
+          entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
+          data: {
+            entityTypeId: commentEntityTypeId,
+            entityId: newComment.id,
+          },
+        })
+      }
     })
   }
 

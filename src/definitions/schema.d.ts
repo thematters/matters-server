@@ -2184,8 +2184,6 @@ export const enum GQLCommentNoticeType {
    * @deprecated No longer in use
    */
   CircleNewBroadcast = 'CircleNewBroadcast',
-  CircleBroadcastMentionedYou = 'CircleBroadcastMentionedYou',
-  CircleDiscussionMentionedYou = 'CircleDiscussionMentionedYou',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -2365,6 +2363,8 @@ export interface GQLCircleNotice extends GQLNotice {
 
 export const enum GQLCircleNoticeType {
   CircleInvitation = 'CircleInvitation',
+  CircleBroadcastMentionedYou = 'CircleBroadcastMentionedYou',
+  CircleDiscussionMentionedYou = 'CircleDiscussionMentionedYou',
 
   /**
    * for circle owner
