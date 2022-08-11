@@ -143,13 +143,7 @@ class AppreciationQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.article_new_appreciation,
         actorId: sender.id,
         recipientId: author.id,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
 
       // invalidate cache

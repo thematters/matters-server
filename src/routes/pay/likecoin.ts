@@ -288,11 +288,7 @@ likecoinRouter.post('/', async (req, res, next) => {
       actorId: sender.id,
       recipientId: recipient.id,
       entities: [
-        {
-          type: 'target',
-          entityTable: 'transaction',
-          entity: resultTx,
-        },
+        { type: 'target', entityTable: 'transaction', entity: resultTx },
       ],
     })
     notificationService.mail.sendPayment({

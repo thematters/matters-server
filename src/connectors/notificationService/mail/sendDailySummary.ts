@@ -34,16 +34,14 @@ export const sendDailySummary = async ({
     comment_new_reply: NoticeItem[]
     comment_mentioned_you: NoticeItem[]
 
+    circle_invitation: NoticeItem[]
+
     circle_new_subscriber: NoticeItem[]
     circle_new_follower: NoticeItem[]
     circle_new_unsubscriber: NoticeItem[]
-    circle_invitation: NoticeItem[]
-    // circle_new_broadcast: NoticeItem[]
-    circle_new_discussion: NoticeItem[]
-    circle_member_broadcast: NoticeItem[]
+    circle_member_new_broadcast_reply: NoticeItem[]
     circle_member_new_discussion: NoticeItem[]
     circle_member_new_discussion_reply: NoticeItem[]
-    circle_member_new_broadcast_reply: NoticeItem[]
 
     in_circle_new_article: NoticeItem[]
     in_circle_new_broadcast: NoticeItem[]
@@ -106,7 +104,7 @@ export const sendDailySummary = async ({
     }))
   )
 
-  // circle owners
+  // for circle owners
   const circle_new_subscriber = await Promise.all(
     notices.circle_new_subscriber.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
@@ -125,14 +123,8 @@ export const sendDailySummary = async ({
       actorCount: actors.length > 3 ? actors.length : false,
     }))
   )
-  const circle_new_discussion = await Promise.all(
-    notices.circle_new_discussion.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target),
-    }))
-  )
 
-  // for members in circle
+  // for circle members & followers
   const in_circle_new_article = await Promise.all(
     notices.in_circle_new_article.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
@@ -201,14 +193,12 @@ export const sendDailySummary = async ({
             comment_new_reply,
             comment_mentioned_you,
 
-            // to circle owners
+            // for circle owners
             circle_new_subscriber,
             circle_new_follower,
             circle_new_unsubscriber,
-            // circle_new_broadcast,
-            circle_new_discussion,
 
-            // for members in circle
+            // for circle members & followers
             in_circle_new_article,
             in_circle_new_broadcast,
             in_circle_new_broadcast_reply,

@@ -29,7 +29,7 @@ describe('user notify setting', () => {
     article_mentioned_you: true,
     revised_article_published: true,
     revised_article_not_published: true,
-    // circle_new_article: true,
+    circle_new_article: true, // deprecated
 
     // article-article
     article_new_collected: true,
@@ -37,16 +37,13 @@ describe('user notify setting', () => {
     // comment
     comment_pinned: true,
     comment_mentioned_you: true,
-    circle_broadcast_mentioned_you: true,
-    circle_discussion_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
-    // circle_new_broadcast: true,
+    circle_broadcast_mentioned_you: true,
+    circle_discussion_mentioned_you: true,
 
     // comment-comment
     comment_new_reply: true,
-    circle_broadcast_new_reply: true,
-    circle_discussion_new_reply: true,
 
     // article-tag
     article_tag_has_been_added: true,
@@ -63,16 +60,17 @@ describe('user notify setting', () => {
     payment_received_donation: true,
     payment_payout: true,
 
+    // circle
+    circle_invitation: true,
+    circle_new_broadcast: true, // deprecated
+
     // circle owners
     circle_new_subscriber: true,
     circle_new_unsubscriber: true,
-    circle_invitation: true,
     circle_new_follower: true,
-    circle_new_discussion: true,
-    circle_member_broadcast: true,
+    circle_member_new_broadcast_reply: true,
     circle_member_new_discussion: true,
     circle_member_new_discussion_reply: true,
-    circle_member_new_broadcast_reply: true,
 
     // in circle
     in_circle_new_article: true,

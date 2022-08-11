@@ -827,8 +827,7 @@ export class UserService extends BaseService {
 
     return Array.from(
       new Set([
-        // circle.owner, // add notice to circle owner
-        ...members.map((m) => m.userId),
+        ...members.map((s) => s.userId),
         ...followers.map((f) => f.userId),
       ])
     )

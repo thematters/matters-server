@@ -198,13 +198,7 @@ const resolver: MutationToInviteResolver = async (
         event: DB_NOTICE_TYPE.circle_invitation,
         actorId: viewer.id,
         recipientId: recipient.id,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'circle',
-            entity: circle,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
       })
     }
 

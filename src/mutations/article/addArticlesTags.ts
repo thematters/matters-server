@@ -45,11 +45,7 @@ const triggerNotice = async ({
       recipientId: user,
       actorId: viewerId,
       entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article,
-        },
+        { type: 'target', entityTable: 'article', entity: article },
         {
           type: 'tag',
           entityTable: 'tag',

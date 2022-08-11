@@ -1514,7 +1514,7 @@ enum ArticleNoticeType {
   ArticleNewAppreciation
   RevisedArticlePublished
   RevisedArticleNotPublished
-  CircleNewArticle
+  CircleNewArticle @deprecated(reason: "No longer in use")
 }
 
 type ArticleArticleNotice implements Notice {
@@ -1566,15 +1566,9 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewBroadcast
-  CircleNewDiscussion
-  CircleMemberNewDiscussion
-  CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewBroadcast
-  InCircleNewBroadcastReply
-  InCircleNewDiscussion
-  InCircleNewDiscussionReply
+  CircleNewBroadcast @deprecated(reason: "No longer in use")
+  CircleBroadcastMentionedYou
+  CircleDiscussionMentionedYou
 }
 
 type CommentCommentNotice implements Notice {
@@ -1700,21 +1694,25 @@ type CircleNotice implements Notice {
   actors: [User!]
   type: CircleNoticeType!
   target: Circle!
+
+  """
+  An optional arbitrary node, Comment for broadcast and discussion notices
+  """
+  node: Node
 }
 
 enum CircleNoticeType {
+  CircleInvitation
+
+  """for circle owner"""
   CircleNewSubscriber
   CircleNewFollower
   CircleNewUnsubscriber
-  CircleInvitation
-  CircleNewDiscussion
-  CircleNewBroadcast
-  CircleMemberBroadcast
+  CircleMemberNewBroadcastReply
   CircleMemberNewDiscussion
   CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewArticle
-  InCircleNewBroadcast
+
+  """for circle members & followers"""
   InCircleNewBroadcastReply
   InCircleNewDiscussion
   InCircleNewDiscussionReply
@@ -1737,6 +1735,11 @@ type CircleCommentNotice implements Notice {
   comment: Comment!
 }
 
+enum CircleCommentNoticeType {
+  """for circle members & followers"""
+  InCircleNewBroadcast
+}
+
 type CircleArticleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1754,11 +1757,8 @@ type CircleArticleNotice implements Notice {
   article: Article!
 }
 
-enum CircleCommentNoticeType {
-  CircleNewBroadcast
-}
-
 enum CircleArticleNoticeType {
+  """for circle members & followers"""
   InCircleNewArticle
 }
 

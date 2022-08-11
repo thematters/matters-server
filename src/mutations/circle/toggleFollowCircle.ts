@@ -78,13 +78,7 @@ const resolver: MutationToToggleFollowCircleResolver = async (
           event: DB_NOTICE_TYPE.circle_new_follower,
           actorId: viewer.id,
           recipientId: circle.owner,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'circle',
-              entity: circle,
-            },
-          ],
+          entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
         })
       }
       break

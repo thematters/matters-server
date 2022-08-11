@@ -50,6 +50,7 @@ const resolver: MutationToPutCommentResolver = async (
       articleService,
       notificationService,
       userService,
+      systemService,
     },
     knex,
   }
@@ -305,85 +306,56 @@ const resolver: MutationToPutCommentResolver = async (
     const isReplyingLevel2Comment =
       !isLevel1Comment && parentCommentId !== replyToCommentId
 
-    // notify article's author
+    // article: notify article's author
     const shouldNotifyArticleAuthor =
       article &&
       (isLevel1Comment ||
         (targetAuthor !== parentCommentAuthor &&
           targetAuthor !== replyToCommentAuthor))
 
-    if (shouldNotifyArticleAuthor) {
+    if (isArticleType && shouldNotifyArticleAuthor) {
       notificationService.trigger({
         event: DB_NOTICE_TYPE.article_new_comment,
         actorId: viewer.id,
         recipientId: targetAuthor,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-          {
-            type: 'comment',
-            entityTable: 'comment',
-            entity: newComment,
-          },
+          { type: 'target', entityTable: 'article', entity: article },
+          { type: 'comment', entityTable: 'comment', entity: newComment },
         ],
       })
     }
 
-    // notify parentComment's author
-    const replyEvent = isCircleBroadcast
-      ? DB_NOTICE_TYPE.circle_broadcast_new_reply
-      : isCircleDiscussion
-      ? DB_NOTICE_TYPE.circle_discussion_new_reply
-      : DB_NOTICE_TYPE.comment_new_reply
+    // article: notify parentComment's author
     const shouldNotifyParentCommentAuthor =
       isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
-    if (shouldNotifyParentCommentAuthor) {
+    if (isArticleType && shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
-        event: replyEvent,
+        event: DB_NOTICE_TYPE.comment_new_reply,
         actorId: viewer.id,
         recipientId: parentCommentAuthor,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'comment',
-            entity: parentComment,
-          },
-          {
-            type: 'reply',
-            entityTable: 'comment',
-            entity: newComment,
-          },
+          { type: 'target', entityTable: 'comment', entity: parentComment },
+          { type: 'reply', entityTable: 'comment', entity: newComment },
         ],
       })
     }
 
-    // notify replyToComment's author
+    // article: notify replyToComment's author
     const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
-    if (shouldNotifyReplyToCommentAuthor) {
+    if (isArticleType && shouldNotifyReplyToCommentAuthor) {
       notificationService.trigger({
-        event: replyEvent,
+        event: DB_NOTICE_TYPE.comment_new_reply,
         actorId: viewer.id,
         recipientId: replyToCommentAuthor,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'comment',
-            entity: replyToComment,
-          },
-          {
-            type: 'reply',
-            entityTable: 'comment',
-            entity: newComment,
-          },
+          { type: 'target', entityTable: 'comment', entity: replyToComment },
+          { type: 'reply', entityTable: 'comment', entity: newComment },
         ],
       })
     }
 
-    // notify article's subscribers
-    if (article) {
+    // article: notify article's subscribers
+    if (isArticleType && article) {
       const articleSubscribers = await articleService.findSubscriptions({
         id: article.id,
       })
@@ -393,173 +365,105 @@ const resolver: MutationToPutCommentResolver = async (
           actorId: viewer.id,
           recipientId: subscriber.id,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
-            {
-              type: 'comment',
-              entityTable: 'comment',
-              entity: newComment,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
+            { type: 'comment', entityTable: 'comment', entity: newComment },
           ],
         })
       })
     }
 
-    // notify cirlce owner & members & followers
-    if (
-      circle &&
-      // isLevel1Comment &&
-      (isCircleBroadcast || isCircleDiscussion)
-    ) {
+    if (circle && (isCircleBroadcast || isCircleDiscussion)) {
       const recipients = await userService.findCircleRecipients(circle.id)
+      const { id: commentEntityTypeId } =
+        await systemService.baseFindEntityTypeId('comment')
 
-      if (isCircleBroadcast) {
+      // circle: notify members & followers for new broadcast
+      if (isCircleBroadcast && isLevel1Comment) {
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.in_circle_new_broadcast, // circle_new_broadcast,
+            event: DB_NOTICE_TYPE.in_circle_new_broadcast,
             actorId: viewer.id,
             recipientId,
             entities: [
-              {
-                type: 'target',
-                entityTable: 'circle',
-                entity: circle,
-              },
+              { type: 'target', entityTable: 'circle', entity: circle },
               { type: 'comment', entityTable: 'comment', entity: newComment },
-              // {type: 'target', entityTable: 'comment', entity: newComment,},
             ],
           })
         })
-
-        if (!isLevel1Comment) {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply,
-            actorId: viewer.id,
-            recipientId: circle.owner,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'circle',
-                entity: circle,
-              },
-            ],
-          })
-        }
-
-        // for in circle events
-        if (!isLevel1Comment) {
-          recipients.forEach((recipientId: any) => {
-            notificationService.trigger({
-              event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply,
-              actorId: viewer.id,
-              recipientId,
-              entities: [
-                {
-                  type: 'target',
-                  entityTable: 'circle',
-                  entity: circle,
-                },
-                // {type: 'comment', entityTable: 'comment', entity: newComment,},
-              ],
-            })
-          })
-        } else {
-          recipients.forEach((recipientId: any) => {
-            notificationService.trigger({
-              event: DB_NOTICE_TYPE.in_circle_new_broadcast,
-              actorId: viewer.id,
-              recipientId,
-              entities: [
-                {
-                  type: 'target',
-                  entityTable: 'circle',
-                  entity: circle,
-                },
-                { type: 'comment', entityTable: 'comment', entity: newComment },
-              ],
-            })
-          })
-        }
       }
 
-      if (isCircleDiscussion) {
-        if (viewer.id !== circle.owner) {
-          notificationService.trigger({
-            event: !isLevel1Comment // replyToComment?.type === COMMENT_TYPE.circleDiscussion
-              ? DB_NOTICE_TYPE.circle_member_new_discussion_reply
-              : DB_NOTICE_TYPE.circle_member_new_discussion,
-            actorId: viewer.id,
-            recipientId: circle.owner,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'circle',
-                entity: circle,
-              },
-              // {type: 'comment', entityTable: 'comment', entity: newComment,},
-            ],
-          })
-        }
-
-        recipients.forEach((recipientId: any) => {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_new_discussion,
-            actorId: viewer.id,
-            recipientId,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'circle',
-                entity: circle,
-              },
-            ],
-          })
+      // circle: notify owner, members & followers for new broadcast reply
+      if (isCircleBroadcast && !isLevel1Comment) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply,
+          actorId: viewer.id,
+          recipientId: circle.owner,
+          entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
+          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
         })
 
-        // for in circle events
-        const eventInCircle =
-          replyToComment?.type === COMMENT_TYPE.circleDiscussion
-            ? DB_NOTICE_TYPE.in_circle_new_discussion_reply
-            : DB_NOTICE_TYPE.in_circle_new_discussion
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: eventInCircle,
+            event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply,
             actorId: viewer.id,
             recipientId,
             entities: [
-              {
-                type: 'target',
-                entityTable: 'circle',
-                entity: circle,
-              },
+              { type: 'target', entityTable: 'circle', entity: circle },
             ],
+            data: {
+              entityTypeId: commentEntityTypeId,
+              entityId: newComment.id,
+            },
+          })
+        })
+      }
+
+      // circle: notify owner, members & followers for new discussion and reply
+      if (isCircleDiscussion) {
+        notificationService.trigger({
+          event: isLevel1Comment
+            ? DB_NOTICE_TYPE.circle_member_new_discussion
+            : DB_NOTICE_TYPE.circle_member_new_discussion_reply,
+          actorId: viewer.id,
+          recipientId: circle.owner,
+          entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
+          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
+        })
+
+        recipients.forEach((recipientId: any) => {
+          notificationService.trigger({
+            event: isLevel1Comment
+              ? DB_NOTICE_TYPE.in_circle_new_discussion
+              : DB_NOTICE_TYPE.in_circle_new_discussion_reply,
+            actorId: viewer.id,
+            recipientId,
+            entities: [
+              { type: 'target', entityTable: 'circle', entity: circle },
+            ],
+            data: {
+              entityTypeId: commentEntityTypeId,
+              entityId: newComment.id,
+            },
           })
         })
       }
     }
   }
 
-  // notify mentioned users
+  // article & circle: notify mentioned users
   if (data.mentionedUserIds) {
     const mentionedEvent = isCircleBroadcast
-      ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+      ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
       : isCircleDiscussion
-      ? DB_NOTICE_TYPE.circle_discussion_mentioned_you
-      : DB_NOTICE_TYPE.comment_mentioned_you
+      ? DB_NOTICE_TYPE.circle_discussion_mentioned_you // circle
+      : DB_NOTICE_TYPE.comment_mentioned_you // article
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
         event: mentionedEvent,
         actorId: viewer.id,
         recipientId: userId,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'comment',
-            entity: newComment,
-          },
+          { type: 'target', entityTable: 'comment', entity: newComment },
         ],
       })
     })

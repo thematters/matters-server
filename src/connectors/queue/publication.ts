@@ -313,11 +313,7 @@ class PublicationQueue extends BaseQueue {
           event: DB_NOTICE_TYPE.article_published,
           recipientId: article.authorId,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
           ],
         })
         job.progress(95)
@@ -391,11 +387,7 @@ class PublicationQueue extends BaseQueue {
         recipientId: collection.authorId,
         actorId: article.authorId,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: collection,
-          },
+          { type: 'target', entityTable: 'article', entity: collection },
           {
             type: 'collection',
             entityTable: 'article',
@@ -430,7 +422,11 @@ class PublicationQueue extends BaseQueue {
         table: 'article_circle',
         where: data,
         create: { ...data, access: draft.access },
-        update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
+        update: {
+          ...data,
+          access: draft.access,
+          updatedAt: this.knex.fn.now(),
+        },
       })
     }
 
@@ -447,11 +443,7 @@ class PublicationQueue extends BaseQueue {
         recipientId,
         actorId: circle.owner, // viewer.id,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'circle',
-            entity: circle,
-          },
+          { type: 'target', entityTable: 'circle', entity: circle },
           {
             type: 'article',
             entityTable: 'article',
@@ -554,13 +546,7 @@ class PublicationQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
   }

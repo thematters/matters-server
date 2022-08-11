@@ -135,13 +135,7 @@ const resolver: MutationToUserRegisterResolver = async (
         event: DB_NOTICE_TYPE.circle_invitation,
         actorId: invitation.inviter,
         recipientId: newUser.id,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'circle',
-            entity: circle,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
       })
     })
   )

@@ -300,11 +300,7 @@ class RevisionQueue extends BaseQueue {
             event: DB_NOTICE_TYPE.revised_article_published,
             recipientId: article.authorId,
             entities: [
-              {
-                type: 'target',
-                entityTable: 'article',
-                entity: article,
-              },
+              { type: 'target', entityTable: 'article', entity: article },
             ],
           })
           job.progress(95)
@@ -351,11 +347,7 @@ class RevisionQueue extends BaseQueue {
           event: DB_NOTICE_TYPE.revised_article_not_published,
           recipientId: article.authorId,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
           ],
         })
 
@@ -417,13 +409,7 @@ class RevisionQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
   }

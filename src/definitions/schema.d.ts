@@ -2105,6 +2105,11 @@ export const enum GQLArticleNoticeType {
   ArticleNewAppreciation = 'ArticleNewAppreciation',
   RevisedArticlePublished = 'RevisedArticlePublished',
   RevisedArticleNotPublished = 'RevisedArticleNotPublished',
+
+  /**
+   *
+   * @deprecated No longer in use
+   */
   CircleNewArticle = 'CircleNewArticle',
 }
 
@@ -2173,15 +2178,14 @@ export const enum GQLCommentNoticeType {
   CommentMentionedYou = 'CommentMentionedYou',
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
+
+  /**
+   *
+   * @deprecated No longer in use
+   */
   CircleNewBroadcast = 'CircleNewBroadcast',
-  CircleNewDiscussion = 'CircleNewDiscussion',
-  CircleMemberNewDiscussion = 'CircleMemberNewDiscussion',
-  CircleMemberNewDiscussionReply = 'CircleMemberNewDiscussionReply',
-  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
-  InCircleNewBroadcast = 'InCircleNewBroadcast',
-  InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
-  InCircleNewDiscussion = 'InCircleNewDiscussion',
-  InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
+  CircleBroadcastMentionedYou = 'CircleBroadcastMentionedYou',
+  CircleDiscussionMentionedYou = 'CircleDiscussionMentionedYou',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -2352,21 +2356,29 @@ export interface GQLCircleNotice extends GQLNotice {
   actors?: Array<GQLUser>
   type: GQLCircleNoticeType
   target: GQLCircle
+
+  /**
+   * An optional arbitrary node, Comment for broadcast and discussion notices
+   */
+  node?: GQLNode
 }
 
 export const enum GQLCircleNoticeType {
+  CircleInvitation = 'CircleInvitation',
+
+  /**
+   * for circle owner
+   */
   CircleNewSubscriber = 'CircleNewSubscriber',
   CircleNewFollower = 'CircleNewFollower',
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
-  CircleInvitation = 'CircleInvitation',
-  CircleNewDiscussion = 'CircleNewDiscussion',
-  CircleNewBroadcast = 'CircleNewBroadcast',
-  CircleMemberBroadcast = 'CircleMemberBroadcast',
+  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
   CircleMemberNewDiscussion = 'CircleMemberNewDiscussion',
   CircleMemberNewDiscussionReply = 'CircleMemberNewDiscussionReply',
-  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
-  InCircleNewArticle = 'InCircleNewArticle',
-  InCircleNewBroadcast = 'InCircleNewBroadcast',
+
+  /**
+   * for circle members & followers
+   */
   InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
   InCircleNewDiscussion = 'InCircleNewDiscussion',
   InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
@@ -2397,6 +2409,13 @@ export interface GQLCircleCommentNotice extends GQLNotice {
   comment: GQLComment
 }
 
+export const enum GQLCircleCommentNoticeType {
+  /**
+   * for circle members & followers
+   */
+  InCircleNewBroadcast = 'InCircleNewBroadcast',
+}
+
 export interface GQLCircleArticleNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
@@ -2422,11 +2441,10 @@ export interface GQLCircleArticleNotice extends GQLNotice {
   article: GQLArticle
 }
 
-export const enum GQLCircleCommentNoticeType {
-  CircleNewBroadcast = 'CircleNewBroadcast',
-}
-
 export const enum GQLCircleArticleNoticeType {
+  /**
+   * for circle members & followers
+   */
   InCircleNewArticle = 'InCircleNewArticle',
 }
 
@@ -9333,6 +9351,7 @@ export interface GQLCircleNoticeTypeResolver<TParent = any> {
   actors?: CircleNoticeToActorsResolver<TParent>
   type?: CircleNoticeToTypeResolver<TParent>
   target?: CircleNoticeToTargetResolver<TParent>
+  node?: CircleNoticeToNodeResolver<TParent>
 }
 
 export interface CircleNoticeToIdResolver<TParent = any, TResult = any> {
@@ -9381,6 +9400,15 @@ export interface CircleNoticeToTypeResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleNoticeToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

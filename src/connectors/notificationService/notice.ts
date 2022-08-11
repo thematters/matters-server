@@ -8,6 +8,7 @@ import { BaseService } from 'connectors'
 import {
   DBNoticeType,
   GQLNotificationSettingType,
+  NoticeData,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -139,6 +140,23 @@ class Notice extends BaseService {
   }
 
   /**
+   * Update data of existing notice
+   */
+  async updateNoticeData({
+    noticeId,
+    data,
+  }: {
+    noticeId: string
+    data: NoticeData
+  }): Promise<void> {
+    this.knex('notice_detail')
+      .update({ data })
+      .whereIn('id', function () {
+        this.select('notice_detail_id').from('notice').where({ id: noticeId })
+      })
+  }
+
+  /**
    * Process new event to determine
    * whether to bundle with old notice or create new notice or do nothing
    */
@@ -150,10 +168,19 @@ class Notice extends BaseService {
     // bundle
     if (bundleables[0] && params.actorId && params.resend !== true) {
       console.log('process bundleables:', { bundleables, params })
+
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
       })
+
+      if (params.bundle?.replaceData && params.data) {
+        await this.updateNoticeData({
+          noticeId: bundleables[0].id,
+          data: params.data,
+        })
+      }
+
       return { created: false, bundled: true }
     }
 
@@ -172,6 +199,7 @@ class Notice extends BaseService {
     entities,
     message = null,
     data = null,
+    bundle: { replaceData } = { replaceData: false },
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: [
@@ -197,7 +225,7 @@ class Notice extends BaseService {
     await Promise.all(
       notices.map(async (n) => {
         // skip if data isn't the same
-        if (!isEqual(n.data, data)) {
+        if (!isEqual(n.data, data) && !replaceData) {
           return
         }
 
@@ -526,7 +554,7 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      // circle_new_article: true,
+      circle_new_article: true, // deprecated
 
       // article-article
       article_new_collected: setting.articleNewCollected,
@@ -534,16 +562,14 @@ class Notice extends BaseService {
       // comment
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
-      circle_broadcast_mentioned_you: setting.mention,
-      circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      // circle_new_broadcast: true,
+      circle_new_broadcast: true, // deprecated
+      circle_broadcast_mentioned_you: setting.mention,
+      circle_discussion_mentioned_you: setting.mention,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
-      circle_broadcast_new_reply: true,
-      circle_discussion_new_reply: setting.circleNewDiscussion,
 
       // article-tag
       article_tag_has_been_added: true,
@@ -560,17 +586,17 @@ class Notice extends BaseService {
       payment_received_donation: true,
       payment_payout: true,
 
+      // circle
+      circle_invitation: true,
+
       // circle owners
       circle_new_subscriber: setting.circleNewSubscriber,
       circle_new_unsubscriber: setting.circleNewUnsubscriber,
-      circle_invitation: true,
       circle_new_follower: setting.circleNewFollower,
-      circle_new_discussion: setting.circleNewDiscussion,
-      circle_member_broadcast: setting.circleMemberBroadcast,
+      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
       circle_member_new_discussion: setting.circleMemberNewDiscussion,
       circle_member_new_discussion_reply:
         setting.circleMemberNewDiscussionReply,
-      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
 
       // in circle
       in_circle_new_article: setting.inCircleNewArticle,
