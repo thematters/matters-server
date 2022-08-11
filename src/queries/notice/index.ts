@@ -102,8 +102,6 @@ const notice: {
         article_new_comment: NOTICE_TYPE.CommentNotice,
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice, // deprecated
-        circle_broadcast_mentioned_you: NOTICE_TYPE.CommentNotice,
-        circle_discussion_mentioned_you: NOTICE_TYPE.CommentNotice,
 
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
@@ -114,6 +112,8 @@ const notice: {
 
         // circle
         circle_invitation: NOTICE_TYPE.CircleNotice,
+        circle_broadcast_mentioned_you: NOTICE_TYPE.CircleNotice,
+        circle_discussion_mentioned_you: NOTICE_TYPE.CircleNotice,
 
         // for circle owners
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
@@ -234,18 +234,12 @@ const notice: {
           return GQLCommentNoticeType.SubscribedArticleNewComment
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return GQLCommentNoticeType.CircleNewBroadcast
-        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
-          return GQLCommentNoticeType.CircleBroadcastMentionedYou
-        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
-          return GQLCommentNoticeType.CircleDiscussionMentionedYou
       }
     },
     target: ({ entities, type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
         case DB_NOTICE_TYPE.comment_mentioned_you:
-        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
-        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target
         case DB_NOTICE_TYPE.article_new_comment:
@@ -285,6 +279,10 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.circle_invitation:
           return GQLCircleNoticeType.CircleInvitation
+        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+          return GQLCircleNoticeType.CircleBroadcastMentionedYou
+        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
+          return GQLCircleNoticeType.CircleDiscussionMentionedYou
 
         // for circle owner
         case DB_NOTICE_TYPE.circle_new_subscriber:

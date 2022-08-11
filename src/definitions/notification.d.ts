@@ -142,22 +142,6 @@ export interface NoticeCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeCircleBroadcastMentionedYouParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_broadcast_mentioned_you
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
-}
-
-export interface NoticeCircleDiscussionMentionedYouParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_discussion_mentioned_you
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
-}
-
 export interface NoticeSubscribedArticleNewCommentParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.subscribed_article_new_comment
@@ -269,6 +253,24 @@ export interface NoticeCircleInvitationParams
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
+}
+
+export interface NoticeCircleBroadcastMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
+}
+
+export interface NoticeCircleDiscussionMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_discussion_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+  data: { entityTypeId: string; entityId: string }
 }
 
 // for circle owner
@@ -462,8 +464,6 @@ export type NotificationPrarms =
   | NoticeCommentMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
   | NoticeCircleNewBroadcastParams // deprecated
-  | NoticeCircleBroadcastMentionedYouParams
-  | NoticeCircleDiscussionMentionedYouParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
   // Tag
@@ -478,6 +478,8 @@ export type NotificationPrarms =
   | NoticePaymentPayoutParams
   // Circle
   | NoticeCircleInvitationParams
+  | NoticeCircleBroadcastMentionedYouParams
+  | NoticeCircleDiscussionMentionedYouParams
   // Circle: Owner
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewFollowerParams

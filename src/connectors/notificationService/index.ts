@@ -65,8 +65,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
-      case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
@@ -97,6 +95,8 @@ export class NotificationService extends BaseService {
           entities: params.entities,
           resend: true,
         }
+      case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+      case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
       case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case DB_NOTICE_TYPE.circle_member_new_discussion:
       case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
