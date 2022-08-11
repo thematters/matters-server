@@ -19,7 +19,7 @@ const resolver: MutationToAddBlockedSearchKeywordResolver = async (
 
   const newItem = await atomService.create({
     table,
-    data: { search_key : keyword },
+    data: { search_key: keyword },
   })
 
   const newAddedKeyword = {

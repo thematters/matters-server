@@ -328,7 +328,7 @@ const notice: {
         ]
 
       if (entityType === NODE_TYPES.Comment) {
-        const comment = commentService.dataloader.load(entityId)
+        const comment = await commentService.dataloader.load(entityId)
         return { ...comment, __type: entityType }
       }
     },

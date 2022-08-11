@@ -9,7 +9,6 @@ exports.up = async (knex) => {
     t.string('search_key').unique().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
-
     // reference
     // t.foreign('search_key').references('search_key').inTable('search_history')
   })
