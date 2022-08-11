@@ -140,6 +140,7 @@ export type BasicTableName =
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
   | 'blocklist'
+  | 'blocked_search_keyword'
   | 'transaction'
   | 'customer'
   | 'payout_account'

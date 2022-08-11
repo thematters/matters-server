@@ -171,6 +171,12 @@ type Mutation {
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
+  """Add blocked search keyword to blocked_search_word db"""
+  addBlockedSearchKeyword(input: KeywordInput!): BlockedSearchKeyword!
+
+  """Delete blocked search keywords from search_history db"""
+  deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
   """
   #############
        OSS    #
@@ -182,7 +188,7 @@ type Mutation {
   setFeature(input: SetFeatureInput!): Feature!
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
-  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean
+  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1806,6 +1812,14 @@ scalar DateTime
 
 scalar Upload
 
+input KeywordsInput {
+  keywords: [String!]
+}
+
+input KeywordInput {
+  keyword: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -1820,6 +1834,17 @@ type PageInfo {
 interface Connection {
   totalCount: Int!
   pageInfo: PageInfo!
+}
+
+type BlockedSearchKeyword {
+  """Unique ID of bloked search keyword."""
+  id: ID!
+
+  """Types of this search keyword."""
+  searchKey: String!
+
+  """Time of this search keyword was created."""
+  createdAt: DateTime!
 }
 
 """This type contains system-wise info and settings."""
