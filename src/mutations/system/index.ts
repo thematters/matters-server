@@ -10,7 +10,6 @@ import setFeature from './setFeature'
 import singleFileUpload from './singleFileUpload'
 import toggleSeedingUsers from './toggleSeedingUsers'
 
-
 export default {
   Mutation: {
     singleFileUpload,
@@ -23,6 +22,6 @@ export default {
     putAnnouncement,
     deleteAnnouncements,
     addBlockedSearchKeyword,
-    deleteBlockedSearchKeywords
+    deleteBlockedSearchKeywords,
   },
 }
