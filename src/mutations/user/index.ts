@@ -18,7 +18,6 @@ import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
 import togglePinTag from './togglePinTag'
-import toggleSubscribePush from './toggleSubscribePush'
 import toggleUsersBadge from './toggleUsersBadge'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
@@ -45,7 +44,6 @@ export default {
     resetLikerId,
     updateUserInfo,
     updateNotificationSetting,
-    toggleSubscribePush,
     toggleBlockUser,
     toggleFollowTag,
     togglePinTag,

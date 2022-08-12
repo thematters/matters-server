@@ -10,18 +10,15 @@ import {
 
 import { mail } from './mail'
 import { notice } from './notice'
-import { push } from './push'
 import trans from './translations'
 
 export class NotificationService extends BaseService {
   mail: typeof mail
-  push: typeof push
   notice: typeof notice
 
   constructor() {
     super('noop')
     this.mail = mail
-    this.push = push
     this.notice = notice
   }
 
@@ -240,13 +237,5 @@ export class NotificationService extends BaseService {
       logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)
       return
     }
-
-    /**
-     * Push Notification
-     */
-    this.push.push({
-      noticeParams,
-      recipient,
-    })
   }
 }

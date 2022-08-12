@@ -238,9 +238,6 @@ type Mutation {
   """Block or Unblock a given user."""
   toggleBlockUser(input: ToggleItemInput!): User!
 
-  """Subscribe/ Unsubscribe Push Notification."""
-  toggleSubscribePush(input: ToggleItemInput!): User!
-
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
 
