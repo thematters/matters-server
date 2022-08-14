@@ -171,6 +171,12 @@ type Mutation {
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
+  """Add blocked search keyword to blocked_search_word db"""
+  addBlockedSearchKeyword(input: KeywordInput!): BlockedSearchKeyword!
+
+  """Delete blocked search keywords from search_history db"""
+  deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
   """
   #############
        OSS    #
@@ -182,7 +188,7 @@ type Mutation {
   setFeature(input: SetFeatureInput!): Feature!
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
-  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean
+  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1508,7 +1514,7 @@ enum ArticleNoticeType {
   ArticleNewAppreciation
   RevisedArticlePublished
   RevisedArticleNotPublished
-  CircleNewArticle
+  CircleNewArticle @deprecated(reason: "No longer in use")
 }
 
 type ArticleArticleNotice implements Notice {
@@ -1560,15 +1566,7 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewBroadcast
-  CircleNewDiscussion
-  CircleMemberNewDiscussion
-  CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewBroadcast
-  InCircleNewBroadcastReply
-  InCircleNewDiscussion
-  InCircleNewDiscussionReply
+  CircleNewBroadcast @deprecated(reason: "No longer in use")
 }
 
 type CommentCommentNotice implements Notice {
@@ -1694,21 +1692,27 @@ type CircleNotice implements Notice {
   actors: [User!]
   type: CircleNoticeType!
   target: Circle!
+
+  """
+  An optional arbitrary node, Comment for broadcast and discussion notices
+  """
+  node: Node
 }
 
 enum CircleNoticeType {
+  CircleInvitation
+  CircleBroadcastMentionedYou
+  CircleDiscussionMentionedYou
+
+  """for circle owner"""
   CircleNewSubscriber
   CircleNewFollower
   CircleNewUnsubscriber
-  CircleInvitation
-  CircleNewDiscussion
-  CircleNewBroadcast
-  CircleMemberBroadcast
+  CircleMemberNewBroadcastReply
   CircleMemberNewDiscussion
   CircleMemberNewDiscussionReply
-  CircleMemberNewBroadcastReply
-  InCircleNewArticle
-  InCircleNewBroadcast
+
+  """for circle members & followers"""
   InCircleNewBroadcastReply
   InCircleNewDiscussion
   InCircleNewDiscussionReply
@@ -1731,6 +1735,11 @@ type CircleCommentNotice implements Notice {
   comment: Comment!
 }
 
+enum CircleCommentNoticeType {
+  """for circle members & followers"""
+  InCircleNewBroadcast
+}
+
 type CircleArticleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1748,11 +1757,8 @@ type CircleArticleNotice implements Notice {
   article: Article!
 }
 
-enum CircleCommentNoticeType {
-  CircleNewBroadcast
-}
-
 enum CircleArticleNoticeType {
+  """for circle members & followers"""
   InCircleNewArticle
 }
 
@@ -1806,6 +1812,14 @@ scalar DateTime
 
 scalar Upload
 
+input KeywordsInput {
+  keywords: [String!]
+}
+
+input KeywordInput {
+  keyword: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -1820,6 +1834,17 @@ type PageInfo {
 interface Connection {
   totalCount: Int!
   pageInfo: PageInfo!
+}
+
+type BlockedSearchKeyword {
+  """Unique ID of bloked search keyword."""
+  id: ID!
+
+  """Types of this search keyword."""
+  searchKey: String!
+
+  """Time of this search keyword was created."""
+  createdAt: DateTime!
 }
 
 """This type contains system-wise info and settings."""

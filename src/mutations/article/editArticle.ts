@@ -350,11 +350,7 @@ const resolver: MutationToEditArticleResolver = async (
         recipientId: targetCollection.authorId,
         actorId: article.authorId,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: targetCollection,
-          },
+          { type: 'target', entityTable: 'article', entity: targetCollection },
           {
             type: 'collection',
             entityTable: 'article',

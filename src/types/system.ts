@@ -17,6 +17,12 @@ export default /* GraphQL */ `
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
 
+    "Add blocked search keyword to blocked_search_word db"
+    addBlockedSearchKeyword(input:KeywordInput!): BlockedSearchKeyword! @auth(mode: "${AUTH_MODE.admin}")
+
+    "Delete blocked search keywords from search_history db"
+    deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+
     ##############
     #     OSS    #
     ##############
@@ -26,7 +32,16 @@ export default /* GraphQL */ `
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
-    deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+    deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+
+  input KeywordsInput {
+    keywords: [String!]
+  }
+
+  input KeywordInput {
+    keyword: String!
   }
 
   interface Node {
@@ -43,6 +58,18 @@ export default /* GraphQL */ `
   interface Connection {
     totalCount: Int!
     pageInfo: PageInfo!
+  }
+
+
+  type BlockedSearchKeyword {
+    "Unique ID of bloked search keyword."
+    id: ID!
+
+    "Types of this search keyword."
+    searchKey: String!
+
+    "Time of this search keyword was created."
+    createdAt: DateTime!
   }
 
   "This type contains system-wise info and settings."

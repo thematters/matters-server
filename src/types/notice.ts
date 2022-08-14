@@ -94,8 +94,7 @@ export default /* GraphQL */ `
     ArticleNewAppreciation
     RevisedArticlePublished
     RevisedArticleNotPublished
-    CircleNewArticle
-    # InCircleNewArticle
+    CircleNewArticle @deprecated(reason: "No longer in use")
   }
 
   type ArticleArticleNotice implements Notice {
@@ -123,7 +122,6 @@ export default /* GraphQL */ `
   }
 
 
-
   #################################
   #                               #
   #           Comment             #
@@ -149,18 +147,10 @@ export default /* GraphQL */ `
 
   enum CommentNoticeType {
     CommentPinned
-    CommentMentionedYou
+    CommentMentionedYou # article comment
     ArticleNewComment
     SubscribedArticleNewComment
-    CircleNewBroadcast
-    CircleNewDiscussion
-    CircleMemberNewDiscussion
-    CircleMemberNewDiscussionReply
-    CircleMemberNewBroadcastReply
-    InCircleNewBroadcast
-    InCircleNewBroadcastReply
-    InCircleNewDiscussion
-    InCircleNewDiscussionReply
+    CircleNewBroadcast @deprecated(reason: "No longer in use")
   }
 
   type CommentCommentNotice implements Notice {
@@ -294,25 +284,29 @@ export default /* GraphQL */ `
     type: CircleNoticeType!
 
     target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
+
+    "An optional arbitrary node, Comment for broadcast and discussion notices"
+    node: Node @logCache(type: "${NODE_TYPES.Node}")
   }
 
   enum CircleNoticeType {
+    CircleInvitation
+    CircleBroadcastMentionedYou
+    CircleDiscussionMentionedYou
+
+    # for circle owner
     CircleNewSubscriber
     CircleNewFollower
     CircleNewUnsubscriber
-    CircleInvitation
-    CircleNewDiscussion
-    CircleNewBroadcast
-    CircleMemberBroadcast
+    CircleMemberNewBroadcastReply
     CircleMemberNewDiscussion
     CircleMemberNewDiscussionReply
-    CircleMemberNewBroadcastReply
 
-    InCircleNewArticle
-    InCircleNewBroadcast
+    # for circle members & followers
     InCircleNewBroadcastReply
     InCircleNewDiscussion
     InCircleNewDiscussionReply
+
   }
 
   type CircleCommentNotice implements Notice {
@@ -335,6 +329,11 @@ export default /* GraphQL */ `
     comment: Comment! @logCache(type: "${NODE_TYPES.Comment}")
   }
 
+  enum CircleCommentNoticeType {
+    # for circle members & followers
+    InCircleNewBroadcast
+  }
+
   type CircleArticleNotice implements Notice {
     "Unique ID of this notice."
     id: ID!
@@ -355,11 +354,8 @@ export default /* GraphQL */ `
     article: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
-  enum CircleCommentNoticeType {
-    CircleNewBroadcast
-  }
-
   enum CircleArticleNoticeType {
+    # for circle members & followers
     InCircleNewArticle
   }
 

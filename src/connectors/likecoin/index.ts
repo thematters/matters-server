@@ -447,12 +447,14 @@ export class LikeCoin {
   superlike = async ({
     authorLikerId,
     liker,
+    iscn_id,
     url,
     likerIp,
     userAgent,
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
+    iscn_id?: string
     url: string
     likerIp?: string
     userAgent: string
@@ -466,9 +468,13 @@ export class LikeCoin {
         withClientCredential: true,
         method: 'POST',
         liker,
-        data: {
-          referrer: encodeURI(url),
-        },
+        data: _.omitBy(
+          {
+            iscn_id,
+            referrer: url, // encodeURI(url),
+          },
+          _.isNil
+        ),
       })
       const data = _.get(result, 'data')
       if (data === 'OK') {
@@ -483,11 +489,13 @@ export class LikeCoin {
 
   canSuperLike = async ({
     liker,
+    iscn_id,
     url,
     likerIp,
     userAgent,
   }: {
     liker: UserOAuthLikeCoin
+    iscn_id?: string
     url: string
     likerIp?: string
     userAgent: string
@@ -500,9 +508,13 @@ export class LikeCoin {
       ip: likerIp,
       userAgent,
       withClientCredential: true,
-      params: {
-        referrer: encodeURI(url),
-      },
+      params: _.omitBy(
+        {
+          iscn_id,
+          referrer: url, // encodeURI(url),
+        },
+        _.isNil
+      ),
       liker,
     })
     const data = _.get(res, 'data')

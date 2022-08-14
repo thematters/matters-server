@@ -41,6 +41,10 @@ export class SystemService extends BaseService {
       .select('search_key')
       .count('id')
       .whereNot({ searchKey: '' })
+      .whereNotIn(
+        'searchKey',
+        this.knex.from('blocked_search_keyword').select('searchKey')
+      )
       .groupBy('search_key')
       .orderBy('count', 'desc')
       .limit(first)
