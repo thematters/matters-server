@@ -2751,6 +2751,7 @@ export interface GQLConnectionArgs {
   after?: string
   first?: number
   oss?: boolean
+  filter?: GQLFilterInput
 }
 
 /**
