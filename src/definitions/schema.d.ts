@@ -2362,7 +2362,8 @@ export const enum GQLCircleNoticeType {
   CircleNewSubscriber = 'CircleNewSubscriber',
   CircleNewFollower = 'CircleNewFollower',
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
-  CircleNewComments = 'CircleNewComments',
+  CircleNewBroadcastComments = 'CircleNewBroadcastComments',
+  CircleNewDiscussionComments = 'CircleNewDiscussionComments',
 }
 
 /**

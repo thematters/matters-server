@@ -41,7 +41,8 @@ export const sendDailySummary = async ({
     circle_new_unsubscriber: NoticeItem[]
     circle_new_article: NoticeItem[]
     circle_new_broadcast: NoticeItem[]
-    circle_new_comments: NoticeItem[]
+    circle_new_broadcast_comments: NoticeItem[]
+    circle_new_discussion_comments: NoticeItem[]
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
@@ -176,7 +177,8 @@ export const sendDailySummary = async ({
             circle_new_unsubscriber,
             // circle_new_article,
             // circle_new_broadcast,
-            // circle_new_comments
+            // circle_new_broadcast_comments
+            // circle_new_discussion_comments
           },
         },
       },

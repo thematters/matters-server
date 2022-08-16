@@ -1708,7 +1708,8 @@ enum CircleNoticeType {
   CircleNewSubscriber
   CircleNewFollower
   CircleNewUnsubscriber
-  CircleNewComments
+  CircleNewBroadcastComments
+  CircleNewDiscussionComments
 }
 
 """

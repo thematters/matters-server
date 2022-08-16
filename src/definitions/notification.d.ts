@@ -303,7 +303,16 @@ export interface NoticeCircleNewUnsubscriberParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleNewCommentsParams
+export interface NoticeCircleNewBroadcastCommentsParams
+  extends NotificationRequiredParams {
+  event: BundledNoticeType
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+  data: { comments?: string[]; replies?: string[]; mentions?: string[] }
+}
+
+export interface NoticeCircleNewDiscussionCommentsParams
   extends NotificationRequiredParams {
   event: BundledNoticeType
   recipientId: string
@@ -418,7 +427,8 @@ export type NotificationPrarms =
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewFollowerParams
   | NoticeCircleNewUnsubscriberParams
-  | NoticeCircleNewCommentsParams
+  | NoticeCircleNewBroadcastCommentsParams
+  | NoticeCircleNewDiscussionCommentsParams
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams

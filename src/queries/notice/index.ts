@@ -109,7 +109,8 @@ const notice: {
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
         circle_new_unsubscriber: NOTICE_TYPE.CircleNotice,
         circle_new_follower: NOTICE_TYPE.CircleNotice,
-        circle_new_comments: NOTICE_TYPE.CircleNotice,
+        circle_new_broadcast_comments: NOTICE_TYPE.CircleNotice,
+        circle_new_discussion_comments: NOTICE_TYPE.CircleNotice,
 
         // crypto
         crypto_wallet_airdrop: NOTICE_TYPE.CryptoNotice,
@@ -266,8 +267,10 @@ const notice: {
           return GQLCircleNoticeType.CircleNewFollower
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
           return GQLCircleNoticeType.CircleNewUnsubscriber
-        case DB_NOTICE_TYPE.circle_new_comments:
-          return GQLCircleNoticeType.CircleNewComments
+        case DB_NOTICE_TYPE.circle_new_broadcast_comments:
+          return GQLCircleNoticeType.CircleNewBroadcastComments
+        case DB_NOTICE_TYPE.circle_new_discussion_comments:
+          return GQLCircleNoticeType.CircleNewDiscussionComments
       }
     },
     target: ({ entities }) => entities.target,

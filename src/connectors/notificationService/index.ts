@@ -97,15 +97,26 @@ export class NotificationService extends BaseService {
           entities: params.entities,
           resend: true,
         }
-      // bundled: circle_new_comments
+      // bundled: circle_new_broadcast_comments
+      case BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you:
       case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
+        return {
+          type: DB_NOTICE_TYPE.circle_new_broadcast_comments,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { mergeData: true },
+        }
+      // bundled: circle_new_discussion_comments
+      case BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you:
       case BUNDLED_NOTICE_TYPE.circle_member_new_discussion:
       case BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply:
-      case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
         return {
-          type: DB_NOTICE_TYPE.circle_new_comments,
+          type: DB_NOTICE_TYPE.circle_new_discussion_comments,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
@@ -224,7 +235,6 @@ export class NotificationService extends BaseService {
       setting: notifySetting,
     })
 
-    console.log('notificationService.__trigger:', { notifySetting, enable })
     if (!enable) {
       logger.info(
         `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
@@ -234,8 +244,6 @@ export class NotificationService extends BaseService {
 
     // Put Notice to DB
     const { created, bundled } = await this.notice.process(noticeParams)
-
-    console.log('notificationService.__trigger:', { created, bundled })
 
     if (!created && !bundled) {
       logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)

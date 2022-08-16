@@ -251,6 +251,17 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
+  const parentCommentAuthor = _.get(parentComment, 'authorId')
+  const parentCommentId = _.get(parentComment, 'id')
+  const replyToCommentAuthor = _.get(replyToComment, 'authorId')
+  const replyToCommentId = _.get(replyToComment, 'id')
+
+  const isLevel1Comment = !parentComment && !replyToComment
+  const isReplyLevel1Comment =
+    !isLevel1Comment && parentCommentId === replyToCommentId
+  const isReplyingLevel2Comment =
+    !isLevel1Comment && parentCommentId !== replyToCommentId
+
   /**
    * Update
    */
@@ -296,17 +307,6 @@ const resolver: MutationToPutCommentResolver = async (
     /**
      * Notifications
      */
-    const parentCommentAuthor = _.get(parentComment, 'authorId')
-    const parentCommentId = _.get(parentComment, 'id')
-    const replyToCommentAuthor = _.get(replyToComment, 'authorId')
-    const replyToCommentId = _.get(replyToComment, 'id')
-
-    const isLevel1Comment = !parentComment && !replyToComment
-    const isReplyLevel1Comment =
-      !isLevel1Comment && parentCommentId === replyToCommentId
-    const isReplyingLevel2Comment =
-      !isLevel1Comment && parentCommentId !== replyToCommentId
-
     // article: notify article's author
     const shouldNotifyArticleAuthor =
       article &&
@@ -449,6 +449,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // article & circle: notify mentioned users
+  console.log({ mentions }, data.mentionedUserIds)
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       if (isArticleType) {
@@ -469,7 +470,10 @@ const resolver: MutationToPutCommentResolver = async (
           actorId: viewer.id,
           recipientId: userId,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
-          data: { mentions: [newComment.id] },
+          data: {
+            comments: isLevel1Comment ? [newComment.id] : [],
+            mentions: [newComment.id],
+          },
         })
       }
     })

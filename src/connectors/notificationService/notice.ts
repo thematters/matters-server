@@ -182,7 +182,6 @@ class Notice extends BaseService {
       })
 
       if (params.bundle?.mergeData && params.data) {
-        console.log('...merge')
         await this.updateNoticeData({
           noticeId: bundleables[0].id,
           data: mergeDataWith(bundleables[0].data, params.data),
@@ -592,14 +591,16 @@ class Notice extends BaseService {
       circle_new_follower: setting.circleNewFollower,
 
       // circle bundles
-      circle_new_comments: true, // just a placeholder, determined by below BundledNoticeType
+      circle_new_broadcast_comments: true, // only a placeholder
       circle_broadcast_mentioned_you: true,
-      circle_discussion_mentioned_you: true,
       circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
+      in_circle_new_broadcast_reply: setting.inCircleNewBroadcastReply,
+
+      circle_new_discussion_comments: true, // only a placeholder
+      circle_discussion_mentioned_you: true,
       circle_member_new_discussion: setting.circleMemberNewDiscussion,
       circle_member_new_discussion_reply:
         setting.circleMemberNewDiscussionReply,
-      in_circle_new_broadcast_reply: setting.inCircleNewBroadcastReply,
       in_circle_new_discussion: setting.inCircleNewDiscussion,
       in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 

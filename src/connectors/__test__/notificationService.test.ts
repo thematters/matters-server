@@ -39,6 +39,7 @@ describe('user notify setting', () => {
     comment_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
+    circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,
@@ -60,21 +61,19 @@ describe('user notify setting', () => {
 
     // circle
     circle_invitation: true,
-    circle_new_broadcast: true,
-    circle_broadcast_mentioned_you: true,
-    circle_discussion_mentioned_you: true,
-    circle_new_comments: true,
-
-    // circle owners
     circle_new_subscriber: true,
     circle_new_unsubscriber: true,
     circle_new_follower: true,
+
+    circle_new_broadcast_comments: true, // only a placeholder
+    circle_broadcast_mentioned_you: true,
     circle_member_new_broadcast_reply: true,
+    in_circle_new_broadcast_reply: false,
+
+    circle_new_discussion_comments: true, // only a placeholder
+    circle_discussion_mentioned_you: true,
     circle_member_new_discussion: true,
     circle_member_new_discussion_reply: true,
-
-    // in circle
-    in_circle_new_broadcast_reply: false,
     in_circle_new_discussion: true,
     in_circle_new_discussion_reply: false,
 
