@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
+  BUNDLED_NOTICE_TYPE,
   CACHE_KEYWORD,
   // CIRCLE_ACTION,
   COMMENT_TYPE,
@@ -250,9 +251,16 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
-  const { id: commentEntityTypeId } = await systemService.baseFindEntityTypeId(
-    'comment'
-  )
+  const parentCommentAuthor = _.get(parentComment, 'authorId')
+  const parentCommentId = _.get(parentComment, 'id')
+  const replyToCommentAuthor = _.get(replyToComment, 'authorId')
+  const replyToCommentId = _.get(replyToComment, 'id')
+
+  const isLevel1Comment = !parentComment && !replyToComment
+  const isReplyLevel1Comment =
+    !isLevel1Comment && parentCommentId === replyToCommentId
+  const isReplyingLevel2Comment =
+    !isLevel1Comment && parentCommentId !== replyToCommentId
 
   /**
    * Update
@@ -299,17 +307,6 @@ const resolver: MutationToPutCommentResolver = async (
     /**
      * Notifications
      */
-    const parentCommentAuthor = _.get(parentComment, 'authorId')
-    const parentCommentId = _.get(parentComment, 'id')
-    const replyToCommentAuthor = _.get(replyToComment, 'authorId')
-    const replyToCommentId = _.get(replyToComment, 'id')
-
-    const isLevel1Comment = !parentComment && !replyToComment
-    const isReplyLevel1Comment =
-      !isLevel1Comment && parentCommentId === replyToCommentId
-    const isReplyingLevel2Comment =
-      !isLevel1Comment && parentCommentId !== replyToCommentId
-
     // article: notify article's author
     const shouldNotifyArticleAuthor =
       article &&
@@ -383,12 +380,11 @@ const resolver: MutationToPutCommentResolver = async (
       if (isCircleBroadcast && isLevel1Comment) {
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.in_circle_new_broadcast,
+            event: DB_NOTICE_TYPE.circle_new_broadcast,
             actorId: viewer.id,
             recipientId,
             entities: [
-              { type: 'target', entityTable: 'circle', entity: circle },
-              { type: 'comment', entityTable: 'comment', entity: newComment },
+              { type: 'target', entityTable: 'comment', entity: newComment },
             ],
           })
         })
@@ -397,25 +393,22 @@ const resolver: MutationToPutCommentResolver = async (
       // circle: notify owner, members & followers for new broadcast reply
       if (isCircleBroadcast && !isLevel1Comment) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply,
+          event: BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply,
           actorId: viewer.id,
           recipientId: circle.owner,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
-          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
+          data: { replies: [newComment.id] },
         })
 
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply,
+            event: BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply,
             actorId: viewer.id,
             recipientId,
             entities: [
               { type: 'target', entityTable: 'circle', entity: circle },
             ],
-            data: {
-              entityTypeId: commentEntityTypeId,
-              entityId: newComment.id,
-            },
+            data: { replies: [newComment.id] },
           })
         })
       }
@@ -424,27 +417,30 @@ const resolver: MutationToPutCommentResolver = async (
       if (isCircleDiscussion) {
         notificationService.trigger({
           event: isLevel1Comment
-            ? DB_NOTICE_TYPE.circle_member_new_discussion
-            : DB_NOTICE_TYPE.circle_member_new_discussion_reply,
+            ? BUNDLED_NOTICE_TYPE.circle_member_new_discussion
+            : BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply,
           actorId: viewer.id,
           recipientId: circle.owner,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
-          data: { entityTypeId: commentEntityTypeId, entityId: newComment.id },
+          data: {
+            comments: isLevel1Comment ? [newComment.id] : [],
+            replies: isLevel1Comment ? [] : [newComment.id],
+          },
         })
 
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
             event: isLevel1Comment
-              ? DB_NOTICE_TYPE.in_circle_new_discussion
-              : DB_NOTICE_TYPE.in_circle_new_discussion_reply,
+              ? BUNDLED_NOTICE_TYPE.in_circle_new_discussion
+              : BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply,
             actorId: viewer.id,
             recipientId,
             entities: [
               { type: 'target', entityTable: 'circle', entity: circle },
             ],
             data: {
-              entityTypeId: commentEntityTypeId,
-              entityId: newComment.id,
+              comments: isLevel1Comment ? [newComment.id] : [],
+              replies: isLevel1Comment ? [] : [newComment.id],
             },
           })
         })
@@ -453,6 +449,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // article & circle: notify mentioned users
+  console.log({ mentions }, data.mentionedUserIds)
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       if (isArticleType) {
@@ -466,16 +463,16 @@ const resolver: MutationToPutCommentResolver = async (
         })
       } else {
         const mentionedEvent = isCircleBroadcast
-          ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
-          : DB_NOTICE_TYPE.circle_discussion_mentioned_you // circle
+          ? BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
+          : BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you // circle
         notificationService.trigger({
           event: mentionedEvent,
           actorId: viewer.id,
           recipientId: userId,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
           data: {
-            entityTypeId: commentEntityTypeId,
-            entityId: newComment.id,
+            comments: isLevel1Comment ? [newComment.id] : [],
+            mentions: [newComment.id],
           },
         })
       }
