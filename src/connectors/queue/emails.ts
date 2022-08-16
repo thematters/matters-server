@@ -120,8 +120,8 @@ class EmailsQueue extends BaseQueue {
               circle_new_broadcast: filterNotices(
                 DB_NOTICE_TYPE.circle_new_broadcast
               ),
-              circle_new_bundled: filterNotices(
-                DB_NOTICE_TYPE.circle_new_bundled
+              circle_new_comments: filterNotices(
+                DB_NOTICE_TYPE.circle_new_comments
               ),
             },
             language: user.language,

@@ -44,7 +44,7 @@ export enum DB_NOTICE_TYPE {
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_follower = 'circle_new_follower',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
-  circle_new_bundled = 'circle_new_bundled',
+  circle_new_comments = 'circle_new_comments',
 
   // crypto
   crypto_wallet_airdrop = 'crypto_wallet_airdrop',
@@ -55,6 +55,7 @@ export enum DB_NOTICE_TYPE {
 }
 
 export enum BUNDLED_NOTICE_TYPE {
+  // CircleNewComments
   'circle_broadcast_mentioned_you' = 'circle_broadcast_mentioned_you',
   'circle_discussion_mentioned_you' = 'circle_discussion_mentioned_you',
   'circle_member_new_broadcast_reply' = 'circle_member_new_broadcast_reply',

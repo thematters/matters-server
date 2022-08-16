@@ -303,7 +303,7 @@ export interface NoticeCircleNewUnsubscriberParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleNewBundledParams
+export interface NoticeCircleNewCommentsParams
   extends NotificationRequiredParams {
   event: BundledNoticeType
   recipientId: string
@@ -418,7 +418,7 @@ export type NotificationPrarms =
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewFollowerParams
   | NoticeCircleNewUnsubscriberParams
-  | NoticeCircleNewBundledParams
+  | NoticeCircleNewCommentsParams
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams

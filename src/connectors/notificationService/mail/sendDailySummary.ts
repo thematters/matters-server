@@ -41,7 +41,7 @@ export const sendDailySummary = async ({
     circle_new_unsubscriber: NoticeItem[]
     circle_new_article: NoticeItem[]
     circle_new_broadcast: NoticeItem[]
-    circle_new_bundled: NoticeItem[]
+    circle_new_comments: NoticeItem[]
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
@@ -129,7 +129,7 @@ export const sendDailySummary = async ({
   //   }))
   // )
   // const in_circle_new_broadcast_reply = await Promise.all(
-  //   notices.circle_new_bundled.map(
+  //   notices.circle_new_comments.map(
   //     async ({ actors = [], entities }) => ({
   //       actor: await getUserDigest(actors[0]),
   //       comment: await getCommentDigest(entities && entities.target),
@@ -176,7 +176,7 @@ export const sendDailySummary = async ({
             circle_new_unsubscriber,
             // circle_new_article,
             // circle_new_broadcast,
-            // circle_new_bundled
+            // circle_new_comments
           },
         },
       },

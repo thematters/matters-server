@@ -300,7 +300,7 @@ export default /* GraphQL */ `
     CircleNewSubscriber
     CircleNewFollower
     CircleNewUnsubscriber
-    CircleNewBundled
+    CircleNewComments
   }
 
   #################################

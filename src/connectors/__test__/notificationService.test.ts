@@ -63,7 +63,7 @@ describe('user notify setting', () => {
     circle_new_broadcast: true,
     circle_broadcast_mentioned_you: true,
     circle_discussion_mentioned_you: true,
-    circle_new_bundled: true,
+    circle_new_comments: true,
 
     // circle owners
     circle_new_subscriber: true,

@@ -97,7 +97,7 @@ export class NotificationService extends BaseService {
           entities: params.entities,
           resend: true,
         }
-      // bundled: circle_new_bundled
+      // bundled: circle_new_comments
       case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case BUNDLED_NOTICE_TYPE.circle_member_new_discussion:
       case BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply:
@@ -105,7 +105,7 @@ export class NotificationService extends BaseService {
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
         return {
-          type: DB_NOTICE_TYPE.circle_new_bundled,
+          type: DB_NOTICE_TYPE.circle_new_comments,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,

@@ -157,8 +157,8 @@ class Notice extends BaseService {
   }: {
     noticeId: string
     data: NoticeData
-  }): Promise<void> {
-    this.knex('notice_detail')
+  }) {
+    return this.knex('notice_detail')
       .update({ data })
       .whereIn('id', function () {
         this.select('notice_detail_id').from('notice').where({ id: noticeId })
@@ -182,6 +182,7 @@ class Notice extends BaseService {
       })
 
       if (params.bundle?.mergeData && params.data) {
+        console.log('...merge')
         await this.updateNoticeData({
           noticeId: bundleables[0].id,
           data: mergeDataWith(bundleables[0].data, params.data),
@@ -591,7 +592,7 @@ class Notice extends BaseService {
       circle_new_follower: setting.circleNewFollower,
 
       // circle bundles
-      circle_new_bundled: true, // just a placeholder, determined by below BundledNoticeType
+      circle_new_comments: true, // just a placeholder, determined by below BundledNoticeType
       circle_broadcast_mentioned_you: true,
       circle_discussion_mentioned_you: true,
       circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
