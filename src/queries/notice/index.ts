@@ -9,10 +9,6 @@ import {
   GQLArticleNoticeTypeResolver,
   GQLArticleTagNoticeType,
   GQLArticleTagNoticeTypeResolver,
-  GQLCircleArticleNoticeType,
-  GQLCircleArticleNoticeTypeResolver,
-  GQLCircleCommentNoticeType,
-  GQLCircleCommentNoticeTypeResolver,
   GQLCircleNoticeType,
   GQLCircleNoticeTypeResolver,
   GQLCommentCommentNoticeType,
@@ -61,8 +57,6 @@ const notice: {
   CommentCommentNotice: GQLCommentCommentNoticeTypeResolver
   TransactionNotice: GQLTransactionNoticeTypeResolver
   CircleNotice: GQLCircleNoticeTypeResolver
-  CircleArticleNotice: GQLCircleArticleNoticeTypeResolver
-  CircleCommentNotice: GQLCircleCommentNoticeTypeResolver
   CryptoNotice: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
 } = {
@@ -101,7 +95,7 @@ const notice: {
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
-        circle_new_broadcast: NOTICE_TYPE.CommentNotice, // deprecated
+        circle_new_broadcast: NOTICE_TYPE.CommentNotice,
 
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
@@ -112,23 +106,10 @@ const notice: {
 
         // circle
         circle_invitation: NOTICE_TYPE.CircleNotice,
-        circle_broadcast_mentioned_you: NOTICE_TYPE.CircleNotice,
-        circle_discussion_mentioned_you: NOTICE_TYPE.CircleNotice,
-
-        // for circle owners
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
         circle_new_unsubscriber: NOTICE_TYPE.CircleNotice,
         circle_new_follower: NOTICE_TYPE.CircleNotice,
-        circle_member_new_discussion: NOTICE_TYPE.CircleNotice,
-        circle_member_new_discussion_reply: NOTICE_TYPE.CircleNotice,
-        circle_member_new_broadcast_reply: NOTICE_TYPE.CircleNotice,
-
-        // for circle members & followers
-        in_circle_new_article: NOTICE_TYPE.CircleArticleNotice,
-        in_circle_new_broadcast: NOTICE_TYPE.CircleCommentNotice,
-        in_circle_new_broadcast_reply: NOTICE_TYPE.CircleNotice,
-        in_circle_new_discussion: NOTICE_TYPE.CircleNotice,
-        in_circle_new_discussion_reply: NOTICE_TYPE.CircleNotice,
+        circle_new_bundled: NOTICE_TYPE.CircleNotice,
 
         // crypto
         crypto_wallet_airdrop: NOTICE_TYPE.CryptoNotice,
@@ -279,78 +260,65 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.circle_invitation:
           return GQLCircleNoticeType.CircleInvitation
-        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
-          return GQLCircleNoticeType.CircleBroadcastMentionedYou
-        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
-          return GQLCircleNoticeType.CircleDiscussionMentionedYou
-
-        // for circle owner
         case DB_NOTICE_TYPE.circle_new_subscriber:
           return GQLCircleNoticeType.CircleNewSubscriber
         case DB_NOTICE_TYPE.circle_new_follower:
           return GQLCircleNoticeType.CircleNewFollower
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
           return GQLCircleNoticeType.CircleNewUnsubscriber
-        case DB_NOTICE_TYPE.circle_member_new_broadcast_reply:
-          return GQLCircleNoticeType.CircleMemberNewBroadcastReply
-        case DB_NOTICE_TYPE.circle_member_new_discussion:
-          return GQLCircleNoticeType.CircleMemberNewDiscussion
-        case DB_NOTICE_TYPE.circle_member_new_discussion_reply:
-          return GQLCircleNoticeType.CircleMemberNewDiscussionReply
-
-        // for circle members & followers
-        case DB_NOTICE_TYPE.in_circle_new_broadcast_reply:
-          return GQLCircleNoticeType.InCircleNewBroadcastReply
-        case DB_NOTICE_TYPE.in_circle_new_discussion:
-          return GQLCircleNoticeType.InCircleNewDiscussion
-        case DB_NOTICE_TYPE.in_circle_new_discussion_reply:
-          return GQLCircleNoticeType.InCircleNewDiscussionReply
+        case DB_NOTICE_TYPE.circle_new_bundled:
+          return GQLCircleNoticeType.CircleNewBundled
       }
     },
     target: ({ entities }) => entities.target,
-    node: async (
+    comments: async (
       { data }: { data: any },
       _,
-      { dataSources: { systemService, commentService } }
+      { dataSources: { commentService } }
     ) => {
-      const { entityTypeId, entityId } = data || {}
+      const { comments } = data || {}
 
-      if (!entityTypeId || !entityId) {
+      if (!comments || comments.length <= 0) {
         return
       }
 
-      const entity = await systemService.baseFindEntityTypeTable(entityTypeId)
-      const entityType =
-        NODE_TYPES[
-          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
-        ]
+      return (await commentService.dataloader.loadMany(comments)).map((c) => ({
+        ...c,
+        __typename: NODE_TYPES.Comment,
+      }))
+    },
+    replies: async (
+      { data }: { data: any },
+      _,
+      { dataSources: { commentService } }
+    ) => {
+      const { replies } = data || {}
 
-      if (entityType === NODE_TYPES.Comment) {
-        const comment = await commentService.dataloader.load(entityId)
-        return { ...comment, __type: entityType }
+      if (!replies || replies.length <= 0) {
+        return
       }
+
+      return (await commentService.dataloader.loadMany(replies)).map((c) => ({
+        ...c,
+        __typename: NODE_TYPES.Comment,
+      }))
     },
-  },
-  CircleCommentNotice: {
-    type: ({ type }) => {
-      switch (type) {
-        case DB_NOTICE_TYPE.in_circle_new_broadcast:
-          return GQLCircleCommentNoticeType.InCircleNewBroadcast
+    mentions: async (
+      { data }: { data: any },
+      _,
+      { dataSources: { commentService } }
+    ) => {
+      const { mentions } = data || {}
+
+      if (!mentions || mentions.length <= 0) {
+        return
       }
+
+      return (await commentService.dataloader.loadMany(mentions)).map((c) => ({
+        ...c,
+        __typename: NODE_TYPES.Comment,
+      }))
     },
-    target: ({ entities, type }) => entities.target,
-    comment: ({ entities, type }) => entities.comment,
-  },
-  CircleArticleNotice: {
-    type: ({ type }) => {
-      switch (type) {
-        case DB_NOTICE_TYPE.in_circle_new_article:
-          return GQLCircleArticleNoticeType.InCircleNewArticle
-      }
-    },
-    target: ({ entities, type }) => entities.target,
-    article: ({ entities, type }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.article.draftId),
   },
   CryptoNotice: {
     type: ({ type }) => {

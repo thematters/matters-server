@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader'
-import { isEqual, uniqBy } from 'lodash'
+import { isArray, isEqual, mergeWith, uniq, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
 import { DAY, DB_NOTICE_TYPE } from 'common/enums'
@@ -21,6 +21,16 @@ import {
 } from 'definitions'
 
 export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
+
+const mergeDataCustomizer = (objValue: any, srcValue: any) => {
+  if (isArray(objValue)) {
+    return uniq(objValue.concat(srcValue))
+  }
+}
+
+const mergeDataWith = (objValue: any, srcValue: any) => {
+  return mergeWith(objValue, srcValue, mergeDataCustomizer)
+}
 
 class Notice extends BaseService {
   constructor() {
@@ -119,7 +129,6 @@ class Notice extends BaseService {
   }): Promise<void> {
     await this.knex.transaction(async (trx) => {
       // add actor
-      console.log('addNoticeActor:', { noticeId, actorId })
       await trx
         .insert({
           noticeId,
@@ -167,17 +176,15 @@ class Notice extends BaseService {
 
     // bundle
     if (bundleables[0] && params.actorId && params.resend !== true) {
-      console.log('process bundleables:', { bundleables, params })
-
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
       })
 
-      if (params.bundle?.replaceData && params.data) {
+      if (params.bundle?.mergeData && params.data) {
         await this.updateNoticeData({
           noticeId: bundleables[0].id,
-          data: params.data,
+          data: mergeDataWith(bundleables[0].data, params.data),
         })
       }
 
@@ -199,7 +206,7 @@ class Notice extends BaseService {
     entities,
     message = null,
     data = null,
-    bundle: { replaceData } = { replaceData: false },
+    bundle: { mergeData } = { mergeData: false },
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: [
@@ -214,7 +221,6 @@ class Notice extends BaseService {
         ],
       ],
     })
-    console.log('findBundleables from:', notices)
     const bundleables: NoticeDetail[] = []
 
     // no notices have same details
@@ -225,7 +231,7 @@ class Notice extends BaseService {
     await Promise.all(
       notices.map(async (n) => {
         // skip if data isn't the same
-        if (!isEqual(n.data, data) && !replaceData) {
+        if (!isEqual(n.data, data) && !mergeData) {
           return
         }
 
@@ -261,13 +267,7 @@ class Notice extends BaseService {
           const hash = `${sourceType}:${entityTable}:${entity.id}`
           sourceEntitiesHashMap[hash] = true
         })
-        console.log('findBundleables:', {
-          notice: n,
-          sourceEntities,
-          targetEntities,
-          sourceEntitiesHashMap,
-          targetEntitiesHashMap,
-        })
+
         if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
           bundleables.push(n)
           return
@@ -554,7 +554,7 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      circle_new_article: true, // deprecated
+      circle_new_article: setting.inCircleNewArticle,
 
       // article-article
       article_new_collected: setting.articleNewCollected,
@@ -564,9 +564,7 @@ class Notice extends BaseService {
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      circle_new_broadcast: true, // deprecated
-      circle_broadcast_mentioned_you: setting.mention,
-      circle_discussion_mentioned_you: setting.mention,
+      circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
@@ -588,19 +586,18 @@ class Notice extends BaseService {
 
       // circle
       circle_invitation: true,
-
-      // circle owners
       circle_new_subscriber: setting.circleNewSubscriber,
       circle_new_unsubscriber: setting.circleNewUnsubscriber,
       circle_new_follower: setting.circleNewFollower,
+
+      // circle bundles
+      circle_new_bundled: true, // just a placeholder, determined by below BundledNoticeType
+      circle_broadcast_mentioned_you: true,
+      circle_discussion_mentioned_you: true,
       circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
       circle_member_new_discussion: setting.circleMemberNewDiscussion,
       circle_member_new_discussion_reply:
         setting.circleMemberNewDiscussionReply,
-
-      // in circle
-      in_circle_new_article: setting.inCircleNewArticle,
-      in_circle_new_broadcast: setting.inCircleNewBroadcast,
       in_circle_new_broadcast_reply: setting.inCircleNewBroadcastReply,
       in_circle_new_discussion: setting.inCircleNewDiscussion,
       in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,

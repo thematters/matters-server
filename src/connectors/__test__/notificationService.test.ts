@@ -29,7 +29,7 @@ describe('user notify setting', () => {
     article_mentioned_you: true,
     revised_article_published: true,
     revised_article_not_published: true,
-    circle_new_article: true, // deprecated
+    circle_new_article: true,
 
     // article-article
     article_new_collected: true,
@@ -39,8 +39,6 @@ describe('user notify setting', () => {
     comment_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
-    circle_broadcast_mentioned_you: true,
-    circle_discussion_mentioned_you: true,
 
     // comment-comment
     comment_new_reply: true,
@@ -62,7 +60,10 @@ describe('user notify setting', () => {
 
     // circle
     circle_invitation: true,
-    circle_new_broadcast: true, // deprecated
+    circle_new_broadcast: true,
+    circle_broadcast_mentioned_you: true,
+    circle_discussion_mentioned_you: true,
+    circle_new_bundled: true,
 
     // circle owners
     circle_new_subscriber: true,
@@ -73,8 +74,6 @@ describe('user notify setting', () => {
     circle_member_new_discussion_reply: true,
 
     // in circle
-    in_circle_new_article: true,
-    in_circle_new_broadcast: true,
     in_circle_new_broadcast_reply: false,
     in_circle_new_discussion: true,
     in_circle_new_discussion_reply: false,

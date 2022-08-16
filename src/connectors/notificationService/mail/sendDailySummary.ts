@@ -39,15 +39,9 @@ export const sendDailySummary = async ({
     circle_new_subscriber: NoticeItem[]
     circle_new_follower: NoticeItem[]
     circle_new_unsubscriber: NoticeItem[]
-    circle_member_new_broadcast_reply: NoticeItem[]
-    circle_member_new_discussion: NoticeItem[]
-    circle_member_new_discussion_reply: NoticeItem[]
-
-    in_circle_new_article: NoticeItem[]
-    in_circle_new_broadcast: NoticeItem[]
-    in_circle_new_broadcast_reply: NoticeItem[]
-    in_circle_new_discussion: NoticeItem[]
-    in_circle_new_discussion_reply: NoticeItem[]
+    circle_new_article: NoticeItem[]
+    circle_new_broadcast: NoticeItem[]
+    circle_new_bundled: NoticeItem[]
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
@@ -103,8 +97,6 @@ export const sendDailySummary = async ({
       comment: await getCommentDigest(entities && entities.target),
     }))
   )
-
-  // for circle owners
   const circle_new_subscriber = await Promise.all(
     notices.circle_new_subscriber.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
@@ -123,40 +115,27 @@ export const sendDailySummary = async ({
       actorCount: actors.length > 3 ? actors.length : false,
     }))
   )
-
-  // for circle members & followers
-  const in_circle_new_article = await Promise.all(
-    notices.in_circle_new_article.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      article: await getArticleDigest(entities && entities.target),
-    }))
-  )
-  const in_circle_new_broadcast = await Promise.all(
-    notices.in_circle_new_broadcast.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target),
-    }))
-  )
-  const in_circle_new_broadcast_reply = await Promise.all(
-    notices.in_circle_new_broadcast_reply.map(
-      async ({ actors = [], entities }) => ({
-        actor: await getUserDigest(actors[0]),
-        comment: await getCommentDigest(entities && entities.target),
-      })
-    )
-  )
-  const in_circle_new_discussion = await Promise.all(
-    notices.in_circle_new_discussion.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target),
-    }))
-  )
-  const in_circle_new_discussion_reply = await Promise.all(
-    notices.in_circle_new_discussion.map(async ({ actors = [], entities }) => ({
-      actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target),
-    }))
-  )
+  // TODO
+  // const circle_new_article = await Promise.all(
+  //   notices.circle_new_article.map(async ({ actors = [], entities }) => ({
+  //     actor: await getUserDigest(actors[0]),
+  //     article: await getArticleDigest(entities && entities.target),
+  //   }))
+  // )
+  // const circle_new_broadcast = await Promise.all(
+  //   notices.circle_new_broadcast.map(async ({ actors = [], entities }) => ({
+  //     actor: await getUserDigest(actors[0]),
+  //     comment: await getCommentDigest(entities && entities.target),
+  //   }))
+  // )
+  // const in_circle_new_broadcast_reply = await Promise.all(
+  //   notices.circle_new_bundled.map(
+  //     async ({ actors = [], entities }) => ({
+  //       actor: await getUserDigest(actors[0]),
+  //       comment: await getCommentDigest(entities && entities.target),
+  //     })
+  //   )
+  // )
 
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
@@ -192,18 +171,12 @@ export const sendDailySummary = async ({
             article_mentioned_you,
             comment_new_reply,
             comment_mentioned_you,
-
-            // for circle owners
             circle_new_subscriber,
             circle_new_follower,
             circle_new_unsubscriber,
-
-            // for circle members & followers
-            in_circle_new_article,
-            in_circle_new_broadcast,
-            in_circle_new_broadcast_reply,
-            in_circle_new_discussion,
-            in_circle_new_discussion_reply,
+            // circle_new_article,
+            // circle_new_broadcast,
+            // circle_new_bundled
           },
         },
       },

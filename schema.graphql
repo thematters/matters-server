@@ -1514,7 +1514,7 @@ enum ArticleNoticeType {
   ArticleNewAppreciation
   RevisedArticlePublished
   RevisedArticleNotPublished
-  CircleNewArticle @deprecated(reason: "No longer in use")
+  CircleNewArticle
 }
 
 type ArticleArticleNotice implements Notice {
@@ -1566,7 +1566,7 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewBroadcast @deprecated(reason: "No longer in use")
+  CircleNewBroadcast
 }
 
 type CommentCommentNotice implements Notice {
@@ -1693,73 +1693,22 @@ type CircleNotice implements Notice {
   type: CircleNoticeType!
   target: Circle!
 
-  """
-  An optional arbitrary node, Comment for broadcast and discussion notices
-  """
-  node: Node
+  """Optional discussion/broadcast comments for bundled notices"""
+  comments: [Comment!]
+
+  """Optional discussion/broadcast replies for bundled notices"""
+  replies: [Comment!]
+
+  """Optional mention comments for bundled notices"""
+  mentions: [Comment!]
 }
 
 enum CircleNoticeType {
   CircleInvitation
-  CircleBroadcastMentionedYou
-  CircleDiscussionMentionedYou
-
-  """for circle owner"""
   CircleNewSubscriber
   CircleNewFollower
   CircleNewUnsubscriber
-  CircleMemberNewBroadcastReply
-  CircleMemberNewDiscussion
-  CircleMemberNewDiscussionReply
-
-  """for circle members & followers"""
-  InCircleNewBroadcastReply
-  InCircleNewDiscussion
-  InCircleNewDiscussionReply
-}
-
-type CircleCommentNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CircleCommentNoticeType!
-  target: Circle!
-  comment: Comment!
-}
-
-enum CircleCommentNoticeType {
-  """for circle members & followers"""
-  InCircleNewBroadcast
-}
-
-type CircleArticleNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CircleArticleNoticeType!
-  target: Circle!
-  article: Article!
-}
-
-enum CircleArticleNoticeType {
-  """for circle members & followers"""
-  InCircleNewArticle
+  CircleNewBundled
 }
 
 """
@@ -2485,13 +2434,11 @@ type NotificationSetting {
   circleNewSubscriber: Boolean!
   circleNewFollower: Boolean!
   circleNewUnsubscriber: Boolean!
-  circleNewDiscussion: Boolean!
-  circleMemberBroadcast: Boolean!
+  circleMemberNewBroadcastReply: Boolean!
   circleMemberNewDiscussion: Boolean!
   circleMemberNewDiscussionReply: Boolean!
-  circleMemberNewBroadcastReply: Boolean!
 
-  """for circle members"""
+  """for circle members & followers"""
   inCircleNewArticle: Boolean!
   inCircleNewBroadcast: Boolean!
   inCircleNewBroadcastReply: Boolean!

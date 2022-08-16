@@ -1,10 +1,13 @@
 import {
   DB_NOTICE_TYPE,
+  BUNDLED_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums/notification'
 import { TableName, User } from 'definitions'
 
 export type DBNoticeType = keyof typeof DB_NOTICE_TYPE
+
+export type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
 
 export type OfficialNoticeExtendType = keyof typeof OFFICIAL_NOTICE_EXTEND_TYPE
 
@@ -19,7 +22,10 @@ export type NoticeEntityType =
   | 'article'
   | 'circle'
 
-export type NotificationType = DBNoticeType | OfficialNoticeExtendType
+export type NotificationType =
+  | DBNoticeType
+  | BundledNoticeType
+  | OfficialNoticeExtendType
 
 export interface NotificationRequiredParams {
   event: NotificationType
@@ -93,7 +99,6 @@ export interface NoticeRevisedArticleNotPublishedParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-// deprecated
 export interface NoticeCircleNewArticleParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.circle_new_article
@@ -298,81 +303,13 @@ export interface NoticeCircleNewUnsubscriberParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleMemberNewBroadcastReplyParams
+export interface NoticeCircleNewBundledParams
   extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_member_new_broadcast_reply
+  event: BundledNoticeType
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
-}
-
-export interface NoticeCircleMemberNewDiscussionParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_member_new_discussion
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
-}
-
-export interface NoticeCircleMemberNewDiscussionReplyParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_member_new_discussion_reply
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
-}
-
-// For circle subscrbers & followers
-export interface NoticeInCircleNewArticleParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_article
-  actorId: string
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'circle'>,
-    NotificationEntity<'article', 'article'>
-  ]
-}
-
-export interface NoticeInCircleNewBroadcastParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_broadcast
-  actorId: string
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'circle'>,
-    NotificationEntity<'comment', 'comment'>
-  ]
-}
-
-export interface NoticeInCircleNewDiscussionParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_discussion
-  actorId: string
-  recipientId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
-}
-
-export interface NoticeInCircleNewBroadcastReplyParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_broadcast_reply
-  actorId: string
-  recipientId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
-}
-
-export interface NoticeInCircleNewDiscussionReplyParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.in_circle_new_discussion_reply
-  actorId: string
-  recipientId: string
-  entities: [NotificationEntity<'target', 'circle'>]
-  data: { entityTypeId: string; entityId: string }
+  data: { comments?: string[]; replies?: string[]; mentions?: string[] }
 }
 
 /**
@@ -458,12 +395,12 @@ export type NotificationPrarms =
   | NoticeArticleMentionedYouParams
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
-  | NoticeCircleNewArticleParams // deprecated
+  | NoticeCircleNewArticleParams
   // Comment
   | NoticeCommentPinnedParams
   | NoticeCommentMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeCircleNewBroadcastParams // deprecated
+  | NoticeCircleNewBroadcastParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
   // Tag
@@ -478,21 +415,10 @@ export type NotificationPrarms =
   | NoticePaymentPayoutParams
   // Circle
   | NoticeCircleInvitationParams
-  | NoticeCircleBroadcastMentionedYouParams
-  | NoticeCircleDiscussionMentionedYouParams
-  // Circle: Owner
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewFollowerParams
   | NoticeCircleNewUnsubscriberParams
-  | NoticeCircleMemberNewBroadcastReplyParams
-  | NoticeCircleMemberNewDiscussionParams
-  | NoticeCircleMemberNewDiscussionReplyParams
-  // Circle: Members & Followers
-  | NoticeInCircleNewArticleParams
-  | NoticeInCircleNewBroadcastParams
-  | NoticeInCircleNewDiscussionParams
-  | NoticeInCircleNewBroadcastReplyParams
-  | NoticeInCircleNewDiscussionReplyParams
+  | NoticeCircleNewBundledParams
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
@@ -522,9 +448,11 @@ export type NoticeData = {
   url?: string
   // reason for banned/frozen users, not in used
   reason?: string
-  // arbitrary entity, used by circle broadcast/discussion notices
-  entityTypeId?: string
-  entityId?: string
+
+  // usde by circle new bundled notices
+  comments?: string[]
+  replies?: string[]
+  mentions?: string[]
 }
 
 export type NoticeDetail = {
@@ -555,6 +483,6 @@ export type PutNoticeParams = {
   resend?: boolean // used by circle invitation notice
 
   bundle?: {
-    replaceData: boolean // used by circle broadcast/discussion notices
+    mergeData: boolean // used by circle bundled notice
   }
 }

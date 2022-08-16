@@ -105,8 +105,6 @@ class EmailsQueue extends BaseQueue {
               circle_invitation: filterNotices(
                 DB_NOTICE_TYPE.circle_invitation
               ),
-
-              // for circle owners
               circle_new_subscriber: filterNotices(
                 DB_NOTICE_TYPE.circle_new_subscriber
               ),
@@ -116,31 +114,14 @@ class EmailsQueue extends BaseQueue {
               circle_new_unsubscriber: filterNotices(
                 DB_NOTICE_TYPE.circle_new_unsubscriber
               ),
-              circle_member_new_broadcast_reply: filterNotices(
-                DB_NOTICE_TYPE.circle_member_new_broadcast_reply
+              circle_new_article: filterNotices(
+                DB_NOTICE_TYPE.circle_new_article
               ),
-              circle_member_new_discussion: filterNotices(
-                DB_NOTICE_TYPE.circle_member_new_discussion
+              circle_new_broadcast: filterNotices(
+                DB_NOTICE_TYPE.circle_new_broadcast
               ),
-              circle_member_new_discussion_reply: filterNotices(
-                DB_NOTICE_TYPE.circle_member_new_discussion_reply
-              ),
-
-              // for circle members & followers
-              in_circle_new_article: filterNotices(
-                DB_NOTICE_TYPE.circle_member_new_discussion_reply
-              ),
-              in_circle_new_broadcast: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_broadcast
-              ),
-              in_circle_new_broadcast_reply: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_broadcast_reply
-              ),
-              in_circle_new_discussion: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_discussion
-              ),
-              in_circle_new_discussion_reply: filterNotices(
-                DB_NOTICE_TYPE.in_circle_new_discussion_reply
+              circle_new_bundled: filterNotices(
+                DB_NOTICE_TYPE.circle_new_bundled
               ),
             },
             language: user.language,

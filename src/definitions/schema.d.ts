@@ -1999,8 +1999,6 @@ export type GQLPossibleNoticeTypeNames =
   | 'TagNotice'
   | 'TransactionNotice'
   | 'CircleNotice'
-  | 'CircleCommentNotice'
-  | 'CircleArticleNotice'
   | 'CryptoNotice'
   | 'OfficialAnnouncementNotice'
 
@@ -2015,8 +2013,6 @@ export interface GQLNoticeNameMap {
   TagNotice: GQLTagNotice
   TransactionNotice: GQLTransactionNotice
   CircleNotice: GQLCircleNotice
-  CircleCommentNotice: GQLCircleCommentNotice
-  CircleArticleNotice: GQLCircleArticleNotice
   CryptoNotice: GQLCryptoNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
 }
@@ -2105,11 +2101,6 @@ export const enum GQLArticleNoticeType {
   ArticleNewAppreciation = 'ArticleNewAppreciation',
   RevisedArticlePublished = 'RevisedArticlePublished',
   RevisedArticleNotPublished = 'RevisedArticleNotPublished',
-
-  /**
-   *
-   * @deprecated No longer in use
-   */
   CircleNewArticle = 'CircleNewArticle',
 }
 
@@ -2178,11 +2169,6 @@ export const enum GQLCommentNoticeType {
   CommentMentionedYou = 'CommentMentionedYou',
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
-
-  /**
-   *
-   * @deprecated No longer in use
-   */
   CircleNewBroadcast = 'CircleNewBroadcast',
 }
 
@@ -2356,96 +2342,27 @@ export interface GQLCircleNotice extends GQLNotice {
   target: GQLCircle
 
   /**
-   * An optional arbitrary node, Comment for broadcast and discussion notices
+   * Optional discussion/broadcast comments for bundled notices
    */
-  node?: GQLNode
+  comments?: Array<GQLComment>
+
+  /**
+   * Optional discussion/broadcast replies for bundled notices
+   */
+  replies?: Array<GQLComment>
+
+  /**
+   * Optional mention comments for bundled notices
+   */
+  mentions?: Array<GQLComment>
 }
 
 export const enum GQLCircleNoticeType {
   CircleInvitation = 'CircleInvitation',
-  CircleBroadcastMentionedYou = 'CircleBroadcastMentionedYou',
-  CircleDiscussionMentionedYou = 'CircleDiscussionMentionedYou',
-
-  /**
-   * for circle owner
-   */
   CircleNewSubscriber = 'CircleNewSubscriber',
   CircleNewFollower = 'CircleNewFollower',
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
-  CircleMemberNewBroadcastReply = 'CircleMemberNewBroadcastReply',
-  CircleMemberNewDiscussion = 'CircleMemberNewDiscussion',
-  CircleMemberNewDiscussionReply = 'CircleMemberNewDiscussionReply',
-
-  /**
-   * for circle members & followers
-   */
-  InCircleNewBroadcastReply = 'InCircleNewBroadcastReply',
-  InCircleNewDiscussion = 'InCircleNewDiscussion',
-  InCircleNewDiscussionReply = 'InCircleNewDiscussionReply',
-}
-
-export interface GQLCircleCommentNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * List of notice actors.
-   */
-  actors?: Array<GQLUser>
-  type: GQLCircleCommentNoticeType
-  target: GQLCircle
-  comment: GQLComment
-}
-
-export const enum GQLCircleCommentNoticeType {
-  /**
-   * for circle members & followers
-   */
-  InCircleNewBroadcast = 'InCircleNewBroadcast',
-}
-
-export interface GQLCircleArticleNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * List of notice actors.
-   */
-  actors?: Array<GQLUser>
-  type: GQLCircleArticleNoticeType
-  target: GQLCircle
-  article: GQLArticle
-}
-
-export const enum GQLCircleArticleNoticeType {
-  /**
-   * for circle members & followers
-   */
-  InCircleNewArticle = 'InCircleNewArticle',
+  CircleNewBundled = 'CircleNewBundled',
 }
 
 /**
@@ -3464,14 +3381,12 @@ export interface GQLNotificationSetting {
   circleNewSubscriber: boolean
   circleNewFollower: boolean
   circleNewUnsubscriber: boolean
-  circleNewDiscussion: boolean
-  circleMemberBroadcast: boolean
+  circleMemberNewBroadcastReply: boolean
   circleMemberNewDiscussion: boolean
   circleMemberNewDiscussionReply: boolean
-  circleMemberNewBroadcastReply: boolean
 
   /**
-   * for circle members
+   * for circle members & followers
    */
   inCircleNewArticle: boolean
   inCircleNewBroadcast: boolean
@@ -4431,8 +4346,6 @@ export interface GQLResolver {
   TagNotice?: GQLTagNoticeTypeResolver
   TransactionNotice?: GQLTransactionNoticeTypeResolver
   CircleNotice?: GQLCircleNoticeTypeResolver
-  CircleCommentNotice?: GQLCircleCommentNoticeTypeResolver
-  CircleArticleNotice?: GQLCircleArticleNoticeTypeResolver
   CryptoNotice?: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
@@ -8656,8 +8569,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'CircleNotice'
-    | 'CircleCommentNotice'
-    | 'CircleArticleNotice'
     | 'CryptoNotice'
     | 'OfficialAnnouncementNotice'
     | Promise<
@@ -8670,8 +8581,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
         | 'TagNotice'
         | 'TransactionNotice'
         | 'CircleNotice'
-        | 'CircleCommentNotice'
-        | 'CircleArticleNotice'
         | 'CryptoNotice'
         | 'OfficialAnnouncementNotice'
       >
@@ -9351,7 +9260,9 @@ export interface GQLCircleNoticeTypeResolver<TParent = any> {
   actors?: CircleNoticeToActorsResolver<TParent>
   type?: CircleNoticeToTypeResolver<TParent>
   target?: CircleNoticeToTargetResolver<TParent>
-  node?: CircleNoticeToNodeResolver<TParent>
+  comments?: CircleNoticeToCommentsResolver<TParent>
+  replies?: CircleNoticeToRepliesResolver<TParent>
+  mentions?: CircleNoticeToMentionsResolver<TParent>
 }
 
 export interface CircleNoticeToIdResolver<TParent = any, TResult = any> {
@@ -9408,7 +9319,7 @@ export interface CircleNoticeToTargetResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CircleNoticeToNodeResolver<TParent = any, TResult = any> {
+export interface CircleNoticeToCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9417,17 +9328,7 @@ export interface CircleNoticeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLCircleCommentNoticeTypeResolver<TParent = any> {
-  id?: CircleCommentNoticeToIdResolver<TParent>
-  unread?: CircleCommentNoticeToUnreadResolver<TParent>
-  createdAt?: CircleCommentNoticeToCreatedAtResolver<TParent>
-  actors?: CircleCommentNoticeToActorsResolver<TParent>
-  type?: CircleCommentNoticeToTypeResolver<TParent>
-  target?: CircleCommentNoticeToTargetResolver<TParent>
-  comment?: CircleCommentNoticeToCommentResolver<TParent>
-}
-
-export interface CircleCommentNoticeToIdResolver<TParent = any, TResult = any> {
+export interface CircleNoticeToRepliesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9436,161 +9337,7 @@ export interface CircleCommentNoticeToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CircleCommentNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleCommentNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleCommentNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleCommentNoticeToTypeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleCommentNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleCommentNoticeToCommentResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCircleArticleNoticeTypeResolver<TParent = any> {
-  id?: CircleArticleNoticeToIdResolver<TParent>
-  unread?: CircleArticleNoticeToUnreadResolver<TParent>
-  createdAt?: CircleArticleNoticeToCreatedAtResolver<TParent>
-  actors?: CircleArticleNoticeToActorsResolver<TParent>
-  type?: CircleArticleNoticeToTypeResolver<TParent>
-  target?: CircleArticleNoticeToTargetResolver<TParent>
-  article?: CircleArticleNoticeToArticleResolver<TParent>
-}
-
-export interface CircleArticleNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToTypeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleArticleNoticeToArticleResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CircleNoticeToMentionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -11437,11 +11184,9 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   circleNewSubscriber?: NotificationSettingToCircleNewSubscriberResolver<TParent>
   circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
   circleNewUnsubscriber?: NotificationSettingToCircleNewUnsubscriberResolver<TParent>
-  circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<TParent>
-  circleMemberBroadcast?: NotificationSettingToCircleMemberBroadcastResolver<TParent>
+  circleMemberNewBroadcastReply?: NotificationSettingToCircleMemberNewBroadcastReplyResolver<TParent>
   circleMemberNewDiscussion?: NotificationSettingToCircleMemberNewDiscussionResolver<TParent>
   circleMemberNewDiscussionReply?: NotificationSettingToCircleMemberNewDiscussionReplyResolver<TParent>
-  circleMemberNewBroadcastReply?: NotificationSettingToCircleMemberNewBroadcastReplyResolver<TParent>
   inCircleNewArticle?: NotificationSettingToInCircleNewArticleResolver<TParent>
   inCircleNewBroadcast?: NotificationSettingToInCircleNewBroadcastResolver<TParent>
   inCircleNewBroadcastReply?: NotificationSettingToInCircleNewBroadcastReplyResolver<TParent>
@@ -11605,19 +11350,7 @@ export interface NotificationSettingToCircleNewUnsubscriberResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCircleNewDiscussionResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NotificationSettingToCircleMemberBroadcastResolver<
+export interface NotificationSettingToCircleMemberNewBroadcastReplyResolver<
   TParent = any,
   TResult = any
 > {
@@ -11642,18 +11375,6 @@ export interface NotificationSettingToCircleMemberNewDiscussionResolver<
 }
 
 export interface NotificationSettingToCircleMemberNewDiscussionReplyResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NotificationSettingToCircleMemberNewBroadcastReplyResolver<
   TParent = any,
   TResult = any
 > {

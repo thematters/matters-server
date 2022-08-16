@@ -9,7 +9,7 @@ export enum DB_NOTICE_TYPE {
   article_mentioned_you = 'article_mentioned_you',
   revised_article_published = 'revised_article_published',
   revised_article_not_published = 'revised_article_not_published',
-  circle_new_article = 'circle_new_article', // deprecated
+  circle_new_article = 'circle_new_article',
 
   // article-article
   article_new_collected = 'article_new_collected',
@@ -30,9 +30,7 @@ export enum DB_NOTICE_TYPE {
   comment_mentioned_you = 'comment_mentioned_you',
   article_new_comment = 'article_new_comment',
   subscribed_article_new_comment = 'subscribed_article_new_comment',
-  circle_new_broadcast = 'circle_new_broadcast', // deprecated
-  circle_broadcast_mentioned_you = 'circle_broadcast_mentioned_you',
-  circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
+  circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment
   comment_new_reply = 'comment_new_reply',
@@ -43,21 +41,10 @@ export enum DB_NOTICE_TYPE {
 
   // circle
   circle_invitation = 'circle_invitation',
-
-  // for circle owners
   circle_new_subscriber = 'circle_new_subscriber',
   circle_new_follower = 'circle_new_follower',
   circle_new_unsubscriber = 'circle_new_unsubscriber',
-  circle_member_new_broadcast_reply = 'circle_member_new_broadcast_reply',
-  circle_member_new_discussion = 'circle_member_new_discussion',
-  circle_member_new_discussion_reply = 'circle_member_new_discussion_reply',
-
-  // for circle members & followers
-  in_circle_new_article = 'in_circle_new_article',
-  in_circle_new_broadcast = 'in_circle_new_broadcast',
-  in_circle_new_broadcast_reply = 'in_circle_new_broadcast_reply',
-  in_circle_new_discussion = 'in_circle_new_discussion',
-  in_circle_new_discussion_reply = 'in_circle_new_discussion_reply',
+  circle_new_bundled = 'circle_new_bundled',
 
   // crypto
   crypto_wallet_airdrop = 'crypto_wallet_airdrop',
@@ -65,6 +52,17 @@ export enum DB_NOTICE_TYPE {
 
   // misc
   official_announcement = 'official_announcement',
+}
+
+export enum BUNDLED_NOTICE_TYPE {
+  'circle_broadcast_mentioned_you' = 'circle_broadcast_mentioned_you',
+  'circle_discussion_mentioned_you' = 'circle_discussion_mentioned_you',
+  'circle_member_new_broadcast_reply' = 'circle_member_new_broadcast_reply',
+  'circle_member_new_discussion' = 'circle_member_new_discussion',
+  'circle_member_new_discussion_reply' = 'circle_member_new_discussion_reply',
+  'in_circle_new_broadcast_reply' = 'in_circle_new_broadcast_reply',
+  'in_circle_new_discussion' = 'in_circle_new_discussion',
+  'in_circle_new_discussion_reply' = 'in_circle_new_discussion_reply',
 }
 
 // types act as `official_announcement`
