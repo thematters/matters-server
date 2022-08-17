@@ -923,10 +923,10 @@ export class TagService extends BaseService {
     })
     if (sortBy === 'byHottestDesc') {
       query
-        .leftJoin('article_hottest_materialized AS ah', 'ah.id', 'article.id')
+        .join('article_hottest_materialized AS ah', 'ah.id', 'article.id')
         .orderByRaw(`score DESC NULLS LAST`)
     }
-    query.orderBy('article_tag.id', 'desc')
+    query.orderBy('article.id', 'desc')
 
     if (skip) {
       query.offset(skip)
