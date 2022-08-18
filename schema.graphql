@@ -1975,6 +1975,7 @@ input ConnectionArgs {
   after: String
   first: Int
   oss: Boolean
+  filter: FilterInput
 }
 
 """Common input to toggle single item for `toggleXXX` mutations"""

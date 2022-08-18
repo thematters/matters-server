@@ -1214,8 +1214,6 @@ export class TagService extends BaseService {
 
     const countRelsCount = countRels?.count || 0
 
-    // console.log('countRelsCount:', { countRels })
-
     const subquery = this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
@@ -1302,9 +1300,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    // console.log('findRelatedTags: use query:', query.toString())
-
     return query
   }
 }
