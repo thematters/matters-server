@@ -162,6 +162,7 @@ export type BasicTableName =
   | 'article_chapter'
   | 'crypto_wallet'
   | 'crypto_wallet_signature'
+  | 'article_translation'
 
 export type View =
   | 'tag_count_view'

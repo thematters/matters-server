@@ -175,7 +175,7 @@ export default /* GraphQL */ `
     sticky: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})
+    translation(input: TranslationArgs): ArticleTranslation
 
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
@@ -349,6 +349,7 @@ export default /* GraphQL */ `
     title: String
     content: String
     summary: String
+    language: String
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
