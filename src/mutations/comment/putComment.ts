@@ -449,7 +449,6 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // article & circle: notify mentioned users
-  console.log({ mentions }, data.mentionedUserIds)
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       if (isArticleType) {
@@ -461,10 +460,11 @@ const resolver: MutationToPutCommentResolver = async (
             { type: 'target', entityTable: 'comment', entity: newComment },
           ],
         })
-      } else {
+      } else if (!(isCircleBroadcast && isLevel1Comment)) {
         const mentionedEvent = isCircleBroadcast
           ? BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
           : BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you // circle
+
         notificationService.trigger({
           event: mentionedEvent,
           actorId: viewer.id,
