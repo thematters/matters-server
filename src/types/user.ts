@@ -102,6 +102,9 @@ export default /* GraphQL */ `
     "User information."
     info: UserInfo!
 
+    "the ipnsAddress if the user has any publications"
+    ipnsAddress: String
+
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
 
