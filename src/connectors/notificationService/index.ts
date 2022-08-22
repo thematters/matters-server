@@ -194,7 +194,7 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    console.log('notificationService.__trigger:', params)
+    // console.log('notificationService.__trigger:', params)
 
     const userService = new UserService()
     const recipient = (await userService.dataloader.load(
@@ -208,11 +208,7 @@ export class NotificationService extends BaseService {
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
 
-    console.log(
-      'notificationService.__trigger: noticeParams',
-      noticeParams,
-      recipient
-    )
+    // console.log('notificationService.__trigger: noticeParams', noticeParams, recipient)
     if (!noticeParams) {
       return
     }

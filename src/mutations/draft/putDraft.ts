@@ -6,7 +6,6 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
-  // MAX_TAG_CONTENT_LENGTH,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -28,6 +27,7 @@ import {
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
+  // normalizeTagInput,
   sanitize,
   stripAllPunct,
 } from 'common/utils'
@@ -35,7 +35,7 @@ import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 function sanitizeTags(tags: string[] | null | undefined) {
   if (Array.isArray(tags)) {
-    tags = Array.from(new Set(tags.map(stripAllPunct)))
+    tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
     if (tags.length === 0) {
       return null
     }

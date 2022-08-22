@@ -242,6 +242,7 @@ export enum ActivityType {
 }
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 20
-export const MAX_TAG_CONTENT_LENGTH = 40
-
 export const TAGS_RECOMMENDED_LIMIT = 100
+
+export const MAX_TAG_CONTENT_LENGTH = 50
+export const MAX_TAG_DESCRIPTION_LENGTH = 200
