@@ -262,6 +262,12 @@ class PublicationQueue extends BaseQueue {
         }
         job.progress(80)
 
+        const articles = await this.articleService.findByAuthor(author.id, {
+          take: 50,
+        })
+        await this.articleService.publishFeedToIPNS(author, articles)
+        job.progress(85)
+
         // Step 7: add to search
         await this.articleService.addToSearch({
           id: article.id,
@@ -272,7 +278,7 @@ class PublicationQueue extends BaseQueue {
           displayName,
           tags,
         })
-        job.progress(85)
+        job.progress(90)
 
         // Step 8: trigger notifications
         this.notificationService.trigger({

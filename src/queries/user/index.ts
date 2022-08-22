@@ -33,6 +33,7 @@ import followers from './followers'
 import Following from './following'
 import group from './group'
 import hasPaymentPassword from './hasPaymentPassword'
+import ipnsAddress from './ipnsAddress'
 import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
@@ -102,6 +103,7 @@ const user: {
     likerId,
     liker: (root) => root,
     info: (root) => root,
+    ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
     status: (root) => (root.id ? root : null),

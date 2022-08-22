@@ -26,7 +26,13 @@ import {
 import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import {
+  AtomService,
+  BaseService,
+  ipfs,
+  SystemService,
+  UserService,
+} from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
@@ -109,6 +115,7 @@ export class ArticleService extends BaseService {
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
+    // const atomService = new AtomService()
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
@@ -222,6 +229,134 @@ export class ArticleService extends BaseService {
     return { contentHash, mediaHash, key }
   }
 
+  publishFeedToIPNS = async (
+    author: Record<string, any>,
+    articles: Array<Record<string, any>>
+  ) => {
+    const systemService = new SystemService()
+    const atomService = new AtomService()
+
+    const { userName, avatar, description, displayName } = author
+    const userImg = avatar && (await systemService.findAssetUrl(avatar))
+
+    let ipnsKey = await atomService.findFirst({
+      table: 'user_ipns_keys',
+      where: { userId: author.id },
+    })
+    const kname = `for-${userName}-${author.uuid}`
+    let pem = ipnsKey?.privKeyPem
+    if (!ipnsKey) {
+      const {
+        // publicKey,
+        privateKey,
+      } = await this.ipfs.genKey()
+      pem = privateKey.export({ format: 'pem', type: 'pkcs8' })
+    }
+
+    let keyId = ipnsKey?.ipnsAddress
+    try {
+      // always try import; might be on another new ipfs node, or never has it before
+      ;({ Id: keyId } = await this.ipfs.importKey(kname, pem))
+    } catch (err) {
+      // ignore import error if already exists;
+    }
+
+    if (!ipnsKey) {
+      ipnsKey = await atomService.create({
+        table: 'user_ipns_keys',
+        data: {
+          userId: author.id,
+          privKeyPem: pem,
+          privKeyName: kname,
+          ipnsAddress: keyId,
+          // lastPublication: this.knex.fn.now(),
+        },
+      })
+    }
+
+    const directoryName = 'article'
+    // const { bundle, key } = await makeHtmlBundle(bundleInfo)
+    // make a bundle of json+xml+html index
+
+    const tags: string[] = []
+    const contents: Record<string, string> = {
+      'feed.json': JSON.stringify(
+        {
+          version: 'https://jsonfeed.org/version/1',
+          title: 'JSON Feed',
+          icon: userImg || undefined, // fallback to default asset
+          home_page_url: `https://matters.news/@${author.userName}`,
+          feed_url: `https://ipfs.io/ipns/${keyId}/feed.json`,
+          description,
+          authors: [
+            {
+              name: displayName,
+              avatar: userImg || undefined, // fallback to default asset
+            },
+          ],
+          items: articles.map(
+            ({
+              id,
+              title,
+              slug,
+              summary,
+              cover,
+              content,
+              createdAt,
+              mediaHash,
+            }) => ({
+              id,
+              title,
+              // image,
+              content_html: content,
+              date_published: createdAt?.toISOString(),
+              summary,
+              tags,
+              url: `https://matters.news/@${userName}/${id}-${slug}-${mediaHash}`,
+            })
+          ),
+        },
+        null,
+        2
+      ),
+    }
+
+    const results = []
+    for await (const result of this.ipfs.client.addAll(
+      [
+        'feed.json', // 'rss.xml', 'index.html'
+      ].map((file) =>
+        // file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
+        ({
+          path: `${directoryName}/${file}`,
+          content: contents[file] as string,
+        })
+      )
+    )) {
+      results.push(result)
+    }
+    const feed = results.filter(({ path }: { path: string }) =>
+      path.endsWith('feed.json')
+    )[0]
+
+    // const ipnsAddress =
+    await this.ipfs.publish(feed.cid, {
+      lifetime: '1680h',
+      key: kname,
+    })
+
+    await atomService.update({
+      table: 'user_ipns_keys',
+      where: { userId: author.id },
+      data: {
+        // privKeyPem: pem,
+        // privKeyName: kname,
+        // ipnsAddress,
+        lastPublication: this.knex.fn.now(),
+      },
+    })
+  }
+
   /**
    * Archive article
    */
@@ -259,6 +394,8 @@ export class ArticleService extends BaseService {
       tagIds,
       inRangeStart,
       inRangeEnd,
+      skip,
+      take,
     }: {
       // filter?: object
       showAll?: boolean
@@ -266,6 +403,8 @@ export class ArticleService extends BaseService {
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
+      skip?: number
+      take?: number
     } = {}
   ) =>
     this.knex
@@ -290,28 +429,33 @@ export class ArticleService extends BaseService {
               state: ARTICLE_STATE.active,
             }),
       })
-      .modify(function (this: Knex.QueryBuilder) {
+      .modify((builder: Knex.QueryBuilder) => {
         if (Array.isArray(tagIds) && tagIds.length > 0) {
-          this.join('article_tag AS at', 'at.article_id', 'a.id').andWhere(
-            'tag_id',
-            'in',
-            tagIds
-          )
+          builder
+            .join('article_tag AS at', 'at.article_id', 'a.id')
+            .andWhere('tag_id', 'in', tagIds)
         }
         if (inRangeStart != null && inRangeEnd != null) {
           // neither null nor undefined
-          this.andWhereBetween('a.created_at', [inRangeStart, inRangeEnd])
+          builder.andWhereBetween('a.created_at', [inRangeStart, inRangeEnd])
         } else if (inRangeStart != null) {
-          this.andWhere('a.created_at', '>=', inRangeStart)
+          builder.andWhere('a.created_at', '>=', inRangeStart)
         } else if (inRangeEnd != null) {
-          this.andWhere('a.created_at', '<', inRangeEnd)
+          builder.andWhere('a.created_at', '<', inRangeEnd)
         }
 
         if (stickyFirst === true) {
-          this.orderBy('a.sticky', 'desc')
+          builder.orderBy('a.sticky', 'desc')
         }
         // always as last orderBy
-        this.orderBy('a.id', 'desc')
+        builder.orderBy('a.id', 'desc')
+
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
       })
 
   /**
