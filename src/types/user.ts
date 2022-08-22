@@ -358,20 +358,15 @@ export default /* GraphQL */ `
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
 
-    # circleNewFollower: Boolean! # deprecated
-    # circleNewDiscussion: Boolean!
-
     "for circle owners"
     circleNewSubscriber: Boolean!
     circleNewFollower: Boolean!
     circleNewUnsubscriber: Boolean!
-    circleNewDiscussion: Boolean!
-    circleMemberBroadcast: Boolean! # deprecated
+    circleMemberNewBroadcastReply: Boolean!
     circleMemberNewDiscussion: Boolean!
     circleMemberNewDiscussionReply: Boolean!
-    circleMemberNewBroadcastReply: Boolean!
 
-    "for circle members"
+    "for circle members & followers"
     inCircleNewArticle: Boolean!
     inCircleNewBroadcast: Boolean!
     inCircleNewBroadcastReply: Boolean!

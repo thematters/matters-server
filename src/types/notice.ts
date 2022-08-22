@@ -94,7 +94,7 @@ export default /* GraphQL */ `
     ArticleNewAppreciation
     RevisedArticlePublished
     RevisedArticleNotPublished
-    CircleNewArticle @deprecated(reason: "No longer in use")
+    CircleNewArticle
   }
 
   type ArticleArticleNotice implements Notice {
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
     CommentMentionedYou # article comment
     ArticleNewComment
     SubscribedArticleNewComment
-    CircleNewBroadcast @deprecated(reason: "No longer in use")
+    CircleNewBroadcast
   }
 
   type CommentCommentNotice implements Notice {
@@ -285,78 +285,23 @@ export default /* GraphQL */ `
 
     target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
 
-    "An optional arbitrary node, Comment for broadcast and discussion notices"
-    node: Node @logCache(type: "${NODE_TYPES.Node}")
+    "Optional discussion/broadcast comments for bundled notices"
+    comments: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
+
+    "Optional discussion/broadcast replies for bundled notices"
+    replies: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
+
+    "Optional mention comments for bundled notices"
+    mentions: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
   }
 
   enum CircleNoticeType {
     CircleInvitation
-    CircleBroadcastMentionedYou
-    CircleDiscussionMentionedYou
-
-    # for circle owner
     CircleNewSubscriber
     CircleNewFollower
     CircleNewUnsubscriber
-    CircleMemberNewBroadcastReply
-    CircleMemberNewDiscussion
-    CircleMemberNewDiscussionReply
-
-    # for circle members & followers
-    InCircleNewBroadcastReply
-    InCircleNewDiscussion
-    InCircleNewDiscussionReply
-
-  }
-
-  type CircleCommentNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
-
-    type: CircleCommentNoticeType!
-
-    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
-
-    comment: Comment! @logCache(type: "${NODE_TYPES.Comment}")
-  }
-
-  enum CircleCommentNoticeType {
-    # for circle members & followers
-    InCircleNewBroadcast
-  }
-
-  type CircleArticleNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
-
-    type: CircleArticleNoticeType!
-
-    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
-
-    article: Article! @logCache(type: "${NODE_TYPES.Article}")
-  }
-
-  enum CircleArticleNoticeType {
-    # for circle members & followers
-    InCircleNewArticle
+    CircleNewBroadcastComments
+    CircleNewDiscussionComments
   }
 
   #################################

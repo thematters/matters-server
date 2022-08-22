@@ -22,7 +22,7 @@ services:
     ports:
       - '4000:4000'
   db:
-    image: postgres:10
+    image: postgres:12
     container_name: db
     environment:
       - POSTGRES_DB=matters-dev

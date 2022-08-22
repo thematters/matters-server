@@ -254,6 +254,7 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     oss: Boolean
+    filter: FilterInput
   }
 
   "Common input to toggle single item for \`toggleXXX\` mutations"

@@ -430,26 +430,16 @@ class PublicationQueue extends BaseQueue {
       })
     }
 
-    // handle 'in_circle_new_article' notification
+    // handle 'circle_new_article' notification
     const recipients = await this.userService.findCircleRecipients(
       draft.circleId
     )
 
-    const circle = await this.atomService.circleIdLoader.load(draft.circleId)
-
     recipients.forEach((recipientId: any) => {
       this.notificationService.trigger({
-        event: DB_NOTICE_TYPE.in_circle_new_article, // circle_new_article,
+        event: DB_NOTICE_TYPE.circle_new_article,
         recipientId,
-        actorId: circle.owner, // viewer.id,
-        entities: [
-          { type: 'target', entityTable: 'circle', entity: circle },
-          {
-            type: 'article',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
 

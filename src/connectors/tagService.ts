@@ -12,10 +12,8 @@ import {
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
-// import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-// import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
@@ -915,50 +913,6 @@ export class TagService extends BaseService {
       .returning('*')
 
   /**
-   * Count articles by a given tag id.
-   */
-  countArticles = async ({
-    id: tagId,
-    selected,
-    withSynonyms,
-  }: {
-    id: string
-    selected?: boolean
-    withSynonyms?: boolean
-  }) => {
-    const query = this.knex('article_tag')
-      .join('article', 'article_id', 'article.id')
-      .countDistinct('article_id')
-      .first()
-
-    const knex = this.knex
-    query.where(function (this: Knex.QueryBuilder) {
-      this.where('tag_id', tagId)
-      if (withSynonyms) {
-        this.orWhereIn(
-          'tag_id',
-          knex
-            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-            .where('t.id', tagId)
-            .select('x.id')
-        )
-      }
-    })
-
-    query.andWhere({
-      // tagId: id,
-      state: ARTICLE_STATE.active,
-      ...(selected === true ? { selected } : {}),
-    })
-
-    // console.log('countArticles:', { sql: query.toString(), tagId })
-
-    const result = await query
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
-  /**
    * Count article authors by a given tag id.
    */
   countAuthors = async ({ id: tagId }: { id: string }) => {
@@ -971,6 +925,48 @@ export class TagService extends BaseService {
       })
       .first()
 
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Count articles by a given tag id.
+   */
+  countArticles = async ({
+    id: tagId,
+    selected,
+    withSynonyms,
+  }: {
+    id: string
+    selected?: boolean
+    withSynonyms?: boolean
+  }) => {
+    const knex = this.knex
+    const query = this.knex('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .countDistinct('article_id')
+      .first()
+      .where(function (this: Knex.QueryBuilder) {
+        this.where('tag_id', tagId)
+        if (withSynonyms) {
+          this.orWhereIn(
+            'tag_id',
+            knex
+              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
+              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .where('t.id', tagId)
+              .select('x.id')
+          )
+        }
+      })
+      .andWhere({
+        // tagId: id,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {}),
+      })
+
+    // console.log('countArticles:', { sql: query.toString(), tagId })
+
+    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -993,44 +989,50 @@ export class TagService extends BaseService {
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
   }) => {
+    const knex = this.knex
     const query = this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
+      .where(function (this: Knex.QueryBuilder) {
+        this.where('tag_id', tagId)
+        if (withSynonyms) {
+          this.orWhereIn(
+            'tag_id',
+            knex
+              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
+              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .where('t.id', tagId)
+              .select('x.id')
+          )
+        }
+      })
+      .andWhere({
+        // tagId,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {}),
+      })
+      .modify(function (this: Knex.QueryBuilder) {
+        if (sortBy === 'byHottestDesc') {
+          this.join(
+            // instead of leftJoin, only shows articles from materialized
+            'article_hottest_materialized AS ah',
+            'ah.id',
+            'article.id'
+          ).orderByRaw(`score DESC NULLS LAST`)
+        }
+        this.orderBy('article.id', 'desc')
+      })
 
-    const knex = this.knex
-    query.where(function (this: Knex.QueryBuilder) {
-      this.where('tag_id', tagId)
-      if (withSynonyms) {
-        this.orWhereIn(
-          'tag_id',
-          knex
-            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-            .where('t.id', tagId)
-            .select('x.id')
-        )
-      }
-    })
-
-    query.andWhere({
-      // tagId,
-      state: ARTICLE_STATE.active,
-      ...(selected === true ? { selected } : {}),
-    })
-    if (sortBy === 'byHottestDesc') {
-      query
-        .leftJoin('article_hottest_materialized AS ah', 'ah.id', 'article.id')
-        .orderByRaw(`score DESC NULLS LAST`)
-    }
-    query.orderBy('article_tag.id', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined && Number.isFinite(take)) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          this.offset(skip)
+        }
+      })
 
     // console.log('findArticleIds:', { sql: query.toString(), tagId })
 
@@ -1214,8 +1216,6 @@ export class TagService extends BaseService {
 
     const countRelsCount = countRels?.count || 0
 
-    // console.log('countRelsCount:', { countRels })
-
     const subquery = this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
@@ -1302,9 +1302,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    // console.log('findRelatedTags: use query:', query.toString())
-
     return query
   }
 }
