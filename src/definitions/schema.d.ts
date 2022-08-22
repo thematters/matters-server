@@ -320,11 +320,6 @@ export interface GQLMutation {
   toggleBlockUser: GQLUser
 
   /**
-   * Subscribe/ Unsubscribe Push Notification.
-   */
-  toggleSubscribePush: GQLUser
-
-  /**
    * Clear read history for user.
    */
   clearReadHistory?: boolean
@@ -4638,7 +4633,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
   toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
-  toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   migration?: MutationToMigrationResolver<TParent>
@@ -5530,21 +5524,6 @@ export interface MutationToToggleBlockUserResolver<
   (
     parent: TParent,
     args: MutationToToggleBlockUserArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToToggleSubscribePushArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToToggleSubscribePushResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToToggleSubscribePushArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
