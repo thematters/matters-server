@@ -44,7 +44,7 @@ services:
       - '4569:4569'
   ipfs:
     container_name: ipfs
-    image: ipfs/go-ipfs:v0.9.1
+    image: ipfs/go-ipfs:v0.14.0
     ports:
       - '8080:8080'
       - '4001:4001'

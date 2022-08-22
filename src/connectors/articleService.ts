@@ -7,7 +7,6 @@ import {
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-// import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -201,7 +200,7 @@ export class ArticleService extends BaseService {
       contentHash,
       author: {
         name: userName,
-        image: userImg || undefined,
+        ...(userImg ? { image: userImg } : null), // `undefined` is not supported by the IPLD Data Model and cannot be encoded
         url: `https://matters.news/@${userName}`,
         description,
       },
@@ -211,12 +210,16 @@ export class ArticleService extends BaseService {
 
     const metaData = makeMetaData(articleInfo)
 
+    // console.log(new Date, 'articleInfo:', { articleInfo, metaData, })
     const cid = await this.ipfs.client.dag.put(metaData, {
+      // storeCodec: 'dag-cbor',
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256',
     })
-    const mediaHash = cid.toBaseEncodedString()
+    // console.log(new Date, 'after dag.put:', { cid, })
+    const mediaHash = cid.toV1().toString() // cid.toBaseEncodedString()
+    // console.log(new Date, 'after dag.put:', { cid, mediaHash, })
 
     return { contentHash, mediaHash, key }
   }
