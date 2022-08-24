@@ -6,7 +6,8 @@ import {
 } from '@matters/matters-html-formatter'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import _ from 'lodash'
+import { Knex } from 'knex'
+// import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -247,22 +248,51 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: string, filter = {}, stickyFirst = false) => {
-    const query = this.knex
+  findByAuthor = async (
+    authorId: string,
+    // filter = {},
+    {
+      filter = {},
+      stickyFirst = false,
+      tagIds,
+      inRangeStart,
+      inRangeEnd,
+    }: {
+      filter?: object
+      stickyFirst?: boolean
+      tagIds?: string[]
+      inRangeStart?: string
+      inRangeEnd?: string
+    } = {}
+  ) => {
+    // const query =
+    return this.knex
       .select()
       .from(this.table)
+      .as('a')
       .where({ authorId, ...filter })
+      .modify(function (this: Knex.QueryBuilder) {
+        if (Array.isArray(tagIds) && tagIds.length > 0) {
+          this.join('article_tag AS at', 'at.article_id', 'a.id').whereIn(
+            'tag_id',
+            tagIds
+          )
+        }
+        if (inRangeStart != null && inRangeEnd != null) {
+          this.whereBetween('a.created_at', [inRangeStart, inRangeEnd])
+        } else if (inRangeStart != null) {
+          this.where('a.created_at', '>=', inRangeStart)
+        } else if (inRangeEnd != null) {
+          this.where('a.created_at', '<', inRangeEnd)
+        }
+        if (stickyFirst === true) {
+          this.orderBy('sticky', 'desc')
+        }
+        // always as last orderBy
+        this.orderBy('id', 'desc')
+      })
 
-    if (stickyFirst === true) {
-      query.orderBy([
-        { column: 'sticky', order: 'desc' },
-        { column: 'id', order: 'desc' },
-      ])
-    } else {
-      query.orderBy('id', 'desc')
-    }
-
-    return query
+    // return query
   }
 
   /**
@@ -551,7 +581,7 @@ export class ArticleService extends BaseService {
       id,
     })
 
-    const factors = _.get(scoreResult, '_source.embedding_vector')
+    const factors = (scoreResult as any)?._source?.embedding_vector
 
     // return empty list if we don't have any score
     if (!factors) {
@@ -661,7 +691,7 @@ export class ArticleService extends BaseService {
         purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .sum('amount as total')
-    const total = _.get(appreciations, '0.total', 0)
+    const total = appreciations?.[0]?.total ?? 0
 
     return Math.max(ARTICLE_APPRECIATE_LIMIT - total, 0)
   }

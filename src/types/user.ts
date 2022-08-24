@@ -221,6 +221,12 @@ export default /* GraphQL */ `
 
     "Used in User.topics"
     public: Boolean
+
+    "Used in User Articles filter, by tags or by time range, or both"
+    tagIds: [ID!]
+    inRangeStart: DateTime
+    inRangeEnd: DateTime
+    # inRange: [DateTime] # [min,max] can be 1 side null to mean open in 1 side; not both null
   }
 
   type UserInfo {

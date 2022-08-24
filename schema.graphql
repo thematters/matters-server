@@ -2285,6 +2285,11 @@ input FilterInput {
 
   """Used in User.topics"""
   public: Boolean
+
+  """Used in User Articles filter, by tags or by time range, or both"""
+  tagIds: [ID!]
+  inRangeStart: DateTime
+  inRangeEnd: DateTime
 }
 
 type UserInfo {
