@@ -1,4 +1,9 @@
-import { ASSET_TYPE, MAX_TAG_CONTENT_LENGTH, USER_STATE } from 'common/enums'
+import {
+  ASSET_TYPE,
+  MAX_TAG_CONTENT_LENGTH,
+  MAX_TAG_DESCRIPTION_LENGTH,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
@@ -10,7 +15,10 @@ import {
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, stripAllPunct } from 'common/utils'
+import {
+  fromGlobalId,
+  normalizeTagInput, // stripAllPunct,
+} from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
@@ -42,10 +50,17 @@ const resolver: MutationToPutTagResolver = async (
     coverId = null
   }
 
-  const tagContent = content ? stripAllPunct(content) : ''
+  const tagContent = (content && normalizeTagInput(content)) || ''
 
-  if (!(tagContent && tagContent.length <= MAX_TAG_CONTENT_LENGTH)) {
-    throw new NameInvalidError('invalid tag name')
+  if (!tagContent || tagContent.length > MAX_TAG_CONTENT_LENGTH) {
+    throw new NameInvalidError(
+      `invalid tag name, either empty or too long (>${MAX_TAG_CONTENT_LENGTH})`
+    )
+  }
+  if (description && description?.length > MAX_TAG_DESCRIPTION_LENGTH) {
+    throw new NameInvalidError(
+      `invalid too long tag description (>${MAX_TAG_DESCRIPTION_LENGTH})`
+    )
   }
 
   if (!id) {

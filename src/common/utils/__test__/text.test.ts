@@ -1,4 +1,8 @@
-import { stripAllPunct, tagSlugify } from 'common/utils'
+import {
+  stripAllPunct,
+  // normalizeTagInput,
+  tagSlugify,
+} from 'common/utils'
 
 test('stripAllPunct', () => {
   const pairs = [
@@ -17,7 +21,11 @@ test('stripAllPunct', () => {
 
     // strip all nonAlphaNumber to a single space
     { tag: '＃亞森．羅蘋 ＃ ', expected: '亞森 羅蘋' },
-    { tag: '蜘蛛人：返校日 2022 #', expected: '蜘蛛人 返校日 2022' },
+    { tag: '蜘蛛人：返校日 2022 #', expected: '蜘蛛人 返校日2022' },
+
+    // count including prefix and suffix
+    { tag: '| 蜘蛛人：返校日 2022 #', expected: '蜘蛛人 返校日2022' },
+    { tag: ' Web3 web2.0 | web3 #', expected: 'Web3 web20web3' },
   ]
 
   pairs.forEach(({ tag, expected }) =>

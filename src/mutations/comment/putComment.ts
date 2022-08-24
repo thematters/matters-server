@@ -488,7 +488,7 @@ const resolver: MutationToPutCommentResolver = async (
             { type: 'target', entityTable: 'comment', entity: newComment },
           ],
         })
-      } else {
+      } else if (!(isCircleBroadcast && isLevel1Comment)) {
         const noticeType = isCircleBroadcast
           ? DB_NOTICE_TYPE.circle_new_broadcast_comments
           : DB_NOTICE_TYPE.circle_new_discussion_comments
