@@ -6,12 +6,9 @@ import {
   ARTICLE_STATE,
   BUNDLED_NOTICE_TYPE,
   CACHE_KEYWORD,
-  // CIRCLE_ACTION,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
-  // PRICE_STATE,
-  // SUBSCRIPTION_STATE,
   USER_STATE,
 } from 'common/enums'
 import {
@@ -24,7 +21,12 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId, sanitize } from 'common/utils'
-import { GQLCommentType, MutationToPutCommentResolver } from 'definitions'
+import {
+  GQLCommentType,
+  MutationToPutCommentResolver,
+  NoticeCircleNewBroadcastCommentsParams,
+  NoticeCircleNewDiscussionCommentsParams,
+} from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
@@ -262,6 +264,32 @@ const resolver: MutationToPutCommentResolver = async (
   const isReplyingLevel2Comment =
     !isLevel1Comment && parentCommentId !== replyToCommentId
 
+  // cache and merge bundleable notices, then trigger them all at once
+  const bundledNotices: {
+    [key: string]:
+      | NoticeCircleNewBroadcastCommentsParams
+      | NoticeCircleNewDiscussionCommentsParams
+  } = {}
+  const cacheBundledNotices = (
+    noticeType: DB_NOTICE_TYPE,
+    notice:
+      | NoticeCircleNewBroadcastCommentsParams
+      | NoticeCircleNewDiscussionCommentsParams
+  ) => {
+    const key = `${noticeType}:${notice.actorId}:${notice.recipientId}`
+    if (bundledNotices[key]) {
+      bundledNotices[key] = {
+        ...bundledNotices[key],
+        data: {
+          ...bundledNotices[key].data,
+          ...notice.data,
+        },
+      }
+    } else {
+      bundledNotices[key] = notice
+    }
+  }
+
   /**
    * Update
    */
@@ -392,7 +420,7 @@ const resolver: MutationToPutCommentResolver = async (
 
       // circle: notify owner, members & followers for new broadcast reply
       if (isCircleBroadcast && !isLevel1Comment) {
-        notificationService.trigger({
+        cacheBundledNotices(DB_NOTICE_TYPE.circle_new_broadcast_comments, {
           event: BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply,
           actorId: viewer.id,
           recipientId: circle.owner,
@@ -401,7 +429,7 @@ const resolver: MutationToPutCommentResolver = async (
         })
 
         recipients.forEach((recipientId: any) => {
-          notificationService.trigger({
+          cacheBundledNotices(DB_NOTICE_TYPE.circle_new_broadcast_comments, {
             event: BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply,
             actorId: viewer.id,
             recipientId,
@@ -415,7 +443,7 @@ const resolver: MutationToPutCommentResolver = async (
 
       // circle: notify owner, members & followers for new discussion and reply
       if (isCircleDiscussion) {
-        notificationService.trigger({
+        cacheBundledNotices(DB_NOTICE_TYPE.circle_new_discussion_comments, {
           event: isLevel1Comment
             ? BUNDLED_NOTICE_TYPE.circle_member_new_discussion
             : BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply,
@@ -429,7 +457,7 @@ const resolver: MutationToPutCommentResolver = async (
         })
 
         recipients.forEach((recipientId: any) => {
-          notificationService.trigger({
+          cacheBundledNotices(DB_NOTICE_TYPE.circle_new_discussion_comments, {
             event: isLevel1Comment
               ? BUNDLED_NOTICE_TYPE.in_circle_new_discussion
               : BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply,
@@ -461,11 +489,13 @@ const resolver: MutationToPutCommentResolver = async (
           ],
         })
       } else if (!(isCircleBroadcast && isLevel1Comment)) {
+        const noticeType = isCircleBroadcast
+          ? DB_NOTICE_TYPE.circle_new_broadcast_comments
+          : DB_NOTICE_TYPE.circle_new_discussion_comments
         const mentionedEvent = isCircleBroadcast
           ? BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
           : BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you // circle
-
-        notificationService.trigger({
+        cacheBundledNotices(noticeType, {
           event: mentionedEvent,
           actorId: viewer.id,
           recipientId: userId,
@@ -478,6 +508,11 @@ const resolver: MutationToPutCommentResolver = async (
       }
     })
   }
+
+  // trigger bundleable notices
+  Object.keys(bundledNotices).forEach((k) => {
+    notificationService.trigger(bundledNotices[k])
+  })
 
   // invalidate extra nodes
   newComment[CACHE_KEYWORD] = [
