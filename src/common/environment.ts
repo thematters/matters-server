@@ -6,23 +6,6 @@ import { IMG_CACHE_PATH } from 'common/enums'
 
 dotenv.config()
 
-let firebaseCert = {}
-if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
-  const filePath = path.resolve(
-    __dirname,
-    `../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
-  )
-
-  try {
-    firebaseCert = require(filePath)
-  } catch (e) {
-    console.error(
-      new Date(),
-      `Failed to load firebase credentials on ${filePath}`
-    )
-  }
-}
-
 let OICDPrivateKey = ''
 if (process.env.MATTERS_OICD_PRIVATE_KEY) {
   const filePath = path.resolve(
@@ -78,7 +61,6 @@ export const environment = {
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
-  firebaseCert,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
   translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
   recaptchaSecret: process.env.MATTERS_RECAPTCHA_KEY,

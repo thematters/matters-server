@@ -185,7 +185,7 @@ export const updateTagSetting = async ({
 describe('put tag', () => {
   test('create, query and update tag', async () => {
     const content = 'Test tag #1'
-    const expected = 'Test tag 1'
+    const expected = 'Test tag1'
     const description = 'This is a tag description'
 
     // create
@@ -208,7 +208,7 @@ describe('put tag', () => {
 
     // update
     const updateContent = 'Update tag #1'
-    const updateExpected = 'Update tag 1'
+    const updateExpected = 'Update tag1'
     const updateDescription = 'Update description'
     const updateResult = await putTag({
       tag: {

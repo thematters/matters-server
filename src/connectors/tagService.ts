@@ -8,6 +8,7 @@ import {
   DEFAULT_TAKE_PER_PAGE,
   MATERIALIZED_VIEW,
   MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
@@ -194,7 +195,7 @@ export class TagService extends BaseService {
           )
           .merge({ deleted: false })
       },
-      skipCreate: content?.length > MAX_TAG_CONTENT_LENGTH,
+      skipCreate: content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
 
     // add tag into search engine

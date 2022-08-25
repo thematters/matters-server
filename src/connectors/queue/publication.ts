@@ -6,9 +6,6 @@ import * as cheerio from 'cheerio'
 
 import {
   DB_NOTICE_TYPE,
-
-  // tag related
-  // MAX_TAG_CONTENT_LENGTH,
   NODE_TYPES,
   PIN_STATE,
   PUBLISH_STATE,
@@ -23,6 +20,7 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
+  // normalizeTagInput,
   stripAllPunct,
 } from 'common/utils'
 
@@ -464,12 +462,7 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      tags = Array.from(
-        new Set(
-          tags.map(stripAllPunct)
-          // .filter((tag) => tag && tag.length <= MAX_TAG_CONTENT_LENGTH)
-        )
-      )
+      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
 
       // create tag records, return tag record if already exists
       const dbTags = (
