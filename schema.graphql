@@ -84,6 +84,9 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
+  """pin or unpin tag."""
+  togglePinTag(input: ToggleItemInput!): Tag!
+
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
@@ -168,6 +171,12 @@ type Mutation {
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
+  """Add blocked search keyword to blocked_search_word db"""
+  addBlockedSearchKeyword(input: KeywordInput!): BlockedSearchKeyword!
+
+  """Delete blocked search keywords from search_history db"""
+  deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
   """
   #############
        OSS    #
@@ -179,7 +188,7 @@ type Mutation {
   setFeature(input: SetFeatureInput!): Feature!
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
-  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean
+  deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -228,9 +237,6 @@ type Mutation {
 
   """Block or Unblock a given user."""
   toggleBlockUser(input: ToggleItemInput!): User!
-
-  """Subscribe/ Unsubscribe Push Notification."""
-  toggleSubscribePush(input: ToggleItemInput!): User!
 
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
@@ -535,10 +541,14 @@ type Tag implements Node {
   participants(input: ConnectionArgs!): UserConnection!
 
   """Tags recommended based on relations to current tag."""
-  recommended(input: ConnectionArgs!): TagSearchResultConnection!
+  recommended(input: ConnectionArgs!): TagConnection!
 
   """This value determines if it is official."""
   isOfficial: Boolean
+
+  """Counts of this tag."""
+  numArticles: Int!
+  numAuthors: Int!
 
   """
   #############
@@ -548,31 +558,6 @@ type Tag implements Node {
   oss: TagOSS!
   remark: String
   deleted: Boolean!
-}
-
-"""
-This type contains content, count and related statistics data of a tag.
-"""
-type TagSearchResult implements Node {
-  """Unique id of this tag."""
-  id: ID!
-
-  """Content of this tag."""
-  content: String!
-
-  """Time of this tag was created."""
-  createdAt: DateTime!
-
-  """Tag's cover link."""
-  cover: String
-
-  """Description of this tag."""
-  description: String
-  numArticles: Int!
-  numAuthors: Int!
-
-  """List of how many articles were attached with this tag."""
-  articles(input: TagArticlesInput!): ArticleConnection!
 }
 
 type ArticleAccess {
@@ -632,17 +617,6 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
-}
-
-type TagSearchResultConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TagSearchResultEdge!]
-}
-
-type TagSearchResultEdge {
-  cursor: String!
-  node: TagSearchResult!
 }
 
 input ArticleInput {
@@ -1200,6 +1174,7 @@ type Comment implements Node {
 
   """State of this comment."""
   state: CommentState!
+  type: CommentType!
 
   """Time of this comment was created."""
   createdAt: DateTime!
@@ -1220,7 +1195,7 @@ type Comment implements Node {
   upvotes: Int!
 
   """The counting number of downvotes."""
-  downvotes: Int!
+  downvotes: Int! @deprecated(reason: "No longer in use in querying")
 
   """The value determines current user's vote."""
   myVote: Vote
@@ -1714,13 +1689,24 @@ type CircleNotice implements Notice {
   actors: [User!]
   type: CircleNoticeType!
   target: Circle!
+
+  """Optional discussion/broadcast comments for bundled notices"""
+  comments: [Comment!]
+
+  """Optional discussion/broadcast replies for bundled notices"""
+  replies: [Comment!]
+
+  """Optional mention comments for bundled notices"""
+  mentions: [Comment!]
 }
 
 enum CircleNoticeType {
-  CircleNewFollower
-  CircleNewSubscriber
-  CircleNewUnsubscriber
   CircleInvitation
+  CircleNewSubscriber
+  CircleNewFollower
+  CircleNewUnsubscriber
+  CircleNewBroadcastComments
+  CircleNewDiscussionComments
 }
 
 """
@@ -1773,6 +1759,14 @@ scalar DateTime
 
 scalar Upload
 
+input KeywordsInput {
+  keywords: [String!]
+}
+
+input KeywordInput {
+  keyword: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -1787,6 +1781,17 @@ type PageInfo {
 interface Connection {
   totalCount: Int!
   pageInfo: PageInfo!
+}
+
+type BlockedSearchKeyword {
+  """Unique ID of bloked search keyword."""
+  id: ID!
+
+  """Types of this search keyword."""
+  searchKey: String!
+
+  """Time of this search keyword was created."""
+  createdAt: DateTime!
 }
 
 """This type contains system-wise info and settings."""
@@ -1967,6 +1972,7 @@ input ConnectionArgs {
   after: String
   first: Int
   oss: Boolean
+  filter: FilterInput
 }
 
 """Common input to toggle single item for `toggleXXX` mutations"""
@@ -2159,6 +2165,9 @@ type User implements Node {
 
   """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
+
+  """Tags pinned by current user."""
+  pinnedTags(input: ConnectionArgs!): TagConnection!
 
   """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
@@ -2416,10 +2425,24 @@ type NotificationSetting {
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
+  articleNewCollected: Boolean!
   articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
+
+  """for circle owners"""
+  circleNewSubscriber: Boolean!
   circleNewFollower: Boolean!
-  circleNewDiscussion: Boolean!
+  circleNewUnsubscriber: Boolean!
+  circleMemberNewBroadcastReply: Boolean!
+  circleMemberNewDiscussion: Boolean!
+  circleMemberNewDiscussionReply: Boolean!
+
+  """for circle members & followers"""
+  inCircleNewArticle: Boolean!
+  inCircleNewBroadcast: Boolean!
+  inCircleNewBroadcastReply: Boolean!
+  inCircleNewDiscussion: Boolean!
+  inCircleNewDiscussionReply: Boolean!
 }
 
 type ReadHistory {
@@ -2531,7 +2554,7 @@ type UserBroadcastCircleActivity {
   actor: User!
   createdAt: DateTime!
 
-  """Comment boardcast by actor"""
+  """Comment broadcast by actor"""
   node: Comment!
 
   """Circle that comment belongs to"""
@@ -2809,10 +2832,26 @@ enum NotificationSettingType {
   articleNewComment
   articleNewAppreciation
   articleNewSubscription
+  articleNewCollected
   articleSubscribedNewComment
   articleCommentPinned
+
+  """for circle owners"""
+  circleNewSubscriber
   circleNewFollower
+  circleNewUnsubscriber
   circleNewDiscussion
+  circleMemberBroadcast
+  circleMemberNewDiscussion
+  circleMemberNewDiscussionReply
+  circleMemberNewBroadcastReply
+
+  """for circle members"""
+  inCircleNewArticle
+  inCircleNewBroadcast
+  inCircleNewBroadcastReply
+  inCircleNewDiscussion
+  inCircleNewDiscussionReply
 }
 
 enum UserState {

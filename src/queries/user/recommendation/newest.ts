@@ -20,7 +20,7 @@ export const newest: RecommendationToNewestResolver = async (
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const query = knex
-    .select('draft_id', 'article_set.id')
+    .select('article_set.draft_id', 'article_set.id')
     .from(
       knex
         .select('id', 'draft_id')
@@ -35,15 +35,13 @@ export const newest: RecommendationToNewestResolver = async (
       'article_set.id',
       'setting.article_id'
     )
-    .where(function () {
+    .andWhere(function () {
       if (!oss) {
         // this.where({ inNewest: true }).orWhereNull('in_newest')
         this.whereRaw('in_newest IS NOT false')
       }
     })
     .as('newest')
-
-  console.log('base query:', query.toString())
 
   const [_countRecord, articles] = await Promise.all([
     MAX_ITEM_COUNT, // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),

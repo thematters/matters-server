@@ -14,7 +14,6 @@ export const QUEUE_JOB = {
 
   // Notification
   sendMail: 'sendMail',
-  pushNotification: 'pushNotification',
 
   // LikeCoin
   like: 'likeCoinLike',

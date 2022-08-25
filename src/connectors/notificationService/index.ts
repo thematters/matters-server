@@ -1,4 +1,8 @@
-import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
+import {
+  BUNDLED_NOTICE_TYPE,
+  DB_NOTICE_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from 'common/enums'
 import logger from 'common/logger'
 import { BaseService, UserService } from 'connectors'
 import {
@@ -10,18 +14,15 @@ import {
 
 import { mail } from './mail'
 import { notice } from './notice'
-import { push } from './push'
 import trans from './translations'
 
 export class NotificationService extends BaseService {
   mail: typeof mail
-  push: typeof push
   notice: typeof notice
 
   constructor() {
     super('noop')
     this.mail = mail
-    this.push = push
     this.notice = notice
   }
 
@@ -51,7 +52,7 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.payment_payout:
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
-      case DB_NOTICE_TYPE.circle_new_article:
+      case DB_NOTICE_TYPE.circle_new_article: // deprecated
       case DB_NOTICE_TYPE.crypto_wallet_airdrop:
       case DB_NOTICE_TYPE.crypto_wallet_connected:
         return {
@@ -65,13 +66,9 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
-      case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
-      case DB_NOTICE_TYPE.circle_broadcast_new_reply:
-      case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
       case DB_NOTICE_TYPE.payment_received_donation:
@@ -79,9 +76,10 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_leave:
       case DB_NOTICE_TYPE.tag_add_editor:
       case DB_NOTICE_TYPE.tag_leave_editor:
+      case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
       case DB_NOTICE_TYPE.circle_new_subscriber:
+      case DB_NOTICE_TYPE.circle_new_follower:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
-      case DB_NOTICE_TYPE.circle_new_broadcast:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -95,6 +93,32 @@ export class NotificationService extends BaseService {
           actorId: params.actorId,
           entities: params.entities,
           resend: true,
+        }
+      // bundled: circle_new_broadcast_comments
+      case BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
+        return {
+          type: DB_NOTICE_TYPE.circle_new_broadcast_comments,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { mergeData: true },
+        }
+      // bundled: circle_new_discussion_comments
+      case BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
+        return {
+          type: DB_NOTICE_TYPE.circle_new_discussion_comments,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { mergeData: true },
         }
       // act as official annonuncement
       case DB_NOTICE_TYPE.official_announcement:
@@ -170,6 +194,8 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
+    // console.log('notificationService.__trigger:', params)
+
     const userService = new UserService()
     const recipient = (await userService.dataloader.load(
       params.recipientId
@@ -181,6 +207,8 @@ export class NotificationService extends BaseService {
     }
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
+
+    // console.log('notificationService.__trigger: noticeParams', noticeParams, recipient)
     if (!noticeParams) {
       return
     }
@@ -199,6 +227,7 @@ export class NotificationService extends BaseService {
       event: params.event,
       setting: notifySetting,
     })
+
     if (!enable) {
       logger.info(
         `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
@@ -213,13 +242,5 @@ export class NotificationService extends BaseService {
       logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)
       return
     }
-
-    /**
-     * Push Notification
-     */
-    this.push.push({
-      noticeParams,
-      recipient,
-    })
   }
 }

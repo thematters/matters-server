@@ -100,6 +100,32 @@ class EmailsQueue extends BaseQueue {
               comment_mentioned_you: filterNotices(
                 DB_NOTICE_TYPE.comment_mentioned_you
               ),
+
+              // circle
+              circle_invitation: filterNotices(
+                DB_NOTICE_TYPE.circle_invitation
+              ),
+              circle_new_subscriber: filterNotices(
+                DB_NOTICE_TYPE.circle_new_subscriber
+              ),
+              circle_new_follower: filterNotices(
+                DB_NOTICE_TYPE.circle_new_follower
+              ),
+              circle_new_unsubscriber: filterNotices(
+                DB_NOTICE_TYPE.circle_new_unsubscriber
+              ),
+              circle_new_article: filterNotices(
+                DB_NOTICE_TYPE.circle_new_article
+              ),
+              circle_new_broadcast: filterNotices(
+                DB_NOTICE_TYPE.circle_new_broadcast
+              ),
+              circle_new_broadcast_comments: filterNotices(
+                DB_NOTICE_TYPE.circle_new_broadcast_comments
+              ),
+              circle_new_discussion_comments: filterNotices(
+                DB_NOTICE_TYPE.circle_new_discussion_comments
+              ),
             },
             language: user.language,
           })

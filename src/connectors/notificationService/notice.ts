@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader'
-import { isEqual, uniqBy } from 'lodash'
+import { isArray, isEqual, mergeWith, uniq, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
 import { DAY, DB_NOTICE_TYPE } from 'common/enums'
@@ -8,6 +8,7 @@ import { BaseService } from 'connectors'
 import {
   DBNoticeType,
   GQLNotificationSettingType,
+  NoticeData,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -20,6 +21,16 @@ import {
 } from 'definitions'
 
 export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
+
+const mergeDataCustomizer = (objValue: any, srcValue: any) => {
+  if (isArray(objValue)) {
+    return uniq(objValue.concat(srcValue))
+  }
+}
+
+const mergeDataWith = (objValue: any, srcValue: any) => {
+  return mergeWith(objValue, srcValue, mergeDataCustomizer)
+}
 
 class Notice extends BaseService {
   constructor() {
@@ -125,14 +136,33 @@ class Notice extends BaseService {
         })
         .into('notice_actor')
         .returning('*')
+        .onConflict(['actor_id', 'notice_id'])
+        .ignore() // .merge({ updatedAt: this.knex.fn.now(), })
       // logger.info(`[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`)
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
-        .update({ unread: true, updatedAt: new Date() })
+        .update({ unread: true, updatedAt: this.knex.fn.now() })
       // logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
     })
+  }
+
+  /**
+   * Update data of existing notice
+   */
+  async updateNoticeData({
+    noticeId,
+    data,
+  }: {
+    noticeId: string
+    data: NoticeData
+  }) {
+    return this.knex('notice_detail')
+      .update({ data })
+      .whereIn('id', function () {
+        this.select('notice_detail_id').from('notice').where({ id: noticeId })
+      })
   }
 
   /**
@@ -150,6 +180,14 @@ class Notice extends BaseService {
         noticeId: bundleables[0].id,
         actorId: params.actorId,
       })
+
+      if (params.bundle?.mergeData && params.data) {
+        await this.updateNoticeData({
+          noticeId: bundleables[0].id,
+          data: mergeDataWith(bundleables[0].data, params.data),
+        })
+      }
+
       return { created: false, bundled: true }
     }
 
@@ -168,6 +206,7 @@ class Notice extends BaseService {
     entities,
     message = null,
     data = null,
+    bundle: { mergeData } = { mergeData: false },
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: [
@@ -192,7 +231,7 @@ class Notice extends BaseService {
     await Promise.all(
       notices.map(async (n) => {
         // skip if data isn't the same
-        if (!isEqual(n.data, data)) {
+        if (!isEqual(n.data, data) && !mergeData) {
           return
         }
 
@@ -228,6 +267,7 @@ class Notice extends BaseService {
           const hash = `${sourceType}:${entityTable}:${entity.id}`
           sourceEntitiesHashMap[hash] = true
         })
+
         if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
           bundleables.push(n)
           return
@@ -514,24 +554,20 @@ class Notice extends BaseService {
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
-      circle_new_article: true,
+      circle_new_article: setting.inCircleNewArticle,
 
       // article-article
-      article_new_collected: true,
+      article_new_collected: setting.articleNewCollected,
 
       // comment
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
-      circle_broadcast_mentioned_you: setting.mention,
-      circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
-      circle_new_broadcast: true,
+      circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
-      circle_broadcast_new_reply: true,
-      circle_discussion_new_reply: setting.circleNewDiscussion,
 
       // article-tag
       article_tag_has_been_added: true,
@@ -549,9 +585,24 @@ class Notice extends BaseService {
       payment_payout: true,
 
       // circle
-      circle_new_subscriber: true,
-      circle_new_unsubscriber: true,
       circle_invitation: true,
+      circle_new_subscriber: setting.circleNewSubscriber,
+      circle_new_unsubscriber: setting.circleNewUnsubscriber,
+      circle_new_follower: setting.circleNewFollower,
+
+      // circle bundles
+      circle_new_broadcast_comments: true, // only a placeholder
+      circle_broadcast_mentioned_you: true,
+      circle_member_new_broadcast_reply: setting.circleMemberNewBroadcastReply,
+      in_circle_new_broadcast_reply: setting.inCircleNewBroadcastReply,
+
+      circle_new_discussion_comments: true, // only a placeholder
+      circle_discussion_mentioned_you: true,
+      circle_member_new_discussion: setting.circleMemberNewDiscussion,
+      circle_member_new_discussion_reply:
+        setting.circleMemberNewDiscussionReply,
+      in_circle_new_discussion: setting.inCircleNewDiscussion,
+      in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 
       // crypto
       crypto_wallet_airdrop: true,

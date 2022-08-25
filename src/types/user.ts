@@ -56,9 +56,6 @@ export default /* GraphQL */ `
     "Block or Unblock a given user."
     toggleBlockUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
-
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
@@ -119,6 +116,9 @@ export default /* GraphQL */ `
 
     "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+
+    "Tags pinned by current user."
+    pinnedTags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
@@ -354,10 +354,24 @@ export default /* GraphQL */ `
     articleNewComment: Boolean!
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
+    articleNewCollected: Boolean!
     articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
-    circleNewFollower: Boolean! # deprecated
-    circleNewDiscussion: Boolean!
+
+    "for circle owners"
+    circleNewSubscriber: Boolean!
+    circleNewFollower: Boolean!
+    circleNewUnsubscriber: Boolean!
+    circleMemberNewBroadcastReply: Boolean!
+    circleMemberNewDiscussion: Boolean!
+    circleMemberNewDiscussionReply: Boolean!
+
+    "for circle members & followers"
+    inCircleNewArticle: Boolean!
+    inCircleNewBroadcast: Boolean!
+    inCircleNewBroadcastReply: Boolean!
+    inCircleNewDiscussion: Boolean!
+    inCircleNewDiscussionReply: Boolean!
   }
 
   type ReadHistory {
@@ -480,7 +494,7 @@ export default /* GraphQL */ `
     actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
-    "Comment boardcast by actor"
+    "Comment broadcast by actor"
     node: Comment! @logCache(type: "${NODE_TYPES.Comment}")
 
     "Circle that comment belongs to"
@@ -757,10 +771,26 @@ export default /* GraphQL */ `
     articleNewComment
     articleNewAppreciation
     articleNewSubscription
+    articleNewCollected
     articleSubscribedNewComment
     articleCommentPinned
+
+    "for circle owners"
+    circleNewSubscriber
     circleNewFollower
+    circleNewUnsubscriber
     circleNewDiscussion
+    circleMemberBroadcast # deprecated
+    circleMemberNewDiscussion
+    circleMemberNewDiscussionReply
+    circleMemberNewBroadcastReply
+
+    "for circle members"
+    inCircleNewArticle
+    inCircleNewBroadcast
+    inCircleNewBroadcastReply
+    inCircleNewDiscussion
+    inCircleNewDiscussionReply
   }
 
   enum UserState {

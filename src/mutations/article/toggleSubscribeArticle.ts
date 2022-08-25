@@ -85,13 +85,7 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
       event: DB_NOTICE_TYPE.article_new_subscriber,
       actorId: viewer.id,
       recipientId: article.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article,
-        },
-      ],
+      entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
   } else {
     await atomService.deleteMany({

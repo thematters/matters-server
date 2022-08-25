@@ -9,9 +9,12 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
+  CIRCLE_ACTION,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
+  PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -540,7 +543,7 @@ export class UserService extends BaseService {
         body,
       })
 
-      const { hits, suggest } = result.body as typeof result & {
+      const { hits, suggest } = result as typeof result & {
         hits: { hits: any[] }
         suggest: { userName: any[]; displayName: any[] }
       }
@@ -799,6 +802,37 @@ export class UserService extends BaseService {
     return query
   }
 
+  // retrieve circle members and followers
+  findCircleRecipients = async (circleId: string) => {
+    const [members, followers] = await Promise.all([
+      this.knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': circleId,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ]),
+
+      this.knex
+        .from('action_circle')
+        .select('user_id')
+        .where({ target_id: circleId, action: CIRCLE_ACTION.follow }),
+    ])
+
+    return Array.from(
+      new Set([
+        ...members.map((s) => s.userId),
+        ...followers.map((f) => f.userId),
+      ])
+    )
+  }
+
   isFollowing = async ({
     userId,
     targetId,
@@ -890,74 +924,6 @@ export class UserService extends BaseService {
 
     return query
   }
-
-  /*********************************
-   *                               *
-   *              Push             *
-   *                               *
-   *********************************/
-  subscribePush = async ({
-    userId,
-    deviceId,
-    provider = 'fcm',
-    userAgent,
-    version,
-    platform = 'web',
-  }: {
-    userId: string
-    deviceId: string
-    provider?: 'fcm'
-    userAgent?: string
-    version?: string
-    platform?: 'web' | 'ios' | 'android'
-  }) => {
-    const data = {
-      userId,
-      deviceId,
-      provider,
-      userAgent: userAgent || '',
-      version: version || '',
-      platform: platform || 'web',
-    }
-    return this.baseUpdateOrCreate({
-      where: data,
-      data: { updatedAt: new Date(), ...data },
-      table: 'push_device',
-    })
-  }
-
-  unsubscribePush = async ({
-    userId,
-    deviceId,
-  }: {
-    userId: string
-    deviceId: string
-  }) =>
-    this.knex
-      .from('push_device')
-      .where({
-        deviceId,
-        userId,
-      })
-      .del()
-
-  findPushDevice = async ({
-    userId,
-    deviceId,
-  }: {
-    userId: string
-    deviceId: string
-  }) =>
-    this.knex
-      .from('push_device')
-      .where({
-        deviceId,
-        userId,
-      })
-      .first()
-
-  findPushDevices = async ({ userIds }: { userIds: string[] }) =>
-    this.knex.from('push_device').whereIn('userId', userIds)
 
   /*********************************
    *                               *

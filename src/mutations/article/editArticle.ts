@@ -10,9 +10,9 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
-  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -34,9 +34,10 @@ import {
   correctHtml,
   fromGlobalId,
   measureDiffs,
+  // normalizeTagInput,
   sanitize,
+  stripAllPunct,
   stripClass,
-  stripPunctPrefixSuffix,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToEditArticleResolver } from 'definitions'
@@ -144,11 +145,11 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+    tags = uniq(tags.map(stripAllPunct).filter(Boolean))
 
-    if (tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+    if (tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
       throw new TooManyTagsForArticleError(
-        `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
     }
 
@@ -173,7 +174,7 @@ const resolver: MutationToEditArticleResolver = async (
       .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
       { id: string; content: string }
     ]
-    console.log('new dbTags:', dbTags)
+    // console.log('new dbTags:', dbTags)
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
     const oldIds = (
@@ -346,11 +347,7 @@ const resolver: MutationToEditArticleResolver = async (
         recipientId: targetCollection.authorId,
         actorId: article.authorId,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: targetCollection,
-          },
+          { type: 'target', entityTable: 'article', entity: targetCollection },
           {
             type: 'collection',
             entityTable: 'article',

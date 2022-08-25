@@ -7,14 +7,14 @@ import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
   MATERIALIZED_VIEW,
+  MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
-import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-// import { tagSlugify } from 'common/utils'
 import { BaseService } from 'connectors'
 import { ItemData } from 'definitions'
 
@@ -136,9 +136,33 @@ export class TagService extends BaseService {
       .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
       .orderBy('id', 'desc')
 
+  findPinnedTagsByUserId = async ({
+    userId,
+    skip,
+    take,
+  }: {
+    userId: string
+    skip?: number
+    take?: number
+  }) =>
+    this.knex
+      .select('target_id AS id')
+      .from('action_tag')
+      .where({ userId, action: TAG_ACTION.pin })
+      .orderBy('updated_at', 'desc') // update updated_at to re-order
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined) {
+          this.offset(skip)
+        }
+      })
+
   /**
    * Create a tag, but return one if it's existing.
-   *
+   * update: this create may skip (return null) if content.length > MAX_TAG_CONTENT_LENGTH
    */
   create = async (
     {
@@ -158,37 +182,32 @@ export class TagService extends BaseService {
     },
     columns: string[] = ['*']
   ) => {
-    let item
+    const tag = await this.baseFindOrCreate({
+      where: { content },
+      data: { content, cover, creator, description, editors, owner },
+      table: this.table,
+      columns,
+      modifier: (builder: Knex.QueryBuilder) => {
+        builder
+          .onConflict(
+            // ignore only on content conflict and NOT deleted.
+            this.knex.raw('(content) WHERE NOT deleted')
+          )
+          .merge({ deleted: false })
+      },
+      skipCreate: content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
+    })
 
-    try {
-      item = await this.knex
-        .from(this.table) // (VIEW.tags_lasts_view)
-        .select(columns)
-        .where('content', content) // ('slug', tagSlugify(content))
-        .first()
-    } catch (err) {
-      logger.error(err)
-    }
-
-    // create
-    if (!item) {
-      const tag = await this.baseCreate(
-        { content, cover, creator, description, editors, owner },
-        this.table,
-        columns
-      )
-
-      // add tag into search engine
+    // add tag into search engine
+    if (tag) {
       await this.addToSearch({
         id: tag.id,
         content: tag.content,
         description: tag.description,
       })
-
-      return tag
     }
 
-    return item
+    return tag
   }
 
   /**
@@ -288,6 +307,7 @@ export class TagService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   follow = async ({
     targetId,
     userId,
@@ -307,6 +327,7 @@ export class TagService extends BaseService {
     })
   }
 
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   unfollow = async ({
     targetId,
     userId,
@@ -355,6 +376,7 @@ export class TagService extends BaseService {
    * Determine if an user followed a tag or not by a given id.
    *
    */
+  // superceded / deprecated by isActionEnabled / setActionEnabled
   isFollower = async ({
     userId,
     targetId,
@@ -363,11 +385,56 @@ export class TagService extends BaseService {
     targetId: string
   }) => {
     const result = await this.knex
-      .select()
+      .select('id')
       .from('action_tag')
       .where({ userId, targetId, action: TAG_ACTION.follow })
       .first()
     return !!result
+  }
+
+  isActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+  }) => {
+    const result = await this.knex
+      .select('id')
+      .from('action_tag')
+      .where({ userId, action, targetId })
+      .first()
+    return !!result
+  }
+
+  setActionEnabled = async ({
+    userId,
+    action,
+    targetId,
+    enabled,
+  }: {
+    userId: string
+    action: TAG_ACTION
+    targetId: string
+    enabled: boolean
+  }) => {
+    const data = {
+      userId,
+      action,
+      targetId,
+    }
+    if (enabled) {
+      return this.baseUpdateOrCreate({
+        where: data,
+        data,
+        table: 'action_tag',
+        updateUpdatedAt: true,
+      })
+    } else {
+      return this.knex.from('action_tag').where(data).del()
+    }
   }
 
   countFollowers = async (targetId: string) => {
@@ -475,7 +542,7 @@ export class TagService extends BaseService {
       .build()
 
     try {
-      const ids = new Set<string>()
+      const ids = new Set<number>()
       let totalCount: number = 0
       if (includeAuthorTags && viewerId) {
         const [res, res2] = await Promise.all([
@@ -498,8 +565,8 @@ export class TagService extends BaseService {
             )
             .select(this.knex.raw('DISTINCT at.tag_id ::int')),
         ])
-        res.forEach(({ id }) => ids.add(id))
-        res2.forEach(({ tagId }) => ids.add(tagId))
+        res.forEach(({ id }) => ids.add(+id))
+        res2.forEach(({ tagId }) => ids.add(+tagId))
         // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
@@ -509,14 +576,14 @@ export class TagService extends BaseService {
           body,
         })
 
-        const { hits } = result.body
+        const { hits } = result
 
-        hits.hits.forEach(
-          ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-            ids.add(_source?.id)
-        )
-
-        totalCount = hits.total.value
+        hits.hits.forEach((hit) => ids.add((hit._source as any)?.id))
+        if (typeof hits.total === 'number') {
+          totalCount = hits.total
+        } else if (hits.total) {
+          totalCount = hits.total.value
+        }
       }
 
       const queryTags = this.knex
@@ -535,22 +602,22 @@ export class TagService extends BaseService {
         .orderBy('num_authors', 'desc')
         .orderBy('num_articles', 'desc')
         .orderBy('created_at', 'asc')
+        .modify(function (this: Knex.QueryBuilder) {
+          if (take !== undefined) {
+            // neither undefined nor null, check both
+            this.limit(take)
+          }
+          if (skip !== undefined) {
+            this.offset(skip)
+          }
+        })
 
-      if (skip) {
-        queryTags.offset(skip)
-      }
-      if (take) {
-        queryTags.limit(take)
-      }
+      // console.log('searchTags: use query:', queryTags.toString())
 
       const tags = await queryTags
-      if (!isProd) {
-        console.log('found:', ids, 'search from lasts:', tags)
-      }
 
       return {
-        // /** tslint:disable-next-line:prefer-object-spread */
-        nodes: tags.map((t) => Object.assign(t, { __type: 'TagSearchResult' })), // tslint:disable-line
+        nodes: tags,
         totalCount, // : hits.total.value,
       }
     } catch (err) {
@@ -598,20 +665,30 @@ export class TagService extends BaseService {
     take = 50,
     skip,
     top = 'r3m',
+    minAuthors,
   }: {
     take?: number
     skip?: number
     // recent 1 week, 1 month, or 3 months?
-    top?: 'r1w' | 'r1m' | 'r3m'
+    top?: 'r1w' | 'r2w' | 'r1m' | 'r3m'
+    minAuthors?: number
   }) => {
     const query = this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
       .modify(function (this: Knex.QueryBuilder) {
+        if (minAuthors) {
+          this.where('num_authors', '>=', minAuthors)
+        }
         switch (top) {
           case 'r1w':
             this.orderByRaw(
               'num_authors_r1w DESC NULLS LAST, num_articles_r1w DESC NULLS LAST'
+            )
+          // no break to fallthrough
+          case 'r2w':
+            this.orderByRaw(
+              'num_authors_r2w DESC NULLS LAST, num_articles_r2w DESC NULLS LAST'
             )
           // no break to fallthrough
           case 'r1m':
@@ -625,15 +702,18 @@ export class TagService extends BaseService {
               'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
             )
           /* this orderBy does not work as documented
-               .orderBy([
+            .orderBy([
                { column: 'num_authors_r3m', order: 'desc', nulls: 'last' },
                { column: 'num_articles_r3m', order: 'desc', nulls: 'last' },
                { column: 'span_days', order: 'desc', nulls: 'last' },
-               ]) */
+             ])
+          */
         }
       })
       // last fallback
+      .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
       .orderByRaw('span_days DESC NULLS LAST')
+      .orderByRaw('created_at') // ascending from earliest to latest
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined) {
           // neither undefined nor null, check both
@@ -644,7 +724,7 @@ export class TagService extends BaseService {
         }
       })
 
-    console.log('findTopTags: use query:', query.toString())
+    // console.log('findTopTags: use query:', query.toString())
 
     return query
   }
@@ -834,7 +914,23 @@ export class TagService extends BaseService {
       .returning('*')
 
   /**
-   * Count tags by a given tag text.
+   * Count article authors by a given tag id.
+   */
+  countAuthors = async ({ id: tagId }: { id: string }) => {
+    const result = await this.knex('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .countDistinct('author_id')
+      .where({
+        'article_tag.tag_id': tagId,
+        'article.state': ARTICLE_STATE.active,
+      })
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Count articles by a given tag id.
    */
   countArticles = async ({
     id: tagId,
@@ -845,31 +941,29 @@ export class TagService extends BaseService {
     selected?: boolean
     withSynonyms?: boolean
   }) => {
+    const knex = this.knex
     const query = this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()
-
-    const knex = this.knex
-    query.where(function (this: Knex.QueryBuilder) {
-      this.where('tag_id', tagId)
-      if (withSynonyms) {
-        this.orWhereIn(
-          'tag_id',
-          knex
-            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-            .where('t.id', tagId)
-            .select('x.id')
-        )
-      }
-    })
-
-    query.andWhere({
-      // tagId: id,
-      state: ARTICLE_STATE.active,
-      ...(selected === true ? { selected } : {}),
-    })
+      .where(function (this: Knex.QueryBuilder) {
+        this.where('tag_id', tagId)
+        if (withSynonyms) {
+          this.orWhereIn(
+            'tag_id',
+            knex
+              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
+              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .where('t.id', tagId)
+              .select('x.id')
+          )
+        }
+      })
+      .andWhere({
+        // tagId: id,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {}),
+      })
 
     // console.log('countArticles:', { sql: query.toString(), tagId })
 
@@ -896,44 +990,50 @@ export class TagService extends BaseService {
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
   }) => {
+    const knex = this.knex
     const query = this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
+      .where(function (this: Knex.QueryBuilder) {
+        this.where('tag_id', tagId)
+        if (withSynonyms) {
+          this.orWhereIn(
+            'tag_id',
+            knex
+              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
+              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .where('t.id', tagId)
+              .select('x.id')
+          )
+        }
+      })
+      .andWhere({
+        // tagId,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {}),
+      })
+      .modify(function (this: Knex.QueryBuilder) {
+        if (sortBy === 'byHottestDesc') {
+          this.join(
+            // instead of leftJoin, only shows articles from materialized
+            'article_hottest_materialized AS ah',
+            'ah.id',
+            'article.id'
+          ).orderByRaw(`score DESC NULLS LAST`)
+        }
+        this.orderBy('article.id', 'desc')
+      })
 
-    const knex = this.knex
-    query.where(function (this: Knex.QueryBuilder) {
-      this.where('tag_id', tagId)
-      if (withSynonyms) {
-        this.orWhereIn(
-          'tag_id',
-          knex
-            .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-            .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-            .where('t.id', tagId)
-            .select('x.id')
-        )
-      }
-    })
-
-    query.andWhere({
-      // tagId,
-      state: ARTICLE_STATE.active,
-      ...(selected === true ? { selected } : {}),
-    })
-    if (sortBy === 'byHottestDesc') {
-      query
-        .join('article_hottest_materialized AS ah', 'ah.id', 'article.id')
-        .orderByRaw(`score DESC NULLS LAST`)
-    }
-    query.orderBy('article.id', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined && Number.isFinite(take)) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          this.offset(skip)
+        }
+      })
 
     // console.log('findArticleIds:', { sql: query.toString(), tagId })
 
@@ -1107,33 +1207,15 @@ export class TagService extends BaseService {
   }) => {
     const countRels = await this.knex
       .from(VIEW.tags_lasts_view)
-      .select('content', this.knex.raw('jsonb_array_length(top_rels) AS count'))
+      .select([
+        'id',
+        'content',
+        this.knex.raw('jsonb_array_length(top_rels) AS count'),
+      ])
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
 
     const countRelsCount = countRels?.count || 0
-
-    const ids = new Set<string>()
-
-    // append some results from elasticsearch
-    if (countRelsCount < TAGS_RECOMMENDED_LIMIT && tagContent) {
-      const body = bodybuilder()
-        .query('match', 'content', tagContent)
-        .size(TAGS_RECOMMENDED_LIMIT)
-        .build()
-
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
-      })
-
-      const { hits } = result.body
-
-      hits.hits.forEach(
-        ({ _id, _source }: { _id: string; _source?: Record<string, any> }) =>
-          ids.add(_source?.id)
-      )
-    }
 
     const subquery = this.knex
       .from(VIEW.tags_lasts_view)
@@ -1143,43 +1225,84 @@ export class TagService extends BaseService {
       .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
 
+    // append some results from elasticsearch
     if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
-      subquery.unionAll(
-        this.knex
-          .from(VIEW.tags_lasts_view)
-          .select(
-            'id AS tag_rel_id',
-            'num_articles AS count_rel',
-            this.knex.raw('NULL AS count_common'), // unknown
-            this.knex.raw('0.0 AS similarity')
-          )
-          .whereIn('id', Array.from(ids))
-      )
+      const ids = new Set<number>()
+      if (tagContent) {
+        const body = bodybuilder()
+          .query('match', 'content', tagContent)
+          .size(TAGS_RECOMMENDED_LIMIT) // at most 100
+          .build()
+
+        const result = await this.es.client.search({
+          index: this.table,
+          body,
+        })
+
+        // console.log('from es.client:', result?.hits?.hits)
+
+        const { hits } = result
+        if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
+          hits.hits.shift() // remove the exact match at first, if exists
+        }
+
+        hits.hits.forEach((hit) => ids.add((hit._source as any).id))
+
+        // console.log('from es.client:', ids)
+      }
+
+      if (ids.size > 0) {
+        subquery.unionAll(
+          this.knex
+            .from(VIEW.tags_lasts_view)
+            .select(
+              'id AS tag_rel_id',
+              'num_articles AS count_rel',
+              this.knex.raw('NULL AS count_common'), // unknown
+              this.knex.raw('NULL AS similarity')
+            )
+            .whereIn('id', Array.from(ids))
+            .modify(function (this: Knex.QueryBuilder) {
+              if (tagContent) {
+                this.whereNot('content', tagContent)
+              }
+            })
+        )
+      }
     }
 
     const query = this.knex
-      .from(subquery.as('x').limit(TAGS_RECOMMENDED_LIMIT))
+      .from(subquery.as('x'))
       .join(this.knex.ref(VIEW.tags_lasts_view).as('t'), 'x.tag_rel_id', 't.id')
-      // .whereIn('id', subquery)
-      .select(
+      // .distinctOn('id')
+      .select([
         'x.*',
         'id',
         'content',
-        'num_articles',
-        'num_authors',
         'created_at',
         'cover',
-        'description'
-      )
+        'description',
+        'num_articles',
+        'num_authors',
+      ])
+      // .orderBy('id')
       .orderByRaw('x.similarity DESC NULLS LAST')
+      .orderByRaw(
+        'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
+      )
+      .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
+      .orderByRaw('span_days DESC NULLS LAST')
+      .orderByRaw('created_at') // ascending from earliest to latest
 
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined && Number.isFinite(take)) {
+          // neither undefined nor null, check both
+          this.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          this.offset(skip)
+        }
+      })
     return query
   }
 }

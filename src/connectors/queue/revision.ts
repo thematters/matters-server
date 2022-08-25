@@ -19,7 +19,7 @@ import {
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import logger from 'common/logger'
-import { countWords, fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
+import { countWords, fromGlobalId } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
 import { GQLArticleAccessType } from 'definitions'
 
@@ -237,9 +237,7 @@ class RevisionQueue extends BaseQueue {
               description: summary,
               datePublished: article.created_at?.toISOString().substring(0, 10),
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-              tags: Array.from(
-                new Set(draft.tags?.map(stripPunctPrefixSuffix).filter(Boolean))
-              ), // after stripped, not raw draft.tags,
+              tags: draft.tags,
 
               // for liker auth&headers info
               liker,
@@ -255,7 +253,7 @@ class RevisionQueue extends BaseQueue {
           }
 
           console.log(
-            `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`,
+            `iscnPublish for draft id: ${draft.id} "${draft.title}":`,
             {
               iscnId,
               articleId: article.id,
@@ -302,11 +300,7 @@ class RevisionQueue extends BaseQueue {
             event: DB_NOTICE_TYPE.revised_article_published,
             recipientId: article.authorId,
             entities: [
-              {
-                type: 'target',
-                entityTable: 'article',
-                entity: article,
-              },
+              { type: 'target', entityTable: 'article', entity: article },
             ],
           })
           job.progress(95)
@@ -353,11 +347,7 @@ class RevisionQueue extends BaseQueue {
           event: DB_NOTICE_TYPE.revised_article_not_published,
           recipientId: article.authorId,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
           ],
         })
 
@@ -419,13 +409,7 @@ class RevisionQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
   }

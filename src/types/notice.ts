@@ -122,7 +122,6 @@ export default /* GraphQL */ `
   }
 
 
-
   #################################
   #                               #
   #           Comment             #
@@ -148,7 +147,7 @@ export default /* GraphQL */ `
 
   enum CommentNoticeType {
     CommentPinned
-    CommentMentionedYou
+    CommentMentionedYou # article comment
     ArticleNewComment
     SubscribedArticleNewComment
     CircleNewBroadcast
@@ -285,15 +284,25 @@ export default /* GraphQL */ `
     type: CircleNoticeType!
 
     target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
+
+    "Optional discussion/broadcast comments for bundled notices"
+    comments: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
+
+    "Optional discussion/broadcast replies for bundled notices"
+    replies: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
+
+    "Optional mention comments for bundled notices"
+    mentions: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
   }
 
   enum CircleNoticeType {
-    CircleNewFollower # deprecated
-    CircleNewSubscriber
-    CircleNewUnsubscriber
     CircleInvitation
+    CircleNewSubscriber
+    CircleNewFollower
+    CircleNewUnsubscriber
+    CircleNewBroadcastComments
+    CircleNewDiscussionComments
   }
-
 
   #################################
   #                               #

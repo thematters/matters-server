@@ -30,7 +30,7 @@ const getCookieOption = ({
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly,
-    secure: req.protocol === 'https',
+    secure: true,
     domain,
     sameSite: isLocalDev ? 'none' : sameSite,
   } as CookieOptions

@@ -62,6 +62,9 @@ export const COMMENT_TYPE = {
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
 }
+export const COMMENT_TYPES_REVERSED = Object.fromEntries(
+  Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
+)
 
 export const USER_STATE = {
   frozen: 'frozen',
@@ -169,7 +172,6 @@ export enum NODE_TYPES {
   Draft = 'Draft',
   User = 'User',
   Tag = 'Tag',
-  TagSearchResult = 'TagSearchResult',
   Appreciation = 'Appreciation',
   Transaction = 'Transaction',
   Circle = 'Circle',
@@ -239,6 +241,8 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
-export const TAGS_PER_ARTICLE_LIMIT = 20
-
+export const MAX_TAGS_PER_ARTICLE_LIMIT = 20
 export const TAGS_RECOMMENDED_LIMIT = 100
+
+export const MAX_TAG_CONTENT_LENGTH = 50
+export const MAX_TAG_DESCRIPTION_LENGTH = 200

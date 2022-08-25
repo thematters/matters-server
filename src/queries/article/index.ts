@@ -45,12 +45,13 @@ import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import tagIsOfficial from './tag/isOfficial'
+import tagNumArticles from './tag/numArticles'
+import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
-import tagArticlesSearchResult from './tag/tagArticlesSearchResult'
 import tags from './tags'
 import topicArticleCount from './topic/articleCount'
 import topicArticles from './topic/articles'
@@ -62,7 +63,7 @@ import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
-import userTags from './user/tags'
+// import userTags from './user/tags'
 import userTopics from './user/topics'
 
 export default {
@@ -71,7 +72,7 @@ export default {
   },
   User: {
     articles: userArticles,
-    tags: userTags,
+    // tags: userTags,
     topics: userTopics,
   },
   Article: {
@@ -125,16 +126,13 @@ export default {
     owner: tagOwner,
     isFollower: tagIsFollower,
     isOfficial: tagIsOfficial,
+    numArticles: tagNumArticles,
+    numAuthors: tagNumAuthors,
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
-  },
-  TagSearchResult: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
-    articles: tagArticlesSearchResult,
-    cover: tagCover,
   },
   Topic: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),

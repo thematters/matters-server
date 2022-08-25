@@ -6,13 +6,17 @@
 
 ### Local
 
-- Install dependencies: `npm i`
+- Install dependencies: `npm install --legacy-peer-deps`
 - Start Postgres, Redis, ElasticSearch, and IPFS daemon
 - Setup Environments: `cp .env.example .env`
 - Run all migrations: `npm run db:migrate`
 - Populate all seeds data if needed: `npm run db:seed`
 - Run `npm run start:dev`, then go to `http://localhost:4000/playground` to GraphQL Playground.
 - Run test cases: `npm run test`
+
+- Run db rollup process; use the same psql command line parameters if modified in .env; (hint `-d database` and `-U username`, and `-w` to read saved password of psqlrc)
+
+      (cd ./db; PSQL='psql -h localhost ... -w' bash -xe bin/refresh-lasts.sh )
 
 ### Docker
 

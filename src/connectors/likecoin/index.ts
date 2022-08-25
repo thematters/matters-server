@@ -468,10 +468,13 @@ export class LikeCoin {
         withClientCredential: true,
         method: 'POST',
         liker,
-        data: _.omitBy({
-          iscn_id,
-          referrer: url, // encodeURI(url),
-        }, _.isNil),
+        data: _.omitBy(
+          {
+            iscn_id,
+            referrer: url, // encodeURI(url),
+          },
+          _.isNil
+        ),
       })
       const data = _.get(result, 'data')
       if (data === 'OK') {
@@ -505,10 +508,13 @@ export class LikeCoin {
       ip: likerIp,
       userAgent,
       withClientCredential: true,
-      params: _.omitBy({
-        iscn_id,
-        referrer: url, // encodeURI(url),
-      }, _.isNil),
+      params: _.omitBy(
+        {
+          iscn_id,
+          referrer: url, // encodeURI(url),
+        },
+        _.isNil
+      ),
       liker,
     })
     const data = _.get(res, 'data')

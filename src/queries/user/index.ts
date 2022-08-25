@@ -51,6 +51,8 @@ import rootUser from './rootUser'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
+import maintainedTags from './tags/maintainedTags'
+import pinnedTags from './tags/pinnedTags'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
 import unreadFollowing from './unreadFollowing'
@@ -116,6 +118,10 @@ const user: {
     isBlocked,
     ownCircles,
     subscribedCircles,
+
+    // maintainedTags
+    tags: maintainedTags,
+    pinnedTags,
   },
   UserInfo: {
     badges,

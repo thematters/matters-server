@@ -209,11 +209,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
           event: DB_NOTICE_TYPE.circle_new_article,
           recipientId,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
           ],
         })
       })

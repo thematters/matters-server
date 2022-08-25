@@ -1,10 +1,10 @@
 import { connectionFromPromisedArray } from 'common/utils'
-import { UserToArticlesResolver } from 'definitions'
+import { UserToTagsResolver } from 'definitions'
 
-const resolver: UserToArticlesResolver = async (
+const resolver: UserToTagsResolver = async (
   { id },
   { input },
-  { dataSources: { tagService, userService } }
+  { dataSources: { tagService } }
 ) => {
   return connectionFromPromisedArray(tagService.findByMaintainer(id), input)
 }

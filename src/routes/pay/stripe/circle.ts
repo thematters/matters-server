@@ -108,13 +108,7 @@ export const completeCircleSubscription = async ({
     event: DB_NOTICE_TYPE.circle_new_subscriber,
     actorId: userId,
     recipientId: circle.owner,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'circle',
-        entity: circle,
-      },
-    ],
+    entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
   })
 
   // auto follow circle without notification

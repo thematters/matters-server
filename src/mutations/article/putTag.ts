@@ -1,8 +1,9 @@
-import _replace from 'lodash/replace'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
-
-import { ASSET_TYPE, USER_STATE } from 'common/enums'
+import {
+  ASSET_TYPE,
+  MAX_TAG_CONTENT_LENGTH,
+  MAX_TAG_DESCRIPTION_LENGTH,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
@@ -14,7 +15,10 @@ import {
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, stripPunctPrefixSuffix } from 'common/utils'
+import {
+  fromGlobalId,
+  normalizeTagInput, // stripAllPunct,
+} from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
@@ -46,10 +50,17 @@ const resolver: MutationToPutTagResolver = async (
     coverId = null
   }
 
-  const tagContent = content ? stripPunctPrefixSuffix(content) : ''
+  const tagContent = (content && normalizeTagInput(content)) || ''
 
-  if (!tagContent) {
-    throw new NameInvalidError('invalid tag name')
+  if (!tagContent || tagContent.length > MAX_TAG_CONTENT_LENGTH) {
+    throw new NameInvalidError(
+      `invalid tag name, either empty or too long (>${MAX_TAG_CONTENT_LENGTH})`
+    )
+  }
+  if (description && description?.length > MAX_TAG_DESCRIPTION_LENGTH) {
+    throw new NameInvalidError(
+      `invalid too long tag description (>${MAX_TAG_DESCRIPTION_LENGTH})`
+    )
   }
 
   if (!id) {
@@ -64,8 +75,10 @@ const resolver: MutationToPutTagResolver = async (
         content: tagContent,
         creator: viewer.id,
         description,
-        editors: _uniq(
-          environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+        editors: Array.from(
+          new Set(
+            environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+          )
         ),
         owner: viewer.id,
         cover: coverId,
@@ -84,7 +97,7 @@ const resolver: MutationToPutTagResolver = async (
 
     // update only allow: owner, editor, matty
     const isOwner = tag.owner === viewer.id
-    const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
+    const isEditor = !!tag.editors?.some((editor: any) => editor === viewer.id)
     const isMatty = viewer.id === environment.mattyId
     const isMaintainer = isOwner || isEditor || isMatty
 

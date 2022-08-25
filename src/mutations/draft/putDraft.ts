@@ -6,9 +6,9 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
-  TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -27,14 +27,15 @@ import {
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
+  // normalizeTagInput,
   sanitize,
-  stripPunctPrefixSuffix,
+  stripAllPunct,
 } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 function sanitizeTags(tags: string[] | null | undefined) {
   if (Array.isArray(tags)) {
-    tags = _.uniq(tags.map(stripPunctPrefixSuffix).filter(Boolean))
+    tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
     if (tags.length === 0) {
       return null
     }
@@ -79,9 +80,9 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   const tags = sanitizeTags(input.tags)
-  if (Array.isArray(tags) && tags.length >= TAGS_PER_ARTICLE_LIMIT) {
+  if (Array.isArray(tags) && tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
     throw new TooManyTagsForArticleError(
-      `not allow more than ${TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
   }
 

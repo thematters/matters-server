@@ -185,6 +185,7 @@ export const updateTagSetting = async ({
 describe('put tag', () => {
   test('create, query and update tag', async () => {
     const content = 'Test tag #1'
+    const expected = 'Test tag1'
     const description = 'This is a tag description'
 
     // create
@@ -202,11 +203,12 @@ describe('put tag', () => {
       query: QUERY_TAG,
       variables: { input: { id: createTagId } },
     })
-    expect(_get(queryResult, 'data.node.content')).toBe(content)
+    expect(_get(queryResult, 'data.node.content')).toBe(expected)
     expect(_get(queryResult, 'data.node.description')).toBe(description)
 
     // update
     const updateContent = 'Update tag #1'
+    const updateExpected = 'Update tag1'
     const updateDescription = 'Update description'
     const updateResult = await putTag({
       tag: {
@@ -215,7 +217,7 @@ describe('put tag', () => {
         description: updateDescription,
       },
     })
-    expect(updateResult?.content).toBe(updateContent)
+    expect(updateResult?.content).toBe(updateExpected)
     expect(updateResult?.description).toBe(updateDescription)
   })
 })

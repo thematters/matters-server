@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
-import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
 import 'module-alias/register'
 import requestIp from 'request-ip'
@@ -26,15 +25,6 @@ import * as routes from './routes'
       'ForbiddenByStateError',
     ],
   })
-
-  // Firebase
-  try {
-    firebase.initializeApp({
-      credential: firebase.credential.cert(environment.firebaseCert),
-    })
-  } catch (e) {
-    console.error(new Date(), 'Failed to initialize admin, skipped')
-  }
 
   // Express
   const PORT = 4000

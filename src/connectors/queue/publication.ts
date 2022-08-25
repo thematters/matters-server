@@ -3,7 +3,6 @@ import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-// import { trim, uniq } from 'lodash'
 
 import {
   DB_NOTICE_TYPE,
@@ -21,7 +20,8 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  stripPunctPrefixSuffix,
+  // normalizeTagInput,
+  stripAllPunct,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -107,7 +107,6 @@ class PublicationQueue extends BaseQueue {
     // Step 1: checks
     console.log(
       `handlePublishArticle: progress 0 of initial publishing for draftId: ${draft?.id}:`,
-      // job,
       draft
     )
 
@@ -312,11 +311,7 @@ class PublicationQueue extends BaseQueue {
           event: DB_NOTICE_TYPE.article_published,
           recipientId: article.authorId,
           entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
+            { type: 'target', entityTable: 'article', entity: article },
           ],
         })
         job.progress(95)
@@ -390,11 +385,7 @@ class PublicationQueue extends BaseQueue {
         recipientId: collection.authorId,
         actorId: article.authorId,
         entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: collection,
-          },
+          { type: 'target', entityTable: 'article', entity: collection },
           {
             type: 'collection',
             entityTable: 'article',
@@ -414,21 +405,40 @@ class PublicationQueue extends BaseQueue {
     article: any
     secret: any
   }) => {
-    if (!draft.circleId || !draft.access) {
+    if (!draft.circleId) {
       return
     }
 
-    const data = {
-      articleId: article.id,
-      circleId: draft.circleId,
-      secret,
+    if (draft.access) {
+      const data = {
+        articleId: article.id,
+        circleId: draft.circleId,
+        secret,
+      }
+
+      await this.atomService.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: draft.access },
+        update: {
+          ...data,
+          access: draft.access,
+          updatedAt: this.knex.fn.now(),
+        },
+      })
     }
 
-    await this.atomService.upsert({
-      table: 'article_circle',
-      where: data,
-      create: { ...data, access: draft.access },
-      update: { ...data, access: draft.access, updatedAt: this.knex.fn.now() },
+    // handle 'circle_new_article' notification
+    const recipients = await this.userService.findCircleRecipients(
+      draft.circleId
+    )
+
+    recipients.forEach((recipientId: any) => {
+      this.notificationService.trigger({
+        event: DB_NOTICE_TYPE.circle_new_article,
+        recipientId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
     })
 
     await invalidateFQC({
@@ -452,25 +462,24 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      // tags = uniq(tags) .map(trim) .filter((t) => !!t)
-      tags = Array.from(
-        new Set(tags.map(stripPunctPrefixSuffix).filter(Boolean))
-      )
+      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
 
       // create tag records, return tag record if already exists
-      const dbTags = (await Promise.all(
-        tags.map((tag: string) =>
-          this.tagService.create(
-            {
-              content: tag,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
-            ['id', 'content']
+      const dbTags = (
+        (await Promise.all(
+          tags.map((tag: string) =>
+            this.tagService.create(
+              {
+                content: tag,
+                creator: article.authorId,
+                editors: tagEditors,
+                owner: article.authorId,
+              },
+              ['id', 'content']
+            )
           )
-        )
-      )) as unknown as [{ id: string; content: string }]
+        )) as unknown as [{ id: string; content: string }]
+      ).filter(Boolean)
 
       // create article_tag record
       await this.tagService.createArticleTags({
@@ -520,13 +529,7 @@ class PublicationQueue extends BaseQueue {
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
   }

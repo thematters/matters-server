@@ -72,11 +72,7 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
       recipientId: article.authorId,
       actorId: viewer.id,
       entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article,
-        },
+        { type: 'target', entityTable: 'article', entity: article },
         {
           type: 'tag',
           entityTable: 'tag',
