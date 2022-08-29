@@ -1,5 +1,6 @@
 import { makeSummary } from '@matters/matters-html-formatter'
 
+import logger from 'common/logger'
 import { gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
@@ -11,7 +12,7 @@ const resolver: ArticleToTranslationResolver = async (
     articleId,
   },
   { input },
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService, articleService, tagService } }
 ) => {
   const target = input && input.language ? input.language : viewer.language
 
@@ -40,7 +41,6 @@ const resolver: ArticleToTranslationResolver = async (
   )
 
   if (title && content) {
-    // create or update to db
     const data = {
       articleId,
       title,
@@ -52,8 +52,40 @@ const resolver: ArticleToTranslationResolver = async (
       table: 'article_translation',
       where: { articleId },
       create: data,
-      update: { ...data, updatedAt: new Date() },
+      update: { ...data, updatedAt: atomService.knex.fn.now() },
     })
+
+    // translate tags
+    const tagIds = await articleService.findTagIds({ id: articleId })
+    if (tagIds && tagIds.length > 0) {
+      try {
+        const tags = await tagService.dataloader.loadMany(tagIds)
+        await Promise.all(
+          tags.map(async (tag) => {
+            if (tag instanceof Error) {
+              return
+            }
+            const translatedTag = await gcp.translate({
+              content: tag.content,
+              target,
+            })
+            const tagData = {
+              tagId: tag.id,
+              content: translatedTag,
+              language: target,
+            }
+            await atomService.upsert({
+              table: 'tag_translation',
+              where: { tagId: tag.id },
+              create: tagData,
+              update: { ...tagData, updatedAt: atomService.knex.fn.now() },
+            })
+          })
+        )
+      } catch (error) {
+        logger.error(error)
+      }
+    }
 
     return {
       title,
