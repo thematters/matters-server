@@ -7252,7 +7252,7 @@ export interface CircleToAnalyticsResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToBroadcastArgs {
-  input: GQLConnectionArgs
+  input: GQLCommentsInput
 }
 export interface CircleToBroadcastResolver<TParent = any, TResult = any> {
   (
@@ -7273,7 +7273,7 @@ export interface CircleToPinnedBroadcastResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToDiscussionArgs {
-  input: GQLConnectionArgs
+  input: GQLCommentsInput
 }
 export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
   (

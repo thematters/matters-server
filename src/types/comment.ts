@@ -104,13 +104,13 @@ export default /* GraphQL */ `
 
   extend type Circle {
     "Comments broadcasted by Circle owner."
-    broadcast(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    broadcast(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Pinned comments broadcasted by Circle owner."
     pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "Comments made by Circle member."
-    discussion(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    discussion(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Discussion (exclude replies) count of this circle."
     discussionThreadCount: Int!
