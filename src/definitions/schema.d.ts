@@ -3157,6 +3157,13 @@ export interface GQLFilterInput {
    * Used in User.topics
    */
   public?: boolean
+
+  /**
+   * Used in User Articles filter, by tags or by time range, or both
+   */
+  tagIds?: Array<string>
+  inRangeStart?: GQLDateTime
+  inRangeEnd?: GQLDateTime
 }
 
 export interface GQLUserInfo {

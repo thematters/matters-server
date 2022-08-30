@@ -1,7 +1,7 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
@@ -880,11 +880,11 @@ export class TagService extends BaseService {
     tagIds: string[]
     selected?: boolean
   }) => {
-    articleIds = _.uniq(articleIds)
-    tagIds = _.uniq(tagIds)
+    articleIds = Array.from(new Set(articleIds))
+    tagIds = Array.from(new Set(tagIds))
 
-    const items = _.flatten(
-      articleIds.map((articleId) => {
+    const items = articleIds
+      .map((articleId) => {
         return tagIds.map((tagId) => ({
           articleId,
           creator,
@@ -892,7 +892,7 @@ export class TagService extends BaseService {
           ...(selected === true ? { selected } : {}),
         }))
       })
-    )
+      .flat(1)
     return this.baseBatchCreate(items, 'article_tag')
   }
 
@@ -1035,7 +1035,7 @@ export class TagService extends BaseService {
         }
       })
 
-    // console.log('findArticleIds:', { sql: query.toString(), tagId })
+    console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 
