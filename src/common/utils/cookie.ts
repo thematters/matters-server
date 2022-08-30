@@ -2,6 +2,7 @@ import { CookieOptions, Request, Response } from 'express'
 import psl from 'psl'
 
 import {
+  COOKIE_LANGUAGE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -67,6 +68,16 @@ export const setCookie = ({
       sameSite: 'lax',
     })
   )
+  res.cookie(
+    COOKIE_LANGUAGE,
+    user.language,
+    getCookieOption({
+      req,
+      httpOnly: false,
+      publicSuffix: true,
+      sameSite: 'lax',
+    })
+  )
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
@@ -83,4 +94,15 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
       sameSite: 'lax',
     })
   )
+
+  // TBD: keep it for anonymous language setting
+  // res.clearCookie(
+  //   COOKIE_LANGUAGE,
+  //   getCookieOption({
+  //     req,
+  //     httpOnly: false,
+  //     publicSuffix: true,
+  //     sameSite: 'lax',
+  //   })
+  // )
 }
