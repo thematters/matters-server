@@ -578,6 +578,7 @@ type ArticleTranslation {
   title: String
   content: String
   summary: String
+  language: String
 }
 
 type TagOSS {
