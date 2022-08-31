@@ -510,7 +510,7 @@ const resolver: MutationToEditArticleResolver = async (
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
         license: currDraft?.license,
-        iscnPublish,
+        // iscnPublish,
       },
       lodash.isUndefined // to drop only undefined // _.isNil
     )
@@ -518,13 +518,10 @@ const resolver: MutationToEditArticleResolver = async (
 
     // add job to publish queue
     revisionQueue.publishRevisedArticle(
-      // lodash.omitBy(
       {
         draftId: revisedDraft.id,
         iscnPublish,
       }
-      //  lodash.isUndefined
-      // ) as RevisedArticleData
     )
   }
 
