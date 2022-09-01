@@ -114,7 +114,7 @@ export default /* GraphQL */ `
     "Topics created by current user."
     topics(input: TopicInput!): TopicConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
-    "Tags owned and maintained by current user."
+    "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags pinned by current user."

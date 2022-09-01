@@ -2976,7 +2976,7 @@ export interface GQLUser extends GQLNode {
   topics: GQLTopicConnection
 
   /**
-   * Tags owned and maintained by current user.
+   * Tags by by usage order of current user.
    */
   tags: GQLTagConnection
 
