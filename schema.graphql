@@ -2163,7 +2163,7 @@ type User implements Node {
   """Topics created by current user."""
   topics(input: TopicInput!): TopicConnection!
 
-  """Tags owned and maintained by current user."""
+  """Tags by by usage order of current user."""
   tags(input: ConnectionArgs!): TagConnection!
 
   """Tags pinned by current user."""

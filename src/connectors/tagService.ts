@@ -136,6 +136,50 @@ export class TagService extends BaseService {
       .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
       .orderBy('id', 'desc')
 
+  findTotalTagsByAuthorUsage = async (userId: string) =>
+    // Math.min(100 // the authors_lasts table is only populating the top 100 tags for each author
+    (
+      await this.knex
+        .select('num_tags')
+        .from(this.knex.ref(VIEW.authors_lasts_view).as('al'))
+        .where('al.id', userId)
+        .first()
+    )?.numTags ?? 0
+
+  findByAuthorUsage = async ({
+    userId,
+    skip,
+    take,
+  }: {
+    userId: string
+    skip?: number
+    take?: number
+  }) =>
+    this.knex
+      .select(
+        'x.*',
+        this.knex.raw(
+          `(age(last_use) <= '3 months' ::interval) AS recent_inuse`
+        )
+      )
+      .from(this.knex.ref(VIEW.authors_lasts_view).as('al'))
+      .joinRaw(
+        `CROSS JOIN jsonb_to_recordset(top_tags) AS x(id INT, content TEXT, id_tag TEXT, last_use timestamptz, num_articles INT, sum_word_count INT)`
+      )
+      .where('al.id', userId)
+      .orderByRaw(`recent_inuse DESC NULLS LAST`)
+      .orderByRaw(`num_articles DESC`)
+      .orderByRaw(`last_use DESC NULLS LAST`)
+      .orderByRaw(`x.id DESC`)
+      .modify(function (this: Knex.QueryBuilder) {
+        if (take !== undefined) {
+          this.limit(take)
+        }
+        if (skip !== undefined) {
+          this.offset(skip)
+        }
+      })
+
   findPinnedTagsByUserId = async ({
     userId,
     skip,
@@ -152,7 +196,6 @@ export class TagService extends BaseService {
       .orderBy('updated_at', 'desc') // update updated_at to re-order
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined) {
-          // neither undefined nor null, check both
           this.limit(take)
         }
         if (skip !== undefined) {
@@ -604,7 +647,6 @@ export class TagService extends BaseService {
         .orderBy('created_at', 'asc')
         .modify(function (this: Knex.QueryBuilder) {
           if (take !== undefined) {
-            // neither undefined nor null, check both
             this.limit(take)
           }
           if (skip !== undefined) {
@@ -716,7 +758,6 @@ export class TagService extends BaseService {
       .orderByRaw('created_at') // ascending from earliest to latest
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined) {
-          // neither undefined nor null, check both
           this.limit(take)
         }
         if (skip !== undefined) {
@@ -916,8 +957,44 @@ export class TagService extends BaseService {
   /**
    * Count article authors by a given tag id.
    */
-  countAuthors = async ({ id: tagId }: { id: string }) => {
-    const result = await this.knex('article_tag')
+  countAuthors = async ({
+    id: tagId,
+    selected,
+    withSynonyms = true,
+  }: {
+    id: string
+    selected?: boolean
+    withSynonyms?: boolean
+  }) => {
+    const knex = this.knex
+
+    let result: any
+    try {
+      result = await this.knex(VIEW.tags_lasts_view)
+        .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
+        .where(function (this: Knex.QueryBuilder) {
+          if (withSynonyms) {
+            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } else {
+            this.where('id', tagId) // exactly
+          }
+        })
+        .first()
+    } catch (err) {
+      // empty; do nothing
+    }
+
+    if (result?.numAuthors !== undefined) {
+      console.log(
+        new Date(),
+        `parsed num_articles from tags_lasts:`,
+        { tagId, selected, withSynonyms },
+        result
+      )
+      return parseInt(result.numAuthors ?? '0', 10)
+    }
+
+    result = await this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('author_id')
       .where({
@@ -935,14 +1012,36 @@ export class TagService extends BaseService {
   countArticles = async ({
     id: tagId,
     selected,
-    withSynonyms,
+    withSynonyms = true,
   }: {
     id: string
     selected?: boolean
     withSynonyms?: boolean
   }) => {
     const knex = this.knex
-    const query = this.knex('article_tag')
+
+    let result: any
+    try {
+      result = await this.knex(VIEW.tags_lasts_view)
+        .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
+        .where(function (this: Knex.QueryBuilder) {
+          if (withSynonyms) {
+            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } else {
+            this.where('id', tagId) // exactly
+          }
+        })
+        .first()
+    } catch (err) {
+      // empty; do nothing
+    }
+
+    // console.log(new Date(), `parsed num_articles from tags_lasts:`, { tagId, selected, withSynonyms }, result)
+    if (result?.numArticles !== undefined) {
+      return parseInt(result.numArticles ?? '0', 10)
+    }
+
+    result = this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()
@@ -965,9 +1064,6 @@ export class TagService extends BaseService {
         ...(selected === true ? { selected } : {}),
       })
 
-    // console.log('countArticles:', { sql: query.toString(), tagId })
-
-    const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -1027,7 +1123,6 @@ export class TagService extends BaseService {
 
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined && Number.isFinite(take)) {
-          // neither undefined nor null, check both
           this.limit(take)
         }
         if (skip !== undefined && Number.isFinite(skip)) {
@@ -1296,7 +1391,6 @@ export class TagService extends BaseService {
 
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined && Number.isFinite(take)) {
-          // neither undefined nor null, check both
           this.limit(take)
         }
         if (skip !== undefined && Number.isFinite(skip)) {
