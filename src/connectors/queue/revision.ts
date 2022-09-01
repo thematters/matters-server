@@ -100,11 +100,6 @@ class RevisionQueue extends BaseQueue {
       const draft = await this.draftService.baseFindById(draftId)
 
       // Step 1: checks
-      console.log(
-        `handlePublishRevisedArticle: progress 0 of revise publishing for draftId: ${draft?.id}:`,
-        draft
-      )
-
       if (!draft) {
         job.progress(100)
         done(null, `Revision draft ${draftId} not found`)
@@ -142,11 +137,6 @@ class RevisionQueue extends BaseQueue {
           key,
         } = await this.articleService.publishToIPFS(revised)
         job.progress(30)
-
-        console.log(
-          `handlePublishRevisedArticle: progress 30 of revise publishing for draftId: ${draft.id}:`,
-          article
-        )
 
         // Step 3: update draft
         await Promise.all([
@@ -199,11 +189,6 @@ class RevisionQueue extends BaseQueue {
           const author = await this.userService.baseFindById(article.authorId)
           const { userName, displayName } = author
 
-          console.log(
-            `handlePublishRevisedArticle: start optional steps of publishing for draft id: ${draft.id}:`,
-            draft
-          )
-
           // Step 6: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
           // @see src/mutations/article/editArticle.ts
@@ -215,8 +200,6 @@ class RevisionQueue extends BaseQueue {
             entityTypeId,
           })
           job.progress(60)
-
-          console.log(`before iscnPublish:`, { draft, jobData: job.data })
 
           // Step: iscn publishing
           if (iscnPublish || draft.iscnPublish != null) {
@@ -244,22 +227,7 @@ class RevisionQueue extends BaseQueue {
               // likerIp,
               // userAgent,
             })
-
-            console.log('draft.iscnPublish result:', {
-              iscnId,
-              articleId: article.id,
-              title: article.title,
-            })
           }
-
-          console.log(
-            `iscnPublish for draft id: ${draft.id} "${draft.title}":`,
-            {
-              iscnId,
-              articleId: article.id,
-              title: article.title,
-            }
-          )
 
           if (iscnPublish || draft.iscnPublish != null) {
             // handling both cases of set to true or false, but not omit (undefined)

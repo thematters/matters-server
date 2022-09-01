@@ -567,7 +567,6 @@ export class TagService extends BaseService {
         ])
         res.forEach(({ id }) => ids.add(+id))
         res2.forEach(({ tagId }) => ids.add(+tagId))
-        // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
       if (key) {
@@ -611,8 +610,6 @@ export class TagService extends BaseService {
             this.offset(skip)
           }
         })
-
-      // console.log('searchTags: use query:', queryTags.toString())
 
       const tags = await queryTags
 
@@ -723,8 +720,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    // console.log('findTopTags: use query:', query.toString())
 
     return query
   }
@@ -965,8 +960,6 @@ export class TagService extends BaseService {
         ...(selected === true ? { selected } : {}),
       })
 
-    // console.log('countArticles:', { sql: query.toString(), tagId })
-
     const result = await query
     return parseInt(result ? (result.count as string) : '0', 10)
   }
@@ -1034,8 +1027,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 
@@ -1239,16 +1230,12 @@ export class TagService extends BaseService {
           body,
         })
 
-        // console.log('from es.client:', result?.hits?.hits)
-
         const { hits } = result
         if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
           hits.hits.shift() // remove the exact match at first, if exists
         }
 
         hits.hits.forEach((hit) => ids.add((hit._source as any).id))
-
-        // console.log('from es.client:', ids)
       }
 
       if (ids.size > 0) {

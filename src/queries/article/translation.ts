@@ -14,12 +14,12 @@ const resolver: ArticleToTranslationResolver = async (
   { input },
   { viewer, dataSources: { atomService, articleService, tagService } }
 ) => {
-  const target = input && input.language ? input.language : viewer.language
+  const language = input && input.language ? input.language : viewer.language
 
   // get translation
   const translation = await atomService.findFirst({
     table: 'article_translation',
-    where: { articleId },
+    where: { articleId, language },
   })
 
   if (translation) {
@@ -35,7 +35,7 @@ const resolver: ArticleToTranslationResolver = async (
     ].map((text) =>
       gcp.translate({
         content: text,
-        target,
+        target: language,
       })
     )
   )
@@ -46,11 +46,11 @@ const resolver: ArticleToTranslationResolver = async (
       title,
       content,
       summary,
-      language: target,
+      language,
     }
     await atomService.upsert({
       table: 'article_translation',
-      where: { articleId },
+      where: { articleId, language },
       create: data,
       update: { ...data, updatedAt: atomService.knex.fn.now() },
     })
@@ -67,12 +67,12 @@ const resolver: ArticleToTranslationResolver = async (
             }
             const translatedTag = await gcp.translate({
               content: tag.content,
-              target,
+              target: language,
             })
             const tagData = {
               tagId: tag.id,
               content: translatedTag,
-              language: target,
+              language,
             }
             await atomService.upsert({
               table: 'tag_translation',
@@ -91,7 +91,7 @@ const resolver: ArticleToTranslationResolver = async (
       title,
       content,
       summary,
-      language: target,
+      language,
     }
   } else {
     return null
