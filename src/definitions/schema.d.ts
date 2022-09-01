@@ -791,6 +791,11 @@ export interface GQLTag extends GQLNode {
   isFollower?: boolean
 
   /**
+   * This value determines if the tag is pinned by current viewer.
+   */
+  isPinned?: boolean
+
+  /**
    * Followers of this tag.
    */
   followers: GQLUserConnection
@@ -6466,6 +6471,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   creator?: TagToCreatorResolver<TParent>
   owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
+  isPinned?: TagToIsPinnedResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   participants?: TagToParticipantsResolver<TParent>
   recommended?: TagToRecommendedResolver<TParent>
@@ -6577,6 +6583,15 @@ export interface TagToOwnerResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToIsFollowerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToIsPinnedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

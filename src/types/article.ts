@@ -304,6 +304,9 @@ export default /* GraphQL */ `
     "This value determines if current viewer is following or not."
     isFollower: Boolean
 
+    "This value determines if the tag is pinned by current viewer."
+    isPinned: Boolean
+
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 

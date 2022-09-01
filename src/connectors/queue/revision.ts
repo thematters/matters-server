@@ -165,8 +165,7 @@ class RevisionQueue extends BaseQueue {
 
         // Step 5: update back to article
         const revisionCount =
-          (article.revisionCount || 0) +
-          (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
+          (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
           article.id,
           {

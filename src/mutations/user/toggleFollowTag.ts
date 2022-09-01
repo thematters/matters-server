@@ -1,4 +1,4 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
 import { AuthenticationError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleFollowTagResolver } from 'definitions'
@@ -21,23 +21,22 @@ const resolver: MutationToToggleFollowTagResolver = async (
   }
 
   // determine action
-  let action: 'follow' | 'unfollow'
   if (enabled === undefined) {
-    const isFollower = await tagService.isFollower({
+    const isFollowed = await tagService.isActionEnabled({
       targetId: tag.id,
+      action: TAG_ACTION.follow,
       userId: viewer.id,
     })
-    action = !!isFollower ? 'unfollow' : 'follow'
-  } else {
-    action = enabled ? 'follow' : 'unfollow'
+    enabled = !isFollowed
   }
 
   // run action
-  if (action === 'follow') {
-    await tagService.follow({ targetId: tag.id, userId: viewer.id })
-  } else {
-    await tagService.unfollow({ targetId: tag.id, userId: viewer.id })
-  }
+  await tagService.setActionEnabled({
+    userId: viewer.id,
+    action: TAG_ACTION.follow,
+    targetId: tag.id,
+    enabled,
+  })
 
   // invalidate extra nodes
   tag[CACHE_KEYWORD] = [

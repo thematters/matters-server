@@ -517,12 +517,10 @@ const resolver: MutationToEditArticleResolver = async (
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle(
-      {
-        draftId: revisedDraft.id,
-        iscnPublish,
-      }
-    )
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      iscnPublish,
+    })
   }
 
   if (isUpdatingContent) {

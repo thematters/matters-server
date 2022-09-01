@@ -1,7 +1,7 @@
 import { TAG_ACTION } from 'common/enums'
-import { TagToIsFollowerResolver } from 'definitions'
+import { TagToIsPinnedResolver } from 'definitions'
 
-const resolver: TagToIsFollowerResolver = async (
+const resolver: TagToIsPinnedResolver = async (
   { id },
   _,
   { viewer, dataSources: { tagService } }
@@ -12,7 +12,7 @@ const resolver: TagToIsFollowerResolver = async (
 
   return tagService.isActionEnabled({
     targetId: id,
-    action: TAG_ACTION.follow,
+    action: TAG_ACTION.pin,
     userId: viewer.id,
   })
 }
