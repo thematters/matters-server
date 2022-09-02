@@ -10,11 +10,22 @@ const resolver: ArticleToTranslationResolver = async (
     title: originTitle,
     summary: originSummary,
     articleId,
+    language: storedLanguage,
   },
   { input },
   { viewer, dataSources: { atomService, articleService, tagService } }
 ) => {
   const language = input && input.language ? input.language : viewer.language
+
+  // it's same as original language
+  if (language === storedLanguage) {
+    return {
+      content: originContent,
+      title: originTitle,
+      summary: originSummary,
+      language,
+    }
+  }
 
   // get translation
   const translation = await atomService.findFirst({
