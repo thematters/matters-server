@@ -74,7 +74,7 @@ export const setCookie = ({
     getCookieOption({
       req,
       httpOnly: false,
-      publicSuffix: true,
+      publicSuffix: false,
       sameSite: 'lax',
     })
   )
@@ -101,7 +101,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   //   getCookieOption({
   //     req,
   //     httpOnly: false,
-  //     publicSuffix: true,
+  //     publicSuffix: false,
   //     sameSite: 'lax',
   //   })
   // )
