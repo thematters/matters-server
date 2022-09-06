@@ -317,8 +317,8 @@ export default /* GraphQL */ `
     isOfficial: Boolean
 
     "Counts of this tag."
-    numArticles: Int!
-    numAuthors: Int!
+    numArticles: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
+    numAuthors: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
     ## numArticlesR3m: Int
     ## numAuthorsR3m: Int
 
