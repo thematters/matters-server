@@ -22,7 +22,6 @@ const resolver: TagToRecommendedResolver = async (
   if (!id) {
     return connectionFromArray([], input)
   }
-  const { filter } = input
 
   const related = await tagService.findRelatedTags({
     id,
@@ -30,7 +29,10 @@ const resolver: TagToRecommendedResolver = async (
     // take: limit * draw,
     // skip,
   })
+
   const totalCount = related?.length ?? 0
+
+  const { filter } = input
 
   if (typeof filter?.random === 'number') {
     const { random } = filter

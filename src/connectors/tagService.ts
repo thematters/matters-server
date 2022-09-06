@@ -1290,105 +1290,82 @@ export class TagService extends BaseService {
   findRelatedTags = async ({
     id,
     content: tagContent,
-    skip,
-    take,
-    exclude,
-  }: {
+  }: // skip, take, exclude,
+  {
     id: string
     content?: string
-    skip?: number
-    take?: number
-    exclude?: string[]
+    // skip?: number
+    // take?: number
+    // exclude?: string[]
   }) => {
+    /*
     const countRels = await this.knex
       .from(VIEW.tags_lasts_view)
-      .select([
-        'id',
-        'content',
-        this.knex.raw('jsonb_array_length(top_rels) AS count'),
-      ])
+      .select(['id', 'content', this.knex.raw('jsonb_array_length(top_rels) AS count'),])
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .first()
 
     const countRelsCount = countRels?.count || 0
+*/
 
-    const subquery = this.knex
+    // const subquery = this.knex ...
+
+    const results = await this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
       )
-      .select('x.*')
+      // .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
-
-    // append some results from elasticsearch
-    if (countRelsCount < TAGS_RECOMMENDED_LIMIT) {
-      const ids = new Set<number>()
-      if (tagContent) {
-        const body = bodybuilder()
-          .query('match', 'content', tagContent)
-          .size(TAGS_RECOMMENDED_LIMIT) // at most 100
-          .build()
-
-        const result = await this.es.client.search({
-          index: this.table,
-          body,
-        })
-
-        // console.log('from es.client:', result?.hits?.hits)
-
-        const { hits } = result
-        if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
-          hits.hits.shift() // remove the exact match at first, if exists
-        }
-
-        hits.hits.forEach((hit) => ids.add((hit._source as any).id))
-
-        // console.log('from es.client:', ids)
-      }
-
-      if (ids.size > 0) {
-        subquery.unionAll(
-          this.knex
-            .from(VIEW.tags_lasts_view)
-            .select(
-              'id AS tag_rel_id',
-              'num_articles AS count_rel',
-              this.knex.raw('NULL AS count_common'), // unknown
-              this.knex.raw('NULL AS similarity')
-            )
-            .whereIn('id', Array.from(ids))
-            .modify(function (this: Knex.QueryBuilder) {
-              if (tagContent) {
-                this.whereNot('content', tagContent)
-              }
-            })
-        )
-      }
-    }
-
-    const query = this.knex
-      .from(subquery.as('x'))
-      .join(this.knex.ref(VIEW.tags_lasts_view).as('t'), 'x.tag_rel_id', 't.id')
       // .distinctOn('id')
       .select([
-        'x.*',
-        'id',
-        'content',
-        'created_at',
-        'cover',
-        'description',
-        'num_articles',
-        'num_authors',
+        'x.tag_rel_id AS id',
+        // 'x.*',
+        // 'id', 'content', 'created_at', 'cover', 'description', 'num_articles', 'num_authors',
       ])
       // .orderBy('id')
       .orderByRaw('x.similarity DESC NULLS LAST')
-      .orderByRaw(
-        'num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST'
-      )
-      .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
-      .orderByRaw('span_days DESC NULLS LAST')
-      .orderByRaw('created_at') // ascending from earliest to latest
+    // .orderByRaw('num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST')
+    // .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
+    // .orderByRaw('span_days DESC NULLS LAST')
+    // .orderByRaw('created_at') // ascending from earliest to latest
 
+    // console.log(new Date(), 'findRelatedTags:: results:', {length: results.length, results,})
+
+    if (results?.length < TAGS_RECOMMENDED_LIMIT && tagContent) {
+      const body = bodybuilder()
+        .query('match', 'content', tagContent)
+        .size(TAGS_RECOMMENDED_LIMIT) // at most 100
+        .build()
+
+      const result = await this.es.client.search({
+        index: this.table,
+        body,
+      })
+
+      const { hits } = result
+      if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
+        hits.hits.shift() // remove the exact match at first, if exists
+      }
+
+      // hits.hits.forEach((hit) => fromEsTags.add(hit._source))
+
+      const existingIds = new Set(results.map((item) => item.id))
+      for (const hit of hits.hits) {
+        if (!existingIds.has((hit._source as any).id)) {
+          results.push({ id: (hit._source as any).id })
+          if (results?.length >= TAGS_RECOMMENDED_LIMIT) {
+            break
+          }
+        }
+      }
+
+      // console.log(new Date(), 'findRelatedTags:: appended results to:', {length: results.length, results,})
+    }
+
+    return results
+
+    /*
       .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined && Number.isFinite(take)) {
           this.limit(take)
@@ -1397,6 +1374,8 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-    return query
+*/
+
+    // return query
   }
 }
