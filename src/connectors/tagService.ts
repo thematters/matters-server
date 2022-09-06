@@ -1310,8 +1310,6 @@ export class TagService extends BaseService {
       )
       // .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
-      // .from(subquery.as('x'))
-      // .join(this.knex.ref(VIEW.tags_lasts_view).as('t'), 'x.tag_rel_id', 't.id')
       // .distinctOn('id')
       .select([
         'x.tag_rel_id AS id',
@@ -1325,10 +1323,7 @@ export class TagService extends BaseService {
     // .orderByRaw('span_days DESC NULLS LAST')
     // .orderByRaw('created_at') // ascending from earliest to latest
 
-    console.log(new Date(), 'findRelatedTags:: results:', {
-      length: results.length,
-      results,
-    })
+    // console.log(new Date(), 'findRelatedTags:: results:', {length: results.length, results,})
 
     if (results?.length < TAGS_RECOMMENDED_LIMIT && tagContent) {
       const body = bodybuilder()
@@ -1358,10 +1353,7 @@ export class TagService extends BaseService {
         }
       }
 
-      console.log(new Date(), 'findRelatedTags:: appended results to:', {
-        length: results.length,
-        results,
-      })
+      // console.log(new Date(), 'findRelatedTags:: appended results to:', {length: results.length, results,})
     }
 
     return results
