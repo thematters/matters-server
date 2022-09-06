@@ -57,13 +57,14 @@ const resolver: TagToRecommendedResolver = async (
 
   // const tags = await tagService.findRelatedTags({ id, content, take, skip })
 
-  const slice =
-    skip !== undefined || take !== undefined
-      ? related.slice(skip ?? 0, take ?? TAGS_RECOMMENDED_LIMIT)
-      : related
+  // console.log(new Date, 'tag/recommended::', { skip, take, length: related.length, related })
+  const s = skip ?? 0
+  const end = s + (take ?? TAGS_RECOMMENDED_LIMIT)
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(slice.map((tag: any) => `${tag.id}`)),
+    tagService.dataloader.loadMany(
+      related.slice(s, end).map((tag: any) => `${tag.id}`)
+    ),
     input,
     totalCount // related.length
   )
