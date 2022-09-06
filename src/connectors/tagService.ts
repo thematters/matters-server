@@ -973,24 +973,18 @@ export class TagService extends BaseService {
       result = await this.knex(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
+          this.where('tag_id', tagId)
           if (withSynonyms) {
-            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
-          } else {
-            this.where('id', tagId) // exactly
-          }
+            this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } // else { this.where('id', tagId) // exactly }
         })
         .first()
     } catch (err) {
       // empty; do nothing
     }
 
-    if (result?.numAuthors !== undefined) {
-      console.log(
-        new Date(),
-        `parsed num_articles from tags_lasts:`,
-        { tagId, selected, withSynonyms },
-        result
-      )
+    if (result?.numAuthors) {
+      // console.log(new Date(), `parsed num_articles from tags_lasts:`, { tagId, selected, withSynonyms }, result)
       return parseInt(result.numAuthors ?? '0', 10)
     }
 
@@ -1026,19 +1020,17 @@ export class TagService extends BaseService {
       result = await this.knex(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
+          this.where('tag_id', tagId)
           if (withSynonyms) {
-            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
-          } else {
-            this.where('id', tagId) // exactly
-          }
+            this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } // else { this.where('id', tagId) // exactly }
         })
         .first()
     } catch (err) {
       // empty; do nothing
     }
 
-    // console.log(new Date(), `parsed num_articles from tags_lasts:`, { tagId, selected, withSynonyms }, result)
-    if (result?.numArticles !== undefined) {
+    if (result?.numArticles) {
       return parseInt(result.numArticles ?? '0', 10)
     }
 
@@ -1062,26 +1054,31 @@ export class TagService extends BaseService {
    */
   findArticleIds = async ({
     id: tagId,
-    skip,
-    take,
     selected,
     sortBy,
-    withSynonyms,
+    withSynonyms = true,
+    skip,
+    take,
   }: {
     id: string
-    skip?: number
-    take?: number
     filter?: { [key: string]: any }
     selected?: boolean
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
+    skip?: number
+    take?: number
   }) => {
     const knex = this.knex
     const query = this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
-      .where(function (this: Knex.QueryBuilder) {
+      .where({
+        // tagId,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {}),
+      })
+      .andWhere(function (this: Knex.QueryBuilder) {
         this.where('tag_id', tagId)
         if (withSynonyms) {
           this.orWhereIn(
@@ -1093,11 +1090,6 @@ export class TagService extends BaseService {
               .select('x.id')
           )
         }
-      })
-      .andWhere({
-        // tagId,
-        state: ARTICLE_STATE.active,
-        ...(selected === true ? { selected } : {}),
       })
       .modify(function (this: Knex.QueryBuilder) {
         if (sortBy === 'byHottestDesc') {
@@ -1119,8 +1111,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    // console.log('findArticleIds:', { sql: query.toString(), tagId })
 
     const result = await query
 

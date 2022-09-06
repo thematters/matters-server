@@ -85,9 +85,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // fall back to author
   if (articles.length < take + buffer) {
-    const articlesFromAuthor = await articleService.findByAuthor(authorId, {
-      state: ARTICLE_STATE.active,
-    })
+    const articlesFromAuthor = await articleService.findByAuthor(authorId)
     // logger.info(`[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(({ id: aid }: { id: string }) => aid)} `)
     articles = addRec(articles, articlesFromAuthor)
   }
