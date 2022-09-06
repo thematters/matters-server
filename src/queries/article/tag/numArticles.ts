@@ -1,12 +1,12 @@
 import { TagToNumArticlesResolver } from 'definitions'
 
 const resolver: TagToNumArticlesResolver = async (
-  { id, numAuthors },
+  { id, numArticles },
   _,
   { dataSources: { tagService } }
 ) => {
-  if (numAuthors) {
-    return numAuthors
+  if (numArticles) {
+    return numArticles
   }
 
   return tagService.countArticles({ id })
