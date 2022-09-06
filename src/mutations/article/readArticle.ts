@@ -1,4 +1,4 @@
-import slugify from '@matters/slugify'
+// import slugify from '@matters/slugify'
 
 import { ARTICLE_STATE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -51,14 +51,14 @@ const resolver: MutationToReadArticleResolver = async (
         }
 
         const author = await userService.dataloader.load(article.authorId)
-        const slug = slugify(node.title)
+        // const slug = slugify(node.title)
 
         likeCoinQueue.sendPV({
           likerId: liker ? liker.likerId : undefined,
           likerIp: viewer.ip,
           userAgent: viewer.userAgent,
           authorLikerId: author.likerId,
-          url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
+          url: `${environment.siteDomain}/@${author.userName}/${article.id}`,
         })
       } catch (error) {
         logger.error(error)

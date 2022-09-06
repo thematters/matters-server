@@ -130,7 +130,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     const superLikeData = {
       liker,
       iscn_id: article.iscn_id,
-      url: `${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
+      url: `${environment.siteDomain}/@${author.userName}/${article.id}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     }
