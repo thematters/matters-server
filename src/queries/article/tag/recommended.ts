@@ -22,6 +22,16 @@ const resolver: TagToRecommendedResolver = async (
   if (!id) {
     return connectionFromArray([], input)
   }
+
+  const related = await tagService.findRelatedTags({
+    id,
+    content,
+    // take: limit * draw,
+    // skip,
+  })
+
+  const totalCount = related?.length ?? 0
+
   const { filter } = input
 
   if (typeof filter?.random === 'number') {
@@ -30,12 +40,7 @@ const resolver: TagToRecommendedResolver = async (
     const limit = 50
 
     // take (limit * draw) amounts of related tags
-    const related = await tagService.findRelatedTags({
-      id,
-      content,
-      take: limit * draw,
-      skip,
-    })
+
     // chunk the list of tags per draw
     const chunks = chunk(related, draw)
     const index = Math.min(random, limit, chunks.length - 1)
@@ -46,12 +51,21 @@ const resolver: TagToRecommendedResolver = async (
         filteredTags.map((tag: any) => `${tag.id}`)
       ),
       input,
-      related.length
+      totalCount // related.length
     )
   }
+
+  // const tags = await tagService.findRelatedTags({ id, content, take, skip })
+
+  const slice =
+    skip !== undefined || take !== undefined
+      ? related.slice(skip ?? 0, take ?? TAGS_RECOMMENDED_LIMIT)
+      : related
+
   return connectionFromPromisedArray(
-    tagService.findRelatedTags({ id, content, take, skip }),
-    input
+    tagService.dataloader.loadMany(slice.map((tag: any) => `${tag.id}`)),
+    input,
+    totalCount // related.length
   )
 }
 
