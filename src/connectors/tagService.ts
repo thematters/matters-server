@@ -993,8 +993,9 @@ export class TagService extends BaseService {
       .join('article', 'article_id', 'article.id')
       .countDistinct('author_id')
       .where({
-        'article_tag.tag_id': tagId,
-        'article.state': ARTICLE_STATE.active,
+        // 'article_tag.tag_id': tagId,
+        tagId,
+        state: ARTICLE_STATE.active,
       })
       .first()
 
@@ -1040,21 +1041,10 @@ export class TagService extends BaseService {
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()
-      .where(function (this: Knex.QueryBuilder) {
-        this.where('tag_id', tagId)
-        if (withSynonyms) {
-          this.orWhereIn(
-            'tag_id',
-            knex
-              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-              .where('t.id', tagId)
-              .select('x.id')
-          )
-        }
-      })
-      .andWhere({
+      .where({
         // tagId: id,
+        // 'article_tag.tag_id': tagId,
+        tagId,
         state: ARTICLE_STATE.active,
         ...(selected === true ? { selected } : {}),
       })
