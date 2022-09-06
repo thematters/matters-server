@@ -73,6 +73,20 @@ exports.seed = function (knex, Promise) {
           state: 'active',
           public: true,
         },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          author_id: 1,
+          draft_id: 6,
+          title: 'test article 6',
+          slug: 'test-article-6',
+          summary: 'Some text',
+          word_count: 1000,
+          data_hash: 'someIpfsMediaHash4',
+          media_hash: 'someIpfsMediaHash4',
+          content: '<div>some html string</div>',
+          state: 'active',
+          public: true,
+        },
       ])
     })
 }

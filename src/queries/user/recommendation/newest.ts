@@ -44,10 +44,10 @@ export const newest: RecommendationToNewestResolver = async (
     .as('newest')
 
   const [_countRecord, articles] = await Promise.all([
-    MAX_ITEM_COUNT, // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
+    MAX_ITEM_COUNT, // always 500 // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
     knex
       .select()
-      .from(query.clone().limit(MAX_ITEM_COUNT))
+      .from(query.limit(MAX_ITEM_COUNT))
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take),

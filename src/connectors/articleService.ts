@@ -17,6 +17,7 @@ import {
   CIRCLE_STATE,
   COMMENT_TYPE,
   MINUTE,
+  PUBLISH_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -77,8 +78,8 @@ export class ArticleService extends BaseService {
     cover,
     dataHash,
     mediaHash,
-  }: Record<string, any>) => {
-    const article = await this.baseCreate({
+  }: Record<string, any>) =>
+    this.baseCreate({
       uuid: v4(),
       state: ARTICLE_STATE.active,
       draftId,
@@ -92,9 +93,6 @@ export class ArticleService extends BaseService {
       dataHash,
       mediaHash,
     })
-
-    return article
-  }
 
   /**
    * Publish draft data to IPFS
@@ -255,48 +253,66 @@ export class ArticleService extends BaseService {
     authorId: string,
     // filter = {},
     {
-      filter = {},
+      // filter = {},
+      showAll = false,
       stickyFirst = false,
       tagIds,
       inRangeStart,
       inRangeEnd,
     }: {
-      filter?: object
+      // filter?: object
+      showAll?: boolean
       stickyFirst?: boolean
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
     } = {}
-  ) => {
-    // const query =
-    return this.knex
-      .select()
-      .from(this.table)
-      .as('a')
-      .where({ authorId, ...filter })
+  ) =>
+    this.knex
+      .select('draft_id')
+      .from(this.knex.ref(this.table).as('a'))
+      .join(
+        this.knex
+          .from('draft')
+          .select('id', 'article_id')
+          .distinctOn('article_id')
+          .where({ authorId, publishState: PUBLISH_STATE.published })
+          .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
+          .as('t'),
+        'article_id',
+        'a.id'
+      )
+      .where({
+        authorId,
+        ...(showAll
+          ? null
+          : {
+              state: ARTICLE_STATE.active,
+            }),
+      })
       .modify(function (this: Knex.QueryBuilder) {
         if (Array.isArray(tagIds) && tagIds.length > 0) {
-          this.join('article_tag AS at', 'at.article_id', 'a.id').whereIn(
+          this.join('article_tag AS at', 'at.article_id', 'a.id').andWhere(
             'tag_id',
+            'in',
             tagIds
           )
         }
         if (inRangeStart != null && inRangeEnd != null) {
-          this.whereBetween('a.created_at', [inRangeStart, inRangeEnd])
+          // neither null nor undefined
+          this.andWhereBetween('a.created_at', [inRangeStart, inRangeEnd])
         } else if (inRangeStart != null) {
-          this.where('a.created_at', '>=', inRangeStart)
+          this.andWhere('a.created_at', '>=', inRangeStart)
         } else if (inRangeEnd != null) {
-          this.where('a.created_at', '<', inRangeEnd)
+          this.andWhere('a.created_at', '<', inRangeEnd)
         }
+
         if (stickyFirst === true) {
-          this.orderBy('sticky', 'desc')
+          this.orderBy('a.sticky', 'desc')
         }
         // always as last orderBy
-        this.orderBy('id', 'desc')
+        this.orderBy('a.id', 'desc')
       })
-
-    // return query
-  }
 
   /**
    * Find article by title
