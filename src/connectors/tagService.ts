@@ -1036,7 +1036,7 @@ export class TagService extends BaseService {
       return parseInt(result.numArticles ?? '0', 10)
     }
 
-    result = this.knex('article_tag')
+    result = await this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()
