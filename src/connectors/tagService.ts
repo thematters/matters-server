@@ -962,16 +962,22 @@ export class TagService extends BaseService {
     withSynonyms?: boolean
   }) => {
     const knex = this.knex
-    let result = await this.knex(VIEW.tags_lasts_view)
-      .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
-      .where(function (this: Knex.QueryBuilder) {
-        if (withSynonyms) {
-          this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
-        } else {
-          this.where('id', tagId) // exactly
-        }
-      })
-      .first()
+
+    let result: any
+    try {
+      result = await this.knex(VIEW.tags_lasts_view)
+        .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
+        .where(function (this: Knex.QueryBuilder) {
+          if (withSynonyms) {
+            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } else {
+            this.where('id', tagId) // exactly
+          }
+        })
+        .first()
+    } catch (err) {
+      // empty; do nothing
+    }
 
     if (result?.numAuthors !== undefined) {
       console.log(
@@ -1008,16 +1014,22 @@ export class TagService extends BaseService {
     withSynonyms?: boolean
   }) => {
     const knex = this.knex
-    let result = await this.knex(VIEW.tags_lasts_view)
-      .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
-      .where(function (this: Knex.QueryBuilder) {
-        if (withSynonyms) {
-          this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
-        } else {
-          this.where('id', tagId) // exactly
-        }
-      })
-      .first()
+
+    let result: any
+    try {
+      result = await this.knex(VIEW.tags_lasts_view)
+        .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
+        .where(function (this: Knex.QueryBuilder) {
+          if (withSynonyms) {
+            this.where(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+          } else {
+            this.where('id', tagId) // exactly
+          }
+        })
+        .first()
+    } catch (err) {
+      // empty; do nothing
+    }
 
     // console.log(new Date(), `parsed num_articles from tags_lasts:`, { tagId, selected, withSynonyms }, result)
     if (result?.numArticles !== undefined) {
