@@ -320,8 +320,8 @@ export default /* GraphQL */ `
     isOfficial: Boolean
 
     "Counts of this tag."
-    numArticles: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
-    numAuthors: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
+    numArticles: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM}) ## cache for 1 hour
+    numAuthors: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})  ## cache for 1 hour
     ## numArticlesR3m: Int
     ## numAuthorsR3m: Int
 
