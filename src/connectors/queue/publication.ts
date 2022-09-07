@@ -20,8 +20,8 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  // normalizeTagInput,
-  stripAllPunct,
+  normalizeTagInput,
+  // stripAllPunct,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -430,20 +430,25 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
+      // tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
 
       // create tag records, return tag record if already exists
       const dbTags = (
         (await Promise.all(
-          tags.map((tag: string) =>
+          tags.filter(Boolean).map((content: string) =>
             this.tagService.create(
               {
-                content: tag,
+                content,
                 creator: article.authorId,
                 editors: tagEditors,
                 owner: article.authorId,
               },
-              ['id', 'content']
+              {
+                columns: ['id', 'content'],
+                skipCreate:
+                  // !content // || content.length > MAX_TAG_CONTENT_LENGTH,
+                  normalizeTagInput(content) !== content,
+              }
             )
           )
         )) as unknown as [{ id: string; content: string }]

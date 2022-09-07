@@ -34,9 +34,9 @@ import {
   correctHtml,
   fromGlobalId,
   measureDiffs,
-  // normalizeTagInput,
+  normalizeTagInput,
   sanitize,
-  stripAllPunct,
+  // stripAllPunct,
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
@@ -145,7 +145,7 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags.map(stripAllPunct).filter(Boolean))
+    // tags = uniq(tags.map(stripAllPunct).filter(Boolean))
 
     if (tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
       throw new TooManyTagsForArticleError(
@@ -156,15 +156,20 @@ const resolver: MutationToEditArticleResolver = async (
     // create tag records
     const dbTags = (
       await Promise.all(
-        tags.map(async (tag: string) =>
+        // eslint-disable-next-line no-shadow
+        // tslint:disable-next-line
+        tags.filter(Boolean).map(async (content: string) =>
           tagService.create(
             {
-              content: tag,
+              content,
               creator: article.authorId,
               editors: tagEditors,
               owner: article.authorId,
             },
-            ['id', 'content']
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+            }
           )
         )
       )

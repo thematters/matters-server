@@ -7,7 +7,7 @@ import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
   // MATERIALIZED_VIEW,
-  MAX_TAG_CONTENT_LENGTH,
+  // MAX_TAG_CONTENT_LENGTH,
   // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
@@ -204,8 +204,9 @@ export class TagService extends BaseService {
       })
 
   /**
-   * Create a tag, but return one if it's existing.
-   * update: this create may skip (return null) if content.length > MAX_TAG_CONTENT_LENGTH
+   * findOrCreate:
+   * find one existing tag, or create it if not existed before
+   * this create may return null if skipCreate
    */
   create = async (
     {
@@ -223,7 +224,14 @@ export class TagService extends BaseService {
       editors: string[]
       owner: string
     },
-    columns: string[] = ['*']
+    {
+      // options
+      columns = ['*'],
+      skipCreate = false,
+    }: {
+      columns?: string[]
+      skipCreate?: boolean
+    } = {}
   ) => {
     const tag = await this.baseFindOrCreate({
       where: { content },
@@ -238,7 +246,7 @@ export class TagService extends BaseService {
           )
           .merge({ deleted: false })
       },
-      skipCreate: content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
+      skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
 
     // add tag into search engine
