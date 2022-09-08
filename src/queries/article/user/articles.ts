@@ -1,7 +1,3 @@
-// import { uniqBy } from 'lodash'
-
-// import { ARTICLE_STATE } from 'common/enums'
-// import { UserInputError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -22,9 +18,6 @@ const resolver: UserToArticlesResolver = async (
   const isAdmin = viewer.hasRole('admin')
 
   const tagIds = input.filter?.tagIds?.map((tagId) => fromGlobalId(tagId).id)
-  // const inRange = input.filter?.inRange as [string | null, string | null]
-
-  // const filter = isViewer || isAdmin ? {} : { state: ARTICLE_STATE.active }
   const articles = await articleService.findByAuthor(id, {
     // filter,
     showAll: isViewer || isAdmin,

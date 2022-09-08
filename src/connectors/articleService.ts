@@ -710,7 +710,8 @@ export class ArticleService extends BaseService {
         purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .sum('amount as total')
-    const total = appreciations?.[0]?.total ?? 0
+      .first()
+    const total = appreciations?.total ?? 0
 
     return Math.max(ARTICLE_APPRECIATE_LIMIT - total, 0)
   }
