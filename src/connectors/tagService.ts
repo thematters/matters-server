@@ -6,7 +6,7 @@ import { Knex } from 'knex'
 import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
-  MATERIALIZED_VIEW,
+  // MATERIALIZED_VIEW,
   MAX_TAG_CONTENT_LENGTH,
   // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
@@ -386,6 +386,7 @@ export class TagService extends BaseService {
         action: TAG_ACTION.follow,
       })
       .del()
+
   /**
    * Find followers of a tag using id as pagination index.
    *
@@ -413,26 +414,6 @@ export class TagService extends BaseService {
     }
 
     return query
-  }
-
-  /**
-   * Determine if an user followed a tag or not by a given id.
-   *
-   */
-  // superceded / deprecated by isActionEnabled / setActionEnabled
-  isFollower = async ({
-    userId,
-    targetId,
-  }: {
-    userId: string
-    targetId: string
-  }) => {
-    const result = await this.knex
-      .select('id')
-      .from('action_tag')
-      .where({ userId, targetId, action: TAG_ACTION.follow })
-      .first()
-    return !!result
   }
 
   isActionEnabled = async ({
@@ -711,8 +692,8 @@ export class TagService extends BaseService {
     // recent 1 week, 1 month, or 3 months?
     top?: 'r1w' | 'r2w' | 'r1m' | 'r3m'
     minAuthors?: number
-  }) => {
-    const query = this.knex
+  }) =>
+    this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
       .modify(function (this: Knex.QueryBuilder) {
@@ -761,109 +742,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    return query
-  }
-
-  /**
-   * Dead code: to be removed (in next release)
-   * Find curation-like tags.
-   *
-   */
-  findCurationTags = ({
-    // mattyId,
-    fields = ['*'],
-    take,
-  }: {
-    // mattyId: string
-    fields?: any[]
-    take?: number
-  }) => {
-    const query = this.knex
-      .select(fields)
-      .from(MATERIALIZED_VIEW.curation_tag_materialized)
-      .orderBy('uuid')
-
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
-
-  /**
-   * Dead code: to be removed (in next release)
-   * Find non-curation-like tags based on score order.
-   *
-   */
-  findNonCurationTags = ({
-    // mattyId,
-    fields = ['*'],
-    oss = false,
-  }: {
-    // mattyId: string
-    fields?: any[]
-    oss?: boolean
-  }) => {
-    const curation = this.findCurationTags({
-      // mattyId,
-      fields: ['id'],
-    })
-    const query = this.knex
-      .select(fields)
-      .from(function (this: Knex.QueryBuilder) {
-        this.select()
-          .from(
-            oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
-          )
-          .whereNotIn('id', curation)
-          .orderByRaw('tag_score DESC NULLS LAST')
-          .orderBy('count', 'desc')
-          .as('source')
-      })
-    return query
-  }
-
-  /**
-   * Dead code: to be removed (in next release)
-   * Find curation-like and non-curation-like tags in specific order.
-   *
-   */
-  findArrangedTags = async ({
-    mattyId,
-    take,
-    skip,
-    oss = false,
-  }: {
-    mattyId: string
-    take?: number
-    skip?: number
-    oss?: boolean
-  }) => {
-    const curation = this.findCurationTags({
-      // mattyId,
-      fields: ['id', this.knex.raw('1 as type')],
-    })
-    const nonCuration = this.findNonCurationTags({
-      // mattyId,
-      fields: ['id', this.knex.raw('2 as type')],
-      oss,
-    })
-    const query = this.knex
-      .select(['id', 'type'])
-      .from(curation.as('curation'))
-      .unionAll([nonCuration])
-      .orderBy('type')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
 
   /**
    *
@@ -1056,14 +934,14 @@ export class TagService extends BaseService {
     take,
   }: {
     id: string
-    filter?: { [key: string]: any }
+    // filter?: { [key: string]: any }
     selected?: boolean
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
     skip?: number
     take?: number
   }) => {
-    const knex = this.knex
+    // const knex = this.knex
     const query = this.knex
       .select('article_id')
       .from('article_tag')
@@ -1073,37 +951,37 @@ export class TagService extends BaseService {
         state: ARTICLE_STATE.active,
         ...(selected === true ? { selected } : {}),
       })
-      .andWhere(function (this: Knex.QueryBuilder) {
-        this.where('tag_id', tagId)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder.where('tag_id', tagId)
         if (withSynonyms) {
-          this.orWhereIn(
+          builder.orWhereIn(
             'tag_id',
-            knex
-              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-              .where('t.id', tagId)
-              .select('x.id')
+            this.knex
+              .from(VIEW.tags_lasts_view)
+              // .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .whereRaw('dup_tag_ids @> ARRAY[?] ::int[]', tagId)
+              .select(this.knex.raw('UNNEST(dup_tag_ids)'))
           )
         }
       })
-      .modify(function (this: Knex.QueryBuilder) {
+      .modify((builder: Knex.QueryBuilder) => {
         if (sortBy === 'byHottestDesc') {
-          this.join(
-            // instead of leftJoin, only shows articles from materialized
-            'article_hottest_materialized AS ah',
-            'ah.id',
-            'article.id'
-          ).orderByRaw(`score DESC NULLS LAST`)
+          builder
+            .join(
+              // instead of leftJoin, only shows articles from materialized
+              'article_hottest_materialized AS ah',
+              'ah.id',
+              'article.id'
+            )
+            .orderByRaw(`score DESC NULLS LAST`)
         }
-        this.orderBy('article.id', 'desc')
-      })
+        builder.orderBy('article.id', 'desc')
 
-      .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined && Number.isFinite(take)) {
-          this.limit(take)
+          builder.limit(take)
         }
         if (skip !== undefined && Number.isFinite(skip)) {
-          this.offset(skip)
+          builder.offset(skip)
         }
       })
 
@@ -1115,9 +993,9 @@ export class TagService extends BaseService {
       sql: query.toString(),
     })
 
-    const result = await query
+    const results = await query
 
-    return result.map(({ articleId }: { articleId: string }) => articleId)
+    return results.map(({ articleId }: { articleId: string }) => articleId)
   }
 
   /**
