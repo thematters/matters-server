@@ -929,7 +929,7 @@ export class TagService extends BaseService {
     id: tagId,
     selected,
     sortBy,
-    withSynonyms = true,
+    withSynonyms,
     skip,
     take,
   }: {

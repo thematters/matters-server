@@ -19,11 +19,11 @@ const resolver: TagToArticlesResolver = async (
     }),
     tagService.findArticleIds({
       id,
-      skip,
-      take,
       selected,
       sortBy: sortBy as 'byHottestDesc' | 'byCreatedAtDesc' | undefined,
       withSynonyms: isFromRecommendation,
+      skip,
+      take,
     }),
   ])
 
