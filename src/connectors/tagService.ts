@@ -386,6 +386,7 @@ export class TagService extends BaseService {
         action: TAG_ACTION.follow,
       })
       .del()
+
   /**
    * Find followers of a tag using id as pagination index.
    *
@@ -714,8 +715,8 @@ export class TagService extends BaseService {
     // recent 1 week, 1 month, or 3 months?
     top?: 'r1w' | 'r2w' | 'r1m' | 'r3m'
     minAuthors?: number
-  }) => {
-    const query = this.knex
+  }) =>
+    this.knex
       .select('id')
       .from(VIEW.tags_lasts_view)
       .modify(function (this: Knex.QueryBuilder) {
@@ -764,11 +765,6 @@ export class TagService extends BaseService {
           this.offset(skip)
         }
       })
-
-    // console.log('findTopTags: use query:', query.toString())
-
-    return query
-  }
 
   /**
    * Dead code: to be removed (in next release)
@@ -1061,14 +1057,14 @@ export class TagService extends BaseService {
     take,
   }: {
     id: string
-    filter?: { [key: string]: any }
+    // filter?: { [key: string]: any }
     selected?: boolean
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
     skip?: number
     take?: number
   }) => {
-    const knex = this.knex
+    // const knex = this.knex
     const query = this.knex
       .select('article_id')
       .from('article_tag')
@@ -1078,43 +1074,42 @@ export class TagService extends BaseService {
         state: ARTICLE_STATE.active,
         ...(selected === true ? { selected } : {}),
       })
-      .andWhere(function (this: Knex.QueryBuilder) {
-        this.where('tag_id', tagId)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder.where('tag_id', tagId)
         if (withSynonyms) {
-          this.orWhereIn(
+          builder.orWhereIn(
             'tag_id',
-            knex
-              .from(knex.ref(VIEW.tags_lasts_view).as('t'))
-              .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
-              .where('t.id', tagId)
-              .select('x.id')
+            this.knex
+              .from(VIEW.tags_lasts_view)
+              // .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .whereRaw('dup_tag_ids @> ARRAY[?] ::int[]', tagId)
+              .select(this.knex.raw('UNNEST(dup_tag_ids)'))
           )
         }
       })
-      .modify(function (this: Knex.QueryBuilder) {
+      .modify((builder: Knex.QueryBuilder) => {
         if (sortBy === 'byHottestDesc') {
-          this.join(
-            // instead of leftJoin, only shows articles from materialized
-            'article_hottest_materialized AS ah',
-            'ah.id',
-            'article.id'
-          ).orderByRaw(`score DESC NULLS LAST`)
+          builder
+            .join(
+              // instead of leftJoin, only shows articles from materialized
+              'article_hottest_materialized AS ah',
+              'ah.id',
+              'article.id'
+            )
+            .orderByRaw(`score DESC NULLS LAST`)
         }
-        this.orderBy('article.id', 'desc')
-      })
+        builder.orderBy('article.id', 'desc')
 
-      .modify(function (this: Knex.QueryBuilder) {
         if (take !== undefined && Number.isFinite(take)) {
-          this.limit(take)
+          builder.limit(take)
         }
         if (skip !== undefined && Number.isFinite(skip)) {
-          this.offset(skip)
+          builder.offset(skip)
         }
       })
 
-    const result = await query
-
-    return result.map(({ articleId }: { articleId: string }) => articleId)
+    const results = await query
+    return results.map(({ articleId }: { articleId: string }) => articleId)
   }
 
   /**
