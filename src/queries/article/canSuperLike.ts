@@ -23,7 +23,7 @@ const resolver: ArticleToCanSuperLikeResolver = async (
   try {
     return await userService.likecoin.canSuperLike({
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${article.id}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     })
