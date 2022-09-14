@@ -10,6 +10,7 @@ import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
+import putFeaturedTags from './putFeaturedTags'
 import refreshIPNSFeed from './refreshIPNSFeed'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
@@ -63,5 +64,6 @@ export default {
     toggleUsersBadge,
     unbindLikerId,
     claimLogbooks,
+    putFeaturedTags,
   },
 }

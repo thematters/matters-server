@@ -165,6 +165,7 @@ export type BasicTableName =
   | 'article_translation'
   | 'tag_translation'
   | 'user_ipns_keys'
+  | 'user_tags_order'
 
 export type View =
   | 'tag_count_view'

@@ -250,6 +250,9 @@ type Mutation {
   """Let Traveloggers owner claims a Logbook, returns transaction hash"""
   claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
+  """update tags for showing on profile page"""
+  putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
+
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
 
@@ -2336,6 +2339,11 @@ type UserInfo {
 
   """Connected wallet."""
   cryptoWallet: CryptoWallet
+
+  """
+  saved tags for showing on profile page, API allows up to 100, front-end lock'ed at lower limit
+  """
+  featuredTags: [Tag!]
 }
 
 type UserSettings {
@@ -2811,6 +2819,11 @@ input ClaimLogbooksInput {
 
   """nonce from generateSigningMessage"""
   nonce: String!
+}
+
+input FeaturedTagsInput {
+  """ tagIds """
+  ids: [ID!]!
 }
 
 type ClaimLogbooksResult {
