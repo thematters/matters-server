@@ -80,7 +80,7 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   const tags = sanitizeTags(input.tags)
-  if (Array.isArray(tags) && tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
+  if (Array.isArray(tags) && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
     throw new TooManyTagsForArticleError(
       `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
