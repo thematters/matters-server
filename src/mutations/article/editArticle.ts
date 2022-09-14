@@ -147,7 +147,7 @@ const resolver: MutationToEditArticleResolver = async (
 
     // tags = uniq(tags.map(stripAllPunct).filter(Boolean))
 
-    if (tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
+    if (tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
       throw new TooManyTagsForArticleError(
         `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
