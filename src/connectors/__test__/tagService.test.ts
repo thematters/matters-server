@@ -21,7 +21,9 @@ test('create', async () => {
       editors: [],
       owner: '0',
     },
-    ['id', 'content']
+    {
+      columns: ['id', 'content'],
+    }
   )
   expect(tag.content).toEqual(content)
 })

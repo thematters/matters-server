@@ -34,7 +34,7 @@ jobs:
           discovery.type: single-node
           xpack.security.enabled: false
       ipfs:
-        image: ipfs/go-ipfs:v0.9.1
+        image: ipfs/go-ipfs:v0.14.0
         ports:
           - 5001:5001
       stripe:

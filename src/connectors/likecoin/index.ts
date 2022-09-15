@@ -594,8 +594,6 @@ export class LikeCoin {
       keywords: tags, // ["matrix","recursion","keyword3"]
     }
 
-    console.log('iscnPublish with postData:', JSON.stringify(postData))
-
     const res = await this.request({
       endpoint,
       // ip: likerIp,

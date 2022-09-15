@@ -791,6 +791,11 @@ export interface GQLTag extends GQLNode {
   isFollower?: boolean
 
   /**
+   * This value determines if the tag is pinned by current viewer.
+   */
+  isPinned?: boolean
+
+  /**
    * Followers of this tag.
    */
   followers: GQLUserConnection
@@ -844,6 +849,7 @@ export interface GQLArticleTranslation {
   title?: string
   content?: string
   summary?: string
+  language?: string
 }
 
 export interface GQLTagOSS {
@@ -3156,6 +3162,13 @@ export interface GQLFilterInput {
    * Used in User.topics
    */
   public?: boolean
+
+  /**
+   * Used in User Articles filter, by tags or by time range, or both
+   */
+  tagIds?: Array<string>
+  inRangeStart?: GQLDateTime
+  inRangeEnd?: GQLDateTime
 }
 
 export interface GQLUserInfo {
@@ -6458,6 +6471,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   creator?: TagToCreatorResolver<TParent>
   owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
+  isPinned?: TagToIsPinnedResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   participants?: TagToParticipantsResolver<TParent>
   recommended?: TagToRecommendedResolver<TParent>
@@ -6569,6 +6583,15 @@ export interface TagToOwnerResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToIsFollowerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToIsPinnedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6766,6 +6789,7 @@ export interface GQLArticleTranslationTypeResolver<TParent = any> {
   title?: ArticleTranslationToTitleResolver<TParent>
   content?: ArticleTranslationToContentResolver<TParent>
   summary?: ArticleTranslationToSummaryResolver<TParent>
+  language?: ArticleTranslationToLanguageResolver<TParent>
 }
 
 export interface ArticleTranslationToTitleResolver<
@@ -6793,6 +6817,18 @@ export interface ArticleTranslationToContentResolver<
 }
 
 export interface ArticleTranslationToSummaryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTranslationToLanguageResolver<
   TParent = any,
   TResult = any
 > {
@@ -7231,7 +7267,7 @@ export interface CircleToAnalyticsResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToBroadcastArgs {
-  input: GQLConnectionArgs
+  input: GQLCommentsInput
 }
 export interface CircleToBroadcastResolver<TParent = any, TResult = any> {
   (
@@ -7252,7 +7288,7 @@ export interface CircleToPinnedBroadcastResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleToDiscussionArgs {
-  input: GQLConnectionArgs
+  input: GQLCommentsInput
 }
 export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
   (

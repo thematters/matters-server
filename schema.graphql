@@ -534,6 +534,9 @@ type Tag implements Node {
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
+  """This value determines if the tag is pinned by current viewer."""
+  isPinned: Boolean
+
   """Followers of this tag."""
   followers(input: ConnectionArgs!): UserConnection!
 
@@ -578,6 +581,7 @@ type ArticleTranslation {
   title: String
   content: String
   summary: String
+  language: String
 }
 
 type TagOSS {
@@ -875,13 +879,13 @@ type Circle implements Node {
   analytics: CircleAnalytics!
 
   """Comments broadcasted by Circle owner."""
-  broadcast(input: ConnectionArgs!): CommentConnection!
+  broadcast(input: CommentsInput!): CommentConnection!
 
   """Pinned comments broadcasted by Circle owner."""
   pinnedBroadcast: [Comment!]
 
   """Comments made by Circle member."""
-  discussion(input: ConnectionArgs!): CommentConnection!
+  discussion(input: CommentsInput!): CommentConnection!
 
   """Discussion (exclude replies) count of this circle."""
   discussionThreadCount: Int!
@@ -2285,6 +2289,11 @@ input FilterInput {
 
   """Used in User.topics"""
   public: Boolean
+
+  """Used in User Articles filter, by tags or by time range, or both"""
+  tagIds: [ID!]
+  inRangeStart: DateTime
+  inRangeEnd: DateTime
 }
 
 type UserInfo {

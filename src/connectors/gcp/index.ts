@@ -1,4 +1,4 @@
-import { v2 as TranslateAPI } from '@google-cloud/translate'
+import { v3 as TranslateAPI } from '@google-cloud/translate'
 import axios from 'axios'
 
 import { LANGUAGE } from 'common/enums'
@@ -9,11 +9,11 @@ import logger from 'common/logger'
 const { zh_hans, zh_hant, en } = LANGUAGE
 
 class GCP {
-  translateAPI: TranslateAPI.Translate
+  translateAPI: TranslateAPI.TranslationServiceClient
 
   constructor() {
     try {
-      this.translateAPI = new TranslateAPI.Translate({
+      this.translateAPI = new TranslateAPI.TranslationServiceClient({
         projectId: environment.gcpProjectId,
         keyFilename: environment.translateCertPath,
       })
@@ -45,8 +45,18 @@ class GCP {
 
   detectLanguage = async (content: string) => {
     try {
-      const [{ language }] = await this.translateAPI.detect(content)
-      return this.toInternalLanguage(language)
+      const [response] = await this.translateAPI.detectLanguage({
+        parent: `projects/${environment.gcpProjectId}/locations/global`,
+        content,
+      })
+
+      if (!response.languages || !response.languages[0].languageCode) {
+        return
+      }
+
+      const languageCode = response.languages[0].languageCode
+
+      return this.toInternalLanguage(languageCode)
     } catch (err) {
       logger.error(err)
       return
@@ -56,16 +66,27 @@ class GCP {
   translate = async ({
     content,
     target,
+    mimeType = 'text/html',
   }: {
     content: string
     target: string
+    mimeType?: 'text/plain' | 'text/html'
   }) => {
     try {
-      const [translation] = await this.translateAPI.translate(
-        content,
-        this.fromInteralLanguage(target)
-      )
-      return translation
+      const [response] = await this.translateAPI.translateText({
+        parent: `projects/${environment.gcpProjectId}/locations/global`,
+        contents: [content],
+        mimeType,
+        targetLanguageCode: this.fromInteralLanguage(target),
+      })
+
+      if (!response.translations) {
+        return
+      }
+
+      for (const translation of response.translations) {
+        return translation.translatedText
+      }
     } catch (err) {
       logger.error(err)
       return

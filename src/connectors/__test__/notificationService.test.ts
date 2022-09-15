@@ -101,7 +101,6 @@ describe('user notify setting', () => {
           event: type,
           setting: notifySetting,
         })
-        // console.log('check type:', {type, expected: defaultNoifySetting[type], actual: enable,})
         expect(enable).toBe(defaultNoifySetting[type])
       })
     )

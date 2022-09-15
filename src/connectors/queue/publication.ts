@@ -20,8 +20,8 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  // normalizeTagInput,
-  stripAllPunct,
+  normalizeTagInput,
+  // stripAllPunct,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -105,11 +105,6 @@ class PublicationQueue extends BaseQueue {
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
-    console.log(
-      `handlePublishArticle: progress 0 of initial publishing for draftId: ${draft?.id}:`,
-      draft
-    )
-
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       job.progress(100)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
@@ -151,11 +146,6 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
-      console.log(
-        `handlePublishArticle: progress 20 of publishing for draftId: ${draft.id}:`,
-        article
-      )
-
       // Step 4: update draft
       const [publishedDraft] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -181,11 +171,6 @@ class PublicationQueue extends BaseQueue {
       try {
         const author = await this.userService.baseFindById(draft.authorId)
         const { userName, displayName } = author
-
-        console.log(
-          `handlePublishArticle: progress 30 start optional steps of publishing for draftId: ${draft.id}:`,
-          publishedDraft // draft
-        )
 
         // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
@@ -233,8 +218,6 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        console.log(`before iscnPublish:`, { draft, jobData: job.data })
-
         // Step: iscn publishing
         if (iscnPublish || draft.iscnPublish) {
           const liker = (await this.userService.findLiker({
@@ -260,22 +243,7 @@ class PublicationQueue extends BaseQueue {
             // likerIp,
             // userAgent,
           })
-
-          console.log('draft.iscnPublish result:', {
-            iscnId,
-            articleId: article.id,
-            title: article.title,
-          })
         }
-
-        console.log(
-          `iscnPublish for draft id: ${draft.id} "${draft.title}": ${draft.iscnPublish} got "${iscnId}"`,
-          {
-            iscnId,
-            articleId: article.id,
-            title: article.title,
-          }
-        )
 
         if (iscnPublish || draft.iscnPublish != null) {
           // handling both cases of set to true or false, but not omit (undefined)
@@ -462,20 +430,25 @@ class PublicationQueue extends BaseQueue {
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
-      tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
+      // tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
 
       // create tag records, return tag record if already exists
       const dbTags = (
         (await Promise.all(
-          tags.map((tag: string) =>
+          tags.filter(Boolean).map((content: string) =>
             this.tagService.create(
               {
-                content: tag,
+                content,
                 creator: article.authorId,
                 editors: tagEditors,
                 owner: article.authorId,
               },
-              ['id', 'content']
+              {
+                columns: ['id', 'content'],
+                skipCreate:
+                  // !content // || content.length > MAX_TAG_CONTENT_LENGTH,
+                  normalizeTagInput(content) !== content,
+              }
             )
           )
         )) as unknown as [{ id: string; content: string }]

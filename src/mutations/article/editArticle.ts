@@ -34,9 +34,9 @@ import {
   correctHtml,
   fromGlobalId,
   measureDiffs,
-  // normalizeTagInput,
+  normalizeTagInput,
   sanitize,
-  stripAllPunct,
+  // stripAllPunct,
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
@@ -145,9 +145,9 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
-    tags = uniq(tags.map(stripAllPunct).filter(Boolean))
+    // tags = uniq(tags.map(stripAllPunct).filter(Boolean))
 
-    if (tags.length >= MAX_TAGS_PER_ARTICLE_LIMIT) {
+    if (tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
       throw new TooManyTagsForArticleError(
         `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
@@ -156,15 +156,20 @@ const resolver: MutationToEditArticleResolver = async (
     // create tag records
     const dbTags = (
       await Promise.all(
-        tags.map(async (tag: string) =>
+        // eslint-disable-next-line no-shadow
+        // tslint:disable-next-line
+        tags.filter(Boolean).map(async (content: string) =>
           tagService.create(
             {
-              content: tag,
+              content,
               creator: article.authorId,
               editors: tagEditors,
               owner: article.authorId,
             },
-            ['id', 'content']
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+            }
           )
         )
       )
@@ -510,22 +515,17 @@ const resolver: MutationToEditArticleResolver = async (
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
         license: currDraft?.license,
-        iscnPublish,
+        // iscnPublish,
       },
       lodash.isUndefined // to drop only undefined // _.isNil
     )
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle(
-      // lodash.omitBy(
-      {
-        draftId: revisedDraft.id,
-        iscnPublish,
-      }
-      //  lodash.isUndefined
-      // ) as RevisedArticleData
-    )
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      iscnPublish,
+    })
   }
 
   if (isUpdatingContent) {

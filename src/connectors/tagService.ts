@@ -1,13 +1,13 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
-  MATERIALIZED_VIEW,
-  MAX_TAG_CONTENT_LENGTH,
+  // MATERIALIZED_VIEW,
+  // MAX_TAG_CONTENT_LENGTH,
   // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
@@ -204,8 +204,9 @@ export class TagService extends BaseService {
       })
 
   /**
-   * Create a tag, but return one if it's existing.
-   * update: this create may skip (return null) if content.length > MAX_TAG_CONTENT_LENGTH
+   * findOrCreate:
+   * find one existing tag, or create it if not existed before
+   * this create may return null if skipCreate
    */
   create = async (
     {
@@ -223,7 +224,14 @@ export class TagService extends BaseService {
       editors: string[]
       owner: string
     },
-    columns: string[] = ['*']
+    {
+      // options
+      columns = ['*'],
+      skipCreate = false,
+    }: {
+      columns?: string[]
+      skipCreate?: boolean
+    } = {}
   ) => {
     const tag = await this.baseFindOrCreate({
       where: { content },
@@ -238,7 +246,7 @@ export class TagService extends BaseService {
           )
           .merge({ deleted: false })
       },
-      skipCreate: content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
+      skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
 
     // add tag into search engine
@@ -416,26 +424,6 @@ export class TagService extends BaseService {
     return query
   }
 
-  /**
-   * Determine if an user followed a tag or not by a given id.
-   *
-   */
-  // superceded / deprecated by isActionEnabled / setActionEnabled
-  isFollower = async ({
-    userId,
-    targetId,
-  }: {
-    userId: string
-    targetId: string
-  }) => {
-    const result = await this.knex
-      .select('id')
-      .from('action_tag')
-      .where({ userId, targetId, action: TAG_ACTION.follow })
-      .first()
-    return !!result
-  }
-
   isActionEnabled = async ({
     userId,
     action,
@@ -611,7 +599,6 @@ export class TagService extends BaseService {
         ])
         res.forEach(({ id }) => ids.add(+id))
         res2.forEach(({ tagId }) => ids.add(+tagId))
-        // console.log(new Date(), 'author tags:', res, res2, 'merged:', ids)
       }
 
       if (key) {
@@ -654,8 +641,6 @@ export class TagService extends BaseService {
             this.offset(skip)
           }
         })
-
-      // console.log('searchTags: use query:', queryTags.toString())
 
       const tags = await queryTags
 
@@ -767,106 +752,6 @@ export class TagService extends BaseService {
       })
 
   /**
-   * Dead code: to be removed (in next release)
-   * Find curation-like tags.
-   *
-   */
-  findCurationTags = ({
-    // mattyId,
-    fields = ['*'],
-    take,
-  }: {
-    // mattyId: string
-    fields?: any[]
-    take?: number
-  }) => {
-    const query = this.knex
-      .select(fields)
-      .from(MATERIALIZED_VIEW.curation_tag_materialized)
-      .orderBy('uuid')
-
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
-
-  /**
-   * Dead code: to be removed (in next release)
-   * Find non-curation-like tags based on score order.
-   *
-   */
-  findNonCurationTags = ({
-    // mattyId,
-    fields = ['*'],
-    oss = false,
-  }: {
-    // mattyId: string
-    fields?: any[]
-    oss?: boolean
-  }) => {
-    const curation = this.findCurationTags({
-      // mattyId,
-      fields: ['id'],
-    })
-    const query = this.knex
-      .select(fields)
-      .from(function (this: Knex.QueryBuilder) {
-        this.select()
-          .from(
-            oss ? VIEW.tag_count_view : MATERIALIZED_VIEW.tag_count_materialized
-          )
-          .whereNotIn('id', curation)
-          .orderByRaw('tag_score DESC NULLS LAST')
-          .orderBy('count', 'desc')
-          .as('source')
-      })
-    return query
-  }
-
-  /**
-   * Dead code: to be removed (in next release)
-   * Find curation-like and non-curation-like tags in specific order.
-   *
-   */
-  findArrangedTags = async ({
-    mattyId,
-    take,
-    skip,
-    oss = false,
-  }: {
-    mattyId: string
-    take?: number
-    skip?: number
-    oss?: boolean
-  }) => {
-    const curation = this.findCurationTags({
-      // mattyId,
-      fields: ['id', this.knex.raw('1 as type')],
-    })
-    const nonCuration = this.findNonCurationTags({
-      // mattyId,
-      fields: ['id', this.knex.raw('2 as type')],
-      oss,
-    })
-    const query = this.knex
-      .select(['id', 'type'])
-      .from(curation.as('curation'))
-      .unionAll([nonCuration])
-      .orderBy('type')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
-
-  /**
    *
    * query, add and remove tag recommendation
    */
@@ -917,11 +802,11 @@ export class TagService extends BaseService {
     tagIds: string[]
     selected?: boolean
   }) => {
-    articleIds = _.uniq(articleIds)
-    tagIds = _.uniq(tagIds)
+    articleIds = Array.from(new Set(articleIds))
+    tagIds = Array.from(new Set(tagIds))
 
-    const items = _.flatten(
-      articleIds.map((articleId) => {
+    const items = articleIds
+      .map((articleId) => {
         return tagIds.map((tagId) => ({
           articleId,
           creator,
@@ -929,7 +814,7 @@ export class TagService extends BaseService {
           ...(selected === true ? { selected } : {}),
         }))
       })
-    )
+      .flat(1)
     return this.baseBatchCreate(items, 'article_tag')
   }
 
@@ -1108,7 +993,16 @@ export class TagService extends BaseService {
         }
       })
 
+    console.log(new Date(), `findArticleIds::`, {
+      tagId,
+      selected,
+      sortBy,
+      withSynonyms,
+      sql: query.toString(),
+    })
+
     const results = await query
+
     return results.map(({ articleId }: { articleId: string }) => articleId)
   }
 

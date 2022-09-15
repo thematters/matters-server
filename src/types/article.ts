@@ -175,7 +175,7 @@ export default /* GraphQL */ `
     sticky: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})
+    translation(input: TranslationArgs): ArticleTranslation
 
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
@@ -304,6 +304,9 @@ export default /* GraphQL */ `
     "This value determines if current viewer is following or not."
     isFollower: Boolean
 
+    "This value determines if the tag is pinned by current viewer."
+    isPinned: Boolean
+
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
@@ -317,8 +320,8 @@ export default /* GraphQL */ `
     isOfficial: Boolean
 
     "Counts of this tag."
-    numArticles: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
-    numAuthors: Int! @cacheControl(maxAge: ${CACHE_TTL.MEDIUM})
+    numArticles: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM}) ## cache for 1 hour
+    numAuthors: Int! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})  ## cache for 1 hour
     ## numArticlesR3m: Int
     ## numAuthorsR3m: Int
 
@@ -349,6 +352,7 @@ export default /* GraphQL */ `
     title: String
     content: String
     summary: String
+    language: String
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
