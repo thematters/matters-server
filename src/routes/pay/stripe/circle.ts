@@ -289,6 +289,17 @@ export const completeCircleInvoice = async ({
     const tx = (await paymentService.findTransactions({ providerTxId }))[0]
 
     if (tx) {
+      // return silently if the transaction and the invoice already exist;
+      // and, the total amount of split transactions is correct.
+      const inv = (await paymentService.findInvoice({ providerInvoiceId }))[0]
+      const splitted = await paymentService.isTransactionSplitted({
+        providerTxId,
+        amount: tx.amount,
+      })
+      if (inv && splitted) {
+        return
+      }
+
       throw new ServerError(
         `transaction already exists for invoice ${providerInvoiceId}`
       )
