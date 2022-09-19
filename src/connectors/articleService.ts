@@ -31,6 +31,7 @@ import {
   BaseService,
   ipfs,
   SystemService,
+  TagService,
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
@@ -235,6 +236,7 @@ export class ArticleService extends BaseService {
   ) => {
     const systemService = new SystemService()
     const atomService = new AtomService()
+    const tagService = new TagService()
 
     const { userName, avatar, description, displayName } = author
     const userImg = avatar && (await systemService.findAssetUrl(avatar))
@@ -256,7 +258,12 @@ export class ArticleService extends BaseService {
     let keyId = ipnsKey?.ipnsAddress
     try {
       // always try import; might be on another new ipfs node, or never has it before
-      ;({ Id: keyId } = await this.ipfs.importKey(kname, pem))
+      // ;({ Id: keyId } =
+      const res = await this.ipfs.importKey(kname, pem)
+      console.log(new Date(), 'key/import res:', res)
+      if (!keyId && res) {
+        keyId = res?.Id
+      }
     } catch (err) {
       // ignore import error if already exists;
     }
@@ -278,19 +285,30 @@ export class ArticleService extends BaseService {
     // const { bundle, key } = await makeHtmlBundle(bundleInfo)
     // make a bundle of json+xml+html index
 
-    const tags: string[] = []
+    const articleTagIds = await tagService.findByArticleIds({
+      articleIds: articles.map(({ id }) => id),
+    })
+    const tags = (await tagService.dataloader.loadMany(
+      Array.from(new Set(articleTagIds.map(({ tagId }) => tagId)))
+    )) as Item[]
+    const tagsMap = new Map(tags.map((tag) => [tag.id, tag]))
+
+    const home_page_url = `${
+      environment.siteDomain || 'https://matters.news'
+    }/@${userName}`
     const contents: Record<string, string> = {
       'feed.json': JSON.stringify(
         {
-          version: 'https://jsonfeed.org/version/1',
-          title: 'JSON Feed',
+          version: 'https://jsonfeed.org/version/1.1',
+          title: `${displayName || userName}'s Matters JSON Feed`,
           icon: userImg || undefined, // fallback to default asset
-          home_page_url: `https://matters.news/@${author.userName}`,
+          home_page_url,
           feed_url: `https://ipfs.io/ipns/${keyId}/feed.json`,
-          description,
+          description: description || undefined, // omit by undefined if empty
           authors: [
             {
               name: displayName,
+              url: home_page_url, // `${environment.siteDomain}/@${userName}`,
               avatar: userImg || undefined, // fallback to default asset
             },
           ],
@@ -311,7 +329,11 @@ export class ArticleService extends BaseService {
               content_html: content,
               date_published: createdAt?.toISOString(),
               summary,
-              tags,
+              tags: articleTagIds
+                .filter(({ articleId }) => articleId === id)
+                .map(({ tagId }) => tagsMap.get(tagId)?.content)
+                .filter(Boolean),
+              // : (await tagService.findByArticleId({ articleId: id })).map(({ content }) => content),
               url: `https://matters.news/@${userName}/${id}-${slug}-${mediaHash}`,
             })
           ),
@@ -320,6 +342,8 @@ export class ArticleService extends BaseService {
         2
       ),
     }
+
+    // console.log(new Date(), 'contents feed.json ::', contents['feed.json'])
 
     const results = []
     for await (const result of this.ipfs.client.addAll(
@@ -352,7 +376,8 @@ export class ArticleService extends BaseService {
         // privKeyPem: pem,
         // privKeyName: kname,
         // ipnsAddress,
-        lastPublication: this.knex.fn.now(),
+        lastDataHash: feed.cid,
+        lastPublished: this.knex.fn.now(),
       },
     })
   }
@@ -388,6 +413,7 @@ export class ArticleService extends BaseService {
     authorId: string,
     // filter = {},
     {
+      columns = ['draft_id'],
       // filter = {},
       showAll = false,
       stickyFirst = false,
@@ -397,6 +423,7 @@ export class ArticleService extends BaseService {
       skip,
       take,
     }: {
+      columns?: string[]
       // filter?: object
       showAll?: boolean
       stickyFirst?: boolean
@@ -408,8 +435,8 @@ export class ArticleService extends BaseService {
     } = {}
   ) =>
     this.knex
-      .select('draft_id')
-      .from(this.knex.ref(this.table).as('a'))
+      .select(columns)
+      .from(this.knex.ref(this.table))
       .join(
         this.knex
           .from('draft')
@@ -419,7 +446,7 @@ export class ArticleService extends BaseService {
           .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
           .as('t'),
         'article_id',
-        'a.id'
+        'article.id'
       )
       .where({
         authorId,
@@ -432,23 +459,26 @@ export class ArticleService extends BaseService {
       .modify((builder: Knex.QueryBuilder) => {
         if (Array.isArray(tagIds) && tagIds.length > 0) {
           builder
-            .join('article_tag AS at', 'at.article_id', 'a.id')
+            .join('article_tag AS at', 'at.article_id', 'article.id')
             .andWhere('tag_id', 'in', tagIds)
         }
         if (inRangeStart != null && inRangeEnd != null) {
           // neither null nor undefined
-          builder.andWhereBetween('a.created_at', [inRangeStart, inRangeEnd])
+          builder.andWhereBetween('article.created_at', [
+            inRangeStart,
+            inRangeEnd,
+          ])
         } else if (inRangeStart != null) {
-          builder.andWhere('a.created_at', '>=', inRangeStart)
+          builder.andWhere('article.created_at', '>=', inRangeStart)
         } else if (inRangeEnd != null) {
-          builder.andWhere('a.created_at', '<', inRangeEnd)
+          builder.andWhere('article.created_at', '<', inRangeEnd)
         }
 
         if (stickyFirst === true) {
-          builder.orderBy('a.sticky', 'desc')
+          builder.orderBy('article.sticky', 'desc')
         }
         // always as last orderBy
-        builder.orderBy('a.id', 'desc')
+        builder.orderBy('article.id', 'desc')
 
         if (take !== undefined && Number.isFinite(take)) {
           builder.limit(take)

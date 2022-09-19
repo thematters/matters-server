@@ -262,9 +262,13 @@ class PublicationQueue extends BaseQueue {
         }
         job.progress(80)
 
-        const articles = await this.articleService.findByAuthor(author.id, {
+        const articleIds = await this.articleService.findByAuthor(author.id, {
+          columns: ['article_id'],
           take: 50,
         })
+        const articles = await this.articleService.dataloader.loadMany(
+          articleIds.map(({ articleId }: { articleId: string }) => articleId)
+        )
         await this.articleService.publishFeedToIPNS(author, articles)
         job.progress(85)
 
