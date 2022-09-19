@@ -231,8 +231,8 @@ export class ArticleService extends BaseService {
   }
 
   publishFeedToIPNS = async (
-    author: Record<string, any>,
-    articles: Array<Record<string, any>>
+    author: Record<string, any>
+    // articles: Array<Record<string, any>>
   ) => {
     const systemService = new SystemService()
     const atomService = new AtomService()
@@ -240,6 +240,14 @@ export class ArticleService extends BaseService {
 
     const { userName, avatar, description, displayName } = author
     const userImg = avatar && (await systemService.findAssetUrl(avatar))
+
+    const articleIds = await this.findByAuthor(author.id, {
+      columns: ['article.id'],
+      take: 50,
+    })
+    const articles: Item[] = (await this.dataloader.loadMany(
+      articleIds.map(({ id }: { id: string }) => id)
+    )) as Item[]
 
     let ipnsKey = await atomService.findFirst({
       table: 'user_ipns_keys',
@@ -260,7 +268,7 @@ export class ArticleService extends BaseService {
       // always try import; might be on another new ipfs node, or never has it before
       // ;({ Id: keyId } =
       const res = await this.ipfs.importKey(kname, pem)
-      console.log(new Date(), 'key/import res:', res)
+      // console.log(new Date(), 'key/import res:', res)
       if (!keyId && res) {
         keyId = res?.Id
       }
@@ -359,12 +367,21 @@ export class ArticleService extends BaseService {
     )) {
       results.push(result)
     }
-    const feed = results.filter(({ path }: { path: string }) =>
+    let entry = results.filter(
+      ({ path }: { path: string }) => path === directoryName
+    )
+
+    /* const feed = results.filter(({ path }: { path: string }) =>
       path.endsWith('feed.json')
-    )[0]
+    )[0] */
+    if (entry.length === 0) {
+      entry = results.filter(({ path }: { path: string }) =>
+        path.endsWith('index.html')
+      )
+    }
 
     // const ipnsAddress =
-    await this.ipfs.publish(feed.cid, {
+    await this.ipfs.publish(entry[0].cid, {
       lifetime: '1680h',
       key: kname,
     })
@@ -376,7 +393,7 @@ export class ArticleService extends BaseService {
         // privKeyPem: pem,
         // privKeyName: kname,
         // ipnsAddress,
-        lastDataHash: feed.cid,
+        lastDataHash: entry[0].cid.toString(),
         lastPublished: this.knex.fn.now(),
       },
     })
