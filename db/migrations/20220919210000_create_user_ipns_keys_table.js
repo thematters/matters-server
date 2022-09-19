@@ -8,7 +8,7 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').unsigned().unique()
     t.string('ipns_address').unique().notNullable()
-    t.string('priv_key_pem').notNullable()
+    t.string('priv_key_pem', 2047).notNullable() // some extra space for priv key in PEM format
     t.string('priv_key_name').notNullable()
     // t.string('pub_key').notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())

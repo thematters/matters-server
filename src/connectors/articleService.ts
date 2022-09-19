@@ -29,9 +29,10 @@ import logger from 'common/logger'
 import {
   AtomService,
   BaseService,
+  Feed,
   ipfs,
   SystemService,
-  TagService,
+  // TagService,
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
@@ -231,29 +232,17 @@ export class ArticleService extends BaseService {
   }
 
   publishFeedToIPNS = async (
-    author: Record<string, any>
+    author: Item // Record<string, any>
     // articles: Array<Record<string, any>>
   ) => {
-    const systemService = new SystemService()
     const atomService = new AtomService()
-    const tagService = new TagService()
-
-    const { userName, avatar, description, displayName } = author
-    const userImg = avatar && (await systemService.findAssetUrl(avatar))
-
-    const articleIds = await this.findByAuthor(author.id, {
-      columns: ['article.id'],
-      take: 50,
-    })
-    const articles: Item[] = (await this.dataloader.loadMany(
-      articleIds.map(({ id }: { id: string }) => id)
-    )) as Item[]
+    // const { userName, avatar, description, displayName } = author
 
     let ipnsKey = await atomService.findFirst({
       table: 'user_ipns_keys',
       where: { userId: author.id },
     })
-    const kname = `for-${userName}-${author.uuid}`
+    const kname = `for-${author.userName}-${author.uuid}`
     let pem = ipnsKey?.privKeyPem
     if (!ipnsKey) {
       const {
@@ -293,83 +282,28 @@ export class ArticleService extends BaseService {
     // const { bundle, key } = await makeHtmlBundle(bundleInfo)
     // make a bundle of json+xml+html index
 
-    const articleTagIds = await tagService.findByArticleIds({
-      articleIds: articles.map(({ id }) => id),
-    })
-    const tags = (await tagService.dataloader.loadMany(
-      Array.from(new Set(articleTagIds.map(({ tagId }) => tagId)))
-    )) as Item[]
-    const tagsMap = new Map(tags.map((tag) => [tag.id, tag]))
+    const feed = new Feed(author, keyId)
+    await feed.loadData()
 
-    const home_page_url = `${
-      environment.siteDomain || 'https://matters.news'
-    }/@${userName}`
-    const contents: Record<string, string> = {
-      'feed.json': JSON.stringify(
-        {
-          version: 'https://jsonfeed.org/version/1.1',
-          title: `${displayName || userName}'s Matters JSON Feed`,
-          icon: userImg || undefined, // fallback to default asset
-          home_page_url,
-          feed_url: `https://ipfs.io/ipns/${keyId}/feed.json`,
-          description: description || undefined, // omit by undefined if empty
-          authors: [
-            {
-              name: displayName,
-              url: home_page_url, // `${environment.siteDomain}/@${userName}`,
-              avatar: userImg || undefined, // fallback to default asset
-            },
-          ],
-          items: articles.map(
-            ({
-              id,
-              title,
-              slug,
-              summary,
-              cover,
-              content,
-              createdAt,
-              mediaHash,
-            }) => ({
-              id,
-              title,
-              // image,
-              content_html: content,
-              date_published: createdAt?.toISOString(),
-              summary,
-              tags: articleTagIds
-                .filter(({ articleId }) => articleId === id)
-                .map(({ tagId }) => tagsMap.get(tagId)?.content)
-                .filter(Boolean),
-              // : (await tagService.findByArticleId({ articleId: id })).map(({ content }) => content),
-              url: `https://matters.news/@${userName}/${id}-${slug}-${mediaHash}`,
-            })
-          ),
-        },
-        null,
-        2
-      ),
-    }
-
-    // console.log(new Date(), 'contents feed.json ::', contents['feed.json'])
-
-    const results = []
-    for await (const result of this.ipfs.client.addAll(
-      [
-        'feed.json', // 'rss.xml', 'index.html'
-      ].map((file) =>
+    const contents = ['feed.json', 'rss.xml', 'index.html']
+      .map((file) =>
         // file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
         ({
           path: `${directoryName}/${file}`,
-          content: contents[file] as string,
+          content: feed[file]?.(), // contents[file] as string,
         })
       )
-    )) {
+      .filter(({ content }) => content)
+
+    const results = []
+    for await (const result of this.ipfs.client.addAll(contents)) {
       results.push(result)
     }
     let entry = results.filter(
       ({ path }: { path: string }) => path === directoryName
     )
+
+    // console.log(new Date(), 'contents feed.json ::', contents, results, feed)
 
     /* const feed = results.filter(({ path }: { path: string }) =>
       path.endsWith('feed.json')
@@ -381,10 +315,11 @@ export class ArticleService extends BaseService {
     }
 
     // const ipnsAddress =
-    await this.ipfs.publish(entry[0].cid, {
+    const published = await this.ipfs.publish(entry[0].cid, {
       lifetime: '1680h',
       key: kname,
     })
+    console.log(new Date(), 'published:', published)
 
     await atomService.update({
       table: 'user_ipns_keys',
