@@ -82,6 +82,7 @@ export class Feed {
         items: this.articles.map(
           ({
             id,
+            uuid,
             title,
             slug,
             summary,
@@ -90,7 +91,7 @@ export class Feed {
             createdAt,
             mediaHash,
           }) => ({
-            id,
+            id: uuid,
             title,
             // image,
             content_html: content,
@@ -134,7 +135,7 @@ export class Feed {
         dataHash,
         createdAt,
       }) => `<item>
-<title>{title}</title>
+<title>${title}</title>
 <link>${
         environment.siteDomain || 'https://matters.news'
       }/@${userName}/${id}-${slug}-${mediaHash}</link>
@@ -171,27 +172,32 @@ ${items}
       environment.siteDomain || 'https://matters.news'
     }/@${userName}`
 
+    const siteTitle = `${displayName || userName}'s website`
+
     return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
+body { margin: 0 auto; max-width: 768px; }
+h1 { text-align: center; }
 </style>
 
-<link rel="alternate" type="application/rss+xml" href="./feed.xml" title="${
-      displayName || userName
-    }'s website">
-<link rel="canonical" href="${home_page_url}">
+<link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
+<link rel="alternate" type="application/feed+json" href="./feed.json" title="${siteTitle}" />
+<link rel="canonical" href="${home_page_url}" />
 <meta name="description" content="${
-      description ||
+      description || siteTitle ||
       'Matters 致力搭建去中心化的寫作社群與內容生態。基於 IPFS 技術，令創作不受制於任何平台，獨立性得到保障；引入加密貨幣，以收入的形式回饋給作者；代碼開源，建立創作者自治社區。'
     }">
 
-<title> ${displayName || userName}'s website </title>
+<title>${siteTitle}</title>
 </head>
 <body>
 
 <!-- TODO -->
+
+<h1>${siteTitle}</h1>
 
 </body>
 
