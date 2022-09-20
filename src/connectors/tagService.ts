@@ -88,6 +88,13 @@ export class TagService extends BaseService {
       .join(this.table, 'tag.id', 'article_tag.tag_id')
       .where({ articleId })
 
+  findByArticleIds = async ({ articleIds }: { articleIds: string[] }) =>
+    this.knex
+      .select('tag_id', 'article_id')
+      .from('article_tag')
+      // .join(this.table, 'tag.id', 'article_tag.tag_id')
+      .whereIn('article_id', articleIds)
+
   /**
    *  Find tags by a given creator id (user).
    */

@@ -164,6 +164,7 @@ export type BasicTableName =
   | 'crypto_wallet_signature'
   | 'article_translation'
   | 'tag_translation'
+  | 'user_ipns_keys'
 
 export type View =
   | 'tag_count_view'

@@ -26,7 +26,15 @@ import {
 import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import {
+  AtomService,
+  BaseService,
+  Feed,
+  ipfs,
+  SystemService,
+  // TagService,
+  UserService,
+} from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
@@ -109,6 +117,7 @@ export class ArticleService extends BaseService {
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
+    // const atomService = new AtomService()
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
@@ -222,6 +231,109 @@ export class ArticleService extends BaseService {
     return { contentHash, mediaHash, key }
   }
 
+  publishFeedToIPNS = async (
+    author: Item // Record<string, any>
+    // articles: Array<Record<string, any>>
+  ) => {
+    const atomService = new AtomService()
+    // const { userName, avatar, description, displayName } = author
+
+    let ipnsKey = await atomService.findFirst({
+      table: 'user_ipns_keys',
+      where: { userId: author.id },
+    })
+    const kname = `for-${author.userName}-${author.uuid}`
+    let pem = ipnsKey?.privKeyPem
+    if (!ipnsKey) {
+      const {
+        // publicKey,
+        privateKey,
+      } = await this.ipfs.genKey()
+      pem = privateKey.export({ format: 'pem', type: 'pkcs8' })
+    }
+
+    let keyId = ipnsKey?.ipnsAddress
+    try {
+      // always try import; might be on another new ipfs node, or never has it before
+      // ;({ Id: keyId } =
+      const res = await this.ipfs.importKey(kname, pem)
+      // console.log(new Date(), 'key/import res:', res)
+      if (!keyId && res) {
+        keyId = res?.Id
+      }
+    } catch (err) {
+      // ignore import error if already exists;
+    }
+
+    if (!ipnsKey) {
+      ipnsKey = await atomService.create({
+        table: 'user_ipns_keys',
+        data: {
+          userId: author.id,
+          privKeyPem: pem,
+          privKeyName: kname,
+          ipnsAddress: keyId,
+          // lastPublication: this.knex.fn.now(),
+        },
+      })
+    }
+
+    const directoryName = 'article'
+    // const { bundle, key } = await makeHtmlBundle(bundleInfo)
+    // make a bundle of json+xml+html index
+
+    const feed = new Feed(author, keyId)
+    await feed.loadData()
+
+    const contents = ['feed.json', 'rss.xml', 'index.html']
+      .map((file) =>
+        // file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
+        ({
+          path: `${directoryName}/${file}`,
+          content: feed[file]?.(), // contents[file] as string,
+        })
+      )
+      .filter(({ content }) => content)
+
+    const results = []
+    for await (const result of this.ipfs.client.addAll(contents)) {
+      results.push(result)
+    }
+    let entry = results.filter(
+      ({ path }: { path: string }) => path === directoryName
+    )
+
+    // console.log(new Date(), 'contents feed.json ::', contents, results, feed)
+
+    /* const feed = results.filter(({ path }: { path: string }) =>
+      path.endsWith('feed.json')
+    )[0] */
+    if (entry.length === 0) {
+      entry = results.filter(({ path }: { path: string }) =>
+        path.endsWith('index.html')
+      )
+    }
+
+    // const ipnsAddress =
+    const published = await this.ipfs.publish(entry[0].cid, {
+      lifetime: '1680h',
+      key: kname,
+    })
+    console.log(new Date(), 'published:', published)
+
+    await atomService.update({
+      table: 'user_ipns_keys',
+      where: { userId: author.id },
+      data: {
+        // privKeyPem: pem,
+        // privKeyName: kname,
+        // ipnsAddress,
+        lastDataHash: entry[0].cid.toString(),
+        lastPublished: this.knex.fn.now(),
+      },
+    })
+  }
+
   /**
    * Archive article
    */
@@ -253,24 +365,30 @@ export class ArticleService extends BaseService {
     authorId: string,
     // filter = {},
     {
+      columns = ['draft_id'],
       // filter = {},
       showAll = false,
       stickyFirst = false,
       tagIds,
       inRangeStart,
       inRangeEnd,
+      skip,
+      take,
     }: {
+      columns?: string[]
       // filter?: object
       showAll?: boolean
       stickyFirst?: boolean
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
+      skip?: number
+      take?: number
     } = {}
   ) =>
     this.knex
-      .select('draft_id')
-      .from(this.knex.ref(this.table).as('a'))
+      .select(columns)
+      .from(this.knex.ref(this.table))
       .join(
         this.knex
           .from('draft')
@@ -280,7 +398,7 @@ export class ArticleService extends BaseService {
           .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
           .as('t'),
         'article_id',
-        'a.id'
+        'article.id'
       )
       .where({
         authorId,
@@ -290,28 +408,36 @@ export class ArticleService extends BaseService {
               state: ARTICLE_STATE.active,
             }),
       })
-      .modify(function (this: Knex.QueryBuilder) {
+      .modify((builder: Knex.QueryBuilder) => {
         if (Array.isArray(tagIds) && tagIds.length > 0) {
-          this.join('article_tag AS at', 'at.article_id', 'a.id').andWhere(
-            'tag_id',
-            'in',
-            tagIds
-          )
+          builder
+            .join('article_tag AS at', 'at.article_id', 'article.id')
+            .andWhere('tag_id', 'in', tagIds)
         }
         if (inRangeStart != null && inRangeEnd != null) {
           // neither null nor undefined
-          this.andWhereBetween('a.created_at', [inRangeStart, inRangeEnd])
+          builder.andWhereBetween('article.created_at', [
+            inRangeStart,
+            inRangeEnd,
+          ])
         } else if (inRangeStart != null) {
-          this.andWhere('a.created_at', '>=', inRangeStart)
+          builder.andWhere('article.created_at', '>=', inRangeStart)
         } else if (inRangeEnd != null) {
-          this.andWhere('a.created_at', '<', inRangeEnd)
+          builder.andWhere('article.created_at', '<', inRangeEnd)
         }
 
         if (stickyFirst === true) {
-          this.orderBy('a.sticky', 'desc')
+          builder.orderBy('article.sticky', 'desc')
         }
         // always as last orderBy
-        this.orderBy('a.id', 'desc')
+        builder.orderBy('article.id', 'desc')
+
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
       })
 
   /**
