@@ -7,7 +7,7 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').unsigned().unique()
-    t.string('ipns_address').unique().notNullable()
+    t.string('ipns_key').unique().notNullable()
     t.string('priv_key_pem', 2047).notNullable() // some extra space for priv key in PEM format
     t.string('priv_key_name').notNullable()
     // t.string('pub_key').notNullable()

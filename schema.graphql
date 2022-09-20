@@ -2155,9 +2155,6 @@ type User implements Node {
   """User information."""
   info: UserInfo!
 
-  """the ipnsAddress if the user has any publications"""
-  ipnsAddress: String
-
   """User settings."""
   settings: UserSettings!
 
@@ -2308,6 +2305,11 @@ type UserInfo {
 
   """User desciption."""
   description: String
+
+  """
+  the ipnsKey (`ipfs.io/ipns/<ipnsKey>/...`) for feed.json / rss.xml / index
+  """
+  ipnsKey: String
 
   """User email."""
   email: String
