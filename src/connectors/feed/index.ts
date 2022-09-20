@@ -186,6 +186,9 @@ ${items.join('\n')}
     }/@${userName}`
 
     const siteTitle = `${displayName || userName}'s website`
+    const mattersAuthorLink = `${
+      environment.siteDomain || 'https://matters.news'
+    }/@${userName}`
 
     const items = this.articles.map(
       ({
@@ -198,10 +201,12 @@ ${items.join('\n')}
         dataHash,
         createdAt,
       }) => `<li class="item">
-<span>${createdAt.toISOString().substring(0, 10)}</span>
-<a href="${
-        environment.siteDomain || 'https://matters.news'
-      }/@${userName}/${id}-${slug}-${mediaHash}"><h2>${title}</h2></a>
+<span>${createdAt.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}</span>
+<a href="${mattersAuthorLink}/${id}-${slug}-${mediaHash}"><h2>${title}</h2></a>
 <p>${summary}</p>
 </li>`
     )
@@ -213,8 +218,9 @@ ${items.join('\n')}
 <style>
 body { margin: 0 auto; max-width: 768px; }
 h1 { text-align: center; }
+p.author-description { white-space: pre-wrap; }
 li.item { margin-top: 1rem; list-style: none; }
-li.item span { font-size: smaller; }
+li.item span { font-size: smaller; color: grey; }
 </style>
 
 <link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
@@ -230,9 +236,11 @@ li.item span { font-size: smaller; }
 </head>
 <body>
 
-<!-- TODO -->
+<!-- TODO: more elements to enrich -->
 
 <h1>${siteTitle}</h1>
+<p class="author-description">${this.author.description || ''}</p>
+<span>from <a href="${mattersAuthorLink}" target="_blank">Matters</a></span>
 
 <ol>
 ${items.join('\n')}
