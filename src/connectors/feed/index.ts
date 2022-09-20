@@ -1,4 +1,5 @@
 import { environment } from 'common/environment'
+import { stripSpaces } from 'common/utils'
 import {
   ArticleService,
   DraftService,
@@ -58,7 +59,12 @@ export class Feed {
   }
 
   ['feed.json']() {
-    const { userName, description, displayName } = this.author
+    const {
+      userName,
+      displayName,
+      // description,
+    } = this.author
+    const description = stripSpaces(this.author.description)
 
     const home_page_url = `${
       environment.siteDomain || 'https://matters.news'
@@ -116,9 +122,12 @@ export class Feed {
   }
 
   ['rss.xml']() {
-    // TODO
-
-    const { userName, description, displayName } = this.author
+    const {
+      userName,
+      displayName,
+      // description,
+    } = this.author
+    const description = stripSpaces(this.author.description)
 
     const home_page_url = `${
       environment.siteDomain || 'https://matters.news'
@@ -158,21 +167,44 @@ export class Feed {
   <title>${siteTitle}</title>
   <link>${home_page_url}</link>
 </image>
-${items}
+${items.join('\n')}
 </channel>
 </rss>`
   }
 
   ['index.html']() {
     // TODO
-
-    const { userName, description, displayName } = this.author
+    const {
+      userName,
+      displayName,
+      // description,
+    } = this.author
+    const description = stripSpaces(this.author.description)
 
     const home_page_url = `${
       environment.siteDomain || 'https://matters.news'
     }/@${userName}`
 
     const siteTitle = `${displayName || userName}'s website`
+
+    const items = this.articles.map(
+      ({
+        id,
+        uuid,
+        title,
+        slug,
+        summary,
+        mediaHash,
+        dataHash,
+        createdAt,
+      }) => `<li class="item">
+<span>${createdAt.toISOString().substring(0, 10)}</span>
+<a href="${
+        environment.siteDomain || 'https://matters.news'
+      }/@${userName}/${id}-${slug}-${mediaHash}"><h2>${title}</h2></a>
+<p>${summary}</p>
+</li>`
+    )
 
     return `<!DOCTYPE html>
 <html>
@@ -181,6 +213,8 @@ ${items}
 <style>
 body { margin: 0 auto; max-width: 768px; }
 h1 { text-align: center; }
+li.item { margin-top: 1rem; list-style: none; }
+li.item span { font-size: smaller; }
 </style>
 
 <link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
@@ -199,6 +233,10 @@ h1 { text-align: center; }
 <!-- TODO -->
 
 <h1>${siteTitle}</h1>
+
+<ol>
+${items.join('\n')}
+</ol>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KK55LL24"></script>
 <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date); gtag('config', 'G-K4KK55LL24'); </script>

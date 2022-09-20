@@ -23,7 +23,9 @@ export class IPFS {
     })
   }
 
+  // same as `openssl genpkey -algorithm ED25519`
   genKey = async () => generateKeyPairPromisified('ed25519') // {
+
   // this.client.key.gen(name)
   // const key = await generateKeyPairPromisified('ed25519')
   // return key.privateKey.export({ format: 'pem', type: 'pkcs8', // cipher: 'aes-256-cbc', passphrase:'pass1 top secret', })
