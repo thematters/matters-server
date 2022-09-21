@@ -219,6 +219,7 @@ ${items.join('\n')}
 body { margin: 0 auto; max-width: 768px; }
 h1 { text-align: center; }
 p.author-description { white-space: pre-wrap; }
+ol, ul { padding-left: 0; }
 li.item { margin-top: 1rem; list-style: none; }
 li.item span { font-size: smaller; color: grey; }
 </style>
@@ -242,7 +243,7 @@ li.item span { font-size: smaller; color: grey; }
 <p class="author-description">${this.author.description || ''}</p>
 <span>from <a href="${mattersAuthorLink}" target="_blank">Matters</a></span>
 
-<ol>
+<ol style="margin-top: 3rem;">
 ${items.join('\n')}
 </ol>
 
