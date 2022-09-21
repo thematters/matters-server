@@ -238,13 +238,13 @@ export class ArticleService extends BaseService {
     const atomService = new AtomService()
     // const { userName, avatar, description, displayName } = author
 
-    let ipnsKey = await atomService.findFirst({
+    let ipnsKeyRec = await atomService.findFirst({
       table: 'user_ipns_keys',
       where: { userId: author.id },
     })
     const kname = `for-${author.userName}-${author.uuid}`
-    let pem = ipnsKey?.privKeyPem
-    if (!ipnsKey) {
+    let pem = ipnsKeyRec?.privKeyPem
+    if (!pem) {
       const {
         // publicKey,
         privateKey,
@@ -252,27 +252,32 @@ export class ArticleService extends BaseService {
       pem = privateKey.export({ format: 'pem', type: 'pkcs8' })
     }
 
-    let keyId = ipnsKey?.ipnsAddress
+    let ipnsKey = ipnsKeyRec?.ipnsKey
     try {
       // always try import; might be on another new ipfs node, or never has it before
-      // ;({ Id: keyId } =
       const res = await this.ipfs.importKey(kname, pem)
-      // console.log(new Date(), 'key/import res:', res)
-      if (!keyId && res) {
-        keyId = res?.Id
+      if (!ipnsKey && res) {
+        ipnsKey = res?.Id
       }
     } catch (err) {
       // ignore import error if already exists;
+      if (!ipnsKey && err) {
+        console.error(
+          new Date(),
+          `ERROR: no ipnsKey for user: ${author.userName}`,
+          err
+        )
+      }
     }
 
-    if (!ipnsKey) {
-      ipnsKey = await atomService.create({
+    if (!ipnsKeyRec) {
+      ipnsKeyRec = await atomService.create({
         table: 'user_ipns_keys',
         data: {
           userId: author.id,
+          ipnsKey,
           privKeyPem: pem,
           privKeyName: kname,
-          ipnsAddress: keyId,
           // lastPublication: this.knex.fn.now(),
         },
       })
@@ -282,7 +287,7 @@ export class ArticleService extends BaseService {
     // const { bundle, key } = await makeHtmlBundle(bundleInfo)
     // make a bundle of json+xml+html index
 
-    const feed = new Feed(author, keyId)
+    const feed = new Feed(author, ipnsKey)
     await feed.loadData()
 
     const contents = ['feed.json', 'rss.xml', 'index.html']

@@ -187,7 +187,8 @@ h1 { text-align: center; }
 <link rel="alternate" type="application/feed+json" href="./feed.json" title="${siteTitle}" />
 <link rel="canonical" href="${home_page_url}" />
 <meta name="description" content="${
-      description || siteTitle ||
+      description ||
+      siteTitle ||
       'Matters 致力搭建去中心化的寫作社群與內容生態。基於 IPFS 技術，令創作不受制於任何平台，獨立性得到保障；引入加密貨幣，以收入的形式回饋給作者；代碼開源，建立創作者自治社區。'
     }">
 
@@ -198,6 +199,9 @@ h1 { text-align: center; }
 <!-- TODO -->
 
 <h1>${siteTitle}</h1>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KK55LL24"></script>
+<script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date); gtag('config', 'G-K4KK55LL24'); </script>
 
 </body>
 

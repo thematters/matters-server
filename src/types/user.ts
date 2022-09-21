@@ -102,9 +102,6 @@ export default /* GraphQL */ `
     "User information."
     info: UserInfo!
 
-    "the ipnsAddress if the user has any publications"
-    ipnsAddress: String
-
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
 
@@ -241,6 +238,9 @@ export default /* GraphQL */ `
 
     "User desciption."
     description: String
+
+    "the ipnsKey (\`ipfs.io/ipns/<ipnsKey>/...\`) for feed.json / rss.xml / index"
+    ipnsKey: String
 
     "User email."
     email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")

@@ -2956,11 +2956,6 @@ export interface GQLUser extends GQLNode {
   info: GQLUserInfo
 
   /**
-   * the ipnsAddress if the user has any publications
-   */
-  ipnsAddress?: string
-
-  /**
    * User settings.
    */
   settings: GQLUserSettings
@@ -3191,6 +3186,11 @@ export interface GQLUserInfo {
    * User desciption.
    */
   description?: string
+
+  /**
+   * the ipnsKey (`ipfs.io/ipns/<ipnsKey>/...`) for feed.json / rss.xml / index
+   */
+  ipnsKey?: string
 
   /**
    * User email.
@@ -10182,7 +10182,6 @@ export interface GQLUserTypeResolver<TParent = any> {
   liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
-  ipnsAddress?: UserToIpnsAddressResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
@@ -10265,15 +10264,6 @@ export interface UserToAvatarResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToInfoResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToIpnsAddressResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -10708,6 +10698,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   createdAt?: UserInfoToCreatedAtResolver<TParent>
   userNameEditable?: UserInfoToUserNameEditableResolver<TParent>
   description?: UserInfoToDescriptionResolver<TParent>
+  ipnsKey?: UserInfoToIpnsKeyResolver<TParent>
   email?: UserInfoToEmailResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
@@ -10740,6 +10731,15 @@ export interface UserInfoToUserNameEditableResolver<
 }
 
 export interface UserInfoToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToIpnsKeyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

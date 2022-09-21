@@ -1,6 +1,6 @@
-import { UserToIpnsAddressResolver } from 'definitions'
+import { UserInfoToIpnsKeyResolver } from 'definitions'
 
-const resolver: UserToIpnsAddressResolver = async (
+const resolver: UserInfoToIpnsKeyResolver = async (
   { id },
   _,
   { dataSources: { atomService } }
@@ -9,7 +9,7 @@ const resolver: UserToIpnsAddressResolver = async (
     table: 'user_ipns_keys',
     where: { userId: id },
   })
-  return res?.ipnsAddress
+  return res?.ipnsKey // ipnsAddress
 }
 
 export default resolver
