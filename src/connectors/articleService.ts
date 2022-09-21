@@ -283,11 +283,19 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const directoryName = 'article'
+    const directoryName = `${kname}`
     // const { bundle, key } = await makeHtmlBundle(bundleInfo)
     // make a bundle of json+xml+html index
 
-    const feed = new Feed(author, ipnsKey)
+    const articleIds = await this.findByAuthor(author.id, {
+      columns: ['article.id'],
+      take: 10, // most recent 10 articles
+    })
+    const articles = (await this.dataloader.loadMany(
+      articleIds.map(({ id }: { id: string }) => id)
+    )) as Item[]
+
+    const feed = new Feed(author, ipnsKey, articles)
     await feed.loadData()
 
     const contents = ['feed.json', 'rss.xml', 'index.html']
@@ -300,6 +308,35 @@ export class ArticleService extends BaseService {
       )
       .filter(({ content }) => content)
 
+    // add files (via MFS FILES API)
+    // await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
+    await Promise.all(
+      contents.map(async ({ path, content }) =>
+        this.ipfs.client.files.write(`/${path}`, content, {
+          create: true,
+          parents: true, // create parents if not existed;
+          truncate: true,
+        })
+      )
+    )
+    const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`)
+    console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
+
+    // attach MFS for each old publication
+    /* for (const arti of articles) {
+      await this.ipfs.client.files.cp(
+        `/ipfs/${arti.dataHash}`,
+        `/${directoryName}/${arti.id}-${arti.slug}`
+      )
+    } */
+    await this.ipfs.client.files.cp(
+      articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time
+      `/${directoryName}`
+    )
+
+    const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`)
+    console.log(new Date(), `directoryName stat after attached ${articles.length} articles:`, dirStat1.cid.toString(), { dirStat1, dirStat0 })
+
     const results = []
     for await (const result of this.ipfs.client.addAll(contents)) {
       results.push(result)
@@ -308,19 +345,17 @@ export class ArticleService extends BaseService {
       ({ path }: { path: string }) => path === directoryName
     )
 
-    // console.log(new Date(), 'contents feed.json ::', contents, results, feed)
+    console.log(new Date(), 'contents feed.json ::', contents, results)
 
-    /* const feed = results.filter(({ path }: { path: string }) =>
-      path.endsWith('feed.json')
-    )[0] */
     if (entry.length === 0) {
       entry = results.filter(({ path }: { path: string }) =>
         path.endsWith('index.html')
       )
     }
 
-    // const ipnsAddress =
-    const published = await this.ipfs.publish(entry[0].cid, {
+    // const cidToPublish = entry[0].cid
+    const cidToPublish = dirStat1.cid
+    const published = await this.ipfs.publish(cidToPublish, {
       lifetime: '1680h',
       key: kname,
     })
@@ -333,7 +368,7 @@ export class ArticleService extends BaseService {
         // privKeyPem: pem,
         // privKeyName: kname,
         // ipnsAddress,
-        lastDataHash: entry[0].cid.toString(),
+        lastDataHash: cidToPublish.toString(),
         lastPublished: this.knex.fn.now(),
       },
     })
