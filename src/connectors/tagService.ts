@@ -1174,39 +1174,14 @@ export class TagService extends BaseService {
     // take?: number
     // exclude?: string[]
   }) => {
-    /*
-    const countRels = await this.knex
-      .from(VIEW.tags_lasts_view)
-      .select(['id', 'content', this.knex.raw('jsonb_array_length(top_rels) AS count'),])
-      .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
-      .first()
-
-    const countRelsCount = countRels?.count || 0
-*/
-
-    // const subquery = this.knex ...
-
     const results = await this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
       )
-      // .select('x.*')
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
-      // .distinctOn('id')
-      .select([
-        'x.tag_rel_id AS id',
-        // 'x.*',
-        // 'id', 'content', 'created_at', 'cover', 'description', 'num_articles', 'num_authors',
-      ])
-      // .orderBy('id')
-      .orderByRaw('x.similarity DESC NULLS LAST')
-    // .orderByRaw('num_authors_r3m DESC NULLS LAST, num_articles_r3m DESC NULLS LAST')
-    // .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
-    // .orderByRaw('span_days DESC NULLS LAST')
-    // .orderByRaw('created_at') // ascending from earliest to latest
-
-    // console.log(new Date(), 'findRelatedTags:: results:', {length: results.length, results,})
+      .select('x.tag_rel_id AS id')
+      .orderByRaw('x.count_rel * x.similarity DESC NULLS LAST')
 
     if (results?.length < TAGS_RECOMMENDED_LIMIT && tagContent) {
       const body = bodybuilder()
@@ -1235,23 +1210,8 @@ export class TagService extends BaseService {
           }
         }
       }
-
-      // console.log(new Date(), 'findRelatedTags:: appended results to:', {length: results.length, results,})
     }
 
     return results
-
-    /*
-      .modify(function (this: Knex.QueryBuilder) {
-        if (take !== undefined && Number.isFinite(take)) {
-          this.limit(take)
-        }
-        if (skip !== undefined && Number.isFinite(skip)) {
-          this.offset(skip)
-        }
-      })
-*/
-
-    // return query
   }
 }
