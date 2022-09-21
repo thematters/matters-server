@@ -5,11 +5,12 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  normalizeTagInput,
 } from 'common/utils'
-import { TagToRecommendedResolver } from 'definitions'
+import { Item, TagToRecommendedResolver } from 'definitions'
 
 const resolver: TagToRecommendedResolver = async (
-  { id, content, owner },
+  { id, content: inputContent, owner },
   { input },
   { dataSources: { tagService, userService } }
 ) => {
@@ -23,14 +24,18 @@ const resolver: TagToRecommendedResolver = async (
     return connectionFromArray([], input)
   }
 
-  const related = await tagService.findRelatedTags({
+  const relatedIds = await tagService.findRelatedTags({
     id,
-    content,
-    // take: limit * draw,
-    // skip,
+    content: inputContent,
   })
 
-  const totalCount = related?.length ?? 0
+  const tags = (
+    (await tagService.dataloader.loadMany(
+      relatedIds.map((tag: any) => `${tag.id}`)
+    )) as Item[]
+  ).filter(({ content }) => normalizeTagInput(content) === content)
+
+  const totalCount = tags?.length ?? 0
 
   const { filter } = input
 
@@ -39,10 +44,8 @@ const resolver: TagToRecommendedResolver = async (
     const draw = input.first || 5
     const limit = 50
 
-    // take (limit * draw) amounts of related tags
-
     // chunk the list of tags per draw
-    const chunks = chunk(related, draw)
+    const chunks = chunk(tags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
     const filteredTags = chunks[index] || []
 
@@ -51,23 +54,14 @@ const resolver: TagToRecommendedResolver = async (
         filteredTags.map((tag: any) => `${tag.id}`)
       ),
       input,
-      totalCount // related.length
+      totalCount
     )
   }
 
-  // const tags = await tagService.findRelatedTags({ id, content, take, skip })
-
-  // console.log(new Date, 'tag/recommended::', { skip, take, length: related.length, related })
   const s = skip ?? 0
   const end = s + (take ?? TAGS_RECOMMENDED_LIMIT)
 
-  return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(
-      related.slice(s, end).map((tag: any) => `${tag.id}`)
-    ),
-    input,
-    totalCount // related.length
-  )
+  return connectionFromPromisedArray(tags.slice(s, end), input, totalCount)
 }
 
 export default resolver
