@@ -619,6 +619,28 @@ export class PaymentService extends BaseService {
     }
   }
 
+  isTransactionSplitted = async ({
+    providerTxId,
+    amount,
+  }: {
+    providerTxId: string
+    amount: number
+  }) => {
+    const splitTxs = await this.knex('transaction')
+      .select()
+      .where({
+        purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+        state: TRANSACTION_STATE.succeeded,
+        remark: `stripe:${providerTxId}`,
+      })
+
+    const splitTotal = splitTxs.reduce((accumulator, tx) => {
+      const amt = Number(tx.amount)
+      return accumulator + amt
+    }, 0)
+    return Math.floor(amount) === splitTotal
+  }
+
   /*********************************
    *                               *
    *         Subscription          *
