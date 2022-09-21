@@ -219,7 +219,9 @@ ${items.join('\n')}
 body { margin: 0 auto; max-width: 768px; }
 h1 { text-align: center; }
 p.author-description { white-space: pre-wrap; }
-li.item { margin-top: 1rem; list-style: none; }
+ol, ul { padding-left: 0; }
+li.item { list-style: none; }
+li.item + li.item { margin-top: 1.5rem; }
 li.item span { font-size: smaller; color: grey; }
 </style>
 
@@ -242,13 +244,12 @@ li.item span { font-size: smaller; color: grey; }
 <p class="author-description">${this.author.description || ''}</p>
 <span>from <a href="${mattersAuthorLink}" target="_blank">Matters</a></span>
 
-<ol>
+<ol style="margin-top: 3rem;">
 ${items.join('\n')}
 </ol>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KK55LL24"></script>
-<script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date); gtag('config', 'G-K4KK55LL24'); </script>
-
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date); gtag('config', 'G-K4KK55LL24');</script>
 </body>
 
 </html>`
