@@ -3,6 +3,7 @@ import { RedisCache } from 'apollo-server-cache-redis'
 import {
   ApolloServerPluginCacheControl,
   ApolloServerPluginLandingPageDisabled,
+  ApolloServerPluginUsageReporting,
 } from 'apollo-server-core'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import bodyParser from 'body-parser'
@@ -89,6 +90,16 @@ const cache = new RedisCache({
 
 const composedSchema = applyMiddleware(schema, sentryMiddleware)
 
+const exceptVariableNames = [
+  'email',
+  'password',
+  'codeId',
+  'token',
+  'ethAddress',
+  'signature',
+  'nonce',
+]
+
 const server = new ProtectedApolloServer({
   schema: composedSchema,
   context: makeContext,
@@ -114,6 +125,19 @@ const server = new ProtectedApolloServer({
     cache,
   },
   plugins: [
+    ApolloServerPluginUsageReporting({
+      sendVariableValues: {
+        transform: ({ variables }) => {
+          variables = {
+            ..._.omit(variables, exceptVariableNames),
+            ...(variables.input
+              ? { input: _.omit(variables.input, exceptVariableNames) }
+              : {}),
+          }
+          return variables
+        },
+      },
+    }),
     ApolloServerPluginLandingPageDisabled(),
     ApolloServerPluginCacheControl({
       calculateHttpHeaders: false,
