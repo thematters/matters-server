@@ -234,6 +234,7 @@ export class ArticleService extends BaseService {
   publishFeedToIPNS = async (
     author: Item // Record<string, any>
     // articles: Array<Record<string, any>>
+    // latestArticleDataHash: string
   ) => {
     const atomService = new AtomService()
     // const { userName, avatar, description, displayName } = author
@@ -283,10 +284,6 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const directoryName = `${kname}`
-    // const { bundle, key } = await makeHtmlBundle(bundleInfo)
-    // make a bundle of json+xml+html index
-
     const articleIds = await this.findByAuthor(author.id, {
       columns: ['article.id'],
       take: 10, // most recent 10 articles
@@ -295,83 +292,138 @@ export class ArticleService extends BaseService {
       articleIds.map(({ id }: { id: string }) => id)
     )) as Item[]
 
+    const lastArticle = articles[0]
+    const directoryName = `${kname}-with-${lastArticle.id}-${
+      lastArticle.slug
+    }@${new Date().toISOString().substring(0, 13)}`
+
+    // make a bundle of json+xml+html index
     const feed = new Feed(author, ipnsKey, articles)
     await feed.loadData()
 
     const contents = ['feed.json', 'rss.xml', 'index.html']
-      .map((file) =>
-        // file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
-        ({
-          path: `${directoryName}/${file}`,
-          content: feed[file]?.(), // contents[file] as string,
-        })
-      )
+      .map((file) => ({
+        path: `${directoryName}/${file}`,
+        content: feed[file]?.(), // contents[file] as string,
+      }))
       .filter(({ content }) => content)
 
-    // add files (via MFS FILES API)
-    // await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
-    await Promise.all(
-      contents.map(async ({ path, content }) =>
-        this.ipfs.client.files.write(`/${path}`, content, {
-          create: true,
-          parents: true, // create parents if not existed;
-          truncate: true,
-        })
-      )
-    )
-    const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`)
-    console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
+    let cidToPublish // = entry[0].cid // dirStat1.cid
+    let published
 
-    // attach MFS for each old publication
-    /* for (const arti of articles) {
+    try {
+      const results = []
+      for await (const result of this.ipfs.client.addAll(contents)) {
+        results.push(result)
+      }
+      let entry = results.filter(
+        ({ path }: { path: string }) => path === directoryName
+      )
+
+      // console.log(new Date(), 'contents feed.json ::', contents, results)
+
+      if (entry.length === 0) {
+        entry = results.filter(({ path }: { path: string }) =>
+          path.endsWith('index.html')
+        )
+      }
+
+      cidToPublish = entry[0].cid // dirStat1.cid
+
+      // add files (via MFS FILES API)
+      const lastDataHash = ipnsKeyRec?.lastDataHash
+      try {
+        if (lastDataHash) {
+          await this.ipfs.client.files.cp(
+            `/ipfs/${lastDataHash}`,
+            `/${directoryName}`
+          )
+        } else {
+          await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
+        }
+      } catch (err) {
+        // ignore if already existing
+      }
+
+      await Promise.all(
+        contents.map(async ({ path, content }) =>
+          this.ipfs.client.files.write(`/${path}`, content, {
+            create: true,
+            parents: true, // create parents if not existed;
+            truncate: true,
+          })
+        )
+      )
+
+      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      // console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
+      cidToPublish = dirStat0.cid
+
+      // attach MFS for each old publication
+      /* for (const arti of articles) {
       await this.ipfs.client.files.cp(
         `/ipfs/${arti.dataHash}`,
         `/${directoryName}/${arti.id}-${arti.slug}`
       )
-    } */
-    await this.ipfs.client.files.cp(
-      articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time
-      `/${directoryName}`
-    )
+      } */
+      const attached = []
+      for (const arti of articles) {
+        try {
+          const newEntry = {
+            ipfspath: `/ipfs/${arti.dataHash}`,
+            localpath: `./${arti.id}-${arti.slug}`,
+            mfspath: `/${directoryName}/${arti.id}-${arti.slug}`,
+          }
+          await this.ipfs.client.files.cp(
+            // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
+            newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
+            newEntry.mfspath // `/${directoryName}/${arti.id}-${arti.slug}`
+          )
+          attached.push(newEntry)
+        } catch (err) {
+          // ignore Timeout
+          console.error(
+            new Date(),
+            'publishFeedToIPNS ipfs.files.cp attachment ERROR:',
+            err
+          )
+        }
+      }
 
-    const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`)
-    console.log(new Date(), `directoryName stat after attached ${articles.length} articles:`, dirStat1.cid.toString(), { dirStat1, dirStat0 })
-
-    const results = []
-    for await (const result of this.ipfs.client.addAll(contents)) {
-      results.push(result)
-    }
-    let entry = results.filter(
-      ({ path }: { path: string }) => path === directoryName
-    )
-
-    console.log(new Date(), 'contents feed.json ::', contents, results)
-
-    if (entry.length === 0) {
-      entry = results.filter(({ path }: { path: string }) =>
-        path.endsWith('index.html')
+      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      console.log(
+        new Date(),
+        `directoryName stat after attached ${articles.length} articles:`,
+        dirStat1.cid.toString(),
+        { dirStat0, dirStat1, attached }
       )
+
+      // const cidToPublish = entry[0].cid
+      cidToPublish = dirStat1.cid
+      published = await this.ipfs.publish(cidToPublish, {
+        lifetime: '1680h',
+        key: kname,
+      })
+
+      console.log(new Date(), `/${directoryName} published:`, published)
+    } finally {
+      if (published && cidToPublish.toString() !== ipnsKeyRec?.lastDataHash) {
+        await atomService.update({
+          table: 'user_ipns_keys',
+          where: { userId: author.id },
+          data: {
+            lastDataHash: cidToPublish.toString(),
+            lastPublished: this.knex.fn.now(),
+          },
+        })
+      } else {
+        console.error(
+          new Date(),
+          'publishFeedToIPNS: remained same, nothing to update:',
+          { cidToPublish: cidToPublish.toString(), published }
+        )
+      }
     }
-
-    // const cidToPublish = entry[0].cid
-    const cidToPublish = dirStat1.cid
-    const published = await this.ipfs.publish(cidToPublish, {
-      lifetime: '1680h',
-      key: kname,
-    })
-    console.log(new Date(), 'published:', published)
-
-    await atomService.update({
-      table: 'user_ipns_keys',
-      where: { userId: author.id },
-      data: {
-        // privKeyPem: pem,
-        // privKeyName: kname,
-        // ipnsAddress,
-        lastDataHash: cidToPublish.toString(),
-        lastPublished: this.knex.fn.now(),
-      },
-    })
   }
 
   /**
