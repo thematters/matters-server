@@ -262,7 +262,7 @@ class PublicationQueue extends BaseQueue {
         }
         job.progress(80)
 
-        await this.articleService.publishFeedToIPNS(author)
+        await this.articleService.publishFeedToIPNS(author, dataHash)
         job.progress(85)
 
         // Step 7: add to search
