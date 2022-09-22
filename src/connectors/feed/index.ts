@@ -212,15 +212,17 @@ ${items.join('\n')}
     )
 
     return `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no, viewport-fit=cover">
 <style>
-body { margin: 0 auto; max-width: 768px; }
+body { margin: 0 auto; max-width: 48rem; }
 h1 { text-align: center; }
 p.author-description { white-space: pre-wrap; }
 ol, ul { padding-left: 0; }
 li.item { list-style: none; }
+li.item h2 { margin: 0.25rem auto; }
 li.item + li.item { margin-top: 1.5rem; }
 li.item span { font-size: smaller; color: grey; }
 </style>

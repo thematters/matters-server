@@ -956,8 +956,7 @@ export class TagService extends BaseService {
     skip?: number
     take?: number
   }) => {
-    // const knex = this.knex
-    const query = this.knex
+    const results = await this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
@@ -999,16 +998,6 @@ export class TagService extends BaseService {
           builder.offset(skip)
         }
       })
-
-    console.log(new Date(), `findArticleIds::`, {
-      tagId,
-      selected,
-      sortBy,
-      withSynonyms,
-      sql: query.toString(),
-    })
-
-    const results = await query
 
     return results.map(({ articleId }: { articleId: string }) => articleId)
   }
