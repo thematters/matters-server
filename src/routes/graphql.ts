@@ -98,6 +98,7 @@ const exceptVariableNames = [
   'ethAddress',
   'signature',
   'nonce',
+  'content',
 ]
 
 const server = new ProtectedApolloServer({
