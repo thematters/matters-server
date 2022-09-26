@@ -38,15 +38,27 @@ class PublicationQueue extends BaseQueue {
   }: {
     draftId: string
     iscnPublish?: boolean
-  }) => {
-    return this.q.add(
+  }) =>
+    this.q.add(
       QUEUE_JOB.publishArticle,
       { draftId, iscnPublish },
       {
         priority: QUEUE_PRIORITY.CRITICAL,
       }
     )
-  }
+
+  refreshIPNSFeed = ({
+    userName,
+    numArticles = 50,
+  }: {
+    userName: string
+    numArticles: number
+  }) =>
+    this.q.add(
+      QUEUE_JOB.refreshIPNSFeed,
+      { userName, numArticles }
+      // { priority: QUEUE_PRIORITY.CRITICAL, }
+    )
 
   /**
    * Cusumers
@@ -88,6 +100,12 @@ class PublicationQueue extends BaseQueue {
       QUEUE_JOB.publishArticle,
       QUEUE_CONCURRENCY.publishArticle,
       this.handlePublishArticle
+    )
+
+    this.q.process(
+      QUEUE_JOB.refreshIPNSFeed,
+      QUEUE_CONCURRENCY.refreshIPNSFeed,
+      this.handleRefreshIPNSFeed
     )
   }
 
@@ -262,7 +280,10 @@ class PublicationQueue extends BaseQueue {
         }
         job.progress(80)
 
-        await this.articleService.publishFeedToIPNS(author)
+        await this.articleService.publishFeedToIPNS({
+          userName,
+          numArticles: 1, // the latest 1 article is the always new and needs attached
+        })
         job.progress(85)
 
         // Step 7: add to search
@@ -546,6 +567,17 @@ class PublicationQueue extends BaseQueue {
       logger.error(e)
     }
   }
+
+  private handleRefreshIPNSFeed: Queue.ProcessCallbackFunction<unknown> =
+    async (
+      job // use Promise based job processing instead of `done`
+    ) =>
+      this.articleService.publishFeedToIPNS(
+        job.data as {
+          userName: string
+          numArticles: number
+        }
+      )
 }
 
 export const publicationQueue = new PublicationQueue()

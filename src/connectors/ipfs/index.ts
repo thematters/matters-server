@@ -4,6 +4,7 @@ import { create } from 'ipfs-http-client'
 import fetch from 'node-fetch'
 import { Readable } from 'stream'
 import { promisify } from 'util'
+import { v4 } from 'uuid'
 
 const generateKeyPairPromisified = promisify(generateKeyPair)
 
@@ -20,6 +21,11 @@ export class IPFS {
       // port: parseInt(environment.ipfsPort, 10),
       // protocol: 'http',
       url: ipfsServerUrl,
+      headers: {
+        // for load balancer sticky session
+        // https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html
+        cookie: `app-cookie=${v4()}`,
+      },
     })
   }
 

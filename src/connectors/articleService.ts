@@ -231,35 +231,38 @@ export class ArticleService extends BaseService {
     return { contentHash, mediaHash, key }
   }
 
-  publishFeedToIPNS = async (
-    author: Item // Record<string, any>
+  publishFeedToIPNS = async ({
+    userName,
+    numArticles = 50,
+  }: {
+    userName: string
+    numArticles: number
+    // author: Item // Record<string, any>
     // articles: Array<Record<string, any>>
     // latestArticleDataHash: string
-  ) => {
+  }) => {
     const atomService = new AtomService()
+    const userService = new UserService()
+    const author = (await userService.findByUserName(userName)) as Item
+    if (!author) {
+      return
+    }
     // const { userName, avatar, description, displayName } = author
 
-    let ipnsKeyRec = await atomService.findFirst({
-      table: 'user_ipns_keys',
-      where: { userId: author.id },
-    })
-    const kname = `for-${author.userName}-${author.uuid}`
-    let pem = ipnsKeyRec?.privKeyPem
-    if (!pem) {
-      const {
-        // publicKey,
-        privateKey,
-      } = await this.ipfs.genKey()
-      pem = privateKey.export({ format: 'pem', type: 'pkcs8' })
+    const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
+    if (!ipnsKeyRec) {
+      // cannot do anything if no ipns key
+      return
     }
 
-    let ipnsKey = ipnsKeyRec?.ipnsKey
+    const ipnsKey = ipnsKeyRec.ipnsKey
+    const kname = `for-${author.userName}-${author.uuid}`
     try {
       // always try import; might be on another new ipfs node, or never has it before
-      const res = await this.ipfs.importKey(kname, pem)
-      if (!ipnsKey && res) {
-        ipnsKey = res?.Id
-      }
+      const pem = ipnsKeyRec?.privKeyPem
+      // const res =
+      await this.ipfs.importKey(kname, pem)
+      // if (!ipnsKey && res) { ipnsKey = res?.Id }
     } catch (err) {
       // ignore import error if already exists;
       if (!ipnsKey && err) {
@@ -271,22 +274,9 @@ export class ArticleService extends BaseService {
       }
     }
 
-    if (!ipnsKeyRec) {
-      ipnsKeyRec = await atomService.create({
-        table: 'user_ipns_keys',
-        data: {
-          userId: author.id,
-          ipnsKey,
-          privKeyPem: pem,
-          privKeyName: kname,
-          // lastPublication: this.knex.fn.now(),
-        },
-      })
-    }
-
     const articleIds = await this.findByAuthor(author.id, {
       columns: ['article.id'],
-      take: 10, // most recent 10 articles
+      take: numArticles, // 10, // most recent 10 articles
     })
     const articles = (await this.dataloader.loadMany(
       articleIds.map(({ id }: { id: string }) => id)
@@ -331,7 +321,7 @@ export class ArticleService extends BaseService {
       cidToPublish = entry[0].cid // dirStat1.cid
 
       // add files (via MFS FILES API)
-      const lastDataHash = ipnsKeyRec?.lastDataHash
+      const lastDataHash = ipnsKeyRec.lastDataHash
       try {
         if (lastDataHash) {
           await this.ipfs.client.files.cp(
@@ -407,7 +397,7 @@ export class ArticleService extends BaseService {
 
       console.log(new Date(), `/${directoryName} published:`, published)
     } finally {
-      if (published && cidToPublish.toString() !== ipnsKeyRec?.lastDataHash) {
+      if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
         await atomService.update({
           table: 'user_ipns_keys',
           where: { userId: author.id },

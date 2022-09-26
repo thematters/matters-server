@@ -12,6 +12,9 @@ export const QUEUE_JOB = {
   publishPendingDrafts: 'publishPendingDrafts',
   verifyIPFSPinHashes: 'verifyIPFSPinHashes',
 
+  // refresh IPNS Feed
+  refreshIPNSFeed: 'refreshIPNSFeed',
+
   // Notification
   sendMail: 'sendMail',
 
@@ -89,6 +92,7 @@ export const QUEUE_NAME = {
 export const QUEUE_CONCURRENCY = {
   publishArticle: 100,
   publishRevisedArticle: 100,
+  refreshIPNSFeed: 2,
   migration: 2,
 }
 

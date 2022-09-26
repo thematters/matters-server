@@ -40,7 +40,7 @@ import {
   isValidUserName,
   makeUserName,
 } from 'common/utils'
-import { BaseService, OAuthService } from 'connectors'
+import { AtomService, BaseService, ipfs, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -55,12 +55,14 @@ import { likecoin } from './likecoin'
 import { medium } from './medium'
 
 export class UserService extends BaseService {
+  ipfs: typeof ipfs
   likecoin: typeof likecoin
   medium: typeof medium
 
   constructor() {
     super('user')
 
+    this.ipfs = ipfs
     this.likecoin = likecoin
     this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
@@ -1638,4 +1640,42 @@ export class UserService extends BaseService {
       .from('punish_record')
       .where({ userId, state })
       .update({ archived: true })
+
+  findOrCreateIPNSKey = async (userName: string) => {
+    const user = await this.findByUserName(userName)
+    if (!user) {
+      return
+    }
+    const atomService = new AtomService()
+
+    const ipnsKeyRec = await atomService.findFirst({
+      table: 'user_ipns_keys',
+      where: { userId: user.id },
+    })
+    if (ipnsKeyRec) {
+      return ipnsKeyRec
+    }
+
+    // create it if not existed
+    const kname = `for-${user.userName}-${user.uuid}`
+    const {
+      // publicKey,
+      privateKey,
+    } = await this.ipfs.genKey()
+    const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }) as string
+
+    const res = await this.ipfs.importKey(kname, pem)
+    // if (!ipnsKey && res) { ipnsKey = res?.Id }
+    const ipnsKey = res.Id
+
+    return atomService.create({
+      table: 'user_ipns_keys',
+      data: {
+        userId: user.id,
+        ipnsKey,
+        privKeyPem: pem,
+        privKeyName: kname,
+      },
+    })
+  }
 }

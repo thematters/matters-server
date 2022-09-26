@@ -1,4 +1,4 @@
-import logger from 'common/logger'
+// import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateUserRoleResolver } from 'definitions'
 
@@ -26,7 +26,8 @@ const resolver: MutationToUpdateUserRoleResolver = async (
       },
     })
   } catch (err) {
-    logger.error(err)
+    // logger.error(err)
+    console.error(new Date(), 'ERROR:', err)
   }
 
   return user

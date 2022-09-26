@@ -10,6 +10,7 @@ import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
+import refreshIPNSFeed from './refreshIPNSFeed'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
 import resetWallet from './resetWallet'
@@ -52,6 +53,7 @@ export default {
     clearSearchHistory,
     updateUserState,
     updateUserRole,
+    refreshIPNSFeed,
     migration,
     addCredit,
     payTo,

@@ -77,6 +77,9 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Update state of a user, used in OSS."
+    refreshIPNSFeed(input: RefreshIPNSFeedInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
@@ -701,6 +704,12 @@ export default /* GraphQL */ `
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
+  }
+
+  input RefreshIPNSFeedInput {
+    userName: String!
+    "refresh how many recent articles, default to 50"
+    numArticles: Int = 50
   }
 
   input ToggleUsersBadgeInput {

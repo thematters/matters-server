@@ -348,6 +348,11 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserRole: GQLUser
+
+  /**
+   * Update state of a user, used in OSS.
+   */
+  refreshIPNSFeed: GQLUser
   toggleUsersBadge: Array<GQLUser | null>
 
   /**
@@ -3789,6 +3794,15 @@ export interface GQLUpdateUserRoleInput {
   role: GQLUserRole
 }
 
+export interface GQLRefreshIPNSFeedInput {
+  userName: string
+
+  /**
+   * refresh how many recent articles, default to 50
+   */
+  numArticles?: number
+}
+
 export interface GQLToggleUsersBadgeInput {
   ids?: Array<string>
   type: GQLBadgeType
@@ -4657,6 +4671,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   claimLogbooks?: MutationToClaimLogbooksResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
+  refreshIPNSFeed?: MutationToRefreshIPNSFeedResolver<TParent>
   toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
@@ -5623,6 +5638,21 @@ export interface MutationToUpdateUserRoleResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserRoleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToRefreshIPNSFeedArgs {
+  input: GQLRefreshIPNSFeedInput
+}
+export interface MutationToRefreshIPNSFeedResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToRefreshIPNSFeedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
