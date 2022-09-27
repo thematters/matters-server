@@ -81,6 +81,8 @@ export default /* GraphQL */ `
     refreshIPNSFeed(input: RefreshIPNSFeedInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    unbindLikerId(input: UnbindLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
   type User implements Node {
@@ -716,6 +718,11 @@ export default /* GraphQL */ `
     ids: [ID!]
     type: BadgeType!
     enabled: Boolean!
+  }
+
+  input UnbindLikerIdInput {
+    id: ID!
+    likerId: String!
   }
 
   input ClearReadHistoryInput {

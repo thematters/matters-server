@@ -259,6 +259,7 @@ type Mutation {
   """Update state of a user, used in OSS."""
   refreshIPNSFeed(input: RefreshIPNSFeedInput!): User!
   toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
+  unbindLikerId(input: UnbindLikerIdInput!): User!
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -2783,6 +2784,11 @@ input ToggleUsersBadgeInput {
   ids: [ID!]
   type: BadgeType!
   enabled: Boolean!
+}
+
+input UnbindLikerIdInput {
+  id: ID!
+  likerId: String!
 }
 
 input ClearReadHistoryInput {
