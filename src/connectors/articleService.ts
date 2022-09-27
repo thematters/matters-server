@@ -518,11 +518,11 @@ export class ArticleService extends BaseService {
         // always as last orderBy
         builder.orderBy('article.id', 'desc')
 
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
         }
       })
 
@@ -562,8 +562,8 @@ export class ArticleService extends BaseService {
     id: string
     skip?: number
     take?: number
-  }) => {
-    const query = this.knex
+  }) =>
+    this.knex
       .select('article.*')
       .max('comment.id', { as: '_comment_id_' })
       .from('comment')
@@ -574,16 +574,14 @@ export class ArticleService extends BaseService {
       })
       .groupBy('article.id')
       .orderBy('_comment_id_', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   /*********************************
    *                               *
@@ -885,8 +883,8 @@ export class ArticleService extends BaseService {
     referenceId: string
     take?: number
     skip?: number
-  }) => {
-    const query = this.knex('appreciation')
+  }) =>
+    this.knex('appreciation')
       .select('reference_id', 'sender_id')
       .where({
         referenceId,
@@ -896,16 +894,14 @@ export class ArticleService extends BaseService {
       .sum('amount as amount')
       .max('created_at as created_at')
       .orderBy('created_at', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   appreciateLeftByUser = async ({
     articleId,
@@ -1026,22 +1022,20 @@ export class ArticleService extends BaseService {
     id: string
     take?: number
     skip?: number
-  }) => {
-    const query = this.knex
+  }) =>
+    this.knex
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   /*********************************
    *                               *
@@ -1198,22 +1192,20 @@ export class ArticleService extends BaseService {
     entranceId: string
     take?: number
     skip?: number
-  }) => {
-    const query = this.knex('collection')
+  }) =>
+    this.knex('collection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
       .orderBy('order', 'asc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   /**
    * Count an article is collected by how many active articles.
@@ -1451,7 +1443,7 @@ export class ArticleService extends BaseService {
     targetType?: TRANSACTION_TARGET_TYPE
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-    const query = this.knex('transaction')
+    return this.knex('transaction')
       .select('sender_id', 'target_id')
       .where({
         purpose,
@@ -1463,15 +1455,14 @@ export class ArticleService extends BaseService {
       .sum('amount as amount')
       .max('created_at as created_at')
       .orderBy('created_at', 'desc')
-
-    if (skip) {
-      query.offset(skip)
-    }
-    if (take || take === 0) {
-      query.limit(take)
-    }
-
-    return query
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
   }
 
   /**
@@ -1580,10 +1571,10 @@ export class ArticleService extends BaseService {
       notIn,
     })
 
-    if (skip) {
+    if (skip !== undefined && Number.isFinite(skip)) {
       query.offset(skip)
     }
-    if (take || take === 0) {
+    if (take !== undefined && Number.isFinite(take)) {
       query.limit(take)
     }
 

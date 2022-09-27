@@ -57,10 +57,10 @@ export class TagService extends BaseService {
       query = sortCreatedAt('desc')
     }
 
-    if (skip) {
+    if (skip !== undefined && Number.isFinite(skip)) {
       query.offset(skip)
     }
-    if (take || take === 0) {
+    if (take !== undefined && Number.isFinite(take)) {
       query.limit(take)
     }
 
@@ -178,12 +178,12 @@ export class TagService extends BaseService {
       .orderByRaw(`num_articles DESC`)
       .orderByRaw(`last_use DESC NULLS LAST`)
       .orderByRaw(`x.id DESC`)
-      .modify(function (this: Knex.QueryBuilder) {
-        if (take !== undefined) {
-          this.limit(take)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
         }
-        if (skip !== undefined) {
-          this.offset(skip)
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
         }
       })
 
@@ -201,12 +201,12 @@ export class TagService extends BaseService {
       .from('action_tag')
       .where({ userId, action: TAG_ACTION.pin })
       .orderBy('updated_at', 'desc') // update updated_at to re-order
-      .modify(function (this: Knex.QueryBuilder) {
-        if (take !== undefined) {
-          this.limit(take)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
         }
-        if (skip !== undefined) {
-          this.offset(skip)
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
         }
       })
 
@@ -350,11 +350,11 @@ export class TagService extends BaseService {
       query.whereNotIn('author_id', exclude)
     }
 
-    if (take || take === 0) {
-      query.limit(take)
-    }
-    if (skip) {
+    if (skip !== undefined && Number.isFinite(skip)) {
       query.offset(skip)
+    }
+    if (take !== undefined && Number.isFinite(take)) {
+      query.limit(take)
     }
 
     return query
@@ -640,12 +640,12 @@ export class TagService extends BaseService {
         .orderBy('num_authors', 'desc')
         .orderBy('num_articles', 'desc')
         .orderBy('created_at', 'asc')
-        .modify(function (this: Knex.QueryBuilder) {
-          if (take !== undefined) {
-            this.limit(take)
+        .modify((builder: Knex.QueryBuilder) => {
+          if (skip !== undefined && Number.isFinite(skip)) {
+            builder.offset(skip)
           }
-          if (skip !== undefined) {
-            this.offset(skip)
+          if (take !== undefined && Number.isFinite(take)) {
+            builder.limit(take)
           }
         })
 
@@ -749,12 +749,12 @@ export class TagService extends BaseService {
       .orderByRaw('num_authors DESC NULLS LAST, num_articles DESC NULLS LAST')
       .orderByRaw('span_days DESC NULLS LAST')
       .orderByRaw('created_at') // ascending from earliest to latest
-      .modify(function (this: Knex.QueryBuilder) {
-        if (take !== undefined) {
-          this.limit(take)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
         }
-        if (skip !== undefined) {
-          this.offset(skip)
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
         }
       })
 
@@ -768,10 +768,10 @@ export class TagService extends BaseService {
       .join('matters_choice_tag as c', 'c.tag_id', 'tag.id')
       .orderBy('chose_at', 'desc')
 
-    if (skip) {
+    if (skip !== undefined && Number.isFinite(skip)) {
       query.offset(skip)
     }
-    if (take || take === 0) {
+    if (take !== undefined && Number.isFinite(take)) {
       query.limit(take)
     }
 
@@ -991,11 +991,11 @@ export class TagService extends BaseService {
         }
         builder.orderBy('article.id', 'desc')
 
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
         }
       })
 

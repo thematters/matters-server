@@ -1,5 +1,5 @@
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToTransactionsReceivedByResolver } from 'definitions'
+import { ArticleToTransactionsReceivedByResolver, Item } from 'definitions'
 
 const resolver: ArticleToTransactionsReceivedByResolver = async (
   { articleId },
@@ -18,7 +18,7 @@ const resolver: ArticleToTransactionsReceivedByResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(txs.map(({ senderId }) => senderId)),
+    userService.dataloader.loadMany(txs.map(({ senderId }: Item) => senderId)),
     input,
     totalCount
   )

@@ -4,7 +4,7 @@ import {
   fromConnectionArgs,
   loadManyFilterError,
 } from 'common/utils'
-import { ArticleToCollectionResolver } from 'definitions'
+import { ArticleToCollectionResolver, Item } from 'definitions'
 
 const resolver: ArticleToCollectionResolver = async (
   { articleId },
@@ -33,7 +33,7 @@ const resolver: ArticleToCollectionResolver = async (
 
   return connectionFromPromisedArray(
     articleService.draftLoader
-      .loadMany(collections.map((collection) => collection.articleId))
+      .loadMany(collections.map((collection: Item) => collection.articleId))
       .then(loadManyFilterError),
     input,
     totalCount
