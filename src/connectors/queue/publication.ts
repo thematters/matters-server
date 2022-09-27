@@ -282,7 +282,7 @@ class PublicationQueue extends BaseQueue {
 
         await this.articleService.publishFeedToIPNS({
           userName,
-          numArticles: 1, // the latest 1 article is the always new and needs attached
+          incremental: true, // attach the last just published article
         })
         job.progress(85)
 

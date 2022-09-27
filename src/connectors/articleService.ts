@@ -234,9 +234,11 @@ export class ArticleService extends BaseService {
   publishFeedToIPNS = async ({
     userName,
     numArticles = 50,
+    incremental = false,
   }: {
     userName: string
-    numArticles: number
+    numArticles?: number
+    incremental?: boolean
     // author: Item // Record<string, any>
     // articles: Array<Record<string, any>>
     // latestArticleDataHash: string
@@ -357,7 +359,9 @@ export class ArticleService extends BaseService {
       )
       } */
       const attached = []
-      for (const arti of articles) {
+      // most article publishing goes incremental mode:
+      // only attach the just published 1 article, at every publihsing time
+      for (const arti of incremental ? articles.slice(0, 1) : articles) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
