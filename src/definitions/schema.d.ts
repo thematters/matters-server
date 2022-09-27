@@ -354,6 +354,7 @@ export interface GQLMutation {
    */
   refreshIPNSFeed: GQLUser
   toggleUsersBadge: Array<GQLUser | null>
+  unbindLikerId: GQLUser
 
   /**
    * Add Credit to User Wallet
@@ -3809,6 +3810,11 @@ export interface GQLToggleUsersBadgeInput {
   enabled: boolean
 }
 
+export interface GQLUnbindLikerIdInput {
+  id: string
+  likerId: string
+}
+
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -4673,6 +4679,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   refreshIPNSFeed?: MutationToRefreshIPNSFeedResolver<TParent>
   toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
+  unbindLikerId?: MutationToUnbindLikerIdResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
@@ -5668,6 +5675,18 @@ export interface MutationToToggleUsersBadgeResolver<
   (
     parent: TParent,
     args: MutationToToggleUsersBadgeArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnbindLikerIdArgs {
+  input: GQLUnbindLikerIdInput
+}
+export interface MutationToUnbindLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnbindLikerIdArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

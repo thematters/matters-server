@@ -20,6 +20,7 @@ import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
 import togglePinTag from './togglePinTag'
 import toggleUsersBadge from './toggleUsersBadge'
+import unbindLikerId from './unbindLikerId'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
 import updateUserRole from './updateUserRole'
@@ -60,6 +61,7 @@ export default {
     payout,
     connectStripeAccount,
     toggleUsersBadge,
+    unbindLikerId,
     claimLogbooks,
   },
 }
