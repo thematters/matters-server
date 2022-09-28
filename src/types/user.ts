@@ -68,6 +68,9 @@ export default /* GraphQL */ `
     "Let Traveloggers owner claims a Logbook, returns transaction hash"
     claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
+    "update tags for showing on profile page"
+    putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
+
     ##############
     #     OSS    #
     ##############
@@ -81,6 +84,8 @@ export default /* GraphQL */ `
     refreshIPNSFeed(input: RefreshIPNSFeedInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    unbindLikerId(input: UnbindLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
   type User implements Node {
@@ -267,6 +272,9 @@ export default /* GraphQL */ `
 
     "Connected wallet."
     cryptoWallet: CryptoWallet
+
+    "saved tags for showing on profile page, API allows up to 100, front-end lock'ed at lower limit"
+    featuredTags: [Tag!]
   }
 
   type UserSettings {
@@ -718,6 +726,11 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input UnbindLikerIdInput {
+    id: ID!
+    likerId: String!
+  }
+
   input ClearReadHistoryInput {
     id: ID!
   }
@@ -738,6 +751,11 @@ export default /* GraphQL */ `
 
     "nonce from generateSigningMessage"
     nonce: String!
+  }
+
+  input FeaturedTagsInput {
+    " tagIds "
+    ids: [ID!]! # tagIds
   }
 
   type ClaimLogbooksResult {

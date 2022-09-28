@@ -340,6 +340,11 @@ export interface GQLMutation {
   claimLogbooks: GQLClaimLogbooksResult
 
   /**
+   * update tags for showing on profile page
+   */
+  putFeaturedTags?: Array<GQLTag>
+
+  /**
    * Update state of a user, used in OSS.
    */
   updateUserState?: Array<GQLUser>
@@ -354,6 +359,7 @@ export interface GQLMutation {
    */
   refreshIPNSFeed: GQLUser
   toggleUsersBadge: Array<GQLUser | null>
+  unbindLikerId: GQLUser
 
   /**
    * Add Credit to User Wallet
@@ -3232,6 +3238,11 @@ export interface GQLUserInfo {
    * Connected wallet.
    */
   cryptoWallet?: GQLCryptoWallet
+
+  /**
+   * saved tags for showing on profile page, API allows up to 100, front-end lock'ed at lower limit
+   */
+  featuredTags?: Array<GQLTag>
 }
 
 export interface GQLUserSettings {
@@ -3809,6 +3820,11 @@ export interface GQLToggleUsersBadgeInput {
   enabled: boolean
 }
 
+export interface GQLUnbindLikerIdInput {
+  id: string
+  likerId: string
+}
+
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -3835,6 +3851,13 @@ export interface GQLClaimLogbooksInput {
    * nonce from generateSigningMessage
    */
   nonce: string
+}
+
+export interface GQLFeaturedTagsInput {
+  /**
+   *  tagIds
+   */
+  ids: Array<string>
 }
 
 export interface GQLClaimLogbooksResult {
@@ -4669,10 +4692,12 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   migration?: MutationToMigrationResolver<TParent>
   claimLogbooks?: MutationToClaimLogbooksResolver<TParent>
+  putFeaturedTags?: MutationToPutFeaturedTagsResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   refreshIPNSFeed?: MutationToRefreshIPNSFeedResolver<TParent>
   toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
+  unbindLikerId?: MutationToUnbindLikerIdResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
@@ -5613,6 +5638,21 @@ export interface MutationToClaimLogbooksResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToPutFeaturedTagsArgs {
+  input: GQLFeaturedTagsInput
+}
+export interface MutationToPutFeaturedTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutFeaturedTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToUpdateUserStateArgs {
   input: GQLUpdateUserStateInput
 }
@@ -5668,6 +5708,18 @@ export interface MutationToToggleUsersBadgeResolver<
   (
     parent: TParent,
     args: MutationToToggleUsersBadgeArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnbindLikerIdArgs {
+  input: GQLUnbindLikerIdInput
+}
+export interface MutationToUnbindLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnbindLikerIdArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10737,6 +10789,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   ethAddress?: UserInfoToEthAddressResolver<TParent>
   isWalletAuth?: UserInfoToIsWalletAuthResolver<TParent>
   cryptoWallet?: UserInfoToCryptoWalletResolver<TParent>
+  featuredTags?: UserInfoToFeaturedTagsResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -10842,6 +10895,15 @@ export interface UserInfoToIsWalletAuthResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToCryptoWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToFeaturedTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

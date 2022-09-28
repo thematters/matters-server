@@ -29,6 +29,7 @@ import blockList from './blockList'
 import commentCount from './commentCount'
 import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
+import featuredTags from './featuredTags'
 import followers from './followers'
 import Following from './following'
 import group from './group'
@@ -135,6 +136,7 @@ const user: {
     group,
     isWalletAuth,
     cryptoWallet,
+    featuredTags,
   },
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
