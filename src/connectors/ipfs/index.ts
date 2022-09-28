@@ -47,15 +47,14 @@ export class IPFS {
       method: 'POST',
       body: formData,
     })
-    console.log(new Date(), 'key/import res:', res)
+    // console.log(new Date(), 'key/import res:', res)
     const imported = await res.json()
-    console.log(new Date(), 'key/import res json:', imported)
+    // console.log(new Date(), 'key/import res json:', imported)
     // return res.json()
     return imported
   }
 
-  publish = async (cid: string, options: Record<string, any>) =>
-    this.client.name.publish(cid, options)
+  // publish = async (cid: string, options: Record<string, any>) => this.client.name.publish(cid, options)
 }
 
 export const ipfs = new IPFS()
