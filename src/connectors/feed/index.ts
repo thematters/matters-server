@@ -79,7 +79,7 @@ export class Feed {
       title: `${displayName || userName}'s Matters JSON Feed`,
       icon: this.userImg || undefined, // fallback to default asset
       home_page_url,
-      feed_url: `https://ipfs.io/ipns/${this.keyId}/feed.json`,
+      // feed_url: `https://ipfs.io/ipns/${this.keyId}/feed.json`,
       description: description || undefined, // omit by undefined if empty
       authors: [
         {
@@ -138,9 +138,11 @@ export class Feed {
 
     const items = this.articles.map(
       ({ id, uuid, title, slug, summary, mediaHash, dataHash, createdAt }) => {
-        const linkUrl = `${
-          environment.siteDomain || 'https://matters.news'
-        }/@${userName}/${id}-${slug}-${mediaHash}`
+        const linkUrl = encodeURI(
+          `${
+            environment.siteDomain || 'https://matters.news'
+          }/@${userName}/${id}-${slug}`
+        )
 
         return `<item>
 <title><![CDATA[${title}]]></title>
@@ -153,7 +155,8 @@ export class Feed {
     )
 
     const siteTitle = `${displayName || userName}'s website`
-    const selfLink = `https://ipfs.io/ipns/${this.keyId}/rss.xml`
+    // const selfLink = `https://ipfs.io/ipns/${this.keyId}/rss.xml`
+    // <atom:link href="${selfLink}" rel="self" type="application/rss+xml" />
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
@@ -161,7 +164,6 @@ export class Feed {
   xmlns:content="http://purl.org/rss/1.0/modules/content/"
   xmlns:atom="http://www.w3.org/2005/Atom"
   xmlns:media="http://search.yahoo.com/mrss/">
-<atom:link href="${selfLink}" rel="self" type="application/rss+xml" />
 <channel>
   <title><![CDATA[${siteTitle}]]></title>
   <link>${home_page_url}</link>
@@ -215,7 +217,7 @@ ${items.join('\n')}
         day: 'numeric',
       })}</span>
 <a href="./${id}-${slug}/"><h2>${title}</h2></a>
-<p>${summary}</p>
+<figure class="summary"><p>${summary}</p></figure>
 </li>`
     )
 
@@ -227,6 +229,8 @@ ${items.join('\n')}
       day: 'numeric',
     })
 
+    // <link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -236,7 +240,6 @@ ${items.join('\n')}
 <title>${siteTitle}</title>
 <meta name="description" content="${description}">
 
-<link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
 <link rel="alternate" type="application/feed+json" href="./feed.json" title="${siteTitle}" />
 <link rel="canonical" href="${home_page_url}" />
 
@@ -247,12 +250,14 @@ ${items.join('\n')}
 <meta name="twitter:description" content="${description}">
 
 <style>
-main { max-width: 44rem; margin: 2.5rem auto; padding: 0 1.25rem; }
+main { max-width: 42rem; margin: 2.5rem auto; padding: 0 1.25rem; }
+header { margin-bottom: 2.5rem; }
 h1 { text-align: center; }
 p.author-description { white-space: pre-wrap; }
 figure.byline { margin: 0; }
 figure.byline time { color: grey; }
 figure.byline * + * { padding-left: 0.625rem; }
+figure.summary { margin: 2rem 0; color: gray; line-height: 2; }
 ol, ul { padding-left: 0; }
 li.item { list-style: none; }
 li.item h2 { margin: 0.25rem auto; }

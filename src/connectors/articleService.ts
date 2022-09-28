@@ -308,11 +308,12 @@ export class ArticleService extends BaseService {
       for await (const result of this.ipfs.client.addAll(contents)) {
         results.push(result)
       }
+      const entriesMap = new Map(results.map((e: any) => [e.path, e]))
+      console.log(new Date(), 'contents feed.json ::', results, entriesMap)
+
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
       )
-
-      // console.log(new Date(), 'contents feed.json ::', contents, results)
 
       if (entry.length === 0) {
         entry = results.filter(({ path }: { path: string }) =>
