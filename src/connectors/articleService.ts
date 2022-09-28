@@ -254,6 +254,7 @@ export class ArticleService extends BaseService {
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
+      console.error(new Date(), 'create IPNS key ERROR:', ipnsKeyRec)
       return
     }
 
@@ -280,11 +281,21 @@ export class ArticleService extends BaseService {
       columns: ['article.id'],
       take: numArticles, // 10, // most recent 10 articles
     })
-    const articles = (await this.dataloader.loadMany(
-      articleIds.map(({ id }: { id: string }) => id)
-    )) as Item[]
+    const articles = (
+      (await this.dataloader.loadMany(
+        articleIds.map(({ id }: { id: string }) => id)
+      )) as Item[]
+    ).filter(Boolean)
 
     const lastArticle = articles[0]
+    if (!lastArticle) {
+      console.error(new Date(), 'fetching articles ERROR:', {
+        authorId: author.id,
+        articleIds,
+        articles,
+      })
+      return
+    }
     const directoryName = `${kname}-with-${lastArticle.id}-${
       lastArticle.slug
     }@${new Date().toISOString().substring(0, 13)}`
@@ -293,26 +304,27 @@ export class ArticleService extends BaseService {
     const feed = new Feed(author, ipnsKey, articles)
     await feed.loadData()
 
-    const contents = ['feed.json', 'rss.xml', 'index.html']
-      .map((file) => ({
-        path: `${directoryName}/${file}`,
-        content: feed[file]?.(), // contents[file] as string,
-      }))
-      .filter(({ content }) => content)
-
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
 
     try {
+      const contents = ['feed.json', 'rss.xml', 'index.html']
+        .map((file) => ({
+          path: `${directoryName}/${file}`,
+          content: feed[file]?.(), // contents[file] as string,
+        }))
+        .filter(({ content }) => content)
+
       const results = []
       for await (const result of this.ipfs.client.addAll(contents)) {
         results.push(result)
       }
+      const entriesMap = new Map(results.map((e: any) => [e.path, e]))
+      console.log(new Date(), 'contents feed.json ::', results, entriesMap)
+
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
       )
-
-      // console.log(new Date(), 'contents feed.json ::', contents, results)
 
       if (entry.length === 0) {
         entry = results.filter(({ path }: { path: string }) =>
@@ -328,13 +340,14 @@ export class ArticleService extends BaseService {
         if (lastDataHash) {
           await this.ipfs.client.files.cp(
             `/ipfs/${lastDataHash}`,
-            `/${directoryName}`
+            `/${directoryName}`,
+            { timeout: 60e3 }
           )
         } else {
           await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
         }
       } catch (err) {
-        // ignore if already existing
+        // ignore HTTPError: file already exists
       }
 
       await Promise.all(
@@ -343,25 +356,24 @@ export class ArticleService extends BaseService {
             create: true,
             parents: true, // create parents if not existed;
             truncate: true,
+            timeout: 60e3,
           })
         )
       )
 
-      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+        withLocal: true,
+        timeout: 60e3,
+      })
       // console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
       cidToPublish = dirStat0.cid
 
-      // attach MFS for each old publication
-      /* for (const arti of articles) {
-      await this.ipfs.client.files.cp(
-        `/ipfs/${arti.dataHash}`,
-        `/${directoryName}/${arti.id}-${arti.slug}`
-      )
-      } */
       const attached = []
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
-      for (const arti of incremental ? articles.slice(0, 1) : articles) {
+      for (const arti of incremental // to include last one only
+        ? [lastArticle]
+        : articles) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
@@ -371,11 +383,12 @@ export class ArticleService extends BaseService {
           await this.ipfs.client.files.cp(
             // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
             newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
-            newEntry.mfspath // `/${directoryName}/${arti.id}-${arti.slug}`
+            newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
+            { timeout: 60e3 }
           )
           attached.push(newEntry)
         } catch (err) {
-          // ignore Timeout
+          // ignore HTTPError: GATEWAY_TIMEOUT
           console.error(
             new Date(),
             'publishFeedToIPNS ipfs.files.cp attachment ERROR:',
@@ -384,10 +397,15 @@ export class ArticleService extends BaseService {
         }
       }
 
-      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+        withLocal: true,
+        timeout: 60e3,
+      })
       console.log(
         new Date(),
-        `directoryName stat after attached ${articles.length} articles:`,
+        `directoryName stat after tried ${
+          incremental ? 'last 1' : articles.length
+        }, and actually attached ${attached.length} articles:`,
         dirStat1.cid.toString(),
         { dirStat0, dirStat1, attached }
       )
@@ -413,8 +431,8 @@ export class ArticleService extends BaseService {
       } else {
         console.error(
           new Date(),
-          'publishFeedToIPNS: remained same, nothing to update:',
-          { cidToPublish: cidToPublish.toString(), published }
+          'publishFeedToIPNS: not published, or remained same:',
+          { published, cidToPublish: cidToPublish.toString() }
         )
       }
     }
