@@ -243,6 +243,7 @@ export class ArticleService extends BaseService {
     // articles: Array<Record<string, any>>
     // latestArticleDataHash: string
   }) => {
+    const started = Date.now()
     const atomService = new AtomService()
     const userService = new UserService()
     const author = (await userService.findByUserName(userName)) as Item
@@ -254,6 +255,7 @@ export class ArticleService extends BaseService {
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
+      console.error(new Date(), 'create IPNS key ERROR:', ipnsKeyRec)
       return
     }
 
@@ -261,12 +263,11 @@ export class ArticleService extends BaseService {
     const kname = `for-${author.userName}-${author.uuid}`
     try {
       // always try import; might be on another new ipfs node, or never has it before
-      const pem = ipnsKeyRec?.privKeyPem
-      // const res =
-      await this.ipfs.importKey(kname, pem)
+      // const pem = ipnsKeyRec.privKeyPem
+      await this.ipfs.importKey(kname, ipnsKeyRec.privKeyPem)
       // if (!ipnsKey && res) { ipnsKey = res?.Id }
     } catch (err) {
-      // ignore import error if already exists;
+      // ignore: key with name 'for-...' already exists
       if (!ipnsKey && err) {
         console.error(
           new Date(),
@@ -280,11 +281,21 @@ export class ArticleService extends BaseService {
       columns: ['article.id'],
       take: numArticles, // 10, // most recent 10 articles
     })
-    const articles = (await this.dataloader.loadMany(
-      articleIds.map(({ id }: { id: string }) => id)
-    )) as Item[]
+    const articles = (
+      (await this.dataloader.loadMany(
+        articleIds.map(({ id }: { id: string }) => id)
+      )) as Item[]
+    ).filter(Boolean)
 
     const lastArticle = articles[0]
+    if (!lastArticle) {
+      console.error(new Date(), 'fetching articles ERROR:', {
+        authorId: author.id,
+        articleIds,
+        articles,
+      })
+      return
+    }
     const directoryName = `${kname}-with-${lastArticle.id}-${
       lastArticle.slug
     }@${new Date().toISOString().substring(0, 13)}`
@@ -293,26 +304,27 @@ export class ArticleService extends BaseService {
     const feed = new Feed(author, ipnsKey, articles)
     await feed.loadData()
 
-    const contents = ['feed.json', 'rss.xml', 'index.html']
-      .map((file) => ({
-        path: `${directoryName}/${file}`,
-        content: feed[file]?.(), // contents[file] as string,
-      }))
-      .filter(({ content }) => content)
-
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
 
     try {
+      const contents = ['feed.json', 'rss.xml', 'index.html']
+        .map((file) => ({
+          path: `${directoryName}/${file}`,
+          content: feed[file]?.(), // contents[file] as string,
+        }))
+        .filter(({ content }) => content)
+
       const results = []
       for await (const result of this.ipfs.client.addAll(contents)) {
         results.push(result)
       }
+      const entriesMap = new Map(results.map((e: any) => [e.path, e]))
+      console.log(new Date(), 'contents feed.json ::', results, entriesMap)
+
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
       )
-
-      // console.log(new Date(), 'contents feed.json ::', contents, results)
 
       if (entry.length === 0) {
         entry = results.filter(({ path }: { path: string }) =>
@@ -328,40 +340,40 @@ export class ArticleService extends BaseService {
         if (lastDataHash) {
           await this.ipfs.client.files.cp(
             `/ipfs/${lastDataHash}`,
-            `/${directoryName}`
+            `/${directoryName}`,
+            { timeout: 60e3 }
           )
         } else {
           await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
         }
       } catch (err) {
-        // ignore if already existing
+        // ignore HTTPError: file already exists
       }
 
-      await Promise.all(
-        contents.map(async ({ path, content }) =>
-          this.ipfs.client.files.write(`/${path}`, content, {
-            create: true,
-            parents: true, // create parents if not existed;
-            truncate: true,
-          })
-        )
-      )
+      // await Promise.all( // FIX: problematic concurrent writing, change to sequential await
+      for (const { path, content } of contents) {
+        // contents.forEach(async ({ path, content }) =>
+        await this.ipfs.client.files.write(`/${path}`, content, {
+          create: true,
+          parents: true, // create parents if not existed;
+          truncate: true,
+          timeout: 60e3,
+        })
+      }
 
-      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+        withLocal: true,
+        timeout: 60e3,
+      })
       // console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
       cidToPublish = dirStat0.cid
 
-      // attach MFS for each old publication
-      /* for (const arti of articles) {
-      await this.ipfs.client.files.cp(
-        `/ipfs/${arti.dataHash}`,
-        `/${directoryName}/${arti.id}-${arti.slug}`
-      )
-      } */
       const attached = []
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
-      for (const arti of incremental ? articles.slice(0, 1) : articles) {
+      for (const arti of incremental // to include last one only
+        ? [lastArticle]
+        : articles) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
@@ -371,11 +383,12 @@ export class ArticleService extends BaseService {
           await this.ipfs.client.files.cp(
             // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
             newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
-            newEntry.mfspath // `/${directoryName}/${arti.id}-${arti.slug}`
+            newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
+            { timeout: 60e3 }
           )
           attached.push(newEntry)
         } catch (err) {
-          // ignore Timeout
+          // ignore HTTPError: GATEWAY_TIMEOUT
           console.error(
             new Date(),
             'publishFeedToIPNS ipfs.files.cp attachment ERROR:',
@@ -384,20 +397,50 @@ export class ArticleService extends BaseService {
         }
       }
 
-      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`)
+      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+        withLocal: true,
+        timeout: 60e3,
+      })
       console.log(
         new Date(),
-        `directoryName stat after attached ${articles.length} articles:`,
+        `directoryName stat after tried ${
+          incremental ? 'last 1' : articles.length
+        }, and actually attached ${attached.length} articles:`,
         dirStat1.cid.toString(),
         { dirStat0, dirStat1, attached }
       )
 
       // const cidToPublish = entry[0].cid
       cidToPublish = dirStat1.cid
-      published = await this.ipfs.publish(cidToPublish, {
-        lifetime: '1680h',
-        key: kname,
-      })
+
+      let retries = 0
+      while (true) {
+        try {
+          // HTTPError: no key by the given name was found
+          published = await this.ipfs.client.name.publish(cidToPublish, {
+            lifetime: '1680h',
+            key: kname,
+            timeout: 60e3,
+          })
+          break
+        } catch (err) {
+          if (++retries < 2) {
+            try {
+              // HTTPError: no key by the given name was found
+              await this.ipfs.importKey(kname, ipnsKeyRec.privKeyPem)
+            } catch (err) {
+              // ignore: key with name 'for-...' already exists
+            }
+            console.error(new Date(), `ipfs.name.publish ERROR:`, err, {
+              cidToPublish: cidToPublish.toString(),
+              kname,
+              ipnsKey,
+            })
+            continue
+          }
+          throw err
+        }
+      }
 
       console.log(new Date(), `/${directoryName} published:`, published)
     } finally {
@@ -413,10 +456,15 @@ export class ArticleService extends BaseService {
       } else {
         console.error(
           new Date(),
-          'publishFeedToIPNS: remained same, nothing to update:',
-          { cidToPublish: cidToPublish.toString(), published }
+          'publishFeedToIPNS: not published, or remained same:',
+          { published, cidToPublish: cidToPublish.toString() }
         )
       }
+      const end = new Date()
+      console.log(
+        end,
+        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`
+      )
     }
   }
 
