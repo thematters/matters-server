@@ -223,7 +223,7 @@ ${items.join('\n')}
       this.articles?.[0]?.createdAt || new Date()
     ).toLocaleDateString(undefined, {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     })
 
@@ -247,10 +247,12 @@ ${items.join('\n')}
 <meta name="twitter:description" content="${description}">
 
 <style>
-body { margin: 0 auto; max-width: 48rem; }
+main { max-width: 44rem; margin: 2.5rem auto; padding: 0 1.25rem; }
 h1 { text-align: center; }
 p.author-description { white-space: pre-wrap; }
 figure.byline { margin: 0; }
+figure.byline time { color: grey; }
+figure.byline * + * { padding-left: 0.625rem; }
 ol, ul { padding-left: 0; }
 li.item { list-style: none; }
 li.item h2 { margin: 0.25rem auto; }
