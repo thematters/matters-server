@@ -2593,6 +2593,15 @@ export interface GQLAnnouncement {
   order: number
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
+  translations?: Array<GQLTranslatedAnnouncement>
+}
+
+export interface GQLTranslatedAnnouncement {
+  language: GQLUserLanguage
+  title?: string
+  cover?: string
+  content?: string
+  link?: string
 }
 
 export interface GQLOSS {
@@ -2794,6 +2803,14 @@ export interface GQLAnnouncementsInput {
   visible?: boolean
 }
 
+export interface GQLTranslatedAnnouncementInput {
+  language: GQLUserLanguage
+  title?: string
+  cover?: string
+  content?: string
+  link?: string
+}
+
 export interface GQLPutAnnouncementInput {
   id?: string
   title?: string
@@ -2803,6 +2820,7 @@ export interface GQLPutAnnouncementInput {
   type?: GQLAnnouncementType
   visible?: boolean
   order?: number
+  translations?: Array<GQLTranslatedAnnouncementInput>
 }
 
 export interface GQLDeleteAnnouncementsInput {
@@ -4420,6 +4438,7 @@ export interface GQLResolver {
   Official?: GQLOfficialTypeResolver
   Feature?: GQLFeatureTypeResolver
   Announcement?: GQLAnnouncementTypeResolver
+  TranslatedAnnouncement?: GQLTranslatedAnnouncementTypeResolver
   OSS?: GQLOSSTypeResolver
   Asset?: GQLAssetTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
@@ -9811,6 +9830,7 @@ export interface GQLAnnouncementTypeResolver<TParent = any> {
   order?: AnnouncementToOrderResolver<TParent>
   createdAt?: AnnouncementToCreatedAtResolver<TParent>
   updatedAt?: AnnouncementToUpdatedAtResolver<TParent>
+  translations?: AnnouncementToTranslationsResolver<TParent>
 }
 
 export interface AnnouncementToIdResolver<TParent = any, TResult = any> {
@@ -9895,6 +9915,86 @@ export interface AnnouncementToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface AnnouncementToUpdatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AnnouncementToTranslationsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTranslatedAnnouncementTypeResolver<TParent = any> {
+  language?: TranslatedAnnouncementToLanguageResolver<TParent>
+  title?: TranslatedAnnouncementToTitleResolver<TParent>
+  cover?: TranslatedAnnouncementToCoverResolver<TParent>
+  content?: TranslatedAnnouncementToContentResolver<TParent>
+  link?: TranslatedAnnouncementToLinkResolver<TParent>
+}
+
+export interface TranslatedAnnouncementToLanguageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TranslatedAnnouncementToTitleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TranslatedAnnouncementToCoverResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TranslatedAnnouncementToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TranslatedAnnouncementToLinkResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
