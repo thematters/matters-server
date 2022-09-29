@@ -1,3 +1,4 @@
+// TODO: the whole file move to @matters/formatter package
 import { environment } from 'common/environment'
 import { stripSpaces } from 'common/utils'
 import {
@@ -76,7 +77,7 @@ export class Feed {
 
     const feed = {
       version: 'https://jsonfeed.org/version/1.1',
-      title: `${displayName || userName}'s Matters JSON Feed`,
+      title: `${(displayName || userName).trim()}'s Matters`,
       icon: this.userImg || undefined, // fallback to default asset
       home_page_url,
       // feed_url: `https://ipfs.io/ipns/${this.keyId}/feed.json`,
@@ -98,15 +99,15 @@ export class Feed {
           cover,
           content,
           createdAt,
-          mediaHash,
+          // mediaHash,
           dataHash,
         }) => ({
           id: uuid,
           title,
-          // image,
+          image: this.systemService.findAssetUrl(cover) || undefined,
           content_html: content,
-          date_published: createdAt.toISOString(),
           summary,
+          date_published: createdAt.toISOString(),
           tags: omitEmpty(
             this.articleTagIds
               .filter(({ articleId }) => articleId === id)
@@ -116,7 +117,7 @@ export class Feed {
           url: `./${id}-${slug}/`,
           external_url: `${
             environment.siteDomain || 'https://matters.news'
-          }/@${userName}/${id}-${slug}-${mediaHash}`,
+          }/@${userName}/${id}-${slug}`,
         })
       ),
     }
@@ -137,12 +138,18 @@ export class Feed {
     }/@${userName}`
 
     const items = this.articles.map(
-      ({ id, uuid, title, slug, summary, mediaHash, dataHash, createdAt }) => {
-        const linkUrl = encodeURI(
-          `${
-            environment.siteDomain || 'https://matters.news'
-          }/@${userName}/${id}-${slug}`
-        )
+      ({
+        id,
+        uuid,
+        title,
+        slug,
+        summary, // mediaHash,
+        dataHash,
+        createdAt,
+      }) => {
+        const linkUrl = `${
+          environment.siteDomain || 'https://matters.news'
+        }/@${userName}/${id}-${encodeURIComponent(slug)}`
 
         return `<item>
 <title><![CDATA[${title}]]></title>
@@ -154,7 +161,7 @@ export class Feed {
       }
     )
 
-    const siteTitle = `${displayName || userName}'s website`
+    const siteTitle = (displayName || userName).trim() // `${displayName || userName}'s website`
     // const selfLink = `https://ipfs.io/ipns/${this.keyId}/rss.xml`
     // <atom:link href="${selfLink}" rel="self" type="application/rss+xml" />
 
@@ -186,7 +193,9 @@ ${items.join('\n')}
       // description,
     } = this.author
 
-    const siteTitle = `${displayName || userName}'s website`
+    const siteTitle = `${(
+      displayName || userName
+    ).trim()} 的創作空間站 - Matters`
     const description =
       stripSpaces(this.author.description) ||
       // siteTitle ||
@@ -202,32 +211,19 @@ ${items.join('\n')}
 
     const items = this.articles.map(
       ({
-        id,
-        uuid,
+        id, // uuid,
         title,
         slug,
-        summary,
-        mediaHash,
-        dataHash,
+        summary, // mediaHash, // dataHash,
         createdAt,
       }) => `<li class="item">
-<span>${createdAt.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })}</span>
 <a href="./${id}-${slug}/"><h2>${title}</h2></a>
-<figure class="summary"><p>${summary}</p></figure>
+<figure class="summary">${summary}</figure>
+<span>${buildShortDate(createdAt)}</span>
 </li>`
     )
 
-    const publishedDate = (
-      this.articles?.[0]?.createdAt || new Date()
-    ).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+    const publishedDate = buildShortDate(this.articles?.[0]?.createdAt) // .toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric',})
 
     // <link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
 
@@ -252,12 +248,13 @@ ${items.join('\n')}
 <style>
 main { max-width: 42rem; margin: 2.5rem auto; padding: 0 1.25rem; }
 header { margin-bottom: 2.5rem; }
-h1 { text-align: center; }
-p.author-description { white-space: pre-wrap; }
-figure.byline { margin: 0; }
-figure.byline time { color: grey; }
+header h1 { text-align: left; }
+header .feedicon { text-align: right; margin-top: -1rem; }
+p.author-description { white-space: pre-wrap; display: none; }
+figure.byline { margin: 0; margin-top: 1rem; }
+figure.byline time { color: grey; display: none; }
 figure.byline * + * { padding-left: 0.625rem; }
-figure.summary { margin: 2rem 0; color: gray; line-height: 2; }
+figure.summary { margin: 0; }
 ol, ul { padding-left: 0; }
 li.item { list-style: none; }
 li.item h2 { margin: 0.25rem auto; }
@@ -271,15 +268,15 @@ li.item span { font-size: smaller; color: grey; }
 
 <main>
 <header>
-<h1>${siteTitle}</h1>
-${
-  this.author.description
-    ? `<p class="author-description">${this.author.description}</p>`
-    : ''
-}
+<h1>${(displayName || userName).trim()}</h1>
+<p class="author-description">${this.author.description}</p>
+<div class="feedicon">
+  <!-- <a href="./feed.json"><img src="https://jsonfeed.org/graphics/icon.png" alt="JSON Feed" /></a> -->
+  <a href="./rss.xml"><!-- <img src="https://jsonfeed.org/graphics/icon.png" alt="RSS Feed" />-->RSS</a>
+</div>
 <figure class="byline">
-  <a href="${mattersAuthorLink}" target="_blank">${displayName} (@${userName})</a>
-  <time itemprop="datePublished" datetime="${publishedDate}">${publishedDate}</time>
+  <a href="${mattersAuthorLink}" target="_blank">@${userName}</a>
+  <!-- <time itemprop="datePublished" datetime="${publishedDate}">${publishedDate}</time> -->
   <span itemprops="provider" itemscope itemtype="http://schema.org/Organization">
     from <a href="https://matters.news" target="_blank" itemprops="name">Matters</a>
     <meta itemprops="url" content="https://matters.news">
@@ -307,6 +304,14 @@ function omitEmpty(arr: any[]) {
     return arr
   }
   // otherwise undefined
+}
+
+function buildShortDate(date: Date = new Date()) {
+  const dayNumber = date.getUTCDate()
+  const month = date.getUTCMonth() + 1 // from range 0-11 to 1-12
+  const year = date.getUTCFullYear()
+
+  return `${year}-${month}-${dayNumber}`
 }
 
 // https://github.com/whitep4nth3r/rfc-822/blob/main/index.js
