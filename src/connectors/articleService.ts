@@ -424,7 +424,7 @@ export class ArticleService extends BaseService {
           })
           break
         } catch (err) {
-          if (++retries < 2) {
+          if (retries++ < 1) {
             try {
               // HTTPError: no key by the given name was found
               await this.ipfs.importKey(kname, ipnsKeyRec.privKeyPem)
