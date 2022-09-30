@@ -4,6 +4,12 @@ const resolver: QueryToFrequentSearchResolver = (
   _,
   { input },
   { dataSources: { systemService } }
-) => systemService.frequentSearch(input)
+) => {
+  if (input.key === '') {
+    return null
+  } else {
+    return systemService.frequentSearch(input)
+  }
+}
 
 export default resolver
