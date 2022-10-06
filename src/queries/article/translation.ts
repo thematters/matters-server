@@ -1,7 +1,9 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/matters-html-formatter'
 
+import { NODE_TYPES } from 'common/enums'
 import logger from 'common/logger'
-import { gcp } from 'connectors'
+import { CacheService, gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const resolver: ArticleToTranslationResolver = async (
@@ -52,13 +54,7 @@ const resolver: ArticleToTranslationResolver = async (
   )
 
   if (title && content) {
-    const data = {
-      articleId,
-      title,
-      content,
-      summary,
-      language,
-    }
+    const data = { articleId, title, content, summary, language }
     await atomService.upsert({
       table: 'article_translation',
       where: { articleId, language },
@@ -98,12 +94,13 @@ const resolver: ArticleToTranslationResolver = async (
       }
     }
 
-    return {
-      title,
-      content,
-      summary,
-      language,
-    }
+    const cacheService = new CacheService()
+    await invalidateFQC({
+      node: { type: NODE_TYPES.Article, id: articleId },
+      redis: cacheService.redis,
+    })
+
+    return { title, content, summary, language }
   } else {
     return null
   }
