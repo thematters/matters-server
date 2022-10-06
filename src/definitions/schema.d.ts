@@ -553,6 +553,11 @@ export interface GQLArticle extends GQLNode {
   translation?: GQLArticleTranslation
 
   /**
+   * Available translation languages.
+   */
+  availableTranslations?: Array<GQLUserLanguage>
+
+  /**
    * Transactions history of this article.
    */
   transactionsReceivedBy: GQLUserConnection
@@ -5824,6 +5829,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
+  availableTranslations?: ArticleToAvailableTranslationsResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
@@ -6167,6 +6173,18 @@ export interface ArticleToTranslationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToTranslationArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAvailableTranslationsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

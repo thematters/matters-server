@@ -177,6 +177,9 @@ export default /* GraphQL */ `
     "Translation of article title and content."
     translation(input: TranslationArgs): ArticleTranslation
 
+    "Available translation languages."
+    availableTranslations: [UserLanguage!]
+
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 

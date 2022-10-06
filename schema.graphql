@@ -385,6 +385,9 @@ type Article implements Node {
   """Translation of article title and content."""
   translation(input: TranslationArgs): ArticleTranslation
 
+  """Available translation languages."""
+  availableTranslations: [UserLanguage!]
+
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
