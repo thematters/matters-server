@@ -3,7 +3,7 @@ import logger from 'common/logger'
 import { ArticleToCanSuperLikeResolver } from 'definitions'
 
 const resolver: ArticleToCanSuperLikeResolver = async (
-  article,
+  { articleId },
   _,
   { viewer, dataSources: { userService } }
 ) => {
@@ -23,7 +23,7 @@ const resolver: ArticleToCanSuperLikeResolver = async (
   try {
     return await userService.likecoin.canSuperLike({
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${article.id}`,
+      url: `${environment.siteDomain}/@${author.userName}/${articleId}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     })

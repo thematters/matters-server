@@ -14,6 +14,7 @@ import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
+import availableTranslations from './availableTranslations'
 import canSuperLike from './canSuperLike'
 import chapterArticleCount from './chapter/articleCount'
 import chapterArticles from './chapter/articles'
@@ -107,6 +108,7 @@ export default {
     subscribers,
     tags,
     translation,
+    availableTranslations,
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
