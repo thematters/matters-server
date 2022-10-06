@@ -77,7 +77,7 @@ export class Feed {
 
     const feed = {
       version: 'https://jsonfeed.org/version/1.1',
-      title: `${(displayName || userName).trim()}'s Matters`,
+      title: `${(displayName || userName).trim()}`,
       icon: this.userImg || undefined, // fallback to default asset
       home_page_url,
       // feed_url: `https://ipfs.io/ipns/${this.keyId}/feed.json`,
