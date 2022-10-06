@@ -63,7 +63,7 @@ export class Feed {
     this.tagsMap = new Map(tags.map((tag) => [tag.id, tag]))
   }
 
-  ['feed.json']() {
+  async ['feed.json']() {
     const {
       userName,
       displayName,
@@ -89,36 +89,38 @@ export class Feed {
           avatar: this.userImg || undefined, // fallback to default asset
         },
       ],
-      items: this.articles.map(
-        ({
-          id,
-          uuid,
-          title,
-          slug,
-          summary,
-          cover,
-          content,
-          createdAt,
-          // mediaHash,
-          dataHash,
-        }) => ({
-          id: uuid,
-          title,
-          image: this.systemService.findAssetUrl(cover) || undefined,
-          content_html: content,
-          summary,
-          date_published: createdAt.toISOString(),
-          tags: omitEmpty(
-            this.articleTagIds
-              .filter(({ articleId }) => articleId === id)
-              .map(({ tagId }) => this.tagsMap.get(tagId)?.content)
-              .filter(Boolean)
-          ), // : (await tagService.findByArticleId({ articleId: id })).map(({ content }) => content),
-          url: `./${id}-${slug}/`,
-          external_url: `${
-            environment.siteDomain || 'https://matters.news'
-          }/@${userName}/${id}-${slug}`,
-        })
+      items: await Promise.all(
+        this.articles.map(
+          async ({
+            id,
+            uuid,
+            title,
+            slug,
+            summary,
+            cover,
+            content,
+            createdAt,
+            // mediaHash,
+            dataHash,
+          }) => ({
+            id: uuid,
+            title,
+            image: (await this.systemService.findAssetUrl(cover)) || undefined,
+            content_html: content,
+            summary,
+            date_published: createdAt.toISOString(),
+            tags: omitEmpty(
+              this.articleTagIds
+                .filter(({ articleId }) => articleId === id)
+                .map(({ tagId }) => this.tagsMap.get(tagId)?.content)
+                .filter(Boolean)
+            ), // : (await tagService.findByArticleId({ articleId: id })).map(({ content }) => content),
+            url: `./${id}-${slug}/`,
+            external_url: `${
+              environment.siteDomain || 'https://matters.news'
+            }/@${userName}/${id}-${slug}`,
+          })
+        )
       ),
     }
 

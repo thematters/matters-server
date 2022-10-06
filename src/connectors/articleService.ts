@@ -308,12 +308,14 @@ export class ArticleService extends BaseService {
     let published
 
     try {
-      const contents = ['feed.json', 'rss.xml', 'index.html']
-        .map((file) => ({
-          path: `${directoryName}/${file}`,
-          content: feed[file]?.(), // contents[file] as string,
-        }))
-        .filter(({ content }) => content)
+      const contents = (
+        await Promise.all(
+          ['feed.json', 'rss.xml', 'index.html'].map(async (file) => ({
+            path: `${directoryName}/${file}`,
+            content: await feed[file]?.(), // contents[file] as string,
+          }))
+        )
+      ).filter(({ content }) => content)
 
       const results = []
       for await (const result of this.ipfs.client.addAll(contents)) {
