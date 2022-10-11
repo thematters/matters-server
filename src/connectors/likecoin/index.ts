@@ -51,7 +51,7 @@ const ENDPOINTS = {
   check: '/users/new/check',
   register: '/users/new/matters',
   edit: '/users/edit/matters',
-  total: '/like/info/like/history/total',
+  total: '/like/info/like/amount',
   like: '/like/likebutton',
   rate: '/misc/price',
   superlike: '/like/share',
@@ -322,7 +322,7 @@ export class LikeCoin {
       throw res
     }
 
-    return data.total
+    return data.cosmosLIKE || data.walletLIKE
   }
 
   rate = async (currency: 'usd' | 'twd' = 'usd') => {
