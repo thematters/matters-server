@@ -24,10 +24,12 @@ export const numMinus = (num1: number, num2: number) => {
 
 interface ToAmountArgs {
   amount: number
-  currency?: PAYMENT_CURRENCY
+  currency?: PAYMENT_CURRENCY.HKD | PAYMENT_CURRENCY.USD
   provider?: Exclude<
     PAYMENT_PROVIDER,
-    PAYMENT_PROVIDER.likecoin | PAYMENT_PROVIDER.matters
+    | PAYMENT_PROVIDER.likecoin
+    | PAYMENT_PROVIDER.matters
+    | PAYMENT_PROVIDER.blockchain
   >
 }
 
@@ -35,7 +37,6 @@ const PROVIDER_CURRENCY_RATE = {
   stripe: {
     HKD: 100,
     USD: 100,
-    LIKE: 1,
   },
 }
 

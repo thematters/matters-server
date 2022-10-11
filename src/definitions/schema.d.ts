@@ -4110,6 +4110,11 @@ export interface GQLTransaction {
    * Message for end user, including reason of failure.
    */
   message?: string
+
+  /**
+   * blockchain transaction info of USDT payment transaction
+   */
+  blockchainTx?: GQLBlockchainTransaction
 }
 
 export interface GQLTransactionConnection extends GQLConnection {
@@ -4148,6 +4153,7 @@ export const enum GQLTransactionPurpose {
 export const enum GQLTransactionCurrency {
   HKD = 'HKD',
   LIKE = 'LIKE',
+  USDT = 'USDT',
 }
 
 export interface GQLAddCreditResult {
@@ -4181,7 +4187,17 @@ export interface GQLPayToInput {
   purpose: GQLTransactionPurpose
   recipientId: string
   targetId?: string
+
+  /**
+   * for HKD payment
+   */
   password?: string
+
+  /**
+   * for USDT payment
+   */
+  chain?: GQLChain
+  txHash?: string
 }
 
 export interface GQLPayoutInput {
@@ -4238,6 +4254,15 @@ export const enum GQLStripeAccountCountry {
   Sweden = 'Sweden',
   UnitedKingdom = 'UnitedKingdom',
   UnitedStates = 'UnitedStates',
+}
+
+export const enum GQLChain {
+  Polygon = 'Polygon',
+}
+
+export interface GQLBlockchainTransaction {
+  chain: GQLChain
+  txHash: string
 }
 
 export interface GQLOAuthClient {
@@ -4485,6 +4510,7 @@ export interface GQLResolver {
   PayToResult?: GQLPayToResultTypeResolver
   StripeAccount?: GQLStripeAccountTypeResolver
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultTypeResolver
+  BlockchainTransaction?: GQLBlockchainTransactionTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
   OAuthClientConnection?: GQLOAuthClientConnectionTypeResolver
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
@@ -12737,6 +12763,7 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   sender?: TransactionToSenderResolver<TParent>
   target?: TransactionToTargetResolver<TParent>
   message?: TransactionToMessageResolver<TParent>
+  blockchainTx?: TransactionToBlockchainTxResolver<TParent>
 }
 
 export interface TransactionToIdResolver<TParent = any, TResult = any> {
@@ -12830,6 +12857,18 @@ export interface TransactionToTargetResolver<TParent = any, TResult = any> {
 }
 
 export interface TransactionToMessageResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToBlockchainTxResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -12989,6 +13028,35 @@ export interface GQLConnectStripeAccountResultTypeResolver<TParent = any> {
 }
 
 export interface ConnectStripeAccountResultToRedirectUrlResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLBlockchainTransactionTypeResolver<TParent = any> {
+  chain?: BlockchainTransactionToChainResolver<TParent>
+  txHash?: BlockchainTransactionToTxHashResolver<TParent>
+}
+
+export interface BlockchainTransactionToChainResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface BlockchainTransactionToTxHashResolver<
   TParent = any,
   TResult = any
 > {

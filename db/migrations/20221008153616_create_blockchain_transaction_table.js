@@ -17,6 +17,8 @@ exports.up = async (knex) => {
 
     t.unique(['chain_id', 'tx_hash'])
 
+    t.index('chain_id')
+    t.index('tx_hash')
     t.index('state')
 
     t.foreign('transaction_id').references('id').inTable('transaction')

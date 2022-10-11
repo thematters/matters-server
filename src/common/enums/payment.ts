@@ -27,12 +27,23 @@ export enum PAYMENT_CURRENCY {
   HKD = 'HKD',
   USD = 'USD',
   LIKE = 'LIKE',
+  USDT = 'USDT',
 }
 
 export enum PAYMENT_PROVIDER {
   likecoin = 'likecoin',
   matters = 'matters',
   stripe = 'stripe',
+  blockchain = 'blockchain',
+}
+
+export enum BLOCKCHAIN {
+  Polygon = 'Polygon',
+}
+
+export enum BLOCKCHAIN_CHAINID {
+  PolygonMainnet = '137',
+  PolygonMumbai = '80001',
 }
 
 export const PAYMENT_MAX_DECIMAL_PLACES = 2

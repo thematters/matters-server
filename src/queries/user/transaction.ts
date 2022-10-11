@@ -12,6 +12,7 @@ export const Transaction: GQLTransactionTypeResolver = {
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+  blockchainTx: (trx, _, { dataSources: { paymentService } }) => null,
   target: async (
     trx,
     _,

@@ -1,9 +1,12 @@
 import axios from 'axios'
 import DataLoader from 'dataloader'
+import { Knex } from 'knex'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  BLOCKCHAIN,
+  BLOCKCHAIN_CHAINID,
   HOUR,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
@@ -14,7 +17,7 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
@@ -163,16 +166,112 @@ export class PaymentService extends BaseService {
     return query.orderBy('created_at', 'desc')
   }
 
-  createTransaction = async ({
+  createTransaction = async (
+    {
+      amount,
+      fee,
+
+      state,
+      purpose,
+      currency = PAYMENT_CURRENCY.HKD,
+
+      provider,
+      providerTxId,
+
+      recipientId,
+      senderId,
+
+      targetId,
+      targetType = TRANSACTION_TARGET_TYPE.article,
+      remark,
+    }: {
+      amount: number
+      fee?: number
+
+      state: TRANSACTION_STATE
+      purpose: TRANSACTION_PURPOSE
+      currency?: PAYMENT_CURRENCY
+
+      provider: PAYMENT_PROVIDER
+      providerTxId: string
+
+      recipientId?: string
+      senderId?: string
+
+      targetId?: string
+      targetType?: TRANSACTION_TARGET_TYPE
+      remark?: string
+    },
+    trx?: Knex.Transaction
+  ) => {
+    let targetTypeId
+    if (targetId && targetType) {
+      const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
+      targetTypeId = entityTypeId
+    }
+
+    return this.baseCreate(
+      {
+        amount,
+        fee,
+
+        state,
+        currency,
+        purpose,
+
+        provider,
+        providerTxId,
+
+        senderId,
+        recipientId,
+        targetId,
+        targetType: targetTypeId,
+        remark,
+      },
+      undefined,
+      undefined,
+      undefined,
+      trx
+    )
+  }
+
+  findOrCreateBlockchainTransaction = async (
+    { chain, txHash }: { chain: BLOCKCHAIN; txHash: string },
+    trx?: Knex.Transaction
+  ) => {
+    const table = 'blockchain_transaction'
+
+    let chainId
+    if (chain === BLOCKCHAIN.Polygon) {
+      chainId = isProd
+        ? BLOCKCHAIN_CHAINID.PolygonMainnet
+        : BLOCKCHAIN_CHAINID.PolygonMumbai
+    }
+    const txn = await this.knex.from(table).where({ txHash, chainId }).first()
+
+    if (txn) {
+      return txn
+    } else {
+      return this.baseCreate(
+        { txHash, chainId },
+        table,
+        undefined,
+        undefined,
+        trx
+      )
+    }
+  }
+
+  findOrCreateTransactionByBlockchainTxHash = async ({
     amount,
     fee,
 
     state,
     purpose,
-    currency = PAYMENT_CURRENCY.HKD,
+    currency,
 
-    provider,
-    providerTxId,
+    chain,
+    txHash,
 
     recipientId,
     senderId,
@@ -188,8 +287,8 @@ export class PaymentService extends BaseService {
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
 
-    provider: PAYMENT_PROVIDER
-    providerTxId: string
+    chain: BLOCKCHAIN
+    txHash: string
 
     recipientId?: string
     senderId?: string
@@ -198,29 +297,54 @@ export class PaymentService extends BaseService {
     targetType?: TRANSACTION_TARGET_TYPE
     remark?: string
   }) => {
-    let targetTypeId
-    if (targetId && targetType) {
-      const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-      targetTypeId = entityTypeId
+    try {
+      await this.knex.transaction(async (trx) => {
+        const blockchainTxn = await this.findOrCreateBlockchainTransaction(
+          { chain, txHash },
+          trx
+        )
+
+        const provider = PAYMENT_PROVIDER.blockchain
+        const providerTxId = blockchainTxn.id
+
+        let txn
+
+        txn = await this.knex
+          .select()
+          .from(this.table)
+          .where({ providerTxId, provider })
+          .first()
+
+        if (txn) {
+          return txn
+        } else {
+          txn = await this.createTransaction(
+            {
+              amount,
+              fee,
+              state,
+              purpose,
+              currency,
+              provider,
+              providerTxId,
+              recipientId,
+              senderId,
+              targetId,
+              targetType,
+              remark,
+            },
+            trx
+          )
+          this.knex('blockchain_transaction')
+            .where({ id: blockchainTxn.id })
+            .update({ transactionId: txn.id })
+            .transacting(trx)
+        }
+      })
+    } catch (err) {
+      logger.error(err)
+      throw err
     }
-
-    return this.baseCreate({
-      amount,
-      fee,
-
-      state,
-      currency,
-      purpose,
-
-      provider,
-      providerTxId,
-
-      senderId,
-      recipientId,
-      targetId,
-      targetType: targetTypeId,
-      remark,
-    })
   }
 
   // Update transaction's state by given id

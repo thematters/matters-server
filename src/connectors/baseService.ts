@@ -139,7 +139,8 @@ export class BaseService extends DataSource {
     table?: TableName,
     columns: string[] = ['*'],
     // onConflict?: [ 'ignore' ] | [ 'merge' ],
-    modifier?: (builder: Knex.QueryBuilder) => void
+    modifier?: (builder: Knex.QueryBuilder) => void,
+    trx?: Knex.Transaction
   ) => {
     try {
       const query = this.knex(table || this.table)
@@ -147,6 +148,9 @@ export class BaseService extends DataSource {
         .returning(columns)
       if (modifier) {
         query.modify(modifier)
+      }
+      if (trx) {
+        query.transacting(trx)
       }
       const [result] = await query
       // logger.info(`Inserted id ${result.id} to ${table || this.table}`)
