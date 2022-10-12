@@ -156,7 +156,6 @@ export type BasicTableName =
   | 'feature_flag'
   | 'seeding_user'
   | 'announcement'
-  | 'announcement_translation'
   | 'topic'
   | 'article_topic'
   | 'chapter'

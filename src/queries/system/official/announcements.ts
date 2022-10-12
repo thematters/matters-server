@@ -21,7 +21,7 @@ export const announcements: OfficialToAnnouncementsResolver = async (
       ...(dbId ? { id: dbId } : {}),
       ...visibleFilter,
     },
-    // ...(dbId ? { where: { id: dbId } } : {}),
+    ...(dbId ? { where: { id: dbId } } : {}),
     orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
 
