@@ -49,7 +49,7 @@ describe('Transaction CRUD', () => {
     chain = BLOCKCHAIN.Polygon
   })
 
-  it('create Transaction', async () => {
+  test('create Transaction', async () => {
     const txn = await paymentService.createTransaction({
       amount,
       fee,
@@ -77,7 +77,7 @@ describe('Transaction CRUD', () => {
     expect(txn.targetType).toBeDefined()
     expect(txn.remark).toEqual(txn.remark)
   })
-  it('get or create BlockchainTransaction', async () => {
+  test('get or create BlockchainTransaction', async () => {
     // create
     const blockchainTxn =
       await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
@@ -90,7 +90,7 @@ describe('Transaction CRUD', () => {
       await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
     expect(blockchainTxn2.id).toEqual(blockchainTxn.id)
   })
-  it('get or create Transaction by Txhash', async () => {
+  test('get or create Transaction by Txhash', async () => {
     currency = PAYMENT_CURRENCY.USDT
     provider = PAYMENT_PROVIDER.blockchain
 
