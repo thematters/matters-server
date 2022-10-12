@@ -10,6 +10,7 @@ export const sendPayment = async ({
   type,
   recipient,
   tx,
+  article,
   language = 'zh_hant',
 }: {
   to: string
@@ -37,6 +38,16 @@ export const sendPayment = async ({
     amount: number
     currency: string
   }
+  article?: {
+    id: string
+    title: string
+    slug: string
+    mediaHash: string
+    author: {
+      displayName: string
+      userName: string
+    }
+  }
   language?: LANGUAGES
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.payment[language]
@@ -63,6 +74,7 @@ export const sendPayment = async ({
           },
           recipient,
           tx,
+          article,
         },
       },
     ],

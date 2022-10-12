@@ -16,6 +16,7 @@ import { LikeCoinWebhookError } from 'common/errors'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
 import {
+  AtomService,
   CacheService,
   NotificationService,
   PaymentService,
@@ -152,6 +153,7 @@ likecoinRouter.use(async (req, res, next) => {
  * @see {@url https://docs.like.co/developer/like-pay/web-widget/webhook}
  */
 likecoinRouter.post('/', async (req, res, next) => {
+  const atomService = new AtomService()
   const userService = new UserService()
   const paymentService = new PaymentService()
   const notificationService = new NotificationService()
@@ -267,6 +269,25 @@ likecoinRouter.post('/', async (req, res, next) => {
     const sender = await userService.baseFindById(resultTx.senderId)
     const recipient = await userService.baseFindById(resultTx.recipientId)
 
+    let article = await atomService.findFirst({
+      table: 'article',
+      where: { id: tx.targetId },
+    })
+    const author = await atomService.findFirst({
+      table: 'user',
+      where: { id: article.authorId },
+    })
+    article = {
+      id: tx.targetId,
+      title: article.title,
+      slug: article.slug,
+      mediaHash: article.mediaHash,
+      author: {
+        displayName: author.displayName,
+        userName: author.userName,
+      },
+    }
+
     // to sender
     notificationService.mail.sendPayment({
       to: sender.email,
@@ -281,6 +302,7 @@ likecoinRouter.post('/', async (req, res, next) => {
         amount: numRound(resultTx.amount),
         currency: resultTx.currency,
       },
+      article,
     })
     // to recipient
     notificationService.trigger({
@@ -304,6 +326,7 @@ likecoinRouter.post('/', async (req, res, next) => {
         amount: numRound(resultTx.amount),
         currency: resultTx.currency,
       },
+      article,
     })
 
     // manaully invalidate cache

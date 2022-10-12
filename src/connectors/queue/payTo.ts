@@ -136,6 +136,25 @@ class PayToQueue extends BaseQueue {
       })
 
       // send email to sender
+      let article = await this.atomService.findFirst({
+        table: 'article',
+        where: { id: tx.targetId },
+      })
+      const author = await this.atomService.findFirst({
+        table: 'user',
+        where: { id: article.authorId },
+      })
+      article = {
+        id: tx.targetId,
+        title: article.title,
+        slug: article.slug,
+        mediaHash: article.mediaHash,
+        author: {
+          displayName: author.displayName,
+          userName: author.userName,
+        },
+      }
+
       this.notificationService.mail.sendPayment({
         to: sender.email,
         recipient: {
@@ -143,6 +162,7 @@ class PayToQueue extends BaseQueue {
           userName: sender.userName,
         },
         type: 'donated',
+        article,
         tx: {
           recipient,
           sender,
@@ -172,6 +192,7 @@ class PayToQueue extends BaseQueue {
           amount: numRound(tx.amount),
           currency: tx.currency,
         },
+        article,
       })
 
       // manaully invalidate cache
