@@ -263,15 +263,15 @@ export class PaymentService extends BaseService {
   }
 
   findOrCreateTransactionByBlockchainTxHash = async ({
+    chain,
+    txHash,
+
     amount,
     fee,
 
     state,
     purpose,
     currency,
-
-    chain,
-    txHash,
 
     recipientId,
     senderId,
@@ -280,15 +280,15 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
+    chain: BLOCKCHAIN
+    txHash: string
+
     amount: number
     fee?: number
 
     state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
-
-    chain: BLOCKCHAIN
-    txHash: string
 
     recipientId?: string
     senderId?: string
@@ -297,53 +297,51 @@ export class PaymentService extends BaseService {
     targetType?: TRANSACTION_TARGET_TYPE
     remark?: string
   }) => {
+    const trx = await this.knex.transaction()
     try {
-      await this.knex.transaction(async (trx) => {
-        const blockchainTxn = await this.findOrCreateBlockchainTransaction(
-          { chain, txHash },
+      const blockchainTxn = await this.findOrCreateBlockchainTransaction(
+        { chain, txHash },
+        trx
+      )
+
+      const provider = PAYMENT_PROVIDER.blockchain
+      const providerTxId = blockchainTxn.id
+
+      let txn
+      txn = await this.knex
+        .select()
+        .from(this.table)
+        .where({ providerTxId, provider })
+        .first()
+
+      if (!txn) {
+        txn = await this.createTransaction(
+          {
+            amount,
+            fee,
+            state,
+            purpose,
+            currency,
+            provider,
+            providerTxId,
+            recipientId,
+            senderId,
+            targetId,
+            targetType,
+            remark,
+          },
           trx
         )
-
-        const provider = PAYMENT_PROVIDER.blockchain
-        const providerTxId = blockchainTxn.id
-
-        let txn
-
-        txn = await this.knex
-          .select()
-          .from(this.table)
-          .where({ providerTxId, provider })
-          .first()
-
-        if (txn) {
-          return txn
-        } else {
-          txn = await this.createTransaction(
-            {
-              amount,
-              fee,
-              state,
-              purpose,
-              currency,
-              provider,
-              providerTxId,
-              recipientId,
-              senderId,
-              targetId,
-              targetType,
-              remark,
-            },
-            trx
-          )
-          this.knex('blockchain_transaction')
-            .where({ id: blockchainTxn.id })
-            .update({ transactionId: txn.id })
-            .transacting(trx)
-        }
-      })
-    } catch (err) {
-      logger.error(err)
-      throw err
+        this.knex('blockchain_transaction')
+          .where({ id: blockchainTxn.id })
+          .update({ transactionId: txn.id })
+          .transacting(trx)
+      }
+      await trx.commit()
+      return txn
+    } catch (e) {
+      await trx.rollback()
+      throw e
     }
   }
 
