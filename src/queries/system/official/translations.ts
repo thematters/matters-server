@@ -1,25 +1,21 @@
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { OfficialToAnnouncementsResolver } from 'definitions'
+import { AnnouncementToTranslationsResolver } from 'definitions'
 
-export const announcements: OfficialToAnnouncementsResolver = async (
-  root,
-  { input: { id, visible } },
+export const translations: AnnouncementToTranslationsResolver = async (
+  { id },
+  _, // { input: { id, visible } },
   { dataSources: { atomService, systemService }, viewer }
 ) => {
-  const isAdmin = viewer.hasRole('admin')
-  const visibleFilter = !isAdmin
-    ? { visible: true }
-    : typeof visible === 'boolean'
-    ? { visible }
-    : {}
+  // const isAdmin = viewer.hasRole('admin')
+  // const visibleFilter = !isAdmin ? { visible: true } : typeof visible === 'boolean' ? { visible } : {}
 
   const { id: dbId } = id ? fromGlobalId(id) : { id: null }
   const records = await atomService.findMany({
-    table: 'announcement',
+    table: 'announcement_translation',
     where: {
-      ...(dbId ? { id: dbId } : {}),
-      ...visibleFilter,
+      ...(dbId ? { announcementId: dbId } : {}),
+      // ...visibleFilter,
     },
     // ...(dbId ? { where: { id: dbId } } : {}),
     orderBy: [{ column: 'createdAt', order: 'desc' }],

@@ -25,12 +25,15 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== articleId)
 
   // articles in collection for this article as the entrance
-  const entranceId = articleId
-  const collection = (await articleService.findCollections({ entranceId })).map(
-    ({ articleId: aid }: { articleId: any }) => aid
-  )
-  const ids: string[] = []
+  // const entranceId = articleId
+  const collection = (
+    await articleService.findCollections({ entranceId: articleId })
+  ).map((item: any) => item.articleId)
+
+  // const ids: string[] = []
   let articles: any[] = []
+
+  let sameIdx = -1
   // get initial recommendation
   try {
     const relatedArticles = await articleService.related({
@@ -53,6 +56,16 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       .then((allArticles) =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )
+
+    // tslint:disable-next-line
+    if ((sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0) {
+      console.log(
+        new Date(),
+        `found same article at {${sameIdx}} from articleService.related and remove it`,
+        sameIdx
+      )
+      articles.splice(sameIdx, 1)
+    }
   } catch (err) {
     logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
   }
@@ -68,7 +81,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
       const articleIds = await tagService.findArticleIds({
         id: tagId,
-        take: take - ids.length,
+        take, // : take - ids.length, // this ids.length is always 0??
         skip,
       })
 
@@ -80,6 +93,18 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       )
 
       articles = addRec(articles, articlesFromTag)
+
+      if (
+        // tslint:disable-next-line
+        (sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0
+      ) {
+        console.log(
+          new Date(),
+          `found same article at {${sameIdx}} from articleService.findTagIds and remove it`,
+          { sameIdx, articleId, tagId }
+        )
+        articles.splice(sameIdx, 1)
+      }
     }
   }
 
@@ -88,6 +113,16 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     const articlesFromAuthor = await articleService.findByAuthor(authorId)
     // logger.info(`[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(({ id: aid }: { id: string }) => aid)} `)
     articles = addRec(articles, articlesFromAuthor)
+
+    // tslint:disable-next-line
+    if ((sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0) {
+      console.log(
+        new Date(),
+        `found same article at {${sameIdx}} from articleService.findByAuthor and remove it`,
+        { sameIdx, articleId }
+      )
+      articles.splice(sameIdx, 1)
+    }
   }
 
   // random pick for last few elements
@@ -96,6 +131,16 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   pick = pick.concat(
     _.sampleSize(articles.slice(take - randomPick), randomPick)
   )
+
+  // tslint:disable-next-line
+  if ((sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0) {
+    console.log(
+      new Date(),
+      `found same article at {${sameIdx}} after randomPick and remove it`,
+      { sameIdx, articleId }
+    )
+    articles.splice(sameIdx, 1)
+  }
 
   const nodes = await draftService.dataloader.loadMany(
     pick.map((item) => item.draftId)
