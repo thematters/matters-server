@@ -1833,6 +1833,15 @@ type Announcement {
   order: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  translations: [TranslatedAnnouncement!]
+}
+
+type TranslatedAnnouncement {
+  language: UserLanguage!
+  title: String
+  cover: String
+  content: String
+  link: String
 }
 
 type OSS {
@@ -2010,6 +2019,14 @@ input AnnouncementsInput {
   visible: Boolean
 }
 
+input TranslatedAnnouncementInput {
+  language: UserLanguage!
+  title: String
+  cover: String
+  content: String
+  link: String
+}
+
 input PutAnnouncementInput {
   id: ID
   title: String
@@ -2019,6 +2036,7 @@ input PutAnnouncementInput {
   type: AnnouncementType
   visible: Boolean
   order: Int
+  translations: [TranslatedAnnouncementInput!]
 }
 
 input DeleteAnnouncementsInput {
