@@ -235,25 +235,33 @@ export class PaymentService extends BaseService {
     )
   }
 
+  findBlockchainTransactionById = async (id: string) => {
+    return this.baseFindById(id, 'blockchain_transaction')
+  }
+
   findOrCreateBlockchainTransaction = async (
     { chain, txHash }: { chain: GQLChain; txHash: string },
     trx?: Knex.Transaction
   ) => {
     const table = 'blockchain_transaction'
+    const txHashDb = txHash.toLowerCase()
 
     let chainId
     if (chain.valueOf() === BLOCKCHAIN.Polygon.valueOf()) {
       chainId = isProd
-        ? BLOCKCHAIN_CHAINID.PolygonMainnet
-        : BLOCKCHAIN_CHAINID.PolygonMumbai
+        ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
+        : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
     }
-    const txn = await this.knex.from(table).where({ txHash, chainId }).first()
+    const txn = await this.knex
+      .from(table)
+      .where({ txHash: txHashDb, chainId })
+      .first()
 
     if (txn) {
       return txn
     } else {
       return this.baseCreate(
-        { txHash, chainId },
+        { txHash: txHashDb, chainId },
         table,
         undefined,
         undefined,

@@ -27,6 +27,8 @@ describe('Transaction CRUD', () => {
   const remark = 'testRemark'
   const txHash =
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
+  const txHashUppercase =
+    '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE877F7BE'
   const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
 
   test('create Transaction', async () => {
@@ -61,7 +63,9 @@ describe('Transaction CRUD', () => {
     // create
     const blockchainTxn =
       await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
-    expect(blockchainTxn.chainId).toEqual(BLOCKCHAIN_CHAINID.PolygonMumbai)
+    expect(blockchainTxn.chainId).toEqual(
+      BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
+    )
     expect(blockchainTxn.txHash).toEqual(txHash)
     expect(blockchainTxn.state).toEqual('pending')
 
@@ -69,6 +73,13 @@ describe('Transaction CRUD', () => {
     const blockchainTxn2 =
       await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
     expect(blockchainTxn2.id).toEqual(blockchainTxn.id)
+    // get with uppercase txHash
+    const blockchainTxn3 =
+      await paymentService.findOrCreateBlockchainTransaction({
+        chain,
+        txHash: txHashUppercase,
+      })
+    expect(blockchainTxn3.id).toEqual(blockchainTxn.id)
   })
   test('get or create Transaction by Txhash', async () => {
     const currencyUSDT = PAYMENT_CURRENCY.USDT

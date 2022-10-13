@@ -41,9 +41,11 @@ export enum BLOCKCHAIN {
   Polygon = 'Polygon',
 }
 
-export enum BLOCKCHAIN_CHAINID {
-  PolygonMainnet = '137',
-  PolygonMumbai = '80001',
+export const BLOCKCHAIN_CHAINID = {
+  [BLOCKCHAIN.Polygon]: {
+    PolygonMainnet: '137',
+    PolygonMumbai: '80001',
+  },
 }
 
 export const PAYMENT_MAX_DECIMAL_PLACES = 2

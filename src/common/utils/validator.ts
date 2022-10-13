@@ -123,5 +123,5 @@ export const isValidTransactionHash = (hash: string): boolean => {
     return false
   }
 
-  return /^0x([A-Fa-f0-9])$/.test(hash)
+  return /^0x([a-fA-F0-9]{64})$/.test(hash)
 }
