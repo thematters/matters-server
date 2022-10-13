@@ -211,6 +211,15 @@ const resolver: MutationToPayToResolver = async (
       if (!isValidTransactionHash(txHash)) {
         throw new UserInputError('invalid transaction hash')
       }
+      transaction =
+        await paymentService.findOrCreateTransactionByBlockchainTxHash({
+          ...baseParams,
+          chain,
+          txHash,
+          state: TRANSACTION_STATE.pending,
+          currency: PAYMENT_CURRENCY.USDT,
+          purpose: TRANSACTION_PURPOSE[purpose],
+        })
       break
   }
 

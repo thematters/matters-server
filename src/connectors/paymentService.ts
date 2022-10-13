@@ -22,7 +22,7 @@ import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { BaseService, CacheService } from 'connectors'
-import { CirclePrice, User } from 'definitions'
+import { CirclePrice, GQLChain, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -236,13 +236,13 @@ export class PaymentService extends BaseService {
   }
 
   findOrCreateBlockchainTransaction = async (
-    { chain, txHash }: { chain: BLOCKCHAIN; txHash: string },
+    { chain, txHash }: { chain: GQLChain; txHash: string },
     trx?: Knex.Transaction
   ) => {
     const table = 'blockchain_transaction'
 
     let chainId
-    if (chain === BLOCKCHAIN.Polygon) {
+    if (chain.valueOf() === BLOCKCHAIN.Polygon.valueOf()) {
       chainId = isProd
         ? BLOCKCHAIN_CHAINID.PolygonMainnet
         : BLOCKCHAIN_CHAINID.PolygonMumbai
@@ -280,7 +280,7 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
-    chain: BLOCKCHAIN
+    chain: GQLChain
     txHash: string
 
     amount: number
