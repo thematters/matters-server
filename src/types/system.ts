@@ -1,5 +1,13 @@
 import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
+const TranslatedAnnouncementFields = `
+  language: UserLanguage!
+  title: String
+  cover: String
+  content: String
+  link: String @constraint(format: "uri")
+`
+
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
@@ -97,6 +105,11 @@ export default /* GraphQL */ `
     order: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
+    translations: [TranslatedAnnouncement!]
+  }
+
+  type TranslatedAnnouncement {
+    ${TranslatedAnnouncementFields}
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -278,6 +291,10 @@ export default /* GraphQL */ `
     visible: Boolean
   }
 
+  input TranslatedAnnouncementInput {
+    ${TranslatedAnnouncementFields}
+  }
+
   input PutAnnouncementInput {
     id: ID
     title: String
@@ -287,6 +304,7 @@ export default /* GraphQL */ `
     type: AnnouncementType
     visible: Boolean
     order: Int
+    translations: [TranslatedAnnouncementInput!]
   }
 
   input DeleteAnnouncementsInput {

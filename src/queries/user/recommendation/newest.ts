@@ -1,3 +1,5 @@
+import { Knex } from 'knex'
+
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
@@ -35,10 +37,10 @@ export const newest: RecommendationToNewestResolver = async (
       'article_set.id',
       'setting.article_id'
     )
-    .andWhere(function () {
+    .andWhere((builder: Knex.QueryBuilder) => {
       if (!oss) {
         // this.where({ inNewest: true }).orWhereNull('in_newest')
-        this.whereRaw('in_newest IS NOT false')
+        builder.whereRaw('in_newest IS NOT false')
       }
     })
     .as('newest')
@@ -47,7 +49,7 @@ export const newest: RecommendationToNewestResolver = async (
     MAX_ITEM_COUNT, // always 500 // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
     knex
       .select()
-      .from(query.limit(MAX_ITEM_COUNT))
+      .from(query.orderBy('id', 'desc').limit(MAX_ITEM_COUNT))
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take),
