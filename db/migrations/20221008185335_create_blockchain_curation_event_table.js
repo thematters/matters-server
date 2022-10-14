@@ -10,7 +10,7 @@ exports.up = async (knex) => {
     t.string('contract_address').notNullable()
     t.string('curator_address').notNullable()
     t.string('creator_address').notNullable()
-    t.string('token_address').notNullable()
+    t.string('token_address')
     t.bigInteger('amount').unsigned().notNullable()
     t.text('uri').notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
