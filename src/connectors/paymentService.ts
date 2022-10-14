@@ -252,22 +252,12 @@ export class PaymentService extends BaseService {
         ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
         : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
     }
-    const txn = await this.knex
-      .from(table)
-      .where({ txHash: txHashDb, chainId })
-      .first()
-
-    if (txn) {
-      return txn
-    } else {
-      return this.baseCreate(
-        { txHash: txHashDb, chainId },
-        table,
-        undefined,
-        undefined,
-        trx
-      )
+    const where = {
+      txHash: txHashDb,
+      chainId,
     }
+    const data = where
+    return this.baseFindOrCreate({ where, data, table, trx })
   }
 
   findOrCreateTransactionByBlockchainTxHash = async ({

@@ -219,6 +219,7 @@ export class BaseService extends DataSource {
     columns = ['*'],
     modifier,
     skipCreate = false,
+    trx,
   }: {
     where: { [key: string]: any }
     data: ItemData
@@ -226,13 +227,14 @@ export class BaseService extends DataSource {
     columns?: string[]
     modifier?: (builder: Knex.QueryBuilder) => void
     skipCreate?: boolean
+    trx?: Knex.Transaction
   }) => {
     const tableName = table || this.table
     const item = await this.knex(tableName).select(columns).where(where).first()
 
     // create
     if (!item && !skipCreate) {
-      return this.baseCreate(data, tableName, columns, modifier)
+      return this.baseCreate(data, tableName, columns, modifier, trx)
     }
 
     // find
