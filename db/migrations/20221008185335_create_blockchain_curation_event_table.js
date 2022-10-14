@@ -1,6 +1,6 @@
 const { baseDown } = require('../utils')
 
-const table = 'curation_event'
+const table = 'blockchain_curation_event'
 
 exports.up = async (knex) => {
   await knex('entity_type').insert({ table })

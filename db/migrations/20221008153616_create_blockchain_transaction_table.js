@@ -12,6 +12,7 @@ exports.up = async (knex) => {
     t.enu('state', ['pending', 'succeeded', 'reverted', 'timeout', 'canceled'])
       .notNullable()
       .defaultTo('pending')
+    t.bigInteger('block_height')
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('udpated_at').defaultTo(knex.fn.now())
 
@@ -20,6 +21,7 @@ exports.up = async (knex) => {
     t.index('chain_id')
     t.index('tx_hash')
     t.index('state')
+    t.index('block_height')
 
     t.foreign('transaction_id').references('id').inTable('transaction')
   })
