@@ -1,6 +1,6 @@
 import { camelCase } from 'lodash'
 
-import { NODE_TYPES } from 'common/enums'
+import { BLOCKCHAIN_CHAINID, NODE_TYPES, PAYMENT_PROVIDER } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
@@ -12,6 +12,31 @@ export const Transaction: GQLTransactionTypeResolver = {
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+  blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
+    if (trx.provider === PAYMENT_PROVIDER.blockchain) {
+      const blockchainTx = await paymentService.findBlockchainTransactionById(
+        trx.providerTxId
+      )
+      const getChain = (chainId: string) => {
+        for (const chain in BLOCKCHAIN_CHAINID) {
+          if (BLOCKCHAIN_CHAINID.hasOwnProperty(chain)) {
+            if (
+              Object.values(
+                BLOCKCHAIN_CHAINID[chain as keyof typeof BLOCKCHAIN_CHAINID]
+              ).includes(chainId)
+            ) {
+              return chain
+            }
+          }
+        }
+      }
+      return {
+        chain: getChain(blockchainTx.chainId),
+        txHash: blockchainTx.txHash,
+      }
+    }
+    return null
+  },
   target: async (
     trx,
     _,

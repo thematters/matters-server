@@ -24,13 +24,24 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isValidTransactionHash } from 'common/utils'
 import { payToQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
   parent,
-  { input: { amount, currency, password, purpose, recipientId, targetId } },
+  {
+    input: {
+      amount,
+      currency,
+      password,
+      purpose,
+      recipientId,
+      targetId,
+      chain,
+      txHash,
+    },
+  },
   { viewer, dataSources: { articleService, paymentService, userService } }
 ) => {
   if (!viewer.id) {
@@ -97,8 +108,8 @@ const resolver: MutationToPayToResolver = async (
     throw new UserInputError('target author is not the same as the recipient')
   }
 
-  // check password for non-LIKE currency
-  if (PAYMENT_CURRENCY[currency] !== PAYMENT_CURRENCY.LIKE) {
+  // check password for Stripe
+  if (PAYMENT_CURRENCY[currency] === PAYMENT_CURRENCY.HKD) {
     if (!viewer.paymentPasswordHash) {
       throw new PaymentPasswordNotSetError(
         'viewer payment password has not set'
@@ -189,6 +200,26 @@ const resolver: MutationToPayToResolver = async (
 
       // insert queue job
       payToQueue.payTo({ txId: transaction.id })
+      break
+    case 'USDT':
+      if (!chain) {
+        throw new UserInputError('`chain` is required if `currency` is `USDT`')
+      }
+      if (!txHash) {
+        throw new UserInputError('`txHash` is required if `currency` is `USDT`')
+      }
+      if (!isValidTransactionHash(txHash)) {
+        throw new UserInputError('invalid transaction hash')
+      }
+      transaction =
+        await paymentService.findOrCreateTransactionByBlockchainTxHash({
+          ...baseParams,
+          chain,
+          txHash,
+          state: TRANSACTION_STATE.pending,
+          currency: PAYMENT_CURRENCY.USDT,
+          purpose: TRANSACTION_PURPOSE[purpose],
+        })
       break
   }
 

@@ -114,3 +114,14 @@ export const isValidCircleName = (name: string): boolean => {
 
   return /^[a-zA-Z0-9_]*$/.test(name)
 }
+
+/**
+ * Validate EVM transaction hash.
+ */
+export const isValidTransactionHash = (hash: string): boolean => {
+  if (!hash || hash.length !== 66) {
+    return false
+  }
+
+  return /^0x([a-fA-F0-9]{64})$/.test(hash)
+}

@@ -81,6 +81,9 @@ export default /* GraphQL */ `
 
     "Message for end user, including reason of failure."
     message: String
+
+    "blockchain transaction info of USDT payment transaction"
+    blockchainTx: BlockchainTransaction
   }
 
   type TransactionConnection implements Connection {
@@ -119,6 +122,7 @@ export default /* GraphQL */ `
   enum TransactionCurrency {
     HKD
     LIKE
+    USDT
   }
 
   type AddCreditResult {
@@ -146,7 +150,11 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
     recipientId: ID!
     targetId: ID
+    "for HKD payment"
     password: String
+    "for USDT payment"
+    chain: Chain
+    txHash: String
   }
 
   input PayoutInput {
@@ -201,5 +209,14 @@ export default /* GraphQL */ `
     Sweden
     UnitedKingdom
     UnitedStates
+  }
+
+  enum Chain {
+    Polygon
+  }
+
+  type BlockchainTransaction {
+    chain: Chain!
+    txHash: String!
   }
 `
