@@ -16,13 +16,13 @@ import logger from 'common/logger'
 import { numRound } from 'common/utils'
 import { PaymentService } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from '../baseQueue'
 
 interface PaymentParams {
   txId: string
 }
 
-class PayToQueue extends BaseQueue {
+class PayToByMattersQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
 
   constructor() {
@@ -228,4 +228,4 @@ class PayToQueue extends BaseQueue {
   }
 }
 
-export const payToQueue = new PayToQueue()
+export const payToByMattersQueue = new PayToByMattersQueue()
