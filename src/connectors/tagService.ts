@@ -13,6 +13,7 @@ import {
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -174,6 +175,9 @@ export class TagService extends BaseService {
         `CROSS JOIN jsonb_to_recordset(top_tags) AS x(id INT, content TEXT, id_tag TEXT, last_use timestamptz, num_articles INT, sum_word_count INT)`
       )
       .where('al.id', userId)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder.whereNotIn('x.id', [environment.mattyChoiceTagId])
+      })
       .orderByRaw(`recent_inuse DESC NULLS LAST`)
       .orderByRaw(`num_articles DESC`)
       .orderByRaw(`last_use DESC NULLS LAST`)
@@ -635,6 +639,9 @@ export class TagService extends BaseService {
         )
         .from(VIEW.tags_lasts_view)
         .whereIn('id', Array.from(ids))
+        .andWhere((builder: Knex.QueryBuilder) => {
+          builder.whereNotIn('id', [environment.mattyChoiceTagId])
+        })
         .orderByRaw('content = ? DESC', [key]) // always show exact match at first
         .orderByRaw('content ~* ? DESC', [key]) // then show inclusive match, by regular expression, case insensitive
         .orderBy('num_authors', 'desc')
