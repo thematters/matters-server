@@ -99,7 +99,14 @@ export const environment = {
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
+  curationContractAddress:
+    process.env.MATTERS_CURATION_CONTRACT_ADDRESS ||
+    (isProd ? '' : '0x94166663d4F8e985f164d335269CD64E4c8620cA'),
 }
+
+export const USDTContractAddress = isProd
+  ? ''
+  : '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
 
 const protocolScheme = isLocal ? 'http://' : 'https://'
 export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${

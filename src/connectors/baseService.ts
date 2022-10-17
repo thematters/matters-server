@@ -244,12 +244,22 @@ export class BaseService extends DataSource {
   /**
    * Update an item by a given id.
    */
-  baseUpdate = async (id: string, data: ItemData, table?: TableName) => {
-    const [updatedItem] = await this.knex
+  baseUpdate = async (
+    id: string,
+    data: ItemData,
+    table?: TableName,
+    trx?: Knex.Transaction
+  ) => {
+    const query = this.knex
       .where('id', id)
       .update(data)
       .into(table || this.table)
       .returning('*')
+
+    if (trx) {
+      query.transacting(trx)
+    }
+    const [updatedItem] = await query
 
     // logger.info(`Updated id ${id} in ${table || this.table}`)
     return updatedItem

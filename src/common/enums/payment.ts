@@ -48,6 +48,14 @@ export const BLOCKCHAIN_CHAINID = {
   },
 }
 
+export enum BLOCKCHAIN_TRANSACTION_STATE {
+  pending = 'pending',
+  succeeded = 'succeeded',
+  reverted = 'reverted',
+  canceled = 'canceled',
+  timeout = 'timeout',
+}
+
 export const PAYMENT_MAX_DECIMAL_PLACES = 2
 
 export enum PAYMENT_MINIMAL_ADD_CREDIT_AMOUNT {
@@ -84,7 +92,8 @@ export enum TRANSACTION_REMARK {
   // LIKE
   TIME_OUT = 'time_out',
 
-  // STRIPE
+  // BLOCKCHAIN
+  INVALID = 'invalid',
 }
 
 export const TransactionRemarkText = {

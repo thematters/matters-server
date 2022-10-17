@@ -7,6 +7,7 @@ import { v4 } from 'uuid'
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
+  BLOCKCHAIN_TRANSACTION_STATE,
   HOUR,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
@@ -297,23 +298,23 @@ export class PaymentService extends BaseService {
   }) => {
     const trx = await this.knex.transaction()
     try {
-      const blockchainTxn = await this.findOrCreateBlockchainTransaction(
+      const blockchainTx = await this.findOrCreateBlockchainTransaction(
         { chain, txHash },
         trx
       )
 
       const provider = PAYMENT_PROVIDER.blockchain
-      const providerTxId = blockchainTxn.id
+      const providerTxId = blockchainTx.id
 
-      let txn
-      txn = await this.knex
+      let tx
+      tx = await this.knex
         .select()
         .from(this.table)
         .where({ providerTxId, provider })
         .first()
 
-      if (!txn) {
-        txn = await this.createTransaction(
+      if (!tx) {
+        tx = await this.createTransaction(
           {
             amount,
             fee,
@@ -331,28 +332,50 @@ export class PaymentService extends BaseService {
           trx
         )
         this.knex('blockchain_transaction')
-          .where({ id: blockchainTxn.id })
-          .update({ transactionId: txn.id })
+          .where({ id: blockchainTx.id })
+          .update({ transactionId: tx.id })
           .transacting(trx)
       }
       await trx.commit()
-      return txn
-    } catch (e) {
+      return tx
+    } catch (error) {
       await trx.rollback()
-      throw e
+      throw error
     }
   }
 
+  // Update blockchain_transaction's state by given id
+  markBlockchainTransactionStateAs = async (
+    {
+      id,
+      state,
+    }: {
+      id: string
+      state: BLOCKCHAIN_TRANSACTION_STATE
+    },
+    trx?: Knex.Transaction
+  ) => {
+    return this.baseUpdate(
+      id,
+      { updatedAt: new Date(), state },
+      'blockchain_transaction',
+      trx
+    )
+  }
+
   // Update transaction's state by given id
-  markTransactionStateAs = async ({
-    id,
-    state,
-    remark,
-  }: {
-    id: string
-    state: TRANSACTION_STATE
-    remark?: string | null
-  }) => {
+  markTransactionStateAs = async (
+    {
+      id,
+      state,
+      remark,
+    }: {
+      id: string
+      state: TRANSACTION_STATE
+      remark?: string | null
+    },
+    trx?: Knex.Transaction
+  ) => {
     const data = remark
       ? {
           state,
