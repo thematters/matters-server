@@ -167,7 +167,6 @@ class PayToByBlockchainQueue extends BaseQueue {
         ) {
           const iface = new ethers.utils.Interface(abi)
           const event = iface.parseLog(log)
-          console.log(event)
           if (
             event.args.curator!.toLowerCase() ===
               curatorAddress!.toLowerCase() &&

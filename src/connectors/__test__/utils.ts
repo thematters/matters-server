@@ -1,8 +1,16 @@
 import { Queue } from 'bull'
 
-export const getQueueResult = (q: Queue) => {
+export const getQueueResult = (q: Queue, jobId: number | string) => {
   return new Promise((resolve, reject) => {
-    q.once('completed', (job, result) => resolve(result))
-    q.once('failed', (job, err) => reject(err))
+    q.on('completed', (job, result) => {
+      if (job.id === jobId) {
+        resolve(result)
+      }
+    })
+    q.on('failed', (job, err) => {
+      if (job.id === jobId) {
+        reject(err)
+      }
+    })
   })
 }
