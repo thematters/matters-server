@@ -26,9 +26,9 @@ describe('Transaction CRUD', () => {
   const targetType = TRANSACTION_TARGET_TYPE.article
   const remark = 'testRemark'
   const txHash =
-    '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
+    '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae876f7be'
   const txHashUppercase =
-    '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE877F7BE'
+    '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE876F7BE'
   const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
 
   test('create Transaction', async () => {

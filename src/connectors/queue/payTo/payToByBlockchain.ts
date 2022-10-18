@@ -118,7 +118,6 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   private timeoutBlockchainTx = async (blockchainTxId: string) => {
-    console.log({ blockchainTxId })
     await this.paymentService.markBlockchainTransactionStateAs({
       id: blockchainTxId,
       state: BLOCKCHAIN_TRANSACTION_STATE.timeout,
