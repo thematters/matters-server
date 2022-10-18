@@ -27,7 +27,6 @@ import {
   getQueueNameForEnv,
   numRound,
   toTokenBaseUnit,
-  tryConvertVersionOfCID,
 } from 'common/utils'
 // import { environment } from 'common/environment'
 import { PaymentService } from 'connectors'
@@ -167,6 +166,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         ) {
           const iface = new ethers.utils.Interface(abi)
           const event = iface.parseLog(log)
+          const uri = event.args.uri
           if (
             event.args.curator!.toLowerCase() ===
               curatorAddress!.toLowerCase() &&
@@ -175,8 +175,8 @@ class PayToByBlockchainQueue extends BaseQueue {
             event.args.token!.toLowerCase() === tokenAddress.toLowerCase() &&
             event.args.amount!.toString() ===
               toTokenBaseUnit(amount, decimals) &&
-            (event.args.uri!.includes(cid) ||
-              event.args.uri!.includes(tryConvertVersionOfCID(cid)))
+            /^ipfs:\/\//.test(uri) &&
+            uri.replace('ipfs://', '') === cid
           ) {
             return true
           }
