@@ -15,17 +15,15 @@ const resolver: MutationToDeleteAnnouncementsResolver = async (
 
   const itemIds = ids.map((id) => fromGlobalId(id).id)
 
-  await atomService
-    .deleteMany({
-      table: 'announcement_translation',
-      whereIn: ['id', itemIds],
-    })
-    .then(() => {
-      atomService.deleteMany({
-        table,
-        whereIn: ['id', itemIds],
-      })
-    })
+  await atomService.deleteMany({
+    table: 'announcement_translation',
+    whereIn: ['announcement_id', itemIds],
+  })
+
+  await atomService.deleteMany({
+    table,
+    whereIn: ['id', itemIds],
+  })
 
   return true
 }
