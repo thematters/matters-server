@@ -5,9 +5,9 @@ import { ethers } from 'ethers'
 import _capitalize from 'lodash/capitalize'
 
 import {
-  MINUTE,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
+  MINUTE,
   NODE_TYPES,
   PAYMENT_PROVIDER,
   QUEUE_CONCURRENCY,
@@ -258,8 +258,8 @@ class PayToByBlockchainQueue extends BaseQueue {
    * syncCurationEvents handler.
    *
    */
-  private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> = async (job) => {
-  }
+  private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
+    async (job) => {}
 
   /**
    * helpers

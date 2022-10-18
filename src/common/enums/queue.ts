@@ -52,7 +52,7 @@ export const QUEUE_JOB = {
   payout: 'payout',
   payTo: 'payTo',
   txTimeout: 'txTimeout',
-  syncCurationEvents: 'syncCurationEvents'
+  syncCurationEvents: 'syncCurationEvents',
 
   // Stripe
   syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
