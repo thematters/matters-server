@@ -13,7 +13,7 @@ exports.up = async (knex) => {
       .notNullable()
       .defaultTo('pending')
     t.timestamp('created_at').defaultTo(knex.fn.now())
-    t.timestamp('updated_at').defaultTo(knex.fn.now())
+    t.timestamp('udpated_at').defaultTo(knex.fn.now())
 
     t.unique(['chain_id', 'tx_hash'])
 
