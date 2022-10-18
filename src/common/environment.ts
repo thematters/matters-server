@@ -99,9 +99,7 @@ export const environment = {
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
-  curationContractAddress:
-    process.env.MATTERS_CURATION_CONTRACT_ADDRESS ||
-    (isProd ? '' : '0xa219C6722008aa22828B31A13ab9Ba93bB91222c'),
+  curationContractAddress: process.env.MATTERS_CURATION_CONTRACT_ADDRESS || ''
 }
 
 export const USDTContractAddress = isProd
