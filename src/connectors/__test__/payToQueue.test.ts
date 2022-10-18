@@ -133,7 +133,7 @@ describe('payToByBlockchainQueue', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.reverted)
   })
-  test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
+  test.skip('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
     const invalidTxhash =
       '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
     const tx =
