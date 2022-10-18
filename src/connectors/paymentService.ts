@@ -770,13 +770,11 @@ export class PaymentService extends BaseService {
     parentId: number
     amount: number
   }) => {
-    const splitTxs = await this.knex('transaction')
-      .select()
-      .where({
-        purpose: TRANSACTION_PURPOSE.subscriptionSplit,
-        state: TRANSACTION_STATE.succeeded,
-        parentId,
-      })
+    const splitTxs = await this.knex('transaction').select().where({
+      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+      state: TRANSACTION_STATE.succeeded,
+      parentId,
+    })
 
     const splitTotal = splitTxs.reduce((accumulator, tx) => {
       const amt = Number(tx.amount)

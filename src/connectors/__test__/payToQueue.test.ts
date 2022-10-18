@@ -4,6 +4,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_REMARK,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
@@ -131,5 +132,62 @@ describe('payToByBlockchainQueue', () => {
       'blockchain_transaction'
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.reverted)
+  })
+  test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
+    const invalidTxhash =
+      '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
+    const tx =
+      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
+        chain,
+        txHash: invalidTxhash,
+        amount,
+        state,
+        purpose,
+        currency,
+        recipientId,
+        senderId,
+        targetId,
+        targetType,
+      })
+    queue.payTo({ txId: tx.id })
+    expect(await getQueueResult(queue.q)).toStrictEqual({ txId: tx.id })
+    const ret = await queue.paymentService.baseFindById(tx.id)
+    expect(ret.state).toBe(TRANSACTION_STATE.canceled)
+    expect(ret.remark).toBe(TRANSACTION_REMARK.INVALID)
+    const blockchainTx = await queue.paymentService.baseFindById(
+      tx.providerTxId,
+      'blockchain_transaction'
+    )
+    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
+  })
+  test.only('succeeded valid blockchain transaction will mark transaction and blockchainTx as succeeded', async () => {
+    const validTxhash =
+      '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
+    const curator = await queue.userService.create({
+      userName: 'curator',
+      ethAddress: '0x0ee160cb17e33d5ae367741992072942dfe70cba',
+    })
+    const tx =
+      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
+        chain,
+        txHash: validTxhash,
+        amount,
+        state,
+        purpose,
+        currency,
+        recipientId,
+        senderId: curator.id,
+        targetId,
+        targetType,
+      })
+    queue.payTo({ txId: tx.id })
+    expect(await getQueueResult(queue.q)).toStrictEqual({ txId: tx.id })
+    const ret = await queue.paymentService.baseFindById(tx.id)
+    expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
+    const blockchainTx = await queue.paymentService.baseFindById(
+      tx.providerTxId,
+      'blockchain_transaction'
+    )
+    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
   })
 })

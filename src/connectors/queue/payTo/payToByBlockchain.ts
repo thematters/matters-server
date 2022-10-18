@@ -16,9 +16,19 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { environment, USDTContractAddress } from 'common/environment'
+import {
+  environment,
+  USDTContractAddress,
+  USDTContractDecimals,
+} from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
-import { getProvider, getQueueNameForEnv, numRound } from 'common/utils'
+import {
+  getProvider,
+  getQueueNameForEnv,
+  numRound,
+  toTokenBaseUnit,
+  tryConvertVersionOfCID,
+} from 'common/utils'
 // import { environment } from 'common/environment'
 import { PaymentService } from 'connectors'
 
@@ -49,7 +59,6 @@ class PayToByBlockchainQueue extends BaseQueue {
       { txId },
       {
         priority: QUEUE_PRIORITY.NORMAL,
-        removeOnComplete: false,
       }
     )
   }
@@ -132,34 +141,43 @@ class PayToByBlockchainQueue extends BaseQueue {
       cid,
       tokenAddress,
       amount,
+      decimals,
     }: {
       curatorAddress?: string
       creatorAddress?: string
       cid: string
       tokenAddress: string
       amount: string
+      decimals: number
     }
   ) => {
     const abi = [
-      'event Curation(address indexed curator, address indexed creator, string indexed uri, IERC20 token, uint256 amount)',
+      'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)',
     ]
     const topic =
-      '0x962828029dfd82a5c84245e0610457c7f86f4f8a8551f344e06677e5a396a4a8'
+      '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
     if (logs.length === 0) {
       return false
     } else {
       for (const log of logs) {
         if (
-          log.address === environment.curationContractAddress &&
+          log.address.toLowerCase() ===
+            environment.curationContractAddress.toLowerCase() &&
           log.topics[0] === topic
         ) {
           const iface = new ethers.utils.Interface(abi)
           const event = iface.parseLog(log)
+          console.log(event)
           if (
-            event.args[0].toLowerCase() === curatorAddress!.toLowerCase() &&
-            event.args[1].toLowerCase() === creatorAddress!.toLowerCase() &&
-            event.args[3].toLowerCase() === tokenAddress.toLowerCase() &&
-            event.args[4] === ethers.BigNumber.from(amount)
+            event.args.curator!.toLowerCase() ===
+              curatorAddress!.toLowerCase() &&
+            event.args.creator!.toLowerCase() ===
+              creatorAddress!.toLowerCase() &&
+            event.args.token!.toLowerCase() === tokenAddress.toLowerCase() &&
+            event.args.amount!.toString() ===
+              toTokenBaseUnit(amount, decimals) &&
+            (event.args.uri!.includes(cid) ||
+              event.args.uri!.includes(tryConvertVersionOfCID(cid)))
           ) {
             return true
           }
@@ -230,6 +248,7 @@ class PayToByBlockchainQueue extends BaseQueue {
     const cid = articleDb.dataHash
     const tokenAddress = USDTContractAddress
     const amount = tx.amount
+    const decimals = USDTContractDecimals
 
     // txReceipt does not match with tx record in database
     if (
@@ -239,6 +258,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         cid,
         tokenAddress,
         amount,
+        decimals,
       }))
     ) {
       await this.updateTxAndBlockchainTxState(

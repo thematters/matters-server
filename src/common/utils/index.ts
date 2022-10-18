@@ -23,6 +23,7 @@ export * from './payment'
 export * from './text'
 export * from './time'
 export * from './blockchain'
+export * from './ipfs'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
