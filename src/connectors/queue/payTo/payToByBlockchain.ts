@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 import _capitalize from 'lodash/capitalize'
 
 import {
+  MINUTE,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -68,121 +69,23 @@ class PayToByBlockchainQueue extends BaseQueue {
     )
   }
 
+  addRepeatJobs = async () => {
+    this.q.add(
+      QUEUE_JOB.syncCurationEvents,
+      {},
+      {
+        priority: QUEUE_PRIORITY.NORMAL,
+        repeat: { every: min * 30 },
+      }
+    )
+  }
+
   private addConsumers = () => {
     this.q.process(
       QUEUE_JOB.payTo,
       QUEUE_CONCURRENCY.payToByBlockchain,
       this.handlePayTo
     )
-  }
-
-  private updateTxAndBlockchainTxState = async (
-    {
-      txId,
-      txState,
-      txRemark,
-    }: {
-      txId: string
-      txState: TRANSACTION_STATE
-      txRemark?: TRANSACTION_REMARK
-    },
-    {
-      blockchainTxId,
-      blockchainTxState,
-    }: {
-      blockchainTxId: string
-      blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
-    }
-  ) => {
-    const trx = await this.knex.transaction()
-    try {
-      await this.paymentService.markTransactionStateAs(
-        {
-          id: txId,
-          state: txState,
-          remark: txRemark,
-        },
-        trx
-      )
-      await this.paymentService.markBlockchainTransactionStateAs(
-        {
-          id: blockchainTxId,
-          state: blockchainTxState,
-        },
-        trx
-      )
-      await trx.commit()
-    } catch (error) {
-      await trx.rollback()
-      throw error
-    }
-  }
-
-  private failBothTxAndBlockchainTx = async (
-    txId: string,
-    blockchainTxId: string
-  ) => {
-    await this.updateTxAndBlockchainTxState(
-      { txId, txState: TRANSACTION_STATE.failed },
-      {
-        blockchainTxId,
-        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
-      }
-    )
-  }
-
-  private validateTxLogs = async (
-    logs: Log[],
-    {
-      curatorAddress,
-      creatorAddress,
-      cid,
-      tokenAddress,
-      amount,
-      decimals,
-    }: {
-      curatorAddress?: string
-      creatorAddress?: string
-      cid: string
-      tokenAddress: string
-      amount: string
-      decimals: number
-    }
-  ) => {
-    const abi = [
-      'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)',
-    ]
-    const topic =
-      '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
-    if (logs.length === 0) {
-      return false
-    } else {
-      for (const log of logs) {
-        if (
-          log.address.toLowerCase() ===
-            environment.curationContractAddress.toLowerCase() &&
-          log.topics[0] === topic
-        ) {
-          const iface = new ethers.utils.Interface(abi)
-          const event = iface.parseLog(log)
-          const uri = event.args.uri
-          if (
-            event.args.curator!.toLowerCase() ===
-              curatorAddress!.toLowerCase() &&
-            event.args.creator!.toLowerCase() ===
-              creatorAddress!.toLowerCase() &&
-            event.args.token!.toLowerCase() === tokenAddress.toLowerCase() &&
-            event.args.amount!.toString() ===
-              toTokenBaseUnit(amount, decimals) &&
-            /^ipfs:\/\//.test(uri) &&
-            uri.replace('ipfs://', '') === cid
-          ) {
-            return true
-          }
-        }
-      }
-    }
-    return false
   }
 
   /**
@@ -349,6 +252,127 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     job.progress(100)
     return data
+  }
+
+  /**
+   * syncCurationEvents handler.
+   *
+   */
+  private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> = async (job) => {
+  }
+
+  /**
+   * helpers
+   *
+   */
+
+  private updateTxAndBlockchainTxState = async (
+    {
+      txId,
+      txState,
+      txRemark,
+    }: {
+      txId: string
+      txState: TRANSACTION_STATE
+      txRemark?: TRANSACTION_REMARK
+    },
+    {
+      blockchainTxId,
+      blockchainTxState,
+    }: {
+      blockchainTxId: string
+      blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
+    }
+  ) => {
+    const trx = await this.knex.transaction()
+    try {
+      await this.paymentService.markTransactionStateAs(
+        {
+          id: txId,
+          state: txState,
+          remark: txRemark,
+        },
+        trx
+      )
+      await this.paymentService.markBlockchainTransactionStateAs(
+        {
+          id: blockchainTxId,
+          state: blockchainTxState,
+        },
+        trx
+      )
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+  }
+
+  private failBothTxAndBlockchainTx = async (
+    txId: string,
+    blockchainTxId: string
+  ) => {
+    await this.updateTxAndBlockchainTxState(
+      { txId, txState: TRANSACTION_STATE.failed },
+      {
+        blockchainTxId,
+        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
+      }
+    )
+  }
+
+  private validateTxLogs = async (
+    logs: Log[],
+    {
+      curatorAddress,
+      creatorAddress,
+      cid,
+      tokenAddress,
+      amount,
+      decimals,
+    }: {
+      curatorAddress?: string
+      creatorAddress?: string
+      cid: string
+      tokenAddress: string
+      amount: string
+      decimals: number
+    }
+  ) => {
+    const abi = [
+      'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)',
+    ]
+    const topic =
+      '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
+    if (logs.length === 0) {
+      return false
+    } else {
+      for (const log of logs) {
+        if (
+          log.address.toLowerCase() ===
+            environment.curationContractAddress.toLowerCase() &&
+          log.topics[0] === topic
+        ) {
+          const iface = new ethers.utils.Interface(abi)
+          const event = iface.parseLog(log)
+          const uri = event.args.uri
+          if (
+            event.args.curator!.toLowerCase() ===
+              curatorAddress!.toLowerCase() &&
+            event.args.creator!.toLowerCase() ===
+              creatorAddress!.toLowerCase() &&
+            event.args.token!.toLowerCase() === tokenAddress.toLowerCase() &&
+            event.args.amount!.toString() ===
+              toTokenBaseUnit(amount, decimals) &&
+            /^ipfs:\/\//.test(uri) &&
+            uri.replace('ipfs://', '') === cid
+          ) {
+            return true
+          }
+        }
+      }
+    }
+    return false
   }
 }
 
