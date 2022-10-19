@@ -146,6 +146,18 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     pick.map((item) => item.draftId)
   )
 
+  if (
+    // tslint:disable-next-line
+    (sameIdx = nodes?.findIndex((item: any) => item.articleId === articleId)) >= 0
+  ) {
+    console.log(
+      new Date(),
+      `found same article at {${sameIdx}} at last step and remove it`,
+      { sameIdx, articleId }
+    )
+    nodes.splice(sameIdx, 1)
+  }
+
   return connectionFromArray(nodes, input)
 }
 

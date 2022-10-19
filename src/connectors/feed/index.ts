@@ -107,7 +107,7 @@ export class Feed {
             title,
             image: (await this.systemService.findAssetUrl(cover)) || undefined,
             content_html: content,
-            summary,
+            summary: stripSpaces(summary),
             date_published: createdAt.toISOString(),
             tags: omitEmpty(
               this.articleTagIds
@@ -158,7 +158,7 @@ export class Feed {
 <guid>${linkUrl}</guid>
 <link>${linkUrl}</link>
 <pubDate>${buildRFC822Date(createdAt)}</pubDate>
-<description><![CDATA[${summary}]]></description>
+<description><![CDATA[${stripSpaces(summary)}]]></description>
 </item>`
       }
     )
@@ -220,7 +220,7 @@ ${items.join('\n')}
         createdAt,
       }) => `<li class="item">
 <a href="./${id}-${slug}/"><h2>${title}</h2></a>
-<figure class="summary">${summary}</figure>
+<figure class="summary">${stripSpaces(summary)}</figure>
 <span>${buildShortDate(createdAt)}</span>
 </li>`
     )
