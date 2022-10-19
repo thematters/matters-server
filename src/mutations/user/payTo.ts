@@ -25,7 +25,7 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId, isValidTransactionHash } from 'common/utils'
-import { payToQueue } from 'connectors/queue'
+import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -199,7 +199,7 @@ const resolver: MutationToPayToResolver = async (
       })
 
       // insert queue job
-      payToQueue.payTo({ txId: transaction.id })
+      payToByMattersQueue.payTo({ txId: transaction.id })
       break
     case 'USDT':
       if (!chain) {
@@ -220,6 +220,7 @@ const resolver: MutationToPayToResolver = async (
           currency: PAYMENT_CURRENCY.USDT,
           purpose: TRANSACTION_PURPOSE[purpose],
         })
+      payToByBlockchainQueue.payTo({ txId: transaction.id })
       break
   }
 

@@ -13,20 +13,20 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { numRound } from 'common/utils'
+import { getQueueNameForEnv, numRound } from 'common/utils'
 import { PaymentService } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from '../baseQueue'
 
 interface PaymentParams {
   txId: string
 }
 
-class PayToQueue extends BaseQueue {
+class PayToByMattersQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
 
   constructor() {
-    super(QUEUE_NAME.payTo)
+    super(getQueueNameForEnv(QUEUE_NAME.payTo))
     this.paymentService = new PaymentService()
     this.addConsumers()
   }
@@ -228,4 +228,4 @@ class PayToQueue extends BaseQueue {
   }
 }
 
-export const payToQueue = new PayToQueue()
+export const payToByMattersQueue = new PayToByMattersQueue()

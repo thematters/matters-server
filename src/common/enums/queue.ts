@@ -80,6 +80,7 @@ export const QUEUE_NAME = {
   migration: 'migration',
   payout: 'payout',
   payTo: 'payTo',
+  payToByBlockchain: 'payToByBlockchain',
   appreciation: 'appreciation',
   txTimeout: 'txTimeout',
   revision: 'revision',
@@ -94,6 +95,7 @@ export const QUEUE_CONCURRENCY = {
   publishRevisedArticle: 100,
   refreshIPNSFeed: 2,
   migration: 2,
+  payToByBlockchain: 25,
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {
