@@ -39,13 +39,13 @@ interface PaymentParams {
 
 class PayToByBlockchainQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
-  txTimeout: number
+  delay: number
 
   constructor() {
     super(getQueueNameForEnv(QUEUE_NAME.payToByBlockchain))
     this.paymentService = new PaymentService()
     this.addConsumers()
-    this.txTimeout = 36000000 // 10 mins
+    this.delay = 5000 // 5s
   }
 
   /**
@@ -57,6 +57,12 @@ class PayToByBlockchainQueue extends BaseQueue {
       QUEUE_JOB.payTo,
       { txId },
       {
+        delay: this.delay,
+        attempts: 8, // roughly total 20 min before giving up
+        backoff: {
+          type: 'exponential',
+          delay: this.delay,
+        },
         priority: QUEUE_PRIORITY.NORMAL,
       }
     )
@@ -125,13 +131,6 @@ class PayToByBlockchainQueue extends BaseQueue {
     )
   }
 
-  private timeoutBlockchainTx = async (blockchainTxId: string) => {
-    await this.paymentService.markBlockchainTransactionStateAs({
-      id: blockchainTxId,
-      state: BLOCKCHAIN_TRANSACTION_STATE.timeout,
-    })
-  }
-
   private validateTxLogs = async (
     logs: Log[],
     {
@@ -196,10 +195,12 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     const tx = await this.paymentService.baseFindById(txId)
     if (!tx) {
+      job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
     }
 
     if (tx.provider !== PAYMENT_PROVIDER.blockchain) {
+      job.discard()
       throw new PaymentQueueJobDataError('wrong pay-to queue')
     }
 
@@ -207,26 +208,16 @@ class PayToByBlockchainQueue extends BaseQueue {
       await this.paymentService.findBlockchainTransactionById(tx.providerTxId)
 
     if (!blockchainTx) {
+      job.discard()
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
     const provider = getProvider()
-    const confirms = 1
 
-    let txReceipt
-    try {
-      txReceipt = await provider.waitForTransaction(
-        blockchainTx.txHash,
-        confirms,
-        this.txTimeout
-      )
-    } catch (error) {
-      if (error.code === ethers.utils.Logger.errors.TIMEOUT) {
-        await this.timeoutBlockchainTx(blockchainTx.id)
-        return data
-      } else {
-        throw error
-      }
+    const txReceipt = await provider.getTransactionReceipt(blockchainTx.txHash)
+
+    if (!txReceipt) {
+      throw new PaymentQueueJobDataError('blockchain transaction not mined')
     }
 
     if (txReceipt.status === 0) {

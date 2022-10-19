@@ -40,12 +40,17 @@ describe('payToByBlockchainQueue', () => {
   const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
   const txHash =
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
+  beforeAll(async () => {
+    queue.delay = 1
+  })
+
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
     const job = await queue.payTo({ txId: wrongTxId })
     await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
+    expect(await job.getState()).toBe('failed')
   })
   test('tx with wrong provier will fail', async () => {
     const tx = await queue.paymentService.createTransaction({
@@ -64,6 +69,7 @@ describe('payToByBlockchainQueue', () => {
     await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
       new PaymentQueueJobDataError('wrong pay-to queue')
     )
+    expect(await job.getState()).toBe('failed')
   })
   test('tx with wrong providerTxId will fail', async () => {
     const tx = await queue.paymentService.createTransaction({
@@ -82,8 +88,9 @@ describe('payToByBlockchainQueue', () => {
     await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not found')
     )
+    expect(await job.getState()).toBe('failed')
   })
-  test('timeout error of waitForTransaction will mark blockchainTx as timeout', async () => {
+  test.only('not mined tx will fail and retry', async () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -97,15 +104,11 @@ describe('payToByBlockchainQueue', () => {
         targetId,
         targetType,
       })
-    queue.txTimeout = 1
     const job = await queue.payTo({ txId: tx.id })
-    expect(await getQueueResult(queue.q, job.id)).toStrictEqual({ txId: tx.id })
-    const blockchainTx = await queue.paymentService.baseFindById(
-      tx.providerTxId,
-      'blockchain_transaction'
+    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
+      new PaymentQueueJobDataError('blockchain transaction not mined')
     )
-    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.timeout)
-    queue.txTimeout = 10000
+    expect(await job.getState()).toBe('active')
   })
   test('failed blockchain transation will mark transaction and blockchainTx as failed', async () => {
     const failedTxhash =
@@ -133,7 +136,7 @@ describe('payToByBlockchainQueue', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.reverted)
   })
-  test.skip('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
+  test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
     const invalidTxhash =
       '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
     const tx =
