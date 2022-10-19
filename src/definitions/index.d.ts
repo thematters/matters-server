@@ -169,6 +169,7 @@ export type BasicTableName =
   | 'user_tags_order'
   | 'blockchain_transaction'
   | 'blockchain_curation_event'
+  | 'blockchain_sync_record'
 
 export type View =
   | 'tag_count_view'

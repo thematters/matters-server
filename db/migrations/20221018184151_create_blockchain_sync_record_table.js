@@ -8,7 +8,7 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('chain_id').notNullable()
     t.string('contract_address').notNullable()
-    t.bigInteger('block_height').notNullable()
+    t.bigInteger('block_number').notNullable()
 
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())

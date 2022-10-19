@@ -25,7 +25,7 @@ describe('payToByMattersQueue', () => {
   })
 })
 
-describe('payToByBlockchainQueue', () => {
+describe('payToByBlockchainQueue.payTo', () => {
   const amount = 1
   const state = TRANSACTION_STATE.pending
   const purpose = TRANSACTION_PURPOSE.donation
@@ -90,7 +90,7 @@ describe('payToByBlockchainQueue', () => {
     )
     expect(await job.getState()).toBe('failed')
   })
-  test.only('not mined tx will fail and retry', async () => {
+  test('not mined tx will fail and retry', async () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -194,3 +194,11 @@ describe('payToByBlockchainQueue', () => {
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
   })
 })
+
+describe.only('payToByBlockchainQueue.syncCurationEvents', () => {
+  const queue = payToByBlockchainQueue
+  test('debug', async () => {
+    await queue._handleSyncCurationEvents()
+  })
+})
+
