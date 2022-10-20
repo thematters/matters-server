@@ -44,7 +44,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     queue.delay = 1
   })
 
-  test('job with wrong tx id will fail', async () => {
+  test.only('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
     const job = await queue.payTo({ txId: wrongTxId })
     await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
@@ -195,10 +195,10 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 })
 
-describe.only('payToByBlockchainQueue.syncCurationEvents', () => {
-  const queue = payToByBlockchainQueue
-  test('debug', async () => {
-    await queue._handleSyncCurationEvents()
-  })
-})
-
+// describe.only('payToByBlockchainQueue.syncCurationEvents', () => {
+//   const queue = payToByBlockchainQueue
+//   test('debug', async () => {
+//     jest.setTimeout(100000)
+//     await queue._handleSyncCurationEvents()
+//   })
+// })

@@ -165,12 +165,18 @@ export class BaseService extends DataSource {
   /**
    * Create a batch of items
    */
-  baseBatchCreate = async (dataItems: ItemData[], table?: TableName, trx?: Knex.Transaction) => {
-    const query = this.knex.batchInsert(table || this.table, dataItems).returning('*')
+  baseBatchCreate = async (
+    dataItems: ItemData[],
+    table?: TableName,
+    trx?: Knex.Transaction
+  ) => {
+    const query = this.knex
+      .batchInsert(table || this.table, dataItems)
+      .returning('*')
     if (trx) {
       query.transacting(trx)
     }
-    return await query
+    return query
   }
 
   /**

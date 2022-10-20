@@ -49,7 +49,7 @@ export const BLOCKCHAIN_CHAINID = {
 }
 
 export const BLOCKCHAIN_SAFE_CONFIRMS = {
-  [BLOCKCHAIN.Polygon]: 128
+  [BLOCKCHAIN.Polygon]: 128,
 }
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {

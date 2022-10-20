@@ -242,7 +242,7 @@ export class PaymentService extends BaseService {
 
   findOrCreateBlockchainTransaction = async (
     { chain, txHash }: { chain: GQLChain; txHash: string },
-    data? : {state?: BLOCKCHAIN_TRANSACTION_STATE},
+    data?: { state?: BLOCKCHAIN_TRANSACTION_STATE },
     trx?: Knex.Transaction
   ) => {
     const table = 'blockchain_transaction'
@@ -258,7 +258,7 @@ export class PaymentService extends BaseService {
       txHash: txHashDb,
       chainId,
     }
-    const toInsert = {...where} as any
+    const toInsert = { ...where } as any
     if (data && data.state) {
       toInsert.state = data.state
     }
