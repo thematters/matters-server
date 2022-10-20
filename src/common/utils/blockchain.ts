@@ -14,7 +14,5 @@ export const getAlchemyProvider = (chainId: number) =>
 export const toTokenBaseUnit = (amount: string, decimals: number): string =>
   ethers.utils.parseUnits(amount, decimals).toString()
 
-export const fromTokenBaseUnit = (
-  amount: ethers.BigNumber,
-  decimals: number
-): string => ethers.utils.formatUnits(amount, decimals)
+export const fromTokenBaseUnit = (amount: string, decimals: number): string =>
+  ethers.utils.formatUnits(amount, decimals)

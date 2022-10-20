@@ -1,11 +1,10 @@
-import type { Log } from '@ethersproject/abstract-provider'
+import type { Log as EthersLog } from '@ethersproject/abstract-provider'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import { ethers, Event, providers } from 'ethers'
+import { ethers } from 'ethers'
 import _capitalize from 'lodash/capitalize'
 
 import {
-  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
@@ -21,21 +20,22 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import {
-  environment,
-  isProd,
-  USDTContractAddress,
-  USDTContractDecimals,
-} from 'common/environment'
+import { USDTContractAddress, USDTContractDecimals } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import {
   fromTokenBaseUnit,
-  getAlchemyProvider,
+  getProvider,
   getQueueNameForEnv,
   numRound,
   toTokenBaseUnit,
 } from 'common/utils'
 import { PaymentService } from 'connectors'
+import {
+  CurationContract,
+  CurationEvent,
+  Log,
+  Provider,
+} from 'connectors/blockchain'
 import { GQLChain } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
@@ -44,26 +44,17 @@ interface PaymentParams {
   txId: string
 }
 
-const abi = [
-  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)',
-]
-const chainId = isProd
-  ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
-  : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
-const contractAddress = environment.curationContractAddress.toLowerCase()
 const syncRecordTable = 'blockchain_sync_record'
 
 class PayToByBlockchainQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
   delay: number
-  provider: providers.Provider
 
   constructor() {
     super(getQueueNameForEnv(QUEUE_NAME.payToByBlockchain))
     this.paymentService = new PaymentService()
     this.addConsumers()
     this.delay = 5000 // 5s
-    this.provider = getAlchemyProvider(parseInt(chainId, 10))
   }
 
   /**
@@ -98,9 +89,13 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   _handleSyncCurationEvents = async () => {
-    const curation = new ethers.Contract(contractAddress, abi, this.provider)
+    const curation = new CurationContract()
+    const chainId = curation.chainId
+    const provider = new Provider(chainId)
+    const contractAddress = curation.address
     const safeBlockNum =
-      (await this.provider.getBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+      (await provider.getBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+
     let fromBlockNum
     let toBlockNum
     const record = await this.atomService.findFirst({
@@ -110,26 +105,22 @@ class PayToByBlockchainQueue extends BaseQueue {
     if (record) {
       fromBlockNum = record.blockNumber + 1
     }
-    let events
+    let logs
     if (!fromBlockNum) {
       // no sync record in db , request getLog without block range
-      events = await curation.queryFilter(curation.filters.Curation())
-      const filtered = events.filter((e) => e.blockNumber <= safeBlockNum)
+      logs = await curation.fetchLogs()
+      const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
       await this.syncCurationEvents(filtered)
       toBlockNum =
-        events.length === filtered.length
+        logs.length === filtered.length
           ? safeBlockNum
           : filtered[filtered.length - 1].blockNumber
     } else {
       // sync record in db , request getLog with block range
       // provider only accept 2000 blocks range
       toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
-      events = await curation.queryFilter(
-        curation.filters.Curation(),
-        fromBlockNum,
-        toBlockNum
-      )
-      await this.syncCurationEvents(events)
+      logs = await curation.fetchLogs(fromBlockNum, toBlockNum)
+      await this.syncCurationEvents(logs)
     }
 
     await this.paymentService.baseUpdateOrCreate({
@@ -139,25 +130,20 @@ class PayToByBlockchainQueue extends BaseQueue {
     })
   }
 
-  syncCurationEvents = async (events: Event[]) => {
-    const eventsToBatchCreate = []
-    for (const event of events) {
-      if (!event.removed) {
-        const data: any = {}
+  syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
+    const events = []
+    for (const log of logs) {
+      if (!log.removed) {
+        const data: any = { ...log.event }
         const blockchainTx =
           await this.paymentService.findOrCreateBlockchainTransaction(
-            { chain: GQLChain.Polygon, txHash: event.transactionHash },
+            { chain: GQLChain.Polygon, txHash: log.txHash },
             { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
           )
         data.blockchainTransactionId = blockchainTx.id
-        data.contractAddress = contractAddress
-        data.curatorAddress = event.args!.curator!.toLowerCase()
-        data.creatorAddress = event.args!.creator!.toLowerCase()
-        data.tokenAddress = event.args!.token!.toLowerCase()
-        data.amount = event.args!.amount!.toString()
-        data.uri = event.args!.uri
+        data.contractAddress = log.address
 
-        eventsToBatchCreate.push(data)
+        events.push(data)
 
         // related tx record has resolved
         if (
@@ -202,7 +188,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
         // donation is from Matters
         const amount = parseFloat(
-          fromTokenBaseUnit(event.args!.amount, USDTContractDecimals)
+          fromTokenBaseUnit(data.amount, USDTContractDecimals)
         )
 
         if (blockchainTx.transactionId) {
@@ -295,7 +281,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         const blockchainTx =
           await this.paymentService.findOrCreateBlockchainTransaction({
             chain: GQLChain.Polygon,
-            txHash: event.transactionHash,
+            txHash: log.txHash,
           })
         if (!blockchainTx.transactionId) {
           // no relatived tx record, do nothing
@@ -304,9 +290,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         const tx = await this.paymentService.baseFindById(
           blockchainTx.transactionId
         )
-        const receipt = await this.provider.getTransactionReceipt(
-          event.transactionHash
-        )
+        const receipt = await getProvider().getTransactionReceipt(log.txHash)
 
         if (tx.state === TRANSACTION_STATE.succeeded) {
           if (!receipt) {
@@ -336,11 +320,11 @@ class PayToByBlockchainQueue extends BaseQueue {
         }
       }
     }
-    if (eventsToBatchCreate.length >= 0) {
+    if (events.length >= 0) {
       const trx = await this.knex.transaction()
       try {
         await this.paymentService.baseBatchCreate(
-          eventsToBatchCreate,
+          events,
           'blockchain_curation_event',
           trx
         )
@@ -351,7 +335,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     }
 
-    return events.length
+    return logs.length
   }
 
   private addConsumers = () => {
@@ -394,9 +378,8 @@ class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const txReceipt = await this.provider.getTransactionReceipt(
-      blockchainTx.txHash
-    )
+    const provider = getProvider()
+    const txReceipt = await provider.getTransactionReceipt(blockchainTx.txHash)
 
     if (!txReceipt) {
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
@@ -621,7 +604,7 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   private containMatchedEvent = async (
-    logs: Log[],
+    logs: EthersLog[],
     {
       curatorAddress,
       creatorAddress,
@@ -638,8 +621,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       decimals: number
     }
   ) => {
-    const topic =
-      '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
+    const curationContract = new CurationContract()
     if (logs.length === 0) {
       return false
     } else {
@@ -648,10 +630,10 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
       for (const log of logs) {
         if (
-          log.address.toLowerCase() === contractAddress &&
-          log.topics[0] === topic
+          ignoreCaseMatch(log.address, curationContract.address) &&
+          log.topics[0] === curationContract.eventTopic
         ) {
-          const iface = new ethers.utils.Interface(abi)
+          const iface = new ethers.utils.Interface(curationContract.abi)
           const event = iface.parseLog(log)
           const uri = event.args.uri
           if (
