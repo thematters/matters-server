@@ -1,7 +1,7 @@
 import Queue from 'bull'
 
 import {
-  HOUR,
+  MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -33,7 +33,7 @@ class TxTimeoutQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 2.1, // every 2.1 hours
+          every: MINUTE * 30, // every 0.5 hours
         },
       }
     )
