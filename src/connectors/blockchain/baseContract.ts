@@ -15,4 +15,8 @@ export class BaseContract {
     this.provider = getAlchemyProvider(chainId)
     this.contract = new Contract(address, abi, this.provider)
   }
+
+  getBlockNumber = async (): Promise<number> => {
+    return this.provider.getBlockNumber()
+  }
 }

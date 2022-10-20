@@ -27,12 +27,7 @@ import {
   toTokenBaseUnit,
 } from 'common/utils'
 import { PaymentService } from 'connectors'
-import {
-  CurationContract,
-  CurationEvent,
-  Log,
-  Provider,
-} from 'connectors/blockchain'
+import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import { GQLChain } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
@@ -88,10 +83,9 @@ class PayToByBlockchainQueue extends BaseQueue {
   _handleSyncCurationEvents = async () => {
     const curation = new CurationContract()
     const chainId = curation.chainId
-    const provider = new Provider(chainId)
     const contractAddress = curation.address
     const safeBlockNum =
-      (await provider.getBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+      (await curation.getBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
 
     let fromBlockNum
     let toBlockNum

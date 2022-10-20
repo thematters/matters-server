@@ -1,2 +1,1 @@
-export * from './provider'
-export * from './contract'
+export * from './curation'
