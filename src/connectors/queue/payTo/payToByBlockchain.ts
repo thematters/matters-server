@@ -1,7 +1,5 @@
-import type { Log as EthersLog } from '@ethersproject/abstract-provider'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import { ethers } from 'ethers'
 import _capitalize from 'lodash/capitalize'
 
 import {
@@ -24,7 +22,6 @@ import { USDTContractAddress, USDTContractDecimals } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import {
   fromTokenBaseUnit,
-  getProvider,
   getQueueNameForEnv,
   numRound,
   toTokenBaseUnit,
@@ -290,7 +287,8 @@ class PayToByBlockchainQueue extends BaseQueue {
         const tx = await this.paymentService.baseFindById(
           blockchainTx.transactionId
         )
-        const receipt = await getProvider().getTransactionReceipt(log.txHash)
+        const curation = new CurationContract()
+        const receipt = await curation.fetchTxReceipt(log.txHash)
 
         if (tx.state === TRANSACTION_STATE.succeeded) {
           if (!receipt) {
@@ -300,7 +298,7 @@ class PayToByBlockchainQueue extends BaseQueue {
               blockchainTx.id
             )
           }
-          if (receipt && receipt.status === 0) {
+          if (receipt && receipt.reverted) {
             // blochchain tx failed after reorg, update tx to failed
             await this.failBothTxAndBlockchainTx(
               blockchainTx.transactionId,
@@ -310,7 +308,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         }
 
         if (tx.state === TRANSACTION_STATE.failed) {
-          if (receipt && receipt.status === 1) {
+          if (receipt && !receipt.reverted) {
             // blochchain tx succeeded after reorg, update tx to failed
             await this.succeedBothTxAndBlockchainTx(
               blockchainTx.transactionId,
@@ -378,14 +376,14 @@ class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const provider = getProvider()
-    const txReceipt = await provider.getTransactionReceipt(blockchainTx.txHash)
+    const curation = new CurationContract()
+    const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
     if (!txReceipt) {
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
     }
 
-    if (txReceipt.status === 0) {
+    if (txReceipt.reverted) {
       await this.failBothTxAndBlockchainTx(txId, blockchainTx.id)
       return data
     }
@@ -406,8 +404,9 @@ class PayToByBlockchainQueue extends BaseQueue {
     const decimals = USDTContractDecimals
 
     // txReceipt does not match with tx record in database
+    //
     if (
-      !(await this.containMatchedEvent(txReceipt.logs, {
+      !(await this.containMatchedEvent(txReceipt.events, {
         creatorAddress,
         curatorAddress,
         cid,
@@ -604,7 +603,7 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   private containMatchedEvent = async (
-    logs: EthersLog[],
+    events: CurationEvent[],
     {
       curatorAddress,
       creatorAddress,
@@ -621,32 +620,22 @@ class PayToByBlockchainQueue extends BaseQueue {
       decimals: number
     }
   ) => {
-    const curationContract = new CurationContract()
-    if (logs.length === 0) {
+    if (events.length === 0) {
       return false
     } else {
       if (!curatorAddress || !creatorAddress) {
         return false
       }
-      for (const log of logs) {
+      for (const event of events) {
         if (
-          ignoreCaseMatch(log.address, curationContract.address) &&
-          log.topics[0] === curationContract.eventTopic
+          ignoreCaseMatch(event.curatorAddress, curatorAddress) &&
+          ignoreCaseMatch(event.creatorAddress, creatorAddress) &&
+          ignoreCaseMatch(event.tokenAddress, tokenAddress) &&
+          event.amount === toTokenBaseUnit(amount, decimals) &&
+          isValidUri(event.uri) &&
+          extractCid(event.uri) === cid
         ) {
-          const iface = new ethers.utils.Interface(curationContract.abi)
-          const event = iface.parseLog(log)
-          const uri = event.args.uri
-          if (
-            ignoreCaseMatch(event.args.curator, curatorAddress) &&
-            ignoreCaseMatch(event.args.creator, creatorAddress) &&
-            ignoreCaseMatch(event.args.token, tokenAddress) &&
-            event.args.amount!.toString() ===
-              toTokenBaseUnit(amount, decimals) &&
-            isValidUri(uri) &&
-            extractCid(uri) === cid
-          ) {
-            return true
-          }
+          return true
         }
       }
     }

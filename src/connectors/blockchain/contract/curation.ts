@@ -1,10 +1,21 @@
+import type { Log as EthersLog } from '@ethersproject/abstract-provider'
+import { ethers } from 'ethers'
+
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 
 import { BaseContract } from './baseContract'
 
 // type
-//
+
+export interface CurationEvent {
+  curatorAddress: string
+  creatorAddress: string
+  uri: string
+  tokenAddress: string
+  amount: string
+}
+
 export interface Log<T> {
   event: T
   txHash: string
@@ -13,12 +24,10 @@ export interface Log<T> {
   removed: boolean
 }
 
-export interface CurationEvent {
-  curatorAddress: string
-  creatorAddress: string
-  uri: string
-  tokenAddress: string
-  amount: string
+export interface CurationTxReceipt {
+  events: CurationEvent[]
+  txHash: string
+  reverted: boolean
 }
 
 // constants
@@ -63,5 +72,33 @@ export class CurationContract extends BaseContract {
       blockNumber: e.blockNumber,
       removed: e.removed,
     }))
+  }
+
+  fetchTxReceipt = async (
+    txHash: string
+  ): Promise<CurationTxReceipt | null> => {
+    const txReceipt = await this.provider.getTransactionReceipt(txHash)
+    if (!txReceipt) {
+      return null
+    }
+    const targets = txReceipt.logs.filter(
+      (log: EthersLog) =>
+        log.address.toLowerCase() === this.address.toLowerCase() &&
+        log.topics[0] === this.eventTopic
+    )
+    const iface = new ethers.utils.Interface(this.abi)
+    return {
+      txHash,
+      reverted: txReceipt.status === 0,
+      events: targets
+        .map((log) => iface.parseLog(log))
+        .map((e) => ({
+          curatorAddress: e.args!.curator!.toLowerCase(),
+          creatorAddress: e.args!.creator!.toLowerCase(),
+          uri: e.args!.uri,
+          tokenAddress: e.args!.token!.toLowerCase(),
+          amount: e.args!.amount!.toString(),
+        })),
+    }
   }
 }
