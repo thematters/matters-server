@@ -293,7 +293,7 @@ export const completeCircleInvoice = async ({
       // and, the total amount of split transactions is correct.
       const inv = (await paymentService.findInvoice({ providerInvoiceId }))[0]
       const splitted = await paymentService.isTransactionSplitted({
-        providerTxId,
+        parentId: tx.id,
         amount: tx.amount,
       })
       if (inv && splitted) {

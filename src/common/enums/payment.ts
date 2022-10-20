@@ -27,12 +27,33 @@ export enum PAYMENT_CURRENCY {
   HKD = 'HKD',
   USD = 'USD',
   LIKE = 'LIKE',
+  USDT = 'USDT',
 }
 
 export enum PAYMENT_PROVIDER {
   likecoin = 'likecoin',
   matters = 'matters',
   stripe = 'stripe',
+  blockchain = 'blockchain',
+}
+
+export enum BLOCKCHAIN {
+  Polygon = 'Polygon',
+}
+
+export const BLOCKCHAIN_CHAINID = {
+  [BLOCKCHAIN.Polygon]: {
+    PolygonMainnet: '137',
+    PolygonMumbai: '80001',
+  },
+}
+
+export enum BLOCKCHAIN_TRANSACTION_STATE {
+  pending = 'pending',
+  succeeded = 'succeeded',
+  reverted = 'reverted',
+  canceled = 'canceled',
+  timeout = 'timeout',
 }
 
 export const PAYMENT_MAX_DECIMAL_PLACES = 2
@@ -71,7 +92,8 @@ export enum TRANSACTION_REMARK {
   // LIKE
   TIME_OUT = 'time_out',
 
-  // STRIPE
+  // BLOCKCHAIN
+  INVALID = 'invalid',
 }
 
 export const TransactionRemarkText = {

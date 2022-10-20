@@ -7,7 +7,7 @@
 ### Local
 
 - Install dependencies: `npm install --legacy-peer-deps`
-- Start Postgres, Redis, ElasticSearch, and IPFS daemon
+- Start Postgres, Redis, ElasticSearch, stripe-mock, and IPFS daemon
 - Setup Environments: `cp .env.example .env`
 - Run all migrations: `npm run db:migrate`
 - Populate all seeds data if needed: `npm run db:seed`

@@ -167,6 +167,8 @@ export type BasicTableName =
   | 'tag_translation'
   | 'user_ipns_keys'
   | 'user_tags_order'
+  | 'blockchain_transaction'
+  | 'blockchain_curation_event'
 
 export type View =
   | 'tag_count_view'

@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio'
 import _ from 'lodash'
 
 import { BCRYPT_ROUNDS } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 
 export * from './makeContext'
 export * from './getFileName'
@@ -22,6 +22,8 @@ export * from './scope'
 export * from './payment'
 export * from './text'
 export * from './time'
+export * from './blockchain'
+export * from './ipfs'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
@@ -94,3 +96,6 @@ export const getFileName = (disposition: string, url: string) => {
     }
   }
 }
+
+export const getQueueNameForEnv = (name: string) =>
+  isTest ? 'test-' + name : name

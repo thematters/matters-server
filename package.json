@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "4.5.7",
+  "version": "4.6.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.2.1",
+    "@ethersproject/abstract-provider": "^5.7.0",
     "@google-cloud/translate": "^6.2.6",
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^7.10.0",
@@ -60,6 +61,7 @@
     "bodybuilder": "^2.5.0",
     "bull": "^3.26.0",
     "cheerio": "^1.0.0-rc.10",
+    "cids": "^1.1.9",
     "cookie": "^0.4.1",
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",

@@ -1,9 +1,13 @@
 import axios from 'axios'
 import DataLoader from 'dataloader'
+import { Knex } from 'knex'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  BLOCKCHAIN,
+  BLOCKCHAIN_CHAINID,
+  BLOCKCHAIN_TRANSACTION_STATE,
   HOUR,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
@@ -14,12 +18,12 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { BaseService, CacheService } from 'connectors'
-import { CirclePrice, User } from 'definitions'
+import { CirclePrice, GQLChain, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -163,16 +167,110 @@ export class PaymentService extends BaseService {
     return query.orderBy('created_at', 'desc')
   }
 
-  createTransaction = async ({
+  createTransaction = async (
+    {
+      amount,
+      fee,
+
+      state,
+      purpose,
+      currency = PAYMENT_CURRENCY.HKD,
+
+      provider,
+      providerTxId,
+
+      recipientId,
+      senderId,
+
+      targetId,
+      targetType = TRANSACTION_TARGET_TYPE.article,
+      remark,
+    }: {
+      amount: number
+      fee?: number
+
+      state: TRANSACTION_STATE
+      purpose: TRANSACTION_PURPOSE
+      currency?: PAYMENT_CURRENCY
+
+      provider: PAYMENT_PROVIDER
+      providerTxId: string
+
+      recipientId?: string
+      senderId?: string
+
+      targetId?: string
+      targetType?: TRANSACTION_TARGET_TYPE
+      remark?: string
+    },
+    trx?: Knex.Transaction
+  ) => {
+    let targetTypeId
+    if (targetId && targetType) {
+      const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
+      targetTypeId = entityTypeId
+    }
+
+    return this.baseCreate(
+      {
+        amount,
+        fee,
+
+        state,
+        currency,
+        purpose,
+
+        provider,
+        providerTxId,
+
+        senderId,
+        recipientId,
+        targetId,
+        targetType: targetTypeId,
+        remark,
+      },
+      undefined,
+      undefined,
+      undefined,
+      trx
+    )
+  }
+
+  findBlockchainTransactionById = async (id: string) => {
+    return this.baseFindById(id, 'blockchain_transaction')
+  }
+
+  findOrCreateBlockchainTransaction = async (
+    { chain, txHash }: { chain: GQLChain; txHash: string },
+    trx?: Knex.Transaction
+  ) => {
+    const table = 'blockchain_transaction'
+    const txHashDb = txHash.toLowerCase()
+
+    let chainId
+    if (chain.valueOf() === BLOCKCHAIN.Polygon.valueOf()) {
+      chainId = isProd
+        ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
+        : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
+    }
+    const where = {
+      txHash: txHashDb,
+      chainId,
+    }
+    const data = where
+    return this.baseFindOrCreate({ where, data, table, trx })
+  }
+
+  findOrCreateTransactionByBlockchainTxHash = async ({
+    chain,
+    txHash,
+
     amount,
     fee,
 
     state,
     purpose,
-    currency = PAYMENT_CURRENCY.HKD,
-
-    provider,
-    providerTxId,
+    currency,
 
     recipientId,
     senderId,
@@ -181,15 +279,15 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
+    chain: GQLChain
+    txHash: string
+
     amount: number
     fee?: number
 
     state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
-
-    provider: PAYMENT_PROVIDER
-    providerTxId: string
 
     recipientId?: string
     senderId?: string
@@ -198,41 +296,86 @@ export class PaymentService extends BaseService {
     targetType?: TRANSACTION_TARGET_TYPE
     remark?: string
   }) => {
-    let targetTypeId
-    if (targetId && targetType) {
-      const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-      targetTypeId = entityTypeId
+    const trx = await this.knex.transaction()
+    try {
+      const blockchainTx = await this.findOrCreateBlockchainTransaction(
+        { chain, txHash },
+        trx
+      )
+
+      const provider = PAYMENT_PROVIDER.blockchain
+      const providerTxId = blockchainTx.id
+
+      let tx
+      tx = await this.knex
+        .select()
+        .from(this.table)
+        .where({ providerTxId, provider })
+        .first()
+
+      if (!tx) {
+        tx = await this.createTransaction(
+          {
+            amount,
+            fee,
+            state,
+            purpose,
+            currency,
+            provider,
+            providerTxId,
+            recipientId,
+            senderId,
+            targetId,
+            targetType,
+            remark,
+          },
+          trx
+        )
+        this.knex('blockchain_transaction')
+          .where({ id: blockchainTx.id })
+          .update({ transactionId: tx.id })
+          .transacting(trx)
+      }
+      await trx.commit()
+      return tx
+    } catch (error) {
+      await trx.rollback()
+      throw error
     }
+  }
 
-    return this.baseCreate({
-      amount,
-      fee,
-
+  // Update blockchain_transaction's state by given id
+  markBlockchainTransactionStateAs = async (
+    {
+      id,
       state,
-      currency,
-      purpose,
-
-      provider,
-      providerTxId,
-
-      senderId,
-      recipientId,
-      targetId,
-      targetType: targetTypeId,
-      remark,
-    })
+    }: {
+      id: string
+      state: BLOCKCHAIN_TRANSACTION_STATE
+    },
+    trx?: Knex.Transaction
+  ) => {
+    return this.baseUpdate(
+      id,
+      { updatedAt: new Date(), state },
+      'blockchain_transaction',
+      trx
+    )
   }
 
   // Update transaction's state by given id
-  markTransactionStateAs = async ({
-    id,
-    state,
-    remark,
-  }: {
-    id: string
-    state: TRANSACTION_STATE
-    remark?: string | null
-  }) => {
+  markTransactionStateAs = async (
+    {
+      id,
+      state,
+      remark,
+    }: {
+      id: string
+      state: TRANSACTION_STATE
+      remark?: string | null
+    },
+    trx?: Knex.Transaction
+  ) => {
     const data = remark
       ? {
           state,
@@ -621,19 +764,17 @@ export class PaymentService extends BaseService {
   }
 
   isTransactionSplitted = async ({
-    providerTxId,
+    parentId,
     amount,
   }: {
-    providerTxId: string
+    parentId: number
     amount: number
   }) => {
-    const splitTxs = await this.knex('transaction')
-      .select()
-      .where({
-        purpose: TRANSACTION_PURPOSE.subscriptionSplit,
-        state: TRANSACTION_STATE.succeeded,
-        remark: `stripe:${providerTxId}`,
-      })
+    const splitTxs = await this.knex('transaction').select().where({
+      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+      state: TRANSACTION_STATE.succeeded,
+      parentId,
+    })
 
     const splitTotal = splitTxs.reduce((accumulator, tx) => {
       const amt = Number(tx.amount)

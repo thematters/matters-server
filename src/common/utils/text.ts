@@ -34,7 +34,7 @@ export const stripAllPunct = (content: string) => {
 }
 
 export const stripSpaces = (content: string | null) =>
-  content?.replaceAll(/\s+/g, ' ').trim()
+  content?.replaceAll(/[\b\s]+/g, ' ').trim()
 
 export const normalizeTagInput = (content: string) =>
   stripAllPunct(content).substring(0, MAX_TAG_CONTENT_LENGTH)

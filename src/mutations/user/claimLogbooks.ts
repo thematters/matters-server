@@ -9,6 +9,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
+import { getProvider } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 import {
   GQLSigningMessagePurpose,
@@ -66,9 +67,7 @@ const resolver: MutationToClaimLogbooksResolver = async (
   }
 
   // filter unclaimed token ids
-  const provider = new ethers.providers.JsonRpcProvider(
-    isProd ? 'https://polygon-rpc.com/' : 'https://rpc-mumbai.matic.today'
-  )
+  const provider = getProvider()
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
     'function claim(address to_, uint256 logrsId_)',
