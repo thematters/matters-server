@@ -14,6 +14,18 @@ import { GQLChain } from 'definitions'
 
 import { getQueueResult } from './utils'
 
+// setup mock
+
+const mockFetchTxReceipt = jest.fn();
+jest.mock('connectors/blockchain', () => {
+  return {
+    __esModule: true,
+    CurationContract: jest.fn().mockImplementation(() => {
+      return {fetchTxReceipt: mockFetchTxReceipt};
+    });
+  }
+});
+
 describe('payToByMattersQueue', () => {
   const queue = payToByMattersQueue
   test('job with wrong tx id will fail', async () => {
@@ -40,9 +52,28 @@ describe('payToByBlockchainQueue.payTo', () => {
   const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
   const txHash =
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
-  beforeAll(async () => {
-    queue.delay = 1
-  })
+  const invalidTxhash =
+    '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
+
+  beforeAll(() => {
+      queue.delay = 1
+      mockFetchTxReceipt.mockClear();
+      const invalidTxReceipt = {
+        txHash: invalidTxhash,
+        reverted: false,
+        events: []
+      }
+      mockFetchTxReceipt.mockImplementation(
+        async(txHash: string) => {
+          if (txHash === invalidTxhash) {
+            return invalidTxReceipt
+          } else {
+            return null;
+          }
+        }
+      )
+
+  });
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
@@ -90,7 +121,8 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(await job.getState()).toBe('failed')
   })
-  test('not mined tx will fail and retry', async () => {
+  test.only('not mined tx will fail and retry', async () => {
+    // mocked
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -136,9 +168,8 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.reverted)
   })
-  test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
-    const invalidTxhash =
-      '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
+  test.only('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
+
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -197,7 +228,7 @@ describe('payToByBlockchainQueue.payTo', () => {
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const queue = payToByBlockchainQueue
-  test.only('debug', async () => {
+  test('debug', async () => {
     jest.setTimeout(100000)
     await queue._handleSyncCurationEvents()
   })

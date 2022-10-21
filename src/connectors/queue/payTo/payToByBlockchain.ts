@@ -372,6 +372,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     const curation = new CurationContract()
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
+    console.log(txReceipt)
 
     if (!txReceipt) {
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
