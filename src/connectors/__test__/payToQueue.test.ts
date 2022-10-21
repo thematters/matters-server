@@ -197,7 +197,7 @@ describe('payToByBlockchainQueue.payTo', () => {
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const queue = payToByBlockchainQueue
-  test('debug', async () => {
+  test.only('debug', async () => {
     jest.setTimeout(100000)
     await queue._handleSyncCurationEvents()
   })
