@@ -11,6 +11,7 @@ import {
 } from 'common/enums'
 import { environment, USDTContractAddress } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
+import { CurationContract } from 'connectors/blockchain'
 import { payToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
 
@@ -253,11 +254,9 @@ describe('payToByBlockchainQueue.payTo', () => {
 })
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
-  const syncTable = 'blockchain_sync_record'
-  const chainId = BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
-  const contractAddress = environment.curationContractAddress.toLowerCase()
   const latestBlockNum = 30000128
-  const knex = queue.knex
+  const safeBlockNum = 30000000
+  // const knex = queue.knex
 
   beforeAll(() => {
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
@@ -278,35 +277,50 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
-  beforeEach(async () => {
-    await knex(syncTable).del()
-  })
-  test('fetch all logs if no sync record and add record', async () => {
+  test('fetch all logs if no save point', async () => {
+    const curation = new CurationContract()
     mockFetchLogs.mockClear()
-    await queue._handleSyncCurationEvents()
+    const [, newSavepoint] = await queue.fetchCurationLogs(curation, null)
     expect(mockFetchLogs).toHaveBeenCalledWith()
-
-    const record = await queue.knex(syncTable).first()
-    expect(record.chainId).toBe(chainId)
-    expect(record.contractAddress).toBe(contractAddress)
-    expect(record.blockNumber).toBe('30000000')
+    expect(newSavepoint).toBe(latestBlockNum - 128)
   })
-  test.only('fetch logs in range if have sync record and update record', async () => {
-    const oldBlockNum = '20000000'
-    const inserted = await queue
-      .knex(syncTable)
-      .insert({ chainId, contractAddress, blockNumber: oldBlockNum }, [
-        'chainId',
-        'contractAddress',
-        'blockNumber',
-      ])
-    expect(inserted[0].blockNumber).toBe(oldBlockNum)
+  test('fetch logs in limited block range if have save point', async () => {
+    const curation = new CurationContract()
+
+    const oldSavepoint1 = 20000000
+    mockFetchLogs.mockClear()
+    const [, newSavepoint1] = await queue.fetchCurationLogs(
+      curation,
+      oldSavepoint1
+    )
+    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint1 + 1, 20002000)
+    expect(newSavepoint1).toBe(20002000)
+
+    const oldSavepoint2 = 29999900
+    mockFetchLogs.mockClear()
+    const [, newSavepoint2] = await queue.fetchCurationLogs(
+      curation,
+      oldSavepoint2
+    )
+    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint2 + 1, safeBlockNum)
+    expect(newSavepoint2).toBe(safeBlockNum)
 
     mockFetchLogs.mockClear()
-    await queue._handleSyncCurationEvents()
-    expect(mockFetchLogs).toHaveBeenCalledWith(20000001, 20002000)
+    const [logs1, newSavepoint3] = await queue.fetchCurationLogs(
+      curation,
+      safeBlockNum - 1
+    )
+    expect(mockFetchLogs).not.toHaveBeenCalled()
+    expect(logs1).toEqual([])
+    expect(newSavepoint3).toBe(safeBlockNum - 1)
 
-    const record = await queue.knex(syncTable).first()
-    expect(record.blockNumber).toBe('20002000')
+    mockFetchLogs.mockClear()
+    const [logs2, newSavepoint4] = await queue.fetchCurationLogs(
+      curation,
+      safeBlockNum
+    )
+    expect(mockFetchLogs).not.toHaveBeenCalled()
+    expect(logs2).toEqual([])
+    expect(newSavepoint4).toBe(safeBlockNum)
   })
 })

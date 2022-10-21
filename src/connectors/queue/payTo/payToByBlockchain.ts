@@ -36,8 +36,6 @@ interface PaymentParams {
   txId: string
 }
 
-const syncRecordTable = 'blockchain_sync_record'
-
 class PayToByBlockchainQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
   delay: number
@@ -50,7 +48,7 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   /**
-   * Producer for payTo.
+   * Producers
    *
    */
   payTo = ({ txId }: PaymentParams) => {
@@ -80,48 +78,39 @@ class PayToByBlockchainQueue extends BaseQueue {
     )
   }
 
-  _handleSyncCurationEvents = async () => {
-    const curation = new CurationContract()
-    const chainId = curation.chainId
-    const contractAddress = curation.address
-
+  /**
+   * helpers
+   *
+   */
+  fetchCurationLogs = async (
+    curation: CurationContract,
+    savepoint: number | null
+  ): Promise<[Array<Log<CurationEvent>>, number]> => {
     const safeBlockNum =
       (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
 
-    console.log({ safeBlockNum })
+    const fromBlockNum = savepoint ? savepoint + 1 : 0
 
-    let fromBlockNum: number = 0
-    let toBlockNum: number = 0
-    const record = await this.atomService.findFirst({
-      table: syncRecordTable,
-      where: { chainId, contractAddress },
-    })
-    if (record) {
-      fromBlockNum = parseInt(record.blockNumber, 10) + 1
-    }
-    let logs
     if (fromBlockNum === 0) {
       // no sync record in db , request getLog without block range
-      logs = await curation.fetchLogs()
+      const logs = await curation.fetchLogs()
       const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
-      await this.syncCurationEvents(filtered)
-      toBlockNum =
+
+      const newSavepoint =
         logs.length === filtered.length
           ? safeBlockNum
           : filtered[filtered.length - 1].blockNumber
+
+      return [filtered, newSavepoint]
     } else {
       // sync record in db , request getLog with block range
-      // provider only accept 2000 blocks range
-      toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
-      logs = await curation.fetchLogs(fromBlockNum, toBlockNum)
-      await this.syncCurationEvents(logs)
+      // as provider only accept 2000 blocks range
+      const toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
+      if (fromBlockNum >= toBlockNum) {
+        return [[], savepoint as number]
+      }
+      return [await curation.fetchLogs(fromBlockNum, toBlockNum), toBlockNum]
     }
-
-    await this.paymentService.baseUpdateOrCreate({
-      table: syncRecordTable,
-      where: { chainId, contractAddress },
-      data: { chainId, contractAddress, blockNumber: toBlockNum },
-    })
   }
 
   syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
@@ -136,203 +125,25 @@ class PayToByBlockchainQueue extends BaseQueue {
           )
         data.blockchainTransactionId = blockchainTx.id
         data.contractAddress = log.address
+        this.handleNewEvent(log, blockchainTx)
 
         events.push(data)
-
-        // related tx record has resolved
-        if (
-          blockchainTx.transactionId &&
-          blockchainTx.state === BLOCKCHAIN_TRANSACTION_STATE.succeeded
-        ) {
-          continue
-        }
-
-        // check if donation is from Matters
-
-        if (data.tokenAddress !== USDTContractAddress) {
-          continue
-        }
-
-        if (!isValidUri(data.uri)) {
-          continue
-        }
-
-        const curatorUser = await this.userService.findByEthAddress(
-          data.curatorAddress
-        )
-        if (!curatorUser) {
-          continue
-        }
-
-        const creatorUser = await this.userService.findByEthAddress(
-          data.creatorAddress
-        )
-        if (!creatorUser) {
-          continue
-        }
-
-        const cid = extractCid(data.uri)
-        const articles = await this.articleService.baseFind({
-          where: { author_id: creatorUser.id, data_hash: cid },
-        })
-        if (articles.length === 0) {
-          continue
-        }
-        const article = articles[0]
-
-        // donation is from Matters
-        const amount = parseFloat(
-          fromTokenBaseUnit(data.amount, USDTContractDecimals)
-        )
-
-        if (blockchainTx.transactionId) {
-          // this blackchain tx record, related tx record, validate it
-          const tx = await this.paymentService.baseFindById(
-            blockchainTx.transactionId
-          )
-          if (
-            tx.senderId === curatorUser.id &&
-            tx.recipientId === creatorUser.id &&
-            tx.targetId === article.id &&
-            toTokenBaseUnit(tx.amount, USDTContractDecimals) === data.amount
-          ) {
-            // related tx record is valid, update its state
-            await this.paymentService.markTransactionStateAs({
-              id: tx.id,
-              state: TRANSACTION_STATE.succeeded,
-            })
-          } else {
-            // related tx record is valid, update its state
-            // cancel it and add new one
-            const trx = await this.knex.transaction()
-            try {
-              await this.paymentService.markTransactionStateAs(
-                {
-                  id: tx.id,
-                  state: TRANSACTION_STATE.canceled,
-                  remark: TRANSACTION_REMARK.INVALID,
-                },
-                trx
-              )
-              const newTx = await this.paymentService.createTransaction(
-                {
-                  amount,
-                  state: TRANSACTION_STATE.succeeded,
-                  purpose: TRANSACTION_PURPOSE.donation,
-                  currency: PAYMENT_CURRENCY.USDT,
-                  provider: PAYMENT_PROVIDER.blockchain,
-                  providerTxId: blockchainTx.id,
-                  recipientId: creatorUser.id,
-                  senderId: curatorUser.id,
-                  targetId: article.id,
-                },
-                trx
-              )
-              await this.paymentService.baseUpdate(
-                blockchainTx.id,
-                { transactionId: newTx.id },
-                'blockchain_transaction',
-                trx
-              )
-              await trx.commit()
-            } catch (error) {
-              await trx.rollback()
-              throw error
-            }
-          }
-        } else {
-          // no related tx record, create one
-          const trx = await this.knex.transaction()
-          try {
-            const tx = await this.paymentService.createTransaction(
-              {
-                amount,
-                state: TRANSACTION_STATE.succeeded,
-                purpose: TRANSACTION_PURPOSE.donation,
-                currency: PAYMENT_CURRENCY.USDT,
-                provider: PAYMENT_PROVIDER.blockchain,
-                providerTxId: blockchainTx.id,
-                recipientId: creatorUser.id,
-                senderId: curatorUser.id,
-                targetId: article.id,
-              },
-              trx
-            )
-            await this.paymentService.baseUpdate(
-              blockchainTx.id,
-              { transactionId: tx.id },
-              'blockchain_transaction',
-              trx
-            )
-            await trx.commit()
-          } catch (error) {
-            await trx.rollback()
-            throw error
-          }
-        }
       } else {
-        // reorg happens
-        const blockchainTx =
-          await this.paymentService.findOrCreateBlockchainTransaction({
-            chain: GQLChain.Polygon,
-            txHash: log.txHash,
-          })
-        if (!blockchainTx.transactionId) {
-          // no relatived tx record, do nothing
-          continue
-        }
-        const tx = await this.paymentService.baseFindById(
-          blockchainTx.transactionId
-        )
-        const curation = new CurationContract()
-        const receipt = await curation.fetchTxReceipt(log.txHash)
-
-        if (tx.state === TRANSACTION_STATE.succeeded) {
-          if (!receipt) {
-            // blochchain tx not mined after reorg, update tx to pending
-            await this.resetBothTxAndBlockchainTx(
-              blockchainTx.transactionId,
-              blockchainTx.id
-            )
-          }
-          if (receipt && receipt.reverted) {
-            // blochchain tx failed after reorg, update tx to failed
-            await this.failBothTxAndBlockchainTx(
-              blockchainTx.transactionId,
-              blockchainTx.id
-            )
-          }
-        }
-
-        if (tx.state === TRANSACTION_STATE.failed) {
-          if (receipt && !receipt.reverted) {
-            // blochchain tx succeeded after reorg, update tx to failed
-            await this.succeedBothTxAndBlockchainTx(
-              blockchainTx.transactionId,
-              blockchainTx.id
-            )
-          }
-        }
+        this.handleReorgEvent(log)
       }
     }
     if (events.length >= 0) {
-      const trx = await this.knex.transaction()
-      try {
-        await this.paymentService.baseBatchCreate(
-          events,
-          'blockchain_curation_event',
-          trx
-        )
-        await trx.commit()
-      } catch (error) {
-        await trx.rollback()
-        throw error
-      }
+      await this.paymentService.baseBatchCreate(
+        events,
+        'blockchain_curation_event'
+      )
     }
-
-    return logs.length
   }
 
+  /**
+   * Consumers
+   *
+   */
   private addConsumers = () => {
     this.q.process(
       QUEUE_JOB.payTo,
@@ -401,7 +212,6 @@ class PayToByBlockchainQueue extends BaseQueue {
     const decimals = USDTContractDecimals
 
     // txReceipt does not match with tx record in database
-    //
     if (
       !(await this.containMatchedEvent(txReceipt.events, {
         creatorAddress,
@@ -512,13 +322,217 @@ class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (job) => {
-      return this._handleSyncCurationEvents()
+      // fetch events
+      const syncRecordTable = 'blockchain_sync_record'
+      const curation = new CurationContract()
+      const chainId = curation.chainId
+      const contractAddress = curation.address
+      const record = await this.atomService.findFirst({
+        table: syncRecordTable,
+        where: { chainId, contractAddress },
+      })
+      const oldSavepoint = record ? parseInt(record.blockNumber, 10) : null
+      const [logs, newSavepoint] = await this.fetchCurationLogs(
+        curation,
+        oldSavepoint
+      )
+
+      // update tx state and save events
+      await this.syncCurationEvents(logs)
+
+      // save progress
+      await this.paymentService.baseUpdateOrCreate({
+        table: syncRecordTable,
+        where: { chainId, contractAddress },
+        data: { chainId, contractAddress, blockNumber: newSavepoint },
+      })
+
+      return { newSavepoint }
     }
 
-  /**
-   * helpers
-   *
-   */
+  private handleNewEvent = async (
+    log: Log<CurationEvent>,
+    blockchainTx: {
+      id: string
+      transactionId: string
+      state: BLOCKCHAIN_TRANSACTION_STATE
+    }
+  ) => {
+    const event = log.event
+    // related tx record has resolved
+    if (
+      blockchainTx.transactionId &&
+      blockchainTx.state === BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    ) {
+      return
+    }
+
+    // check if donation is from Matters
+
+    if (
+      !ignoreCaseMatch(event.tokenAddress, USDTContractAddress) ||
+      !isValidUri(event.uri)
+    ) {
+      return
+    }
+
+    const curatorUser = await this.userService.findByEthAddress(
+      event.curatorAddress
+    )
+    if (!curatorUser) {
+      return
+    }
+
+    const creatorUser = await this.userService.findByEthAddress(
+      event.creatorAddress
+    )
+    if (!creatorUser) {
+      return
+    }
+
+    const cid = extractCid(event.uri)
+    const articles = await this.articleService.baseFind({
+      where: { author_id: creatorUser.id, data_hash: cid },
+    })
+    if (articles.length === 0) {
+      return
+    }
+    const article = articles[0]
+
+    // donation is from Matters
+    const amount = parseFloat(
+      fromTokenBaseUnit(event.amount, USDTContractDecimals)
+    )
+
+    if (blockchainTx.transactionId) {
+      // this blackchain tx record, related tx record, validate it
+      const tx = await this.paymentService.baseFindById(
+        blockchainTx.transactionId
+      )
+      if (
+        tx.senderId === curatorUser.id &&
+        tx.recipientId === creatorUser.id &&
+        tx.targetId === article.id &&
+        toTokenBaseUnit(tx.amount, USDTContractDecimals) === event.amount
+      ) {
+        // related tx record is valid, update its state
+        await this.paymentService.markTransactionStateAs({
+          id: tx.id,
+          state: TRANSACTION_STATE.succeeded,
+        })
+      } else {
+        // related tx record is valid, update its state
+        // cancel it and add new one
+        const trx = await this.knex.transaction()
+        try {
+          await this.paymentService.markTransactionStateAs(
+            {
+              id: tx.id,
+              state: TRANSACTION_STATE.canceled,
+              remark: TRANSACTION_REMARK.INVALID,
+            },
+            trx
+          )
+          const newTx = await this.paymentService.createTransaction(
+            {
+              amount,
+              state: TRANSACTION_STATE.succeeded,
+              purpose: TRANSACTION_PURPOSE.donation,
+              currency: PAYMENT_CURRENCY.USDT,
+              provider: PAYMENT_PROVIDER.blockchain,
+              providerTxId: blockchainTx.id,
+              recipientId: creatorUser.id,
+              senderId: curatorUser.id,
+              targetId: article.id,
+            },
+            trx
+          )
+          await this.paymentService.baseUpdate(
+            blockchainTx.id,
+            { transactionId: newTx.id },
+            'blockchain_transaction',
+            trx
+          )
+          await trx.commit()
+        } catch (error) {
+          await trx.rollback()
+          throw error
+        }
+      }
+    } else {
+      // no related tx record, create one
+      const trx = await this.knex.transaction()
+      try {
+        const tx = await this.paymentService.createTransaction(
+          {
+            amount,
+            state: TRANSACTION_STATE.succeeded,
+            purpose: TRANSACTION_PURPOSE.donation,
+            currency: PAYMENT_CURRENCY.USDT,
+            provider: PAYMENT_PROVIDER.blockchain,
+            providerTxId: blockchainTx.id,
+            recipientId: creatorUser.id,
+            senderId: curatorUser.id,
+            targetId: article.id,
+          },
+          trx
+        )
+        await this.paymentService.baseUpdate(
+          blockchainTx.id,
+          { transactionId: tx.id },
+          'blockchain_transaction',
+          trx
+        )
+        await trx.commit()
+      } catch (error) {
+        await trx.rollback()
+        throw error
+      }
+    }
+  }
+  private handleReorgEvent = async (log: Log<CurationEvent>) => {
+    const blockchainTx =
+      await this.paymentService.findOrCreateBlockchainTransaction({
+        chain: GQLChain.Polygon,
+        txHash: log.txHash,
+      })
+    if (!blockchainTx.transactionId) {
+      // no relatived tx record, do nothing
+      return
+    }
+    const tx = await this.paymentService.baseFindById(
+      blockchainTx.transactionId
+    )
+    const curation = new CurationContract()
+    const receipt = await curation.fetchTxReceipt(log.txHash)
+
+    if (tx.state === TRANSACTION_STATE.succeeded) {
+      if (!receipt) {
+        // blochchain tx not mined after reorg, update tx to pending
+        await this.resetBothTxAndBlockchainTx(
+          blockchainTx.transactionId,
+          blockchainTx.id
+        )
+      }
+      if (receipt && receipt.reverted) {
+        // blochchain tx failed after reorg, update tx to failed
+        await this.failBothTxAndBlockchainTx(
+          blockchainTx.transactionId,
+          blockchainTx.id
+        )
+      }
+    }
+
+    if (tx.state === TRANSACTION_STATE.failed) {
+      if (receipt && !receipt.reverted) {
+        // blochchain tx succeeded after reorg, update tx to failed
+        await this.succeedBothTxAndBlockchainTx(
+          blockchainTx.transactionId,
+          blockchainTx.id
+        )
+      }
+    }
+  }
 
   private updateTxAndBlockchainTxState = async (
     {
