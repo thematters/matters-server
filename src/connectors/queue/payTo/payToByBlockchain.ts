@@ -84,20 +84,23 @@ class PayToByBlockchainQueue extends BaseQueue {
     const curation = new CurationContract()
     const chainId = curation.chainId
     const contractAddress = curation.address
-    const safeBlockNum =
-      (await curation.getBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
 
-    let fromBlockNum
-    let toBlockNum
+    const safeBlockNum =
+      (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+
+    console.log({ safeBlockNum })
+
+    let fromBlockNum: number = 0
+    let toBlockNum: number = 0
     const record = await this.atomService.findFirst({
       table: syncRecordTable,
       where: { chainId, contractAddress },
     })
     if (record) {
-      fromBlockNum = record.blockNumber + 1
+      fromBlockNum = parseInt(record.blockNumber, 10) + 1
     }
     let logs
-    if (!fromBlockNum) {
+    if (fromBlockNum === 0) {
       // no sync record in db , request getLog without block range
       logs = await curation.fetchLogs()
       const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
@@ -372,7 +375,6 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     const curation = new CurationContract()
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
-    console.log(txReceipt)
 
     if (!txReceipt) {
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
