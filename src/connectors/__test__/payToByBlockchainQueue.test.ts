@@ -8,34 +8,26 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
+import { USDTContractAddress } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
-import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
+import { payToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
 
 import { getQueueResult } from './utils'
 
 // setup mock
 
-const mockFetchTxReceipt = jest.fn();
+const mockFetchTxReceipt = jest.fn()
 jest.mock('connectors/blockchain', () => {
   return {
     __esModule: true,
     CurationContract: jest.fn().mockImplementation(() => {
-      return {fetchTxReceipt: mockFetchTxReceipt};
-    });
+      return { fetchTxReceipt: mockFetchTxReceipt }
+    }),
   }
-});
-
-describe('payToByMattersQueue', () => {
-  const queue = payToByMattersQueue
-  test('job with wrong tx id will fail', async () => {
-    const wrongTxId = { txId: '12345' }
-    const job = await queue.payTo(wrongTxId)
-    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
-      PaymentQueueJobDataError
-    )
-  })
 })
+
+// tests
 
 describe('payToByBlockchainQueue.payTo', () => {
   const amount = 1
@@ -50,30 +42,53 @@ describe('payToByBlockchainQueue.payTo', () => {
   const targetType = TRANSACTION_TARGET_TYPE.article
   const queue = payToByBlockchainQueue
   const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
-  const txHash =
-    '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
+
   const invalidTxhash =
     '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
+  const failedTxhash =
+    '0xbad52ae6172aa85e1f883967215cbdc5e70ddc479c7ee22da3c23d06820ee29e'
+  const txHash =
+    '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
+
+  const invalidTxReceipt = {
+    txHash: invalidTxhash,
+    reverted: false,
+    events: [],
+  }
+  const failedTxReceipt = {
+    txHash: failedTxhash,
+    reverted: true,
+    events: [],
+  }
+  const txReceipt = {
+    txHash,
+    reverted: false,
+    events: [
+      {
+        curatorAddress: '0x0ee160cb17e33d5ae367741992072942dfe70cba',
+        creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
+        uri: 'ipfs://someIpfsDataHash1',
+        tokenAddress: USDTContractAddress,
+        amount: '1000000000000000000',
+      },
+    ],
+  }
 
   beforeAll(() => {
-      queue.delay = 1
-      mockFetchTxReceipt.mockClear();
-      const invalidTxReceipt = {
-        txHash: invalidTxhash,
-        reverted: false,
-        events: []
+    queue.delay = 1
+    mockFetchTxReceipt.mockClear()
+    mockFetchTxReceipt.mockImplementation(async (hash: string) => {
+      if (hash === invalidTxhash) {
+        return invalidTxReceipt
+      } else if (hash === failedTxhash) {
+        return failedTxReceipt
+      } else if (hash === txHash) {
+        return txReceipt
+      } else {
+        return null
       }
-      mockFetchTxReceipt.mockImplementation(
-        async(txHash: string) => {
-          if (txHash === invalidTxhash) {
-            return invalidTxReceipt
-          } else {
-            return null;
-          }
-        }
-      )
-
-  });
+    })
+  })
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
@@ -83,6 +98,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(await job.getState()).toBe('failed')
   })
+
   test('tx with wrong provier will fail', async () => {
     const tx = await queue.paymentService.createTransaction({
       amount,
@@ -102,6 +118,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(await job.getState()).toBe('failed')
   })
+
   test('tx with wrong providerTxId will fail', async () => {
     const tx = await queue.paymentService.createTransaction({
       amount,
@@ -121,12 +138,12 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(await job.getState()).toBe('failed')
   })
-  test.only('not mined tx will fail and retry', async () => {
-    // mocked
+
+  test('not mined tx will fail and retry', async () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
-        txHash,
+        txHash: 'fakeHash',
         amount,
         state,
         purpose,
@@ -142,9 +159,8 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(await job.getState()).toBe('active')
   })
+
   test('failed blockchain transation will mark transaction and blockchainTx as failed', async () => {
-    const failedTxhash =
-      '0xbad52ae6172aa85e1f883967215cbdc5e70ddc479c7ee22da3c23d06820ee29e'
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -168,8 +184,8 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.reverted)
   })
-  test.only('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
 
+  test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -194,9 +210,8 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
   })
+
   test('succeeded valid blockchain transaction will mark transaction and blockchainTx as succeeded', async () => {
-    const validTxhash =
-      '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
     const curator = await queue.userService.create({
       userName: 'curator',
       ethAddress: '0x0ee160cb17e33d5ae367741992072942dfe70cba',
@@ -204,7 +219,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
-        txHash: validTxhash,
+        txHash,
         amount,
         state,
         purpose,
@@ -228,7 +243,7 @@ describe('payToByBlockchainQueue.payTo', () => {
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const queue = payToByBlockchainQueue
-  test('debug', async () => {
+  test.skip('debug', async () => {
     jest.setTimeout(100000)
     await queue._handleSyncCurationEvents()
   })
