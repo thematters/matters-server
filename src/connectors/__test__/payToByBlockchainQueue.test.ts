@@ -10,7 +10,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { environment, USDTContractAddress } from 'common/environment'
-import { PaymentQueueJobDataError } from 'common/errors'
+import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import { CurationContract } from 'connectors/blockchain'
 import { payToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
@@ -38,6 +38,10 @@ jest.mock('connectors/blockchain', () => {
 })
 
 // test data
+//
+const curationContractAddress =
+  environment.curationContractAddress.toLowerCase()
+const zeroAdress = '0x0000000000000000000000000000000000000000'
 
 const amount = 1
 const state = TRANSACTION_STATE.pending
@@ -69,18 +73,17 @@ const failedTxReceipt = {
   reverted: true,
   events: [],
 }
+const validEvent = {
+  curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
+  uri: 'ipfs://someIpfsDataHash1',
+  tokenAddress: USDTContractAddress,
+  amount: '1000000000000000000',
+}
 const txReceipt = {
   txHash,
   reverted: false,
-  events: [
-    {
-      curatorAddress: '0x0ee160cb17e33d5ae367741992072942dfe70cba',
-      creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
-      uri: 'ipfs://someIpfsDataHash1',
-      tokenAddress: USDTContractAddress,
-      amount: '1000000000000000000',
-    },
-  ],
+  events: [validEvent],
 }
 
 // tests
@@ -224,10 +227,6 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('succeeded valid blockchain transaction will mark transaction and blockchainTx as succeeded', async () => {
-    const curator = await queue.userService.create({
-      userName: 'curator',
-      ethAddress: '0x0ee160cb17e33d5ae367741992072942dfe70cba',
-    })
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -237,7 +236,7 @@ describe('payToByBlockchainQueue.payTo', () => {
         purpose,
         currency,
         recipientId,
-        senderId: curator.id,
+        senderId: '10',
         targetId,
         targetType,
       })
@@ -256,7 +255,10 @@ describe('payToByBlockchainQueue.payTo', () => {
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const latestBlockNum = 30000128
   const safeBlockNum = 30000000
-  // const knex = queue.knex
+  const knex = queue.knex
+  const txTable = 'transaction'
+  const blockchainTxTable = 'blockchain_transaction'
+  const eventTable = 'blockchain_curation_event'
 
   beforeAll(() => {
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
@@ -322,5 +324,139 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(mockFetchLogs).not.toHaveBeenCalled()
     expect(logs2).toEqual([])
     expect(newSavepoint4).toBe(safeBlockNum)
+  })
+  test('handle empty logs', async () => {
+    await queue.syncCurationEvents([])
+  })
+  test('removed logs will throw error', async () => {
+    const removedLog = {
+      txHash,
+      address: curationContractAddress,
+      blockNumber: 1,
+      removed: true,
+      event: validEvent,
+    }
+    await expect(queue.syncCurationEvents([removedLog])).rejects.toThrow(
+      new UnknownError('unexpected removed logs')
+    )
+  })
+  test('not matters logs will not update tx', async () => {
+    await knex(txTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(eventTable).del()
+    const notMattersLogs = [
+      {
+        txHash: 'fakeTxhash1',
+        address: curationContractAddress,
+        blockNumber: 1,
+        removed: false,
+        event: {
+          ...validEvent,
+          curatorAddress: zeroAdress,
+        },
+      },
+      {
+        txHash: 'fakeTxhash2',
+        address: curationContractAddress,
+        blockNumber: 2,
+        removed: false,
+        event: {
+          ...validEvent,
+          creatorAddress: zeroAdress,
+        },
+      },
+      {
+        txHash: 'fakeTxhash3',
+        address: curationContractAddress,
+        blockNumber: 3,
+        removed: false,
+        event: {
+          ...validEvent,
+          uri: 'invalidSchema',
+        },
+      },
+      {
+        txHash: 'fakeTxhash4',
+        address: curationContractAddress,
+        blockNumber: 4,
+        removed: false,
+        event: {
+          ...validEvent,
+          uri: 'ipfs://notInMatters',
+        },
+      },
+    ]
+    await queue.syncCurationEvents(notMattersLogs)
+    expect(await knex(txTable).count()).toEqual([{ count: '0' }])
+    expect(await knex(blockchainTxTable).count()).toEqual([{ count: '4' }])
+    expect(await knex(eventTable).count()).toEqual([{ count: '4' }])
+  })
+  test('matters logs will update tx', async () => {
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+
+    // no related tx, insert one
+    const logs = [
+      {
+        txHash,
+        address: curationContractAddress,
+        blockNumber: 1,
+        removed: false,
+        event: {
+          ...validEvent,
+        },
+      },
+    ]
+    await queue.syncCurationEvents(logs)
+    expect(await knex(txTable).count()).toEqual([{ count: '1' }])
+    const tx = await knex(txTable).first()
+    const blockchainTx = await knex(blockchainTxTable).first()
+    expect(tx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(blockchainTx.transactionId).toBe(tx.id)
+
+    // related tx state is not succeeded, update to succeeded
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).update({
+      state: BLOCKCHAIN_TRANSACTION_STATE.pending,
+    })
+    await knex(txTable).update({ state: TRANSACTION_STATE.pending })
+
+    await queue.syncCurationEvents(logs)
+    expect(await knex(txTable).count()).toEqual([{ count: '1' }])
+    const updatedTx = await knex(txTable).where('id', tx.id).first()
+    const updatedBlockchainTx = await knex(blockchainTxTable)
+      .where('id', blockchainTx.id)
+      .first()
+
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+
+    // related tx is invalid, cancel it and add new one
+    await knex(eventTable).del()
+    await knex(txTable).update({ recipientId: '3' })
+    await knex(txTable).update({ state: TRANSACTION_STATE.pending })
+    await knex(blockchainTxTable).update({
+      state: BLOCKCHAIN_TRANSACTION_STATE.pending,
+    })
+
+    await queue.syncCurationEvents(logs)
+    expect(await knex(txTable).count()).toEqual([{ count: '2' }])
+    const originTx = await knex(txTable).where('id', tx.id).first()
+    const originBlockchainTx = await knex(blockchainTxTable)
+      .where('id', blockchainTx.id)
+      .first()
+    const newTx = await knex(txTable).whereNot('id', tx.id).first()
+
+    expect(originTx.state).toBe(TRANSACTION_STATE.canceled)
+    expect(originBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    expect(newTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(originTx.providerTxId).not.toBe(null)
+    expect(newTx.providerTxId).toBe(tx.providerTxId)
+    expect(originBlockchainTx.transactionId).toBe(newTx.id)
   })
 })

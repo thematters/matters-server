@@ -19,7 +19,7 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { USDTContractAddress, USDTContractDecimals } from 'common/environment'
-import { PaymentQueueJobDataError } from 'common/errors'
+import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import {
   fromTokenBaseUnit,
   getQueueNameForEnv,
@@ -125,11 +125,12 @@ class PayToByBlockchainQueue extends BaseQueue {
           )
         data.blockchainTransactionId = blockchainTx.id
         data.contractAddress = log.address
-        this.handleNewEvent(log, blockchainTx)
+        await this.handleNewEvent(log, blockchainTx)
 
         events.push(data)
       } else {
-        this.handleReorgEvent(log)
+        // getlogs from final blocks should not return removed logs
+        throw new UnknownError('unexpected removed logs')
       }
     }
     if (events.length >= 0) {
@@ -416,21 +417,19 @@ class PayToByBlockchainQueue extends BaseQueue {
         toTokenBaseUnit(tx.amount, USDTContractDecimals) === event.amount
       ) {
         // related tx record is valid, update its state
-        await this.paymentService.markTransactionStateAs({
-          id: tx.id,
-          state: TRANSACTION_STATE.succeeded,
-        })
+        await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
       } else {
-        // related tx record is valid, update its state
+        // related tx record is invalid, update its state
         // cancel it and add new one
         const trx = await this.knex.transaction()
         try {
-          await this.paymentService.markTransactionStateAs(
+          await this.paymentService.baseUpdate(
+            tx.id,
             {
-              id: tx.id,
               state: TRANSACTION_STATE.canceled,
               remark: TRANSACTION_REMARK.INVALID,
             },
+            'transaction',
             trx
           )
           const newTx = await this.paymentService.createTransaction(
@@ -449,7 +448,10 @@ class PayToByBlockchainQueue extends BaseQueue {
           )
           await this.paymentService.baseUpdate(
             blockchainTx.id,
-            { transactionId: newTx.id },
+            {
+              transactionId: newTx.id,
+              state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+            },
             'blockchain_transaction',
             trx
           )
@@ -490,49 +492,41 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     }
   }
-  private handleReorgEvent = async (log: Log<CurationEvent>) => {
-    const blockchainTx =
-      await this.paymentService.findOrCreateBlockchainTransaction({
-        chain: GQLChain.Polygon,
-        txHash: log.txHash,
-      })
-    if (!blockchainTx.transactionId) {
-      // no relatived tx record, do nothing
-      return
-    }
-    const tx = await this.paymentService.baseFindById(
-      blockchainTx.transactionId
-    )
-    const curation = new CurationContract()
-    const receipt = await curation.fetchTxReceipt(log.txHash)
+  // private handleReorgEvent = async (transactionId: string) => {
 
-    if (tx.state === TRANSACTION_STATE.succeeded) {
-      if (!receipt) {
-        // blochchain tx not mined after reorg, update tx to pending
-        await this.resetBothTxAndBlockchainTx(
-          blockchainTx.transactionId,
-          blockchainTx.id
-        )
-      }
-      if (receipt && receipt.reverted) {
-        // blochchain tx failed after reorg, update tx to failed
-        await this.failBothTxAndBlockchainTx(
-          blockchainTx.transactionId,
-          blockchainTx.id
-        )
-      }
-    }
+  //   const tx = await this.paymentService.baseFindById(
+  //     transactionId
+  //   )
+  //   const curation = new CurationContract()
+  //   const receipt = await curation.fetchTxReceipt(txHash)
 
-    if (tx.state === TRANSACTION_STATE.failed) {
-      if (receipt && !receipt.reverted) {
-        // blochchain tx succeeded after reorg, update tx to failed
-        await this.succeedBothTxAndBlockchainTx(
-          blockchainTx.transactionId,
-          blockchainTx.id
-        )
-      }
-    }
-  }
+  //   if (tx.state === TRANSACTION_STATE.succeeded) {
+  //     if (!receipt) {
+  //       // blochchain tx not mined after reorg, update tx to pending
+  //       await this.resetBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //     if (receipt && receipt.reverted) {
+  //       // blochchain tx failed after reorg, update tx to failed
+  //       await this.failBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //   }
+
+  //   if (tx.state === TRANSACTION_STATE.failed) {
+  //     if (receipt && !receipt.reverted) {
+  //       // blochchain tx succeeded after reorg, update tx to failed
+  //       await this.succeedBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //   }
+  // }
 
   private updateTxAndBlockchainTxState = async (
     {
@@ -600,18 +594,18 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     )
   }
-  private resetBothTxAndBlockchainTx = async (
-    txId: string,
-    blockchainTxId: string
-  ) => {
-    await this.updateTxAndBlockchainTxState(
-      { txId, txState: TRANSACTION_STATE.pending },
-      {
-        blockchainTxId,
-        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.pending,
-      }
-    )
-  }
+  // private resetBothTxAndBlockchainTx = async (
+  //   txId: string,
+  //   blockchainTxId: string
+  // ) => {
+  //   await this.updateTxAndBlockchainTxState(
+  //     { txId, txState: TRANSACTION_STATE.pending },
+  //     {
+  //       blockchainTxId,
+  //       blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.pending,
+  //     }
+  //   )
+  // }
 
   private containMatchedEvent = async (
     events: CurationEvent[],
