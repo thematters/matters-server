@@ -28,7 +28,7 @@ import {
 } from 'common/utils'
 import { PaymentService } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
-import { GQLChain } from 'definitions'
+import { GQLChain, Transaction, User } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -77,9 +77,43 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     )
   }
+  // private handleReorgEvent = async (transactionId: string) => {
 
+  //   const tx = await this.paymentService.baseFindById(
+  //     transactionId
+  //   )
+  //   const curation = new CurationContract()
+  //   const receipt = await curation.fetchTxReceipt(txHash)
+
+  //   if (tx.state === TRANSACTION_STATE.succeeded) {
+  //     if (!receipt) {
+  //       // blochchain tx not mined after reorg, update tx to pending
+  //       await this.resetBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //     if (receipt && receipt.reverted) {
+  //       // blochchain tx failed after reorg, update tx to failed
+  //       await this.failBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //   }
+
+  //   if (tx.state === TRANSACTION_STATE.failed) {
+  //     if (receipt && !receipt.reverted) {
+  //       // blochchain tx succeeded after reorg, update tx to failed
+  //       await this.succeedBothTxAndBlockchainTx(
+  //         transactionId,
+  //         tx.providerTxId
+  //       )
+  //     }
+  //   }
+  // }
   /**
-   * helpers
+   * syncCurationEvents helpers
    *
    */
   fetchCurationLogs = async (
@@ -196,7 +230,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       await this.failBothTxAndBlockchainTx(txId, blockchainTx.id)
       return data
     }
-    const [recipient, sender, articleDb] = await Promise.all([
+    const [recipient, sender, article] = await Promise.all([
       this.userService.baseFindById(tx.recipientId),
       this.userService.baseFindById(tx.senderId),
       this.atomService.findFirst({
@@ -207,7 +241,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     const creatorAddress = recipient.ethAddress
     const curatorAddress = sender.ethAddress
-    const cid = articleDb.dataHash
+    const cid = article.dataHash
     const tokenAddress = USDTContractAddress
     const amount = tx.amount
     const decimals = USDTContractDecimals
@@ -240,80 +274,10 @@ class PayToByBlockchainQueue extends BaseQueue {
     // update pending tx
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
-    // send email to sender
-    const author = await this.atomService.findFirst({
-      table: 'user',
-      where: { id: articleDb.authorId },
-    })
-    const article = {
-      id: tx.targetId,
-      title: articleDb.title,
-      slug: articleDb.slug,
-      mediaHash: articleDb.mediaHash,
-      author: {
-        displayName: author.displayName,
-        userName: author.userName,
-      },
-    }
-
-    this.notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      article,
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
-      },
-    })
-
-    // send email to recipient
-    this.notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
-      recipientId: recipient.id,
-      entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
-    })
-
-    this.notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonation',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
-      },
-      article,
-    })
-
-    // manaully invalidate cache
-    if (tx.targetType) {
-      const entity = await this.userService.baseFindEntityTypeTable(
-        tx.targetType
-      )
-      const entityType =
-        NODE_TYPES[
-          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
-        ]
-      if (entityType && this.cacheService) {
-        invalidateFQC({
-          node: { type: entityType, id: tx.targetId },
-          redis: this.cacheService.redis,
-        })
-      }
-    }
-
+    this.notify({ tx, sender, recipient, article })
+    this.invalidCache(tx.targetType, tx.transactionId)
     job.progress(100)
+
     return data
   }
 
@@ -492,41 +456,6 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     }
   }
-  // private handleReorgEvent = async (transactionId: string) => {
-
-  //   const tx = await this.paymentService.baseFindById(
-  //     transactionId
-  //   )
-  //   const curation = new CurationContract()
-  //   const receipt = await curation.fetchTxReceipt(txHash)
-
-  //   if (tx.state === TRANSACTION_STATE.succeeded) {
-  //     if (!receipt) {
-  //       // blochchain tx not mined after reorg, update tx to pending
-  //       await this.resetBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //     if (receipt && receipt.reverted) {
-  //       // blochchain tx failed after reorg, update tx to failed
-  //       await this.failBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //   }
-
-  //   if (tx.state === TRANSACTION_STATE.failed) {
-  //     if (receipt && !receipt.reverted) {
-  //       // blochchain tx succeeded after reorg, update tx to failed
-  //       await this.succeedBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //   }
-  // }
 
   private updateTxAndBlockchainTxState = async (
     {
@@ -582,6 +511,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     )
   }
+
   private succeedBothTxAndBlockchainTx = async (
     txId: string,
     blockchainTxId: string
@@ -645,6 +575,97 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     }
     return false
+  }
+
+  private notify = async ({
+    tx,
+    sender,
+    recipient,
+    article,
+  }: {
+    tx: Transaction
+    sender: User
+    recipient: User
+    article: {
+      title: string
+      slug: string
+      authorId: string
+      mediaHash: string
+    }
+  }) => {
+    const amount = numRound(parseFloat(tx.amount))
+    // send email to sender
+    const author = await this.atomService.findFirst({
+      table: 'user',
+      where: { id: article.authorId },
+    })
+    const _article = {
+      id: tx.targetId,
+      title: article.title,
+      slug: article.slug,
+      mediaHash: article.mediaHash,
+      author: {
+        displayName: author.displayName,
+        userName: author.userName,
+      },
+    }
+
+    this.notificationService.mail.sendPayment({
+      to: sender.email,
+      recipient: {
+        displayName: sender.displayName,
+        userName: sender.userName,
+      },
+      type: 'donated',
+      article: _article,
+      tx: {
+        recipient,
+        sender,
+        amount,
+        currency: tx.currency,
+      },
+    })
+
+    // send email to recipient
+    this.notificationService.trigger({
+      event: DB_NOTICE_TYPE.payment_received_donation,
+      actorId: sender.id,
+      recipientId: recipient.id,
+      entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
+    })
+
+    this.notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: 'receivedDonation',
+      tx: {
+        recipient,
+        sender,
+        amount,
+        currency: tx.currency,
+      },
+      article: _article,
+    })
+  }
+
+  private invalidCache = async (targetType: string, targetId: string) => {
+    // manaully invalidate cache
+    if (targetType) {
+      const entity = await this.userService.baseFindEntityTypeTable(targetType)
+      const entityType =
+        NODE_TYPES[
+          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
+        ]
+      if (entityType && this.cacheService) {
+        invalidateFQC({
+          node: { type: entityType, id: targetId },
+          redis: this.cacheService.redis,
+        })
+      }
+    }
   }
 }
 
