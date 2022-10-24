@@ -282,6 +282,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   test('fetch all logs if no save point', async () => {
     const curation = new CurationContract()
     mockFetchLogs.mockClear()
+    // @ts-ignore
     const [, newSavepoint] = await queue.fetchCurationLogs(curation, null)
     expect(mockFetchLogs).toHaveBeenCalledWith()
     expect(newSavepoint).toBe(latestBlockNum - 128)
@@ -291,6 +292,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
 
     const oldSavepoint1 = 20000000
     mockFetchLogs.mockClear()
+    // @ts-ignore
     const [, newSavepoint1] = await queue.fetchCurationLogs(
       curation,
       oldSavepoint1
@@ -300,6 +302,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
 
     const oldSavepoint2 = 29999900
     mockFetchLogs.mockClear()
+    // @ts-ignore
     const [, newSavepoint2] = await queue.fetchCurationLogs(
       curation,
       oldSavepoint2
@@ -308,6 +311,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(newSavepoint2).toBe(safeBlockNum)
 
     mockFetchLogs.mockClear()
+    // @ts-ignore
     const [logs1, newSavepoint3] = await queue.fetchCurationLogs(
       curation,
       safeBlockNum - 1
@@ -317,6 +321,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(newSavepoint3).toBe(safeBlockNum - 1)
 
     mockFetchLogs.mockClear()
+    // @ts-ignore
     const [logs2, newSavepoint4] = await queue.fetchCurationLogs(
       curation,
       safeBlockNum
@@ -326,6 +331,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(newSavepoint4).toBe(safeBlockNum)
   })
   test('handle empty logs', async () => {
+    // @ts-ignore
     await queue.syncCurationEvents([])
   })
   test('removed logs will throw error', async () => {
@@ -336,6 +342,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       removed: true,
       event: validEvent,
     }
+    // @ts-ignore
     await expect(queue.syncCurationEvents([removedLog])).rejects.toThrow(
       new UnknownError('unexpected removed logs')
     )
@@ -386,6 +393,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
         },
       },
     ]
+    // @ts-ignore
     await queue.syncCurationEvents(notMattersLogs)
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '4' }])
@@ -408,6 +416,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
         },
       },
     ]
+    // @ts-ignore
     await queue.syncCurationEvents(logs)
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const tx = await knex(txTable).first()
@@ -422,6 +431,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
 
+    // @ts-ignore
     await queue.syncCurationEvents(logs)
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx = await knex(txTable).where('id', tx.id).first()
@@ -442,6 +452,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
 
+    // @ts-ignore
     await queue.syncCurationEvents(logs)
     expect(await knex(txTable).count()).toEqual([{ count: '2' }])
     const originTx = await knex(txTable).where('id', tx.id).first()

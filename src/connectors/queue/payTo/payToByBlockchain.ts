@@ -77,103 +77,11 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     )
   }
-  // private handleReorgEvent = async (transactionId: string) => {
 
-  //   const tx = await this.paymentService.baseFindById(
-  //     transactionId
-  //   )
-  //   const curation = new CurationContract()
-  //   const receipt = await curation.fetchTxReceipt(txHash)
-
-  //   if (tx.state === TRANSACTION_STATE.succeeded) {
-  //     if (!receipt) {
-  //       // blochchain tx not mined after reorg, update tx to pending
-  //       await this.resetBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //     if (receipt && receipt.reverted) {
-  //       // blochchain tx failed after reorg, update tx to failed
-  //       await this.failBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //   }
-
-  //   if (tx.state === TRANSACTION_STATE.failed) {
-  //     if (receipt && !receipt.reverted) {
-  //       // blochchain tx succeeded after reorg, update tx to failed
-  //       await this.succeedBothTxAndBlockchainTx(
-  //         transactionId,
-  //         tx.providerTxId
-  //       )
-  //     }
-  //   }
-  // }
   /**
    * syncCurationEvents helpers
    *
    */
-  fetchCurationLogs = async (
-    curation: CurationContract,
-    savepoint: number | null
-  ): Promise<[Array<Log<CurationEvent>>, number]> => {
-    const safeBlockNum =
-      (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
-
-    const fromBlockNum = savepoint ? savepoint + 1 : 0
-
-    if (fromBlockNum === 0) {
-      // no sync record in db , request getLog without block range
-      const logs = await curation.fetchLogs()
-      const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
-
-      const newSavepoint =
-        logs.length === filtered.length
-          ? safeBlockNum
-          : filtered[filtered.length - 1].blockNumber
-
-      return [filtered, newSavepoint]
-    } else {
-      // sync record in db , request getLog with block range
-      // as provider only accept 2000 blocks range
-      const toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
-      if (fromBlockNum >= toBlockNum) {
-        return [[], savepoint as number]
-      }
-      return [await curation.fetchLogs(fromBlockNum, toBlockNum), toBlockNum]
-    }
-  }
-
-  syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
-    const events = []
-    for (const log of logs) {
-      if (!log.removed) {
-        const data: any = { ...log.event }
-        const blockchainTx =
-          await this.paymentService.findOrCreateBlockchainTransaction(
-            { chain: GQLChain.Polygon, txHash: log.txHash },
-            { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
-          )
-        data.blockchainTransactionId = blockchainTx.id
-        data.contractAddress = log.address
-        await this.handleNewEvent(log, blockchainTx)
-
-        events.push(data)
-      } else {
-        // getlogs from final blocks should not return removed logs
-        throw new UnknownError('unexpected removed logs')
-      }
-    }
-    if (events.length >= 0) {
-      await this.paymentService.baseBatchCreate(
-        events,
-        'blockchain_curation_event'
-      )
-    }
-  }
 
   /**
    * Consumers
@@ -275,7 +183,7 @@ class PayToByBlockchainQueue extends BaseQueue {
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
     this.notify({ tx, sender, recipient, article })
-    this.invalidCache(tx.targetType, tx.transactionId)
+    this.invalidCache(tx.targetType, tx.targetId)
     job.progress(100)
 
     return data
@@ -333,28 +241,24 @@ class PayToByBlockchainQueue extends BaseQueue {
     }
 
     // check if donation is from Matters
-
     if (
       !ignoreCaseMatch(event.tokenAddress, USDTContractAddress) ||
       !isValidUri(event.uri)
     ) {
       return
     }
-
     const curatorUser = await this.userService.findByEthAddress(
       event.curatorAddress
     )
     if (!curatorUser) {
       return
     }
-
     const creatorUser = await this.userService.findByEthAddress(
       event.creatorAddress
     )
     if (!creatorUser) {
       return
     }
-
     const cid = extractCid(event.uri)
     const articles = await this.articleService.baseFind({
       where: { author_id: creatorUser.id, data_hash: cid },
@@ -425,11 +329,14 @@ class PayToByBlockchainQueue extends BaseQueue {
           throw error
         }
       }
+      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
+      this.invalidCache(tx.targetType, tx.targetId)
     } else {
       // no related tx record, create one
       const trx = await this.knex.transaction()
+      let tx
       try {
-        const tx = await this.paymentService.createTransaction(
+        tx = await this.paymentService.createTransaction(
           {
             amount,
             state: TRANSACTION_STATE.succeeded,
@@ -454,6 +361,67 @@ class PayToByBlockchainQueue extends BaseQueue {
         await trx.rollback()
         throw error
       }
+      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
+      this.invalidCache(tx.targetType, tx.targetId)
+    }
+  }
+
+  private fetchCurationLogs = async (
+    curation: CurationContract,
+    savepoint: number | null
+  ): Promise<[Array<Log<CurationEvent>>, number]> => {
+    const safeBlockNum =
+      (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+
+    const fromBlockNum = savepoint ? savepoint + 1 : 0
+
+    if (fromBlockNum === 0) {
+      // no sync record in db , request getLog without block range
+      const logs = await curation.fetchLogs()
+      const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
+
+      const newSavepoint =
+        logs.length === filtered.length
+          ? safeBlockNum
+          : filtered[filtered.length - 1].blockNumber
+
+      return [filtered, newSavepoint]
+    } else {
+      // sync record in db , request getLog with block range
+      // as provider only accept 2000 blocks range
+      const toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
+      if (fromBlockNum >= toBlockNum) {
+        return [[], savepoint as number]
+      }
+      return [await curation.fetchLogs(fromBlockNum, toBlockNum), toBlockNum]
+    }
+  }
+
+  private syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
+    const events = []
+    for (const log of logs) {
+      if (!log.removed) {
+        const data: any = { ...log.event }
+        const blockchainTx =
+          await this.paymentService.findOrCreateBlockchainTransaction(
+            { chain: GQLChain.Polygon, txHash: log.txHash },
+            { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
+          )
+        data.blockchainTransactionId = blockchainTx.id
+        data.contractAddress = log.address
+        await this.handleNewEvent(log, blockchainTx)
+
+        events.push(data)
+      } else {
+        // getlogs from final blocks should not return removed logs
+        throw new UnknownError('unexpected removed logs')
+      }
+    }
+    if (events.length >= 0) {
+      await this.paymentService.baseBatchCreate(
+        events,
+        'blockchain_curation_event'
+      )
     }
   }
 
@@ -524,18 +492,6 @@ class PayToByBlockchainQueue extends BaseQueue {
       }
     )
   }
-  // private resetBothTxAndBlockchainTx = async (
-  //   txId: string,
-  //   blockchainTxId: string
-  // ) => {
-  //   await this.updateTxAndBlockchainTxState(
-  //     { txId, txState: TRANSACTION_STATE.pending },
-  //     {
-  //       blockchainTxId,
-  //       blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.pending,
-  //     }
-  //   )
-  // }
 
   private containMatchedEvent = async (
     events: CurationEvent[],
