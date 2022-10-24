@@ -2198,6 +2198,9 @@ type User implements Node {
   """Tags by by usage order of current user."""
   tags(input: ConnectionArgs!): TagConnection!
 
+  """Tags owned and maintained by current user."""
+  maintainedTags(input: ConnectionArgs!): TagConnection!
+
   """Tags pinned by current user."""
   pinnedTags(input: ConnectionArgs!): TagConnection!
 

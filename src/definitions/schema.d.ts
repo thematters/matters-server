@@ -3015,6 +3015,11 @@ export interface GQLUser extends GQLNode {
   tags: GQLTagConnection
 
   /**
+   * Tags owned and maintained by current user.
+   */
+  maintainedTags: GQLTagConnection
+
+  /**
    * Tags pinned by current user.
    */
   pinnedTags: GQLTagConnection
@@ -10413,6 +10418,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   articles?: UserToArticlesResolver<TParent>
   topics?: UserToTopicsResolver<TParent>
   tags?: UserToTagsResolver<TParent>
+  maintainedTags?: UserToMaintainedTagsResolver<TParent>
   pinnedTags?: UserToPinnedTagsResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
@@ -10547,6 +10553,18 @@ export interface UserToTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToMaintainedTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToMaintainedTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToMaintainedTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
