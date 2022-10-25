@@ -106,7 +106,6 @@ jobs:
           MATTERS_STRIPE_SECRET: sk_test_foobar
           MATTERS_SENDGRID_API_KEY: SG.0-_abcabcabc.
           MATTERS_OPENSEA_API_BASE: 'https://rinkeby-api.opensea.io/api/v1'
-          MATTERS_CURATION_CONTRACT_ADDRESS: '0xa219C6722008aa22828B31A13ab9Ba93bB91222c'
 
       - name: Build
         run: npm run build
