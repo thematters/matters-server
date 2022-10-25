@@ -79,11 +79,6 @@ class PayToByBlockchainQueue extends BaseQueue {
   }
 
   /**
-   * syncCurationEvents helpers
-   *
-   */
-
-  /**
    * Consumers
    *
    */
@@ -242,7 +237,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     // check if donation is from Matters
     if (
-      !ignoreCaseMatch(event.tokenAddress, USDTContractAddress) ||
+      !ignoreCaseMatch(event.tokenAddress || '', USDTContractAddress) ||
       !isValidUri(event.uri)
     ) {
       return
@@ -378,14 +373,7 @@ class PayToByBlockchainQueue extends BaseQueue {
     if (fromBlockNum === 0) {
       // no sync record in db , request getLog without block range
       const logs = await curation.fetchLogs()
-      const filtered = logs.filter((e) => e.blockNumber <= safeBlockNum)
-
-      const newSavepoint =
-        logs.length === filtered.length
-          ? safeBlockNum
-          : filtered[filtered.length - 1].blockNumber
-
-      return [filtered, newSavepoint]
+      return [logs.filter((e) => e.blockNumber <= safeBlockNum), safeBlockNum]
     } else {
       // sync record in db , request getLog with block range
       // as provider only accept 2000 blocks range
@@ -400,22 +388,21 @@ class PayToByBlockchainQueue extends BaseQueue {
   private syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
     const events = []
     for (const log of logs) {
-      if (!log.removed) {
-        const data: any = { ...log.event }
-        const blockchainTx =
-          await this.paymentService.findOrCreateBlockchainTransaction(
-            { chain: GQLChain.Polygon, txHash: log.txHash },
-            { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
-          )
-        data.blockchainTransactionId = blockchainTx.id
-        data.contractAddress = log.address
-        await this.handleNewEvent(log, blockchainTx)
-
-        events.push(data)
-      } else {
+      if (log.removed) {
         // getlogs from final blocks should not return removed logs
         throw new UnknownError('unexpected removed logs')
       }
+      const data: any = { ...log.event }
+      const blockchainTx =
+        await this.paymentService.findOrCreateBlockchainTransaction(
+          { chain: GQLChain.Polygon, txHash: log.txHash },
+          { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
+        )
+      data.blockchainTransactionId = blockchainTx.id
+      data.contractAddress = log.address
+      await this.handleNewEvent(log, blockchainTx)
+
+      events.push(data)
     }
     if (events.length >= 0) {
       await this.paymentService.baseBatchCreate(
@@ -513,23 +500,25 @@ class PayToByBlockchainQueue extends BaseQueue {
   ) => {
     if (events.length === 0) {
       return false
-    } else {
-      if (!curatorAddress || !creatorAddress) {
-        return false
-      }
-      for (const event of events) {
-        if (
-          ignoreCaseMatch(event.curatorAddress, curatorAddress) &&
-          ignoreCaseMatch(event.creatorAddress, creatorAddress) &&
-          ignoreCaseMatch(event.tokenAddress, tokenAddress) &&
-          event.amount === toTokenBaseUnit(amount, decimals) &&
-          isValidUri(event.uri) &&
-          extractCid(event.uri) === cid
-        ) {
-          return true
-        }
+    }
+
+    if (!curatorAddress || !creatorAddress) {
+      return false
+    }
+
+    for (const event of events) {
+      if (
+        ignoreCaseMatch(event.curatorAddress, curatorAddress) &&
+        ignoreCaseMatch(event.creatorAddress, creatorAddress) &&
+        ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
+        event.amount === toTokenBaseUnit(amount, decimals) &&
+        isValidUri(event.uri) &&
+        extractCid(event.uri) === cid
+      ) {
+        return true
       }
     }
+
     return false
   }
 

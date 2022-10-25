@@ -1,5 +1,5 @@
 import type { Log as EthersLog } from '@ethersproject/abstract-provider'
-import { ethers } from 'ethers'
+// import { ethers } from 'ethers'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -12,7 +12,7 @@ export interface CurationEvent {
   curatorAddress: string
   creatorAddress: string
   uri: string
-  tokenAddress: string
+  tokenAddress?: string
   amount: string
 }
 
@@ -32,39 +32,60 @@ export interface CurationTxReceipt {
 
 // constants
 
-const abi = [
-  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)',
-]
+const erc20TokenCurationEventABI =
+  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)'
+const erc20TokenCurationEventIdentifier =
+  'Curation(address,address,address,string,uint256)'
+const nativeTokenCurationEventABI =
+  'event Curation(address indexed from, address indexed to, string uri, uint256 amount)'
+const nativeTokenCurationEventIdentifier =
+  'Curation(address,address,string,uint256)'
 const contractAddress = environment.curationContractAddress.toLowerCase()
 
 const chainId = isProd
   ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
   : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
 
+// CurationContract
+
 export class CurationContract extends BaseContract {
-  eventTopic: string
+  erc20TokenCurationEventTopic: string
+  nativeTokenCurationEventTopic: string
 
   constructor() {
-    super(parseInt(chainId, 10), contractAddress, abi)
-    this.eventTopic =
-      '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
+    super(parseInt(chainId, 10), contractAddress, [
+      erc20TokenCurationEventABI,
+      nativeTokenCurationEventABI,
+    ])
+    this.erc20TokenCurationEventTopic = this.contract.interface.getEventTopic(
+      erc20TokenCurationEventIdentifier
+    )
+    this.nativeTokenCurationEventTopic = this.contract.interface.getEventTopic(
+      nativeTokenCurationEventIdentifier
+    )
   }
 
   fetchLogs = async (
     fromBlock?: number,
     toBlock?: number
   ): Promise<Array<Log<CurationEvent>>> => {
-    const logs = await this.contract.queryFilter(
-      this.contract.filters.Curation(),
+    const erc20Logs = await this.contract.queryFilter(
+      this.contract.filters[erc20TokenCurationEventIdentifier](),
       fromBlock,
       toBlock
     )
+    const nativeLogs = await this.contract.queryFilter(
+      this.contract.filters[nativeTokenCurationEventIdentifier](),
+      fromBlock,
+      toBlock
+    )
+    const logs = erc20Logs.concat(nativeLogs)
     return logs.map((e) => ({
       event: {
-        curatorAddress: e.args!.curator!.toLowerCase(),
-        creatorAddress: e.args!.creator!.toLowerCase(),
+        curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
+        creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
         uri: e.args!.uri,
-        tokenAddress: e.args!.token!.toLowerCase(),
+        tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : undefined,
         amount: e.args!.amount!.toString(),
       },
       txHash: e.transactionHash,
@@ -84,19 +105,22 @@ export class CurationContract extends BaseContract {
     const targets = txReceipt.logs.filter(
       (log: EthersLog) =>
         log.address.toLowerCase() === this.address.toLowerCase() &&
-        log.topics[0] === this.eventTopic
+        (log.topics[0] === this.erc20TokenCurationEventTopic ||
+          log.topics[0] === this.nativeTokenCurationEventTopic)
     )
-    const iface = new ethers.utils.Interface(this.abi)
+    const iface = this.contract.interface
     return {
       txHash,
       reverted: txReceipt.status === 0,
       events: targets
         .map((log) => iface.parseLog(log))
         .map((e) => ({
-          curatorAddress: e.args!.curator!.toLowerCase(),
-          creatorAddress: e.args!.creator!.toLowerCase(),
+          curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
+          creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
           uri: e.args!.uri,
-          tokenAddress: e.args!.token!.toLowerCase(),
+          tokenAddress: e.args!.token!
+            ? e.args!.token!.toLowerCase()
+            : undefined,
           amount: e.args!.amount!.toString(),
         })),
     }
