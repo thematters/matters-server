@@ -82,12 +82,14 @@ describe('Transaction CRUD', () => {
     expect(blockchainTxn3.id).toEqual(blockchainTxn.id)
   })
   test('get or create Transaction by Txhash', async () => {
+    const txHash2 =
+      '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae876f7bf'
     const currencyUSDT = PAYMENT_CURRENCY.USDT
 
     // create
     const txn = await paymentService.findOrCreateTransactionByBlockchainTxHash({
       chain,
-      txHash,
+      txHash: txHash2,
       amount,
       fee,
       state,
@@ -100,7 +102,10 @@ describe('Transaction CRUD', () => {
       remark,
     })
     const blockchainTxn =
-      await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
+      await paymentService.findOrCreateBlockchainTransaction({
+        chain,
+        txHash: txHash2,
+      })
 
     expect(parseInt(txn.amount, 10)).toEqual(amount)
     expect(parseFloat(txn.fee)).toEqual(fee)
@@ -115,11 +120,13 @@ describe('Transaction CRUD', () => {
     expect(txn.targetType).toBeDefined()
     expect(txn.remark).toEqual(txn.remark)
 
+    expect(blockchainTxn.transactionId).toBe(txn.id)
+
     // get
     const txn2 = await paymentService.findOrCreateTransactionByBlockchainTxHash(
       {
         chain,
-        txHash,
+        txHash: txHash2,
         amount,
         fee,
         state,

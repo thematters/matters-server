@@ -302,11 +302,32 @@ class PayToByBlockchainQueue extends BaseQueue {
       fromTokenBaseUnit(event.amount, polygonUSDTContractDecimals)
     )
 
+    let tx
+    // find related tx
     if (blockchainTx.transactionId) {
+      tx = await this.paymentService.baseFindById(blockchainTx.transactionId)
+    } else {
+      tx = await this.atomService.findFirst({
+        table: 'transaction',
+        where: {
+          provider: PAYMENT_PROVIDER.blockchain as string,
+          providerTxId: blockchainTx.id,
+        },
+      })
+      if (tx) {
+        // this blockchainTx data is broken, fix it
+        await this.atomService.update({
+          table: 'blockchain_transaction',
+          where: { id: blockchainTx.id },
+          data: {
+            transactionId: tx.id,
+          },
+        })
+      }
+    }
+
+    if (tx) {
       // this blackchain tx record, related tx record, validate it
-      const tx = await this.paymentService.baseFindById(
-        blockchainTx.transactionId
-      )
       if (
         tx.senderId === curatorUser.id &&
         tx.recipientId === creatorUser.id &&
@@ -337,7 +358,6 @@ class PayToByBlockchainQueue extends BaseQueue {
     } else {
       // no related tx record, create one
       const trx = await this.knex.transaction()
-      let tx
       try {
         tx = await this.paymentService.createTransaction(
           {

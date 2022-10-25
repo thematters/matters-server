@@ -336,7 +336,7 @@ export class PaymentService extends BaseService {
           },
           trx
         )
-        this.knex('blockchain_transaction')
+        await this.knex('blockchain_transaction')
           .where({ id: blockchainTx.id })
           .update({ transactionId: tx.id })
           .transacting(trx)
