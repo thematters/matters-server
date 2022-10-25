@@ -148,7 +148,8 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   if (
     // tslint:disable-next-line
-    (sameIdx = nodes?.findIndex((item: any) => item.articleId === articleId)) >= 0
+    (sameIdx = nodes?.findIndex((item: any) => item.articleId === articleId)) >=
+    0
   ) {
     console.log(
       new Date(),
