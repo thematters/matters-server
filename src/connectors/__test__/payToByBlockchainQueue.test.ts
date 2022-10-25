@@ -62,6 +62,8 @@ const failedTxhash =
   '0xbad52ae6172aa85e1f883967215cbdc5e70ddc479c7ee22da3c23d06820ee29e'
 const txHash =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
+const txHash2 =
+  '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215d'
 
 const invalidTxReceipt = {
   txHash: invalidTxhash,
@@ -78,6 +80,13 @@ const validEvent = {
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: polygonUSDTContractAddress,
+  amount: '1000000000000000000',
+}
+const nativeTokenEvent = {
+  curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
+  uri: 'ipfs://someIpfsDataHash1',
+  tokenAddress: null,
   amount: '1000000000000000000',
 }
 const txReceipt = {
@@ -328,6 +337,20 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     // @ts-ignore
     await queue.syncCurationEvents([])
   })
+  test('handle native token curation logs', async () => {
+    const nativeTokenLog = {
+      txHash: txHash2,
+      address: polygonCurationContractAddress,
+      blockNumber: 1,
+      removed: false,
+      event: nativeTokenEvent,
+    }
+    // @ts-ignore
+    await queue.syncCurationEvents([nativeTokenLog])
+    expect(
+      await knex(eventTable).where({ tokenAddress: null }).count()
+    ).toEqual([{ count: '1' }])
+  })
   test('removed logs will throw error', async () => {
     const removedLog = {
       txHash,
@@ -342,9 +365,9 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
   })
   test('not matters logs will not update tx', async () => {
-    await knex(txTable).del()
-    await knex(blockchainTxTable).del()
     await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
     const notMattersLogs = [
       {
         txHash: 'fakeTxhash1',
