@@ -64,6 +64,8 @@ const txHash =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
 const txHash2 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215d'
+const txHash3 =
+  '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215e'
 
 const invalidTxReceipt = {
   txHash: invalidTxhash,
@@ -481,5 +483,61 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(updatedBlockchainTx2.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
+  })
+  test('blockchain_transaction forgeting adding transaction_id will be update', async () => {
+    const tx =
+      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
+        chain,
+        txHash: txHash3,
+        amount,
+        state,
+        purpose,
+        currency,
+        recipientId,
+        senderId,
+        targetId,
+        targetType,
+      })
+    const blockchainTx =
+      await queue.paymentService.findOrCreateBlockchainTransaction({
+        chain,
+        txHash: txHash3,
+      })
+    expect(blockchainTx.transactionId).toBe(tx.id)
+    await knex(blockchainTxTable)
+      .where({ id: blockchainTx.id })
+      .update({ transactionId: null })
+    const updated =
+      await queue.paymentService.findOrCreateBlockchainTransaction({
+        chain,
+        txHash: txHash3,
+      })
+    expect(updated.transactionId).toBe(null)
+
+    const logs = [
+      {
+        txHash: txHash3,
+        address: polygonCurationContractAddress,
+        blockNumber: 1,
+        removed: false,
+        event: {
+          ...validEvent,
+        },
+      },
+    ]
+    // @ts-ignore
+    await queue.syncCurationEvents(logs)
+
+    const updatedBlockchainTx =
+      await queue.paymentService.findOrCreateBlockchainTransaction({
+        chain,
+        txHash: txHash3,
+      })
+    expect(updatedBlockchainTx.transactionId).toBe(tx.id)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    const updatedTx = await knex(txTable).where('id', tx.id).first()
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
   })
 })
