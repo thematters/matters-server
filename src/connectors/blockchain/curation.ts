@@ -66,19 +66,21 @@ export class CurationContract extends BaseContract {
   }
 
   fetchLogs = async (
-    fromBlock?: number,
-    toBlock?: number
+    fromBlock: number,
+    toBlock: number
   ): Promise<Array<Log<CurationEvent>>> => {
-    const erc20Logs = await this.contract.queryFilter(
-      this.contract.filters[erc20TokenCurationEventIdentifier](),
-      fromBlock,
-      toBlock
-    )
-    const nativeLogs = await this.contract.queryFilter(
-      this.contract.filters[nativeTokenCurationEventIdentifier](),
-      fromBlock,
-      toBlock
-    )
+    const [erc20Logs, nativeLogs] = await Promise.all([
+      this._fetchLogs(
+        fromBlock,
+        toBlock,
+        this.contract.filters[erc20TokenCurationEventIdentifier]()
+      ),
+      this._fetchLogs(
+        fromBlock,
+        toBlock,
+        this.contract.filters[nativeTokenCurationEventIdentifier]()
+      ),
+    ])
     const logs = erc20Logs.concat(nativeLogs)
     return logs.map((e) => ({
       event: {
@@ -118,11 +120,17 @@ export class CurationContract extends BaseContract {
           curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
           creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
           uri: e.args!.uri,
-          tokenAddress: e.args!.token!
-            ? e.args!.token!.toLowerCase()
-            : null,
+          tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
           amount: e.args!.amount!.toString(),
         })),
     }
+  }
+  private _fetchLogs = async (
+    fromBlock: number,
+    toBlock: number,
+    filter: any
+  ) => {
+    console.log({ fromBlock, toBlock })
+    return this.contract.queryFilter(filter, fromBlock, toBlock)
   }
 }

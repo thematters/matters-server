@@ -279,14 +279,6 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
-  test('fetch all logs if no save point', async () => {
-    const curation = new CurationContract()
-    mockFetchLogs.mockClear()
-    // @ts-ignore
-    const [, newSavepoint] = await queue.fetchCurationLogs(curation, null)
-    expect(mockFetchLogs).toHaveBeenCalledWith()
-    expect(newSavepoint).toBe(latestBlockNum - 128)
-  })
   test('fetch logs in limited block range if have save point', async () => {
     const curation = new CurationContract()
 
@@ -297,18 +289,8 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       curation,
       oldSavepoint1
     )
-    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint1 + 1, 20002000)
-    expect(newSavepoint1).toBe(20002000)
-
-    const oldSavepoint2 = 29999900
-    mockFetchLogs.mockClear()
-    // @ts-ignore
-    const [, newSavepoint2] = await queue.fetchCurationLogs(
-      curation,
-      oldSavepoint2
-    )
-    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint2 + 1, safeBlockNum)
-    expect(newSavepoint2).toBe(safeBlockNum)
+    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint1 + 1, safeBlockNum)
+    expect(newSavepoint1).toBe(safeBlockNum)
 
     mockFetchLogs.mockClear()
     // @ts-ignore

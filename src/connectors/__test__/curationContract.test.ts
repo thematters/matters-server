@@ -13,7 +13,7 @@ describe('curationContract', () => {
   test.skip('fetchLogs correctly', async () => {
     jest.setTimeout(0)
     const curation = new CurationContract()
-    const logs = await curation.fetchLogs()
+    const logs = await curation.fetchLogs(28675517, 28797000)
     console.log(logs)
   })
   test.skip('fetchTxReceipt correctly', async () => {

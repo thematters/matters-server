@@ -199,7 +199,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         table: syncRecordTable,
         where: { chainId, contractAddress },
       })
-      const oldSavepoint = record ? parseInt(record.blockNumber, 10) : null
+      const oldSavepoint = record ? parseInt(record.blockNumber, 10) : 28675517
       const [logs, newSavepoint] = await this.fetchCurationLogs(
         curation,
         oldSavepoint
@@ -363,26 +363,17 @@ class PayToByBlockchainQueue extends BaseQueue {
 
   private fetchCurationLogs = async (
     curation: CurationContract,
-    savepoint: number | null
+    savepoint: number
   ): Promise<[Array<Log<CurationEvent>>, number]> => {
     const safeBlockNum =
       (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
 
-    const fromBlockNum = savepoint ? savepoint + 1 : 0
+    const fromBlockNum = savepoint + 1
 
-    if (fromBlockNum === 0) {
-      // no sync record in db , request getLog without block range
-      const logs = await curation.fetchLogs()
-      return [logs.filter((e) => e.blockNumber <= safeBlockNum), safeBlockNum]
-    } else {
-      // sync record in db , request getLog with block range
-      // as provider only accept 2000 blocks range
-      const toBlockNum = Math.min(safeBlockNum, fromBlockNum + 1999)
-      if (fromBlockNum >= toBlockNum) {
-        return [[], savepoint as number]
-      }
-      return [await curation.fetchLogs(fromBlockNum, toBlockNum), toBlockNum]
+    if (fromBlockNum >= safeBlockNum) {
+      return [[], savepoint as number]
     }
+    return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
 
   private syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
