@@ -307,7 +307,7 @@ class PayToByBlockchainQueue extends BaseQueue {
     if (blockchainTx.transactionId) {
       tx = await this.paymentService.baseFindById(blockchainTx.transactionId)
     } else {
-      tx = await this.atomService.findUnique({
+      tx = await this.atomService.findFirst({
         table: 'transaction',
         where: {
           provider: PAYMENT_PROVIDER.blockchain as string,
@@ -358,7 +358,6 @@ class PayToByBlockchainQueue extends BaseQueue {
     } else {
       // no related tx record, create one
       const trx = await this.knex.transaction()
-      let tx
       try {
         tx = await this.paymentService.createTransaction(
           {
