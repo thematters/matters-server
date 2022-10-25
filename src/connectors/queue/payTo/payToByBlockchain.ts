@@ -21,6 +21,7 @@ import {
 } from 'common/enums'
 import {
   environment,
+  isProd,
   polygonUSDTContractAddress,
   polygonUSDTContractDecimals,
 } from 'common/environment'
@@ -81,7 +82,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       {},
       {
         priority: QUEUE_PRIORITY.NORMAL,
-        repeat: { every: MINUTE * 30 },
+        repeat: { every: isProd ? MINUTE * 30 : MINUTE * 10 },
       }
     )
   }
