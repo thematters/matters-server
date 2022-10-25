@@ -14,6 +14,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SLACK_MESSAGE_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
@@ -32,6 +33,7 @@ import {
 } from 'common/utils'
 import { PaymentService } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
+import SlackService from 'connectors/slack'
 import { GQLChain, Transaction, User } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
@@ -42,11 +44,13 @@ interface PaymentParams {
 
 class PayToByBlockchainQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
+  slackService: InstanceType<typeof SlackService>
   delay: number
 
   constructor() {
     super(getQueueNameForEnv(QUEUE_NAME.payToByBlockchain))
     this.paymentService = new PaymentService()
+    this.slackService = new SlackService()
     this.addConsumers()
     this.delay = 5000 // 5s
   }
@@ -194,7 +198,25 @@ class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (job) => {
-      return this._handleSyncCurationEvents()
+      let syncedBlocknum: number
+      try {
+        syncedBlocknum = await this._handleSyncCurationEvents()
+        this.slackService.sendQueueMessage({
+          data: { syncedBlocknum },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `Completed syncing Polygon curation events`,
+          state: SLACK_MESSAGE_STATE.successful,
+        })
+      } catch (error) {
+        this.slackService.sendQueueMessage({
+          data: { error },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `'Failed to sync Polygon curation events`,
+          state: SLACK_MESSAGE_STATE.failed,
+        })
+        throw error
+      }
+      return syncedBlocknum
     }
 
   private _handleSyncCurationEvents = async () => {
@@ -226,7 +248,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       create: { chainId, contractAddress, blockNumber: newSavepoint },
     })
 
-    return { newSavepoint }
+    return newSavepoint
   }
 
   private handleNewEvent = async (
