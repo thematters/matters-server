@@ -202,12 +202,6 @@ class PayToByBlockchainQueue extends BaseQueue {
       let syncedBlocknum: number
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
-        this.slackService.sendQueueMessage({
-          data: { syncedBlocknum },
-          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-          message: `Completed syncing Polygon curation events`,
-          state: SLACK_MESSAGE_STATE.successful,
-        })
       } catch (error) {
         this.slackService.sendQueueMessage({
           data: { error },
