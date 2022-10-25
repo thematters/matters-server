@@ -317,13 +317,13 @@ class PayToByBlockchainQueue extends BaseQueue {
             transactionId: tx.id,
           },
         })
+        if (tx.state === TRANSACTION_STATE.succeeded) {
+          return
+        }
       }
     }
 
     if (tx) {
-      if (tx.state === TRANSACTION_STATE.succeeded) {
-        return
-      }
       // this blackchain tx record, related tx record, validate it
       if (
         tx.senderId === curatorUser.id &&
