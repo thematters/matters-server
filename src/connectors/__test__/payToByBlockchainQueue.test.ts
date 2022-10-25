@@ -9,7 +9,7 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { environment, USDTContractAddress } from 'common/environment'
+import { environment, polygonUSDTContractAddress } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import { CurationContract } from 'connectors/blockchain'
 import { payToByBlockchainQueue } from 'connectors/queue'
@@ -31,7 +31,7 @@ jest.mock('connectors/blockchain', () => {
         fetchLogs: mockFetchLogs,
         fetchBlockNumber: mockFetchBlockNumber,
         chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
-        address: environment.curationContractAddress.toLowerCase(),
+        address: environment.polygonCurationContractAddress.toLowerCase(),
       }
     }),
   }
@@ -39,8 +39,8 @@ jest.mock('connectors/blockchain', () => {
 
 // test data
 //
-const curationContractAddress =
-  environment.curationContractAddress.toLowerCase()
+const polygonCurationContractAddress =
+  environment.polygonCurationContractAddress.toLowerCase()
 const zeroAdress = '0x0000000000000000000000000000000000000000'
 
 const amount = 1
@@ -77,7 +77,7 @@ const validEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
-  tokenAddress: USDTContractAddress,
+  tokenAddress: polygonUSDTContractAddress,
   amount: '1000000000000000000',
 }
 const txReceipt = {
@@ -319,7 +319,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   test('removed logs will throw error', async () => {
     const removedLog = {
       txHash,
-      address: curationContractAddress,
+      address: polygonCurationContractAddress,
       blockNumber: 1,
       removed: true,
       event: validEvent,
@@ -336,7 +336,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     const notMattersLogs = [
       {
         txHash: 'fakeTxhash1',
-        address: curationContractAddress,
+        address: polygonCurationContractAddress,
         blockNumber: 1,
         removed: false,
         event: {
@@ -346,7 +346,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash2',
-        address: curationContractAddress,
+        address: polygonCurationContractAddress,
         blockNumber: 2,
         removed: false,
         event: {
@@ -356,7 +356,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash3',
-        address: curationContractAddress,
+        address: polygonCurationContractAddress,
         blockNumber: 3,
         removed: false,
         event: {
@@ -366,7 +366,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash4',
-        address: curationContractAddress,
+        address: polygonCurationContractAddress,
         blockNumber: 4,
         removed: false,
         event: {
@@ -390,7 +390,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     const logs = [
       {
         txHash,
-        address: curationContractAddress,
+        address: polygonCurationContractAddress,
         blockNumber: 1,
         removed: false,
         event: {

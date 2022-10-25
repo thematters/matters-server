@@ -18,7 +18,11 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { USDTContractAddress, USDTContractDecimals } from 'common/environment'
+import {
+  environment,
+  polygonUSDTContractAddress,
+  polygonUSDTContractDecimals,
+} from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import {
   fromTokenBaseUnit,
@@ -145,9 +149,9 @@ class PayToByBlockchainQueue extends BaseQueue {
     const creatorAddress = recipient.ethAddress
     const curatorAddress = sender.ethAddress
     const cid = article.dataHash
-    const tokenAddress = USDTContractAddress
+    const tokenAddress = polygonUSDTContractAddress
     const amount = tx.amount
-    const decimals = USDTContractDecimals
+    const decimals = polygonUSDTContractDecimals
 
     // txReceipt does not match with tx record in database
     if (
@@ -199,7 +203,9 @@ class PayToByBlockchainQueue extends BaseQueue {
         table: syncRecordTable,
         where: { chainId, contractAddress },
       })
-      const oldSavepoint = record ? parseInt(record.blockNumber, 10) : 28675517
+      const oldSavepoint = record
+        ? parseInt(record.blockNumber, 10)
+        : parseInt(environment.polygonCurationContractBlocknum, 10)
       const [logs, newSavepoint] = await this.fetchCurationLogs(
         curation,
         oldSavepoint
@@ -237,7 +243,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     // check if donation is from Matters
     if (
-      !ignoreCaseMatch(event.tokenAddress || '', USDTContractAddress) ||
+      !ignoreCaseMatch(event.tokenAddress || '', polygonUSDTContractAddress) ||
       !isValidUri(event.uri)
     ) {
       return
@@ -265,7 +271,7 @@ class PayToByBlockchainQueue extends BaseQueue {
 
     // donation is from Matters
     const amount = parseFloat(
-      fromTokenBaseUnit(event.amount, USDTContractDecimals)
+      fromTokenBaseUnit(event.amount, polygonUSDTContractDecimals)
     )
 
     if (blockchainTx.transactionId) {
@@ -277,7 +283,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         tx.senderId === curatorUser.id &&
         tx.recipientId === creatorUser.id &&
         tx.targetId === article.id &&
-        toTokenBaseUnit(tx.amount, USDTContractDecimals) === event.amount
+        toTokenBaseUnit(tx.amount, polygonUSDTContractDecimals) === event.amount
       ) {
         // related tx record is valid, update its state
         await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)

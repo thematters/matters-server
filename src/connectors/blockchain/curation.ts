@@ -40,7 +40,7 @@ const nativeTokenCurationEventABI =
   'event Curation(address indexed from, address indexed to, string uri, uint256 amount)'
 const nativeTokenCurationEventIdentifier =
   'Curation(address,address,string,uint256)'
-const contractAddress = environment.curationContractAddress.toLowerCase()
+const contractAddress = environment.polygonCurationContractAddress.toLowerCase()
 
 const chainId = isProd
   ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
