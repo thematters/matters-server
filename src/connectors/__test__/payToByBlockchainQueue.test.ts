@@ -259,6 +259,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const txTable = 'transaction'
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
+  const syncRecordTable = 'blockchain_sync_record'
 
   beforeAll(() => {
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
@@ -273,13 +274,24 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       }
     })
     mockFetchLogs.mockImplementation(
-      async (fromBlock?: number, toBlock?: number) => {
+      async (fromBlock: number, toBlock: number) => {
         return []
       }
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
-  test('fetch logs in limited block range if have save point', async () => {
+  test.only('_handleSyncCurationEvents update sync record', async () => {
+    expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
+    // create record
+    // @ts-ignore
+    await queue._handleSyncCurationEvents()
+    expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
+    // update record
+    // @ts-ignore
+    await queue._handleSyncCurationEvents()
+    expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
+  })
+  test('fetch logs', async () => {
     const curation = new CurationContract()
 
     const oldSavepoint1 = 20000000

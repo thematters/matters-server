@@ -194,35 +194,40 @@ class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (job) => {
-      // fetch events
-      const syncRecordTable = 'blockchain_sync_record'
-      const curation = new CurationContract()
-      const chainId = curation.chainId
-      const contractAddress = curation.address
-      const record = await this.atomService.findFirst({
-        table: syncRecordTable,
-        where: { chainId, contractAddress },
-      })
-      const oldSavepoint = record
-        ? parseInt(record.blockNumber, 10)
-        : parseInt(environment.polygonCurationContractBlocknum, 10)
-      const [logs, newSavepoint] = await this.fetchCurationLogs(
-        curation,
-        oldSavepoint
-      )
-
-      // update tx state and save events
-      await this.syncCurationEvents(logs)
-
-      // save progress
-      await this.paymentService.baseUpdateOrCreate({
-        table: syncRecordTable,
-        where: { chainId, contractAddress },
-        data: { chainId, contractAddress, blockNumber: newSavepoint },
-      })
-
-      return { newSavepoint }
+      return this._handleSyncCurationEvents()
     }
+
+  private _handleSyncCurationEvents = async () => {
+    // fetch events
+    const syncRecordTable = 'blockchain_sync_record'
+    const curation = new CurationContract()
+    const chainId = curation.chainId
+    const contractAddress = curation.address
+    const record = await this.atomService.findFirst({
+      table: syncRecordTable,
+      where: { chainId, contractAddress },
+    })
+    const oldSavepoint = record
+      ? parseInt(record.blockNumber, 10)
+      : parseInt(environment.polygonCurationContractBlocknum, 10)
+    const [logs, newSavepoint] = await this.fetchCurationLogs(
+      curation,
+      oldSavepoint
+    )
+
+    // update tx state and save events
+    await this.syncCurationEvents(logs)
+
+    // save progress
+    await this.atomService.upsert({
+      table: syncRecordTable,
+      where: { chainId, contractAddress },
+      update: { chainId, contractAddress, blockNumber: newSavepoint },
+      create: { chainId, contractAddress, blockNumber: newSavepoint },
+    })
+
+    return { newSavepoint }
+  }
 
   private handleNewEvent = async (
     log: Log<CurationEvent>,
