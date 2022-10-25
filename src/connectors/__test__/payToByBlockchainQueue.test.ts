@@ -484,7 +484,13 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
   })
-  test('blockchain_transaction forgeting adding transaction_id will be update', async () => {
+  test('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
+    const mockNotify = jest.fn()
+    // @ts-ignore
+    queue.notify = mockNotify
+
+    expect(mockNotify).not.toHaveBeenCalled()
+
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
@@ -539,5 +545,20 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
     const updatedTx = await knex(txTable).where('id', tx.id).first()
     expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+
+    expect(mockNotify).toHaveBeenCalled()
+
+    // succeeded broken blockchainTx should not notify
+    await knex(blockchainTxTable)
+      .where({ id: blockchainTx.id })
+      .update({ transactionId: null })
+    await knex(eventTable).del()
+    mockNotify.mockClear()
+    expect(mockNotify).not.toHaveBeenCalled()
+
+    // @ts-ignore
+    await queue.syncCurationEvents(logs)
+
+    expect(mockNotify).not.toHaveBeenCalled()
   })
 })

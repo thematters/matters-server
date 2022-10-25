@@ -310,7 +310,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       tx = await this.atomService.findFirst({
         table: 'transaction',
         where: {
-          provider: PAYMENT_PROVIDER.blockchain as string,
+          provider: PAYMENT_PROVIDER.blockchain,
           providerTxId: blockchainTx.id,
         },
       })
@@ -327,6 +327,9 @@ class PayToByBlockchainQueue extends BaseQueue {
     }
 
     if (tx) {
+      if (tx.state === TRANSACTION_STATE.succeeded) {
+        return
+      }
       // this blackchain tx record, related tx record, validate it
       if (
         tx.senderId === curatorUser.id &&
@@ -353,8 +356,6 @@ class PayToByBlockchainQueue extends BaseQueue {
         })
         await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
       }
-      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
-      this.invalidCache(tx.targetType, tx.targetId)
     } else {
       // no related tx record, create one
       const trx = await this.knex.transaction()
@@ -384,9 +385,9 @@ class PayToByBlockchainQueue extends BaseQueue {
         await trx.rollback()
         throw error
       }
-      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
-      this.invalidCache(tx.targetType, tx.targetId)
     }
+    this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
+    this.invalidCache(tx.targetType, tx.targetId)
   }
 
   private fetchCurationLogs = async (
