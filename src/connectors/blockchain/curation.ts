@@ -12,7 +12,7 @@ export interface CurationEvent {
   curatorAddress: string
   creatorAddress: string
   uri: string
-  tokenAddress?: string
+  tokenAddress: string | null
   amount: string
 }
 
@@ -85,7 +85,7 @@ export class CurationContract extends BaseContract {
         curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
         creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
         uri: e.args!.uri,
-        tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : undefined,
+        tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
         amount: e.args!.amount!.toString(),
       },
       txHash: e.transactionHash,
@@ -120,7 +120,7 @@ export class CurationContract extends BaseContract {
           uri: e.args!.uri,
           tokenAddress: e.args!.token!
             ? e.args!.token!.toLowerCase()
-            : undefined,
+            : null,
           amount: e.args!.amount!.toString(),
         })),
     }
