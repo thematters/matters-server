@@ -293,47 +293,21 @@ class PayToByBlockchainQueue extends BaseQueue {
         // related tx record is valid, update its state
         await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
       } else {
-        // related tx record is invalid, update its state
-        // cancel it and add new one
-        const trx = await this.knex.transaction()
-        try {
-          await this.paymentService.baseUpdate(
-            tx.id,
-            {
-              state: TRANSACTION_STATE.canceled,
-              remark: TRANSACTION_REMARK.INVALID,
-            },
-            'transaction',
-            trx
-          )
-          const newTx = await this.paymentService.createTransaction(
-            {
-              amount,
-              state: TRANSACTION_STATE.succeeded,
-              purpose: TRANSACTION_PURPOSE.donation,
-              currency: PAYMENT_CURRENCY.USDT,
-              provider: PAYMENT_PROVIDER.blockchain,
-              providerTxId: blockchainTx.id,
-              recipientId: creatorUser.id,
-              senderId: curatorUser.id,
-              targetId: article.id,
-            },
-            trx
-          )
-          await this.paymentService.baseUpdate(
-            blockchainTx.id,
-            {
-              transactionId: newTx.id,
-              state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
-            },
-            'blockchain_transaction',
-            trx
-          )
-          await trx.commit()
-        } catch (error) {
-          await trx.rollback()
-          throw error
-        }
+        // related tx record is invalid, correct it and update state
+        await this.atomService.update({
+          table: 'transaction',
+          where: { id: tx.id },
+          data: {
+            amount,
+            senderId: curatorUser.id,
+            recipientId: creatorUser.id,
+            targetId: article.id,
+            currency: PAYMENT_CURRENCY.USDT,
+            provider: PAYMENT_PROVIDER.blockchain,
+            providerTxId: blockchainTx.id,
+          },
+        })
+        await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
       }
       this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
       this.invalidCache(tx.targetType, tx.targetId)

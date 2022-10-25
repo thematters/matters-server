@@ -280,7 +280,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
-  test.only('_handleSyncCurationEvents update sync record', async () => {
+  test('_handleSyncCurationEvents update sync record', async () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record
     // @ts-ignore
@@ -438,7 +438,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
 
-    // related tx is invalid, cancel it and add new one
+    // related tx is invalid, correct it and update to succeeded
     await knex(eventTable).del()
     await knex(txTable).update({ recipientId: '3' })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
@@ -448,20 +448,15 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
 
     // @ts-ignore
     await queue.syncCurationEvents(logs)
-    expect(await knex(txTable).count()).toEqual([{ count: '2' }])
-    const originTx = await knex(txTable).where('id', tx.id).first()
-    const originBlockchainTx = await knex(blockchainTxTable)
+    expect(await knex(txTable).count()).toEqual([{ count: '1' }])
+    const updatedTx2 = await knex(txTable).where('id', tx.id).first()
+    const updatedBlockchainTx2 = await knex(blockchainTxTable)
       .where('id', blockchainTx.id)
       .first()
-    const newTx = await knex(txTable).whereNot('id', tx.id).first()
-
-    expect(originTx.state).toBe(TRANSACTION_STATE.canceled)
-    expect(originBlockchainTx.state).toBe(
+    expect(updatedTx2.recipientId).toBe(tx.recipientId)
+    expect(updatedTx2.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx2.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
-    expect(newTx.state).toBe(TRANSACTION_STATE.succeeded)
-    expect(originTx.providerTxId).not.toBe(null)
-    expect(newTx.providerTxId).toBe(tx.providerTxId)
-    expect(originBlockchainTx.transactionId).toBe(newTx.id)
   })
 })
