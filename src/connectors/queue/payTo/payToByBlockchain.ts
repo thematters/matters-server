@@ -202,12 +202,6 @@ class PayToByBlockchainQueue extends BaseQueue {
       let syncedBlocknum: number
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
-        this.slackService.sendQueueMessage({
-          data: { syncedBlocknum },
-          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-          message: `Completed syncing Polygon curation events`,
-          state: SLACK_MESSAGE_STATE.successful,
-        })
       } catch (error) {
         this.slackService.sendQueueMessage({
           data: { error },
@@ -310,7 +304,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       tx = await this.atomService.findFirst({
         table: 'transaction',
         where: {
-          provider: PAYMENT_PROVIDER.blockchain as string,
+          provider: PAYMENT_PROVIDER.blockchain,
           providerTxId: blockchainTx.id,
         },
       })
@@ -323,6 +317,9 @@ class PayToByBlockchainQueue extends BaseQueue {
             transactionId: tx.id,
           },
         })
+        if (tx.state === TRANSACTION_STATE.succeeded) {
+          return
+        }
       }
     }
 
@@ -353,8 +350,6 @@ class PayToByBlockchainQueue extends BaseQueue {
         })
         await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
       }
-      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
-      this.invalidCache(tx.targetType, tx.targetId)
     } else {
       // no related tx record, create one
       const trx = await this.knex.transaction()
@@ -384,9 +379,9 @@ class PayToByBlockchainQueue extends BaseQueue {
         await trx.rollback()
         throw error
       }
-      this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
-      this.invalidCache(tx.targetType, tx.targetId)
     }
+    this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
+    this.invalidCache(tx.targetType, tx.targetId)
   }
 
   private fetchCurationLogs = async (
