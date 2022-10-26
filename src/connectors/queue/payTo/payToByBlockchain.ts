@@ -29,7 +29,6 @@ import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import {
   fromTokenBaseUnit,
   getQueueNameForEnv,
-  numRound,
   toTokenBaseUnit,
 } from 'common/utils'
 import { PaymentService } from 'connectors'
@@ -552,7 +551,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       mediaHash: string
     }
   }) => {
-    const amount = numRound(parseFloat(tx.amount))
+    const amount = parseFloat(tx.amount)
     // send email to sender
     const author = await this.atomService.findFirst({
       table: 'user',
