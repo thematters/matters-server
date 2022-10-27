@@ -165,8 +165,19 @@ export class BaseService extends DataSource {
   /**
    * Create a batch of items
    */
-  baseBatchCreate = async (dataItems: ItemData[], table?: TableName) =>
-    this.knex.batchInsert(table || this.table, dataItems).returning('*')
+  baseBatchCreate = async (
+    dataItems: ItemData[],
+    table?: TableName,
+    trx?: Knex.Transaction
+  ) => {
+    const query = this.knex
+      .batchInsert(table || this.table, dataItems)
+      .returning('*')
+    if (trx) {
+      query.transacting(trx)
+    }
+    return query
+  }
 
   /**
    * Create or Update Item
@@ -177,12 +188,14 @@ export class BaseService extends DataSource {
     table,
     createOptions,
     updateUpdatedAt,
+    trx,
   }: {
     where: { [key: string]: any }
     data: ItemData
     table?: TableName
     createOptions?: { [key: string]: any }
     updateUpdatedAt?: boolean
+    trx?: Knex.Transaction
   }) => {
     const tableName = table || this.table
     const item = await this.knex(tableName).select().where(where).first()
@@ -193,11 +206,11 @@ export class BaseService extends DataSource {
       if (createOptions) {
         createData = { ...createData, ...createOptions }
       }
-      return this.baseCreate(createData, tableName)
+      return this.baseCreate(createData, tableName, undefined, undefined, trx)
     }
 
     // update
-    const [updatedItem] = await this.knex(tableName)
+    const query = this.knex(tableName)
       .where(where)
       .update({
         ...data,
@@ -205,6 +218,12 @@ export class BaseService extends DataSource {
       })
       .returning('*')
     // logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+    //
+    if (trx) {
+      query.transacting(trx)
+    }
+
+    const [updatedItem] = await query
 
     return updatedItem
   }

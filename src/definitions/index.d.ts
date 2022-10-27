@@ -2,7 +2,12 @@ import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
 import { Knex } from 'knex'
 
-import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
+import {
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_STATE,
+  TRANSACTION_PURPOSE,
+} from 'common/enums'
 import {
   ArticleService,
   AtomService,
@@ -169,6 +174,7 @@ export type BasicTableName =
   | 'user_tags_order'
   | 'blockchain_transaction'
   | 'blockchain_curation_event'
+  | 'blockchain_sync_record'
 
 export type View =
   | 'tag_count_view'
@@ -306,4 +312,23 @@ export type CirclePrice = {
   circleId: string
   provider: PAYMENT_PROVIDER
   providerPriceId: string
+}
+
+export type Transaction = {
+  id: string
+  amount: string
+  currency: PAYMENT_CURRENCY
+  state: TRANSACTION_STATE
+  purpose: TRANSACTION_PURPOSE
+  provider: PAYMENT_PROVIDER
+  providerTxId: string
+  senderId: string
+  recipientId: string
+  targetId: string
+  targetType: string
+  fee: string
+  remark: string
+  parentId: string
+  createdAt: string
+  updatedAt: string
 }

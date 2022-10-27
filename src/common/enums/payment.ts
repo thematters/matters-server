@@ -48,6 +48,10 @@ export const BLOCKCHAIN_CHAINID = {
   },
 }
 
+export const BLOCKCHAIN_SAFE_CONFIRMS = {
+  [BLOCKCHAIN.Polygon]: 128,
+}
+
 export enum BLOCKCHAIN_TRANSACTION_STATE {
   pending = 'pending',
   succeeded = 'succeeded',
@@ -89,7 +93,7 @@ export enum SLACK_MESSAGE_STATE {
 }
 
 export enum TRANSACTION_REMARK {
-  // LIKE
+  // LIKE & BLOCKCHAIN
   TIME_OUT = 'time_out',
 
   // BLOCKCHAIN
