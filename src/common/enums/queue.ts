@@ -21,6 +21,7 @@ export const QUEUE_JOB = {
   // LikeCoin
   like: 'likeCoinLike',
   sendPV: 'likeCoinSendPV',
+  getCivicLiker: 'getCivicLiker',
 
   // User
   archiveUser: 'userArchive',
