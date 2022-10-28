@@ -337,7 +337,7 @@ export default /* GraphQL */ `
     likerId: String
 
     "Whether liker is a civic liker"
-    civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
+    civicLiker: Boolean!
 
     "Total LIKE left in wallet."
     total: Float! @auth(mode: "${AUTH_MODE.oauth}")
