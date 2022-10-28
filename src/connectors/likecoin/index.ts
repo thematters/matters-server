@@ -341,9 +341,9 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  isCivicLiker = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+  isCivicLiker = async ({ likerId }: { likerId: string }) => {
     const res = await this.request({
-      endpoint: `/users/id/${liker.likerId}/min`,
+      endpoint: `/users/id/${likerId}/min`,
       method: 'GET',
       // liker,
     })
