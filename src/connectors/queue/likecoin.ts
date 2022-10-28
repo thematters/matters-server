@@ -74,70 +74,58 @@ class LikeCoinQueue extends BaseQueue {
     job,
     done
   ) => {
-    try {
-      const { likerId } = job.data as LikeData
-      const liker = await this.userService.findLiker({ likerId })
+    const { likerId } = job.data as LikeData
+    const liker = await this.userService.findLiker({ likerId })
 
-      if (!liker) {
-        return done(new Error(`liker (${likerId}) not found.`))
-      }
-
-      const result = await this.userService.likecoin.like({
-        liker,
-        ...(job.data as LikeData),
-      })
-      job.progress(100)
-      done(null, result)
-    } catch (e) {
-      done(e)
+    if (!liker) {
+      return done(new Error(`liker (${likerId}) not found.`))
     }
+
+    const result = await this.userService.likecoin.like({
+      liker,
+      ...(job.data as LikeData),
+    })
+    job.progress(100)
+    done(null, result)
   }
 
   private handleSendPV: Queue.ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {
-    try {
-      const { likerId } = job.data as SendPVData
+    const { likerId } = job.data as SendPVData
 
-      const liker = await this.userService.findLiker({ likerId })
+    const liker = await this.userService.findLiker({ likerId })
 
-      const result = await this.userService.likecoin.count({
-        liker: liker || undefined,
-        ...(job.data as SendPVData),
-      })
+    const result = await this.userService.likecoin.count({
+      liker: liker || undefined,
+      ...(job.data as SendPVData),
+    })
 
-      job.progress(100)
-      done(null, result)
-    } catch (e) {
-      done(e)
-    }
+    job.progress(100)
+    done(null, result)
   }
 
   private handleGetCivicLiker: Queue.ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {
-    try {
-      const { likerId } = job.data as GetCivicLikerData
+    const { likerId } = job.data as GetCivicLikerData
 
-      const isCivicLiker = await this.userService.likecoin.isCivicLiker({
-        likerId,
-      })
+    const isCivicLiker = await this.userService.likecoin.isCivicLiker({
+      likerId,
+    })
 
-      // update cache
-      const cacheService = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
-      cacheService.storeObject({
-        keys: { id: likerId },
-        data: isCivicLiker,
-        expire: CACHE_TTL.LONG,
-      })
+    // update cache
+    const cacheService = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
+    cacheService.storeObject({
+      keys: { id: likerId },
+      data: isCivicLiker,
+      expire: CACHE_TTL.LONG,
+    })
 
-      job.progress(100)
-      done(null, { likerId, isCivicLiker })
-    } catch (e) {
-      done(e)
-    }
+    job.progress(100)
+    done(null, { likerId, isCivicLiker })
   }
 }
 
