@@ -15,8 +15,6 @@ import { CurationContract } from 'connectors/blockchain'
 import { payToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
 
-import { getQueueResult } from './utils'
-
 // setup mock
 
 const mockFetchLogs = jest.fn()
@@ -119,7 +117,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
     const job = await queue.payTo({ txId: wrongTxId })
-    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
+    await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
     expect(await job.getState()).toBe('failed')
@@ -139,7 +137,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetType,
     })
     const job = await queue.payTo({ txId: tx.id })
-    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
+    await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('wrong pay-to queue')
     )
     expect(await job.getState()).toBe('failed')
@@ -159,7 +157,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetType,
     })
     const job = await queue.payTo({ txId: tx.id })
-    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
+    await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not found')
     )
     expect(await job.getState()).toBe('failed')
@@ -180,10 +178,10 @@ describe('payToByBlockchainQueue.payTo', () => {
         targetType,
       })
     const job = await queue.payTo({ txId: tx.id })
-    await expect(getQueueResult(queue.q, job.id)).rejects.toThrow(
+    await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not mined')
     )
-    expect(await job.getState()).toBe('active')
+    expect(await job.getState()).toBe('failed')
   })
 
   test('failed blockchain transation will mark transaction and blockchainTx as failed', async () => {
@@ -201,7 +199,7 @@ describe('payToByBlockchainQueue.payTo', () => {
         targetType,
       })
     const job = await queue.payTo({ txId: tx.id })
-    expect(await getQueueResult(queue.q, job.id)).toStrictEqual({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await queue.paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.failed)
     const blockchainTx = await queue.paymentService.baseFindById(
@@ -226,7 +224,7 @@ describe('payToByBlockchainQueue.payTo', () => {
         targetType,
       })
     const job = await queue.payTo({ txId: tx.id })
-    expect(await getQueueResult(queue.q, job.id)).toStrictEqual({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await queue.paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.canceled)
     expect(ret.remark).toBe(TRANSACTION_REMARK.INVALID)
@@ -252,7 +250,7 @@ describe('payToByBlockchainQueue.payTo', () => {
         targetType,
       })
     const job = await queue.payTo({ txId: tx.id })
-    expect(await getQueueResult(queue.q, job.id)).toStrictEqual({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await queue.paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
     const blockchainTx = await queue.paymentService.baseFindById(
