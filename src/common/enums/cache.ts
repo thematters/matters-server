@@ -25,4 +25,5 @@ export const CACHE_PREFIX = {
   OBJECTS: 'cache-objects',
   NFTS: 'cache-opensea-nfts',
   OPERATION_LOG: 'operation-log',
+  CIVIC_LIKER: 'civic-liker',
 }
