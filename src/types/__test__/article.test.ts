@@ -529,7 +529,7 @@ describe('edit article', () => {
     // should be still 0, after whatever how many times changing license
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
-  test.only('edit support settings', async () => {
+  test('edit support settings', async () => {
     const supportRequest = 'test support request'
     const supportReply = 'test support reply'
     const server = await testClient({
