@@ -39,6 +39,8 @@ import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
+import supportReply from './supportReply'
+import supportRequest from './supportRequest'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -119,6 +121,8 @@ export default {
     revisionCount,
     license: ({ license }: { license?: GQLArticleLicenseType }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+    supportRequest,
+    supportReply,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),

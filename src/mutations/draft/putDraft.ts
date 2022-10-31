@@ -69,6 +69,8 @@ const resolver: MutationToPutDraftResolver = async (
     circle: circleGlobalId,
     accessType,
     license,
+    supportRequest,
+    supportReply,
     iscnPublish,
   } = input
   if (!viewer.id) {
@@ -202,6 +204,8 @@ const resolver: MutationToPutDraftResolver = async (
       circleId,
       access: accessType,
       license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      supportRequest,
+      supportReply,
       iscnPublish,
     },
     _.isUndefined // to drop only undefined // _.isNil

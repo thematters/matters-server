@@ -95,6 +95,8 @@ const EDIT_ARTICLE = /* GraphQL */ `
       sticky
       state
       license
+      supportRequest
+      supportReply
       revisionCount
     }
   }
@@ -526,6 +528,27 @@ describe('edit article', () => {
 
     // should be still 0, after whatever how many times changing license
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
+  })
+  test('edit support settings', async () => {
+    const supportRequest = 'test support request'
+    const supportReply = 'test support reply'
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          supportRequest,
+          supportReply,
+        },
+      },
+    })
+    console.log(result.errors)
+    expect(_get(result, 'data.editArticle.supportRequest')).toBe(supportRequest)
+    expect(_get(result, 'data.editArticle.supportReply')).toBe(supportReply)
   })
 
   test('archive article', async () => {

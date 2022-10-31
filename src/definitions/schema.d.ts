@@ -599,6 +599,16 @@ export interface GQLArticle extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * message asking for support
+   */
+  supportRequest?: string
+
+  /**
+   * message after support
+   */
+  supportReply?: string
+
+  /**
    * the iscnId if published to ISCN
    */
   iscnId?: string
@@ -932,6 +942,8 @@ export interface GQLEditArticleInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
+  supportRequest?: string
+  supportReply?: string
 
   /**
    * whether publish to ISCN
@@ -1932,6 +1944,16 @@ export interface GQLDraft extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * message asking for support
+   */
+  supportRequest?: string
+
+  /**
+   * message after support
+   */
+  supportReply?: string
+
+  /**
    * whether publish to ISCN
    */
   iscnPublish?: boolean
@@ -1964,6 +1986,8 @@ export interface GQLPutDraftInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
+  supportRequest?: string
+  supportReply?: string
 
   /**
    * whether publish to ISCN
@@ -5888,6 +5912,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
+  supportRequest?: ArticleToSupportRequestResolver<TParent>
+  supportReply?: ArticleToSupportReplyResolver<TParent>
   iscnId?: ArticleToIscnIdResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
@@ -6316,6 +6342,24 @@ export interface ArticleToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSupportRequestResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSupportReplyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8465,6 +8509,8 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
+  supportRequest?: DraftToSupportRequestResolver<TParent>
+  supportReply?: DraftToSupportReplyResolver<TParent>
   iscnPublish?: DraftToIscnPublishResolver<TParent>
 }
 
@@ -8628,6 +8674,24 @@ export interface DraftToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSupportRequestResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSupportReplyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -67,6 +67,12 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
+    """message asking for support"""
+    supportRequest: String
+
+    """message after support"""
+    supportReply: String
+
     "whether publish to ISCN"
     iscnPublish: Boolean
   }
@@ -98,6 +104,9 @@ export default /* GraphQL */ `
     circle: ID
     accessType: ArticleAccessType
     license: ArticleLicenseType
+
+    supportRequest: String  @constraint(maxLength: 140)
+    supportReply: String  @constraint(maxLength: 140)
 
     "whether publish to ISCN"
     iscnPublish: Boolean
