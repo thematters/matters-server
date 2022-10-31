@@ -529,7 +529,7 @@ describe('edit article', () => {
     // should be still 0, after whatever how many times changing license
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
-  test('edit support settings', async () => {
+  test.only('edit support settings', async () => {
     const supportRequest = 'test support request'
     const supportReply = 'test support reply'
     const server = await testClient({
@@ -546,9 +546,25 @@ describe('edit article', () => {
         },
       },
     })
-    console.log(result.errors)
+
     expect(_get(result, 'data.editArticle.supportRequest')).toBe(supportRequest)
     expect(_get(result, 'data.editArticle.supportReply')).toBe(supportReply)
+
+    // update one support settings field will not reset other one
+    const supportRequest2 = 'test support request2'
+    const result2 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          supportRequest: supportRequest2,
+        },
+      },
+    })
+    expect(_get(result2, 'data.editArticle.supportRequest')).toBe(
+      supportRequest2
+    )
+    expect(_get(result2, 'data.editArticle.supportReply')).toBe(supportReply)
   })
 
   test('archive article', async () => {
