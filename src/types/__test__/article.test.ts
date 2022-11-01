@@ -623,7 +623,7 @@ describe('edit article', () => {
       targetId: '1',
       targetType: TRANSACTION_TARGET_TYPE.article,
       provider: PAYMENT_PROVIDER.matters,
-      providerTxId: '1',
+      providerTxId: Math.random().toString(),
     })
     const result5 = await donatorServer.executeOperation({
       query: GET_ARTICLE,
