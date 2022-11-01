@@ -4,16 +4,37 @@ import {
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   NODE_TYPES,
+  PAYMENT_PROVIDER,
   PUBLISH_STATE,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { PaymentService } from 'connectors'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
-import { publishArticle, putDraft, testClient, updateUserState } from './utils'
+import {
+  getUserContext,
+  publishArticle,
+  putDraft,
+  testClient,
+  updateUserState,
+} from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+
+const GET_ARTICLE = /* GraphQL */ `
+  query ($input: ArticleInput!) {
+    article(input: $input) {
+      id
+      supportRequest
+      supportReply
+    }
+  }
+`
 
 const GET_ARTICLES = /* GraphQL */ `
   query ($input: ConnectionArgs!) {
@@ -565,6 +586,55 @@ describe('edit article', () => {
       supportRequest2
     )
     expect(_get(result2, 'data.editArticle.supportReply')).toBe(supportReply)
+
+    // non-donators can not view supportReply
+    const anonymousServer = await testClient()
+    const result3 = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash,
+        },
+      },
+    })
+    expect(_get(result3, 'data.article.supportRequest')).toBe(supportRequest2)
+    expect(_get(result3, 'data.article.supportReply')).toBe(null)
+
+    const context = await getUserContext({ email: 'test2@matters.news' })
+    const donatorServer = await testClient({ context })
+    const result4 = await donatorServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash,
+        },
+      },
+    })
+    expect(_get(result4, 'data.article.supportRequest')).toBe(supportRequest2)
+    expect(_get(result4, 'data.article.supportReply')).toBe(null)
+
+    // donators can view supportReply
+    const paymentService = new PaymentService()
+    await paymentService.createTransaction({
+      amount: 1,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+      senderId: context.viewer.id,
+      targetId: '1',
+      targetType: TRANSACTION_TARGET_TYPE.article,
+      provider: PAYMENT_PROVIDER.matters,
+      providerTxId: '1',
+    })
+    const result5 = await donatorServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash,
+        },
+      },
+    })
+    expect(_get(result5, 'data.article.supportRequest')).toBe(supportRequest2)
+    expect(_get(result5, 'data.article.supportReply')).toBe(supportReply)
   })
 
   test('archive article', async () => {
