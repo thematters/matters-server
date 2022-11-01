@@ -23,6 +23,7 @@ export default {
   Draft: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Draft, id }),
     slug: ({ title }: { title: string }) => slugify(title),
+    mediahHash: ({ mediahHash }: { mediahHash: string }) => mediahHash || '',
     wordCount: ({ content }: { content?: string }) =>
       content ? countWords(content) : 0,
     summary: ({ summary, content }: { summary?: string; content: string }) =>
