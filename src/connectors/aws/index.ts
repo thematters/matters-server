@@ -10,6 +10,7 @@ import { GQLAssetType } from 'definitions'
 
 export class AWSService {
   s3: AWS.S3
+  sqs?: AWS.SQS
   s3Bucket: string
   s3Endpoint: string
 
@@ -18,6 +19,9 @@ export class AWSService {
     this.s3 = new AWS.S3()
     this.s3Bucket = this.getS3Bucket()
     this.s3Endpoint = this.getS3Endpoint()
+    if (environment.awsIpfsArticlesQueueUrl) {
+      this.sqs = new AWS.SQS()
+    }
   }
 
   /**
@@ -176,6 +180,22 @@ export class AWSService {
       .deleteObject({
         Bucket: this.s3Bucket,
         Key: key,
+      })
+      .promise()
+
+  // no-op if sqs not initialized; when env sqs queue-url not set
+  sqsSendMessage = async ({
+    MessageGroupId,
+    MessageBody,
+  }: {
+    MessageGroupId: string
+    MessageBody: any
+  }) =>
+    this.sqs
+      ?.sendMessage({
+        MessageGroupId,
+        MessageBody: JSON.stringify(MessageBody),
+        QueueUrl: environment.awsIpfsArticlesQueueUrl,
       })
       .promise()
 }
