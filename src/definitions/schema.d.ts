@@ -599,14 +599,14 @@ export interface GQLArticle extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
-   * message asking for support
+   * creator message asking for support
    */
-  supportRequest?: string
+  requestForDonation?: string
 
   /**
-   * message after support
+   * creator message after support
    */
-  supportReply?: string
+  replyToDonator?: string
 
   /**
    * the iscnId if published to ISCN
@@ -942,8 +942,8 @@ export interface GQLEditArticleInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
-  supportRequest?: string
-  supportReply?: string
+  requestForDonation?: string
+  replyToDonator?: string
 
   /**
    * whether publish to ISCN
@@ -1945,14 +1945,14 @@ export interface GQLDraft extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
-   * message asking for support
+   * creator message asking for support
    */
-  supportRequest?: string
+  requestForDonation?: string
 
   /**
-   * message after support
+   * creator message after support
    */
-  supportReply?: string
+  replyToDonator?: string
 
   /**
    * whether publish to ISCN
@@ -1987,8 +1987,8 @@ export interface GQLPutDraftInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
-  supportRequest?: string
-  supportReply?: string
+  requestForDonation?: string
+  replyToDonator?: string
 
   /**
    * whether publish to ISCN
@@ -5913,8 +5913,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
-  supportRequest?: ArticleToSupportRequestResolver<TParent>
-  supportReply?: ArticleToSupportReplyResolver<TParent>
+  requestForDonation?: ArticleToRequestForDonationResolver<TParent>
+  replyToDonator?: ArticleToReplyToDonatorResolver<TParent>
   iscnId?: ArticleToIscnIdResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
@@ -6351,7 +6351,10 @@ export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ArticleToSupportRequestResolver<TParent = any, TResult = any> {
+export interface ArticleToRequestForDonationResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -6360,7 +6363,7 @@ export interface ArticleToSupportRequestResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ArticleToSupportReplyResolver<TParent = any, TResult = any> {
+export interface ArticleToReplyToDonatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8510,8 +8513,8 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
-  supportRequest?: DraftToSupportRequestResolver<TParent>
-  supportReply?: DraftToSupportReplyResolver<TParent>
+  requestForDonation?: DraftToRequestForDonationResolver<TParent>
+  replyToDonator?: DraftToReplyToDonatorResolver<TParent>
   iscnPublish?: DraftToIscnPublishResolver<TParent>
 }
 
@@ -8683,7 +8686,10 @@ export interface DraftToLicenseResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToSupportRequestResolver<TParent = any, TResult = any> {
+export interface DraftToRequestForDonationResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -8692,7 +8698,7 @@ export interface DraftToSupportRequestResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToSupportReplyResolver<TParent = any, TResult = any> {
+export interface DraftToReplyToDonatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

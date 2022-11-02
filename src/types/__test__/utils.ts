@@ -195,8 +195,8 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         content
         createdAt
         license
-        supportRequest
-        supportReply
+        requestForDonation
+        replyToDonator
         iscnPublish
       }
     }

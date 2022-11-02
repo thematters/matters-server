@@ -3,10 +3,10 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { ArticleToSupportReplyResolver } from 'definitions'
+import { ArticleToReplyToDonatorResolver } from 'definitions'
 
-const resolver: ArticleToSupportReplyResolver = async (
-  { authorId, articleId, supportReply },
+const resolver: ArticleToReplyToDonatorResolver = async (
+  { authorId, articleId, replyToDonator },
   _,
   { viewer, dataSources }
 ) => {
@@ -17,7 +17,7 @@ const resolver: ArticleToSupportReplyResolver = async (
   const isAuthor = viewer.id === authorId
   const isDonator = await _isDonator(viewer.id, articleId, dataSources)
   if (isAuthor || isDonator) {
-    return supportReply
+    return replyToDonator
   } else {
     return null
   }
