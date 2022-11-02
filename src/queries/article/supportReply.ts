@@ -10,6 +10,10 @@ const resolver: ArticleToSupportReplyResolver = async (
   _,
   { viewer, dataSources }
 ) => {
+  if (!viewer.id) {
+    return null
+  }
+
   const isAuthor = viewer.id === authorId
   const isDonator = await _isDonator(viewer.id, articleId, dataSources)
   if (isAuthor || isDonator) {
@@ -20,7 +24,7 @@ const resolver: ArticleToSupportReplyResolver = async (
 }
 
 const _isDonator = async (
-  viewerId: string | null,
+  viewerId: string,
   articleId: string,
   { atomService, paymentService }: any
 ) => {
@@ -37,7 +41,7 @@ const _isDonator = async (
       senderId: viewerId,
     },
   })
-  return !!count
+  return count > 0
 }
 
 export default resolver
