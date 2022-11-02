@@ -132,7 +132,7 @@ class RevisionQueue extends BaseQueue {
         const revised = { ...draft, summary }
 
         // Step 3: update draft
-        draft = await Promise.all([
+        ;[draft] = await Promise.all([
           this.draftService.baseUpdate(draft.id, {
             // dataHash,
             // mediaHash,
@@ -240,6 +240,7 @@ class RevisionQueue extends BaseQueue {
           )
         }
 
+        // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
         let ipnsRes: any
         try {
           const {
