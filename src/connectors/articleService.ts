@@ -1446,11 +1446,13 @@ export class ArticleService extends BaseService {
     state = TRANSACTION_STATE.succeeded,
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
+    senderId,
   }: {
     purpose?: TRANSACTION_PURPOSE
     state?: TRANSACTION_STATE
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
+    senderId?: string
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     const result = await this.knex
@@ -1468,6 +1470,11 @@ export class ArticleService extends BaseService {
           .groupBy('sender_id', 'target_id')
         source.as('source')
       })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (senderId) {
+          builder.where({ senderId })
+        }
+      })
       .count()
       .first()
 
@@ -1484,6 +1491,7 @@ export class ArticleService extends BaseService {
     state = TRANSACTION_STATE.succeeded,
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
+    senderId,
   }: {
     take?: number
     skip?: number
@@ -1491,6 +1499,7 @@ export class ArticleService extends BaseService {
     state?: TRANSACTION_STATE
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
+    senderId?: string
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     return this.knex('transaction')
@@ -1511,6 +1520,9 @@ export class ArticleService extends BaseService {
         }
         if (take !== undefined && Number.isFinite(take)) {
           builder.limit(take)
+        }
+        if (senderId) {
+          builder.where({ senderId })
         }
       })
   }

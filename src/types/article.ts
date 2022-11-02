@@ -554,6 +554,7 @@ export default /* GraphQL */ `
     after: String
     first: Int @constraint(min: 0)
     purpose: TransactionPurpose!
+    senderId: ID
   }
 
   input TranslationArgs {

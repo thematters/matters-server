@@ -1070,6 +1070,7 @@ export interface GQLTransactionsReceivedByArgs {
   after?: string
   first?: number
   purpose: GQLTransactionPurpose
+  senderId?: string
 }
 
 export interface GQLTranslationArgs {

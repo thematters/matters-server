@@ -788,6 +788,7 @@ input TransactionsReceivedByArgs {
   after: String
   first: Int
   purpose: TransactionPurpose!
+  senderId: ID
 }
 
 input TranslationArgs {
