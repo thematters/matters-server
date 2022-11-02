@@ -30,8 +30,8 @@ const GET_ARTICLE = /* GraphQL */ `
   query ($input: ArticleInput!) {
     article(input: $input) {
       id
-      supportRequest
-      supportReply
+      requestForDonation
+      replyToDonator
     }
   }
 `
@@ -116,8 +116,8 @@ const EDIT_ARTICLE = /* GraphQL */ `
       sticky
       state
       license
-      supportRequest
-      supportReply
+      requestForDonation
+      replyToDonator
       revisionCount
     }
   }
@@ -551,8 +551,8 @@ describe('edit article', () => {
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
   test('edit support settings', async () => {
-    const supportRequest = 'test support request'
-    const supportReply = 'test support reply'
+    const requestForDonation = 'test support request'
+    const replyToDonator = 'test support reply'
     const server = await testClient({
       isAuth: true,
       isAdmin: false,
@@ -562,32 +562,36 @@ describe('edit article', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          supportRequest,
-          supportReply,
+          requestForDonation,
+          replyToDonator,
         },
       },
     })
 
-    expect(_get(result, 'data.editArticle.supportRequest')).toBe(supportRequest)
-    expect(_get(result, 'data.editArticle.supportReply')).toBe(supportReply)
+    expect(_get(result, 'data.editArticle.requestForDonation')).toBe(
+      requestForDonation
+    )
+    expect(_get(result, 'data.editArticle.replyToDonator')).toBe(replyToDonator)
 
     // update one support settings field will not reset other one
-    const supportRequest2 = 'test support request2'
+    const requestForDonation2 = 'test support request2'
     const result2 = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: ARTICLE_ID,
-          supportRequest: supportRequest2,
+          requestForDonation: requestForDonation2,
         },
       },
     })
-    expect(_get(result2, 'data.editArticle.supportRequest')).toBe(
-      supportRequest2
+    expect(_get(result2, 'data.editArticle.requestForDonation')).toBe(
+      requestForDonation2
     )
-    expect(_get(result2, 'data.editArticle.supportReply')).toBe(supportReply)
+    expect(_get(result2, 'data.editArticle.replyToDonator')).toBe(
+      replyToDonator
+    )
 
-    // non-donators can not view supportReply
+    // non-donators can not view replyToDonator
     const anonymousServer = await testClient()
     const result3 = await anonymousServer.executeOperation({
       query: GET_ARTICLE,
@@ -597,8 +601,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result3, 'data.article.supportRequest')).toBe(supportRequest2)
-    expect(_get(result3, 'data.article.supportReply')).toBe(null)
+    expect(_get(result3, 'data.article.requestForDonation')).toBe(
+      requestForDonation2
+    )
+    expect(_get(result3, 'data.article.replyToDonator')).toBe(null)
 
     const context = await getUserContext({ email: 'test2@matters.news' })
     const donatorServer = await testClient({ context })
@@ -610,10 +616,12 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result4, 'data.article.supportRequest')).toBe(supportRequest2)
-    expect(_get(result4, 'data.article.supportReply')).toBe(null)
+    expect(_get(result4, 'data.article.requestForDonation')).toBe(
+      requestForDonation2
+    )
+    expect(_get(result4, 'data.article.replyToDonator')).toBe(null)
 
-    // donators can view supportReply
+    // donators can view replyToDonator
     const paymentService = new PaymentService()
     await paymentService.createTransaction({
       amount: 1,
@@ -633,8 +641,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result5, 'data.article.supportRequest')).toBe(supportRequest2)
-    expect(_get(result5, 'data.article.supportReply')).toBe(supportReply)
+    expect(_get(result5, 'data.article.requestForDonation')).toBe(
+      requestForDonation2
+    )
+    expect(_get(result5, 'data.article.replyToDonator')).toBe(replyToDonator)
   })
 
   test('archive article', async () => {

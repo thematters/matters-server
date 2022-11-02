@@ -154,26 +154,26 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id: draftId } })
 
     // default
-    expect(_get(result, 'supportRequest')).toBe(null)
-    expect(_get(result, 'supportReply')).toBe(null)
+    expect(_get(result, 'requestForDonation')).toBe(null)
+    expect(_get(result, 'replyToDonator')).toBe(null)
 
     // set long texts (length > 140) will throw error
     const longText = 't'.repeat(141)
     const result2 = await putDraft({
-      draft: { id: draftId, supportRequest: longText },
+      draft: { id: draftId, requestForDonation: longText },
     })
     expect(_get(result2, 'errors')).toBeDefined()
     const result3 = await putDraft({
-      draft: { id: draftId, supportReply: longText },
+      draft: { id: draftId, replyToDonator: longText },
     })
     expect(_get(result3, 'errors')).toBeDefined()
 
     // set text
     const text = 't'.repeat(140)
     const result4 = await putDraft({
-      draft: { id: draftId, supportRequest: text, supportReply: text },
+      draft: { id: draftId, requestForDonation: text, replyToDonator: text },
     })
-    expect(_get(result4, 'supportRequest')).toBe(text)
-    expect(_get(result4, 'supportReply')).toBe(text)
+    expect(_get(result4, 'requestForDonation')).toBe(text)
+    expect(_get(result4, 'replyToDonator')).toBe(text)
   })
 })

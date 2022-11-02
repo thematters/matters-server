@@ -57,8 +57,8 @@ const resolver: MutationToEditArticleResolver = async (
       circle: circleGlobalId,
       accessType,
       license,
-      supportRequest,
-      supportReply,
+      requestForDonation,
+      replyToDonator,
       iscnPublish,
     },
   },
@@ -472,15 +472,15 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Support settings
    */
-  const isUpdatingSupportRequest = !!supportRequest
-  const isUpdatingSupportReply = !!supportRequest
-  if (isUpdatingSupportRequest || isUpdatingSupportReply) {
+  const isUpdatingRequestForDonation = !!requestForDonation
+  const isUpdatingReplyToDonator = !!requestForDonation
+  if (isUpdatingRequestForDonation || isUpdatingReplyToDonator) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
       data: {
-        supportRequest,
-        supportReply,
+        requestForDonation,
+        replyToDonator,
         updatedAt: knex.fn.now(),
       },
     })
@@ -534,8 +534,8 @@ const resolver: MutationToEditArticleResolver = async (
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
         license: currDraft?.license,
-        supportRequest: currDraft?.supportRequest,
-        supportReply: currDraft?.supportReply,
+        requestForDonation: currDraft?.requestForDonation,
+        replyToDonator: currDraft?.replyToDonator,
         // iscnPublish,
       },
       lodash.isUndefined // to drop only undefined // _.isNil
