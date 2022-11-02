@@ -465,12 +465,12 @@ export interface GQLArticle extends GQLNode {
   /**
    * IPFS hash of this article.
    */
-  dataHash?: string
+  dataHash: string
 
   /**
    * Media hash, composed of cid encoding, of this article.
    */
-  mediaHash?: string
+  mediaHash: string
 
   /**
    * Content of this article.

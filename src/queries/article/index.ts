@@ -104,6 +104,8 @@ export default {
     remark,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title),
+    dataHash: ({ dataHash }: { dataHash: string }) => dataHash || '',
+    mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
     state,
     sticky,
     subscribed,
