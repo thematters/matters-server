@@ -18,10 +18,10 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
-import logger from 'common/logger'
+// import logger from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
-import { GQLArticleAccessType } from 'definitions'
+// import { GQLArticleAccessType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -97,7 +97,7 @@ class RevisionQueue extends BaseQueue {
     async (job, done) => {
       const { draftId, iscnPublish } = job.data as RevisedArticleData
 
-      const draft = await this.draftService.baseFindById(draftId)
+      let draft = await this.draftService.baseFindById(draftId)
 
       // Step 1: checks
       if (!draft) {
@@ -110,7 +110,7 @@ class RevisionQueue extends BaseQueue {
         done(null, `Revision draft ${draftId} isn\'t in pending state.`)
         return
       }
-      const article = await this.articleService.baseFindById(draft.articleId)
+      let article = await this.articleService.baseFindById(draft.articleId)
       if (!article) {
         job.progress(100)
         done(null, `Revised article ${draft.articleId} not found`)
@@ -131,18 +131,11 @@ class RevisionQueue extends BaseQueue {
         // Step 2: publish content to IPFS
         const revised = { ...draft, summary }
 
-        const {
-          contentHash: dataHash,
-          mediaHash,
-          key,
-        } = await this.articleService.publishToIPFS(revised)
-        job.progress(30)
-
         // Step 3: update draft
-        await Promise.all([
+        ;[draft] = await Promise.all([
           this.draftService.baseUpdate(draft.id, {
-            dataHash,
-            mediaHash,
+            // dataHash,
+            // mediaHash,
             wordCount,
             archived: true,
             // iscnId,
@@ -157,9 +150,7 @@ class RevisionQueue extends BaseQueue {
 
         // Step 4: update secret
         if (draft.circleId) {
-          const secret =
-            draft.access === GQLArticleAccessType.paywall ? key : null
-          await this.handleCircle({ article, circleId: draft.circleId, secret })
+          await this.handleCircle({ article, circleId: draft.circleId })
         }
         job.progress(45)
 
@@ -170,8 +161,8 @@ class RevisionQueue extends BaseQueue {
           article.id,
           {
             draftId: draft.id,
-            dataHash,
-            mediaHash,
+            dataHash: null, // TBD in Section2
+            mediaHash: null,
             summary,
             wordCount,
             revisionCount,
@@ -181,13 +172,12 @@ class RevisionQueue extends BaseQueue {
         )
         job.progress(50)
 
-        let iscnId = null
+        const author = await this.userService.baseFindById(article.authorId)
+        const { userName, displayName } = author
 
         // Note: the following steps won't affect the publication.
+        // Section1: update local DB related
         try {
-          const author = await this.userService.baseFindById(article.authorId)
-          const { userName, displayName } = author
-
           // Step 6: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
           // @see src/mutations/article/editArticle.ts
@@ -200,6 +190,98 @@ class RevisionQueue extends BaseQueue {
           })
           job.progress(60)
 
+          // Step 7: add to search
+          await this.articleService.addToSearch({
+            ...article,
+            content: draft.content,
+            userName,
+            displayName,
+          })
+          // job.progress(80)
+
+          // Step 8: handle newly added mentions
+          await this.handleMentions({
+            article: updatedArticle,
+            preDraftContent: preDraft.content,
+            content: draft.content,
+          })
+          // job.progress(90)
+
+          // Step 9: trigger notifications
+          this.notificationService.trigger({
+            event: DB_NOTICE_TYPE.revised_article_published,
+            recipientId: article.authorId,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+            ],
+          })
+          // job.progress(95)
+
+          // Step 10: invalidate article and user cache
+          await Promise.all([
+            invalidateFQC({
+              node: { type: NODE_TYPES.User, id: article.authorId },
+              redis: this.cacheService.redis,
+            }),
+            invalidateFQC({
+              node: { type: NODE_TYPES.Article, id: article.id },
+              redis: this.cacheService.redis,
+            }),
+          ])
+          // job.progress(100)
+        } catch (err) {
+          // ignore errors caused by these steps
+          console.error(
+            new Date(),
+            'job failed at optional step:',
+            err,
+            job,
+            draft
+          )
+        }
+
+        // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
+        let ipnsRes: any
+        try {
+          const {
+            contentHash: dataHash,
+            mediaHash,
+            key,
+          } = await this.articleService.publishToIPFS(revised)
+          // job.progress(30)
+
+          ;[draft, article] = await Promise.all([
+            this.draftService.baseUpdate(draft.id, {
+              dataHash,
+              mediaHash,
+              updatedAt: this.knex.fn.now(),
+            }),
+            this.articleService.baseUpdate(article.id, {
+              dataHash,
+              mediaHash,
+              updatedAt: this.knex.fn.now(),
+            }),
+          ])
+
+          if (key && draft.access) {
+            const data = {
+              articleId: article.id,
+              circleId: draft.circleId,
+              // secret: key,
+            }
+
+            await this.atomService.update({
+              table: 'article_circle',
+              where: data,
+              data: {
+                ...data,
+                secret: key,
+                access: draft.access,
+                updatedAt: this.knex.fn.now(),
+              },
+            })
+          }
+
           // Step: iscn publishing
           if (iscnPublish) {
             const liker = (await this.userService.findLiker({
@@ -210,7 +292,7 @@ class RevisionQueue extends BaseQueue {
                 liker,
               })
 
-            iscnId = await this.userService.likecoin.iscnPublish({
+            const iscnId = await this.userService.likecoin.iscnPublish({
               mediaHash: `hash://sha256/${mediaHash}`,
               ipfsHash: `ipfs://${dataHash}`,
               cosmosWallet, // 'TBD',
@@ -226,11 +308,9 @@ class RevisionQueue extends BaseQueue {
               // likerIp,
               // userAgent,
             })
-          }
 
-          if (iscnPublish) {
             // handling both cases of set to true or false, but not omit (undefined)
-            await Promise.all([
+            ;[draft, article] = await Promise.all([
               this.draftService.baseUpdate(draft.id, {
                 iscnId,
                 iscnPublish, // : iscnPublish || draft.iscnPublish,
@@ -242,51 +322,12 @@ class RevisionQueue extends BaseQueue {
               }),
             ])
           }
-          job.progress(70)
 
-          // Step 7: add to search
-          await this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
+          ipnsRes = await this.articleService.publishFeedToIPNS({
             userName,
-            displayName,
+            // incremental: true, // attach the last just published article
           })
-          job.progress(80)
-
-          // Step 8: handle newly added mentions
-          await this.handleMentions({
-            article: updatedArticle,
-            preDraftContent: preDraft.content,
-            content: draft.content,
-          })
-          job.progress(90)
-
-          // Step 9: trigger notifications
-          this.notificationService.trigger({
-            event: DB_NOTICE_TYPE.revised_article_published,
-            recipientId: article.authorId,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-            ],
-          })
-          job.progress(95)
-
-          // Step 10: invalidate article and user cache
-          await Promise.all([
-            invalidateFQC({
-              node: { type: NODE_TYPES.User, id: article.authorId },
-              redis: this.cacheService.redis,
-            }),
-            invalidateFQC({
-              node: { type: NODE_TYPES.Article, id: article.id },
-              redis: this.cacheService.redis,
-            }),
-          ])
-          job.progress(100)
         } catch (err) {
-          // ignore errors caused by these steps
-          logger.error(err)
-
           console.error(
             new Date(),
             'job failed at optional step:',
@@ -296,13 +337,40 @@ class RevisionQueue extends BaseQueue {
           )
         }
 
+        job.progress(100)
+
+        // no await to notify async
+        this.atomService.aws
+          ?.sqsSendMessage({
+            MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+            MessageBody: {
+              articleId: article.id,
+              title: article.title,
+              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+              dataHash: article.dataHash,
+              mediaHash: article.mediaHash,
+
+              // ipns info:
+              ipnsKey: ipnsRes?.ipnsKey,
+              lastDataHash: ipnsRes?.lastDataHash,
+
+              // author info:
+              userName,
+              displayName,
+            },
+          })
+          // .then(res => {})
+          .catch((err: Error) =>
+            console.error(new Date(), 'failed sqs notify:', err)
+          )
+
         done(null, {
           articleId: article.id,
           draftId: draft.id,
-          dataHash,
-          mediaHash,
+          dataHash: article.dataHash,
+          mediaHash: article.mediaHash,
           iscnPublish, // : iscnPublish || draft.iscnPublish,
-          iscnId,
+          iscnId: draft.iscnId,
         })
       } catch (e) {
         await this.draftService.baseUpdate(draft.id, {

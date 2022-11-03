@@ -31,6 +31,8 @@ import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
+import replyToDonator from './replyToDonator'
+import requestForDonation from './requestForDonation'
 import revisedAt from './revisedAt'
 import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
@@ -102,6 +104,8 @@ export default {
     remark,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title),
+    dataHash: ({ dataHash }: { dataHash: string }) => dataHash || '',
+    mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
     state,
     sticky,
     subscribed,
@@ -119,6 +123,8 @@ export default {
     revisionCount,
     license: ({ license }: { license?: GQLArticleLicenseType }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+    requestForDonation,
+    replyToDonator,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),

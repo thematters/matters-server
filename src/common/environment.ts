@@ -42,6 +42,8 @@ export const environment = {
   awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
+  awsIpfsArticlesQueueUrl:
+    process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
   esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
   esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,

@@ -599,6 +599,16 @@ export interface GQLArticle extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * creator message asking for support
+   */
+  requestForDonation?: string
+
+  /**
+   * creator message after support
+   */
+  replyToDonator?: string
+
+  /**
    * the iscnId if published to ISCN
    */
   iscnId?: string
@@ -932,6 +942,8 @@ export interface GQLEditArticleInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
+  requestForDonation?: string
+  replyToDonator?: string
 
   /**
    * whether publish to ISCN
@@ -1058,6 +1070,7 @@ export interface GQLTransactionsReceivedByArgs {
   after?: string
   first?: number
   purpose: GQLTransactionPurpose
+  senderId?: string
 }
 
 export interface GQLTranslationArgs {
@@ -1932,6 +1945,16 @@ export interface GQLDraft extends GQLNode {
   license: GQLArticleLicenseType
 
   /**
+   * creator message asking for support
+   */
+  requestForDonation?: string
+
+  /**
+   * creator message after support
+   */
+  replyToDonator?: string
+
+  /**
    * whether publish to ISCN
    */
   iscnPublish?: boolean
@@ -1964,6 +1987,8 @@ export interface GQLPutDraftInput {
   circle?: string
   accessType?: GQLArticleAccessType
   license?: GQLArticleLicenseType
+  requestForDonation?: string
+  replyToDonator?: string
 
   /**
    * whether publish to ISCN
@@ -5888,6 +5913,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
+  requestForDonation?: ArticleToRequestForDonationResolver<TParent>
+  replyToDonator?: ArticleToReplyToDonatorResolver<TParent>
   iscnId?: ArticleToIscnIdResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
@@ -6316,6 +6343,27 @@ export interface ArticleToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToRequestForDonationResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToReplyToDonatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8465,6 +8513,8 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
+  requestForDonation?: DraftToRequestForDonationResolver<TParent>
+  replyToDonator?: DraftToReplyToDonatorResolver<TParent>
   iscnPublish?: DraftToIscnPublishResolver<TParent>
 }
 
@@ -8628,6 +8678,27 @@ export interface DraftToAccessResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToLicenseResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToRequestForDonationResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToReplyToDonatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

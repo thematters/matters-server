@@ -37,6 +37,8 @@ import {
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
+const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
+
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
   draftLoader: DataLoader<string, Item>
@@ -343,7 +345,9 @@ export class ArticleService extends BaseService {
           await this.ipfs.client.files.cp(
             `/ipfs/${lastDataHash}`,
             `/${directoryName}`,
-            { timeout: 60e3 }
+            {
+              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
+            }
           )
         } else {
           await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
@@ -359,13 +363,13 @@ export class ArticleService extends BaseService {
           create: true,
           parents: true, // create parents if not existed;
           truncate: true,
-          timeout: 60e3,
+          timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
         })
       }
 
       const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`, {
         withLocal: true,
-        timeout: 60e3,
+        timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
       // console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
       cidToPublish = dirStat0.cid
@@ -386,7 +390,9 @@ export class ArticleService extends BaseService {
             // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
             newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
             newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
-            { timeout: 60e3 }
+            {
+              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
+            }
           )
           attached.push(newEntry)
         } catch (err) {
@@ -401,7 +407,7 @@ export class ArticleService extends BaseService {
 
       const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`, {
         withLocal: true,
-        timeout: 60e3,
+        timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
       console.log(
         new Date(),
@@ -421,8 +427,8 @@ export class ArticleService extends BaseService {
           // HTTPError: no key by the given name was found
           published = await this.ipfs.client.name.publish(cidToPublish, {
             lifetime: '1680h',
-            key: kname,
-            timeout: 60e3,
+            key: ipnsKey, // kname,
+            timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
           })
           break
         } catch (err) {
@@ -445,6 +451,31 @@ export class ArticleService extends BaseService {
       }
 
       console.log(new Date(), `/${directoryName} published:`, published)
+
+      atomService.aws
+        .sqsSendMessage({
+          MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
+          MessageBody: {
+            articleId: lastArticle.id,
+            title: lastArticle.title,
+            dataHash: lastArticle.dataHash,
+            mediaHash: lastArticle.mediaHash,
+
+            // ipns info:
+            ipnsKey,
+            lastDataHash: cidToPublish.toString(),
+
+            // author info:
+            userName: author.userName,
+            displayName: author.displayName,
+          },
+        })
+        // .then(res => {})
+        .catch((err: Error) =>
+          console.error(new Date(), 'failed sqs notify:', err)
+        )
+
+      return { ipnsKey, lastDataHash: cidToPublish.toString() }
     } finally {
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
         await atomService.update({
@@ -1446,11 +1477,13 @@ export class ArticleService extends BaseService {
     state = TRANSACTION_STATE.succeeded,
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
+    senderId,
   }: {
     purpose?: TRANSACTION_PURPOSE
     state?: TRANSACTION_STATE
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
+    senderId?: string
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     const result = await this.knex
@@ -1468,6 +1501,11 @@ export class ArticleService extends BaseService {
           .groupBy('sender_id', 'target_id')
         source.as('source')
       })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (senderId) {
+          builder.where({ senderId })
+        }
+      })
       .count()
       .first()
 
@@ -1484,6 +1522,7 @@ export class ArticleService extends BaseService {
     state = TRANSACTION_STATE.succeeded,
     targetId,
     targetType = TRANSACTION_TARGET_TYPE.article,
+    senderId,
   }: {
     take?: number
     skip?: number
@@ -1491,6 +1530,7 @@ export class ArticleService extends BaseService {
     state?: TRANSACTION_STATE
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
+    senderId?: string
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     return this.knex('transaction')
@@ -1511,6 +1551,9 @@ export class ArticleService extends BaseService {
         }
         if (take !== undefined && Number.isFinite(take)) {
           builder.limit(take)
+        }
+        if (senderId) {
+          builder.where({ senderId })
         }
       })
   }

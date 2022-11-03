@@ -52,7 +52,7 @@ class PublicationQueue extends BaseQueue {
     numArticles = 50,
   }: {
     userName: string
-    numArticles: number
+    numArticles?: number
   }) =>
     this.q.add(
       QUEUE_JOB.refreshIPNSFeed,
@@ -120,7 +120,7 @@ class PublicationQueue extends BaseQueue {
       draftId: string
       iscnPublish?: boolean
     }
-    const draft = await this.draftService.baseFindById(draftId)
+    let draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
@@ -134,21 +134,13 @@ class PublicationQueue extends BaseQueue {
       const summary = draft.summary || makeSummary(draft.content)
       const wordCount = countWords(draft.content)
 
-      // Step 2: publish content to IPFS
-      const {
-        contentHash: dataHash,
-        mediaHash,
-        key,
-      } = await this.articleService.publishToIPFS(draft)
-      job.progress(10)
-
       // Step 3: create an article
       let article
       const articleData = {
         ...draft,
         draftId: draft.id,
-        dataHash,
-        mediaHash,
+        // dataHash,
+        // mediaHash,
         summary,
         wordCount,
         slug: slugify(draft.title),
@@ -170,8 +162,8 @@ class PublicationQueue extends BaseQueue {
           articleId: article.id,
           summary,
           wordCount,
-          dataHash,
-          mediaHash,
+          // dataHash,
+          // mediaHash,
           archived: true,
           // iscnId,
           publishState: PUBLISH_STATE.published,
@@ -183,21 +175,25 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(30)
 
-      let iscnId = null
+      const author = await this.userService.baseFindById(draft.authorId)
+      const { userName, displayName } = author
+      let tags = draft.tags as string[]
 
       // Note: the following steps won't affect the publication.
+      // Section1: update local DB related
       try {
-        const author = await this.userService.baseFindById(draft.authorId)
-        const { userName, displayName } = author
-
         // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
         job.progress(40)
 
-        await this.handleCircle({ draft, article, secret: key })
+        await this.handleCircle({
+          draft,
+          article,
+          // secret: key // TO update secret in 'article_circle' later after IPFS published
+        })
         job.progress(45)
 
-        const tags = await this.handleTags({ draft, article })
+        tags = await this.handleTags({ draft, article })
         job.progress(50)
 
         await this.handleMentions({ draft, article })
@@ -236,56 +232,6 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        // Step: iscn publishing
-        if (iscnPublish || draft.iscnPublish) {
-          const liker = (await this.userService.findLiker({
-            userId: author.id,
-          }))! // as NonNullable<UserOAuthLikeCoin>
-          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
-            liker,
-          })
-
-          iscnId = await this.userService.likecoin.iscnPublish({
-            mediaHash: `hash://sha256/${mediaHash}`,
-            ipfsHash: `ipfs://${dataHash}`,
-            cosmosWallet, // 'TBD',
-            userName: `${displayName} (@${userName})`,
-            title: draft.title,
-            description: summary,
-            datePublished: article.createdAt?.toISOString().substring(0, 10),
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-            tags, // after stripped, not raw draft.tags,
-
-            // for liker auth&headers info
-            liker,
-            // likerIp,
-            // userAgent,
-          })
-        }
-
-        if (iscnPublish || draft.iscnPublish != null) {
-          // handling both cases of set to true or false, but not omit (undefined)
-          await Promise.all([
-            this.draftService.baseUpdate(draft.id, {
-              iscnId,
-              iscnPublish: iscnPublish || draft.iscnPublish,
-              updatedAt: this.knex.fn.now(),
-            }),
-            this.articleService.baseUpdate(article.id, {
-              iscnId,
-              // iscnPublish: iscnPublish || draft.iscnPublish,
-              updatedAt: this.knex.fn.now(),
-            }),
-          ])
-        }
-        job.progress(80)
-
-        await this.articleService.publishFeedToIPNS({
-          userName,
-          incremental: true, // attach the last just published article
-        })
-        job.progress(85)
-
         // Step 7: add to search
         await this.articleService.addToSearch({
           id: article.id,
@@ -296,7 +242,7 @@ class PublicationQueue extends BaseQueue {
           displayName,
           tags,
         })
-        job.progress(90)
+        // job.progress(90)
 
         // Step 8: trigger notifications
         this.notificationService.trigger({
@@ -306,7 +252,7 @@ class PublicationQueue extends BaseQueue {
             { type: 'target', entityTable: 'article', entity: article },
           ],
         })
-        job.progress(95)
+        // job.progress(95)
 
         // Step 9: invalidate user cache
         await Promise.all([
@@ -319,6 +265,95 @@ class PublicationQueue extends BaseQueue {
             redis: this.cacheService.redis,
           }),
         ])
+      } catch (err) {
+        // ignore errors caused by these steps
+        console.error(new Date(), 'optional step failed:', err, job, draft)
+      }
+
+      // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
+      let ipnsRes: any
+      try {
+        // publish content to IPFS
+        const {
+          contentHash: dataHash,
+          mediaHash,
+          key,
+        } = await this.articleService.publishToIPFS(draft)
+        job.progress(80)
+        ;[article, draft] = await Promise.all([
+          this.articleService.baseUpdate(article.id, {
+            dataHash,
+            mediaHash,
+            updatedAt: this.knex.fn.now(),
+          }),
+          this.draftService.baseUpdate(draft.id, {
+            dataHash,
+            mediaHash,
+            updatedAt: this.knex.fn.now(),
+          }),
+        ])
+
+        if (key && draft.access) {
+          const data = {
+            articleId: article.id,
+            circleId: draft.circleId,
+            // secret: key,
+          }
+
+          await this.atomService.update({
+            table: 'article_circle',
+            where: data,
+            data: {
+              ...data,
+              secret: key,
+              access: draft.access,
+              updatedAt: this.knex.fn.now(),
+            },
+          })
+        }
+
+        // Step: iscn publishing
+        // handling both cases of set to true or false, but not omit (undefined)
+        if (iscnPublish || draft.iscnPublish != null) {
+          const liker = (await this.userService.findLiker({
+            userId: author.id,
+          }))! // as NonNullable<UserOAuthLikeCoin>
+          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+            liker,
+          })
+
+          const iscnId = await this.userService.likecoin.iscnPublish({
+            mediaHash: `hash://sha256/${mediaHash}`,
+            ipfsHash: `ipfs://${dataHash}`,
+            cosmosWallet,
+            userName: `${displayName} (@${userName})`,
+            title: draft.title,
+            description: summary,
+            datePublished: article.createdAt?.toISOString().substring(0, 10),
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            tags,
+            liker,
+          })
+
+          ;[article, draft] = await Promise.all([
+            this.articleService.baseUpdate(article.id, {
+              iscnId,
+              updatedAt: this.knex.fn.now(),
+            }),
+            this.draftService.baseUpdate(draft.id, {
+              iscnId,
+              iscnPublish: iscnPublish || draft.iscnPublish,
+              updatedAt: this.knex.fn.now(),
+            }),
+          ])
+        }
+        job.progress(90)
+
+        ipnsRes = await this.articleService.publishFeedToIPNS({
+          userName,
+          incremental: true, // attach the last just published article
+        })
+
         job.progress(100)
       } catch (err) {
         // ignore errors caused by these steps
@@ -326,12 +361,37 @@ class PublicationQueue extends BaseQueue {
 
         console.error(
           new Date(),
-          'job failed at optional step:',
+          'job IPFS optional step failed (will retry async later in listener):',
           err,
           job,
           draft
         )
       }
+
+      // no await to notify async
+      this.atomService.aws
+        .sqsSendMessage({
+          MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+          MessageBody: {
+            articleId: article.id,
+            title: article.title,
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            dataHash: article.dataHash,
+            mediaHash: article.mediaHash,
+
+            // ipns info:
+            ipnsKey: ipnsRes?.ipnsKey,
+            lastDataHash: ipnsRes?.lastDataHash,
+
+            // author info:
+            userName,
+            displayName,
+          },
+        })
+        // .then(res => {})
+        .catch((err: Error) =>
+          console.error(new Date(), 'failed sqs notify:', err)
+        )
 
       done(null, {
         articleId: article.id,
@@ -339,7 +399,7 @@ class PublicationQueue extends BaseQueue {
         dataHash: publishedDraft.dataHash,
         mediaHash: publishedDraft.mediaHash,
         iscnPublish: iscnPublish || draft.iscnPublish,
-        iscnId,
+        iscnId: article.iscnId,
       })
     } catch (e) {
       await this.draftService.baseUpdate(draft.id, {
@@ -395,7 +455,7 @@ class PublicationQueue extends BaseQueue {
   }: {
     draft: any
     article: any
-    secret: any
+    secret?: any
   }) => {
     if (!draft.circleId) {
       return

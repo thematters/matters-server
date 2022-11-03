@@ -412,6 +412,12 @@ type Article implements Node {
   """License Type"""
   license: ArticleLicenseType!
 
+  """creator message asking for support"""
+  requestForDonation: String
+
+  """creator message after support"""
+  replyToDonator: String
+
   """the iscnId if published to ISCN"""
   iscnId: String
 
@@ -656,6 +662,8 @@ input EditArticleInput {
   circle: ID
   accessType: ArticleAccessType
   license: ArticleLicenseType
+  requestForDonation: String
+  replyToDonator: String
 
   """whether publish to ISCN"""
   iscnPublish: Boolean
@@ -780,6 +788,7 @@ input TransactionsReceivedByArgs {
   after: String
   first: Int
   purpose: TransactionPurpose!
+  senderId: ID
 }
 
 input TranslationArgs {
@@ -1397,6 +1406,12 @@ type Draft implements Node {
   """License Type"""
   license: ArticleLicenseType!
 
+  """creator message asking for support"""
+  requestForDonation: String
+
+  """creator message after support"""
+  replyToDonator: String
+
   """whether publish to ISCN"""
   iscnPublish: Boolean
 }
@@ -1428,6 +1443,8 @@ input PutDraftInput {
   circle: ID
   accessType: ArticleAccessType
   license: ArticleLicenseType
+  requestForDonation: String
+  replyToDonator: String
 
   """whether publish to ISCN"""
   iscnPublish: Boolean

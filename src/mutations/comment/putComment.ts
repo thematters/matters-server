@@ -343,44 +343,57 @@ const resolver: MutationToPutCommentResolver = async (
           targetAuthor !== replyToCommentAuthor))
 
     if (isArticleType && shouldNotifyArticleAuthor) {
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_comment,
-        actorId: viewer.id,
-        recipientId: targetAuthor,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: article },
-          { type: 'comment', entityTable: 'comment', entity: newComment },
-        ],
-      })
+      const isMentioned = !!data.mentionedUserIds?.includes(targetAuthor)
+
+      if (!isMentioned) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.article_new_comment,
+          actorId: viewer.id,
+          recipientId: targetAuthor,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+            { type: 'comment', entityTable: 'comment', entity: newComment },
+          ],
+        })
+      }
     }
 
     // article: notify parentComment's author
     const shouldNotifyParentCommentAuthor =
       isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
     if (isArticleType && shouldNotifyParentCommentAuthor) {
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
-        actorId: viewer.id,
-        recipientId: parentCommentAuthor,
-        entities: [
-          { type: 'target', entityTable: 'comment', entity: parentComment },
-          { type: 'reply', entityTable: 'comment', entity: newComment },
-        ],
-      })
+      const isMentioned = !!data.mentionedUserIds?.includes(parentCommentAuthor)
+
+      if (!isMentioned) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.comment_new_reply,
+          actorId: viewer.id,
+          recipientId: parentCommentAuthor,
+          entities: [
+            { type: 'target', entityTable: 'comment', entity: parentComment },
+            { type: 'reply', entityTable: 'comment', entity: newComment },
+          ],
+        })
+      }
     }
 
     // article: notify replyToComment's author
     const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
     if (isArticleType && shouldNotifyReplyToCommentAuthor) {
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
-        actorId: viewer.id,
-        recipientId: replyToCommentAuthor,
-        entities: [
-          { type: 'target', entityTable: 'comment', entity: replyToComment },
-          { type: 'reply', entityTable: 'comment', entity: newComment },
-        ],
-      })
+      const isMentioned =
+        !!data.mentionedUserIds?.includes(replyToCommentAuthor)
+
+      if (!isMentioned) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.comment_new_reply,
+          actorId: viewer.id,
+          recipientId: replyToCommentAuthor,
+          entities: [
+            { type: 'target', entityTable: 'comment', entity: replyToComment },
+            { type: 'reply', entityTable: 'comment', entity: newComment },
+          ],
+        })
+      }
     }
 
     // article: notify article's subscribers
@@ -389,15 +402,19 @@ const resolver: MutationToPutCommentResolver = async (
         id: article.id,
       })
       articleSubscribers.forEach((subscriber: any) => {
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.subscribed_article_new_comment,
-          actorId: viewer.id,
-          recipientId: subscriber.id,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-            { type: 'comment', entityTable: 'comment', entity: newComment },
-          ],
-        })
+        const isMentioned = !!data.mentionedUserIds?.includes(subscriber.id)
+
+        if (!isMentioned) {
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.subscribed_article_new_comment,
+            actorId: viewer.id,
+            recipientId: subscriber.id,
+            entities: [
+              { type: 'target', entityTable: 'article', entity: article },
+              { type: 'comment', entityTable: 'comment', entity: newComment },
+            ],
+          })
+        }
       })
     }
 

@@ -143,4 +143,37 @@ describe('put draft', () => {
       ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
     )
   })
+  test('edit draft support settings', async () => {
+    const { id } = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+    })
+    draftId = id
+    const result = await putDraft({ draft: { id: draftId } })
+
+    // default
+    expect(_get(result, 'requestForDonation')).toBe(null)
+    expect(_get(result, 'replyToDonator')).toBe(null)
+
+    // set long texts (length > 140) will throw error
+    const longText = 't'.repeat(141)
+    const result2 = await putDraft({
+      draft: { id: draftId, requestForDonation: longText },
+    })
+    expect(_get(result2, 'errors')).toBeDefined()
+    const result3 = await putDraft({
+      draft: { id: draftId, replyToDonator: longText },
+    })
+    expect(_get(result3, 'errors')).toBeDefined()
+
+    // set text
+    const text = 't'.repeat(140)
+    const result4 = await putDraft({
+      draft: { id: draftId, requestForDonation: text, replyToDonator: text },
+    })
+    expect(_get(result4, 'requestForDonation')).toBe(text)
+    expect(_get(result4, 'replyToDonator')).toBe(text)
+  })
 })

@@ -67,6 +67,12 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
+    """creator message asking for support"""
+    requestForDonation: String
+
+    """creator message after support"""
+    replyToDonator: String
+
     "whether publish to ISCN"
     iscnPublish: Boolean
   }
@@ -98,6 +104,9 @@ export default /* GraphQL */ `
     circle: ID
     accessType: ArticleAccessType
     license: ArticleLicenseType
+
+    requestForDonation: String  @constraint(maxLength: 140)
+    replyToDonator: String  @constraint(maxLength: 140)
 
     "whether publish to ISCN"
     iscnPublish: Boolean
