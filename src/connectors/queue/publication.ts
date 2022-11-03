@@ -270,9 +270,8 @@ class PublicationQueue extends BaseQueue {
         console.error(new Date(), 'optional step failed:', err, job, draft)
       }
 
-      let ipnsRes: any
-
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
+      let ipnsRes: any
       try {
         // publish content to IPFS
         const {
