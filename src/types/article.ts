@@ -124,10 +124,10 @@ export default /* GraphQL */ `
     wordCount: Int
 
     "IPFS hash of this article."
-    dataHash: String!
+    dataHash: String
 
     "Media hash, composed of cid encoding, of this article."
-    mediaHash: String!
+    mediaHash: String
 
     "Content of this article."
     content: String!
