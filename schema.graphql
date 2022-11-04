@@ -2254,6 +2254,9 @@ type User implements Node {
   """Whether current user is blocked by viewer."""
   isBlocked: Boolean!
 
+  """user data analytics, only accessable by current user."""
+  analytics: UserAnalytics!
+
   """Status of current user."""
   status: UserStatus
 
@@ -2413,6 +2416,34 @@ type UserActivity {
 
   """Total number of appreciation current user received."""
   appreciationsReceivedTotal: Int!
+}
+
+type UserAnalytics {
+  """Top donators of current user."""
+  topDonators(input: TopDonatorInput!): TopDonatorConnection!
+}
+
+input TopDonatorInput {
+  after: String
+  first: Int
+  filter: TopDonatorFilter
+}
+
+input TopDonatorFilter {
+  inRangeStart: DateTime
+  inRangeEnd: DateTime
+}
+
+type TopDonatorConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TopDonatorEdge!]
+}
+
+type TopDonatorEdge {
+  cursor: String!
+  node: User!
+  donationCount: Int!
 }
 
 type UserStatus {
