@@ -549,6 +549,7 @@ class PayToByBlockchainQueue extends BaseQueue {
       slug: string
       authorId: string
       mediaHash: string
+      draftId: string
     }
   }) => {
     const amount = parseFloat(tx.amount)
@@ -556,6 +557,10 @@ class PayToByBlockchainQueue extends BaseQueue {
     const author = await this.atomService.findFirst({
       table: 'user',
       where: { id: article.authorId },
+    })
+    const draft = await this.atomService.findFirst({
+      table: 'draft',
+      where: { id: article.draftId },
     })
     const _article = {
       id: tx.targetId,
@@ -566,6 +571,7 @@ class PayToByBlockchainQueue extends BaseQueue {
         displayName: author.displayName,
         userName: author.userName,
       },
+      replyToDonator: draft.replyToDonator,
     }
 
     this.notificationService.mail.sendPayment({
