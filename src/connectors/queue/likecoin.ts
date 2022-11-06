@@ -1,8 +1,10 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
 import {
   CACHE_PREFIX,
   CACHE_TTL,
+  NODE_TYPES,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -29,6 +31,7 @@ interface SendPVData {
 }
 
 interface GetCivicLikerData {
+  userId: string
   likerId: string
 }
 
@@ -110,10 +113,15 @@ class LikeCoinQueue extends BaseQueue {
     job,
     done
   ) => {
-    const { likerId } = job.data as GetCivicLikerData
+    const { userId, likerId } = job.data as GetCivicLikerData
 
     const isCivicLiker = await this.userService.likecoin.isCivicLiker({
       likerId,
+    })
+
+    await invalidateFQC({
+      node: { type: NODE_TYPES.User, id: userId },
+      redis: this.cacheService.redis,
     })
 
     // update cache
