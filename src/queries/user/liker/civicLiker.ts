@@ -20,7 +20,7 @@ const resolver: LikerToCivicLikerResolver = async (
     keys: { id: liker.likerId },
     getter: async () => {
       // trigger queue to check if liker is a civic liker
-      likeCoinQueue.getCivicLiker({ likerId: liker.likerId })
+      likeCoinQueue.getCivicLiker({ userId: id, likerId: liker.likerId })
       return false
     },
     expire: CACHE_TTL.LONG,
