@@ -144,6 +144,10 @@ class PayToByMattersQueue extends BaseQueue {
         table: 'user',
         where: { id: article.authorId },
       })
+      const draft = await this.atomService.findFirst({
+        table: 'draft',
+        where: { id: article.draftId },
+      })
       article = {
         id: tx.targetId,
         title: article.title,
@@ -153,6 +157,7 @@ class PayToByMattersQueue extends BaseQueue {
           displayName: author.displayName,
           userName: author.userName,
         },
+        replyToDonator: draft.replyToDonator,
       }
 
       this.notificationService.mail.sendPayment({
