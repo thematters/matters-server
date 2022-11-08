@@ -1114,6 +1114,11 @@ export class PaymentService extends BaseService {
       table: 'draft',
       where: { id: article.draftId },
     })
+
+    const hasReplyToDonator =
+      draft.replyToDonator !== undefined &&
+      draft.replyToDonator !== null &&
+      draft.replyToDonator !== ''
     const _article = {
       id: tx.targetId,
       title: article.title,
@@ -1123,7 +1128,7 @@ export class PaymentService extends BaseService {
         displayName: author.displayName,
         userName: author.userName,
       },
-      replyToDonator: draft.replyToDonator,
+      hasReplyToDonator,
     }
 
     notificationService.mail.sendPayment({
