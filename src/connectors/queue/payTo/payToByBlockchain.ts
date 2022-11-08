@@ -5,7 +5,6 @@ import _capitalize from 'lodash/capitalize'
 import {
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
-  DB_NOTICE_TYPE,
   MINUTE,
   NODE_TYPES,
   PAYMENT_CURRENCY,
@@ -34,7 +33,7 @@ import {
 import { PaymentService } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
-import { GQLChain, Transaction, User } from 'definitions'
+import { GQLChain } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -185,7 +184,9 @@ class PayToByBlockchainQueue extends BaseQueue {
     // update pending tx
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
-    this.notify({ tx, sender, recipient, article })
+    // notification
+    this.paymentService.notifyDonation({ tx, sender, recipient, article })
+
     this.invalidCache(tx.targetType, tx.targetId)
     job.progress(100)
 
@@ -379,7 +380,12 @@ class PayToByBlockchainQueue extends BaseQueue {
         throw error
       }
     }
-    this.notify({ tx, sender: curatorUser, recipient: creatorUser, article })
+    this.paymentService.notifyDonation({
+      tx,
+      sender: curatorUser,
+      recipient: creatorUser,
+      article,
+    })
     this.invalidCache(tx.targetType, tx.targetId)
   }
 
@@ -533,80 +539,6 @@ class PayToByBlockchainQueue extends BaseQueue {
     }
 
     return false
-  }
-
-  private notify = async ({
-    tx,
-    sender,
-    recipient,
-    article,
-  }: {
-    tx: Transaction
-    sender: User
-    recipient: User
-    article: {
-      title: string
-      slug: string
-      authorId: string
-      mediaHash: string
-    }
-  }) => {
-    const amount = parseFloat(tx.amount)
-    // send email to sender
-    const author = await this.atomService.findFirst({
-      table: 'user',
-      where: { id: article.authorId },
-    })
-    const _article = {
-      id: tx.targetId,
-      title: article.title,
-      slug: article.slug,
-      mediaHash: article.mediaHash,
-      author: {
-        displayName: author.displayName,
-        userName: author.userName,
-      },
-    }
-
-    this.notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      article: _article,
-      tx: {
-        recipient,
-        sender,
-        amount,
-        currency: tx.currency,
-      },
-    })
-
-    // send email to recipient
-    this.notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
-      recipientId: recipient.id,
-      entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
-    })
-
-    this.notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonation',
-      tx: {
-        recipient,
-        sender,
-        amount,
-        currency: tx.currency,
-      },
-      article: _article,
-    })
   }
 
   private invalidCache = async (targetType: string, targetId: string) => {

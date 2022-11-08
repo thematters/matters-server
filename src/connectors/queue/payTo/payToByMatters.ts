@@ -3,7 +3,6 @@ import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 
 import {
-  DB_NOTICE_TYPE,
   NODE_TYPES,
   PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   QUEUE_JOB,
@@ -13,7 +12,7 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { getQueueNameForEnv, numRound } from 'common/utils'
+import { getQueueNameForEnv } from 'common/utils'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
@@ -134,66 +133,13 @@ class PayToByMattersQueue extends BaseQueue {
         state: TRANSACTION_STATE.succeeded,
         updatedAt: new Date(),
       })
-
-      // send email to sender
-      let article = await this.atomService.findFirst({
+      const article = await this.atomService.findFirst({
         table: 'article',
         where: { id: tx.targetId },
       })
-      const author = await this.atomService.findFirst({
-        table: 'user',
-        where: { id: article.authorId },
-      })
-      article = {
-        id: tx.targetId,
-        title: article.title,
-        slug: article.slug,
-        mediaHash: article.mediaHash,
-        author: {
-          displayName: author.displayName,
-          userName: author.userName,
-        },
-      }
 
-      this.notificationService.mail.sendPayment({
-        to: sender.email,
-        recipient: {
-          displayName: sender.displayName,
-          userName: sender.userName,
-        },
-        type: 'donated',
-        article,
-        tx: {
-          recipient,
-          sender,
-          amount: numRound(tx.amount),
-          currency: tx.currency,
-        },
-      })
-
-      // send email to recipient
-      this.notificationService.trigger({
-        event: DB_NOTICE_TYPE.payment_received_donation,
-        actorId: sender.id,
-        recipientId: recipient.id,
-        entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
-      })
-
-      this.notificationService.mail.sendPayment({
-        to: recipient.email,
-        recipient: {
-          displayName: recipient.displayName,
-          userName: recipient.userName,
-        },
-        type: 'receivedDonation',
-        tx: {
-          recipient,
-          sender,
-          amount: numRound(tx.amount),
-          currency: tx.currency,
-        },
-        article,
-      })
+      // notification
+      this.paymentService.notifyDonation({ tx, sender, recipient, article })
 
       // manaully invalidate cache
       if (tx.targetType) {
