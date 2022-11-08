@@ -1115,10 +1115,7 @@ export class PaymentService extends BaseService {
       where: { id: article.draftId },
     })
 
-    const hasReplyToDonator =
-      draft.replyToDonator !== undefined &&
-      draft.replyToDonator !== null &&
-      draft.replyToDonator !== ''
+    const hasReplyToDonator = !!draft.replyToDonator
     const _article = {
       id: tx.targetId,
       title: article.title,
