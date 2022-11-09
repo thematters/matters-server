@@ -271,14 +271,14 @@ likecoinRouter.post('/', async (req, res, next) => {
 
     let article = await atomService.findFirst({
       table: 'article',
-      where: { id: tx.targetId },
+      where: { id: resultTx.targetId },
     })
     const author = await atomService.findFirst({
       table: 'user',
       where: { id: article.authorId },
     })
     article = {
-      id: tx.targetId,
+      id: resultTx.targetId,
       title: article.title,
       slug: article.slug,
       mediaHash: article.mediaHash,
