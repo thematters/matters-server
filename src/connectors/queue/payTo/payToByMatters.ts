@@ -139,7 +139,12 @@ class PayToByMattersQueue extends BaseQueue {
       })
 
       // notification
-      this.paymentService.notifyDonation({ tx, sender, recipient, article })
+      await this.paymentService.notifyDonation({
+        tx,
+        sender,
+        recipient,
+        article,
+      })
 
       // manaully invalidate cache
       if (tx.targetType) {
