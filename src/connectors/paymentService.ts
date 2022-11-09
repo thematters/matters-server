@@ -1128,7 +1128,7 @@ export class PaymentService extends BaseService {
       hasReplyToDonator,
     }
 
-    notificationService.mail.sendPayment({
+    await notificationService.mail.sendPayment({
       to: sender.email,
       recipient: {
         displayName: sender.displayName,
@@ -1145,7 +1145,7 @@ export class PaymentService extends BaseService {
     })
 
     // send email to recipient
-    notificationService.trigger({
+    await notificationService.trigger({
       event: DB_NOTICE_TYPE.payment_received_donation,
       actorId: sender.id,
       recipientId: recipient.id,
@@ -1157,7 +1157,7 @@ export class PaymentService extends BaseService {
         ? ('receivedDonationLikeCoin' as const)
         : ('receivedDonation' as const)
 
-    notificationService.mail.sendPayment({
+    await notificationService.mail.sendPayment({
       to: recipient.email,
       recipient: {
         displayName: recipient.displayName,

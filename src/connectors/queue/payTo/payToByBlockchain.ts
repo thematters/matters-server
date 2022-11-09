@@ -185,9 +185,9 @@ class PayToByBlockchainQueue extends BaseQueue {
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
     // notification
-    this.paymentService.notifyDonation({ tx, sender, recipient, article })
+    await this.paymentService.notifyDonation({ tx, sender, recipient, article })
 
-    this.invalidCache(tx.targetType, tx.targetId)
+    await this.invalidCache(tx.targetType, tx.targetId)
     job.progress(100)
 
     return data
@@ -380,13 +380,13 @@ class PayToByBlockchainQueue extends BaseQueue {
         throw error
       }
     }
-    this.paymentService.notifyDonation({
+    await this.paymentService.notifyDonation({
       tx,
       sender: curatorUser,
       recipient: creatorUser,
       article,
     })
-    this.invalidCache(tx.targetType, tx.targetId)
+    await this.invalidCache(tx.targetType, tx.targetId)
   }
 
   private fetchCurationLogs = async (

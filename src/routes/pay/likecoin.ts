@@ -268,7 +268,12 @@ likecoinRouter.post('/', async (req, res, next) => {
       table: 'article',
       where: { id: resultTx.targetId },
     })
-    paymentService.notifyDonation({ tx: resultTx, sender, recipient, article })
+    await paymentService.notifyDonation({
+      tx: resultTx,
+      sender,
+      recipient,
+      article,
+    })
 
     // manaully invalidate cache
     invalidateCache({
