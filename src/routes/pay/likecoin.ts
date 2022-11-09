@@ -60,8 +60,6 @@ likecoinRouter.get('/', async (req, res) => {
   try {
     const { tx_hash, state, success } = req.query
 
-    console.log('Like Pay - GET', JSON.stringify(req.body))
-
     if (!tx_hash) {
       throw new Error('callback has no "tx_hash"')
     }
@@ -163,9 +161,6 @@ likecoinRouter.post('/', async (req, res, next) => {
 
   try {
     const { tx, metadata } = req.body
-
-    console.log('Like Pay - POST', JSON.stringify(req.body))
-
     if (!tx || !tx.txHash) {
       throw new LikeCoinWebhookError('callback has no "tx"')
     }
