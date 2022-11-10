@@ -36,7 +36,12 @@ const typeResolver = (type: string, result: any) => {
 
 const idResolver = (type: string, result: any) => {
   // correct the article id since we return draft as article in resolver
-  if (type === NODE_TYPES.Article && result?.articleId) {
+  if (
+    [NODE_TYPES.Article, NODE_TYPES.Draft, NODE_TYPES.Node].includes(
+      type as NODE_TYPES
+    ) &&
+    result?.articleId
+  ) {
     return result.articleId
   }
 
