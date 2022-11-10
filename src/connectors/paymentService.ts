@@ -8,6 +8,7 @@ import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_TRANSACTION_STATE,
+  DB_NOTICE_TYPE,
   HOUR,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
@@ -22,8 +23,13 @@ import { environment, isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
-import { BaseService, CacheService } from 'connectors'
-import { CirclePrice, GQLChain, User } from 'definitions'
+import {
+  AtomService,
+  BaseService,
+  CacheService,
+  NotificationService,
+} from 'connectors'
+import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -1071,5 +1077,100 @@ export class PaymentService extends BaseService {
         subscriptionItemId,
       })
       .returning('*')
+  }
+
+  /*********************************
+   *                               *
+   *           notification        *
+   *                               *
+   *********************************/
+
+  notifyDonation = async ({
+    tx,
+    sender,
+    recipient,
+    article,
+  }: {
+    tx: Transaction
+    sender: User
+    recipient: User
+    article: {
+      title: string
+      slug: string
+      authorId: string
+      mediaHash: string
+      draftId: string
+    }
+  }) => {
+    const atomService = new AtomService()
+    const notificationService = new NotificationService()
+    const amount = parseFloat(tx.amount)
+    // send email to sender
+    const author = await atomService.findFirst({
+      table: 'user',
+      where: { id: article.authorId },
+    })
+    const draft = await atomService.findFirst({
+      table: 'draft',
+      where: { id: article.draftId },
+    })
+
+    const hasReplyToDonator = !!draft.replyToDonator
+    const _article = {
+      id: tx.targetId,
+      title: article.title,
+      slug: article.slug,
+      mediaHash: article.mediaHash,
+      author: {
+        displayName: author.displayName,
+        userName: author.userName,
+      },
+      hasReplyToDonator,
+    }
+
+    await notificationService.mail.sendPayment({
+      to: sender.email,
+      recipient: {
+        displayName: sender.displayName,
+        userName: sender.userName,
+      },
+      type: 'donated',
+      article: _article,
+      tx: {
+        recipient,
+        sender,
+        amount,
+        currency: tx.currency,
+      },
+    })
+
+    // send email to recipient
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.payment_received_donation,
+      actorId: sender.id,
+      recipientId: recipient.id,
+      entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
+    })
+
+    const mailType =
+      tx.currency === PAYMENT_CURRENCY.LIKE
+        ? ('receivedDonationLikeCoin' as const)
+        : ('receivedDonation' as const)
+
+    await notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: mailType,
+      tx: {
+        recipient,
+        sender,
+        amount,
+        currency: tx.currency,
+      },
+      article: _article,
+    })
   }
 }

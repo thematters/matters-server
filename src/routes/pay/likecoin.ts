@@ -4,7 +4,6 @@ import { RequestHandler, Router } from 'express'
 import NP from 'number-precision'
 
 import {
-  DB_NOTICE_TYPE,
   NODE_TYPES,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -14,11 +13,9 @@ import {
 import { environment } from 'common/environment'
 import { LikeCoinWebhookError } from 'common/errors'
 import logger from 'common/logger'
-import { numRound } from 'common/utils'
 import {
   AtomService,
   CacheService,
-  NotificationService,
   PaymentService,
   UserService,
 } from 'connectors'
@@ -156,7 +153,6 @@ likecoinRouter.post('/', async (req, res, next) => {
   const atomService = new AtomService()
   const userService = new UserService()
   const paymentService = new PaymentService()
-  const notificationService = new NotificationService()
   let txHash = ''
 
   try {
@@ -268,64 +264,14 @@ likecoinRouter.post('/', async (req, res, next) => {
     // notification
     const sender = await userService.baseFindById(resultTx.senderId)
     const recipient = await userService.baseFindById(resultTx.recipientId)
-
-    let article = await atomService.findFirst({
+    const article = await atomService.findFirst({
       table: 'article',
       where: { id: resultTx.targetId },
     })
-    const author = await atomService.findFirst({
-      table: 'user',
-      where: { id: article.authorId },
-    })
-    article = {
-      id: resultTx.targetId,
-      title: article.title,
-      slug: article.slug,
-      mediaHash: article.mediaHash,
-      author: {
-        displayName: author.displayName,
-        userName: author.userName,
-      },
-    }
-
-    // to sender
-    notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(resultTx.amount),
-        currency: resultTx.currency,
-      },
-      article,
-    })
-    // to recipient
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
-      recipientId: recipient.id,
-      entities: [
-        { type: 'target', entityTable: 'transaction', entity: resultTx },
-      ],
-    })
-    notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonationLikeCoin',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(resultTx.amount),
-        currency: resultTx.currency,
-      },
+    await paymentService.notifyDonation({
+      tx: resultTx,
+      sender,
+      recipient,
       article,
     })
 
