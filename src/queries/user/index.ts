@@ -13,6 +13,7 @@ import {
   GQLTransactionTargetTypeResolver,
   GQLTransactionTypeResolver,
   GQLUserActivityTypeResolver,
+  GQLUserAnalyticsTypeResolver,
   GQLUserInfoTypeResolver,
   GQLUserOSSTypeResolver,
   GQLUserSettingsTypeResolver,
@@ -21,6 +22,7 @@ import {
   GQLWalletTypeResolver,
 } from 'definitions'
 
+import UserAnalytics from './analytics'
 import { Appreciation } from './appreciation'
 import articleCount from './articleCount'
 import avatar from './avatar'
@@ -71,6 +73,7 @@ const user: {
   UserInfo: GQLUserInfoTypeResolver
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
+  UserAnalytics: GQLUserAnalyticsTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
 
@@ -110,6 +113,7 @@ const user: {
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
     following: (root) => root,
+    analytics: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
     // hasFollowed,
@@ -142,6 +146,7 @@ const user: {
     notification,
   },
   UserActivity,
+  UserAnalytics,
   UserStatus: {
     articleCount,
     commentCount,

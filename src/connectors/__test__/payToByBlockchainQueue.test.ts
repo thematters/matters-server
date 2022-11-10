@@ -485,7 +485,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   test('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
     const mockNotify = jest.fn()
     // @ts-ignore
-    queue.notify = mockNotify
+    queue.paymentService.notifyDonation = mockNotify
 
     expect(mockNotify).not.toHaveBeenCalled()
 

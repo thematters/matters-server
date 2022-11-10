@@ -2538,6 +2538,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'NoticeConnection'
   | 'SearchResultConnection'
   | 'SkippedListItemsConnection'
+  | 'TopDonatorConnection'
   | 'UserConnection'
   | 'ReadHistoryConnection'
   | 'RecentSearchConnection'
@@ -2560,6 +2561,7 @@ export interface GQLConnectionNameMap {
   NoticeConnection: GQLNoticeConnection
   SearchResultConnection: GQLSearchResultConnection
   SkippedListItemsConnection: GQLSkippedListItemsConnection
+  TopDonatorConnection: GQLTopDonatorConnection
   UserConnection: GQLUserConnection
   ReadHistoryConnection: GQLReadHistoryConnection
   RecentSearchConnection: GQLRecentSearchConnection
@@ -3105,6 +3107,11 @@ export interface GQLUser extends GQLNode {
   isBlocked: boolean
 
   /**
+   * user data analytics, only accessable by current user.
+   */
+  analytics: GQLUserAnalytics
+
+  /**
    * Status of current user.
    */
   status?: GQLUserStatus
@@ -3340,6 +3347,36 @@ export interface GQLUserActivity {
    * Total number of appreciation current user received.
    */
   appreciationsReceivedTotal: number
+}
+
+export interface GQLUserAnalytics {
+  /**
+   * Top donators of current user.
+   */
+  topDonators: GQLTopDonatorConnection
+}
+
+export interface GQLTopDonatorInput {
+  after?: string
+  first?: number
+  filter?: GQLTopDonatorFilter
+}
+
+export interface GQLTopDonatorFilter {
+  inRangeStart?: GQLDateTime
+  inRangeEnd?: GQLDateTime
+}
+
+export interface GQLTopDonatorConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLTopDonatorEdge>
+}
+
+export interface GQLTopDonatorEdge {
+  cursor: string
+  node: GQLUser
+  donationCount: number
 }
 
 export interface GQLUserStatus {
@@ -4506,6 +4543,9 @@ export interface GQLResolver {
   UserInfo?: GQLUserInfoTypeResolver
   UserSettings?: GQLUserSettingsTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
+  UserAnalytics?: GQLUserAnalyticsTypeResolver
+  TopDonatorConnection?: GQLTopDonatorConnectionTypeResolver
+  TopDonatorEdge?: GQLTopDonatorEdgeTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   Liker?: GQLLikerTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
@@ -9800,6 +9840,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'NoticeConnection'
     | 'SearchResultConnection'
     | 'SkippedListItemsConnection'
+    | 'TopDonatorConnection'
     | 'UserConnection'
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
@@ -9820,6 +9861,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
         | 'NoticeConnection'
         | 'SearchResultConnection'
         | 'SkippedListItemsConnection'
+        | 'TopDonatorConnection'
         | 'UserConnection'
         | 'ReadHistoryConnection'
         | 'RecentSearchConnection'
@@ -10502,6 +10544,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   blockList?: UserToBlockListResolver<TParent>
   isBlocking?: UserToIsBlockingResolver<TParent>
   isBlocked?: UserToIsBlockedResolver<TParent>
+  analytics?: UserToAnalyticsResolver<TParent>
   status?: UserToStatusResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
@@ -10759,6 +10802,15 @@ export interface UserToIsBlockingResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToAnalyticsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -11250,6 +11302,103 @@ export interface UserActivityToAppreciationsReceivedResolver<
 }
 
 export interface UserActivityToAppreciationsReceivedTotalResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLUserAnalyticsTypeResolver<TParent = any> {
+  topDonators?: UserAnalyticsToTopDonatorsResolver<TParent>
+}
+
+export interface UserAnalyticsToTopDonatorsArgs {
+  input: GQLTopDonatorInput
+}
+export interface UserAnalyticsToTopDonatorsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: UserAnalyticsToTopDonatorsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTopDonatorConnectionTypeResolver<TParent = any> {
+  totalCount?: TopDonatorConnectionToTotalCountResolver<TParent>
+  pageInfo?: TopDonatorConnectionToPageInfoResolver<TParent>
+  edges?: TopDonatorConnectionToEdgesResolver<TParent>
+}
+
+export interface TopDonatorConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopDonatorConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopDonatorConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTopDonatorEdgeTypeResolver<TParent = any> {
+  cursor?: TopDonatorEdgeToCursorResolver<TParent>
+  node?: TopDonatorEdgeToNodeResolver<TParent>
+  donationCount?: TopDonatorEdgeToDonationCountResolver<TParent>
+}
+
+export interface TopDonatorEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopDonatorEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TopDonatorEdgeToDonationCountResolver<
   TParent = any,
   TResult = any
 > {

@@ -47,6 +47,7 @@ export const sendPayment = async ({
       displayName: string
       userName: string
     }
+    hasReplyToDonator?: boolean
   }
   language?: LANGUAGES
 }) => {
