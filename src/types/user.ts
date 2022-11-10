@@ -164,6 +164,9 @@ export default /* GraphQL */ `
     "Whether current user is blocked by viewer."
     isBlocked: Boolean!
 
+    "user data analytics, only accessable by current user."
+    analytics: UserAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
+
     "Status of current user."
     status: UserStatus
 
@@ -306,6 +309,34 @@ export default /* GraphQL */ `
 
     "Total number of appreciation current user received."
     appreciationsReceivedTotal: Int!
+  }
+
+  type UserAnalytics {
+  "Top donators of current user."
+    topDonators(input: TopDonatorInput!) : TopDonatorConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+  }
+
+  input TopDonatorInput {
+    after: String
+    first: Int
+    filter: TopDonatorFilter
+  }
+
+  input TopDonatorFilter {
+    inRangeStart: DateTime
+    inRangeEnd: DateTime
+  }
+
+  type TopDonatorConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [TopDonatorEdge!]
+  }
+
+  type TopDonatorEdge {
+    cursor: String!
+    node: User!
+    donationCount: Int!
   }
 
   type UserStatus {
