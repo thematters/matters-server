@@ -8,6 +8,7 @@ import {
   GQLLikerTypeResolver,
   GQLPossibleFollowingActivityTypeNames,
   GQLQueryTypeResolver,
+  GQLQuoteCurrency,
   GQLRecommendationTypeResolver,
   GQLStripeAccountTypeResolver,
   GQLTransactionTargetTypeResolver,
@@ -142,7 +143,8 @@ const user: {
     featuredTags,
   },
   UserSettings: {
-    language: ({ language }, _, { viewer }) => language,
+    language: ({ language }) => language,
+    currency: ({ currency }) => currency || ('USD' as GQLQuoteCurrency),
     notification,
   },
   UserActivity,

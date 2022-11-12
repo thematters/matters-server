@@ -121,6 +121,7 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
     viewer {
       settings {
         language
+        currency
         notification {
           enable
         }
@@ -464,6 +465,21 @@ describe('user query fields', () => {
     expect(articles[0].node.id).toBeDefined()
   })
 
+  test.only('retrive UserSettings by visitors', async () => {
+    const server = await testClient()
+    const res = await server.executeOperation({
+      query: GET_VIEWER_SETTINGS,
+    })
+    console.log({ 'res.errors': res.errors })
+    console.log({ 'res.data': res.data })
+    const { data } = res
+    const settings = _get(data, 'viewer.settings')
+    expect(settings).toBeDefined()
+    expect(settings.language).toBeDefined()
+    expect(settings.currency).toBe('USD')
+    expect(settings.notification).toBeDefined()
+  })
+
   test('retrive UserSettings', async () => {
     const server = await testClient({
       isAuth: true,
@@ -474,6 +490,8 @@ describe('user query fields', () => {
     const { data } = res
     const settings = _get(data, 'viewer.settings')
     expect(settings).toBeDefined()
+    expect(settings.language).toBeDefined()
+    expect(settings.currency).toBe('USD')
     expect(settings.notification).toBeDefined()
   })
 
@@ -658,7 +676,7 @@ describe('user recommendations', () => {
         query: GET_VIEWER_RECOMMENDATION(list),
         variables: { input: { first: 1 } },
       })
-      console.log(`fetched ${list}:`, result)
+      // console.log(`fetched ${list}:`, result)
       const { data } = result
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')

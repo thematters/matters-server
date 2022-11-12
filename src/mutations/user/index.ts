@@ -16,6 +16,7 @@ import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
 import resetWallet from './resetWallet'
 import sendVerificationCode from './sendVerificationCode'
+import setCurrency from './setCurrency'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
@@ -47,6 +48,7 @@ export default {
     resetLikerId,
     updateUserInfo,
     updateNotificationSetting,
+    setCurrency,
     toggleBlockUser,
     toggleFollowTag,
     togglePinTag,

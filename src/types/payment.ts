@@ -1,6 +1,10 @@
 import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
+  extend type Query {
+    exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
+  }
+
   extend type Mutation {
     "Add Credit to User Wallet"
     addCredit(input: AddCreditInput!): AddCreditResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
@@ -13,6 +17,19 @@ export default /* GraphQL */ `
 
     "Create Stripe Connect account for Payout"
     connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+  }
+
+  input ExchangeRatesInput {
+    from: TransactionCurrency
+    to: QuoteCurrency
+  }
+
+  type ExchangeRate {
+    from: TransactionCurrency!
+    to: QuoteCurrency!
+    rate: Float!
+    "Last updated time from currency convertor APIs"
+    updatedAt: DateTime!
   }
 
   extend type User {
