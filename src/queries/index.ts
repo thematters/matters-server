@@ -4,6 +4,7 @@ import article from './article'
 import circle from './circle'
 import comment from './comment'
 import draft from './draft'
+import exchangeRates from './exchangeRates'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import response from './response'
@@ -21,5 +22,6 @@ export default merge(
   notice,
   system,
   response,
-  oauthClient
+  oauthClient,
+  exchangeRates
 )
