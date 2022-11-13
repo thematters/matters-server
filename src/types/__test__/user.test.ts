@@ -78,6 +78,16 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
     }
   }
 `
+const SET_CURRENCY = /* GraphQL */ `
+  mutation SetCurrency($input: SetCurrencyInput!) {
+    setCurrency(input: $input) {
+      settings {
+        currency
+      }
+    }
+  }
+`
+
 const GET_USER_BY_USERNAME = /* GraphQL */ `
   query ($input: UserInput!) {
     user(input: $input) {
@@ -465,19 +475,14 @@ describe('user query fields', () => {
     expect(articles[0].node.id).toBeDefined()
   })
 
-  test.only('retrive UserSettings by visitors', async () => {
+  test('retrive UserSettings by visitors', async () => {
     const server = await testClient()
     const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
-    console.log({ 'res.errors': res.errors })
-    console.log({ 'res.data': res.data })
-    const { data } = res
-    const settings = _get(data, 'viewer.settings')
-    expect(settings).toBeDefined()
-    expect(settings.language).toBeDefined()
-    expect(settings.currency).toBe('USD')
-    expect(settings.notification).toBeDefined()
+    const { errors } = res
+    console.log(errors)
+    expect(errors).toBeDefined()
   })
 
   test('retrive UserSettings', async () => {
@@ -490,8 +495,8 @@ describe('user query fields', () => {
     const { data } = res
     const settings = _get(data, 'viewer.settings')
     expect(settings).toBeDefined()
-    expect(settings.language).toBeDefined()
-    expect(settings.currency).toBe('USD')
+    expect(settings.language).toBe('zh_hant')
+    expect(settings.currency).toBe('HKD')
     expect(settings.notification).toBeDefined()
   })
 
@@ -659,6 +664,25 @@ describe('mutations on User object', () => {
       'updateNotificationSetting.settings.notification.enable'
     )
     expect(enable).toBe(false)
+  })
+  test('setCurrency', async () => {
+    // visitor can not set currency
+    const visitorServer = await testClient()
+    const { errors } = await visitorServer.executeOperation({
+      query: SET_CURRENCY,
+      variables: { input: { currency: 'USD' } },
+    })
+    expect(errors).toBeDefined()
+
+    // user can set currency
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: SET_CURRENCY,
+      variables: { input: { currency: 'USD' } },
+    })
+    expect(data!.setCurrency.settings.currency).toBe('USD')
   })
 })
 
