@@ -23,6 +23,7 @@ export interface GQLQuery {
   oss: GQLOSS
   viewer?: GQLUser
   user?: GQLUser
+  exchangeRates?: Array<GQLExchangeRate>
   oauthClient?: GQLOAuthClient
 }
 
@@ -258,6 +259,11 @@ export interface GQLMutation {
    * Change user email.
    */
   changeEmail: GQLUser
+
+  /**
+   * Set user currency preference.
+   */
+  setCurrency: GQLUser
 
   /**
    * Register user, can only be used on matters.news website.
@@ -3312,6 +3318,11 @@ export interface GQLUserSettings {
   language: GQLUserLanguage
 
   /**
+   * User currency preference.
+   */
+  currency: GQLQuoteCurrency
+
+  /**
    * Notification settings.
    */
   notification: GQLNotificationSetting
@@ -3809,6 +3820,10 @@ export interface GQLVerifyEmailInput {
   codeId: string
 }
 
+export interface GQLSetCurrencyInput {
+  currency?: GQLQuoteCurrency
+}
+
 export interface GQLUserRegisterInput {
   email: string
   userName?: string
@@ -4084,6 +4099,12 @@ export const enum GQLSigningMessagePurpose {
   claimLogbook = 'claimLogbook',
 }
 
+export const enum GQLQuoteCurrency {
+  TWD = 'TWD',
+  HKD = 'HKD',
+  USD = 'USD',
+}
+
 export type GQLResponse = GQLArticle | GQLComment
 
 /** Use this to resolve union type Response */
@@ -4122,6 +4143,22 @@ export interface GQLResponsesInput {
 export const enum GQLResponseSort {
   oldest = 'oldest',
   newest = 'newest',
+}
+
+export interface GQLExchangeRatesInput {
+  from?: GQLTransactionCurrency
+  to?: GQLQuoteCurrency
+}
+
+export interface GQLExchangeRate {
+  from: GQLTransactionCurrency
+  to: GQLQuoteCurrency
+  rate: number
+
+  /**
+   * Last updated time from currency convertor APIs
+   */
+  updatedAt: GQLDateTime
 }
 
 export type GQLTransactionTarget = GQLArticle | GQLCircle | GQLTransaction
@@ -4586,6 +4623,7 @@ export interface GQLResolver {
 
   ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
+  ExchangeRate?: GQLExchangeRateTypeResolver
   TransactionTarget?: {
     __resolveType: GQLTransactionTargetTypeResolver
   }
@@ -4615,6 +4653,7 @@ export interface GQLQueryTypeResolver<TParent = any> {
   oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
+  exchangeRates?: QueryToExchangeRatesResolver<TParent>
   oauthClient?: QueryToOauthClientResolver<TParent>
 }
 
@@ -4729,6 +4768,18 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface QueryToExchangeRatesArgs {
+  input?: GQLExchangeRatesInput
+}
+export interface QueryToExchangeRatesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToExchangeRatesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface QueryToOauthClientArgs {
   input: GQLOAuthClientInput
 }
@@ -4796,6 +4847,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
   changeEmail?: MutationToChangeEmailResolver<TParent>
+  setCurrency?: MutationToSetCurrencyResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   generateSigningMessage?: MutationToGenerateSigningMessageResolver<TParent>
@@ -5546,6 +5598,18 @@ export interface MutationToChangeEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToChangeEmailArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetCurrencyArgs {
+  input: GQLSetCurrencyInput
+}
+export interface MutationToSetCurrencyResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetCurrencyArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -11199,10 +11263,20 @@ export interface UserInfoToFeaturedTagsResolver<TParent = any, TResult = any> {
 
 export interface GQLUserSettingsTypeResolver<TParent = any> {
   language?: UserSettingsToLanguageResolver<TParent>
+  currency?: UserSettingsToCurrencyResolver<TParent>
   notification?: UserSettingsToNotificationResolver<TParent>
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserSettingsToCurrencyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -13005,6 +13079,49 @@ export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLExchangeRateTypeResolver<TParent = any> {
+  from?: ExchangeRateToFromResolver<TParent>
+  to?: ExchangeRateToToResolver<TParent>
+  rate?: ExchangeRateToRateResolver<TParent>
+  updatedAt?: ExchangeRateToUpdatedAtResolver<TParent>
+}
+
+export interface ExchangeRateToFromResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ExchangeRateToToResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ExchangeRateToRateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ExchangeRateToUpdatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

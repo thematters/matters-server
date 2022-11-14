@@ -5,6 +5,7 @@
 *.rdb
 *.log
 *~
+tags
 
 yarn.lock
 node_modules

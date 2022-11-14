@@ -78,6 +78,16 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
     }
   }
 `
+const SET_CURRENCY = /* GraphQL */ `
+  mutation SetCurrency($input: SetCurrencyInput!) {
+    setCurrency(input: $input) {
+      settings {
+        currency
+      }
+    }
+  }
+`
+
 const GET_USER_BY_USERNAME = /* GraphQL */ `
   query ($input: UserInput!) {
     user(input: $input) {
@@ -121,6 +131,7 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
     viewer {
       settings {
         language
+        currency
         notification {
           enable
         }
@@ -464,6 +475,16 @@ describe('user query fields', () => {
     expect(articles[0].node.id).toBeDefined()
   })
 
+  test('retrive UserSettings by visitors', async () => {
+    const server = await testClient()
+    const res = await server.executeOperation({
+      query: GET_VIEWER_SETTINGS,
+    })
+    const { errors } = res
+    console.log(errors)
+    expect(errors).toBeDefined()
+  })
+
   test('retrive UserSettings', async () => {
     const server = await testClient({
       isAuth: true,
@@ -474,6 +495,8 @@ describe('user query fields', () => {
     const { data } = res
     const settings = _get(data, 'viewer.settings')
     expect(settings).toBeDefined()
+    expect(settings.language).toBe('zh_hant')
+    expect(settings.currency).toBe('HKD')
     expect(settings.notification).toBeDefined()
   })
 
@@ -642,6 +665,25 @@ describe('mutations on User object', () => {
     )
     expect(enable).toBe(false)
   })
+  test('setCurrency', async () => {
+    // visitor can not set currency
+    const visitorServer = await testClient()
+    const { errors } = await visitorServer.executeOperation({
+      query: SET_CURRENCY,
+      variables: { input: { currency: 'USD' } },
+    })
+    expect(errors).toBeDefined()
+
+    // user can set currency
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: SET_CURRENCY,
+      variables: { input: { currency: 'USD' } },
+    })
+    expect(data!.setCurrency.settings.currency).toBe('USD')
+  })
 })
 
 describe('user recommendations', () => {
@@ -658,7 +700,7 @@ describe('user recommendations', () => {
         query: GET_VIEWER_RECOMMENDATION(list),
         variables: { input: { first: 1 } },
       })
-      console.log(`fetched ${list}:`, result)
+      // console.log(`fetched ${list}:`, result)
       const { data } = result
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
