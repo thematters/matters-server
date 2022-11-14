@@ -47,10 +47,7 @@ export class IPFS {
       method: 'POST',
       body: formData,
     })
-    // console.log(new Date(), 'key/import res:', res)
     const imported = await res.json()
-    // console.log(new Date(), 'key/import res json:', imported)
-    // return res.json()
     return imported
   }
 

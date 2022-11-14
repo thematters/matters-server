@@ -22,8 +22,6 @@ const resolver: CircleToWorksResolver = async (
     .innerJoin('article', 'article.id', 'article_circle.article_id')
     .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
 
-  // console.log('base query:', query.toString())
-
   const [count, articles] = await Promise.all([
     // countQuery,
     query.clone().count().first(),
