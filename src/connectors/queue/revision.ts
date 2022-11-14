@@ -18,10 +18,8 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
-// import logger from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
-// import { GQLArticleAccessType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -66,8 +64,7 @@ class RevisionQueue extends BaseQueue {
       .on('progress', (job, progress) => {
         // A job's progress was updated!
         console.log(
-          `RevisionQueue: Job#${job.id}/${job.name} progress progress:`,
-          { progress, jobData: job.data }
+          `RevisionQueue: Job#${job.id}/${job.name} progress progress`
         )
       })
       .on('failed', (job, err) => {
@@ -76,10 +73,7 @@ class RevisionQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('RevisionQueue: job completed:', {
-          result,
-          jobData: job.data,
-        })
+        console.log(`RevisionQueue: Job#${job.id}/${job.name} completed`)
       })
 
     // publish revised article
@@ -148,13 +142,7 @@ class RevisionQueue extends BaseQueue {
 
         job.progress(40)
 
-        // Step 4: update secret
-        if (draft.circleId) {
-          await this.handleCircle({ article, circleId: draft.circleId })
-        }
-        job.progress(45)
-
-        // Step 5: update back to article
+        // Step 4: update back to article
         const revisionCount =
           (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
@@ -178,7 +166,7 @@ class RevisionQueue extends BaseQueue {
         // Note: the following steps won't affect the publication.
         // Section1: update local DB related
         try {
-          // Step 6: copy previous draft asset maps for current draft
+          // Step 5: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
           // @see src/mutations/article/editArticle.ts
           const { id: entityTypeId } =
@@ -188,47 +176,23 @@ class RevisionQueue extends BaseQueue {
             target: draft.id,
             entityTypeId,
           })
-          job.progress(60)
 
-          // Step 7: add to search
+          // Step 6: add to search
           await this.articleService.addToSearch({
             ...article,
             content: draft.content,
             userName,
             displayName,
           })
-          // job.progress(80)
 
-          // Step 8: handle newly added mentions
+          // Step 7: handle newly added mentions
           await this.handleMentions({
             article: updatedArticle,
             preDraftContent: preDraft.content,
             content: draft.content,
           })
-          // job.progress(90)
 
-          // Step 9: trigger notifications
-          this.notificationService.trigger({
-            event: DB_NOTICE_TYPE.revised_article_published,
-            recipientId: article.authorId,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-            ],
-          })
-          // job.progress(95)
-
-          // Step 10: invalidate article and user cache
-          await Promise.all([
-            invalidateFQC({
-              node: { type: NODE_TYPES.User, id: article.authorId },
-              redis: this.cacheService.redis,
-            }),
-            invalidateFQC({
-              node: { type: NODE_TYPES.Article, id: article.id },
-              redis: this.cacheService.redis,
-            }),
-          ])
-          // job.progress(100)
+          job.progress(70)
         } catch (err) {
           // ignore errors caused by these steps
           console.error(
@@ -236,9 +200,30 @@ class RevisionQueue extends BaseQueue {
             'job failed at optional step:',
             err,
             job,
-            draft
+            draft.id
           )
         }
+
+        // Step 8: trigger notifications
+        this.notificationService.trigger({
+          event: DB_NOTICE_TYPE.revised_article_published,
+          recipientId: article.authorId,
+          entities: [
+            { type: 'target', entityTable: 'article', entity: article },
+          ],
+        })
+
+        // Step 9: invalidate article and user cache
+        await Promise.all([
+          invalidateFQC({
+            node: { type: NODE_TYPES.User, id: article.authorId },
+            redis: this.cacheService.redis,
+          }),
+          invalidateFQC({
+            node: { type: NODE_TYPES.Article, id: article.id },
+            redis: this.cacheService.redis,
+          }),
+        ])
 
         // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
         let ipnsRes: any
@@ -248,7 +233,6 @@ class RevisionQueue extends BaseQueue {
             mediaHash,
             key,
           } = await this.articleService.publishToIPFS(revised)
-          // job.progress(30)
 
           ;[draft, article] = await Promise.all([
             this.draftService.baseUpdate(draft.id, {
@@ -263,22 +247,12 @@ class RevisionQueue extends BaseQueue {
             }),
           ])
 
-          if (key && draft.access) {
-            const data = {
-              articleId: article.id,
+          // update secret
+          if (key) {
+            await this.handleCircle({
+              article,
               circleId: draft.circleId,
-              // secret: key,
-            }
-
-            await this.atomService.update({
-              table: 'article_circle',
-              where: data,
-              data: {
-                ...data,
-                secret: key,
-                access: draft.access,
-                updatedAt: this.knex.fn.now(),
-              },
+              secret: key,
             })
           }
 
@@ -333,7 +307,7 @@ class RevisionQueue extends BaseQueue {
             'job failed at optional step:',
             err,
             job,
-            draft
+            draft.id
           )
         }
 
@@ -392,11 +366,11 @@ class RevisionQueue extends BaseQueue {
   private handleCircle = async ({
     article,
     circleId,
-    secret = null,
+    secret,
   }: {
     article: any
     circleId: string
-    secret?: string | null
+    secret: string
   }) => {
     await this.atomService.update({
       table: 'article_circle',
