@@ -23,7 +23,6 @@ export default function () {
   })
 
   if (res.status === 200) {
-    console.log(new Date().toISOString(), res.body)
     const body = JSON.parse(res.body)
   }
 
@@ -91,7 +90,6 @@ query UserProfilePrivate($input: UserInput!) {
   )
 
   // if (res.status === 200) {
-  //  console.log((new Date).toISOString(), JSON.stringify(res.headers), res.body);
 
   check(res, {
     'post status was 200': (r) => r.status == 200,

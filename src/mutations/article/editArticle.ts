@@ -181,7 +181,6 @@ const resolver: MutationToEditArticleResolver = async (
       .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
       { id: string; content: string }
     ]
-    // console.log('new dbTags:', dbTags)
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
     const oldIds = (

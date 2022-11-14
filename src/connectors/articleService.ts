@@ -219,16 +219,13 @@ export class ArticleService extends BaseService {
 
     const metaData = makeMetaData(articleInfo)
 
-    // console.log(new Date, 'articleInfo:', { articleInfo, metaData, })
     const cid = await this.ipfs.client.dag.put(metaData, {
       // storeCodec: 'dag-cbor',
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256',
     })
-    // console.log(new Date, 'after dag.put:', { cid, })
     const mediaHash = cid.toV1().toString() // cid.toBaseEncodedString()
-    // console.log(new Date, 'after dag.put:', { cid, mediaHash, })
 
     return { contentHash, mediaHash, key }
   }
@@ -294,7 +291,6 @@ export class ArticleService extends BaseService {
       console.error(new Date(), 'fetching articles ERROR:', {
         authorId: author.id,
         articleIds,
-        articles,
       })
       return
     }
@@ -371,7 +367,6 @@ export class ArticleService extends BaseService {
         withLocal: true,
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
-      // console.log(new Date(), `directoryName stat:`, dirStat0.cid.toString(), dirStat0)
       cidToPublish = dirStat0.cid
 
       const attached = []

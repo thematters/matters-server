@@ -78,10 +78,7 @@ class PublicationQueue extends BaseQueue {
       })
       .on('progress', (job, progress) => {
         // A job's progress was updated!
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress:`, {
-          progress,
-          jobData: job.data,
-        })
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress`)
       })
       .on('failed', (job, err) => {
         // A job failed with reason `err`!
@@ -89,10 +86,7 @@ class PublicationQueue extends BaseQueue {
       })
       .on('completed', (job, result) => {
         // A job successfully completed with a `result`.
-        console.log('PublicationQueue: job completed:', {
-          result,
-          jobData: job.data,
-        })
+        console.log(`PublicationQueue: Job#${job.id}/${job.name} completed`)
       })
 
     // publish article
@@ -134,7 +128,7 @@ class PublicationQueue extends BaseQueue {
       const summary = draft.summary || makeSummary(draft.content)
       const wordCount = countWords(draft.content)
 
-      // Step 3: create an article
+      // Step 2: create an article
       let article
       const articleData = {
         ...draft,
@@ -156,7 +150,7 @@ class PublicationQueue extends BaseQueue {
 
       job.progress(20)
 
-      // Step 4: update draft
+      // Step 3: update draft
       const [publishedDraft] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
           articleId: article.id,
@@ -182,7 +176,7 @@ class PublicationQueue extends BaseQueue {
       // Note: the following steps won't affect the publication.
       // Section1: update local DB related
       try {
-        // Step 5: handle collection, circles, tags & mentions
+        // Step 4: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
         job.progress(40)
 
@@ -200,7 +194,7 @@ class PublicationQueue extends BaseQueue {
         job.progress(60)
 
         /**
-         * Step 6: Handle Assets
+         * Step 5: Handle Assets
          *
          * Relationship between asset_map and entity:
          *
@@ -232,7 +226,7 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        // Step 7: add to search
+        // Step 6: add to search
         await this.articleService.addToSearch({
           id: article.id,
           title: draft.title,
@@ -242,33 +236,29 @@ class PublicationQueue extends BaseQueue {
           displayName,
           tags,
         })
-        // job.progress(90)
-
-        // Step 8: trigger notifications
-        this.notificationService.trigger({
-          event: DB_NOTICE_TYPE.article_published,
-          recipientId: article.authorId,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-          ],
-        })
-        // job.progress(95)
-
-        // Step 9: invalidate user cache
-        await Promise.all([
-          invalidateFQC({
-            node: { type: NODE_TYPES.Draft, id: draft.id },
-            redis: this.cacheService.redis,
-          }),
-          invalidateFQC({
-            node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: this.cacheService.redis,
-          }),
-        ])
       } catch (err) {
         // ignore errors caused by these steps
         console.error(new Date(), 'optional step failed:', err, job, draft)
       }
+
+      // Step 7: trigger notifications
+      this.notificationService.trigger({
+        event: DB_NOTICE_TYPE.article_published,
+        recipientId: article.authorId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
+
+      // Step 8: invalidate user cache
+      await Promise.all([
+        invalidateFQC({
+          node: { type: NODE_TYPES.Draft, id: draft.id },
+          redis: this.cacheService.redis,
+        }),
+        invalidateFQC({
+          node: { type: NODE_TYPES.User, id: article.authorId },
+          redis: this.cacheService.redis,
+        }),
+      ])
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
       let ipnsRes: any
@@ -465,7 +455,7 @@ class PublicationQueue extends BaseQueue {
       const data = {
         articleId: article.id,
         circleId: draft.circleId,
-        secret,
+        ...(secret ? { secret } : {}),
       }
 
       await this.atomService.upsert({
