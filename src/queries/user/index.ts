@@ -1,5 +1,4 @@
 import { NODE_TYPES } from 'common/enums'
-import { AuthenticationError } from 'common/errors'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
@@ -17,6 +16,7 @@ import {
   GQLUserActivityTypeResolver,
   GQLUserAnalyticsTypeResolver,
   GQLUserInfoTypeResolver,
+  GQLUserLanguage,
   GQLUserOSSTypeResolver,
   GQLUserSettingsTypeResolver,
   GQLUserStatusTypeResolver,
@@ -111,12 +111,7 @@ const user: {
     info: (root) => root,
     // ipnsAddress,
     wallet: (root) => root,
-    settings: (root) => {
-      if (!root.id) {
-        throw new AuthenticationError('visitor has no permission')
-      }
-      return root
-    },
+    settings: (root) => root,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
     following: (root) => root,
@@ -149,7 +144,7 @@ const user: {
     featuredTags,
   },
   UserSettings: {
-    language: ({ language }) => language,
+    language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
     currency: ({ currency }) => currency || ('HKD' as GQLQuoteCurrency),
     notification,
   },
