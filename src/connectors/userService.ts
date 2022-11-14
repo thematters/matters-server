@@ -1388,15 +1388,18 @@ export class UserService extends BaseService {
    */
   countDonators = async (
     recipientId: string,
-    range?: { start: Date; end: Date }
+    range?: { start?: Date; end?: Date }
   ) => {
     const query = this.knex('transaction').countDistinct('sender_id').where({
       recipientId,
       state: TRANSACTION_STATE.succeeded,
       purpose: TRANSACTION_PURPOSE.donation,
     })
-    if (range) {
-      query.whereBetween('created_at', [range.start, range.end])
+    if (range?.start) {
+      query.where('created_at', '>=', range.start)
+    }
+    if (range?.end) {
+      query.where('created_at', '<', range.end)
     }
     const result = await query.first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -1407,15 +1410,18 @@ export class UserService extends BaseService {
    */
   topDonators = async (
     recipientId: string,
-    range?: { start: Date; end: Date }
+    range?: { start?: Date; end?: Date }
   ) => {
     const query = this.knex('transaction').where({
       recipientId,
       state: TRANSACTION_STATE.succeeded,
       purpose: TRANSACTION_PURPOSE.donation,
     })
-    if (range) {
-      query.whereBetween('created_at', [range.start, range.end])
+    if (range?.start) {
+      query.where('created_at', '>=', range.start)
+    }
+    if (range?.end) {
+      query.where('created_at', '<', range.end)
     }
     const res = await query
       .groupBy('sender_id')
