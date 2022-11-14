@@ -481,7 +481,6 @@ describe('user query fields', () => {
       query: GET_VIEWER_SETTINGS,
     })
     const { errors } = res
-    console.log(errors)
     expect(errors).toBeDefined()
   })
 
