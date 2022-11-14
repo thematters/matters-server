@@ -3325,7 +3325,7 @@ export interface GQLUserSettings {
   /**
    * Notification settings.
    */
-  notification: GQLNotificationSetting
+  notification?: GQLNotificationSetting
 }
 
 export interface GQLUserActivity {

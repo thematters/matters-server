@@ -480,8 +480,11 @@ describe('user query fields', () => {
     const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
-    const { errors } = res
-    expect(errors).toBeDefined()
+    const { data } = res
+    const settings = _get(data, 'viewer.settings')
+    expect(settings.language).toBe('zh_hant')
+    expect(settings.currency).toBe('HKD')
+    expect(settings.notification).toBeNull()
   })
 
   test('retrive UserSettings', async () => {
