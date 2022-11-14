@@ -1383,6 +1383,25 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Count donators to this users
+   */
+  countDonators = async (
+    recipientId: string,
+    range?: { start: Date; end: Date }
+  ) => {
+    const query = this.knex('transaction').countDistinct('senderId').where({
+      recipientId,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+    })
+    if (range) {
+      query.whereBetween('created_at', [range.start, range.end])
+    }
+    const result = await query.first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   /*********************************
    *                               *
    *         OAuth:LikeCoin        *
