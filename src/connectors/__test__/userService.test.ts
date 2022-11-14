@@ -10,6 +10,55 @@ import { PaymentService, UserService } from 'connectors'
 const userService = new UserService()
 
 describe('countDonators', () => {
+  beforeEach(async () => {
+    await userService.knex('transaction').del()
+  })
+  test('not existed recipientId', async () => {
+    const recipientId = '0'
+    const result = await userService.topDonators(recipientId)
+    expect(result).toEqual([])
+  })
+  test('only one donator', async () => {
+    const recipientId = '1'
+    await createDonationTx({ recipientId, senderId: '2' })
+    const result = await userService.topDonators(recipientId)
+    expect(result).toEqual([{ senderId: '2', count: 1 }])
+  })
+  test('donators is ordered', async () => {
+    const recipientId = '1'
+    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '3' })
+    // 1st ordered by donations count desc
+    const result = await userService.topDonators(recipientId)
+    expect(result).toEqual([
+      { senderId: '2', count: 2 },
+      { senderId: '3', count: 1 },
+    ])
+    // 2rd ordered by donations time desc
+    await createDonationTx({ recipientId, senderId: '3' })
+    const result2 = await userService.topDonators(recipientId)
+    expect(result2).toEqual([
+      { senderId: '3', count: 2 },
+      { senderId: '2', count: 2 },
+    ])
+  })
+  test('call with range', async () => {
+    const recipientId = '1'
+    const tx1 = await createDonationTx({ recipientId, senderId: '2' })
+    const tx2 = await createDonationTx({ recipientId, senderId: '2' })
+    const result = await userService.topDonators(recipientId, {
+      start: tx1.createdAt,
+      end: tx2.createdAt,
+    })
+    expect(result).toEqual([{ senderId: '2', count: 1 }])
+  })
+})
+
+describe('countDonators', () => {
+  beforeEach(async () => {
+    await userService.knex('transaction').del()
+  })
   test('not existed recipientId', async () => {
     const recipientId = '0'
     const count = await userService.countDonators(recipientId)
@@ -40,7 +89,10 @@ describe('countDonators', () => {
     const tx4 = await createDonationTx({ recipientId, senderId: '4' })
     const count4 = await userService.countDonators(recipientId)
     expect(count4).toBe(3)
-    const count5 = await userService.countDonators(recipientId, {start:tx3.createdAt, end: tx4.createdAt})
+    const count5 = await userService.countDonators(recipientId, {
+      start: tx3.createdAt,
+      end: tx4.createdAt,
+    })
     expect(count5).toBe(1)
   })
 })
