@@ -879,7 +879,6 @@ export class TagService extends BaseService {
     }
 
     if (result?.numAuthors) {
-      // console.log(new Date(), `parsed num_articles from tags_lasts:`, { tagId, selected, withSynonyms }, result)
       return parseInt(result.numAuthors ?? '0', 10)
     }
 

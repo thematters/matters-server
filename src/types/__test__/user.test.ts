@@ -700,7 +700,6 @@ describe('user recommendations', () => {
         query: GET_VIEWER_RECOMMENDATION(list),
         variables: { input: { first: 1 } },
       })
-      // console.log(`fetched ${list}:`, result)
       const { data } = result
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
