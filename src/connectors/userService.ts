@@ -1401,6 +1401,7 @@ export class UserService extends BaseService {
     const result = await query.first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
+
   /**
    * Top donators to this recipient
    */
@@ -1433,9 +1434,6 @@ export class UserService extends BaseService {
       count: parseInt(item.count, 10),
     }))
   }
-  /**
-   * Count donators to this recipient
-   */
 
   /*********************************
    *                               *
