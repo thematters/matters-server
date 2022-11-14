@@ -7,11 +7,15 @@ import {
 } from 'common/enums'
 import { PaymentService, UserService } from 'connectors'
 
+const TEST_RECIPIENT_ID = '9'
 const userService = new UserService()
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService.knex('transaction').del()
+    await userService
+      .knex('transaction')
+      .where({ recipientId: TEST_RECIPIENT_ID })
+      .del()
   })
   test('not existed recipientId', async () => {
     const recipientId = '0'
@@ -19,13 +23,13 @@ describe('countDonators', () => {
     expect(result).toEqual([])
   })
   test('only one donator', async () => {
-    const recipientId = '1'
+    const recipientId = TEST_RECIPIENT_ID
     await createDonationTx({ recipientId, senderId: '2' })
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([{ senderId: '2', count: 1 }])
   })
   test('donators is ordered', async () => {
-    const recipientId = '1'
+    const recipientId = TEST_RECIPIENT_ID
     await createDonationTx({ recipientId, senderId: '2' })
     await createDonationTx({ recipientId, senderId: '2' })
     await createDonationTx({ recipientId, senderId: '3' })
@@ -44,7 +48,7 @@ describe('countDonators', () => {
     ])
   })
   test('call with range', async () => {
-    const recipientId = '1'
+    const recipientId = TEST_RECIPIENT_ID
     const tx1 = await createDonationTx({ recipientId, senderId: '2' })
     const tx2 = await createDonationTx({ recipientId, senderId: '2' })
     const result = await userService.topDonators(recipientId, {
@@ -57,7 +61,10 @@ describe('countDonators', () => {
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService.knex('transaction').del()
+    await userService
+      .knex('transaction')
+      .where({ recipientId: TEST_RECIPIENT_ID })
+      .del()
   })
   test('not existed recipientId', async () => {
     const recipientId = '0'
@@ -65,12 +72,12 @@ describe('countDonators', () => {
     expect(count).toBe(0)
   })
   test('exsited recpientId but not donators', async () => {
-    const recipientId = '1'
+    const recipientId = TEST_RECIPIENT_ID
     const count = await userService.countDonators(recipientId)
     expect(count).toBe(0)
   })
   test('count donators', async () => {
-    const recipientId = '1'
+    const recipientId = TEST_RECIPIENT_ID
 
     await createDonationTx({ recipientId, senderId: '2' })
 
