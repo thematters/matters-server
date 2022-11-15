@@ -294,7 +294,7 @@ export default /* GraphQL */ `
     currency: QuoteCurrency!
 
     "Notification settings."
-    notification: NotificationSetting!
+    notification: NotificationSetting
   }
 
   type UserActivity {
