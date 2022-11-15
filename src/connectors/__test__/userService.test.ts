@@ -1,11 +1,6 @@
-import {
-  PAYMENT_CURRENCY,
-  PAYMENT_PROVIDER,
-  TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
-  TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { PaymentService, UserService } from 'connectors'
+import { UserService } from 'connectors'
+
+import { createDonationTx } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
 const userService = new UserService()
@@ -57,6 +52,37 @@ describe('countDonators', () => {
     })
     expect(result).toEqual([{ senderId: '2', count: 1 }])
   })
+  test('call with pagination', async () => {
+    const recipientId = TEST_RECIPIENT_ID
+    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '4' })
+    const result1 = await userService.topDonators(recipientId, undefined, {
+      skip: 1,
+    })
+    expect(result1).toEqual([
+      { senderId: '3', count: 1 },
+      { senderId: '2', count: 1 },
+    ])
+    const result2 = await userService.topDonators(recipientId, undefined, {
+      take: 1,
+    })
+    expect(result2).toEqual([{ senderId: '4', count: 1 }])
+    const result3 = await userService.topDonators(recipientId, undefined, {
+      take: 1,
+      skip: 1,
+    })
+    expect(result3).toEqual([{ senderId: '3', count: 1 }])
+    // edge cases
+    const result4 = await userService.topDonators(recipientId, undefined, {
+      take: 0,
+    })
+    expect(result4).toEqual([])
+    const result5 = await userService.topDonators(recipientId, undefined, {
+      skip: 3,
+    })
+    expect(result5).toEqual([])
+  })
 })
 
 describe('countDonators', () => {
@@ -103,27 +129,3 @@ describe('countDonators', () => {
     expect(count5).toBe(1)
   })
 })
-
-// helpers
-const createDonationTx = async ({
-  senderId,
-  recipientId,
-}: {
-  senderId: string
-  recipientId: string
-}) => {
-  const paymentService = new PaymentService()
-  return paymentService.createTransaction({
-    amount: 1,
-    fee: 0,
-    state: TRANSACTION_STATE.succeeded,
-    purpose: TRANSACTION_PURPOSE.donation,
-    currency: PAYMENT_CURRENCY.HKD,
-    provider: PAYMENT_PROVIDER.matters,
-    providerTxId: String(Math.random()),
-    recipientId,
-    senderId,
-    targetId: '1',
-    targetType: TRANSACTION_TARGET_TYPE.article,
-  })
-}

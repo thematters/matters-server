@@ -1,4 +1,8 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils'
 import { UserAnalyticsToTopDonatorsResolver } from 'definitions'
 
 const resolver: UserAnalyticsToTopDonatorsResolver = async (
@@ -10,12 +14,15 @@ const resolver: UserAnalyticsToTopDonatorsResolver = async (
   if (!id) {
     return connectionFromArray([], input)
   }
-  const start = input?.filter?.inRangeStart
-  const end = input?.filter?.inRangeEnd
+  const range = {
+    start: input?.filter?.inRangeStart,
+    end: input?.filter?.inRangeEnd,
+  }
+  const pagination = fromConnectionArgs(input)
 
-  const donatorsCount = await userService.countDonators(id, { start, end })
+  const donatorsCount = await userService.countDonators(id, range)
   const connection = await connectionFromPromisedArray(
-    userService.topDonators(id, { start, end }),
+    userService.topDonators(id, range, pagination),
     input,
     donatorsCount
   )

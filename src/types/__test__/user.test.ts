@@ -210,6 +210,23 @@ const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
     }
   }
 `
+const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
+  query ($input: TopDonatorInput!) {
+    viewer {
+      analytics {
+        topDonators(input: $input) {
+          edges {
+            node {
+              userName
+            }
+            donationCount
+          }
+          totalCount
+        }
+      }
+    }
+  }
+`
 const GET_VIEWER_STATUS = /* GraphQL */ `
   query {
     viewer {
@@ -560,6 +577,15 @@ describe('user query fields', () => {
     })
     const status = _get(data, 'viewer.status')
     expect(status).toBeDefined()
+  })
+  test('retrive topDonators by visitor', async () => {
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_TOPDONATORS,
+      variables: { input: {} },
+    })
+    const donators = _get(data, 'viewer.analytics.topDonators')
+    expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
 })
 
