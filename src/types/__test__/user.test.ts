@@ -588,7 +588,7 @@ describe('user query fields', () => {
     const donators = _get(data, 'viewer.analytics.topDonators')
     expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
-  test('retrive topDonators by user', async () => {
+  test.skip('retrive topDonators by user', async () => {
     const server = await testClient({
       isAuth: true,
     })
