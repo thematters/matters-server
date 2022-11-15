@@ -10,6 +10,7 @@ import {
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 
+import { createDonationTx } from '../../connectors/__test__/utils'
 import {
   defaultTestUser,
   getUserContext,
@@ -205,6 +206,23 @@ const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
               id
             }
           }
+        }
+      }
+    }
+  }
+`
+const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
+  query ($input: TopDonatorInput!) {
+    viewer {
+      analytics {
+        topDonators(input: $input) {
+          edges {
+            node {
+              userName
+            }
+            donationCount
+          }
+          totalCount
         }
       }
     }
@@ -560,6 +578,52 @@ describe('user query fields', () => {
     })
     const status = _get(data, 'viewer.status')
     expect(status).toBeDefined()
+  })
+  test('retrive topDonators by visitor', async () => {
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_TOPDONATORS,
+      variables: { input: {} },
+    })
+    const donators = _get(data, 'viewer.analytics.topDonators')
+    expect(donators).toEqual({ edges: [], totalCount: 0 })
+  })
+  test.skip('retrive topDonators by user', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const recipientId = '1'
+    // test no donators
+    const res1 = await server.executeOperation({
+      query: GET_VIEWER_TOPDONATORS,
+      variables: { input: {} },
+    })
+    const donators1 = _get(res1, 'data.viewer.analytics.topDonators')
+    expect(donators1).toEqual({ edges: [], totalCount: 0 })
+
+    // test having donators
+    await createDonationTx({ recipientId, senderId: '2' })
+    const res2 = await server.executeOperation({
+      query: GET_VIEWER_TOPDONATORS,
+      variables: { input: {} },
+    })
+    const donators2 = _get(res2, 'data.viewer.analytics.topDonators')
+    expect(donators2).toEqual({
+      edges: [{ node: { userName: 'test2' }, donationCount: 1 }],
+      totalCount: 1,
+    })
+
+    // test pagination
+    await createDonationTx({ recipientId, senderId: '3' })
+    const res3 = await server.executeOperation({
+      query: GET_VIEWER_TOPDONATORS,
+      variables: { input: { first: 1 } },
+    })
+    const donators3 = _get(res3, 'data.viewer.analytics.topDonators')
+    expect(donators3).toEqual({
+      edges: [{ node: { userName: 'test3' }, donationCount: 1 }],
+      totalCount: 2,
+    })
   })
 })
 
