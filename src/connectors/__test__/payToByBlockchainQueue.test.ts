@@ -36,11 +36,7 @@ jest.mock('connectors/blockchain', () => {
 })
 
 // test data
-
-const txTable = 'transaction'
-const blockchainTxTable = 'blockchain_transaction'
-const eventTable = 'blockchain_curation_event'
-
+//
 const polygonCurationContractAddress =
   environment.polygonCurationContractAddress.toLowerCase()
 const zeroAdress = '0x0000000000000000000000000000000000000000'
@@ -116,11 +112,6 @@ describe('payToByBlockchainQueue.payTo', () => {
         return null
       }
     })
-  })
-  afterAll(async () => {
-    await queue.knex(eventTable).del()
-    await queue.knex(blockchainTxTable).del()
-    await queue.knex(txTable).del()
   })
 
   test('job with wrong tx id will fail', async () => {
@@ -274,6 +265,9 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const latestBlockNum = 30000128
   const safeBlockNum = 30000000
   const knex = queue.knex
+  const txTable = 'transaction'
+  const blockchainTxTable = 'blockchain_transaction'
+  const eventTable = 'blockchain_curation_event'
   const syncRecordTable = 'blockchain_sync_record'
 
   beforeAll(() => {
@@ -294,11 +288,6 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       }
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
-  })
-  afterEach(async () => {
-    await knex(eventTable).del()
-    await knex(blockchainTxTable).del()
-    await knex(txTable).del()
   })
   test('_handleSyncCurationEvents update sync record', async () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
@@ -376,6 +365,9 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     )
   })
   test('not matters logs will not update tx', async () => {
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
     const notMattersLogs = [
       {
         txHash: 'fakeTxhash1',
@@ -425,6 +417,10 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     expect(await knex(eventTable).count()).toEqual([{ count: '4' }])
   })
   test('matters logs will update tx', async () => {
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+
     // no related tx, insert one
     const logs = [
       {
