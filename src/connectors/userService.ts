@@ -1410,7 +1410,8 @@ export class UserService extends BaseService {
    */
   topDonators = async (
     recipientId: string,
-    range?: { start?: Date; end?: Date }
+    range?: { start?: Date; end?: Date },
+    pagination?: { skip?: number; take?: number }
   ) => {
     const query = this.knex('transaction').where({
       recipientId,
@@ -1423,7 +1424,8 @@ export class UserService extends BaseService {
     if (range?.end) {
       query.where('created_at', '<', range.end)
     }
-    const res = await query
+
+    query
       .groupBy('sender_id')
       .select(
         'sender_id',
@@ -1435,7 +1437,17 @@ export class UserService extends BaseService {
         { column: 'max', order: 'desc' },
       ])
 
-    return res.map((item) => ({
+    if (pagination) {
+      const { skip, take } = pagination
+      if (skip) {
+        query.offset(skip)
+      }
+      if (take || take === 0) {
+        query.limit(take)
+      }
+    }
+
+    return (await query).map((item) => ({
       senderId: item.senderId,
       count: parseInt(item.count, 10),
     }))
