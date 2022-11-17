@@ -1,4 +1,8 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils'
 import { UserAnalyticsToTopDonatorsResolver } from 'definitions'
 
 const resolver: UserAnalyticsToTopDonatorsResolver = async (
@@ -10,28 +14,26 @@ const resolver: UserAnalyticsToTopDonatorsResolver = async (
   if (!id) {
     return connectionFromArray([], input)
   }
+  const range = {
+    start: input?.filter?.inRangeStart,
+    end: input?.filter?.inRangeEnd,
+  }
+  const pagination = fromConnectionArgs(input)
 
+  const donatorsCount = await userService.countDonators(id, range)
   const connection = await connectionFromPromisedArray(
-    userService.dataloader.loadMany([
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-    ]),
+    userService.topDonators(id, range, pagination),
     input,
-    10
+    donatorsCount
   )
-  connection.edges = connection.edges.map((edge) => ({
-    ...edge,
-    donationCount: 1,
-  }))
-  return connection
+  return {
+    ...connection,
+    edges: await connection.edges.map(async (edge) => ({
+      cursor: edge.cursor,
+      node: await userService.dataloader.load(edge.node.senderId),
+      donationCount: edge.node.count,
+    })),
+  }
 }
 
 export default resolver

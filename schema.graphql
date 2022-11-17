@@ -46,6 +46,7 @@ type Query {
   oss: OSS!
   viewer: User
   user(input: UserInput!): User
+  exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
 }
 
@@ -201,6 +202,9 @@ type Mutation {
 
   """Change user email."""
   changeEmail(input: ChangeEmailInput!): User!
+
+  """Set user currency preference."""
+  setCurrency(input: SetCurrencyInput!): User!
 
   """Register user, can only be used on matters.news website."""
   userRegister(input: UserRegisterInput!): AuthResult!
@@ -2394,8 +2398,11 @@ type UserSettings {
   """User language setting."""
   language: UserLanguage!
 
+  """User currency preference."""
+  currency: QuoteCurrency!
+
   """Notification settings."""
-  notification: NotificationSetting!
+  notification: NotificationSetting
 }
 
 type UserActivity {
@@ -2777,6 +2784,10 @@ input VerifyEmailInput {
   codeId: ID!
 }
 
+input SetCurrencyInput {
+  currency: QuoteCurrency
+}
+
 input UserRegisterInput {
   email: String!
   userName: String
@@ -3024,6 +3035,12 @@ enum SigningMessagePurpose {
   claimLogbook
 }
 
+enum QuoteCurrency {
+  TWD
+  HKD
+  USD
+}
+
 union Response = Article | Comment
 
 type ResponseConnection implements Connection {
@@ -3051,6 +3068,20 @@ input ResponsesInput {
 enum ResponseSort {
   oldest
   newest
+}
+
+input ExchangeRatesInput {
+  from: TransactionCurrency
+  to: QuoteCurrency
+}
+
+type ExchangeRate {
+  from: TransactionCurrency!
+  to: QuoteCurrency!
+  rate: Float!
+
+  """Last updated time from currency convertor APIs"""
+  updatedAt: DateTime!
 }
 
 union TransactionTarget = Article | Circle | Transaction

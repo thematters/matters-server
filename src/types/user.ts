@@ -19,6 +19,9 @@ export default /* GraphQL */ `
     "Change user email."
     changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Set user currency preference."
+    setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
 
@@ -287,8 +290,11 @@ export default /* GraphQL */ `
     "User language setting."
     language: UserLanguage!
 
+    "User currency preference."
+    currency: QuoteCurrency!
+
     "Notification settings."
-    notification: NotificationSetting!
+    notification: NotificationSetting
   }
 
   type UserActivity {
@@ -672,6 +678,10 @@ export default /* GraphQL */ `
     codeId: ID!
   }
 
+  input SetCurrencyInput {
+      currency: QuoteCurrency
+  }
+
   input UserRegisterInput {
     email: String! @constraint(format: "email")
     userName: String
@@ -916,5 +926,11 @@ export default /* GraphQL */ `
     signup
     login
     claimLogbook
+  }
+
+  enum QuoteCurrency {
+      TWD
+      HKD
+      USD
   }
 `

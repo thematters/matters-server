@@ -1383,6 +1383,76 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Count donators to this recipient
+   */
+  countDonators = async (
+    recipientId: string,
+    range?: { start?: Date; end?: Date }
+  ) => {
+    const query = this.knex('transaction').countDistinct('sender_id').where({
+      recipientId,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+    })
+    if (range?.start) {
+      query.where('created_at', '>=', range.start)
+    }
+    if (range?.end) {
+      query.where('created_at', '<', range.end)
+    }
+    const result = await query.first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Top donators to this recipient
+   */
+  topDonators = async (
+    recipientId: string,
+    range?: { start?: Date; end?: Date },
+    pagination?: { skip?: number; take?: number }
+  ) => {
+    const query = this.knex('transaction').where({
+      recipientId,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+    })
+    if (range?.start) {
+      query.where('created_at', '>=', range.start)
+    }
+    if (range?.end) {
+      query.where('created_at', '<', range.end)
+    }
+
+    query
+      .groupBy('sender_id')
+      .select(
+        'sender_id',
+        this.knex.raw('COUNT(sender_id)'),
+        this.knex.raw('MAX(created_at)')
+      )
+      .orderBy([
+        { column: 'count', order: 'desc' },
+        { column: 'max', order: 'desc' },
+      ])
+
+    if (pagination) {
+      const { skip, take } = pagination
+      if (skip) {
+        query.offset(skip)
+      }
+      if (take || take === 0) {
+        query.limit(take)
+      }
+    }
+
+    return (await query).map((item) => ({
+      senderId: item.senderId,
+      count: parseInt(item.count, 10),
+    }))
+  }
+
   /*********************************
    *                               *
    *         OAuth:LikeCoin        *

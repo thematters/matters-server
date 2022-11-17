@@ -4,5 +4,10 @@ const resolver: UserSettingsToNotificationResolver = (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.findNotifySetting(id)
+) => {
+  if (!id) {
+    return null
+  }
+  return userService.findNotifySetting(id)
+}
 export default resolver
