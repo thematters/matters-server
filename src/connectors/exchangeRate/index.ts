@@ -1,5 +1,6 @@
 import { CACHE_TTL } from 'common/enums'
 import { UnknownError } from 'common/errors'
+import logger from 'common/logger'
 import { CacheService } from 'connectors'
 import {
   GQLExchangeRate,
@@ -84,6 +85,9 @@ export class ExchangeRate {
     from,
     to,
   }: Pair): Promise<GQLExchangeRate | never> => {
+    logger.warn(
+      'exchangeRate requested APIs to get rates instead of from cache'
+    )
     const tokenRates = await this.fetchTokenRates()
     const fiatRates = await this.fetchFiatRates()
     await this.updateRatesToCache(tokenRates)
