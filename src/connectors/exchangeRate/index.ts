@@ -64,15 +64,20 @@ export class ExchangeRate {
   }
 
   private getRate = async (pair: Pair): Promise<GQLExchangeRate | never> => {
-    const data = await this.cache.getObject({
+    const data = (await this.cache.getObject({
       keys: this.genCacheKeys(pair),
       getter: async () => this.updateAllRatesAndGetRate(pair),
       expire: this.expire,
-    })
+    })) as any
     if (!data) {
       throw new UnknownError('Unexpected null')
     }
-    return data as unknown as GQLExchangeRate
+    return {
+      from: data.from,
+      to: data.to,
+      rate: data.rate,
+      updatedAt: new Date(data.updatedAt),
+    }
   }
 
   private updateAllRatesAndGetRate = async ({
@@ -189,6 +194,7 @@ export class ExchangeRate {
     base: FiatCurrency,
     quotes: GQLQuoteCurrency[]
   ): Promise<any | never> => {
+    // if not success raise
     return {
       base: 'HKD',
       date: '2022-11-18',

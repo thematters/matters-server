@@ -17,7 +17,7 @@ import { CacheService, ExchangeRate } from 'connectors'
 // }
 //    return {
 //      base: 'HKD',
-//      date: '2022-11-18',
+//      date: ''2022-11-18',
 //      rates: {
 //        HKD: 1,
 //        TWD: 3.982979,
@@ -26,16 +26,88 @@ import { CacheService, ExchangeRate } from 'connectors'
 //      success: true,
 //      timestamp: 1668752883,
 //    }
+const rates = [
+  {
+    from: 'LIKE',
+    to: 'TWD',
+    rate: 0.07643,
+    updatedAt: new Date('2022-11-18T02:33:58.000Z'),
+  },
+  {
+    from: 'LIKE',
+    to: 'HKD',
+    rate: 0.01919234,
+    updatedAt: new Date('2022-11-18T02:33:58.000Z'),
+  },
+  {
+    from: 'LIKE',
+    to: 'USD',
+    rate: 0.0024524,
+    updatedAt: new Date('2022-11-18T02:33:58.000Z'),
+  },
+  {
+    from: 'USDT',
+    to: 'TWD',
+    rate: 31.15,
+    updatedAt: new Date('2022-11-18T02:30:23.000Z'),
+  },
+  {
+    from: 'USDT',
+    to: 'HKD',
+    rate: 7.82,
+    updatedAt: new Date('2022-11-18T02:30:23.000Z'),
+  },
+  {
+    from: 'USDT',
+    to: 'USD',
+    rate: 0.999504,
+    updatedAt: new Date('2022-11-18T02:30:23.000Z'),
+  },
+  {
+    from: 'HKD',
+    to: 'TWD',
+    rate: 3.982979,
+    updatedAt: new Date('2022-11-18T06:28:03.000Z'),
+  },
+  {
+    from: 'HKD',
+    to: 'HKD',
+    rate: 1,
+    updatedAt: new Date('2022-11-18T06:28:03.000Z'),
+  },
+  {
+    from: 'HKD',
+    to: 'USD',
+    rate: 0.127826,
+    updatedAt: new Date('2022-11-18T06:28:03.000Z'),
+  },
+]
 
 describe('exchangeRate', () => {
   const exchangeRate = new ExchangeRate()
-  beforeAll(() => {
+  beforeEach(() => {
     // mock
-    exchangeRate.expire = 10
-    exchangeRate.cache = new CacheService('testExchangeRate')
+    exchangeRate.expire = 3
+    exchangeRate.cache = new CacheService('TestExchangeRate' + Math.random())
   })
-  test('test', async () => {
-    const res = await exchangeRate.getRates()
-    console.log(res)
+  test('not cached', async () => {
+    expect(await exchangeRate.getRates()).toEqual(rates)
+  })
+  test('cached', async () => {
+    await exchangeRate.updateTokenRates()
+    await exchangeRate.updateFiatRates()
+    expect(await exchangeRate.getRates()).toEqual(rates)
+  })
+  test('call with args', async () => {
+    const HKD = 'HKD' as any
+    expect(await exchangeRate.getRates(HKD)).toEqual(
+      rates.filter((r) => r.from === HKD)
+    )
+    expect(await exchangeRate.getRates(undefined, HKD)).toEqual(
+      rates.filter((r) => r.to === HKD)
+    )
+    expect(await exchangeRate.getRates(HKD, HKD)).toEqual(
+      rates.filter((r) => r.from === HKD && r.to === HKD)
+    )
   })
 })
