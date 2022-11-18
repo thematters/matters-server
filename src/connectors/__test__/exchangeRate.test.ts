@@ -26,15 +26,6 @@ import { CacheService, ExchangeRate } from 'connectors'
 //      success: true,
 //      timestamp: 1668752883,
 //    }
-//
-// const mockFetchRate = async ({ from, to }: Pair) => {
-//  return {
-//    from,
-//    to,
-//    rate: 1,
-//    updatedAt: new Date(),
-//  }
-// }
 
 describe('exchangeRate', () => {
   const exchangeRate = new ExchangeRate()
@@ -44,8 +35,6 @@ describe('exchangeRate', () => {
     exchangeRate.cache = new CacheService('testExchangeRate')
   })
   test('test', async () => {
-    await exchangeRate.updateTokenRates()
-    await exchangeRate.updateFiatRates()
     const res = await exchangeRate.getRates()
     console.log(res)
   })

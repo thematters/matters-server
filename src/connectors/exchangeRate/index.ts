@@ -56,35 +56,54 @@ export class ExchangeRate {
   }
 
   updateTokenRates = async () => {
-    for (const rate of await this.fetchTokenRates()) {
-      this.cache.storeObject({
-        keys: this.genCacheKeys(rate),
-        data: rate,
-        expire: this.expire,
-      })
-    }
+    await this.updateRatesToCache(await this.fetchTokenRates())
   }
 
   updateFiatRates = async () => {
-    for (const rate of await this.fetchFiatRates()) {
-      this.cache.storeObject({
-        keys: this.genCacheKeys(rate),
-        data: rate,
-        expire: this.expire,
-      })
-    }
+    await this.updateRatesToCache(await this.fetchFiatRates())
   }
 
   private getRate = async (pair: Pair): Promise<GQLExchangeRate | never> => {
     const data = await this.cache.getObject({
       keys: this.genCacheKeys(pair),
-      getter: async () => this.fetchRate(pair),
+      getter: async () => this.updateAllRatesAndGetRate(pair),
       expire: this.expire,
     })
     if (!data) {
       throw new UnknownError('Unexpected null')
     }
     return data as unknown as GQLExchangeRate
+  }
+
+  private updateAllRatesAndGetRate = async ({
+    from,
+    to,
+  }: Pair): Promise<GQLExchangeRate | never> => {
+    const tokenRates = await this.fetchTokenRates()
+    const fiatRates = await this.fetchFiatRates()
+    await this.updateRatesToCache(tokenRates)
+    await this.updateRatesToCache(fiatRates)
+    for (const rate of tokenRates) {
+      if (rate.from === from && rate.to === to) {
+        return rate
+      }
+    }
+    for (const rate of fiatRates) {
+      if (rate.from === from && rate.to === to) {
+        return rate
+      }
+    }
+    throw new UnknownError('Unexpected missing return value')
+  }
+
+  private updateRatesToCache = async (rates: GQLExchangeRate[]) => {
+    for (const rate of rates) {
+      this.cache.storeObject({
+        keys: this.genCacheKeys(rate),
+        data: rate,
+        expire: this.expire,
+      })
+    }
   }
 
   private genCacheKeys = (pair: Pair) => ({ id: pair.from + pair.to })
@@ -144,18 +163,6 @@ export class ExchangeRate {
       }
     }
     return rates
-  }
-
-  private fetchRate = async ({
-    from,
-    to,
-  }: Pair): Promise<GQLExchangeRate | never> => {
-    return {
-      from,
-      to,
-      rate: 1,
-      updatedAt: new Date(),
-    }
   }
 
   private requestCoingeckoAPI = async (
