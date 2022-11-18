@@ -7,22 +7,29 @@ import {
   GQLTransactionCurrency,
 } from 'definitions'
 
-const TWD = 'TWD' as GQLQuoteCurrency
-const HKD = 'HKD' as GQLQuoteCurrency
-const USD = 'USD' as GQLQuoteCurrency
-
-const LIKE = 'LIKE' as GQLTransactionCurrency
-const USDT = 'USDT' as GQLTransactionCurrency
-const HKD_ = 'HKD' as GQLTransactionCurrency
-
-const quoteCurrencies: GQLQuoteCurrency[] = [TWD, HKD, USD]
-const tokenCurrencies: GQLTransactionCurrency[] = [LIKE, USDT]
-const fiatCurrencies: GQLTransactionCurrency[] = [HKD_]
-
 interface Pair {
   from: GQLTransactionCurrency
   to: GQLQuoteCurrency
 }
+
+type TokenCurrency = GQLTransactionCurrency.LIKE | GQLTransactionCurrency.USDT
+type FiatCurrency = GQLTransactionCurrency.HKD
+
+const tokenCurrencies: TokenCurrency[] = [
+  'LIKE' as GQLTransactionCurrency.LIKE,
+  'USDT' as GQLTransactionCurrency.USDT,
+]
+const fiatCurrencies: FiatCurrency[] = ['HKD' as GQLTransactionCurrency.HKD]
+const quoteCurrencies: GQLQuoteCurrency[] = [
+  'TWD' as GQLQuoteCurrency.TWD,
+  'HKD' as GQLQuoteCurrency.HKD,
+  'USD' as GQLQuoteCurrency.USD,
+]
+
+const TOKEN_TO_COINGECKO_ID = {
+  LIKE: 'likecoin',
+  USDT: 'tether',
+} as const
 
 export class ExchangeRate {
   cache: CacheService
@@ -36,7 +43,7 @@ export class ExchangeRate {
     from?: GQLTransactionCurrency,
     to?: GQLQuoteCurrency
   ): Promise<GQLExchangeRate[] | never> => {
-    const allPairs = this.getTokenPairs().concat(this.getFiatPairs())
+    const allPairs = [...this.getTokenPairs(), ...this.getFiatPairs()]
     let pairs = allPairs
     if (from) {
       pairs = pairs.filter((p) => p.from === from)
@@ -103,67 +110,25 @@ export class ExchangeRate {
   }
 
   private fetchTokenRates = async (): Promise<GQLExchangeRate[]> => {
-    return [
-      {
-        from: LIKE,
-        to: TWD,
-        rate: 0.085,
-        updatedAt: new Date(),
-      },
-      {
-        from: USDT,
-        to: TWD,
-        rate: 31.84,
-        updatedAt: new Date(),
-      },
-      {
-        from: LIKE,
-        to: HKD,
-        rate: 0.020092,
-        updatedAt: new Date(),
-      },
-      {
-        from: USDT,
-        to: HKD,
-        rate: 7.83,
-        updatedAt: new Date(),
-      },
-      {
-        from: LIKE,
-        to: USD,
-        rate: 0.002566,
-        updatedAt: new Date(),
-      },
-      {
-        from: USDT,
-        to: USD,
-        rate: 1,
-        updatedAt: new Date(),
-      },
-    ]
+    const data = await this.requestCoingecko(tokenCurrencies, quoteCurrencies)
+    const rates: GQLExchangeRate[] = []
+    for (const t of tokenCurrencies) {
+      for (const q of quoteCurrencies) {
+        rates.push({
+          from: t,
+          to: q,
+          rate: data[TOKEN_TO_COINGECKO_ID[t]][q.toLowerCase()],
+          updatedAt: new Date(
+            data[TOKEN_TO_COINGECKO_ID[t]].last_updated_at * 1000
+          ),
+        })
+      }
+    }
+    return rates
   }
 
   private fetchFiatRates = async (): Promise<GQLExchangeRate[]> => {
-    return [
-      {
-        from: HKD_,
-        to: TWD,
-        rate: 4.04,
-        updatedAt: new Date(),
-      },
-      {
-        from: HKD_,
-        to: HKD,
-        rate: 1,
-        updatedAt: new Date(),
-      },
-      {
-        from: HKD_,
-        to: USD,
-        rate: 0.127596,
-        updatedAt: new Date(),
-      },
-    ]
+    return []
   }
 
   private fetchRate = async ({
@@ -175,6 +140,26 @@ export class ExchangeRate {
       to,
       rate: 1,
       updatedAt: new Date(),
+    }
+  }
+
+  private requestCoingecko = async (
+    bases: GQLTransactionCurrency[],
+    quotes: GQLQuoteCurrency[]
+  ): Promise<any | never> => {
+    return {
+      likecoin: {
+        hkd: 0.01919234,
+        twd: 0.07643,
+        usd: 0.0024524,
+        last_updated_at: 1668738838,
+      },
+      tether: {
+        hkd: 7.82,
+        twd: 31.15,
+        usd: 0.999504,
+        last_updated_at: 1668738623,
+      },
     }
   }
 }
