@@ -1,5 +1,7 @@
+import axios from 'axios'
+
 import { CACHE_TTL } from 'common/enums'
-import { UnknownError } from 'common/errors'
+import { NetworkError, UnknownError } from 'common/errors'
 import logger from 'common/logger'
 import { CacheService } from 'connectors'
 import {
@@ -8,6 +10,8 @@ import {
   GQLTransactionCurrency,
 } from 'definitions'
 
+// TYPES
+
 interface Pair {
   from: GQLTransactionCurrency
   to: GQLQuoteCurrency
@@ -15,6 +19,8 @@ interface Pair {
 
 type TokenCurrency = GQLTransactionCurrency.LIKE | GQLTransactionCurrency.USDT
 type FiatCurrency = GQLTransactionCurrency.HKD
+
+// CONSTANTS
 
 const tokenCurrencies: TokenCurrency[] = [
   'LIKE' as GQLTransactionCurrency.LIKE,
@@ -31,6 +37,10 @@ const TOKEN_TO_COINGECKO_ID = {
   LIKE: 'likecoin',
   USDT: 'tether',
 } as const
+
+const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price'
+
+// MAIN
 
 export class ExchangeRate {
   cache: CacheService
@@ -178,19 +188,30 @@ export class ExchangeRate {
     bases: TokenCurrency[],
     quotes: GQLQuoteCurrency[]
   ): Promise<any | never> => {
-    return {
-      likecoin: {
-        hkd: 0.01919234,
-        twd: 0.07643,
-        usd: 0.0024524,
-        last_updated_at: 1668738838,
-      },
-      tether: {
-        hkd: 7.82,
-        twd: 31.15,
-        usd: 0.999504,
-        last_updated_at: 1668738623,
-      },
+    const ids = bases.map((i) => TOKEN_TO_COINGECKO_ID[i]).join()
+    const vs_currencies = quotes.join()
+    try {
+      const reps = await axios.get(COINGECKO_API_URL, {
+        params: {
+          ids,
+          vs_currencies,
+          include_last_updated_at: true,
+        },
+      })
+      if (reps.status !== 200) {
+        throw new UnknownError(
+          `Unexpected Coingecko response code: ${reps.status}`
+        )
+      }
+      return reps.data
+    } catch (error) {
+      const path = error.request.path
+      const msg = error.response.data
+        ? JSON.stringify(error.response.data)
+        : error
+      throw new NetworkError(
+        `Failed to request Coingecko API( ${path} ): ${msg}`
+      )
     }
   }
 
@@ -199,16 +220,6 @@ export class ExchangeRate {
     quotes: GQLQuoteCurrency[]
   ): Promise<any | never> => {
     // if not success raise
-    return {
-      base: 'HKD',
-      date: '2022-11-18',
-      rates: {
-        HKD: 1,
-        TWD: 3.982979,
-        USD: 0.127826,
-      },
-      success: true,
-      timestamp: 1668752883,
-    }
+    return []
   }
 }
