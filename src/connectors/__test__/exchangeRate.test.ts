@@ -15,6 +15,17 @@ import { CacheService, ExchangeRate } from 'connectors'
 //              "last_updated_at": 1668738623
 //          }
 // }
+//    return {
+//      base: 'HKD',
+//      date: '2022-11-18',
+//      rates: {
+//        HKD: 1,
+//        TWD: 3.982979,
+//        USD: 0.127826,
+//      },
+//      success: true,
+//      timestamp: 1668752883,
+//    }
 //
 // const mockFetchRate = async ({ from, to }: Pair) => {
 //  return {
@@ -34,6 +45,7 @@ describe('exchangeRate', () => {
   })
   test('test', async () => {
     await exchangeRate.updateTokenRates()
+    await exchangeRate.updateFiatRates()
     const res = await exchangeRate.getRates()
     console.log(res)
   })

@@ -110,7 +110,10 @@ export class ExchangeRate {
   }
 
   private fetchTokenRates = async (): Promise<GQLExchangeRate[]> => {
-    const data = await this.requestCoingecko(tokenCurrencies, quoteCurrencies)
+    const data = await this.requestCoingeckoAPI(
+      tokenCurrencies,
+      quoteCurrencies
+    )
     const rates: GQLExchangeRate[] = []
     for (const t of tokenCurrencies) {
       for (const q of quoteCurrencies) {
@@ -128,7 +131,19 @@ export class ExchangeRate {
   }
 
   private fetchFiatRates = async (): Promise<GQLExchangeRate[]> => {
-    return []
+    const rates: GQLExchangeRate[] = []
+    for (const t of fiatCurrencies) {
+      const data = await this.requestExchangeRatesDataAPI(t, quoteCurrencies)
+      for (const q of quoteCurrencies) {
+        rates.push({
+          from: t,
+          to: q,
+          rate: data.rates[q],
+          updatedAt: new Date(data.timestamp * 1000),
+        })
+      }
+    }
+    return rates
   }
 
   private fetchRate = async ({
@@ -143,8 +158,8 @@ export class ExchangeRate {
     }
   }
 
-  private requestCoingecko = async (
-    bases: GQLTransactionCurrency[],
+  private requestCoingeckoAPI = async (
+    bases: TokenCurrency[],
     quotes: GQLQuoteCurrency[]
   ): Promise<any | never> => {
     return {
@@ -160,6 +175,23 @@ export class ExchangeRate {
         usd: 0.999504,
         last_updated_at: 1668738623,
       },
+    }
+  }
+
+  private requestExchangeRatesDataAPI = async (
+    base: FiatCurrency,
+    quotes: GQLQuoteCurrency[]
+  ): Promise<any | never> => {
+    return {
+      base: 'HKD',
+      date: '2022-11-18',
+      rates: {
+        HKD: 1,
+        TWD: 3.982979,
+        USD: 0.127826,
+      },
+      success: true,
+      timestamp: 1668752883,
     }
   }
 }
