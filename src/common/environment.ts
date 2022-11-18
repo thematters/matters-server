@@ -105,6 +105,8 @@ export const environment = {
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_ADDRESS || '',
   polygonCurationContractBlocknum:
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
+  exchangeRatesDataAPIKey:
+    process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
 }
 
 export const polygonUSDTContractAddress = isProd

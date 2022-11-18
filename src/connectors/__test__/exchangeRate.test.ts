@@ -2,7 +2,7 @@ import { CacheService, ExchangeRate } from 'connectors'
 
 // stub data
 
-const coingeckoData = {
+const coingeckoAPIData = {
   likecoin: {
     hkd: 0.01919234,
     twd: 0.07643,
@@ -16,17 +16,19 @@ const coingeckoData = {
     last_updated_at: 1668738623,
   },
 }
-//    return {
-//      base: 'HKD',
-//      date: ''2022-11-18',
-//      rates: {
-//        HKD: 1,
-//        TWD: 3.982979,
-//        USD: 0.127826,
-//      },
-//      success: true,
-//      timestamp: 1668752883,
-//    }
+
+const exchangeRatesDataAPIData = {
+  base: 'HKD',
+  date: '2022-11-18',
+  rates: {
+    HKD: 1,
+    TWD: 3.982979,
+    USD: 0.127826,
+  },
+  success: true,
+  timestamp: 1668752883,
+}
+
 const rates = [
   {
     from: 'LIKE',
@@ -84,8 +86,6 @@ const rates = [
   },
 ]
 
-// jest.setTimeout(3000000)
-
 describe('exchangeRate', () => {
   const exchangeRate = new ExchangeRate()
   beforeEach(() => {
@@ -93,7 +93,10 @@ describe('exchangeRate', () => {
     exchangeRate.expire = 3
     exchangeRate.cache = new CacheService('TestExchangeRate' + Math.random())
     // @ts-ignore
-    exchangeRate.requestCoingeckoAPI = async () => coingeckoData
+    exchangeRate.requestCoingeckoAPI = async () => coingeckoAPIData
+    // @ts-ignore
+    exchangeRate.requestExchangeRatesDataAPI = async () =>
+      exchangeRatesDataAPIData
   })
   test('not cached', async () => {
     expect(await exchangeRate.getRates()).toEqual(rates)

@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { CACHE_TTL } from 'common/enums'
+import { environment } from 'common/environment'
 import { NetworkError, UnknownError } from 'common/errors'
 import logger from 'common/logger'
 import { CacheService } from 'connectors'
@@ -39,6 +40,8 @@ const TOKEN_TO_COINGECKO_ID = {
 } as const
 
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price'
+const EXCHANGE_RATES_DATA_API_URL =
+  'https://api.apilayer.com/exchangerates_data/latest'
 
 // MAIN
 
@@ -219,7 +222,30 @@ export class ExchangeRate {
     base: FiatCurrency,
     quotes: GQLQuoteCurrency[]
   ): Promise<any | never> => {
-    // if not success raise
-    return []
+    const symbols = quotes.join()
+    const headers = { apikey: environment.exchangeRatesDataAPIKey }
+    try {
+      const reps = await axios.get(EXCHANGE_RATES_DATA_API_URL, {
+        params: {
+          base,
+          symbols,
+        },
+        headers,
+      })
+      if (!reps.data.success) {
+        throw new UnknownError(
+          `Unexpected Exchange Rates Data API response status`
+        )
+      }
+      return reps.data
+    } catch (error) {
+      const path = error.request.path
+      const msg = error.response.data
+        ? JSON.stringify(error.response.data)
+        : error
+      throw new NetworkError(
+        `Failed to request Exchange Rates Data API( ${path} ): ${msg}`
+      )
+    }
   }
 }
