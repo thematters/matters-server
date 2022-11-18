@@ -24,7 +24,7 @@ interface Pair {
   to: GQLQuoteCurrency
 }
 
-class ExchangeRate {
+export class ExchangeRate {
   cache: CacheService
   expire: number
   constructor() {
@@ -178,5 +178,3 @@ class ExchangeRate {
     }
   }
 }
-
-export const exchangeRate = new ExchangeRate()

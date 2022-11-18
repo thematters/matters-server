@@ -1,4 +1,4 @@
-import { CacheService, exchangeRate } from 'connectors'
+import { CacheService, ExchangeRate } from 'connectors'
 
 //// stubs
 // const mockTokenRates = async () => {
@@ -74,6 +74,7 @@ import { CacheService, exchangeRate } from 'connectors'
 // }
 
 describe('exchangeRate', () => {
+  const exchangeRate = new ExchangeRate()
   beforeAll(() => {
     exchangeRate.expire = 10
     exchangeRate.cache = new CacheService('testExchangeRate')
