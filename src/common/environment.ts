@@ -89,7 +89,6 @@ export const environment = {
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
   slackStripeAlertChannel: process.env.MATTERS_SLACK_STRIPE_ALERT_CHANNEL || '',
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
-  openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
