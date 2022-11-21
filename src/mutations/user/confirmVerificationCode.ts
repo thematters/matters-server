@@ -26,7 +26,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   ])[0]
 
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
-    throw new CodeExpiredError('code is exipred')
+    throw new CodeExpiredError('code is expired')
   }
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
     throw new CodeInactiveError('code is retired')
@@ -41,7 +41,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
       codeId: verifiedCode.id,
       status: VERIFICATION_CODE_STATUS.expired,
     })
-    throw new CodeExpiredError('code is exipred')
+    throw new CodeExpiredError('code is expired')
   }
 
   // mark code status as verified

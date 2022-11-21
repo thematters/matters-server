@@ -64,7 +64,7 @@ const resolver: MutationToChangeEmailResolver = async (
     _some(newCodes, ['status', VERIFICATION_CODE_STATUS.inactive])
 
   if (hasExpiredCode) {
-    throw new CodeExpiredError('code is exipred')
+    throw new CodeExpiredError('code is expired')
   }
   if (hasInactiveCode) {
     throw new CodeInactiveError('code is retired')

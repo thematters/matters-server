@@ -38,7 +38,7 @@ const resolver: MutationToResetPasswordResolver = async (
 
   // check code
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
-    throw new CodeExpiredError('code is exipred')
+    throw new CodeExpiredError('code is expired')
   }
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
     throw new CodeInactiveError('code is retired')
