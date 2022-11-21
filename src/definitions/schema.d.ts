@@ -3460,6 +3460,7 @@ export interface GQLLiker {
 
   /**
    * Rate of LikeCoin/USD
+   * @deprecated No longer in use
    */
   rateUSD?: number
 }
