@@ -1,6 +1,8 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { Knex } from 'knex'
+import _filter from 'lodash/filter'
+import _some from 'lodash/some'
 import Web3 from 'web3'
 
 import {
@@ -10,6 +12,8 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  CodeExpiredError,
+  CodeInactiveError,
   CodeInvalidError,
   CryptoWalletExistsError,
   EmailExistsError,
@@ -170,17 +174,27 @@ const resolver: MutationToWalletLoginResolver = async (
   if (!email || !codeId) return
 
   // check verification code
-  const [code] = await userService.findVerificationCodes({
+  const codes = await userService.findVerificationCodes({
     where: {
       uuid: codeId,
       email,
       type: GQLVerificationCodeType.register,
-      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
 
-  // check codes
-  if (!code) {
+  const verifiedCode = _filter(codes, [
+    'status',
+    VERIFICATION_CODE_STATUS.verified,
+  ])[0]
+
+  // check code
+  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
+    throw new CodeExpiredError('code is exipred')
+  }
+  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
+    throw new CodeInactiveError('code is retired')
+  }
+  if (!verifiedCode) {
     throw new CodeInvalidError('code does not exists')
   }
 
@@ -208,7 +222,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
   // mark code status as used
   await userService.markVerificationCodeAs({
-    codeId: code.id,
+    codeId: verifiedCode.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
 
