@@ -72,7 +72,7 @@ export const QUEUE_JOB = {
   transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
 
   // ExchangeRate
-  updateFiat: 'updateFait',
+  updateFiat: 'updateFiat',
   updateToken: 'updateToken',
 }
 
