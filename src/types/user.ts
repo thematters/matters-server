@@ -380,7 +380,7 @@ export default /* GraphQL */ `
     total: Float! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG})
+    rateUSD: Float @objectCache(maxAge: ${CACHE_TTL.LONG}) @deprecated(reason: "No longer in use")
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {

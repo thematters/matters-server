@@ -70,6 +70,10 @@ export const QUEUE_JOB = {
 
   // Circle
   transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
+
+  // ExchangeRate
+  updateFiat: 'updateFiat',
+  updateToken: 'updateToken',
 }
 
 export const QUEUE_NAME = {
@@ -90,6 +94,7 @@ export const QUEUE_NAME = {
   stripe: 'stripe',
   circle: 'circle',
   ipfs: 'ipfs',
+  exchangeRate: 'exchangeRate',
 }
 
 export const QUEUE_CONCURRENCY = {
