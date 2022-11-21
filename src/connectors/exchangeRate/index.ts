@@ -43,6 +43,14 @@ const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price'
 const EXCHANGE_RATES_DATA_API_URL =
   'https://api.apilayer.com/exchangerates_data/latest'
 
+// TYPE PREDICATES
+
+const isToken = (currency: GQLTransactionCurrency): currency is TokenCurrency =>
+  tokenCurrencies.includes(currency as any)
+
+const isFiat = (currency: GQLTransactionCurrency): currency is FiatCurrency =>
+  fiatCurrencies.includes(currency as any)
+
 // MAIN
 
 export class ExchangeRate {
@@ -80,7 +88,7 @@ export class ExchangeRate {
   private getRate = async (pair: Pair): Promise<GQLExchangeRate | never> => {
     const data = (await this.cache.getObject({
       keys: this.genCacheKeys(pair),
-      getter: async () => this.updateAllRatesAndGetRate(pair),
+      getter: async () => this.fetchAndCacheRate(pair),
       expire: this.expire,
     })) as any
     if (!data) {
@@ -94,28 +102,26 @@ export class ExchangeRate {
     }
   }
 
-  private updateAllRatesAndGetRate = async ({
+  private fetchAndCacheRate = async ({
     from,
     to,
   }: Pair): Promise<GQLExchangeRate | never> => {
     logger.warn(
       'exchangeRate requested APIs to get rates instead of from cache'
     )
-    const tokenRates = await this.fetchTokenRates()
-    const fiatRates = await this.fetchFiatRates()
-    await this.updateRatesToCache(tokenRates)
-    await this.updateRatesToCache(fiatRates)
-    for (const rate of tokenRates) {
-      if (rate.from === from && rate.to === to) {
-        return rate
-      }
+
+    let rate: GQLExchangeRate
+    if (isToken(from)) {
+      const data = await this.requestCoingeckoAPI([from], [to])
+      rate = this.parseCoingeckoData(data, { from, to })
+    } else if (isFiat(from)) {
+      const data = await this.requestExchangeRatesDataAPI(from, [to])
+      rate = this.parseExchangeRateData(data, { from, to })
+    } else {
+      throw new UnknownError('Unknown currency')
     }
-    for (const rate of fiatRates) {
-      if (rate.from === from && rate.to === to) {
-        return rate
-      }
-    }
-    throw new UnknownError('Unexpected missing return value')
+    await this.updateRatesToCache([rate])
+    return rate
   }
 
   private updateRatesToCache = async (rates: GQLExchangeRate[]) => {
@@ -158,14 +164,7 @@ export class ExchangeRate {
     const rates: GQLExchangeRate[] = []
     for (const t of tokenCurrencies) {
       for (const q of quoteCurrencies) {
-        rates.push({
-          from: t,
-          to: q,
-          rate: data[TOKEN_TO_COINGECKO_ID[t]][q.toLowerCase()],
-          updatedAt: new Date(
-            data[TOKEN_TO_COINGECKO_ID[t]].last_updated_at * 1000
-          ),
-        })
+        rates.push(this.parseCoingeckoData(data, { from: t, to: q }))
       }
     }
     return rates
@@ -173,19 +172,33 @@ export class ExchangeRate {
 
   private fetchFiatRates = async (): Promise<GQLExchangeRate[]> => {
     const rates: GQLExchangeRate[] = []
-    for (const t of fiatCurrencies) {
-      const data = await this.requestExchangeRatesDataAPI(t, quoteCurrencies)
+    for (const f of fiatCurrencies) {
+      const data = await this.requestExchangeRatesDataAPI(f, quoteCurrencies)
       for (const q of quoteCurrencies) {
-        rates.push({
-          from: t,
-          to: q,
-          rate: data.rates[q],
-          updatedAt: new Date(data.timestamp * 1000),
-        })
+        rates.push(this.parseExchangeRateData(data, { from: f, to: q }))
       }
     }
     return rates
   }
+
+  private parseCoingeckoData = (
+    data: any,
+    pair: { from: TokenCurrency; to: GQLQuoteCurrency }
+  ): GQLExchangeRate => ({
+    from: pair.from,
+    to: pair.to,
+    rate: data[TOKEN_TO_COINGECKO_ID[pair.from]][pair.to.toLowerCase()],
+    updatedAt: new Date(
+      data[TOKEN_TO_COINGECKO_ID[pair.from]].last_updated_at * 1000
+    ),
+  })
+
+  private parseExchangeRateData = (data: any, pair: Pair): GQLExchangeRate => ({
+    from: pair.from,
+    to: pair.to,
+    rate: data.rates[pair.to],
+    updatedAt: new Date(data.timestamp * 1000),
+  })
 
   private requestCoingeckoAPI = async (
     bases: TokenCurrency[],
