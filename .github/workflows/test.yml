@@ -44,7 +44,6 @@ jobs:
           node-version: '16'
 
       - name: Start VPN
-        if: github.base_ref == 'master'
         run: |
           sudo apt-get update \
           && sudo apt-get install openvpn \
@@ -59,7 +58,6 @@ jobs:
           VPN_AUTH_PATH: '.github/auth.txt'
 
       - name: Check DB Connection
-        if: github.base_ref == 'master'
         run: nc -zv -w 5 $MATTERS_PG_HOST 5432
         env:
           MATTERS_PG_HOST: ${{ secrets.PROD_PG_HOST }}
