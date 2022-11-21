@@ -5,34 +5,30 @@ import { environment } from 'common/environment'
 import { NetworkError, UnknownError } from 'common/errors'
 import logger from 'common/logger'
 import { CacheService } from 'connectors'
-import {
-  GQLExchangeRate,
-  GQLQuoteCurrency,
-  GQLTransactionCurrency,
-} from 'definitions'
 
 // TYPES
 
+type TokenCurrency = 'LIKE' | 'USDT'
+type FiatCurrency = 'HKD'
+
+type FromCurrency = TokenCurrency | FiatCurrency
+type ToCurrency = 'HKD' | 'TWD' | 'USD'
+
 interface Pair {
-  from: GQLTransactionCurrency
-  to: GQLQuoteCurrency
+  from: FromCurrency
+  to: ToCurrency
 }
 
-type TokenCurrency = GQLTransactionCurrency.LIKE | GQLTransactionCurrency.USDT
-type FiatCurrency = GQLTransactionCurrency.HKD
+interface Rate extends Pair {
+  rate: number
+  updatedAt: Date
+}
 
 // CONSTANTS
 
-const tokenCurrencies: TokenCurrency[] = [
-  'LIKE' as GQLTransactionCurrency.LIKE,
-  'USDT' as GQLTransactionCurrency.USDT,
-]
-const fiatCurrencies: FiatCurrency[] = ['HKD' as GQLTransactionCurrency.HKD]
-const quoteCurrencies: GQLQuoteCurrency[] = [
-  'TWD' as GQLQuoteCurrency.TWD,
-  'HKD' as GQLQuoteCurrency.HKD,
-  'USD' as GQLQuoteCurrency.USD,
-]
+const tokenCurrencies: TokenCurrency[] = ['LIKE', 'USDT']
+const fiatCurrencies: FiatCurrency[] = ['HKD']
+const quoteCurrencies: ToCurrency[] = ['TWD', 'HKD', 'USD']
 
 const TOKEN_TO_COINGECKO_ID = {
   LIKE: 'likecoin',
@@ -45,10 +41,10 @@ const EXCHANGE_RATES_DATA_API_URL =
 
 // TYPE PREDICATES
 
-const isToken = (currency: GQLTransactionCurrency): currency is TokenCurrency =>
+const isToken = (currency: FromCurrency): currency is TokenCurrency =>
   tokenCurrencies.includes(currency as any)
 
-const isFiat = (currency: GQLTransactionCurrency): currency is FiatCurrency =>
+const isFiat = (currency: FromCurrency): currency is FiatCurrency =>
   fiatCurrencies.includes(currency as any)
 
 // MAIN
@@ -62,9 +58,9 @@ export class ExchangeRate {
   }
 
   getRates = async (
-    from?: GQLTransactionCurrency,
-    to?: GQLQuoteCurrency
-  ): Promise<GQLExchangeRate[] | never> => {
+    from?: FromCurrency,
+    to?: ToCurrency
+  ): Promise<Rate[] | never> => {
     const allPairs = [...this.getTokenPairs(), ...this.getFiatPairs()]
     let pairs = allPairs
     if (from) {
@@ -74,7 +70,7 @@ export class ExchangeRate {
       pairs = pairs.filter((p) => p.to === to)
     }
 
-    return Promise.all(pairs.map((p) => this.getRate(p)))
+    return Promise.all(pairs.map((p) => this.getRate(p.from, p.to)))
   }
 
   updateTokenRates = async () => {
@@ -85,18 +81,21 @@ export class ExchangeRate {
     await this.updateRatesToCache(await this.fetchFiatRates())
   }
 
-  private getRate = async (pair: Pair): Promise<GQLExchangeRate | never> => {
+  getRate = async (
+    from: FromCurrency,
+    to: ToCurrency
+  ): Promise<Rate | never> => {
     const data = (await this.cache.getObject({
-      keys: this.genCacheKeys(pair),
-      getter: async () => this.fetchAndCacheRate(pair),
+      keys: this.genCacheKeys({ from, to }),
+      getter: async () => this.fetchAndCacheRate({ from, to }),
       expire: this.expire,
     })) as any
     if (!data) {
       throw new UnknownError('Unexpected null')
     }
     return {
-      from: data.from,
-      to: data.to,
+      from,
+      to,
       rate: data.rate,
       updatedAt: new Date(data.updatedAt),
     }
@@ -105,12 +104,12 @@ export class ExchangeRate {
   private fetchAndCacheRate = async ({
     from,
     to,
-  }: Pair): Promise<GQLExchangeRate | never> => {
+  }: Pair): Promise<Rate | never> => {
     logger.warn(
       'exchangeRate requested APIs to get rates instead of from cache'
     )
 
-    let rate: GQLExchangeRate
+    let rate: Rate
     if (isToken(from)) {
       const data = await this.requestCoingeckoAPI([from], [to])
       rate = this.parseCoingeckoData(data, { from, to })
@@ -124,7 +123,7 @@ export class ExchangeRate {
     return rate
   }
 
-  private updateRatesToCache = async (rates: GQLExchangeRate[]) => {
+  private updateRatesToCache = async (rates: Rate[]) => {
     for (const rate of rates) {
       this.cache.storeObject({
         keys: this.genCacheKeys(rate),
@@ -156,12 +155,12 @@ export class ExchangeRate {
     return pairs
   }
 
-  private fetchTokenRates = async (): Promise<GQLExchangeRate[]> => {
+  private fetchTokenRates = async (): Promise<Rate[]> => {
     const data = await this.requestCoingeckoAPI(
       tokenCurrencies,
       quoteCurrencies
     )
-    const rates: GQLExchangeRate[] = []
+    const rates: Rate[] = []
     for (const t of tokenCurrencies) {
       for (const q of quoteCurrencies) {
         rates.push(this.parseCoingeckoData(data, { from: t, to: q }))
@@ -170,8 +169,8 @@ export class ExchangeRate {
     return rates
   }
 
-  private fetchFiatRates = async (): Promise<GQLExchangeRate[]> => {
-    const rates: GQLExchangeRate[] = []
+  private fetchFiatRates = async (): Promise<Rate[]> => {
+    const rates: Rate[] = []
     for (const f of fiatCurrencies) {
       const data = await this.requestExchangeRatesDataAPI(f, quoteCurrencies)
       for (const q of quoteCurrencies) {
@@ -183,8 +182,8 @@ export class ExchangeRate {
 
   private parseCoingeckoData = (
     data: any,
-    pair: { from: TokenCurrency; to: GQLQuoteCurrency }
-  ): GQLExchangeRate => ({
+    pair: { from: TokenCurrency; to: ToCurrency }
+  ): Rate => ({
     from: pair.from,
     to: pair.to,
     rate: data[TOKEN_TO_COINGECKO_ID[pair.from]][pair.to.toLowerCase()],
@@ -193,7 +192,7 @@ export class ExchangeRate {
     ),
   })
 
-  private parseExchangeRateData = (data: any, pair: Pair): GQLExchangeRate => ({
+  private parseExchangeRateData = (data: any, pair: Pair): Rate => ({
     from: pair.from,
     to: pair.to,
     rate: data.rates[pair.to],
@@ -202,7 +201,7 @@ export class ExchangeRate {
 
   private requestCoingeckoAPI = async (
     bases: TokenCurrency[],
-    quotes: GQLQuoteCurrency[]
+    quotes: ToCurrency[]
   ): Promise<any | never> => {
     const ids = bases.map((i) => TOKEN_TO_COINGECKO_ID[i]).join()
     const vs_currencies = quotes.join()
@@ -233,7 +232,7 @@ export class ExchangeRate {
 
   private requestExchangeRatesDataAPI = async (
     base: FiatCurrency,
-    quotes: GQLQuoteCurrency[]
+    quotes: ToCurrency[]
   ): Promise<any | never> => {
     const symbols = quotes.join()
     const headers = { apikey: environment.exchangeRatesDataAPIKey }

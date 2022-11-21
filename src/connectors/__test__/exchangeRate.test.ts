@@ -98,10 +98,10 @@ describe('exchangeRate', () => {
     exchangeRate.requestExchangeRatesDataAPI = async () =>
       exchangeRatesDataAPIData
   })
-  test('not cached', async () => {
+  test('getRates not cached', async () => {
     expect(await exchangeRate.getRates()).toEqual(rates)
   })
-  test('cached', async () => {
+  test('getRates cached', async () => {
     await exchangeRate.updateTokenRates()
     await exchangeRate.updateFiatRates()
     expect(await exchangeRate.getRates()).toEqual(rates)
@@ -116,6 +116,11 @@ describe('exchangeRate', () => {
     )
     expect(await exchangeRate.getRates(HKD, HKD)).toEqual(
       rates.filter((r) => r.from === HKD && r.to === HKD)
+    )
+  })
+  test('getRate', async () => {
+    expect(await exchangeRate.getRate('HKD', 'USD')).toEqual(
+      rates[rates.length - 1]
     )
   })
 })
