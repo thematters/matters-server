@@ -12,19 +12,19 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { timeout } from 'common/utils'
-import { ipfs } from 'connectors'
+import { ipfsServers } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
 
 class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>
-  ipfs: typeof ipfs
+  ipfs: typeof ipfsServers
 
   constructor() {
     super(QUEUE_NAME.ipfs)
 
-    this.ipfs = ipfs
+    this.ipfs = ipfsServers
     this.slackService = new SlackService()
 
     this.addConsumers()

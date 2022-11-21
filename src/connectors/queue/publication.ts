@@ -268,7 +268,7 @@ class PublicationQueue extends BaseQueue {
           contentHash: dataHash,
           mediaHash,
           key,
-        } = await this.articleService.publishToIPFS(draft)
+        } = (await this.articleService.publishToIPFS(draft))!
         job.progress(80)
         ;[article, draft] = await Promise.all([
           this.articleService.baseUpdate(article.id, {
