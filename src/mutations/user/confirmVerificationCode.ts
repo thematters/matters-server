@@ -20,9 +20,9 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   const codes = await userService.findVerificationCodes({
     where: { ...input, email },
   })
-  const verifiedCode = _filter(codes, [
+  const activeCode = _filter(codes, [
     'status',
-    VERIFICATION_CODE_STATUS.verified,
+    VERIFICATION_CODE_STATUS.active,
   ])[0]
 
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
@@ -31,14 +31,14 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
     throw new CodeInactiveError('code is retired')
   }
-  if (!verifiedCode) {
+  if (!activeCode) {
     throw new CodeInvalidError('code does not exists')
   }
 
-  if (verifiedCode.expiredAt < new Date()) {
+  if (activeCode.expiredAt < new Date()) {
     // mark code status as expired
     await userService.markVerificationCodeAs({
-      codeId: verifiedCode.id,
+      codeId: activeCode.id,
       status: VERIFICATION_CODE_STATUS.expired,
     })
     throw new CodeExpiredError('code is expired')
@@ -46,11 +46,11 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
 
   // mark code status as verified
   await userService.markVerificationCodeAs({
-    codeId: verifiedCode.id,
+    codeId: activeCode.id,
     status: VERIFICATION_CODE_STATUS.verified,
   })
 
-  return verifiedCode.uuid
+  return activeCode.uuid
 }
 
 export default resolver
