@@ -90,7 +90,7 @@ describe('exchangeRate', () => {
   const exchangeRate = new ExchangeRate()
   beforeEach(() => {
     // mock
-    exchangeRate.expire = 3000 // 3 seconds
+    exchangeRate.expire = 3 // 3 seconds
     exchangeRate.cache = new CacheService('TestExchangeRate' + Math.random())
     // @ts-ignore
     exchangeRate.requestCoingeckoAPI = async () => coingeckoAPIData

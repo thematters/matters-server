@@ -87,7 +87,7 @@ export class ExchangeRate {
   ): Promise<Rate | never> => {
     const data = (await this.cache.getObject({
       keys: this.genCacheKeys({ from, to }),
-      getter: async () => this.fetchAndCacheRate({ from, to }),
+      getter: async () => this.fetchRate({ from, to }),
       expire: this.expire,
     })) as any
     if (!data) {
@@ -101,10 +101,7 @@ export class ExchangeRate {
     }
   }
 
-  private fetchAndCacheRate = async ({
-    from,
-    to,
-  }: Pair): Promise<Rate | never> => {
+  private fetchRate = async ({ from, to }: Pair): Promise<Rate | never> => {
     logger.warn(
       'exchangeRate requested APIs to get rates instead of from cache'
     )
@@ -119,7 +116,6 @@ export class ExchangeRate {
     } else {
       throw new UnknownError('Unknown currency')
     }
-    await this.updateRatesToCache([rate])
     return rate
   }
 
