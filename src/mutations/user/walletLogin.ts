@@ -172,13 +172,14 @@ const resolver: MutationToWalletLoginResolver = async (
   if (!email || !codeId) return
 
   // check verification code
-  const [code] = await userService.findVerificationCodes({
+  const codes = await userService.findVerificationCodes({
     where: {
       uuid: codeId,
       email,
       type: GQLVerificationCodeType.register,
     },
   })
+  const code = codes?.length > 0 ? codes[0] : {}
 
   // check code
   if (code.status === VERIFICATION_CODE_STATUS.expired) {
