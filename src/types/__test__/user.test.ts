@@ -831,7 +831,8 @@ describe('verification code', () => {
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
-    const [code] = await userService.findVerificationCodes({ email })
+    const codes = await userService.findVerificationCodes({ email })
+    const code = codes?.length > 0 ? codes[0] : {}
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // confirm
@@ -858,7 +859,8 @@ describe('verification code', () => {
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
-    const [code] = await userService.findVerificationCodes({ email })
+    const codes = await userService.findVerificationCodes({ email })
+    const code = codes?.length > 0 ? codes[0] : {}
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // mark it as inactive
@@ -887,7 +889,8 @@ describe('verification code', () => {
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
-    const [code] = await userService.findVerificationCodes({ email })
+    const codes = await userService.findVerificationCodes({ email })
+    const code = codes?.length > 0 ? codes[0] : {}
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // mark it as expired

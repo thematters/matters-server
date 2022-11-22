@@ -18,7 +18,7 @@ const resolver: MutationToResetPasswordResolver = async (
   { input: { password, codeId: uuid, type } },
   { dataSources: { userService, notificationService } }
 ) => {
-  const [code] = await userService.findVerificationCodes({
+  const codes = await userService.findVerificationCodes({
     where: {
       uuid,
       type:
@@ -27,6 +27,7 @@ const resolver: MutationToResetPasswordResolver = async (
           : GQLVerificationCodeType.password_reset,
     },
   })
+  const code = codes?.length > 0 ? codes[0] : {}
 
   // check code
   if (code.status === VERIFICATION_CODE_STATUS.expired) {
