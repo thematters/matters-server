@@ -364,6 +364,14 @@ export class CodeInvalidError extends ApolloError {
   }
 }
 
+export class CodeInactiveError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CODE_INACTIVE')
+
+    Object.defineProperty(this, 'name', { value: 'CodeInactiveError' })
+  }
+}
+
 export class CodeExpiredError extends ApolloError {
   constructor(message: string) {
     super(message, 'CODE_EXPIRED')

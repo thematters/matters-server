@@ -20,7 +20,7 @@ import {
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
-  VERIFICATION_CODE_EXIPRED_AFTER,
+  VERIFICATION_CODE_EXPIRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VIEW,
 } from 'common/enums'
@@ -1299,7 +1299,7 @@ export class UserService extends BaseService {
         code,
         status: VERIFICATION_CODE_STATUS.active,
         expiredAt:
-          expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
+          expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXPIRED_AFTER),
       },
       'verification_code'
     )

@@ -14,7 +14,7 @@ export const VERIFICATION_CODE_PROTECTED_TYPES = [
   'payment_password_reset',
 ]
 
-export const VERIFICATION_CODE_EXIPRED_AFTER = MINUTE * 5 // 5 mins
+export const VERIFICATION_CODE_EXPIRED_AFTER = MINUTE * 20 // 20 mins
 
 export const CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER = DAY * 180 // 6 months
 

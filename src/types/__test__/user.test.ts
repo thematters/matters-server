@@ -822,7 +822,7 @@ describe('verification code', () => {
   const email = `verification-${Math.floor(Math.random() * 100)}@test.com`
   const type = 'register'
 
-  test('send verification code', async () => {
+  test('verified code', async () => {
     // send
     const server = await testClient()
     const result = await server.executeOperation({
@@ -847,6 +847,64 @@ describe('verification code', () => {
     ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
+  })
+
+  test('inactive code', async () => {
+    // send
+    const server = await testClient()
+    const result = await server.executeOperation({
+      query: SEND_VERIFICATION_CODE,
+      variables: { input: { type, email, token: 'some-test-token' } },
+    })
+    expect(result && result.data && result.data.sendVerificationCode).toBe(true)
+
+    const [code] = await userService.findVerificationCodes({ email })
+    expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+
+    // mark it as inactive
+    await userService.markVerificationCodeAs({
+      codeId: code.id,
+      status: VERIFICATION_CODE_STATUS.inactive,
+    })
+
+    // confirm
+    const serverMutate = await testClient()
+    const confirmedResult = await serverMutate.executeOperation({
+      query: CONFIRM_VERIFICATION_CODE,
+      variables: { input: { type, email, code: code.code } },
+    })
+    expect(_get(confirmedResult, 'errors.0.extensions.code')).toBe(
+      'CODE_INACTIVE'
+    )
+  })
+
+  test('expired code', async () => {
+    // send
+    const server = await testClient()
+    const result = await server.executeOperation({
+      query: SEND_VERIFICATION_CODE,
+      variables: { input: { type, email, token: 'some-test-token' } },
+    })
+    expect(result && result.data && result.data.sendVerificationCode).toBe(true)
+
+    const [code] = await userService.findVerificationCodes({ email })
+    expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+
+    // mark it as expired
+    await userService.markVerificationCodeAs({
+      codeId: code.id,
+      status: VERIFICATION_CODE_STATUS.expired,
+    })
+
+    // confirm
+    const serverMutate = await testClient()
+    const confirmedResult = await serverMutate.executeOperation({
+      query: CONFIRM_VERIFICATION_CODE,
+      variables: { input: { type, email, code: code.code } },
+    })
+    expect(_get(confirmedResult, 'errors.0.extensions.code')).toBe(
+      'CODE_EXPIRED'
+    )
   })
 })
 

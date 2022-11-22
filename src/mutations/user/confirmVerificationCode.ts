@@ -1,5 +1,9 @@
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
-import { CodeExpiredError, CodeInvalidError } from 'common/errors'
+import {
+  CodeExpiredError,
+  CodeInactiveError,
+  CodeInvalidError,
+} from 'common/errors'
 import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToConfirmVerificationCodeResolver = async (
@@ -9,11 +13,18 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
 ) => {
   const { email: rawEmail } = input
   const email = rawEmail.toLowerCase()
+
   const [code] = await userService.findVerificationCodes({
-    where: { ...input, email, status: VERIFICATION_CODE_STATUS.active },
+    where: { ...input, email },
   })
 
-  if (!code) {
+  if (code.status === VERIFICATION_CODE_STATUS.expired) {
+    throw new CodeExpiredError('code is expired')
+  }
+  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
+    throw new CodeInactiveError('code is retired')
+  }
+  if (code.status !== VERIFICATION_CODE_STATUS.active) {
     throw new CodeInvalidError('code does not exists')
   }
 
@@ -23,7 +34,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
       codeId: code.id,
       status: VERIFICATION_CODE_STATUS.expired,
     })
-    throw new CodeExpiredError('code is exipred')
+    throw new CodeExpiredError('code is expired')
   }
 
   // mark code status as verified
