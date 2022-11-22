@@ -14,9 +14,10 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   const { email: rawEmail } = input
   const email = rawEmail.toLowerCase()
 
-  const [code] = await userService.findVerificationCodes({
+  const codes = await userService.findVerificationCodes({
     where: { ...input, email },
   })
+  const code = codes?.length > 0 ? codes[0] : {}
 
   if (code.status === VERIFICATION_CODE_STATUS.expired) {
     throw new CodeExpiredError('code is expired')
