@@ -229,7 +229,7 @@ jobs:
           && echo $VPN_CONFIG | base64 -d >> $VPN_CONFIG_PATH \
           && echo $VPN_AUTH | base64 -d >> $VPN_AUTH_PATH \
           && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
-          && sleep 5s
+          && sleep 15s
         env:
           VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
           VPN_CONFIG_PATH: '.github/config.ovpn'
