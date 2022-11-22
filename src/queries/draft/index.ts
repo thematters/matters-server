@@ -5,7 +5,6 @@ import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { countWords, toGlobalId } from 'common/utils'
 
 import * as draftAccess from './access'
-import article from './article'
 import articleDrafts from './article/drafts'
 import assets from './assets'
 import collection from './collection'
@@ -32,7 +31,7 @@ export default {
     cover: draftCover,
     collection,
     assets,
-    article,
+    article: (root: any) => root,
     access: (root: any) => root,
     license: ({ license }: { license: any }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
