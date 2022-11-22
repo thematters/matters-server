@@ -1,6 +1,3 @@
-import _filter from 'lodash/filter'
-import _some from 'lodash/some'
-
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeExpiredError,
@@ -29,7 +26,7 @@ const resolver: MutationToChangeEmailResolver = async (
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
 
-  const [oldCodes, newCodes] = await Promise.all([
+  const [[oldCode], [newCode]] = await Promise.all([
     userService.findVerificationCodes({
       where: {
         uuid: oldEmailCodeId,
@@ -46,22 +43,15 @@ const resolver: MutationToChangeEmailResolver = async (
     }),
   ])
 
-  const verifiedOldCode = _filter(oldCodes, [
-    'status',
-    VERIFICATION_CODE_STATUS.verified,
-  ])[0]
-  const verifiedNewCode = _filter(newCodes, [
-    'status',
-    VERIFICATION_CODE_STATUS.verified,
-  ])[0]
-
   // check codes
+  const isOldCodeVerified = oldCode.status === VERIFICATION_CODE_STATUS.verified
+  const isNewCodeVerified = newCode.status === VERIFICATION_CODE_STATUS.verified
   const hasExpiredCode =
-    _some(oldCodes, ['status', VERIFICATION_CODE_STATUS.expired]) ||
-    _some(newCodes, ['status', VERIFICATION_CODE_STATUS.expired])
+    oldCode.status === VERIFICATION_CODE_STATUS.expired ||
+    newCode.status === VERIFICATION_CODE_STATUS.expired
   const hasInactiveCode =
-    _some(oldCodes, ['status', VERIFICATION_CODE_STATUS.inactive]) ||
-    _some(newCodes, ['status', VERIFICATION_CODE_STATUS.inactive])
+    oldCode.status === VERIFICATION_CODE_STATUS.inactive ||
+    newCode.status === VERIFICATION_CODE_STATUS.inactive
 
   if (hasExpiredCode) {
     throw new CodeExpiredError('code is expired')
@@ -69,18 +59,18 @@ const resolver: MutationToChangeEmailResolver = async (
   if (hasInactiveCode) {
     throw new CodeInactiveError('code is retired')
   }
-  if (!verifiedOldCode || !verifiedNewCode) {
+  if (!isOldCodeVerified || !isNewCodeVerified) {
     throw new CodeInvalidError('code does not exists')
   }
 
   // check email
-  const user = await userService.findByEmail(verifiedOldCode.email)
+  const user = await userService.findByEmail(oldCode.email)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }
 
   // check new email
-  const isNewEmailExisted = await userService.findByEmail(verifiedNewCode.email)
+  const isNewEmailExisted = await userService.findByEmail(newCode.email)
   if (isNewEmailExisted) {
     throw new EmailExistsError('email already exists')
   }
@@ -89,17 +79,17 @@ const resolver: MutationToChangeEmailResolver = async (
     table: 'user',
     where: { id: user.id },
     data: {
-      email: verifiedNewCode.email,
+      email: newCode.email,
     },
   })
 
   // mark code status as used
   await userService.markVerificationCodeAs({
-    codeId: verifiedOldCode.id,
+    codeId: oldCode.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
   await userService.markVerificationCodeAs({
-    codeId: verifiedNewCode.id,
+    codeId: newCode.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
 

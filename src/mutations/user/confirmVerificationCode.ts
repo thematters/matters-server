@@ -1,6 +1,3 @@
-import _filter from 'lodash/filter'
-import _some from 'lodash/some'
-
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeExpiredError,
@@ -17,28 +14,24 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   const { email: rawEmail } = input
   const email = rawEmail.toLowerCase()
 
-  const codes = await userService.findVerificationCodes({
+  const [code] = await userService.findVerificationCodes({
     where: { ...input, email },
   })
-  const activeCode = _filter(codes, [
-    'status',
-    VERIFICATION_CODE_STATUS.active,
-  ])[0]
 
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
+  if (code.status === VERIFICATION_CODE_STATUS.expired) {
     throw new CodeExpiredError('code is expired')
   }
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
+  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
     throw new CodeInactiveError('code is retired')
   }
-  if (!activeCode) {
+  if (code.status !== VERIFICATION_CODE_STATUS.active) {
     throw new CodeInvalidError('code does not exists')
   }
 
-  if (activeCode.expiredAt < new Date()) {
+  if (code.expiredAt < new Date()) {
     // mark code status as expired
     await userService.markVerificationCodeAs({
-      codeId: activeCode.id,
+      codeId: code.id,
       status: VERIFICATION_CODE_STATUS.expired,
     })
     throw new CodeExpiredError('code is expired')
@@ -46,11 +39,11 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
 
   // mark code status as verified
   await userService.markVerificationCodeAs({
-    codeId: activeCode.id,
+    codeId: code.id,
     status: VERIFICATION_CODE_STATUS.verified,
   })
 
-  return activeCode.uuid
+  return code.uuid
 }
 
 export default resolver

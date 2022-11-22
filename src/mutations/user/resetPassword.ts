@@ -1,6 +1,3 @@
-import _filter from 'lodash/filter'
-import _some from 'lodash/some'
-
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeExpiredError,
@@ -21,7 +18,7 @@ const resolver: MutationToResetPasswordResolver = async (
   { input: { password, codeId: uuid, type } },
   { dataSources: { userService, notificationService } }
 ) => {
-  const codes = await userService.findVerificationCodes({
+  const [code] = await userService.findVerificationCodes({
     where: {
       uuid,
       type:
@@ -31,24 +28,19 @@ const resolver: MutationToResetPasswordResolver = async (
     },
   })
 
-  const verifiedCode = _filter(codes, [
-    'status',
-    VERIFICATION_CODE_STATUS.verified,
-  ])[0]
-
   // check code
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
+  if (code.status === VERIFICATION_CODE_STATUS.expired) {
     throw new CodeExpiredError('code is expired')
   }
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
+  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
     throw new CodeInactiveError('code is retired')
   }
-  if (!verifiedCode) {
+  if (code.status !== VERIFICATION_CODE_STATUS.verified) {
     throw new CodeInvalidError('code does not exists')
   }
 
   // check email
-  const user = await userService.findByEmail(verifiedCode.email)
+  const user = await userService.findByEmail(code.email)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }
@@ -76,7 +68,7 @@ const resolver: MutationToResetPasswordResolver = async (
 
   // mark code status as used
   await userService.markVerificationCodeAs({
-    codeId: verifiedCode.id,
+    codeId: code.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
 

@@ -1,6 +1,3 @@
-import _filter from 'lodash/filter'
-import _some from 'lodash/some'
-
 import {
   AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
@@ -50,7 +47,7 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 
   // check verification code
-  const codes = await userService.findVerificationCodes({
+  const [code] = await userService.findVerificationCodes({
     where: {
       uuid: codeId,
       email,
@@ -58,19 +55,14 @@ const resolver: MutationToUserRegisterResolver = async (
     },
   })
 
-  const verifiedCode = _filter(codes, [
-    'status',
-    VERIFICATION_CODE_STATUS.verified,
-  ])[0]
-
   // check code
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.expired])) {
+  if (code.status === VERIFICATION_CODE_STATUS.expired) {
     throw new CodeExpiredError('code is expired')
   }
-  if (_some(codes, ['status', VERIFICATION_CODE_STATUS.inactive])) {
+  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
     throw new CodeInactiveError('code is retired')
   }
-  if (!verifiedCode) {
+  if (code.status !== VERIFICATION_CODE_STATUS.verified) {
     throw new CodeInvalidError('code does not exists')
   }
 
@@ -121,7 +113,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   // mark code status as used
   await userService.markVerificationCodeAs({
-    codeId: verifiedCode.id,
+    codeId: code.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
 
