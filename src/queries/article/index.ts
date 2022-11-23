@@ -5,6 +5,7 @@ import {
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
+import logger from 'common/logger'
 import { toGlobalId } from 'common/utils'
 import { GQLArticleLicenseType } from 'definitions'
 
@@ -80,10 +81,15 @@ export default {
     topics: userTopics,
   },
   Article: {
-    // when the Article is duck'ing from a Draft it has articleId,
-    // otherwise when articleId is undefined, it's a native Article, just use 'id'
-    id: ({ articleId, id }: { articleId: string; id: string }) =>
-      toGlobalId({ type: NODE_TYPES.Article, id: articleId ?? id }),
+    id: ({ articleId, id }: { articleId: string; id: string }) => {
+      if (!articleId) {
+        logger.warn(
+          "Article's fields should derive from Draft instead of Article itself. There are some resolvers needed to be fixed"
+        )
+        return toGlobalId({ type: NODE_TYPES.Article, id })
+      }
+      return toGlobalId({ type: NODE_TYPES.Article, id: articleId })
+    },
     content,
     summary,
     appreciationsReceived,
