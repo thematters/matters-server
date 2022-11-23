@@ -12,6 +12,10 @@ export const numDivide = (num1: number, num2: number) => {
   return NP.divide(num1, num2)
 }
 
+export const numTimes = (num1: number, num2: number) => {
+  return NP.times(num1, num2)
+}
+
 export const numMinus = (num1: number, num2: number) => {
   return NP.minus(num1, num2)
 }

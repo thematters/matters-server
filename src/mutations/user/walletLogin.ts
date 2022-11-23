@@ -10,6 +10,8 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  CodeExpiredError,
+  CodeInactiveError,
   CodeInvalidError,
   CryptoWalletExistsError,
   EmailExistsError,
@@ -170,17 +172,23 @@ const resolver: MutationToWalletLoginResolver = async (
   if (!email || !codeId) return
 
   // check verification code
-  const [code] = await userService.findVerificationCodes({
+  const codes = await userService.findVerificationCodes({
     where: {
       uuid: codeId,
       email,
       type: GQLVerificationCodeType.register,
-      status: VERIFICATION_CODE_STATUS.verified,
     },
   })
+  const code = codes?.length > 0 ? codes[0] : {}
 
-  // check codes
-  if (!code) {
+  // check code
+  if (code.status === VERIFICATION_CODE_STATUS.expired) {
+    throw new CodeExpiredError('code is expired')
+  }
+  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
+    throw new CodeInactiveError('code is retired')
+  }
+  if (code.status !== VERIFICATION_CODE_STATUS.verified) {
     throw new CodeInvalidError('code does not exists')
   }
 

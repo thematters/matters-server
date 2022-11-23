@@ -10,8 +10,8 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { numDivide, numMinus, numRound } from 'common/utils'
-import { AtomService, PaymentService } from 'connectors'
+import { numMinus, numRound, numTimes } from 'common/utils'
+import { AtomService, ExchangeRate, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
@@ -136,8 +136,9 @@ class PayoutQueue extends BaseQueue {
 
       // transfer to recipient's account in USD
       let HKDtoUSD: number
+      const exchangeRate = new ExchangeRate()
       try {
-        HKDtoUSD = await this.paymentService.getUSDtoHKDRate()
+        HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
       } catch (error) {
         slack.sendStripeAlert({
           data,
@@ -147,9 +148,9 @@ class PayoutQueue extends BaseQueue {
       }
 
       const amount = numRound(tx.amount)
-      const amountInUSD = numRound(numDivide(amount, HKDtoUSD))
+      const amountInUSD = numRound(numTimes(amount, HKDtoUSD))
       const fee = numRound(tx.fee)
-      const feeInUSD = numRound(numDivide(fee, HKDtoUSD))
+      const feeInUSD = numRound(numTimes(fee, HKDtoUSD))
       const net = numRound(numMinus(amount, fee))
       const netInUSD = numRound(numMinus(amountInUSD, feeInUSD))
 

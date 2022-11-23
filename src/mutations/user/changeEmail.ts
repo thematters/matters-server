@@ -1,5 +1,7 @@
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
+  CodeExpiredError,
+  CodeInactiveError,
   CodeInvalidError,
   EmailExistsError,
   UserNotFoundError,
@@ -24,25 +26,40 @@ const resolver: MutationToChangeEmailResolver = async (
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
 
-  const [oldCode] = await userService.findVerificationCodes({
-    where: {
-      uuid: oldEmailCodeId,
-      email: oldEmail,
-      type: GQLVerificationCodeType.email_reset,
-      status: VERIFICATION_CODE_STATUS.verified,
-    },
-  })
-  const [newCode] = await userService.findVerificationCodes({
-    where: {
-      uuid: newEmailCodeId,
-      email: newEmail,
-      type: GQLVerificationCodeType.email_reset_confirm,
-      status: VERIFICATION_CODE_STATUS.verified,
-    },
-  })
+  const [[oldCode], [newCode]] = await Promise.all([
+    userService.findVerificationCodes({
+      where: {
+        uuid: oldEmailCodeId,
+        email: oldEmail,
+        type: GQLVerificationCodeType.email_reset,
+      },
+    }),
+    userService.findVerificationCodes({
+      where: {
+        uuid: newEmailCodeId,
+        email: newEmail,
+        type: GQLVerificationCodeType.email_reset_confirm,
+      },
+    }),
+  ])
 
   // check codes
-  if (!oldCode || !newCode) {
+  const isOldCodeVerified = oldCode.status === VERIFICATION_CODE_STATUS.verified
+  const isNewCodeVerified = newCode.status === VERIFICATION_CODE_STATUS.verified
+  const hasExpiredCode =
+    oldCode.status === VERIFICATION_CODE_STATUS.expired ||
+    newCode.status === VERIFICATION_CODE_STATUS.expired
+  const hasInactiveCode =
+    oldCode.status === VERIFICATION_CODE_STATUS.inactive ||
+    newCode.status === VERIFICATION_CODE_STATUS.inactive
+
+  if (hasExpiredCode) {
+    throw new CodeExpiredError('code is expired')
+  }
+  if (hasInactiveCode) {
+    throw new CodeInactiveError('code is retired')
+  }
+  if (!isOldCodeVerified || !isNewCodeVerified) {
     throw new CodeInvalidError('code does not exists')
   }
 

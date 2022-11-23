@@ -145,7 +145,7 @@ const user: {
   },
   UserSettings: {
     language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
-    currency: ({ currency }) => currency || ('HKD' as GQLQuoteCurrency),
+    currency: ({ currency }) => currency || ('USD' as GQLQuoteCurrency),
     notification,
   },
   UserActivity,

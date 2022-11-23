@@ -2496,7 +2496,7 @@ type Liker {
   total: Float!
 
   """Rate of LikeCoin/USD"""
-  rateUSD: Float
+  rateUSD: Float @deprecated(reason: "No longer in use")
 }
 
 type UserOSS {

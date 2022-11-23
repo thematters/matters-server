@@ -89,7 +89,6 @@ export const environment = {
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
   slackStripeAlertChannel: process.env.MATTERS_SLACK_STRIPE_ALERT_CHANNEL || '',
   slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
-  openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
   openseaAPIBase:
     process.env.MATTERS_OPENSEA_API_BASE ||
     (isProd
@@ -105,6 +104,8 @@ export const environment = {
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_ADDRESS || '',
   polygonCurationContractBlocknum:
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
+  exchangeRatesDataAPIKey:
+    process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
 }
 
 export const polygonUSDTContractAddress = isProd

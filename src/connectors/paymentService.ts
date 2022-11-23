@@ -1,4 +1,3 @@
-import axios from 'axios'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
@@ -9,7 +8,6 @@ import {
   BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
-  HOUR,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -19,16 +17,11 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
-import {
-  AtomService,
-  BaseService,
-  CacheService,
-  NotificationService,
-} from 'connectors'
+import { AtomService, BaseService, NotificationService } from 'connectors'
 import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
@@ -582,58 +575,6 @@ export class PaymentService extends BaseService {
       return 0
     }
     return parseInt(`${result[0].count}` || '0', 10)
-  }
-
-  /**
-   * Get the exchange rates from the Open Exchange Rates API and cache hourly.
-   *
-   */
-  getUSDtoHKDRate = async (): Promise<number> => {
-    const cacheService = new CacheService()
-    const cacheKey = 'openExRate'
-    const cacheTTl = HOUR / 1000
-
-    const checkRate = ({ base, HKD }: { base: string; HKD: number }) => {
-      const MAX_USD_TO_HKD_RATE = 10
-
-      if (base !== 'USD') {
-        throw new Error('rate base is not USD.')
-      }
-
-      if (!HKD || typeof HKD !== 'number') {
-        throw new Error('invalid HKD rate.')
-      }
-
-      if (HKD >= MAX_USD_TO_HKD_RATE) {
-        throw new Error(`HKD rate (${HKD}) >= ${MAX_USD_TO_HKD_RATE}.`)
-      }
-    }
-
-    // get from cache
-    const cachedRates = JSON.parse(
-      (await cacheService.redis.get(cacheKey)) || JSON.stringify('')
-    )
-
-    if (cachedRates) {
-      checkRate(cachedRates)
-      return cachedRates.HKD
-    }
-
-    // get from API, then cache it
-    const { data } = await axios.get(
-      `https://openexchangerates.org/api/latest.json?app_id=${environment.openExchangeRatesAppId}`
-    )
-    const rates = {
-      base: _.get(data, 'base'),
-      HKD: _.get(data, 'rates.HKD'),
-    }
-
-    checkRate(rates)
-
-    const serializedData = JSON.stringify(rates)
-    cacheService.redis.client.set(cacheKey, serializedData, 'EX', cacheTTl)
-
-    return rates.HKD
   }
 
   /*********************************
