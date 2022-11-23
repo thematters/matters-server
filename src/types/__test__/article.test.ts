@@ -11,7 +11,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { PaymentService } from 'connectors'
+import { AtomService, PaymentService } from 'connectors'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import {
@@ -212,8 +212,9 @@ describe('publish article', () => {
       content: Math.random().toString(),
     }
     const { id } = await putDraft({ draft })
-    const { publishState } = await publishArticle({ id })
+    const { publishState, article } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
+    expect(article).toBeNull()
   })
 
   test('create a draft & publish with iscn', async () => {
@@ -230,6 +231,22 @@ describe('publish article', () => {
 
     const { publishState } = await publishArticle({ id: draft.id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
+  })
+
+  test('publish published draft', async () => {
+    const draftId = '4'
+    const atomService = new AtomService()
+    await atomService.update({
+      table: 'draft',
+      where: { id: draftId },
+      data: { articleId: '4', archived: true },
+    })
+    const publishedDraftId = toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
+    const { publishState, article } = await publishArticle({
+      id: publishedDraftId,
+    })
+    expect(publishState).toBe(PUBLISH_STATE.published)
+    expect(article.content).not.toBeNull()
   })
 })
 

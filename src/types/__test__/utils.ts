@@ -149,7 +149,7 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
         content
         createdAt
         iscnPublish
-        article { id iscnId }
+        article { id iscnId content }
       }
     }
   `
