@@ -4,11 +4,13 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
+  // PUBLISH_STATE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+// import { AtomService } from 'connectors'
 import { GQLCommentType } from 'definitions'
 
-import { testClient } from './utils'
+import { delay, publishArticle, putDraft, testClient } from './utils'
 
 const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {
@@ -497,7 +499,27 @@ describe('circle CRUD', () => {
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
-    const article = _get(data, 'viewer.articles.edges[0].node')
+
+    const draft = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        // iscnPublish: true,
+      },
+    })
+    expect(_get(draft, 'id')).not.toBeNull()
+
+    const publishedDraftId = draft.id // toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
+    // const article = _get(data, 'viewer.articles.edges[0].node')
+    await publishArticle({ id: publishedDraftId })
+    await delay(500)
+
+    // expect(publishState).toBe(PUBLISH_STATE.pending)
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const article = _get(data1, 'viewer.articles.edges[0].node')
+    expect(_get(article, 'id')).not.toBeNull()
 
     // add to circle with public access
     const publicInput: Record<string, any> = {
