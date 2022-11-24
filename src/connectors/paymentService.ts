@@ -60,25 +60,25 @@ export class PaymentService extends BaseService {
   }
 
   makeTransactionsQuery = ({
-    userId,
     id,
     providerTxId,
+    userId,
+    purpose,
+    currency,
     states,
     excludeCanceledLIKE,
     notIn,
   }: {
-    userId?: string
     id?: string
     providerTxId?: string
+    userId?: string
+    purpose?: TRANSACTION_PURPOSE
+    currency?: PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
   }) => {
     const query = this.knex('transaction_delta_view').select()
-
-    if (userId) {
-      query.where({ userId })
-    }
 
     if (id) {
       query.where({ id })
@@ -88,11 +88,24 @@ export class PaymentService extends BaseService {
       query.where({ providerTxId })
     }
 
+    if (userId) {
+      query.where({ userId })
+    }
+
+    if (purpose) {
+      query.where({ purpose })
+    }
+
+    if (currency) {
+      query.where({ currency })
+    }
+
     if (states) {
       query.whereIn('state', states)
     }
 
-    if (excludeCanceledLIKE) {
+    const containsLIKE = !currency || currency === PAYMENT_CURRENCY.LIKE
+    if (containsLIKE && excludeCanceledLIKE) {
       query.whereNot((q) => {
         q.where('state', TRANSACTION_STATE.canceled).where(
           'currency',
@@ -110,8 +123,11 @@ export class PaymentService extends BaseService {
 
   // count transactions by given conditions
   totalTransactionCount = async (params: {
-    userId: string
     id?: string
+    providerTxId?: string
+    userId: string
+    purpose?: TRANSACTION_PURPOSE
+    currency?: PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -128,9 +144,11 @@ export class PaymentService extends BaseService {
     take,
     ...restParams
   }: {
-    userId?: string
     id?: string
     providerTxId?: string
+    userId?: string
+    purpose?: TRANSACTION_PURPOSE
+    currency?: PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]

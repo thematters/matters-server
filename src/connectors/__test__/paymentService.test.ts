@@ -147,7 +147,7 @@ describe('Transaction CRUD', () => {
     )
     expect(txn2.id).toEqual(txn.id)
   })
-  test.only('findTransactions with excludeCanceledLIKE', async () => {
+  test('findTransactions with excludeCanceledLIKE', async () => {
     const canceledLikeTxn = await paymentService.createTransaction({
       amount,
       fee,
@@ -177,15 +177,96 @@ describe('Transaction CRUD', () => {
       remark,
     })
     const allTxns = await paymentService.findTransactions({})
-    console.log(allTxns)
     expect(allTxns.map((tx) => tx.id)).toContain(canceledLikeTxn.id)
     expect(allTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
 
     const excludedTxns = await paymentService.findTransactions({
       excludeCanceledLIKE: true,
-      userId: '1',
     })
     expect(excludedTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
     expect(excludedTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
+  })
+  test('findTransactions with purpose/currency', async () => {
+    const canceledLikeTxn = await paymentService.createTransaction({
+      amount,
+      fee,
+      state: TRANSACTION_STATE.canceled,
+      purpose,
+      currency: PAYMENT_CURRENCY.LIKE,
+      provider,
+      providerTxId: genRandomProviderTxId(),
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+      remark,
+    })
+    const donateLikeTxn = await paymentService.createTransaction({
+      amount,
+      fee,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+      currency: PAYMENT_CURRENCY.LIKE,
+      provider,
+      providerTxId: genRandomProviderTxId(),
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+      remark,
+    })
+    const payoutHKDTxn = await paymentService.createTransaction({
+      amount,
+      fee,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.payout,
+      currency: PAYMENT_CURRENCY.HKD,
+      provider,
+      providerTxId: genRandomProviderTxId(),
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+      remark,
+    })
+
+    const allPurposesTxns = await paymentService.findTransactions({
+      excludeCanceledLIKE: true,
+    })
+    expect(allPurposesTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
+    expect(allPurposesTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
+    expect(allPurposesTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+
+    // purpose
+    const donationTxns = await paymentService.findTransactions({
+      purpose: TRANSACTION_PURPOSE.donation,
+      excludeCanceledLIKE: true,
+    })
+    expect(donationTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
+    expect(donationTxns.map((tx) => tx.id)).not.toContain(payoutHKDTxn.id)
+    expect(donationTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    const payoutTxns = await paymentService.findTransactions({
+      purpose: TRANSACTION_PURPOSE.payout,
+      excludeCanceledLIKE: true,
+    })
+    expect(payoutTxns.map((tx) => tx.id)).not.toContain(donateLikeTxn.id)
+    expect(payoutTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
+    expect(payoutTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+
+    // currency
+    const likeTxns = await paymentService.findTransactions({
+      currency: PAYMENT_CURRENCY.LIKE,
+      excludeCanceledLIKE: true,
+    })
+    expect(likeTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
+    expect(likeTxns.map((tx) => tx.id)).not.toContain(payoutHKDTxn.id)
+    expect(likeTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    const HKDTxns = await paymentService.findTransactions({
+      currency: PAYMENT_CURRENCY.HKD,
+      excludeCanceledLIKE: true,
+    })
+    expect(HKDTxns.map((tx) => tx.id)).not.toContain(donateLikeTxn.id)
+    expect(HKDTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
+    expect(HKDTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
   })
 })
