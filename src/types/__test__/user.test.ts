@@ -702,6 +702,7 @@ describe('user query fields', () => {
     checkNotContains(allRes, canceledLIKEdonationTx)
 
     // id
+
     const deprecatedIdRes = await server.executeOperation({
       query: GET_VIEWER_WALLET_TRANSACTIONS,
       variables: {
@@ -712,7 +713,20 @@ describe('user query fields', () => {
     checkNotContains(deprecatedIdRes, failedUSDTdonationTx)
     checkNotContains(deprecatedIdRes, canceledLIKEdonationTx)
 
+    const idRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: {
+        input: {
+          filter: { id: toGlobalTxId(succeededHKDSubscriptionSplitTx.id) },
+        },
+      },
+    })
+    checkContains(idRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(idRes, failedUSDTdonationTx)
+    checkNotContains(idRes, canceledLIKEdonationTx)
+
     // states
+
     const deprecatedStatesRes = await server.executeOperation({
       query: GET_VIEWER_WALLET_TRANSACTIONS,
       variables: { input: { states: ['succeeded'] } },
@@ -720,6 +734,59 @@ describe('user query fields', () => {
     checkContains(deprecatedStatesRes, succeededHKDSubscriptionSplitTx)
     checkNotContains(deprecatedStatesRes, failedUSDTdonationTx)
     checkNotContains(deprecatedStatesRes, canceledLIKEdonationTx)
+
+    const statesRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { filter: { states: ['succeeded'] } } },
+    })
+    checkContains(statesRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(statesRes, failedUSDTdonationTx)
+    checkNotContains(statesRes, canceledLIKEdonationTx)
+
+    // purpose
+
+    const purposeRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { filter: { purpose: 'subscriptionSplit' } } },
+    })
+    console.log(purposeRes.errors)
+    checkContains(purposeRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(purposeRes, failedUSDTdonationTx)
+    checkNotContains(purposeRes, canceledLIKEdonationTx)
+    const purposeRes2 = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: {
+        input: { filter: { purpose: TRANSACTION_PURPOSE.donation } },
+      },
+    })
+    checkNotContains(purposeRes2, succeededHKDSubscriptionSplitTx)
+    checkContains(purposeRes2, failedUSDTdonationTx)
+    checkNotContains(purposeRes2, canceledLIKEdonationTx)
+
+    // currency
+
+    const currencyRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { filter: { currency: PAYMENT_CURRENCY.HKD } } },
+    })
+    checkContains(currencyRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(currencyRes, failedUSDTdonationTx)
+    checkNotContains(currencyRes, canceledLIKEdonationTx)
+    const currencyRes2 = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { filter: { currency: PAYMENT_CURRENCY.USDT } } },
+    })
+    checkNotContains(currencyRes2, succeededHKDSubscriptionSplitTx)
+    checkContains(currencyRes2, failedUSDTdonationTx)
+    checkNotContains(currencyRes2, canceledLIKEdonationTx)
+    // canceled like txs was exclued
+    const currencyRes3 = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { filter: { currency: PAYMENT_CURRENCY.LIKE } } },
+    })
+    checkNotContains(currencyRes3, succeededHKDSubscriptionSplitTx)
+    checkNotContains(currencyRes3, failedUSDTdonationTx)
+    checkNotContains(currencyRes3, canceledLIKEdonationTx)
   })
 })
 
