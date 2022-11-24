@@ -53,7 +53,7 @@
     "apollo-datasource": "^3.0.2",
     "apollo-datasource-rest": "^3.4.0",
     "apollo-server-cache-redis": "^3.0.2",
-    "apollo-server-core": "^3.10.1",
+    "apollo-server-core": "^3.11.1",
     "apollo-server-express": "^3.0.2",
     "aws-sdk": "^2.954.0",
     "axios": "^0.21.2",
