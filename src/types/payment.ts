@@ -117,8 +117,18 @@ export default /* GraphQL */ `
   input TransactionsArgs {
     after: String
     first: Int @constraint(min: 0)
+    "deprecated"
+    id: ID
+    "deprecated"
+    states: [TransactionState!]
+    filter: TransactionsFilter
+  }
+
+  input TransactionsFilter {
     id: ID
     states: [TransactionState!]
+    currency: TransactionCurrency
+    purpose: TransactionPurpose
   }
 
   enum TransactionState {

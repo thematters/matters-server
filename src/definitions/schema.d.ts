@@ -4254,8 +4254,24 @@ export interface GQLTransactionEdge {
 export interface GQLTransactionsArgs {
   after?: string
   first?: number
+
+  /**
+   * deprecated
+   */
+  id?: string
+
+  /**
+   * deprecated
+   */
+  states?: Array<GQLTransactionState>
+  filter?: GQLTransactionsFilter
+}
+
+export interface GQLTransactionsFilter {
   id?: string
   states?: Array<GQLTransactionState>
+  currency?: GQLTransactionCurrency
+  purpose?: GQLTransactionPurpose
 }
 
 export const enum GQLTransactionState {
