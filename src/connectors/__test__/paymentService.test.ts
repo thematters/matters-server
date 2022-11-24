@@ -12,6 +12,12 @@ import { GQLChain } from 'definitions'
 
 const paymentService = new PaymentService()
 
+// helpers
+
+const genRandomProviderTxId = () => 'testProviderTxId' + Math.random()
+
+// tests
+
 describe('Transaction CRUD', () => {
   const amount = 1
   const fee = 0.1
@@ -19,7 +25,7 @@ describe('Transaction CRUD', () => {
   const purpose = TRANSACTION_PURPOSE.donation
   const currency = PAYMENT_CURRENCY.HKD
   const provider = PAYMENT_PROVIDER.matters
-  const providerTxId = 'testProviderTxId'
+  const providerTxId = genRandomProviderTxId()
   const recipientId = '1'
   const senderId = '2'
   const targetId = '1'
@@ -140,5 +146,46 @@ describe('Transaction CRUD', () => {
       }
     )
     expect(txn2.id).toEqual(txn.id)
+  })
+  test.only('findTransactions with excludeCanceledLIKE', async () => {
+    const canceledLikeTxn = await paymentService.createTransaction({
+      amount,
+      fee,
+      state: TRANSACTION_STATE.canceled,
+      purpose,
+      currency: PAYMENT_CURRENCY.LIKE,
+      provider,
+      providerTxId: genRandomProviderTxId(),
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+      remark,
+    })
+    const goodLikeTxn = await paymentService.createTransaction({
+      amount,
+      fee,
+      state: TRANSACTION_STATE.succeeded,
+      purpose,
+      currency: PAYMENT_CURRENCY.LIKE,
+      provider,
+      providerTxId: genRandomProviderTxId(),
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+      remark,
+    })
+    const allTxns = await paymentService.findTransactions({})
+    console.log(allTxns)
+    expect(allTxns.map((tx) => tx.id)).toContain(canceledLikeTxn.id)
+    expect(allTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
+
+    const excludedTxns = await paymentService.findTransactions({
+      excludeCanceledLIKE: true,
+      userId: '1',
+    })
+    expect(excludedTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    expect(excludedTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
   })
 })

@@ -93,29 +93,12 @@ export class PaymentService extends BaseService {
     }
 
     if (excludeCanceledLIKE) {
-      const subQuery = this.knex('transaction_delta_view').where({
-        userId,
-      })
-
-      if (id) {
-        subQuery.where({ id })
-      }
-
-      if (states) {
-        subQuery.whereIn('state', states)
-      }
-
-      query
-        .leftJoin(
-          subQuery
-            .select('id as tx_id')
-            .where('state', TRANSACTION_STATE.canceled)
-            .andWhere('currency', PAYMENT_CURRENCY.LIKE)
-            .as('canceled_like_txs'),
-          'transaction_delta_view.id',
-          'canceled_like_txs.tx_id'
+      query.whereNot((q) => {
+        q.where('state', TRANSACTION_STATE.canceled).where(
+          'currency',
+          PAYMENT_CURRENCY.LIKE
         )
-        .whereNull('canceled_like_txs.tx_id')
+      })
     }
 
     if (notIn) {
