@@ -67,25 +67,26 @@ describe('Transaction CRUD', () => {
   })
   test('get or create BlockchainTransaction', async () => {
     // create
-    const blockchainTxn =
-      await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
-    expect(blockchainTxn.chainId).toEqual(
+    const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
+      { chain, txHash }
+    )
+    expect(blockchainTx.chainId).toEqual(
       BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
     )
-    expect(blockchainTxn.txHash).toEqual(txHash)
-    expect(blockchainTxn.state).toEqual('pending')
+    expect(blockchainTx.txHash).toEqual(txHash)
+    expect(blockchainTx.state).toEqual('pending')
 
     // get
-    const blockchainTxn2 =
+    const blockchainTx2 =
       await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
-    expect(blockchainTxn2.id).toEqual(blockchainTxn.id)
+    expect(blockchainTx2.id).toEqual(blockchainTx.id)
     // get with uppercase txHash
-    const blockchainTxn3 =
+    const blockchainTx3 =
       await paymentService.findOrCreateBlockchainTransaction({
         chain,
         txHash: txHashUppercase,
       })
-    expect(blockchainTxn3.id).toEqual(blockchainTxn.id)
+    expect(blockchainTx3.id).toEqual(blockchainTx.id)
   })
   test('get or create Transaction by Txhash', async () => {
     const txHash2 =
@@ -107,11 +108,12 @@ describe('Transaction CRUD', () => {
       targetType,
       remark,
     })
-    const blockchainTxn =
-      await paymentService.findOrCreateBlockchainTransaction({
+    const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
+      {
         chain,
         txHash: txHash2,
-      })
+      }
+    )
 
     expect(parseInt(txn.amount, 10)).toEqual(amount)
     expect(parseFloat(txn.fee)).toEqual(fee)
@@ -119,14 +121,14 @@ describe('Transaction CRUD', () => {
     expect(txn.purpose).toEqual(purpose)
     expect(txn.currency).toEqual(currencyUSDT)
     expect(txn.provider).toEqual(PAYMENT_PROVIDER.blockchain)
-    expect(txn.providerTxId).toEqual(blockchainTxn.id)
+    expect(txn.providerTxId).toEqual(blockchainTx.id)
     expect(txn.recipientId).toEqual(recipientId)
     expect(txn.senderId).toEqual(senderId)
     expect(txn.targetId).toEqual(targetId)
     expect(txn.targetType).toBeDefined()
     expect(txn.remark).toEqual(txn.remark)
 
-    expect(blockchainTxn.transactionId).toBe(txn.id)
+    expect(blockchainTx.transactionId).toBe(txn.id)
 
     // get
     const txn2 = await paymentService.findOrCreateTransactionByBlockchainTxHash(
@@ -148,7 +150,7 @@ describe('Transaction CRUD', () => {
     expect(txn2.id).toEqual(txn.id)
   })
   test('findTransactions with excludeCanceledLIKE', async () => {
-    const canceledLikeTxn = await paymentService.createTransaction({
+    const canceledLikeTx = await paymentService.createTransaction({
       amount,
       fee,
       state: TRANSACTION_STATE.canceled,
@@ -162,7 +164,7 @@ describe('Transaction CRUD', () => {
       targetType,
       remark,
     })
-    const goodLikeTxn = await paymentService.createTransaction({
+    const goodLikeTx = await paymentService.createTransaction({
       amount,
       fee,
       state: TRANSACTION_STATE.succeeded,
@@ -176,18 +178,18 @@ describe('Transaction CRUD', () => {
       targetType,
       remark,
     })
-    const allTxns = await paymentService.findTransactions({})
-    expect(allTxns.map((tx) => tx.id)).toContain(canceledLikeTxn.id)
-    expect(allTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
+    const allTxs = await paymentService.findTransactions({})
+    expect(allTxs.map((tx) => tx.id)).toContain(canceledLikeTx.id)
+    expect(allTxs.map((tx) => tx.id)).toContain(goodLikeTx.id)
 
-    const excludedTxns = await paymentService.findTransactions({
+    const excludedTxs = await paymentService.findTransactions({
       excludeCanceledLIKE: true,
     })
-    expect(excludedTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
-    expect(excludedTxns.map((tx) => tx.id)).toContain(goodLikeTxn.id)
+    expect(excludedTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
+    expect(excludedTxs.map((tx) => tx.id)).toContain(goodLikeTx.id)
   })
   test('findTransactions with purpose/currency', async () => {
-    const canceledLikeTxn = await paymentService.createTransaction({
+    const canceledLikeTx = await paymentService.createTransaction({
       amount,
       fee,
       state: TRANSACTION_STATE.canceled,
@@ -201,7 +203,7 @@ describe('Transaction CRUD', () => {
       targetType,
       remark,
     })
-    const donateLikeTxn = await paymentService.createTransaction({
+    const donateLikeTx = await paymentService.createTransaction({
       amount,
       fee,
       state: TRANSACTION_STATE.succeeded,
@@ -215,7 +217,7 @@ describe('Transaction CRUD', () => {
       targetType,
       remark,
     })
-    const payoutHKDTxn = await paymentService.createTransaction({
+    const payoutHKDTx = await paymentService.createTransaction({
       amount,
       fee,
       state: TRANSACTION_STATE.succeeded,
@@ -230,43 +232,43 @@ describe('Transaction CRUD', () => {
       remark,
     })
 
-    const allPurposesTxns = await paymentService.findTransactions({
+    const allPurposesTxs = await paymentService.findTransactions({
       excludeCanceledLIKE: true,
     })
-    expect(allPurposesTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
-    expect(allPurposesTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
-    expect(allPurposesTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    expect(allPurposesTxs.map((tx) => tx.id)).toContain(donateLikeTx.id)
+    expect(allPurposesTxs.map((tx) => tx.id)).toContain(payoutHKDTx.id)
+    expect(allPurposesTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
 
     // purpose
-    const donationTxns = await paymentService.findTransactions({
+    const donationTxs = await paymentService.findTransactions({
       purpose: TRANSACTION_PURPOSE.donation,
       excludeCanceledLIKE: true,
     })
-    expect(donationTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
-    expect(donationTxns.map((tx) => tx.id)).not.toContain(payoutHKDTxn.id)
-    expect(donationTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
-    const payoutTxns = await paymentService.findTransactions({
+    expect(donationTxs.map((tx) => tx.id)).toContain(donateLikeTx.id)
+    expect(donationTxs.map((tx) => tx.id)).not.toContain(payoutHKDTx.id)
+    expect(donationTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
+    const payoutTxs = await paymentService.findTransactions({
       purpose: TRANSACTION_PURPOSE.payout,
       excludeCanceledLIKE: true,
     })
-    expect(payoutTxns.map((tx) => tx.id)).not.toContain(donateLikeTxn.id)
-    expect(payoutTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
-    expect(payoutTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    expect(payoutTxs.map((tx) => tx.id)).not.toContain(donateLikeTx.id)
+    expect(payoutTxs.map((tx) => tx.id)).toContain(payoutHKDTx.id)
+    expect(payoutTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
 
     // currency
-    const likeTxns = await paymentService.findTransactions({
+    const likeTxs = await paymentService.findTransactions({
       currency: PAYMENT_CURRENCY.LIKE,
       excludeCanceledLIKE: true,
     })
-    expect(likeTxns.map((tx) => tx.id)).toContain(donateLikeTxn.id)
-    expect(likeTxns.map((tx) => tx.id)).not.toContain(payoutHKDTxn.id)
-    expect(likeTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
-    const HKDTxns = await paymentService.findTransactions({
+    expect(likeTxs.map((tx) => tx.id)).toContain(donateLikeTx.id)
+    expect(likeTxs.map((tx) => tx.id)).not.toContain(payoutHKDTx.id)
+    expect(likeTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
+    const HKDTxs = await paymentService.findTransactions({
       currency: PAYMENT_CURRENCY.HKD,
       excludeCanceledLIKE: true,
     })
-    expect(HKDTxns.map((tx) => tx.id)).not.toContain(donateLikeTxn.id)
-    expect(HKDTxns.map((tx) => tx.id)).toContain(payoutHKDTxn.id)
-    expect(HKDTxns.map((tx) => tx.id)).not.toContain(canceledLikeTxn.id)
+    expect(HKDTxs.map((tx) => tx.id)).not.toContain(donateLikeTx.id)
+    expect(HKDTxs.map((tx) => tx.id)).toContain(payoutHKDTx.id)
+    expect(HKDTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
   })
 })

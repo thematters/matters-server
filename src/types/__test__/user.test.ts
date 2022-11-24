@@ -5,12 +5,15 @@ import _values from 'lodash/values'
 import {
   MATERIALIZED_VIEW,
   NODE_TYPES,
+  PAYMENT_CURRENCY,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 
-import { createDonationTx } from '../../connectors/__test__/utils'
+import { createDonationTx, createTx } from '../../connectors/__test__/utils'
 import {
   defaultTestUser,
   getUserContext,
@@ -329,6 +332,25 @@ const GET_VIEWER_TOPICS = /* GraphQL */ `
   }
 `
 
+const GET_VIEWER_WALLET_TRANSACTIONS = /* GraphQL */ `
+  query ($input: TransactionsArgs!) {
+    viewer {
+      wallet {
+        transactions(input: $input) {
+          edges {
+            node {
+              id
+              state
+              purpose
+              currency
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const PUT_TOPIC = /* GraphQL */ `
   mutation PutTopic($input: PutTopicInput!) {
     putTopic(input: $input) {
@@ -627,6 +649,77 @@ describe('user query fields', () => {
       edges: [{ node: { userName: 'test3' }, donationCount: 1 }],
       totalCount: 2,
     })
+  })
+  test('retrive wallet transactions', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const recipientId = '1'
+    const senderId = '2'
+    const succeededHKDSubscriptionSplitTx = await createTx({
+      senderId,
+      recipientId,
+      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+      currency: PAYMENT_CURRENCY.HKD,
+      state: TRANSACTION_STATE.succeeded,
+    })
+    const failedUSDTdonationTx = await createTx({
+      senderId,
+      recipientId,
+      purpose: TRANSACTION_PURPOSE.donation,
+      currency: PAYMENT_CURRENCY.USDT,
+      state: TRANSACTION_STATE.failed,
+    })
+    const canceledLIKEdonationTx = await createTx({
+      senderId,
+      recipientId,
+      purpose: TRANSACTION_PURPOSE.donation,
+      currency: PAYMENT_CURRENCY.LIKE,
+      state: TRANSACTION_STATE.canceled,
+    })
+
+    const toGlobalTxId = (id: string) =>
+      toGlobalId({ type: NODE_TYPES.Transaction, id })
+    const checkContains = (res: any, tx: any) =>
+      expect(
+        _get(res, 'data.viewer.wallet.transactions.edges').map(
+          (e: any) => e.node.id
+        )
+      ).toContain(toGlobalTxId(tx.id))
+    const checkNotContains = (res: any, tx: any) =>
+      expect(
+        _get(res, 'data.viewer.wallet.transactions.edges').map(
+          (e: any) => e.node.id
+        )
+      ).not.toContain(toGlobalTxId(tx.id))
+
+    const allRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: {} },
+    })
+    checkContains(allRes, succeededHKDSubscriptionSplitTx)
+    checkContains(allRes, failedUSDTdonationTx)
+    checkNotContains(allRes, canceledLIKEdonationTx)
+
+    // id
+    const deprecatedIdRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: {
+        input: { id: toGlobalTxId(succeededHKDSubscriptionSplitTx.id) },
+      },
+    })
+    checkContains(deprecatedIdRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(deprecatedIdRes, failedUSDTdonationTx)
+    checkNotContains(deprecatedIdRes, canceledLIKEdonationTx)
+
+    // states
+    const deprecatedStatesRes = await server.executeOperation({
+      query: GET_VIEWER_WALLET_TRANSACTIONS,
+      variables: { input: { states: ['succeeded'] } },
+    })
+    checkContains(deprecatedStatesRes, succeededHKDSubscriptionSplitTx)
+    checkNotContains(deprecatedStatesRes, failedUSDTdonationTx)
+    checkNotContains(deprecatedStatesRes, canceledLIKEdonationTx)
   })
 })
 
