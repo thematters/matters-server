@@ -3148,10 +3148,10 @@ input TransactionsArgs {
   after: String
   first: Int
 
-  """deprecated"""
+  """deprecated, use TransactionsFilter.id instead."""
   id: ID
 
-  """deprecated"""
+  """deprecated, use TransactionsFilter.states instead."""
   states: [TransactionState!]
   filter: TransactionsFilter
 }

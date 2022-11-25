@@ -4256,12 +4256,12 @@ export interface GQLTransactionsArgs {
   first?: number
 
   /**
-   * deprecated
+   * deprecated, use TransactionsFilter.id instead.
    */
   id?: string
 
   /**
-   * deprecated
+   * deprecated, use TransactionsFilter.states instead.
    */
   states?: Array<GQLTransactionState>
   filter?: GQLTransactionsFilter

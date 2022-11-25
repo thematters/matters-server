@@ -117,9 +117,9 @@ export default /* GraphQL */ `
   input TransactionsArgs {
     after: String
     first: Int @constraint(min: 0)
-    "deprecated"
+    "deprecated, use TransactionsFilter.id instead."
     id: ID
-    "deprecated"
+    "deprecated, use TransactionsFilter.states instead."
     states: [TransactionState!]
     filter: TransactionsFilter
   }
