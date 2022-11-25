@@ -2,6 +2,7 @@ import { CacheScope } from 'apollo-cache-control'
 
 import {
   CACHE_TTL,
+  PAYMENT_CURRENCY,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TransactionRemarkText,
@@ -19,18 +20,22 @@ const resolver: WalletToTransactionsResolver = async (
   { dataSources: { paymentService }, viewer },
   { cacheControl }
 ) => {
-  const { id, states } = input
+  const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
 
   let txId
   if (id) {
     txId = fromGlobalId(id).id
+  } else if (filter?.id) {
+    txId = fromGlobalId(filter?.id).id
   }
 
   const totalCount = await paymentService.totalTransactionCount({
     userId,
     id: txId,
-    states: states as any,
+    purpose: filter?.purpose ? TRANSACTION_PURPOSE[filter.purpose] : undefined,
+    currency: filter?.currency ? PAYMENT_CURRENCY[filter.currency] : undefined,
+    states: (filter?.states || states) as any,
     excludeCanceledLIKE: true,
     notIn: ['purpose', [TRANSACTION_PURPOSE.subscription]],
   })
@@ -46,7 +51,9 @@ const resolver: WalletToTransactionsResolver = async (
   const transactions = await paymentService.findTransactions({
     userId,
     id: txId,
-    states: states as any,
+    purpose: filter?.purpose ? TRANSACTION_PURPOSE[filter.purpose] : undefined,
+    currency: filter?.currency ? PAYMENT_CURRENCY[filter.currency] : undefined,
+    states: (filter?.states || states) as any,
     excludeCanceledLIKE: true,
     notIn: ['purpose', [TRANSACTION_PURPOSE.subscription]],
     skip,
