@@ -107,10 +107,10 @@ export class PaymentService extends BaseService {
     const containsLIKE = !currency || currency === PAYMENT_CURRENCY.LIKE
     if (containsLIKE && excludeCanceledLIKE) {
       query.whereNot((q) => {
-        q.where('state', TRANSACTION_STATE.canceled).where(
-          'currency',
-          PAYMENT_CURRENCY.LIKE
-        )
+        q.where({
+          state: TRANSACTION_STATE.canceled,
+          currency: PAYMENT_CURRENCY.LIKE,
+        })
       })
     }
 
