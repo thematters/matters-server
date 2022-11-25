@@ -171,7 +171,7 @@ export class ArticleService extends BaseService {
         summary,
         date: publishedAt,
         content,
-        tags: tags.map((t: string) => t.trim()).filter(Boolean),
+        tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
       },
     }
 
