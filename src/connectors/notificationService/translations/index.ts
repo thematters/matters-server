@@ -1,4 +1,4 @@
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 
 import { i18n } from 'common/utils/i18n'
 

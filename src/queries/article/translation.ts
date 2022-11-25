@@ -1,5 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 
 import { NODE_TYPES } from 'common/enums'
 import logger from 'common/logger'
