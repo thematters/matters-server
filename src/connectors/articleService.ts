@@ -119,7 +119,6 @@ export class ArticleService extends BaseService {
       summary,
       cover,
       tags,
-      dataHash,
       circleId,
       access,
       authorId,
@@ -171,7 +170,6 @@ export class ArticleService extends BaseService {
         title,
         summary,
         date: publishedAt,
-        uri: `./${dataHash}`, // wont be used since it's for homepage
         content,
         tags: tags.map((t: string) => t.trim()).filter(Boolean),
       },

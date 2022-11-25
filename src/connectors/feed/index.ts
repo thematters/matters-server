@@ -1,4 +1,5 @@
-// TODO: the whole file move to @matters/formatter package
+import { HomepageContext, makeHomepage } from '@matters/ipns-site-generator'
+
 import { environment } from 'common/environment'
 import { stripSpaces } from 'common/utils'
 import {
@@ -187,117 +188,48 @@ ${items.join('\n')}
 </rss>`
   }
 
-  ['index.html']() {
-    // TODO
-    const {
-      userName,
-      displayName,
-      // description,
-    } = this.author
+  async ['index.html']() {
+    const { userName, displayName, description, avatar } = this.author
+    const avatarImg = await this.systemService.findAssetUrl(avatar)
 
-    const siteTitle = `${(
-      displayName || userName
-    ).trim()} 的創作空間站 - Matters`
-    const description =
-      stripSpaces(this.author.description) ||
-      // siteTitle ||
-      'Matters 致力搭建去中心化的寫作社群與內容生態。基於 IPFS 技術，令創作不受制於任何平台，獨立性得到保障；引入加密貨幣，以收入的形式回饋給作者；代碼開源，建立創作者自治社區。'
+    const context: HomepageContext = {
+      meta: {
+        title: `${displayName} (${userName}) - Matters`,
+        description,
+        authorName: displayName,
+        image: avatarImg || undefined,
+      },
+      byline: {
+        author: {
+          name: `${displayName} (${userName})`,
+          uri: `${environment.siteDomain}/@${userName}`,
+        },
+        website: {
+          name: 'Matters',
+          uri: environment.siteDomain,
+        },
+      },
+      rss: this.ipnsKey
+        ? {
+            ipns: this.ipnsKey,
+            xml: './rss.xml',
+            json: './rss.json',
+          }
+        : undefined,
+      articles: this.articles.map((a) => ({
+        author: {
+          userName,
+          displayName,
+        },
+        title: a.title,
+        summary: a.summary,
+        date: a.publishedAt,
+        content: a.content,
+        uri: `./${a.id}-${a.slug}/`,
+      })),
+    }
 
-    const home_page_url = `${
-      environment.siteDomain || 'https://matters.news'
-    }/@${userName}`
-
-    const mattersAuthorLink = `${
-      environment.siteDomain || 'https://matters.news'
-    }/@${userName}`
-
-    const items = this.articles.map(
-      ({
-        id, // uuid,
-        title,
-        slug,
-        summary, // mediaHash, // dataHash,
-        createdAt,
-      }) => `<li class="item">
-<a href="./${id}-${slug}/"><h2>${title}</h2></a>
-<figure class="summary">${stripSpaces(summary)}</figure>
-<span>${buildShortDate(createdAt)}</span>
-</li>`
-    )
-
-    const publishedDate = buildShortDate(this.articles?.[0]?.createdAt) // .toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric',})
-
-    // <link rel="alternate" type="application/rss+xml" href="./rss.xml" title="${siteTitle}" />
-
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>${siteTitle}</title>
-<meta name="description" content="${description}">
-
-<link rel="alternate" type="application/feed+json" href="./feed.json" title="${siteTitle}" />
-<link rel="canonical" href="${home_page_url}" />
-
-<meta property="og:title" content="${siteTitle}">
-<meta property="og:description" content="${description}">
-<meta property="article:author" content="${displayName} (@${userName})">
-<meta name="twitter:title" content="${siteTitle}">
-<meta name="twitter:description" content="${description}">
-
-<style>
-main { max-width: 42rem; margin: 2.5rem auto; padding: 0 1.25rem; }
-header { margin-bottom: 2.5rem; }
-header h1 { text-align: left; }
-header .feedicon { text-align: right; margin-top: -1rem; }
-p.author-description { white-space: pre-wrap; display: none; }
-figure.byline { margin: 0; margin-top: 1rem; }
-figure.byline time { color: grey; display: none; }
-figure.byline * + * { padding-left: 0.625rem; }
-figure.summary { margin: 0; }
-ol, ul { padding-left: 0; }
-li.item { list-style: none; }
-li.item h2 { margin: 0.25rem auto; }
-li.item + li.item { margin-top: 1.5rem; }
-li.item span { font-size: smaller; color: grey; }
-</style>
-</head>
-<body itemscope itemtype="http://schema.org/Article">
-
-<!-- TODO: more elements to enrich -->
-
-<main>
-<header>
-<h1>${(displayName || userName).trim()}</h1>
-<p class="author-description">${this.author.description}</p>
-<div class="feedicon">
-  <!-- <a href="./feed.json"><img src="https://jsonfeed.org/graphics/icon.png" alt="JSON Feed" /></a> -->
-  <a href="./rss.xml"><!-- <img src="https://jsonfeed.org/graphics/icon.png" alt="RSS Feed" />-->RSS</a>
-</div>
-<figure class="byline">
-  <a href="${mattersAuthorLink}" target="_blank">@${userName}</a>
-  <!-- <time itemprop="datePublished" datetime="${publishedDate}">${publishedDate}</time> -->
-  <span itemprops="provider" itemscope itemtype="http://schema.org/Organization">
-    from <a href="https://matters.news" target="_blank" itemprops="name">Matters</a>
-    <meta itemprops="url" content="https://matters.news">
-  </span>
-</figure>
-</header>
-
-<article itemprop="articleBody">
-<ol style="margin-top: 3rem;">
-${items.join('\n')}
-</ol>
-</article>
-</main>
-
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KK55LL24"></script>
-<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date); gtag('config', 'G-K4KK55LL24');</script>
-</body>
-
-</html>`
+    return makeHomepage(context)
   }
 }
 
@@ -306,14 +238,6 @@ function omitEmpty(arr: any[]) {
     return arr
   }
   // otherwise undefined
-}
-
-function buildShortDate(date: Date = new Date()) {
-  const dayNumber = date.getUTCDate()
-  const month = date.getUTCMonth() + 1 // from range 0-11 to 1-12
-  const year = date.getUTCFullYear()
-
-  return `${year}-${month}-${dayNumber}`
 }
 
 // https://github.com/whitep4nth3r/rfc-822/blob/main/index.js
