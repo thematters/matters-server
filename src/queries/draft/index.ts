@@ -1,4 +1,4 @@
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
 import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'

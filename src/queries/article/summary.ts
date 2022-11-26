@@ -1,4 +1,4 @@
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 import { ArticleToSummaryResolver } from 'definitions'

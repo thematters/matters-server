@@ -1,4 +1,4 @@
-import { stripHtml } from '@matters/matters-html-formatter'
+import { stripHtml } from '@matters/ipns-site-generator'
 import lodash, { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 

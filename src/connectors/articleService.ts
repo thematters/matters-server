@@ -1,9 +1,9 @@
 import {
-  makeHtmlBundle,
+  ArticlePageContext,
+  makeArticlePage,
   makeMetaData,
   stripHtml,
-  TemplateOptions,
-} from '@matters/matters-html-formatter'
+} from '@matters/ipns-site-generator'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -107,78 +107,87 @@ export class ArticleService extends BaseService {
   /**
    * Publish draft data to IPFS
    */
-  publishToIPFS = async ({
-    authorId,
-    title,
-    cover,
-    content,
-    circleId,
-    summary,
-    summaryCustomized,
-    access,
-  }: Record<string, any>) => {
+  publishToIPFS = async (draft: any) => {
     const userService = new UserService()
     const systemService = new SystemService()
-    // const atomService = new AtomService()
+    const atomService = new AtomService()
 
     // prepare metadata
-    const author = await userService.dataloader.load(authorId)
-    const { avatar, description, displayName, userName, paymentPointer } =
-      author
-    const userImg = avatar && (await systemService.findAssetUrl(avatar))
-    const articleImg = cover && (await systemService.findAssetUrl(cover))
-
-    const bundleInfo = {
+    const {
       title,
-      author: {
-        name: displayName,
-        link: {
-          text: `${displayName} (@${userName})`,
-          url: new URL(`/@${userName}`, environment.siteDomain).href,
+      content,
+      summary,
+      cover,
+      tags,
+      circleId,
+      access,
+      authorId,
+      updatedAt: publishedAt,
+    } = draft
+    const author = await userService.dataloader.load(authorId)
+    const { avatar, displayName, userName, paymentPointer } = author
+    const [userImg, articleCoverImg, ipnsKeyRec] = await Promise.all([
+      avatar && (await systemService.findAssetUrl(avatar)),
+      cover && (await systemService.findAssetUrl(cover)),
+      atomService.findFirst({
+        table: 'user_ipns_keys',
+        where: { userId: authorId },
+      }),
+    ])
+    const ipnsKey = ipnsKeyRec?.ipnsKey
+
+    const context: ArticlePageContext = {
+      encrypted: false,
+      meta: {
+        title: `${title} - ${displayName} (${userName})`,
+        description: summary,
+        authorName: displayName,
+        image: articleCoverImg,
+      },
+      byline: {
+        date: publishedAt,
+        author: {
+          name: `${displayName} (${userName})`,
+          uri: `${environment.siteDomain}/@${userName}`,
+        },
+        website: {
+          name: 'Matters',
+          uri: environment.siteDomain,
         },
       },
-      from: {
-        text: 'Matters',
-        url: environment.siteDomain,
+      rss: ipnsKey
+        ? {
+            ipns: ipnsKey,
+            xml: '../rss.xml',
+            json: '../rss.json',
+          }
+        : undefined,
+      article: {
+        author: {
+          userName,
+          displayName,
+        },
+        title,
+        summary,
+        date: publishedAt,
+        content,
+        tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
       },
-      content,
-    } as TemplateOptions
-
-    // paywall info
-    if (circleId) {
-      const circle = await this.knex('circle')
-        .select('name', 'displayName')
-        .where({ id: circleId, state: CIRCLE_STATE.active })
-        .first()
-      const circleName = circle?.name
-      const circleDisplayName = circle?.displayName
-
-      if (circleName && circleDisplayName) {
-        bundleInfo.readMore = {
-          url: `${environment.siteDomain}/~${circleName}`,
-          text: circleDisplayName,
-        }
-      }
-
-      // encrypt paywalled content
-      if (access === ARTICLE_ACCESS_TYPE.paywall) {
-        bundleInfo.encrypt = true
-      }
     }
 
-    // add summury when customized or encrypted
-    if (summaryCustomized || bundleInfo.encrypt) {
-      bundleInfo.summary = summary
+    // paywalled content
+    if (circleId && access === ARTICLE_ACCESS_TYPE.paywall) {
+      context.encrypted = true
     }
 
     // payment pointer
     if (paymentPointer) {
-      bundleInfo.paymentPointer = paymentPointer
+      context.paymentPointer = paymentPointer
     }
 
     // make bundle and add content to ipfs
     const directoryName = 'article'
-    const { bundle, key } = await makeHtmlBundle(bundleInfo)
+    const { bundle, key } = await makeArticlePage(context)
 
     const results = []
     for await (const result of this.ipfs.client.addAll(
@@ -211,10 +220,10 @@ export class ArticleService extends BaseService {
         name: userName,
         ...(userImg ? { image: userImg } : null), // `undefined` is not supported by the IPLD Data Model and cannot be encoded
         url: `https://matters.news/@${userName}`,
-        description,
+        description: author.description,
       },
       description: summary,
-      image: articleImg,
+      image: articleCoverImg,
     }
 
     const metaData = makeMetaData(articleInfo)

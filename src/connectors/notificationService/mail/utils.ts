@@ -1,4 +1,4 @@
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 import _ from 'lodash'
 
 import { NODE_TYPES } from 'common/enums'
