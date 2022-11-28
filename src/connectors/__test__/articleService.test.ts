@@ -10,7 +10,7 @@ const articleService = new ArticleService()
 test('publish', async () => {
   const publishedDraft = await articleService.draftLoader.load('1')
   const { mediaHash, contentHash: dataHash } =
-    await articleService.publishToIPFS(publishedDraft)
+    (await articleService.publishToIPFS(publishedDraft))!
   const articlePublished = await articleService.createArticle({
     draftId: '1',
     authorId: '1',

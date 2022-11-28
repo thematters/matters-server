@@ -53,6 +53,7 @@ export const environment = {
   pgDatabase: process.env.MATTERS_PG_DATABASE,
   ipfsHost: process.env.MATTERS_IPFS_HOST || '',
   ipfsPort: process.env.MATTERS_IPFS_PORT || '5001',
+  ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,

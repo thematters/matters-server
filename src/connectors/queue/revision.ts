@@ -232,7 +232,7 @@ class RevisionQueue extends BaseQueue {
             contentHash: dataHash,
             mediaHash,
             key,
-          } = await this.articleService.publishToIPFS(revised)
+          } = (await this.articleService.publishToIPFS(revised))!
 
           ;[draft, article] = await Promise.all([
             this.draftService.baseUpdate(draft.id, {
