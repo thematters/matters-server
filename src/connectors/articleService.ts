@@ -1,7 +1,6 @@
 import {
   ArticlePageContext,
   makeArticlePage,
-  makeMetaData,
   stripHtml,
 } from '@matters/ipns-site-generator'
 import bodybuilder from 'bodybuilder'
@@ -29,10 +28,10 @@ import logger from 'common/logger'
 import {
   AtomService,
   BaseService,
+  DraftService,
   Feed,
   ipfs,
   SystemService,
-  // TagService,
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
@@ -122,12 +121,12 @@ export class ArticleService extends BaseService {
       circleId,
       access,
       authorId,
+      articleId,
       updatedAt: publishedAt,
     } = draft
     const author = await userService.dataloader.load(authorId)
-    const { avatar, displayName, userName, paymentPointer } = author
-    const [userImg, articleCoverImg, ipnsKeyRec] = await Promise.all([
-      avatar && (await systemService.findAssetUrl(avatar)),
+    const { displayName, userName, paymentPointer } = author
+    const [articleCoverImg, ipnsKeyRec] = await Promise.all([
       cover && (await systemService.findAssetUrl(cover)),
       atomService.findFirst({
         table: 'user_ipns_keys',
@@ -157,12 +156,13 @@ export class ArticleService extends BaseService {
       },
       rss: ipnsKey
         ? {
-            ipns: ipnsKey,
+            ipnsKey,
             xml: '../rss.xml',
-            json: '../rss.json',
+            json: '../feed.json',
           }
         : undefined,
       article: {
+        id: articleId,
         author: {
           userName,
           displayName,
@@ -212,29 +212,7 @@ export class ArticleService extends BaseService {
     }
 
     const contentHash = entry[0].cid.toString()
-
-    // add meta data to ipfs
-    const articleInfo = {
-      contentHash,
-      author: {
-        name: userName,
-        ...(userImg ? { image: userImg } : null), // `undefined` is not supported by the IPLD Data Model and cannot be encoded
-        url: `https://matters.news/@${userName}`,
-        description: author.description,
-      },
-      description: summary,
-      image: articleCoverImg,
-    }
-
-    const metaData = makeMetaData(articleInfo)
-
-    const cid = await this.ipfs.client.dag.put(metaData, {
-      // storeCodec: 'dag-cbor',
-      format: 'dag-cbor',
-      pin: true,
-      hashAlg: 'sha2-256',
-    })
-    const mediaHash = cid.toV1().toString() // cid.toBaseEncodedString()
+    const mediaHash = entry[0].cid.toV1().toString() // cid.toV1().toString() // cid.toBaseEncodedString()
 
     return { contentHash, mediaHash, key }
   }
@@ -247,18 +225,15 @@ export class ArticleService extends BaseService {
     userName: string
     numArticles?: number
     incremental?: boolean
-    // author: Item // Record<string, any>
-    // articles: Array<Record<string, any>>
-    // latestArticleDataHash: string
   }) => {
     const started = Date.now()
     const atomService = new AtomService()
     const userService = new UserService()
+    const draftService = new DraftService()
     const author = (await userService.findByUserName(userName)) as Item
     if (!author) {
       return
     }
-    // const { userName, avatar, description, displayName } = author
 
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
@@ -285,44 +260,51 @@ export class ArticleService extends BaseService {
       }
     }
 
-    const articleIds = await this.findByAuthor(author.id, {
+    const articles = await this.findByAuthor(author.id, {
       columns: ['article.id'],
       take: numArticles, // 10, // most recent 10 articles
     })
-    const articles = (
-      (await this.dataloader.loadMany(
-        articleIds.map(({ id }: { id: string }) => id)
-      )) as Item[]
+    const publishedDraftIds = articles.map(
+      ({ draftId }: { draftId: string }) => draftId
+    )
+    const publishedDrafts = (
+      (await draftService.dataloader.loadMany(publishedDraftIds)) as Item[]
     ).filter(Boolean)
 
-    const lastArticle = articles[0]
-    if (!lastArticle) {
-      console.error(new Date(), 'fetching articles ERROR:', {
+    const lastDraft = publishedDrafts[0]
+    if (!lastDraft) {
+      console.error(new Date(), 'fetching published drafts ERROR:', {
         authorId: author.id,
-        articleIds,
+        publishedDraftIds,
       })
       return
     }
-    const directoryName = `${kname}-with-${lastArticle.id}-${
-      lastArticle.slug
+    const directoryName = `${kname}-with-${lastDraft.id}-${
+      lastDraft.slug
     }@${new Date().toISOString().substring(0, 13)}`
-
-    // make a bundle of json+xml+html index
-    const feed = new Feed(author, ipnsKey, articles)
-    await feed.loadData()
 
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
 
     try {
-      const contents = (
-        await Promise.all(
-          ['feed.json', 'rss.xml', 'index.html'].map(async (file) => ({
-            path: `${directoryName}/${file}`,
-            content: await feed[file]?.(), // contents[file] as string,
-          }))
-        )
-      ).filter(({ content }) => content)
+      // make a bundle of json+xml+html index
+      const feed = new Feed(author, ipnsKey, publishedDrafts)
+      await feed.loadData()
+      const { html, xml, json } = feed.generate()
+      const contents = [
+        {
+          path: `${directoryName}/index.html`,
+          content: html,
+        },
+        {
+          path: `${directoryName}/rss.xml`,
+          content: xml,
+        },
+        {
+          path: `${directoryName}/feed.json`,
+          content: json,
+        },
+      ]
 
       const results = []
       for await (const result of this.ipfs.client.addAll(contents)) {
@@ -382,13 +364,13 @@ export class ArticleService extends BaseService {
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
       for (const arti of incremental // to include last one only
-        ? [lastArticle]
-        : articles) {
+        ? [lastDraft]
+        : publishedDrafts) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
-            localpath: `./${arti.id}-${arti.slug}`,
-            mfspath: `/${directoryName}/${arti.id}-${arti.slug}`,
+            localpath: `./${arti.articleId}-${arti.slug}`,
+            mfspath: `/${directoryName}/${arti.articleId}-${arti.slug}`,
           }
           await this.ipfs.client.files.cp(
             // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
@@ -416,7 +398,7 @@ export class ArticleService extends BaseService {
       console.log(
         new Date(),
         `directoryName stat after tried ${
-          incremental ? 'last 1' : articles.length
+          incremental ? 'last 1' : publishedDrafts.length
         }, and actually attached ${attached.length} articles:`,
         dirStat1.cid.toString(),
         { dirStat0, dirStat1, attached }
@@ -460,10 +442,10 @@ export class ArticleService extends BaseService {
         .sqsSendMessage({
           MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
           MessageBody: {
-            articleId: lastArticle.id,
-            title: lastArticle.title,
-            dataHash: lastArticle.dataHash,
-            mediaHash: lastArticle.mediaHash,
+            articleId: lastDraft.articleId,
+            title: lastDraft.title,
+            dataHash: lastDraft.dataHash,
+            mediaHash: lastDraft.mediaHash,
 
             // ipns info:
             ipnsKey,
