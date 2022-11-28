@@ -11,23 +11,20 @@ import { Item } from 'definitions'
 
 export class Feed {
   author: Item
-  keyId: string // the ipns key
+  ipnsKey: string // the ipns key
 
   // internal use
   publishedDrafts: Item[]
-  articleTagIds: Item[]
-  tagsMap: Map<string, Item>
-  userImg?: string | null;
-  [k: string]: any
+  userImg?: string | null
 
   articleService: InstanceType<typeof ArticleService>
   draftService: InstanceType<typeof DraftService>
   tagService: InstanceType<typeof TagService>
   systemService: InstanceType<typeof SystemService>
 
-  constructor(author: Item, keyId: string, drafts: Item[]) {
+  constructor(author: Item, ipnsKey: string, drafts: Item[]) {
     this.author = author
-    this.keyId = keyId
+    this.ipnsKey = ipnsKey
 
     this.articleService = new ArticleService()
     this.draftService = new DraftService()
