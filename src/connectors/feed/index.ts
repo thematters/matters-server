@@ -39,7 +39,7 @@ export class Feed {
       (await this.systemService.findAssetUrl(this.author.avatar))
 
     const articles = await this.articleService.findByAuthor(this.author.id, {
-      columns: ['article.id'],
+      columns: ['article.id', 'article.draft_id'],
       take: 50,
     })
     const publishedDraftIds = articles.map(

@@ -295,7 +295,7 @@ export class ArticleService extends BaseService {
     }
 
     const articles = await this.findByAuthor(author.id, {
-      columns: ['article.id'],
+      columns: ['article.id', 'article.draft_id'],
       take: numArticles, // 10, // most recent 10 articles
     })
     const publishedDraftIds = articles.map(
