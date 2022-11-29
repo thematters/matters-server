@@ -72,7 +72,6 @@ query UserProfilePrivate($input: UserInput!) {
           # imageOriginalUrl
           contractAddress
           collectionName
-          tokenMetadata
         }
       }
     }

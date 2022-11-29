@@ -3777,8 +3777,6 @@ export interface GQLNFTAsset {
    */
   contractAddress: string
   collectionName: string
-  tokenMetadata?: string
-  openseaPermalink: string
 }
 
 export interface GQLUserInput {
@@ -12907,8 +12905,6 @@ export interface GQLNFTAssetTypeResolver<TParent = any> {
   imagePreviewUrl?: NFTAssetToImagePreviewUrlResolver<TParent>
   contractAddress?: NFTAssetToContractAddressResolver<TParent>
   collectionName?: NFTAssetToCollectionNameResolver<TParent>
-  tokenMetadata?: NFTAssetToTokenMetadataResolver<TParent>
-  openseaPermalink?: NFTAssetToOpenseaPermalinkResolver<TParent>
 }
 
 export interface NFTAssetToIdResolver<TParent = any, TResult = any> {
@@ -12972,27 +12968,6 @@ export interface NFTAssetToContractAddressResolver<
 }
 
 export interface NFTAssetToCollectionNameResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NFTAssetToTokenMetadataResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NFTAssetToOpenseaPermalinkResolver<
   TParent = any,
   TResult = any
 > {

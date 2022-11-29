@@ -2740,8 +2740,6 @@ type NFTAsset {
   """imageOriginalUrl: String!"""
   contractAddress: String!
   collectionName: String!
-  tokenMetadata: String
-  openseaPermalink: String!
 }
 
 input UserInput {
