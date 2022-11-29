@@ -1,5 +1,5 @@
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isDev } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
@@ -25,8 +25,8 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const contract = environment.traveloggersContractAddress
-  const network = AlchemyNetwork.Mainnet
+  const contract = isDev ? environment.logbookContractAddress : environment.traveloggersContractAddress
+  const network = isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
   const assets = await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
     getter: () => alchemy.getNFTs({ owner, contract, network }),
@@ -43,8 +43,8 @@ export const nfts: CryptoWalletToNftsResolver = async (
 ) => {
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const network = AlchemyNetwork.PolygonMainnet
-  const contract = environment.logbookContractAddress
+  const contract = isDev ? environment.logbookContractAddress : environment.traveloggersContractAddress
+  const network = isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
   const withMetadata = true
   const assets = await alchemy.getNFTs({
     owner,
