@@ -55,19 +55,19 @@ export class IPFSServer {
   }) => {
     const idx = useActive ? 0 : Math.floor(1 + Math.random() * (this.size - 1))
     const formData = new FormData()
+
     const url = new URL(`${ipfsServerUrls[idx]}/key/import`)
     url.searchParams.set('arg', name)
     url.searchParams.set('format', 'pem-pkcs8-cleartext')
     formData.append('file', Readable.from([pem]), 'keyfile')
-    // const res =
-    await fetch(url, {
+
+    const res = await fetch(url, {
       method: 'POST',
       body: formData,
     })
-    // const imported = await res.json()
-    // return imported
+    const imported = await res.json()
 
-    return this.clients[idx]
+    return { imported, client: this.clients[idx] }
   }
 }
 

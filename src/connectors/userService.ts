@@ -1722,6 +1722,7 @@ export class UserService extends BaseService {
       table: 'user_ipns_keys',
       where: { userId: user.id },
     })
+
     if (ipnsKeyRec) {
       return ipnsKeyRec
     }
@@ -1734,9 +1735,9 @@ export class UserService extends BaseService {
     } = await this.ipfs.genKey()
     const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }) as string
 
-    const res = await this.ipfs.importKey({ name: kname, pem })
+    const { imported } = await this.ipfs.importKey({ name: kname, pem })
     // if (!ipnsKey && res) { ipnsKey = res?.Id }
-    const ipnsKey = res.Id
+    const ipnsKey = imported.Id
 
     return atomService.create({
       table: 'user_ipns_keys',

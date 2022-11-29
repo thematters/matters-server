@@ -90,7 +90,7 @@ export class Feed {
         },
         title: draft.title,
         summary: draft.summary,
-        date: draft.publishedAt,
+        date: draft.updatedAt,
         content: draft.content,
         tags: draft.tags || [],
         uri: `./${draft.id}-${draft.slug}/`,

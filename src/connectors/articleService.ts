@@ -278,10 +278,11 @@ export class ArticleService extends BaseService {
     try {
       // always try import; might be on another new ipfs node, or never has it before
       // const pem = ipnsKeyRec.privKeyPem
-      ipfs = await this.ipfsServers.importKey({
+      const { client } = await this.ipfsServers.importKey({
         name: kname,
         pem: ipnsKeyRec.privKeyPem,
       })
+      ipfs = client
       // if (!ipnsKey && res) { ipnsKey = res?.Id }
     } catch (err) {
       // ignore: key with name 'for-...' already exists
@@ -301,6 +302,7 @@ export class ArticleService extends BaseService {
     const publishedDraftIds = articles.map(
       ({ draftId }: { draftId: string }) => draftId
     )
+
     const publishedDrafts = (
       (await draftService.dataloader.loadMany(publishedDraftIds)) as Item[]
     ).filter(Boolean)
@@ -451,11 +453,12 @@ export class ArticleService extends BaseService {
           if (retries++ < 1) {
             try {
               // HTTPError: no key by the given name was found
-              ipfs = await this.ipfsServers.importKey({
+              const { client } = await this.ipfsServers.importKey({
                 name: kname,
                 pem: ipnsKeyRec.privKeyPem,
                 useActive: false,
               })
+              ipfs = client
             } catch (err) {
               // ignore: key with name 'for-...' already exists
             }
@@ -496,6 +499,8 @@ export class ArticleService extends BaseService {
         )
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
+    } catch (error) {
+      console.error(error)
     } finally {
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
         await atomService.update({

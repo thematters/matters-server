@@ -29,7 +29,7 @@ test('publish', async () => {
   expect(articlePublished.state).toBe('active')
 
   // publish to IPNS
-  await articleService.publishFeedToIPNS({ userName: 'test1' })
+  // await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
 
 test('sumAppreciation', async () => {
