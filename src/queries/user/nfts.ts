@@ -43,8 +43,8 @@ export const nfts: CryptoWalletToNftsResolver = async (
 ) => {
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const network = AlchemyNetwork.Mainnet
-  const contract = environment.traveloggersContractAddress
+  const network = AlchemyNetwork.PolygonMainnet
+  const contract = environment.logbookContractAddress
   const withMetadata = true
   const assets = await alchemy.getNFTs({
     owner,
