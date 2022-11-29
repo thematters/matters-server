@@ -8,6 +8,7 @@ const articleService = new ArticleService()
 // })
 
 test('publish', async () => {
+  // publish article to IPFS
   const publishedDraft = await articleService.draftLoader.load('1')
   const { mediaHash, contentHash: dataHash } =
     (await articleService.publishToIPFS(publishedDraft))!
@@ -26,6 +27,9 @@ test('publish', async () => {
   expect(mediaHash).toBeDefined()
   expect(dataHash).toBeDefined()
   expect(articlePublished.state).toBe('active')
+
+  // publish to IPNS
+  await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
 
 test('sumAppreciation', async () => {
