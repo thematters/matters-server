@@ -7,26 +7,26 @@ import {
   CryptoWalletToHasNFTsResolver,
   CryptoWalletToNftsResolver,
 } from 'definitions'
-
 interface OpenSeaNFTAsset {
   id: any
   token_id: string
   title: string
   description: string | null
   contractMetadata: any
+  media: any
 }
 
 export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   { userId, address },
   _,
-  { dataSources: { userService, openseaService } }
+  { dataSources: { userService } }
 ) => {
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const contract = isDev ? environment.logbookContractAddress : environment.traveloggersContractAddress
-  const network = isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
+  const contract = isDev ? environment.spaceGameContractAddress : environment.traveloggersContractAddress
+  const network =  isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
   const assets = await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
     getter: () => alchemy.getNFTs({ owner, contract, network }),
@@ -39,12 +39,12 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
 export const nfts: CryptoWalletToNftsResolver = async (
   { userId, address },
   _,
-  { dataSources: { userService, alchemyService } }
+  { dataSources: { userService } }
 ) => {
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const contract = isDev ? environment.logbookContractAddress : environment.traveloggersContractAddress
-  const network = isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
+  const contract = isDev ? environment.spaceGameContractAddress : environment.traveloggersContractAddress
+  const network =  isDev ? AlchemyNetwork.PolygonMainnet : AlchemyNetwork.Mainnet
   const withMetadata = true
   const assets = await alchemy.getNFTs({
     owner,
@@ -60,15 +60,15 @@ export const nfts: CryptoWalletToNftsResolver = async (
   })
 
   return assets.ownedNfts.map(
-    ({ id, description, title, contractMetadata }: OpenSeaNFTAsset) => ({
+    ({ id, description, title, contractMetadata, media }: OpenSeaNFTAsset) => ({
       id: toGlobalId({
         type: NODE_TYPES.CryptoWalletNFTAsset,
         id: `${contractMetadata.symbol}#${id.tokenId}`,
       }),
       description,
       name: title,
-      imageUrl: contractMetadata.openSea.imageUrl,
-      imagePreviewUrl: contractMetadata.openSea.imageUrl,
+      imageUrl: media[0].gateway,
+      imagePreviewUrl: media[0].gateway,
       contractAddress: contract,
       collectionName: contractMetadata.name,
     })
