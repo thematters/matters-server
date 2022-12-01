@@ -1735,7 +1735,7 @@ export class UserService extends BaseService {
     } = await this.ipfs.genKey()
     const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }) as string
 
-    const { imported } = await this.ipfs.importKey({ name: kname, pem })
+    const { imported } = (await this.ipfs.importKey({ name: kname, pem }))!
     // if (!ipnsKey && res) { ipnsKey = res?.Id }
     const ipnsKey = imported.Id
 

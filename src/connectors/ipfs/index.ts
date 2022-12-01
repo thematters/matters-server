@@ -65,9 +65,13 @@ export class IPFSServer {
       method: 'POST',
       body: formData,
     })
-    const imported = await res.json()
+    try {
+      const imported = await res.json()
 
-    return { imported, client: this.clients[idx] }
+      return { imported, client: this.clients[idx] }
+    } catch (err) {
+      console.error(new Date(), 'importKey ERROR:', err)
+    }
   }
 }
 
