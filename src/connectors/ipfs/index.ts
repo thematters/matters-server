@@ -70,7 +70,14 @@ export class IPFSServer {
 
       return { imported, client: this.clients[idx] }
     } catch (err) {
-      console.error(new Date(), 'importKey ERROR:', err)
+      console.error(
+        new Date(),
+        'importKey ERROR:',
+        err,
+        res.ok,
+        res.headers,
+        await res.text()
+      )
     }
   }
 }
