@@ -37,6 +37,7 @@ export const sendPayment = async ({
     }
     amount: number
     currency: string
+    donationCount?: number
   }
   article?: {
     id: string
