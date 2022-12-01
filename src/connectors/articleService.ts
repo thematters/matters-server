@@ -402,8 +402,10 @@ export class ArticleService extends BaseService {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
-            localpath: `./${arti.articleId}-${arti.slug}`,
-            mfspath: `/${directoryName}/${arti.articleId}-${arti.slug}`,
+            localpath: `./${arti.articleId}-${slugify(arti.title)}`,
+            mfspath: `/${directoryName}/${arti.articleId}-${slugify(
+              arti.title
+            )}`,
           }
           await ipfs.files.cp(
             // articles.slice(0, 10).map((arti) => `/ipfs/${draft.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
