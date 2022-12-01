@@ -94,9 +94,9 @@ export class Feed {
         date: draft.updatedAt,
         content: draft.content,
         tags: draft.tags || [],
-        uri: `./${draft.id}-${slugify(draft.title)}/`,
+        uri: `./${draft.articleId}-${slugify(draft.title)}/`,
         sourceUri: `${environment.siteDomain}/@${userName}/${
-          draft.id
+          draft.articleId
         }-${slugify(draft.title)}/`,
       })),
     }
