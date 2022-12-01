@@ -80,10 +80,17 @@ export class AWSService {
     filename?: string
   ): Promise<string | undefined> => {
     // so far, supports OpenSea's caching layer only: https://lh3.googleusercontent...
-    if (!origUrl?.match(/^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\// || !origUrl.match(/^https:\/\/ipfs.io\/ipfs\/(?:.*)?$/ || !origUrl.match(/^https:\/\/res.cloudinary.com\/alchemyapi\/image\/(?:.*)?$/)) )) {
+    const isGoogleContent = origUrl?.match(
+      /^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\//
+    )
+    const isIPFS = origUrl.match(/^https:\/\/ipfs.io\/ipfs\/(?:.*)?$/)
+    const isCloudinary = origUrl.match(
+      /^https:\/\/res.cloudinary.com\/alchemyapi\/image\/(?:.*)?$/
+    )
+
+    if (!isGoogleContent && !isIPFS && !isCloudinary) {
       return
     }
-
     const origRes = await axios.get(origUrl, {
       responseType: 'stream',
       maxContentLength: UPLOAD_IMAGE_SIZE_LIMIT,
