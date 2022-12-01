@@ -316,7 +316,7 @@ export class ArticleService extends BaseService {
       })
       return
     }
-    const directoryName = `${kname}-with-${lastDraft.id}-${slugify(
+    const directoryName = `${kname}-with-${lastDraft.articleId}-${slugify(
       lastDraft.title
     )}@${new Date().toISOString().substring(0, 13)}`
 
@@ -408,9 +408,9 @@ export class ArticleService extends BaseService {
             )}`,
           }
           await ipfs.files.cp(
-            // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
-            newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
-            newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
+            // articles.slice(0, 10).map((arti) => `/ipfs/${draft.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
+            newEntry.ipfspath, // `/ipfs/${draft.dataHash}`,
+            newEntry.mfspath, // `/${directoryName}/${draft.id}-${draft.slug}`
             {
               timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
             }
@@ -482,7 +482,7 @@ export class ArticleService extends BaseService {
         .sqsSendMessage({
           MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
           MessageBody: {
-            articleId: lastDraft.articleId,
+            articleId: lastDraft.id,
             title: lastDraft.title,
             dataHash: lastDraft.dataHash,
             mediaHash: lastDraft.mediaHash,
