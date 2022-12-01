@@ -3,6 +3,7 @@ import {
   makeArticlePage,
   stripHtml,
 } from '@matters/ipns-site-generator'
+import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -315,9 +316,9 @@ export class ArticleService extends BaseService {
       })
       return
     }
-    const directoryName = `${kname}-with-${lastDraft.id}-${
-      lastDraft.slug
-    }@${new Date().toISOString().substring(0, 13)}`
+    const directoryName = `${kname}-with-${lastDraft.id}-${slugify(
+      lastDraft.title
+    )}@${new Date().toISOString().substring(0, 13)}`
 
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
@@ -401,8 +402,10 @@ export class ArticleService extends BaseService {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
-            localpath: `./${arti.articleId}-${arti.slug}`,
-            mfspath: `/${directoryName}/${arti.articleId}-${arti.slug}`,
+            localpath: `./${arti.articleId}-${slugify(arti.title)}`,
+            mfspath: `/${directoryName}/${arti.articleId}-${slugify(
+              arti.title
+            )}`,
           }
           await ipfs.files.cp(
             // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
