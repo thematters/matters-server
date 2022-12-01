@@ -107,7 +107,8 @@ export const environment = {
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
-  spaceGameContractAddress: process.env.MATTERS_SPACE_GAME_CONTRACT_ADDRESS || ''
+  spaceGameContractAddress:
+    process.env.MATTERS_SPACE_GAME_CONTRACT_ADDRESS || '',
 }
 
 export const polygonUSDTContractAddress = isProd
