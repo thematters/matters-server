@@ -279,11 +279,11 @@ export class ArticleService extends BaseService {
     try {
       // always try import; might be on another new ipfs node, or never has it before
       // const pem = ipnsKeyRec.privKeyPem
-      const { client } = await this.ipfsServers.importKey({
+      ;({ client: ipfs } = (await this.ipfsServers.importKey({
         name: kname,
         pem: ipnsKeyRec.privKeyPem,
-      })
-      ipfs = client
+      }))!)
+      // ipfs = client
       // if (!ipnsKey && res) { ipnsKey = res?.Id }
     } catch (err) {
       // ignore: key with name 'for-...' already exists
@@ -456,12 +456,12 @@ export class ArticleService extends BaseService {
           if (retries++ < 1) {
             try {
               // HTTPError: no key by the given name was found
-              const { client } = await this.ipfsServers.importKey({
+              ;({ client: ipfs } = (await this.ipfsServers.importKey({
                 name: kname,
                 pem: ipnsKeyRec.privKeyPem,
                 useActive: false,
-              })
-              ipfs = client
+              }))!)
+              // ipfs = client
             } catch (err) {
               // ignore: key with name 'for-...' already exists
             }
