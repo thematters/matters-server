@@ -3,7 +3,7 @@ import {
   makeArticlePage,
   stripHtml,
 } from '@matters/ipns-site-generator'
-// import slugify from '@matters/slugify'
+import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -29,7 +29,7 @@ import logger from 'common/logger'
 import {
   AtomService,
   BaseService,
-  // DraftService,
+  DraftService,
   Feed,
   // ipfs,
   ipfsServers,
@@ -260,7 +260,7 @@ export class ArticleService extends BaseService {
     const started = Date.now()
     const atomService = new AtomService()
     const userService = new UserService()
-    // const draftService = new DraftService()
+    const draftService = new DraftService()
     const author = (await userService.findByUserName(userName)) as Item
     if (!author) {
       return
@@ -297,34 +297,35 @@ export class ArticleService extends BaseService {
     }
 
     const articles = await this.findByAuthor(author.id, {
-      columns: ['article.id'],
+      columns: ['article.id', 'article.draft_id'],
       take: numArticles, // 10, // most recent 10 articles
     })
+    const publishedDraftIds = articles.map(
+      ({ draftId }: { draftId: string }) => draftId
+    )
 
-    const publishedArticles = (
-      (await this.dataloader.loadMany(
-        articles.map((item: any) => item.id)
-      )) as Item[]
+    const publishedDrafts = (
+      (await draftService.dataloader.loadMany(publishedDraftIds)) as Item[]
     ).filter(Boolean)
 
-    const lastArticle = publishedArticles[0]
-    if (!lastArticle) {
+    const lastDraft = publishedDrafts[0]
+    if (!lastDraft) {
       console.error(new Date(), 'fetching published drafts ERROR:', {
         authorId: author.id,
-        // publishedDraftIds,
+        publishedDraftIds,
       })
       return
     }
-    const directoryName = `${kname}-with-${lastArticle.id}-${
-      lastArticle.slug
-    }@${new Date().toISOString().substring(0, 13)}`
+    const directoryName = `${kname}-with-${lastDraft.articleId}-${slugify(
+      lastDraft.title
+    )}@${new Date().toISOString().substring(0, 13)}`
 
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
 
     try {
       // make a bundle of json+xml+html index
-      const feed = new Feed(author, ipnsKey, publishedArticles)
+      const feed = new Feed(author, ipnsKey, publishedDrafts)
       await feed.loadData()
       const { html, xml, json } = feed.generate()
       const contents = [
@@ -396,8 +397,8 @@ export class ArticleService extends BaseService {
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
       for (const arti of incremental // to include last one only
-        ? [lastArticle]
-        : publishedArticles) {
+        ? [lastDraft]
+        : publishedDrafts) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
@@ -405,9 +406,9 @@ export class ArticleService extends BaseService {
             mfspath: `/${directoryName}/${arti.articleId}-${arti.slug}`,
           }
           await ipfs.files.cp(
-            // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
-            newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
-            newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
+            // articles.slice(0, 10).map((arti) => `/ipfs/${draft.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
+            newEntry.ipfspath, // `/ipfs/${draft.dataHash}`,
+            newEntry.mfspath, // `/${directoryName}/${draft.id}-${draft.slug}`
             {
               timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
             }
@@ -430,7 +431,7 @@ export class ArticleService extends BaseService {
       console.log(
         new Date(),
         `directoryName stat after tried ${
-          incremental ? 'last 1' : publishedArticles.length
+          incremental ? 'last 1' : publishedDrafts.length
         }, and actually attached ${attached.length} articles:`,
         dirStat1.cid.toString(),
         { dirStat0, dirStat1, attached }
@@ -479,10 +480,10 @@ export class ArticleService extends BaseService {
         .sqsSendMessage({
           MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
           MessageBody: {
-            articleId: lastArticle.id,
-            title: lastArticle.title,
-            dataHash: lastArticle.dataHash,
-            mediaHash: lastArticle.mediaHash,
+            articleId: lastDraft.id,
+            title: lastDraft.title,
+            dataHash: lastDraft.dataHash,
+            mediaHash: lastDraft.mediaHash,
 
             // ipns info:
             ipnsKey,
