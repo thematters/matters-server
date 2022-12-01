@@ -1,4 +1,5 @@
 import { HomepageContext, makeHomepage } from '@matters/ipns-site-generator'
+import slugify from '@matters/slugify'
 
 import { environment } from 'common/environment'
 import {
@@ -93,8 +94,10 @@ export class Feed {
         date: draft.updatedAt,
         content: draft.content,
         tags: draft.tags || [],
-        uri: `./${draft.id}-${draft.slug}/`,
-        sourceUri: `${environment.siteDomain}/@${userName}/${draft.id}-${draft.slug}/`,
+        uri: `./${draft.id}-${slugify(draft.title)}/`,
+        sourceUri: `${environment.siteDomain}/@${userName}/${
+          draft.id
+        }-${slugify(draft.title)}/`,
       })),
     }
 
