@@ -80,7 +80,7 @@ export class AWSService {
     filename?: string
   ): Promise<string | undefined> => {
     // so far, supports OpenSea's caching layer only: https://lh3.googleusercontent...
-    if (!origUrl?.match(/^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\//)) {
+    if (!origUrl?.match(/^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\// || !origUrl.match(/^https:\/\/ipfs.io\/ipfs\/(?:.*)?$/ || !origUrl.match(/^https:\/\/res.cloudinary.com\/alchemyapi\/image\/(?:.*)?$/)) )) {
       return
     }
 
