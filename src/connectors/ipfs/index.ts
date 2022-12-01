@@ -56,7 +56,7 @@ export class IPFSServer {
     const idx = useActive ? 0 : Math.floor(1 + Math.random() * (this.size - 1))
     const formData = new FormData()
 
-    const url = new URL(`${ipfsServerUrls[idx]}/key/import`)
+    const url = new URL(`${ipfsServerUrls[idx]}/api/v0/key/import`)
     url.searchParams.set('arg', name)
     url.searchParams.set('format', 'pem-pkcs8-cleartext')
     formData.append('file', Readable.from([pem]), 'keyfile')
@@ -68,7 +68,7 @@ export class IPFSServer {
     try {
       console.log(
         new Date(),
-        `POST ${ipfsServerUrls[idx]}/key/import with formData:`,
+        `POST ${ipfsServerUrls[idx]}/api/v0/key/import with formData:`,
         formData,
         'res:',
         res.ok,
@@ -83,8 +83,8 @@ export class IPFSServer {
         'importKey ERROR:',
         err,
         res.ok,
-        res.headers,
-        await res.text()
+        res.headers
+        // await res.text()
       )
     }
   }
