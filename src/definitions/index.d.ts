@@ -9,6 +9,7 @@ import {
   TRANSACTION_PURPOSE,
 } from 'common/enums'
 import {
+  Alchemy,
   ArticleService,
   AtomService,
   CommentService,
@@ -92,6 +93,7 @@ export type DataSources = {
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
   paymentService: InstanceType<typeof PaymentService>
+  alchemyService: InstanceType<typeof Alchemy>
   openseaService: InstanceType<typeof OpenSeaService>
 }
 

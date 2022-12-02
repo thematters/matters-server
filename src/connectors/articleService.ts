@@ -1,9 +1,9 @@
 import {
-  makeHtmlBundle,
-  makeMetaData,
+  ArticlePageContext,
+  makeArticlePage,
   stripHtml,
-  TemplateOptions,
-} from '@matters/matters-html-formatter'
+} from '@matters/ipns-site-generator'
+import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -29,10 +29,11 @@ import logger from 'common/logger'
 import {
   AtomService,
   BaseService,
+  DraftService,
   Feed,
-  ipfs,
+  // ipfs,
+  ipfsServers,
   SystemService,
-  // TagService,
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
@@ -40,12 +41,12 @@ import { GQLSearchExclude, Item } from 'definitions'
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
 export class ArticleService extends BaseService {
-  ipfs: typeof ipfs
+  ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
 
   constructor() {
     super('article')
-    this.ipfs = ipfs
+    this.ipfsServers = ipfsServers
 
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {
       const result = await this.baseFindByIds(ids)
@@ -107,129 +108,146 @@ export class ArticleService extends BaseService {
   /**
    * Publish draft data to IPFS
    */
-  publishToIPFS = async ({
-    authorId,
-    title,
-    cover,
-    content,
-    circleId,
-    summary,
-    summaryCustomized,
-    access,
-  }: Record<string, any>) => {
+  publishToIPFS = async (draft: any) => {
     const userService = new UserService()
     const systemService = new SystemService()
-    // const atomService = new AtomService()
+    const atomService = new AtomService()
 
     // prepare metadata
-    const author = await userService.dataloader.load(authorId)
-    const { avatar, description, displayName, userName, paymentPointer } =
-      author
-    const userImg = avatar && (await systemService.findAssetUrl(avatar))
-    const articleImg = cover && (await systemService.findAssetUrl(cover))
-
-    const bundleInfo = {
+    const {
       title,
-      author: {
-        name: displayName,
-        link: {
-          text: `${displayName} (@${userName})`,
-          url: new URL(`/@${userName}`, environment.siteDomain).href,
+      content,
+      summary,
+      cover,
+      tags,
+      circleId,
+      access,
+      authorId,
+      articleId,
+      updatedAt: publishedAt,
+    } = draft
+    const author = await userService.dataloader.load(authorId)
+    const {
+      // avatar,
+      displayName,
+      userName,
+      paymentPointer,
+    } = author
+    const [
+      // userImg,
+      articleCoverImg,
+      ipnsKeyRec,
+    ] = await Promise.all([
+      // avatar && (await systemService.findAssetUrl(avatar)),
+      cover && (await systemService.findAssetUrl(cover)),
+      atomService.findFirst({
+        table: 'user_ipns_keys',
+        where: { userId: authorId },
+      }),
+    ])
+    const ipnsKey = ipnsKeyRec?.ipnsKey
+
+    const context: ArticlePageContext = {
+      encrypted: false,
+      meta: {
+        title: `${title} - ${displayName} (${userName})`,
+        description: summary,
+        authorName: displayName,
+        image: articleCoverImg,
+      },
+      byline: {
+        date: publishedAt,
+        author: {
+          name: `${displayName} (${userName})`,
+          uri: `${environment.siteDomain}/@${userName}`,
+        },
+        website: {
+          name: 'Matters',
+          uri: environment.siteDomain,
         },
       },
-      from: {
-        text: 'Matters',
-        url: environment.siteDomain,
+      rss: ipnsKey
+        ? {
+            ipnsKey,
+            xml: '../rss.xml',
+            json: '../feed.json',
+          }
+        : undefined,
+      article: {
+        id: articleId,
+        author: {
+          userName,
+          displayName,
+        },
+        title,
+        summary,
+        date: publishedAt,
+        content,
+        tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
       },
-      content,
-    } as TemplateOptions
-
-    // paywall info
-    if (circleId) {
-      const circle = await this.knex('circle')
-        .select('name', 'displayName')
-        .where({ id: circleId, state: CIRCLE_STATE.active })
-        .first()
-      const circleName = circle?.name
-      const circleDisplayName = circle?.displayName
-
-      if (circleName && circleDisplayName) {
-        bundleInfo.readMore = {
-          url: `${environment.siteDomain}/~${circleName}`,
-          text: circleDisplayName,
-        }
-      }
-
-      // encrypt paywalled content
-      if (access === ARTICLE_ACCESS_TYPE.paywall) {
-        bundleInfo.encrypt = true
-      }
     }
 
-    // add summury when customized or encrypted
-    if (summaryCustomized || bundleInfo.encrypt) {
-      bundleInfo.summary = summary
+    // paywalled content
+    if (circleId && access === ARTICLE_ACCESS_TYPE.paywall) {
+      context.encrypted = true
     }
 
     // payment pointer
     if (paymentPointer) {
-      bundleInfo.paymentPointer = paymentPointer
+      context.paymentPointer = paymentPointer
     }
 
     // make bundle and add content to ipfs
     const directoryName = 'article'
-    const { bundle, key } = await makeHtmlBundle(bundleInfo)
+    const { bundle, key } = await makeArticlePage(context)
 
-    const results = []
-    for await (const result of this.ipfs.client.addAll(
-      bundle.map((file) =>
-        file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
-      )
-    )) {
-      results.push(result)
-    }
+    let ipfs = this.ipfsServers.client
+    let retries = 0
 
-    // filter out the hash for the bundle
-    let entry = results.filter(
-      ({ path }: { path: string }) => path === directoryName
-    )
+    do {
+      try {
+        const results = []
+        for await (const result of ipfs.addAll(
+          bundle.map((file) =>
+            file
+              ? { ...file, path: `${directoryName}/${file.path}` }
+              : undefined
+          )
+        )) {
+          results.push(result)
+        }
 
-    // FIXME: fix missing bundle path and remove fallback logic
-    // fallback to index file when no bundle path is matched
-    if (entry.length === 0) {
-      entry = results.filter(({ path }: { path: string }) =>
-        path.endsWith('index.html')
-      )
-    }
+        // filter out the hash for the bundle
+        let entry = results.filter(
+          ({ path }: { path: string }) => path === directoryName
+        )
 
-    const contentHash = entry[0].cid.toString()
+        // FIXME: fix missing bundle path and remove fallback logic
+        // fallback to index file when no bundle path is matched
+        if (entry.length === 0) {
+          entry = results.filter(({ path }: { path: string }) =>
+            path.endsWith('index.html')
+          )
+        }
 
-    // add meta data to ipfs
-    const articleInfo = {
-      contentHash,
-      author: {
-        name: userName,
-        ...(userImg ? { image: userImg } : null), // `undefined` is not supported by the IPLD Data Model and cannot be encoded
-        url: `https://matters.news/@${userName}`,
-        description,
-      },
-      description: summary,
-      image: articleImg,
-    }
+        const contentHash = entry[0].cid.toString()
+        const mediaHash = entry[0].cid.toV1().toString() // cid.toV1().toString() // cid.toBaseEncodedString()
+        return { contentHash, mediaHash, key }
+      } catch (err) {
+        // if the active IPFS client throws exception, try a few more times on Secondary
+        console.error(new Date(), 'failed publishToIPFS ERROR:', err, {
+          retries,
+        })
+        ipfs = this.ipfsServers.backupClient
+      }
+    } while (ipfs && ++retries <= 3) // break the retry if there's no backup
 
-    const metaData = makeMetaData(articleInfo)
-
-    const cid = await this.ipfs.client.dag.put(metaData, {
-      // storeCodec: 'dag-cbor',
-      format: 'dag-cbor',
-      pin: true,
-      hashAlg: 'sha2-256',
-    })
-    const mediaHash = cid.toV1().toString() // cid.toBaseEncodedString()
-
-    return { contentHash, mediaHash, key }
+    // re-fill dataHash & mediaHash later in IPNS-listener
+    console.error(new Date(), `failed publishToIPFS after ${retries} retries.`)
   }
 
+  // DEPRECATED, To Be Deleted
+  //  moved to IPNS-Listener
   publishFeedToIPNS = async ({
     userName,
     numArticles = 50,
@@ -238,18 +256,15 @@ export class ArticleService extends BaseService {
     userName: string
     numArticles?: number
     incremental?: boolean
-    // author: Item // Record<string, any>
-    // articles: Array<Record<string, any>>
-    // latestArticleDataHash: string
   }) => {
     const started = Date.now()
     const atomService = new AtomService()
     const userService = new UserService()
+    const draftService = new DraftService()
     const author = (await userService.findByUserName(userName)) as Item
     if (!author) {
       return
     }
-    // const { userName, avatar, description, displayName } = author
 
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
@@ -260,10 +275,15 @@ export class ArticleService extends BaseService {
 
     const ipnsKey = ipnsKeyRec.ipnsKey
     const kname = `for-${author.userName}-${author.uuid}`
+    let ipfs: any
     try {
       // always try import; might be on another new ipfs node, or never has it before
       // const pem = ipnsKeyRec.privKeyPem
-      await this.ipfs.importKey(kname, ipnsKeyRec.privKeyPem)
+      ;({ client: ipfs } = (await this.ipfsServers.importKey({
+        name: kname,
+        pem: ipnsKeyRec.privKeyPem,
+      }))!)
+      // ipfs = client
       // if (!ipnsKey && res) { ipnsKey = res?.Id }
     } catch (err) {
       // ignore: key with name 'for-...' already exists
@@ -276,47 +296,55 @@ export class ArticleService extends BaseService {
       }
     }
 
-    const articleIds = await this.findByAuthor(author.id, {
-      columns: ['article.id'],
+    const articles = await this.findByAuthor(author.id, {
+      columns: ['article.id', 'article.draft_id'],
       take: numArticles, // 10, // most recent 10 articles
     })
-    const articles = (
-      (await this.dataloader.loadMany(
-        articleIds.map(({ id }: { id: string }) => id)
-      )) as Item[]
+    const publishedDraftIds = articles.map(
+      ({ draftId }: { draftId: string }) => draftId
+    )
+
+    const publishedDrafts = (
+      (await draftService.dataloader.loadMany(publishedDraftIds)) as Item[]
     ).filter(Boolean)
 
-    const lastArticle = articles[0]
-    if (!lastArticle) {
-      console.error(new Date(), 'fetching articles ERROR:', {
+    const lastDraft = publishedDrafts[0]
+    if (!lastDraft) {
+      console.error(new Date(), 'fetching published drafts ERROR:', {
         authorId: author.id,
-        articleIds,
+        publishedDraftIds,
       })
       return
     }
-    const directoryName = `${kname}-with-${lastArticle.id}-${
-      lastArticle.slug
-    }@${new Date().toISOString().substring(0, 13)}`
-
-    // make a bundle of json+xml+html index
-    const feed = new Feed(author, ipnsKey, articles)
-    await feed.loadData()
+    const directoryName = `${kname}-with-${lastDraft.articleId}-${slugify(
+      lastDraft.title
+    )}@${new Date().toISOString().substring(0, 13)}`
 
     let cidToPublish // = entry[0].cid // dirStat1.cid
     let published
 
     try {
-      const contents = (
-        await Promise.all(
-          ['feed.json', 'rss.xml', 'index.html'].map(async (file) => ({
-            path: `${directoryName}/${file}`,
-            content: await feed[file]?.(), // contents[file] as string,
-          }))
-        )
-      ).filter(({ content }) => content)
+      // make a bundle of json+xml+html index
+      const feed = new Feed(author, ipnsKey, publishedDrafts)
+      await feed.loadData()
+      const { html, xml, json } = feed.generate()
+      const contents = [
+        {
+          path: `${directoryName}/index.html`,
+          content: html,
+        },
+        {
+          path: `${directoryName}/rss.xml`,
+          content: xml,
+        },
+        {
+          path: `${directoryName}/feed.json`,
+          content: json,
+        },
+      ]
 
       const results = []
-      for await (const result of this.ipfs.client.addAll(contents)) {
+      for await (const result of ipfs.addAll(contents)) {
         results.push(result)
       }
       const entriesMap = new Map(results.map((e: any) => [e.path, e]))
@@ -338,15 +366,11 @@ export class ArticleService extends BaseService {
       const lastDataHash = ipnsKeyRec.lastDataHash
       try {
         if (lastDataHash) {
-          await this.ipfs.client.files.cp(
-            `/ipfs/${lastDataHash}`,
-            `/${directoryName}`,
-            {
-              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-            }
-          )
+          await ipfs.files.cp(`/ipfs/${lastDataHash}`, `/${directoryName}`, {
+            timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
+          })
         } else {
-          await this.ipfs.client.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
+          await ipfs.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
         }
       } catch (err) {
         // ignore HTTPError: file already exists
@@ -355,7 +379,7 @@ export class ArticleService extends BaseService {
       // await Promise.all( // FIX: problematic concurrent writing, change to sequential await
       for (const { path, content } of contents) {
         // contents.forEach(async ({ path, content }) =>
-        await this.ipfs.client.files.write(`/${path}`, content, {
+        await ipfs.files.write(`/${path}`, content, {
           create: true,
           parents: true, // create parents if not existed;
           truncate: true,
@@ -363,7 +387,7 @@ export class ArticleService extends BaseService {
         })
       }
 
-      const dirStat0 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+      const dirStat0 = await ipfs.files.stat(`/${directoryName}`, {
         withLocal: true,
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
@@ -373,18 +397,20 @@ export class ArticleService extends BaseService {
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
       for (const arti of incremental // to include last one only
-        ? [lastArticle]
-        : articles) {
+        ? [lastDraft]
+        : publishedDrafts) {
         try {
           const newEntry = {
             ipfspath: `/ipfs/${arti.dataHash}`,
-            localpath: `./${arti.id}-${arti.slug}`,
-            mfspath: `/${directoryName}/${arti.id}-${arti.slug}`,
+            localpath: `./${arti.articleId}-${slugify(arti.title)}`,
+            mfspath: `/${directoryName}/${arti.articleId}-${slugify(
+              arti.title
+            )}`,
           }
-          await this.ipfs.client.files.cp(
-            // articles.slice(0, 10).map((arti) => `/ipfs/${arti.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
-            newEntry.ipfspath, // `/ipfs/${arti.dataHash}`,
-            newEntry.mfspath, // `/${directoryName}/${arti.id}-${arti.slug}`
+          await ipfs.files.cp(
+            // articles.slice(0, 10).map((arti) => `/ipfs/${draft.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
+            newEntry.ipfspath, // `/ipfs/${draft.dataHash}`,
+            newEntry.mfspath, // `/${directoryName}/${draft.id}-${draft.slug}`
             {
               timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
             }
@@ -400,14 +426,14 @@ export class ArticleService extends BaseService {
         }
       }
 
-      const dirStat1 = await this.ipfs.client.files.stat(`/${directoryName}`, {
+      const dirStat1 = await ipfs.files.stat(`/${directoryName}`, {
         withLocal: true,
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
       console.log(
         new Date(),
         `directoryName stat after tried ${
-          incremental ? 'last 1' : articles.length
+          incremental ? 'last 1' : publishedDrafts.length
         }, and actually attached ${attached.length} articles:`,
         dirStat1.cid.toString(),
         { dirStat0, dirStat1, attached }
@@ -417,10 +443,10 @@ export class ArticleService extends BaseService {
       cidToPublish = dirStat1.cid
 
       let retries = 0
-      while (true) {
+      do {
         try {
           // HTTPError: no key by the given name was found
-          published = await this.ipfs.client.name.publish(cidToPublish, {
+          published = await ipfs.name.publish(cidToPublish, {
             lifetime: '1680h',
             key: ipnsKey, // kname,
             timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
@@ -430,7 +456,12 @@ export class ArticleService extends BaseService {
           if (retries++ < 1) {
             try {
               // HTTPError: no key by the given name was found
-              await this.ipfs.importKey(kname, ipnsKeyRec.privKeyPem)
+              ;({ client: ipfs } = (await this.ipfsServers.importKey({
+                name: kname,
+                pem: ipnsKeyRec.privKeyPem,
+                useActive: false,
+              }))!)
+              // ipfs = client
             } catch (err) {
               // ignore: key with name 'for-...' already exists
             }
@@ -443,7 +474,7 @@ export class ArticleService extends BaseService {
           }
           throw err
         }
-      }
+      } while (++retries < 3)
 
       console.log(new Date(), `/${directoryName} published:`, published)
 
@@ -451,10 +482,10 @@ export class ArticleService extends BaseService {
         .sqsSendMessage({
           MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
           MessageBody: {
-            articleId: lastArticle.id,
-            title: lastArticle.title,
-            dataHash: lastArticle.dataHash,
-            mediaHash: lastArticle.mediaHash,
+            articleId: lastDraft.id,
+            title: lastDraft.title,
+            dataHash: lastDraft.dataHash,
+            mediaHash: lastDraft.mediaHash,
 
             // ipns info:
             ipnsKey,
@@ -471,6 +502,8 @@ export class ArticleService extends BaseService {
         )
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
+    } catch (error) {
+      console.error(error)
     } finally {
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
         await atomService.update({

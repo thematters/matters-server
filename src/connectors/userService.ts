@@ -40,7 +40,7 @@ import {
   isValidUserName,
   makeUserName,
 } from 'common/utils'
-import { AtomService, BaseService, ipfs, OAuthService } from 'connectors'
+import { AtomService, BaseService, ipfsServers, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -55,14 +55,14 @@ import { likecoin } from './likecoin'
 import { medium } from './medium'
 
 export class UserService extends BaseService {
-  ipfs: typeof ipfs
+  ipfs: typeof ipfsServers
   likecoin: typeof likecoin
   medium: typeof medium
 
   constructor() {
     super('user')
 
-    this.ipfs = ipfs
+    this.ipfs = ipfsServers
     this.likecoin = likecoin
     this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
@@ -1722,6 +1722,7 @@ export class UserService extends BaseService {
       table: 'user_ipns_keys',
       where: { userId: user.id },
     })
+
     if (ipnsKeyRec) {
       return ipnsKeyRec
     }
@@ -1734,9 +1735,9 @@ export class UserService extends BaseService {
     } = await this.ipfs.genKey()
     const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }) as string
 
-    const res = await this.ipfs.importKey(kname, pem)
+    const { imported } = (await this.ipfs.importKey({ name: kname, pem }))!
     // if (!ipnsKey && res) { ipnsKey = res?.Id }
-    const ipnsKey = res.Id
+    const ipnsKey = imported.Id
 
     return atomService.create({
       table: 'user_ipns_keys',

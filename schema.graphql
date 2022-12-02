@@ -2740,8 +2740,6 @@ type NFTAsset {
   """imageOriginalUrl: String!"""
   contractAddress: String!
   collectionName: String!
-  tokenMetadata: String
-  openseaPermalink: String!
 }
 
 input UserInput {
@@ -3147,8 +3145,20 @@ type TransactionEdge {
 input TransactionsArgs {
   after: String
   first: Int
+
+  """deprecated, use TransactionsFilter.id instead."""
+  id: ID
+
+  """deprecated, use TransactionsFilter.states instead."""
+  states: [TransactionState!]
+  filter: TransactionsFilter
+}
+
+input TransactionsFilter {
   id: ID
   states: [TransactionState!]
+  currency: TransactionCurrency
+  purpose: TransactionPurpose
 }
 
 enum TransactionState {

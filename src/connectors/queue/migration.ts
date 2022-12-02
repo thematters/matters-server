@@ -1,4 +1,4 @@
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 import { v4 } from 'uuid'
 
 import {

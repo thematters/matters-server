@@ -1,39 +1,35 @@
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
-import { imgCacheServicePrefix } from 'common/environment'
+import { environment, imgCacheServicePrefix } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
+import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
 import {
   CryptoWalletToHasNFTsResolver,
   CryptoWalletToNftsResolver,
 } from 'definitions'
-
 interface OpenSeaNFTAsset {
-  id: number
+  id: any
   token_id: string
-  name: string
+  title: string
   description: string | null
-  image_url: string
-  image_preview_url: string
-  image_thumbnail_url: string
-  image_original_url: string
-  asset_contract: Record<string, any>
-  collection: Record<string, any>
-  token_metadata: string
-  permalink: string
+  contractMetadata: any
+  media: any
 }
 
 export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   { userId, address },
   _,
-  { dataSources: { userService, openseaService } }
+  { dataSources: { userService } }
 ) => {
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
+  const contract = environment.traveloggersContractAddress
+  const network = AlchemyNetwork.Mainnet
   const assets = await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
-    getter: () => openseaService.getAssets({ owner }),
+    getter: () => alchemy.getNFTs({ owner, contract, network }),
     expire: CACHE_TTL.LONG,
   })
 
@@ -43,12 +39,19 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
 export const nfts: CryptoWalletToNftsResolver = async (
   { userId, address },
   _,
-  { dataSources: { userService, openseaService } }
+  { dataSources: { userService } }
 ) => {
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const assets = await openseaService.getAssets({ owner })
-
+  const contract = environment.traveloggersContractAddress
+  const network = AlchemyNetwork.Mainnet
+  const withMetadata = true
+  const assets = await alchemy.getNFTs({
+    owner,
+    network,
+    contract,
+    withMetadata,
+  })
   const cacheService = new CacheService(CACHE_PREFIX.NFTS)
   await cacheService.storeObject({
     keys: { type: 'traveloggers', id: owner },
@@ -56,36 +59,18 @@ export const nfts: CryptoWalletToNftsResolver = async (
     expire: CACHE_TTL.LONG,
   })
 
-  return assets
-    ?.filter(
-      // testnet takes longer to refresh
-      // if no image_original_url, there's no way can show it
-      ({ image_original_url }: OpenSeaNFTAsset) => !!image_original_url
-    )
-    .map(
-      ({
-        token_id,
-        name,
-        description,
-        image_url,
-        image_preview_url,
-        asset_contract,
-        collection,
-        token_metadata,
-        permalink,
-      }: OpenSeaNFTAsset) => ({
-        id: toGlobalId({
-          type: NODE_TYPES.CryptoWalletNFTAsset,
-          id: `${asset_contract.symbol}#${token_id}`,
-        }),
-        name,
-        description,
-        imageUrl: `${imgCacheServicePrefix}/${image_url}`,
-        imagePreviewUrl: `${imgCacheServicePrefix}/${image_preview_url}`,
-        contractAddress: asset_contract.address,
-        collectionName: collection.name,
-        tokenMetadata: token_metadata,
-        openseaPermalink: permalink,
-      })
-    )
+  return assets.ownedNfts.map(
+    ({ id, description, title, contractMetadata, media }: OpenSeaNFTAsset) => ({
+      id: toGlobalId({
+        type: NODE_TYPES.CryptoWalletNFTAsset,
+        id: `${contractMetadata.symbol}#${id.tokenId}`,
+      }),
+      description,
+      name: title,
+      imageUrl: `${imgCacheServicePrefix}/${media[0].gateway}`,
+      imagePreviewUrl: `${imgCacheServicePrefix}/${media[0].gateway}`,
+      contractAddress: contract,
+      collectionName: contractMetadata.name,
+    })
+  )
 }

@@ -1,4 +1,4 @@
-import { stripHtml } from '@matters/matters-html-formatter'
+import { stripHtml } from '@matters/ipns-site-generator'
 import * as cheerio from 'cheerio'
 import cloneDeep from 'lodash/cloneDeep'
 import flow from 'lodash/flow'

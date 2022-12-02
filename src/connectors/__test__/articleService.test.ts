@@ -8,14 +8,10 @@ const articleService = new ArticleService()
 // })
 
 test('publish', async () => {
+  // publish article to IPFS
+  const publishedDraft = await articleService.draftLoader.load('1')
   const { mediaHash, contentHash: dataHash } =
-    await articleService.publishToIPFS({
-      authorId: '1',
-      title: 'test',
-      cover: '1',
-      summary: 'test-summary',
-      content: '<div>test-html-string</div>',
-    })
+    (await articleService.publishToIPFS(publishedDraft))!
   const articlePublished = await articleService.createArticle({
     draftId: '1',
     authorId: '1',
@@ -31,6 +27,9 @@ test('publish', async () => {
   expect(mediaHash).toBeDefined()
   expect(dataHash).toBeDefined()
   expect(articlePublished.state).toBe('active')
+
+  // publish to IPNS
+  // await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
 
 test('sumAppreciation', async () => {

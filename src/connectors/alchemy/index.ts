@@ -3,10 +3,9 @@ import axios from 'axios'
 import { environment } from 'common/environment'
 
 const { alchemyApiKey } = environment
-
 export enum AlchemyNetwork {
-  Mainnet = 'eth-mainnet',
-  Rinkeby = 'eth-rinkeby',
+  Mainnet = 'eth-mainnet.g',
+  Rinkeby = 'eth-rinkeby.g',
   PolygonMainnet = 'polygon-mainnet.g',
   PolygonMumbai = 'polygon-mumbai.g',
 }
@@ -20,16 +19,14 @@ export class Alchemy {
   }: {
     network: AlchemyNetwork
     owner: string
-    contract: string
+    contract?: string
     withMetadata?: boolean
   }) => {
-    const baseURL = `https://${network}.alchemyapi.io/v2/${alchemyApiKey}/getNFTs/`
-
+    const baseURL = `https://${network}.alchemy.com/nft/v2/${alchemyApiKey}/getNFTs/`
     const result = await axios({
       method: 'get',
       url: `${baseURL}?owner=${owner}&contractAddresses[]=${contract}&withMetadata=${withMetadata}`,
     })
-
     return result.data
   }
 }

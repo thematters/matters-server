@@ -634,8 +634,7 @@ export default /* GraphQL */ `
     """imageOriginalUrl: String!"""
     contractAddress: String!
     collectionName: String!
-    tokenMetadata: String
-    openseaPermalink: String!
+    # tokenMetadata: String
   }
 
   input UserInput {

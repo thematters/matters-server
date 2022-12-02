@@ -1,5 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/matters-html-formatter'
+import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
@@ -268,7 +268,7 @@ class PublicationQueue extends BaseQueue {
           contentHash: dataHash,
           mediaHash,
           key,
-        } = await this.articleService.publishToIPFS(draft)
+        } = (await this.articleService.publishToIPFS(draft))!
         job.progress(80)
         ;[article, draft] = await Promise.all([
           this.articleService.baseUpdate(article.id, {

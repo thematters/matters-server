@@ -1,4 +1,4 @@
-import { stripHtml } from '@matters/matters-html-formatter'
+import { stripHtml } from '@matters/ipns-site-generator'
 
 import { gcp } from 'connectors'
 import { ArticleToLanguageResolver } from 'definitions'

@@ -14,13 +14,35 @@ export const createDonationTx = async ({
   senderId: string
   recipientId: string
 }) => {
+  return createTx({
+    senderId,
+    recipientId,
+    purpose: TRANSACTION_PURPOSE.donation,
+    currency: PAYMENT_CURRENCY.HKD,
+    state: TRANSACTION_STATE.succeeded,
+  })
+}
+
+export const createTx = async ({
+  senderId,
+  recipientId,
+  purpose,
+  currency,
+  state,
+}: {
+  senderId: string
+  recipientId: string
+  purpose: TRANSACTION_PURPOSE
+  currency: PAYMENT_CURRENCY
+  state: TRANSACTION_STATE
+}) => {
   const paymentService = new PaymentService()
   return paymentService.createTransaction({
     amount: 1,
     fee: 0,
-    state: TRANSACTION_STATE.succeeded,
-    purpose: TRANSACTION_PURPOSE.donation,
-    currency: PAYMENT_CURRENCY.HKD,
+    purpose,
+    currency,
+    state,
     provider: PAYMENT_PROVIDER.matters,
     providerTxId: String(Math.random()),
     recipientId,
