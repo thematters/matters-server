@@ -341,7 +341,7 @@ class RevisionQueue extends BaseQueue {
         this.atomService.aws
           ?.snsPublishMessage({
             MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-            Message: {
+            MessageBody: {
               articleId: article.id,
               title: article.title,
               url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,

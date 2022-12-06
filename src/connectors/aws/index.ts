@@ -212,14 +212,15 @@ export class AWSService {
 
   snsPublishMessage = async ({
     MessageGroupId,
-    Message,
+    MessageBody,
   }: {
     MessageGroupId: string
-    Message: any
+    // Message: any
+    MessageBody: any
   }) =>
     this.sns
       ?.publish({
-        Message,
+        Message: JSON.stringify(MessageBody),
         MessageStructure: 'json',
         MessageGroupId,
         // MessageAttributes: {},

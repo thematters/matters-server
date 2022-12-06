@@ -386,7 +386,7 @@ class PublicationQueue extends BaseQueue {
       this.atomService.aws
         .snsPublishMessage({
           MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-          Message: {
+          MessageBody: {
             articleId: article.id,
             title: article.title,
             url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
@@ -404,7 +404,7 @@ class PublicationQueue extends BaseQueue {
         })
         // .then(res => {})
         .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
+          console.error(new Date(), 'failed sns notify:', err)
         )
 
       done(null, {
