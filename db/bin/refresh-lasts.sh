@@ -58,4 +58,25 @@ ${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v comment="'alias tablename=users_lasts_${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
 	--file=./sql/stale-users-create-table-view.sql
 
+echo "updated mat_views.* done"
+
+${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+	-v schemaname=search_index \
+	-v comment="'schemaname=mat_views created ${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
+	--file=./sql/create-schema-grant-all-select.sql
+
+UPDATING_TS="updating started at ${started}"
+${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+	-v ON_ERROR_STOP=on \
+	-v schemaname=search_index \
+	-v comment="'alias tablename=search_index.user: ${UPDATING_TS}'" \
+	--file=./sql/create-materialized-view-search-index-user.sql
+
+UPDATING_TS="updating started at ${started}"
+${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+	-v ON_ERROR_STOP=on \
+	-v schemaname=search_index \
+	-v comment="'alias tablename=search_index.tag: ${UPDATING_TS}'" \
+	--file=./sql/create-materialized-view-search-index-tag.sql
+
 echo "updated done: $(date -R)"
