@@ -211,10 +211,10 @@ export class AWSService {
       .promise()
 
   snsPublishMessage = async ({
-    MessageGroupId,
+    // MessageGroupId,
     MessageBody,
   }: {
-    MessageGroupId: string
+    // MessageGroupId: string
     // Message: any
     MessageBody: any
   }) =>
@@ -224,7 +224,7 @@ export class AWSService {
           default: JSON.stringify(MessageBody),
         }),
         MessageStructure: 'json',
-        MessageGroupId,
+        // MessageGroupId,
         // MessageAttributes: {},
         // MessageDeduplicationId
         // MessageBody: JSON.stringify(MessageBody),

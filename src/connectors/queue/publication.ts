@@ -385,7 +385,7 @@ class PublicationQueue extends BaseQueue {
       // no await to notify async
       this.atomService.aws
         .snsPublishMessage({
-          MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+          // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
           MessageBody: {
             articleId: article.id,
             title: article.title,
