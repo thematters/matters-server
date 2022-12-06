@@ -220,7 +220,9 @@ export class AWSService {
   }) =>
     this.sns
       ?.publish({
-        Message: JSON.stringify(MessageBody),
+        Message: JSON.stringify({
+          default: JSON.stringify(MessageBody),
+        }),
         MessageStructure: 'json',
         MessageGroupId,
         // MessageAttributes: {},
