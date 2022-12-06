@@ -237,12 +237,14 @@ export class ArticleService extends BaseService {
         return { contentHash, mediaHash, key }
       } catch (err) {
         // if the active IPFS client throws exception, try a few more times on Secondary
-        console.error(new Date(), 'failed publishToIPFS ERROR:', err, {
-          retries,
-        })
+        console.error(
+          new Date(),
+          `publishToIPFS failed, retries ${++retries} time, ERROR:`,
+          err
+        )
         ipfs = this.ipfsServers.backupClient
       }
-    } while (ipfs && ++retries <= 3) // break the retry if there's no backup
+    } while (ipfs && retries <= this.ipfsServers.size) // break the retry if there's no backup
 
     // re-fill dataHash & mediaHash later in IPNS-listener
     console.error(new Date(), `failed publishToIPFS after ${retries} retries.`)
@@ -254,10 +256,14 @@ export class ArticleService extends BaseService {
     userName,
     numArticles = 50,
     incremental = false,
+    forceReplace = false,
+    updatedDrafts,
   }: {
     userName: string
     numArticles?: number
     incremental?: boolean
+    forceReplace?: boolean
+    updatedDrafts?: Item[]
   }) => {
     const started = Date.now()
     const atomService = new AtomService()
@@ -398,34 +404,38 @@ export class ArticleService extends BaseService {
       const attached = []
       // most article publishing goes incremental mode:
       // only attach the just published 1 article, at every publihsing time
-      for (const arti of incremental // to include last one only
-        ? [lastDraft]
-        : publishedDrafts) {
-        try {
-          const newEntry = {
-            ipfspath: `/ipfs/${arti.dataHash}`,
-            localpath: `./${arti.articleId}-${slugify(arti.title)}`,
-            mfspath: `/${directoryName}/${arti.articleId}-${slugify(
-              arti.title
-            )}`,
-          }
-          await ipfs.files.cp(
-            // articles.slice(0, 10).map((arti) => `/ipfs/${draft.dataHash}`), // add all past CIDs at 1 time // FIX: JS-ipfs-http-client / Go-IPFS difference
-            newEntry.ipfspath, // `/ipfs/${draft.dataHash}`,
-            newEntry.mfspath, // `/${directoryName}/${draft.id}-${draft.slug}`
-            {
-              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-            }
-          )
-          attached.push(newEntry)
-        } catch (err) {
-          // ignore HTTPError: GATEWAY_TIMEOUT
-          console.error(
-            new Date(),
-            'publishFeedToIPNS ipfs.files.cp attachment ERROR:',
-            err
-          )
+      for (const dft of updatedDrafts ??
+        (incremental // to include last one only
+          ? [lastDraft]
+          : publishedDrafts)) {
+        let retries = 0
+
+        const newEntry = {
+          ipfsPath: `/ipfs/${dft.dataHash}`,
+          // localPath: `./${arti.articleId}-${slugify(arti.title)}`,
+          mfsPath: `/${directoryName}/${dft.articleId}-${slugify(dft.title)}`,
         }
+        do {
+          try {
+            await ipfs.files.cp(newEntry.ipfsPath, newEntry.mfsPath, {
+              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
+            })
+            attached.push(newEntry)
+          } catch (err) {
+            // ignore HTTPError: GATEWAY_TIMEOUT
+            console.error(
+              new Date(),
+              `publishFeedToIPNS ipfs.files.cp attach'ing failed; delete target and retry ${retries} time, ERROR:`,
+              err
+            )
+            if (forceReplace) {
+              await ipfs.files.rm(newEntry.mfsPath, {
+                recursive: true,
+                timeout: IPFS_OP_TIMEOUT,
+              })
+            }
+          }
+        } while (retries++ <= 1)
       }
 
       const dirStat1 = await ipfs.files.stat(`/${directoryName}`, {
@@ -441,21 +451,22 @@ export class ArticleService extends BaseService {
         { dirStat0, dirStat1, attached }
       )
 
-      // const cidToPublish = entry[0].cid
-      cidToPublish = dirStat1.cid
+      // retry name publish on all IPFS nodes
+      {
+        // const cidToPublish = entry[0].cid
+        cidToPublish = dirStat1.cid
 
-      let retries = 0
-      do {
-        try {
-          // HTTPError: no key by the given name was found
-          published = await ipfs.name.publish(cidToPublish, {
-            lifetime: '1680h',
-            key: ipnsKey, // kname,
-            timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-          })
-          break
-        } catch (err) {
-          if (retries++ < 1) {
+        let retries = 0
+        do {
+          try {
+            // HTTPError: no key by the given name was found
+            published = await ipfs.name.publish(cidToPublish, {
+              lifetime: '1680h',
+              key: ipnsKey, // kname,
+              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
+            })
+            break
+          } catch (err) {
             try {
               // HTTPError: no key by the given name was found
               ;({ client: ipfs } = (await this.ipfsServers.importKey({
@@ -463,20 +474,23 @@ export class ArticleService extends BaseService {
                 pem: ipnsKeyRec.privKeyPem,
                 useActive: false,
               }))!)
-              // ipfs = client
             } catch (err) {
               // ignore: key with name 'for-...' already exists
             }
-            console.error(new Date(), `ipfs.name.publish ERROR:`, err, {
-              cidToPublish: cidToPublish.toString(),
-              kname,
-              ipnsKey,
-            })
-            continue
+            console.error(
+              new Date(),
+              `ipfs.name.publish (for ${userName}) failed; retry ${++retries} time, ERROR:`,
+              err,
+              {
+                cidToPublish: cidToPublish.toString(),
+                kname,
+                ipnsKey,
+                ipfsServerId: await ipfs.id(),
+              }
+            )
           }
-          throw err
-        }
-      } while (++retries < 3)
+        } while (retries <= this.ipfsServers.size)
+      }
 
       console.log(new Date(), `/${directoryName} published:`, published)
 
@@ -504,8 +518,14 @@ export class ArticleService extends BaseService {
         )
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
-    } catch (error) {
-      console.error(error)
+    } catch (err) {
+      console.error(new Date(), `publishFeedToIPNS last ERROR:`, err, {
+        ipnsKey,
+        kname,
+        directoryName,
+
+        userName: author.userName,
+      })
     } finally {
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
         await atomService.update({

@@ -300,6 +300,8 @@ class RevisionQueue extends BaseQueue {
           ipnsRes = await this.articleService.publishFeedToIPNS({
             userName,
             // incremental: true, // attach the last just published article
+            updatedDrafts: [draft],
+            forceReplace: true,
           })
         } catch (err) {
           console.error(
