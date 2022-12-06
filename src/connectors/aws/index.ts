@@ -11,6 +11,7 @@ import { GQLAssetType } from 'definitions'
 export class AWSService {
   s3: AWS.S3
   sqs?: AWS.SQS
+  sns?: AWS.SNS
   s3Bucket: string
   s3Endpoint: string
 
@@ -21,6 +22,9 @@ export class AWSService {
     this.s3Endpoint = this.getS3Endpoint()
     if (environment.awsIpfsArticlesQueueUrl) {
       this.sqs = new AWS.SQS()
+    }
+    if (environment.awsArticlesSnsTopic) {
+      this.sns = new AWS.SNS()
     }
   }
 
@@ -203,6 +207,26 @@ export class AWSService {
         MessageGroupId,
         MessageBody: JSON.stringify(MessageBody),
         QueueUrl: environment.awsIpfsArticlesQueueUrl,
+      })
+      .promise()
+
+  snsPublishMessage = async ({
+    MessageGroupId,
+    Message,
+  }: {
+    MessageGroupId: string
+    Message: any
+  }) =>
+    this.sns
+      ?.publish({
+        Message,
+        MessageStructure: 'json',
+        MessageGroupId,
+        // MessageAttributes: {},
+        // MessageDeduplicationId
+        // MessageBody: JSON.stringify(MessageBody),
+        // QueueUrl: environment.awsIpfsArticlesQueueUrl,
+        TopicArn: environment.awsArticlesSnsTopic,
       })
       .promise()
 }

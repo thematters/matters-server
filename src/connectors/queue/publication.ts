@@ -365,7 +365,31 @@ class PublicationQueue extends BaseQueue {
           MessageBody: {
             articleId: article.id,
             title: article.title,
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
+            dataHash: article.dataHash,
+            mediaHash: article.mediaHash,
+
+            // ipns info:
+            ipnsKey: ipnsRes?.ipnsKey,
+            lastDataHash: ipnsRes?.lastDataHash,
+
+            // author info:
+            userName,
+            displayName,
+          },
+        })
+        .catch((err: Error) =>
+          console.error(new Date(), 'failed sqs notify:', err)
+        )
+
+      // no await to notify async
+      this.atomService.aws
+        .snsPublishMessage({
+          MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+          Message: {
+            articleId: article.id,
+            title: article.title,
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
             dataHash: article.dataHash,
             mediaHash: article.mediaHash,
 
