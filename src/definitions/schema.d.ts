@@ -2769,6 +2769,11 @@ export interface GQLSearchInput {
    */
   record?: boolean
   oss?: boolean
+
+  /**
+   * use the api version; omit to use latest version
+   */
+  version?: GQLSearchAPIVersion
 }
 
 export interface GQLSearchFilter {
@@ -2864,6 +2869,11 @@ export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
   Tag = 'Tag',
+}
+
+export const enum GQLSearchAPIVersion {
+  v20221212 = 'v20221212',
+  v20221212prior = 'v20221212prior',
 }
 
 export const enum GQLBoostTypes {

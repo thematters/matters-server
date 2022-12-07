@@ -226,6 +226,9 @@ export default /* GraphQL */ `
     "whether this search operation should be recorded in search history"
     record: Boolean
     oss: Boolean
+
+    "use the api version; omit to use latest version"
+    version: SearchAPIVersion
   }
 
   input SearchFilter {
@@ -315,6 +318,11 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+  }
+
+  enum SearchAPIVersion {
+    v20221212
+    v20221212prior ## the original ElasticSearch based solution; to be deprecated
   }
 
   enum BoostTypes {

@@ -122,7 +122,7 @@ export class UserService extends BaseService {
     )
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    await this.addToSearch(user)
+    this.addToSearch(user)
 
     return user
   }
@@ -491,6 +491,7 @@ export class UserService extends BaseService {
     }
   }
 
+  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     take,
@@ -578,6 +579,28 @@ export class UserService extends BaseService {
       logger.error(err)
       throw new ServerError('search failed')
     }
+  }
+
+  // TODO:
+  searchV1 = async ({
+    key,
+    take,
+    skip,
+    oss = false,
+    filter,
+    exclude,
+    viewerId,
+  }: {
+    key: string
+    author?: string
+    take: number
+    skip: number
+    oss?: boolean
+    filter?: Record<string, any>
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+  }) => {
+    return { nodes: [], totalCount: 0 }
   }
 
   findRecentSearches = async (userId: string) => {

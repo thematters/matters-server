@@ -262,7 +262,7 @@ export class TagService extends BaseService {
 
     // add tag into search engine
     if (tag) {
-      await this.addToSearch({
+      this.addToSearch({
         id: tag.id,
         content: tag.content,
         description: tag.description,
@@ -558,6 +558,7 @@ export class TagService extends BaseService {
     }
   }
 
+  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     take,
@@ -667,6 +668,24 @@ export class TagService extends BaseService {
       // console.error(new Date(), 'ERROR:', err)
       throw new ServerError('tag search failed')
     }
+  }
+
+  // TODO:
+  searchV1 = async ({
+    key,
+    take,
+    skip,
+    includeAuthorTags,
+    viewerId,
+  }: {
+    key: string
+    author?: string
+    take: number
+    skip: number
+    includeAuthorTags?: boolean
+    viewerId?: string | null
+  }) => {
+    return { nodes: [], totalCount: 0 }
   }
 
   /*********************************
@@ -1100,7 +1119,7 @@ export class TagService extends BaseService {
     const newTag = await this.create({ content, creator, editors, owner })
 
     // add tag into search engine
-    await this.addToSearch({
+    this.addToSearch({
       id: newTag.id,
       content: newTag.content,
       description: newTag.description,

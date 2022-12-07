@@ -226,8 +226,8 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        // Step 6: add to search
-        await this.articleService.addToSearch({
+        // Step 6: add to search; async
+        this.articleService.addToSearch({
           id: article.id,
           title: draft.title,
           content: draft.content,

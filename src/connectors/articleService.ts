@@ -785,6 +785,7 @@ export class ArticleService extends BaseService {
     }
   }
 
+  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     take,
@@ -892,6 +893,28 @@ export class ArticleService extends BaseService {
       logger.error(err)
       throw new ServerError('article search failed')
     }
+  }
+
+  // TODO:
+  searchV1 = async ({
+    key,
+    take,
+    skip,
+    oss = false,
+    filter,
+    exclude,
+    viewerId,
+  }: {
+    key: string
+    author?: string
+    take: number
+    skip: number
+    oss?: boolean
+    filter?: Record<string, any>
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+  }) => {
+    return { nodes: [], totalCount: 0 }
   }
 
   /*********************************

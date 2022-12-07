@@ -177,8 +177,8 @@ class RevisionQueue extends BaseQueue {
             entityTypeId,
           })
 
-          // Step 6: add to search
-          await this.articleService.addToSearch({
+          // Step 6: add to search; async
+          this.articleService.addToSearch({
             ...article,
             content: draft.content,
             userName,
