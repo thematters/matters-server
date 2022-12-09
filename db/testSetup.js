@@ -85,10 +85,7 @@ async function runShellDBRollup() {
   const nativeCmd = `cd db; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
-    const sh = spawn('sh', [
-      '-xc',
-      dockerCmd + ' || ' + nativeCmd
-    ])
+    const sh = spawn('sh', ['-xc', dockerCmd + ' || ' + nativeCmd])
 
     sh.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`)
