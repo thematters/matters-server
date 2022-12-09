@@ -11,6 +11,9 @@ const Knex = require('knex')
 const knexConfig = require('../knexfile')
 const knex = Knex(knexConfig.test)
 const database = knexConfig.test.connection.database
+const host = process.env['MATTERS_PG_HOST']
+const user = process.env['MATTERS_PG_USER']
+const password = process.env['MATTERS_PG_PASSWORD']
 
 global.knex = knex
 
@@ -26,9 +29,9 @@ module.exports = async () => {
   }
 
   const client = new Client({
-    host: process.env['MATTERS_PG_HOST'],
-    user: process.env['MATTERS_PG_USER'],
-    password: process.env['MATTERS_PG_PASSWORD'],
+    host,
+    user,
+    password,
     database: 'postgres',
   })
 
@@ -63,7 +66,7 @@ module.exports = async () => {
   await runShellDBRollup()
 
   const tables = await knex('information_schema.tables').select()
-  console.log(new Date(), `currently having ${tables.length} tables:`, tables)
+  // console.log(new Date(), `currently having ${tables.length} tables:`, tables)
 }
 
 async function runShellDBRollup() {
@@ -78,11 +81,13 @@ async function runShellDBRollup() {
     }
     console.log(`stdout: ${stdout}`)
   })
+  const dockerCmd = `docker container exec postgres-db sh -xc 'pwd; ls -la; cd /db; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`
+  const nativeCmd = `cd db; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
     const sh = spawn('sh', [
       '-xc',
-      `docker container exec postgres-db sh -xc 'pwd; ls -la; cd /db; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`,
+      dockerCmd + ' || ' + nativeCmd
     ])
 
     sh.stdout.on('data', (data) => {
