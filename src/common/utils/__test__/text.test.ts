@@ -1,6 +1,7 @@
 import {
-  stripAllPunct,
+  normalizeQueryInput,
   // normalizeTagInput,
+  stripAllPunct,
   tagSlugify,
 } from 'common/utils'
 
@@ -56,4 +57,10 @@ test('tagSlugify', () => {
   ]
 
   pairs.forEach(({ tag, expected }) => expect(tagSlugify(tag)).toBe(expected))
+})
+
+test('normalizeQueryInput', async () => {
+  expect(await normalizeQueryInput('')).toBe('')
+  expect(await normalizeQueryInput('小說')).toBe('小说')
+  expect(await normalizeQueryInput('Abc')).toBe('abc')
 })
