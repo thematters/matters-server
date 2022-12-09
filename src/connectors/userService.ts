@@ -581,7 +581,6 @@ export class UserService extends BaseService {
     }
   }
 
-  // TODO:
   searchV1 = async ({
     key,
     take,
@@ -600,7 +599,57 @@ export class UserService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    return { nodes: [], totalCount: 0 }
+    const displayName = key
+    const userName = key.startsWith('@') ? key.slice(1) : key
+
+    const orderSnippet = 'num_followers DESC NULLS LAST'
+    const baseQuery = this.knex
+      .withSchema('search_index')
+      .select('id')
+      .from('user')
+    const displayNameQuery = baseQuery
+      .clone()
+      .where('display_name', displayName)
+      .orderByRaw(orderSnippet)
+    const userNameQuery = baseQuery
+      .clone()
+      .where('user_name', userName)
+      .orderByRaw(orderSnippet)
+    const displayNameLikeQuery = baseQuery
+      .clone()
+      .whereLike('display_name', `%${displayName}%`)
+      .orderByRaw(orderSnippet)
+    const userNameLikeQuery = baseQuery
+      .clone()
+      .whereLike('user_name', `%${userName}%`)
+      .orderByRaw(orderSnippet)
+
+    const subQuery = this.knex
+      .unionAll(displayNameQuery, true)
+      .unionAll(userNameQuery, true)
+      .unionAll(displayNameLikeQuery, true)
+      .unionAll(userNameLikeQuery, true)
+
+    let query
+    if (exclude === GQLSearchExclude.blocked && viewerId) {
+      query = this.knex
+        .select('*')
+        .from(subQuery)
+        .whereNotIn(
+          'id',
+          this.knex('action_user')
+            .select('user_id')
+            .where({ action: USER_ACTION.block, targetId: viewerId })
+        )
+    } else {
+      query = subQuery
+    }
+    const res = await query
+
+    const ids = _.uniq(res.map(({ id }) => id)).slice(skip, skip + take)
+
+    const nodes = await this.baseFindByIds(ids)
+    return { nodes, totalCount: nodes.length }
   }
 
   findRecentSearches = async (userId: string) => {

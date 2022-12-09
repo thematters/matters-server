@@ -129,3 +129,30 @@ describe('countDonators', () => {
     expect(count5).toBe(1)
   })
 })
+
+describe('searchV1', () => {
+  test('empty result', async () => {
+    const res = await userService.searchV1({
+      key: 'not-exist',
+      take: 1,
+      skip: 0,
+    })
+    expect(res.totalCount).toBe(0)
+  })
+  test('exact match first', async () => {
+    const res = await userService.searchV1({ key: 'test1', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(2)
+    expect(res.nodes[0].userName).toBe('test1')
+  })
+  test('perfer more num_follower', async () => {
+    // TBD
+  })
+  test('handle prefix "@"', async () => {
+    const res = await userService.searchV1({ key: '@test1', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(2)
+    expect(res.nodes[0].userName).toBe('test1')
+  })
+  test('handle blocked', async () => {
+    // TBD
+  })
+})
