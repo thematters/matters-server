@@ -1,4 +1,6 @@
+import { USER_ACTION } from 'common/enums'
 import { UserService } from 'connectors'
+import { GQLSearchExclude } from 'definitions'
 
 import { createDonationTx } from './utils'
 
@@ -144,8 +146,22 @@ describe('searchV1', () => {
     expect(res.totalCount).toBe(2)
     expect(res.nodes[0].userName).toBe('test1')
   })
-  test('perfer more num_follower', async () => {
-    // TBD
+  test('perfer more num_followers', async () => {
+    const getNumFollowers = async (id: string) =>
+      (
+        await userService
+          .knex('search_index.user')
+          .where({ id })
+          .select('num_followers')
+      )[0].numFollowers || 0
+    const res = await userService.searchV1({ key: 'test', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(3)
+    expect(await getNumFollowers(res.nodes[0].id)).toBeGreaterThanOrEqual(
+      await getNumFollowers(res.nodes[1].id)
+    )
+    expect(await getNumFollowers(res.nodes[1].id)).toBeGreaterThanOrEqual(
+      await getNumFollowers(res.nodes[2].id)
+    )
   })
   test('handle prefix "@"', async () => {
     const res = await userService.searchV1({ key: '@test1', take: 3, skip: 0 })
@@ -153,6 +169,20 @@ describe('searchV1', () => {
     expect(res.nodes[0].userName).toBe('test1')
   })
   test('handle blocked', async () => {
-    // TBD
+    await userService
+      .knex('action_user')
+      .insert({ userId: '2', action: USER_ACTION.block, targetId: '1' })
+
+    const res = await userService.searchV1({ key: 'test2', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(1)
+
+    const res2 = await userService.searchV1({
+      key: 'test2',
+      take: 3,
+      skip: 0,
+      exclude: GQLSearchExclude.blocked,
+      viewerId: '1',
+    })
+    expect(res2.totalCount).toBe(0)
   })
 })

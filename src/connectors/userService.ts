@@ -633,10 +633,10 @@ export class UserService extends BaseService {
     let query
     if (exclude === GQLSearchExclude.blocked && viewerId) {
       query = this.knex
-        .select('*')
-        .from(subQuery)
+        .select('result.id')
+        .from(subQuery.as('result'))
         .whereNotIn(
-          'id',
+          'result.id',
           this.knex('action_user')
             .select('user_id')
             .where({ action: USER_ACTION.block, targetId: viewerId })
