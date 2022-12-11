@@ -141,12 +141,12 @@ describe('searchV1', () => {
     })
     expect(res.totalCount).toBe(0)
   })
-  test('exact match first', async () => {
+  test('prefer exact match', async () => {
     const res = await userService.searchV1({ key: 'test1', take: 3, skip: 0 })
     expect(res.totalCount).toBe(2)
     expect(res.nodes[0].userName).toBe('test1')
   })
-  test('perfer more num_followers', async () => {
+  test('prefer more num_followers', async () => {
     const getNumFollowers = async (id: string) =>
       (
         await userService
@@ -163,10 +163,23 @@ describe('searchV1', () => {
       await getNumFollowers(res.nodes[2].id)
     )
   })
-  test('handle prefix "@"', async () => {
+  test('handle prefix @,＠', async () => {
     const res = await userService.searchV1({ key: '@test1', take: 3, skip: 0 })
     expect(res.totalCount).toBe(2)
     expect(res.nodes[0].userName).toBe('test1')
+    const res2 = await userService.searchV1({
+      key: '＠test1',
+      take: 3,
+      skip: 0,
+    })
+    expect(res2.totalCount).toBe(2)
+    expect(res2.nodes[0].userName).toBe('test1')
+  })
+  test('handle empty string', async () => {
+    const res1 = await userService.searchV1({ key: '', take: 3, skip: 0 })
+    expect(res1.totalCount).toBe(0)
+    const res2 = await userService.searchV1({ key: '@', take: 3, skip: 0 })
+    expect(res2.totalCount).toBe(0)
   })
   test('handle blocked', async () => {
     await userService

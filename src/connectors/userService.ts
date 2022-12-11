@@ -600,7 +600,12 @@ export class UserService extends BaseService {
     exclude?: GQLSearchExclude
   }) => {
     const displayName = key
-    const userName = key.startsWith('@') ? key.slice(1) : key
+    const userName =
+      key.startsWith('@') || key.startsWith('＠') ? key.slice(1) : key
+
+    if (!userName) {
+      return { nodes: [], totalCount: 0 }
+    }
 
     const orderSnippet = 'num_followers DESC NULLS LAST'
     const baseQuery = this.knex
