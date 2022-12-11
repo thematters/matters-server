@@ -2,6 +2,7 @@ import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
+import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
@@ -607,39 +608,20 @@ export class UserService extends BaseService {
       return { nodes: [], totalCount: 0 }
     }
 
-    const orderSnippet = 'num_followers DESC NULLS LAST'
-    const baseQuery = this.knex
-      .withSchema('search_index')
+    const baseQuery = this.knex('search_index.user')
       .select('id')
-      .from('user')
-    const displayNameQuery = baseQuery
-      .clone()
-      .where('display_name', displayName)
-      .orderByRaw(orderSnippet)
-    const userNameQuery = baseQuery
-      .clone()
-      .where('user_name', userName)
-      .orderByRaw(orderSnippet)
-    const displayNameLikeQuery = baseQuery
-      .clone()
       .whereLike('display_name', `%${displayName}%`)
-      .orderByRaw(orderSnippet)
-    const userNameLikeQuery = baseQuery
-      .clone()
-      .whereLike('user_name', `%${userName}%`)
-      .orderByRaw(orderSnippet)
-
-    const subQuery = this.knex
-      .unionAll(displayNameQuery, true)
-      .unionAll(userNameQuery, true)
-      .unionAll(displayNameLikeQuery, true)
-      .unionAll(userNameLikeQuery, true)
+      .orWhereLike('user_name', `%${userName}%`)
+      .orderByRaw('display_name = ? DESC', [displayName])
+      .orderByRaw('user_name = ? DESC', [userName])
+      .orderByRaw('display_name ~ ? DESC', [displayName])
+      .orderByRaw('num_followers DESC NULLS LAST')
 
     let query
     if (exclude === GQLSearchExclude.blocked && viewerId) {
       query = this.knex
         .select('result.id')
-        .from(subQuery.as('result'))
+        .from(baseQuery.as('result'))
         .whereNotIn(
           'result.id',
           this.knex('action_user')
@@ -647,13 +629,19 @@ export class UserService extends BaseService {
             .where({ action: USER_ACTION.block, targetId: viewerId })
         )
     } else {
-      query = subQuery
+      query = baseQuery
     }
+    query.modify((builder: Knex.QueryBuilder) => {
+      if (skip !== undefined && Number.isFinite(skip)) {
+        builder.offset(skip)
+      }
+      if (take !== undefined && Number.isFinite(take)) {
+        builder.limit(take)
+      }
+    })
+
     const res = await query
-
-    const ids = _.uniq(res.map(({ id }) => id)).slice(skip, skip + take)
-
-    const nodes = await this.baseFindByIds(ids)
+    const nodes = await this.baseFindByIds(res.map(({ id }) => id))
     return { nodes, totalCount: nodes.length }
   }
 
