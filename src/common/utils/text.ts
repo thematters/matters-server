@@ -42,5 +42,5 @@ export const normalizeTagInput = (content: string) =>
 
 const t2sConverter: OpenCC = new OpenCC('t2s.json')
 
-export const normalizeQueryInput = async (content: string) =>
-  t2sConverter.convertPromise(content.toLowerCase())
+export const normalizeQueryInput = async (content: string): Promise<string> =>
+  t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)
