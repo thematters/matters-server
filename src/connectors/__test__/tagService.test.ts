@@ -27,3 +27,42 @@ test('create', async () => {
   )
   expect(tag.content).toEqual(content)
 })
+
+describe('searchV1', () => {
+  test('empty result', async () => {
+    const res = await tagService.searchV1({
+      key: 'not-existed-tag',
+      skip: 0,
+      take: 10,
+    })
+    expect(res.totalCount).toBe(0)
+  })
+  test('prefer exact match', async () => {
+    const res = await tagService.searchV1({ key: 'tag', skip: 0, take: 10 })
+    expect(res.totalCount).toBe(4)
+    expect(res.nodes[0].content).toBe('tag')
+  })
+  test('prefer more articles', async () => {
+    const res = await tagService.searchV1({ key: 't', skip: 0, take: 10 })
+    expect(res.nodes[0].numArticles).toBeGreaterThanOrEqual(
+      res.nodes[1].numArticles
+    )
+    expect(res.nodes[1].numArticles).toBeGreaterThanOrEqual(
+      res.nodes[2].numArticles
+    )
+  })
+  test('handle prefix #,＃', async () => {
+    const res1 = await tagService.searchV1({ key: '#tag', skip: 0, take: 10 })
+    expect(res1.totalCount).toBe(4)
+    expect(res1.nodes[0].content).toBe('tag')
+    const res2 = await tagService.searchV1({ key: '＃tag', skip: 0, take: 10 })
+    expect(res2.totalCount).toBe(4)
+    expect(res2.nodes[0].content).toBe('tag')
+  })
+  test('handle empty string', async () => {
+    const res1 = await tagService.searchV1({ key: '', skip: 0, take: 10 })
+    expect(res1.totalCount).toBe(0)
+    const res2 = await tagService.searchV1({ key: '#', skip: 0, take: 10 })
+    expect(res2.totalCount).toBe(0)
+  })
+})
