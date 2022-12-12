@@ -86,6 +86,7 @@ export class CacheService {
       }
 
       // avoid empty object
+      // TODO: fix isNil(new Date()) == true
       if (typeof tested === 'object') {
         return Object.values(tested).length === 0
       }

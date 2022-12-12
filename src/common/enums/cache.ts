@@ -26,4 +26,5 @@ export const CACHE_PREFIX = {
   NFTS: 'cache-alchemy-nfts',
   OPERATION_LOG: 'operation-log',
   CIVIC_LIKER: 'civic-liker',
+  USER_VISITED_AT: 'cache-user-visited-at',
 }

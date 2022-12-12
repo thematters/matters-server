@@ -212,9 +212,10 @@ describe('updateVisitedAt', () => {
       .where({ id })
       .first()
     expect(last).toStrictEqual(now)
+    await userService.updateVisitedAt(id)
   })
   test('update beyond threshold', async () => {
-    const id = '1'
+    const id = '2'
     const { visitedAt: last } = await userService
       .knex('public.user')
       .select('visited_at')

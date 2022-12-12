@@ -10,6 +10,7 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
+  CACHE_PREFIX,
   CIRCLE_ACTION,
   COMMENT_STATE,
   HOUR,
@@ -42,7 +43,13 @@ import {
   isValidUserName,
   makeUserName,
 } from 'common/utils'
-import { AtomService, BaseService, ipfsServers, OAuthService } from 'connectors'
+import {
+  AtomService,
+  BaseService,
+  CacheService,
+  ipfsServers,
+  OAuthService,
+} from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -1829,12 +1836,16 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   updateVisitedAt = async (id: string, threshold = HOUR) => {
-    const { visitedAt } = await this.knex(this.table)
-      .select('visited_at')
-      .where({ id })
-      .first()
+    const cacheService = new CacheService(CACHE_PREFIX.USER_VISITED_AT)
+    const { visitedAt } = (await cacheService.getObject({
+      keys: { id },
+      getter: async () =>
+        this.knex(this.table).select('visited_at').where({ id }).first(),
+      expire: threshold / 1000,
+    })) as any
+    const last = new Date(visitedAt)
     const now = new Date()
-    const delta = +now - +visitedAt
+    const delta = +now - +last
     if (delta > threshold) {
       await this.knex(this.table).update('visited_at', now).where({ id })
     }
