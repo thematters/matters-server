@@ -345,6 +345,7 @@ export class LikeCoin {
     const res = await this.request({
       endpoint: `/users/id/${likerId}/min`,
       method: 'GET',
+      timeout: 2000,
       // liker,
     })
     return !!_.get(res, 'data.isSubscribedCivicLiker')
