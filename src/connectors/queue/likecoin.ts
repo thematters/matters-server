@@ -45,22 +45,30 @@ class LikeCoinQueue extends BaseQueue {
    */
   like = (data: LikeData) => {
     return this.q.add(QUEUE_JOB.like, data, {
-      priority: QUEUE_PRIORITY.NORMAL,
+      priority: QUEUE_PRIORITY.MEDIUM,
       attempts: 1,
+      removeOnComplete: true,
+      removeOnFail: true,
     })
   }
 
   sendPV = (data: SendPVData) => {
     return this.q.add(QUEUE_JOB.sendPV, data, {
-      priority: QUEUE_PRIORITY.NORMAL,
+      priority: QUEUE_PRIORITY.LOW,
       attempts: 1,
+      removeOnComplete: true,
+      removeOnFail: true,
     })
   }
 
   getCivicLiker = (data: GetCivicLikerData) => {
     return this.q.add(QUEUE_JOB.getCivicLiker, data, {
+      jobId: `${data.likerId}-${data.userId}`,
       priority: QUEUE_PRIORITY.NORMAL,
       attempts: 1,
+      timeout: 2000,
+      removeOnComplete: true,
+      removeOnFail: true,
     })
   }
 
@@ -78,18 +86,23 @@ class LikeCoinQueue extends BaseQueue {
     done
   ) => {
     const { likerId } = job.data as LikeData
-    const liker = await this.userService.findLiker({ likerId })
 
-    if (!liker) {
-      return done(new Error(`liker (${likerId}) not found.`))
+    try {
+      const liker = await this.userService.findLiker({ likerId })
+
+      if (!liker) {
+        return done(new Error(`liker (${likerId}) not found.`))
+      }
+
+      const result = await this.userService.likecoin.like({
+        liker,
+        ...(job.data as LikeData),
+      })
+      job.progress(100)
+      done(null, result)
+    } catch (e) {
+      done(e)
     }
-
-    const result = await this.userService.likecoin.like({
-      liker,
-      ...(job.data as LikeData),
-    })
-    job.progress(100)
-    done(null, result)
   }
 
   private handleSendPV: Queue.ProcessCallbackFunction<unknown> = async (
@@ -98,15 +111,19 @@ class LikeCoinQueue extends BaseQueue {
   ) => {
     const { likerId } = job.data as SendPVData
 
-    const liker = await this.userService.findLiker({ likerId })
+    try {
+      const liker = await this.userService.findLiker({ likerId })
 
-    const result = await this.userService.likecoin.count({
-      liker: liker || undefined,
-      ...(job.data as SendPVData),
-    })
+      const result = await this.userService.likecoin.count({
+        liker: liker || undefined,
+        ...(job.data as SendPVData),
+      })
 
-    job.progress(100)
-    done(null, result)
+      job.progress(100)
+      done(null, result)
+    } catch (e) {
+      done(e)
+    }
   }
 
   private handleGetCivicLiker: Queue.ProcessCallbackFunction<unknown> = async (
@@ -114,26 +131,33 @@ class LikeCoinQueue extends BaseQueue {
     done
   ) => {
     const { userId, likerId } = job.data as GetCivicLikerData
-
-    const isCivicLiker = await this.userService.likecoin.isCivicLiker({
-      likerId,
-    })
-
-    await invalidateFQC({
-      node: { type: NODE_TYPES.User, id: userId },
-      redis: this.cacheService.redis,
-    })
-
-    // update cache
     const cacheService = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
-    cacheService.storeObject({
-      keys: { id: likerId },
-      data: isCivicLiker,
-      expire: CACHE_TTL.LONG,
-    })
 
-    job.progress(100)
-    done(null, { likerId, isCivicLiker })
+    try {
+      const isCivicLiker = await this.userService.likecoin.isCivicLiker({
+        likerId,
+      })
+
+      await invalidateFQC({
+        node: { type: NODE_TYPES.User, id: userId },
+        redis: this.cacheService.redis,
+      })
+
+      // update cache
+      await cacheService.storeObject({
+        keys: { id: likerId },
+        data: isCivicLiker,
+        expire: CACHE_TTL.LONG,
+      })
+
+      job.progress(100)
+      done(null, { likerId, isCivicLiker })
+    } catch (e) {
+      // remove from cache so new reqeust can trigger a retry
+      await cacheService.removeObject({ keys: { id: likerId } })
+
+      done(e)
+    }
   }
 }
 

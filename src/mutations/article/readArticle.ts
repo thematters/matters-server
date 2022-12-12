@@ -41,6 +41,7 @@ const resolver: MutationToReadArticleResolver = async (
       ip: viewer.ip,
     })
 
+    // FIXME: likeCoinQueue.sendPV cannot handle very large concurrency
     // const { newRead } = await articleService.read({
     //   articleId: article.id,
     //   userId: viewer.id || null,

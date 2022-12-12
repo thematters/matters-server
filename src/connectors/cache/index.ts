@@ -113,4 +113,16 @@ export class CacheService {
 
     return data
   }
+
+  /**
+   * Remvoe object from cache
+   */
+  removeObject = async ({
+    keys,
+  }: KeyInfo & {
+    keys: KeyInfo
+  }) => {
+    const key = this.genKey(keys)
+    await (this.redis.client as Redis.Redis).del(key)
+  }
 }
