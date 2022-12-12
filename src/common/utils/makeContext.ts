@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash'
 
 import { NODE_TYPES } from 'common/enums'
 import { getViewerFromReq, toGlobalId } from 'common/utils'
-import { knex } from 'connectors'
+import { knex, UserService } from 'connectors'
 import { RequestContext } from 'definitions'
 
 const purgeSentryData = (req?: Request): any => {
@@ -48,6 +48,12 @@ export const makeContext = async ({
   }
 
   const viewer = await getViewerFromReq({ req, res })
+
+  // record user visiting timestamp
+  if (viewer.id) {
+    const userService = new UserService()
+    userService.updateVisitedAt(viewer.id)
+  }
 
   // Add user info for Sentry
   Sentry.configureScope((scope: any) => {
