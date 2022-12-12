@@ -146,7 +146,7 @@ class LikeCoinQueue extends BaseQueue {
       // update cache
       await cacheService.storeObject({
         keys: { id: likerId },
-        data: true,
+        data: isCivicLiker,
         expire: CACHE_TTL.LONG,
       })
 
