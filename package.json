@@ -88,6 +88,7 @@
     "jsonwebtoken": "^8.5.1",
     "knex": "^2.1.0",
     "lodash": "^4.17.21",
+    "meilisearch": "^0.30.0",
     "mime-types": "^2.1.31",
     "module-alias": "^2.2.2",
     "nanoid": "^3.1.31",

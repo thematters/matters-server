@@ -4,11 +4,12 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'
-import { aws, es, knex } from 'connectors'
+import { aws, es, knex, meiliClient } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {
   es: typeof es
+  meili: typeof meiliClient
   aws: typeof aws
   knex: Knex
   dataloader: DataLoader<string, Item>

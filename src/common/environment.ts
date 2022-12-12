@@ -47,6 +47,8 @@ export const environment = {
   awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
   esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
   esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
+  meiliSearch_Server: process.env.MATTERS_MEILISEARCH_SERVER || 'http://meili.dev.vpc:7700',
+  meiliSearch_apiKey: process.env.MATTERS_MEILISEARCH_APIKEY || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,

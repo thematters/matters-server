@@ -890,12 +890,18 @@ export class ArticleService extends BaseService {
 
       return { nodes, totalCount: nodes.length }
     } catch (err) {
+      console.error(
+        new Date(),
+        `es.client.search failed with ERROR:`,
+        err,
+        'searchBody:',
+        searchBody
+      )
       logger.error(err)
       throw new ServerError('article search failed')
     }
   }
 
-  // TODO:
   searchV1 = async ({
     key,
     take,
@@ -914,7 +920,14 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    return { nodes: [], totalCount: 0 }
+    const res = await this.meili.index('articles').search(key, { limit: 100 })
+    const nodes = (await this.draftLoader.loadMany(
+      res.hits?.map(({ id }) => id)
+    )) as Item[]
+    // const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
+
+    return { nodes, totalCount: nodes.length }
   }
 
   /*********************************
