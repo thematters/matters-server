@@ -691,6 +691,10 @@ export class TagService extends BaseService {
       return { nodes: [], totalCount: 0 }
     }
 
+    const mattyChoiceTagIds = environment.mattyChoiceTagId
+      ? [environment.mattyChoiceTagId]
+      : []
+
     // search from original tags but return duplicate free tags
     const queryIds = this.knex('search_index.tag')
       .select('id')
@@ -707,7 +711,7 @@ export class TagService extends BaseService {
       .from(VIEW.tags_lasts_view)
       .whereIn('id', queryIds)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder.whereNotIn('id', [environment.mattyChoiceTagId])
+        builder.whereNotIn('id', mattyChoiceTagIds)
       })
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
       .orderBy('num_articles', 'desc')
