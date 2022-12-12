@@ -20,14 +20,14 @@ const resolver: LikerToCivicLikerResolver = async (
     keys: { id: liker.likerId },
     getter: async () => {
       // insert a placeholder
-      cacheService.storeObject({
+      await cacheService.storeObject({
         keys: { id: liker.likerId },
         data: false,
-        expire: CACHE_TTL.LONG,
+        expire: CACHE_TTL.SHORT, // cache a short period of time here
       })
 
       // trigger queue to check if liker is a civic liker
-      likeCoinQueue.getCivicLiker({ userId: id, likerId: liker.likerId })
+      await likeCoinQueue.getCivicLiker({ userId: id, likerId: liker.likerId })
 
       return false
     },
