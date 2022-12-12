@@ -26,11 +26,12 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
   const contract = environment.traveloggersContractAddress
+  const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
   const assets = (await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
-    getter: () => alchemy.getNFTs({ owner, contract, network }),
+    getter: () => alchemy.getNFTs({ owner, contract, network, withMetadata }),
     expire: CACHE_TTL.LONG,
   })) as any
 
@@ -52,13 +53,7 @@ export const nfts: CryptoWalletToNftsResolver = async (
 
   const assets = (await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
-    getter: () =>
-      alchemy.getNFTs({
-        owner,
-        network,
-        contract,
-        withMetadata,
-      }),
+    getter: () => alchemy.getNFTs({ owner, network, contract, withMetadata }),
     expire: CACHE_TTL.LONG,
   })) as any
 
