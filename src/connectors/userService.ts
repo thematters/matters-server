@@ -1841,7 +1841,7 @@ export class UserService extends BaseService {
       keys: { id },
       getter: async () =>
         this.knex(this.table).select('visited_at').where({ id }).first(),
-      expire: threshold / 1000,
+      expire: Math.ceil(threshold / 1000),
     })) as any
     const last = new Date(visitedAt)
     const now = new Date()
