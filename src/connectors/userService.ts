@@ -12,6 +12,7 @@ import {
   ARTICLE_STATE,
   CIRCLE_ACTION,
   COMMENT_STATE,
+  HOUR,
   MATERIALIZED_VIEW,
   PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -1820,5 +1821,22 @@ export class UserService extends BaseService {
         privKeyName: kname,
       },
     })
+  }
+
+  /*********************************
+   *                               *
+   *            Misc               *
+   *                               *
+   *********************************/
+  updateVisitedAt = async (id: string, threshold = HOUR) => {
+    const { visitedAt } = await this.knex(this.table)
+      .select('visited_at')
+      .where({ id })
+      .first()
+    const now = new Date()
+    const delta = +now - +visitedAt
+    if (delta > threshold) {
+      await this.knex(this.table).update('visited_at', now).where({ id })
+    }
   }
 }

@@ -196,6 +196,37 @@ describe('searchV1', () => {
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)
+
+describe('updateVisitedAt', () => {
+  test('do not update during threshold', async () => {
+    const id = '1'
+    const { visitedAt: last } = await userService
+      .knex('public.user')
+      .select('visited_at')
+      .where({ id })
+      .first()
+    await userService.updateVisitedAt(id)
+    const { visitedAt: now } = await userService
+      .knex('public.user')
+      .select('visited_at')
+      .where({ id })
+      .first()
+    expect(last).toStrictEqual(now)
+  })
+  test('update beyond threshold', async () => {
+    const id = '1'
+    const { visitedAt: last } = await userService
+      .knex('public.user')
+      .select('visited_at')
+      .where({ id })
+      .first()
+    await userService.updateVisitedAt(id, 1)
+    const { visitedAt: now } = await userService
+      .knex('public.user')
+      .select('visited_at')
+      .where({ id })
+      .first()
+    expect(last).not.toStrictEqual(now)
   })
   test('right totalCount with take and skip', async () => {
     const res1 = await userService.searchV1({ key: 'test', take: 10, skip: 0 })
