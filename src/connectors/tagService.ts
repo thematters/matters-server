@@ -701,12 +701,9 @@ export class TagService extends BaseService {
       .whereLike('content', `%${_key}%`)
     const queryTags = this.knex
       .select(
-        'id',
-        'content',
-        'description',
-        'num_articles',
-        'num_authors',
-        'created_at'
+        this.knex.raw(
+          'id, content, description, num_articles, num_authors, created_at, count(id) OVER() AS total_count'
+        )
       )
       .from(VIEW.tags_lasts_view)
       .whereIn('id', queryIds)
@@ -725,7 +722,8 @@ export class TagService extends BaseService {
       })
 
     const nodes = await queryTags
-    return { nodes, totalCount: nodes.length }
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    return { nodes, totalCount }
   }
 
   /*********************************

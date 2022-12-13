@@ -620,7 +620,9 @@ export class UserService extends BaseService {
     let query
     if (exclude === GQLSearchExclude.blocked && viewerId) {
       query = this.knex
-        .select('result.id')
+        .select(
+          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
+        )
         .from(baseQuery.as('result'))
         .whereNotIn(
           'result.id',
@@ -629,7 +631,11 @@ export class UserService extends BaseService {
             .where({ action: USER_ACTION.block, targetId: viewerId })
         )
     } else {
-      query = baseQuery
+      query = this.knex
+        .select(
+          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
+        )
+        .from(baseQuery.as('result'))
     }
     query.modify((builder: Knex.QueryBuilder) => {
       if (skip !== undefined && Number.isFinite(skip)) {
@@ -640,9 +646,10 @@ export class UserService extends BaseService {
       }
     })
 
-    const res = await query
-    const nodes = await this.baseFindByIds(res.map(({ id }) => id))
-    return { nodes, totalCount: nodes.length }
+    const records = await query
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const nodes = await this.baseFindByIds(records.map(({ id }) => id))
+    return { nodes, totalCount }
   }
 
   findRecentSearches = async (userId: string) => {
