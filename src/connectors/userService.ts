@@ -1836,7 +1836,7 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   updateLastSeen = async (id: string, threshold = HOUR) => {
-    const cacheService = new CacheService(CACHE_PREFIX.USER_VISITED_AT)
+    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
     const { lastSeen } = (await cacheService.getObject({
       keys: { id },
       getter: async () =>
