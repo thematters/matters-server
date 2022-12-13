@@ -11,6 +11,18 @@ exports.seed = function (knex, Promise) {
         {
           content: 'article',
         },
+        {
+          content: 'tag',
+        },
+        {
+          content: 'tag1',
+        },
+        {
+          content: 'tag2',
+        },
+        {
+          content: 'tag3',
+        },
       ])
     })
 }

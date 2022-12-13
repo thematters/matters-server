@@ -670,7 +670,6 @@ export class TagService extends BaseService {
     }
   }
 
-  // TODO:
   searchV1 = async ({
     key,
     take,
@@ -685,7 +684,48 @@ export class TagService extends BaseService {
     includeAuthorTags?: boolean
     viewerId?: string | null
   }) => {
-    return { nodes: [], totalCount: 0 }
+    const _key =
+      key.startsWith('#') || key.startsWith('＃') ? key.slice(1) : key
+
+    if (!_key) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    const mattyChoiceTagIds = environment.mattyChoiceTagId
+      ? [environment.mattyChoiceTagId]
+      : []
+
+    // search from original tags but return duplicate free tags
+    const queryIds = this.knex('search_index.tag')
+      .select('id')
+      .whereLike('content', `%${_key}%`)
+    const queryTags = this.knex
+      .select(
+        'id',
+        'content',
+        'description',
+        'num_articles',
+        'num_authors',
+        'created_at'
+      )
+      .from(VIEW.tags_lasts_view)
+      .whereIn('id', queryIds)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder.whereNotIn('id', mattyChoiceTagIds)
+      })
+      .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+      .orderBy('num_articles', 'desc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    const nodes = await queryTags
+    return { nodes, totalCount: nodes.length }
   }
 
   /*********************************

@@ -2,6 +2,7 @@ import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
+import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
@@ -581,7 +582,6 @@ export class UserService extends BaseService {
     }
   }
 
-  // TODO:
   searchV1 = async ({
     key,
     take,
@@ -600,7 +600,49 @@ export class UserService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    return { nodes: [], totalCount: 0 }
+    const displayName = key
+    const userName =
+      key.startsWith('@') || key.startsWith('＠') ? key.slice(1) : key
+
+    if (!userName) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    const baseQuery = this.knex('search_index.user')
+      .select('id')
+      .whereLike('display_name', `%${displayName}%`)
+      .orWhereLike('user_name', `%${userName}%`)
+      .orderByRaw('display_name = ? DESC', [displayName])
+      .orderByRaw('user_name = ? DESC', [userName])
+      .orderByRaw('display_name ~ ? DESC', [displayName])
+      .orderByRaw('num_followers DESC NULLS LAST')
+
+    let query
+    if (exclude === GQLSearchExclude.blocked && viewerId) {
+      query = this.knex
+        .select('result.id')
+        .from(baseQuery.as('result'))
+        .whereNotIn(
+          'result.id',
+          this.knex('action_user')
+            .select('user_id')
+            .where({ action: USER_ACTION.block, targetId: viewerId })
+        )
+    } else {
+      query = baseQuery
+    }
+    query.modify((builder: Knex.QueryBuilder) => {
+      if (skip !== undefined && Number.isFinite(skip)) {
+        builder.offset(skip)
+      }
+      if (take !== undefined && Number.isFinite(take)) {
+        builder.limit(take)
+      }
+    })
+
+    const res = await query
+    const nodes = await this.baseFindByIds(res.map(({ id }) => id))
+    return { nodes, totalCount: nodes.length }
   }
 
   findRecentSearches = async (userId: string) => {

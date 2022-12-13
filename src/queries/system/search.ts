@@ -8,6 +8,7 @@ import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
+  normalizeQueryInput,
 } from 'common/utils'
 import {
   GQLNode,
@@ -62,6 +63,8 @@ const resolverV1: QueryToSearchResolver = async (
     User: userService,
     Tag: tagService,
   }
+
+  input.key = await normalizeQueryInput(input.key)
 
   const connection = await serviceMap[input.type]
     .searchV1({ ...input, take, skip, viewerId: viewer.id })
