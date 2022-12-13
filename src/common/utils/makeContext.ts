@@ -52,7 +52,7 @@ export const makeContext = async ({
   // record user visiting timestamp
   if (viewer.id) {
     const userService = new UserService()
-    userService.updateVisitedAt(viewer.id)
+    userService.updateLastSeen(viewer.id)
   }
 
   // Add user info for Sentry

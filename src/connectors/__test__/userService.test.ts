@@ -196,35 +196,37 @@ describe('searchV1', () => {
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)
+  })
+})
 
-describe('updateVisitedAt', () => {
+describe('updateLastSeen', () => {
   test('do not update during threshold', async () => {
     const id = '1'
-    const { visitedAt: last } = await userService
+    const { lastSeen: last } = await userService
       .knex('public.user')
-      .select('visited_at')
+      .select('last_seen')
       .where({ id })
       .first()
-    await userService.updateVisitedAt(id)
-    const { visitedAt: now } = await userService
+    await userService.updateLastSeen(id)
+    const { lastSeen: now } = await userService
       .knex('public.user')
-      .select('visited_at')
+      .select('last_seen')
       .where({ id })
       .first()
     expect(last).toStrictEqual(now)
-    await userService.updateVisitedAt(id)
+    await userService.updateLastSeen(id)
   })
   test('update beyond threshold', async () => {
     const id = '2'
-    const { visitedAt: last } = await userService
+    const { lastSeen: last } = await userService
       .knex('public.user')
-      .select('visited_at')
+      .select('last_seen')
       .where({ id })
       .first()
-    await userService.updateVisitedAt(id, 1)
-    const { visitedAt: now } = await userService
+    await userService.updateLastSeen(id, 1)
+    const { lastSeen: now } = await userService
       .knex('public.user')
-      .select('visited_at')
+      .select('last_seen')
       .where({ id })
       .first()
     expect(last).not.toStrictEqual(now)
