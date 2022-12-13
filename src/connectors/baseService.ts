@@ -18,6 +18,7 @@ export class BaseService extends DataSource {
   constructor(table: TableName) {
     super()
     this.es = es
+    this.meili = meiliClient
     this.knex = knex
     this.table = table
     this.aws = aws

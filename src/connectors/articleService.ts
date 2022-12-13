@@ -904,8 +904,8 @@ export class ArticleService extends BaseService {
 
   searchV1 = async ({
     key,
-    take,
-    skip,
+    take = 10,
+    skip = 0,
     oss = false,
     filter,
     exclude,
@@ -920,7 +920,9 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    const res = await this.meili.index('articles').search(key, { limit: 100 })
+    const res = await this.meili
+      .index('articles')
+      .search(key, { limit: take, offset: skip })
     const nodes = (await this.draftLoader.loadMany(
       res.hits?.map(({ id }) => id)
     )) as Item[]
