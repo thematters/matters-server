@@ -26,14 +26,16 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
   const contract = environment.traveloggersContractAddress
-  const network = AlchemyNetwork.Mainnet
-  const assets = await cacheService.getObject({
-    keys: { type: 'traveloggers', id: owner },
-    getter: () => alchemy.getNFTs({ owner, contract, network }),
-    expire: CACHE_TTL.LONG,
-  })
+  const withMetadata = true
 
-  return Array.isArray(assets) && assets.length > 0
+  const network = AlchemyNetwork.Mainnet
+  const assets = (await cacheService.getObject({
+    keys: { type: 'traveloggers', id: owner },
+    getter: () => alchemy.getNFTs({ owner, contract, network, withMetadata }),
+    expire: CACHE_TTL.LONG,
+  })) as any
+
+  return Array.isArray(assets?.ownedNfts) && assets.ownedNfts.length > 0
 }
 
 export const nfts: CryptoWalletToNftsResolver = async (
@@ -41,25 +43,21 @@ export const nfts: CryptoWalletToNftsResolver = async (
   _,
   { dataSources: { userService } }
 ) => {
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
   const contract = environment.traveloggersContractAddress
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
-  const assets = await alchemy.getNFTs({
-    owner,
-    network,
-    contract,
-    withMetadata,
-  })
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
-  await cacheService.storeObject({
-    keys: { type: 'traveloggers', id: owner },
-    data: assets,
-    expire: CACHE_TTL.LONG,
-  })
 
-  return assets.ownedNfts.map(
+  const assets = (await cacheService.getObject({
+    keys: { type: 'traveloggers', id: owner },
+    getter: () => alchemy.getNFTs({ owner, network, contract, withMetadata }),
+    expire: CACHE_TTL.LONG,
+  })) as any
+
+  return (assets?.ownedNfts || []).map(
     ({ id, description, title, contractMetadata, media }: OpenSeaNFTAsset) => ({
       id: toGlobalId({
         type: NODE_TYPES.CryptoWalletNFTAsset,
