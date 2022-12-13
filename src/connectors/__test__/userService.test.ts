@@ -209,3 +209,37 @@ describe('searchV1', () => {
     expect(res3.totalCount).toBe(6)
   })
 })
+
+describe('updateLastSeen', () => {
+  test('do not update during threshold', async () => {
+    const id = '1'
+    const { lastSeen: last } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    await userService.updateLastSeen(id)
+    const { lastSeen: now } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    expect(last).toStrictEqual(now)
+    await userService.updateLastSeen(id)
+  })
+  test('update beyond threshold', async () => {
+    const id = '2'
+    const { lastSeen: last } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    await userService.updateLastSeen(id, 1)
+    const { lastSeen: now } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    expect(last).not.toStrictEqual(now)
+  })
+})

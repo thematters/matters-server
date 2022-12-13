@@ -10,8 +10,10 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
+  CACHE_PREFIX,
   CIRCLE_ACTION,
   COMMENT_STATE,
+  HOUR,
   MATERIALIZED_VIEW,
   PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -41,7 +43,13 @@ import {
   isValidUserName,
   makeUserName,
 } from 'common/utils'
-import { AtomService, BaseService, ipfsServers, OAuthService } from 'connectors'
+import {
+  AtomService,
+  BaseService,
+  CacheService,
+  ipfsServers,
+  OAuthService,
+} from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -1820,5 +1828,26 @@ export class UserService extends BaseService {
         privKeyName: kname,
       },
     })
+  }
+
+  /*********************************
+   *                               *
+   *            Misc               *
+   *                               *
+   *********************************/
+  updateLastSeen = async (id: string, threshold = HOUR) => {
+    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const { lastSeen } = (await cacheService.getObject({
+      keys: { id },
+      getter: async () =>
+        this.knex(this.table).select('last_seen').where({ id }).first(),
+      expire: Math.ceil(threshold / 1000),
+    })) as any
+    const last = new Date(lastSeen)
+    const now = new Date()
+    const delta = +now - +last
+    if (delta > threshold) {
+      await this.knex(this.table).update('last_seen', now).where({ id })
+    }
   }
 }
