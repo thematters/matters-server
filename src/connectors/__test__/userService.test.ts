@@ -155,7 +155,6 @@ describe('searchV1', () => {
           .select('num_followers')
       )[0].numFollowers || 0
     const res = await userService.searchV1({ key: 'test', take: 3, skip: 0 })
-    expect(res.totalCount).toBe(3)
     expect(await getNumFollowers(res.nodes[0].id)).toBeGreaterThanOrEqual(
       await getNumFollowers(res.nodes[1].id)
     )
@@ -197,5 +196,16 @@ describe('searchV1', () => {
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)
+  })
+  test('right totalCount with take and skip', async () => {
+    const res1 = await userService.searchV1({ key: 'test', take: 10, skip: 0 })
+    expect(res1.nodes.length).toBe(6)
+    expect(res1.totalCount).toBe(6)
+    const res2 = await userService.searchV1({ key: 'test', take: 1, skip: 0 })
+    expect(res2.nodes.length).toBe(1)
+    expect(res2.totalCount).toBe(6)
+    const res3 = await userService.searchV1({ key: 'test', take: 10, skip: 1 })
+    expect(res3.nodes.length).toBe(5)
+    expect(res3.totalCount).toBe(6)
   })
 })
