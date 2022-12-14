@@ -672,20 +672,26 @@ export class TagService extends BaseService {
 
   searchV1 = async ({
     key,
+    keyOriginal,
     take,
     skip,
     includeAuthorTags,
     viewerId,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
     includeAuthorTags?: boolean
     viewerId?: string | null
   }) => {
-    const _key =
-      key.startsWith('#') || key.startsWith('＃') ? key.slice(1) : key
+    console.log(new Date(), `searchV1 tag got search key:`, {
+      key,
+      keyOriginal,
+    })
+    const strip0 = key.startsWith('#') || key.startsWith('＃')
+    const _key = strip0 ? key.slice(1) : key
 
     if (!_key) {
       return { nodes: [], totalCount: 0 }
@@ -699,6 +705,12 @@ export class TagService extends BaseService {
     const queryIds = this.knex('search_index.tag')
       .select('id')
       .whereLike('content', `%${_key}%`)
+      .orWhere((builder: Knex.QueryBuilder) => {
+        if (keyOriginal) {
+          builder.orWhereLike('content', `%${keyOriginal}%`)
+        }
+      })
+
     const queryTags = this.knex
       .select(
         this.knex.raw(
@@ -709,6 +721,11 @@ export class TagService extends BaseService {
       .whereIn('id', queryIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder.whereNotIn('id', mattyChoiceTagIds)
+      })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (keyOriginal) {
+          builder.orderByRaw('content = ? DESC', [keyOriginal]) // always show original key before normalized exact match at first
+        }
       })
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
       .orderBy('num_articles', 'desc')

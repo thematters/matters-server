@@ -904,6 +904,7 @@ export class ArticleService extends BaseService {
 
   searchV1 = async ({
     key,
+    keyOriginal,
     take = 10,
     skip = 0,
     oss = false,
@@ -912,6 +913,7 @@ export class ArticleService extends BaseService {
     viewerId,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -920,16 +922,23 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    const res = await this.meili.index('articles').search(key, {
+    console.log(new Date(), `meilisearch got search key:`, {
+      key,
+      keyOriginal,
+    })
+    const { hits, ...rest } = await this.meili.index('articles').search(key, {
       limit: take,
       offset: skip,
-      filter: ['articleId != null', 'state = active'],
+      filter: [
+        // 'articleId != null',
+        'state = active',
+      ],
     })
-    const { hits, ...rest } = res
-    console.log(new Date(), 'meilisearch res:', rest)
+    // const { hits, ...rest } = res
+    console.log(new Date(), `meilisearch got ${hits.length} res:`, rest)
 
     const nodes = (await this.draftLoader.loadMany(
-      hits?.map(({ id }) => id)
+      hits?.map(({ articleId }) => articleId).filter(Boolean)
     )) as Item[]
     // const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
     // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }

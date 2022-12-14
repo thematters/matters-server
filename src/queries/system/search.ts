@@ -64,10 +64,11 @@ const resolverV1: QueryToSearchResolver = async (
     Tag: tagService,
   }
 
-  input.key = await normalizeQueryInput(input.key)
+  const keyOriginal = input.key
+  input.key = await normalizeQueryInput(keyOriginal)
 
   const connection = await serviceMap[input.type]
-    .searchV1({ ...input, take, skip, viewerId: viewer.id })
+    .searchV1({ ...input, keyOriginal, take, skip, viewerId: viewer.id })
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
       return {
