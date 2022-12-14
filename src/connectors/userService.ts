@@ -592,6 +592,7 @@ export class UserService extends BaseService {
 
   searchV1 = async ({
     key,
+    // keyNormalized,
     take,
     skip,
     oss = false,
@@ -600,6 +601,7 @@ export class UserService extends BaseService {
     viewerId,
   }: {
     key: string
+    // keyNormalized: string
     author?: string
     take: number
     skip: number
