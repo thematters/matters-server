@@ -218,13 +218,14 @@ describe('updateLastSeen', () => {
       .select('last_seen')
       .where({ id })
       .first()
+    expect(last).toStrictEqual(null)
     await userService.updateLastSeen(id)
-    const { lastSeen: now } = await userService
+    const { lastSeen: last2 } = await userService
       .knex('public.user')
       .select('last_seen')
       .where({ id })
       .first()
-    expect(last).toStrictEqual(now)
+    expect(last2).not.toStrictEqual(null)
     await userService.updateLastSeen(id)
   })
   test('update beyond threshold', async () => {

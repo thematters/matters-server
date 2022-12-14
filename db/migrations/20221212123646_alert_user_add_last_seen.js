@@ -5,7 +5,7 @@ const column = 'last_seen'
 
 exports.up = async (knex) => {
   await knex.schema.table(table, (t) => {
-    t.timestamp(column).defaultTo(knex.fn.now())
+    t.timestamp(column) // default to NULL // .defaultTo(knex.fn.now())
   })
 }
 
