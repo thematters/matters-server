@@ -18,14 +18,14 @@ import { GQLChain } from 'definitions'
 import { createDonationTx } from './utils'
 
 // setup mock
-//jest.mock('connectors', () => {
+// jest.mock('connectors', () => {
 //  return {
 //    __esModule: true,
 //    mailService: {
 //      send: jest.fn(),
 //    },
 //  }
-//})
+// })
 
 // helpers
 
