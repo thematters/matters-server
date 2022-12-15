@@ -1,5 +1,7 @@
-import { USER_ACTION } from 'common/enums'
-import { UserService } from 'connectors'
+import Redis from 'ioredis'
+
+import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
+import { CacheService, UserService } from 'connectors'
 import { GQLSearchExclude } from 'definitions'
 
 import { createDonationTx } from './utils'
@@ -211,36 +213,54 @@ describe('searchV1', () => {
 })
 
 describe('updateLastSeen', () => {
+  const getLastseen = async (id: string) => {
+    const { lastSeen } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    return lastSeen
+  }
   test('do not update during threshold', async () => {
     const id = '1'
-    const { lastSeen: last } = await userService
-      .knex('public.user')
-      .select('last_seen')
-      .where({ id })
-      .first()
-    expect(last).toStrictEqual(null)
-    await userService.updateLastSeen(id)
-    const { lastSeen: last2 } = await userService
-      .knex('public.user')
-      .select('last_seen')
-      .where({ id })
-      .first()
-    expect(last2).not.toStrictEqual(null)
-    await userService.updateLastSeen(id)
+
+    const last1 = await getLastseen(id)
+    expect(last1).toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+
+    const last2 = await getLastseen(id)
+    expect(last2).not.toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+
+    const last3 = await getLastseen(id)
+    expect(last3).toStrictEqual(last2)
   })
   test('update beyond threshold', async () => {
     const id = '2'
-    const { lastSeen: last } = await userService
-      .knex('public.user')
-      .select('last_seen')
-      .where({ id })
-      .first()
+
+    const last = await getLastseen(id)
+
     await userService.updateLastSeen(id, 1)
-    const { lastSeen: now } = await userService
-      .knex('public.user')
-      .select('last_seen')
-      .where({ id })
-      .first()
-    expect(last).not.toStrictEqual(now)
+
+    const now = await getLastseen(id)
+    expect(now).not.toStrictEqual(last)
+  })
+  test('caching', async () => {
+    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const redisGet = async (_id: string) =>
+      (cacheService.redis.client as Redis.Redis).get(
+        cacheService.genKey({ id: _id })
+      )
+    const id = '3'
+
+    await userService.updateLastSeen(id, 1000)
+    const data1 = await redisGet(id)
+    expect(data1).toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+    const data2 = await redisGet(id)
+    expect(data2).not.toBeNull()
   })
 })

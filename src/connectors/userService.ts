@@ -1837,13 +1837,18 @@ export class UserService extends BaseService {
    *********************************/
   updateLastSeen = async (id: string, threshold = HOUR) => {
     const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
-    const { lastSeen } = (await cacheService.getObject({
+    const _lastSeen = (await cacheService.getObject({
       keys: { id },
-      getter: async () =>
-        this.knex(this.table).select('last_seen').where({ id }).first(),
+      getter: async () => {
+        const { lastSeen } = await this.knex(this.table)
+          .select('last_seen')
+          .where({ id })
+          .first()
+        return lastSeen
+      },
       expire: Math.ceil(threshold / 1000),
     })) as any
-    const last = new Date(lastSeen)
+    const last = new Date(_lastSeen)
     const now = new Date()
     const delta = +now - +last
     if (delta > threshold) {
