@@ -920,13 +920,11 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    const res = await this.meili
-      .index('articles')
-      .search(key, {
-        limit: take,
-        offset: skip,
-        filter: ['articleId != null', 'state = active'],
-      })
+    const res = await this.meili.index('articles').search(key, {
+      limit: take,
+      offset: skip,
+      filter: ['articleId != null', 'state = active'],
+    })
     const { hits, ...rest } = res
     console.log(new Date(), 'meilisearch res:', rest)
 
