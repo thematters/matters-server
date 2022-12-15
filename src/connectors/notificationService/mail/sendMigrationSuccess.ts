@@ -1,6 +1,6 @@
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
-import { notificationQueue } from 'connectors/queue/notification'
+import { mailService } from 'connectors'
 import { LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
@@ -18,7 +18,7 @@ export const sendMigrationSuccess = async ({
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.migrationSuccess[language]
-  notificationQueue.sendMail({
+  await mailService.send({
     from: environment.emailFromAsk as string,
     templateId,
     personalizations: [

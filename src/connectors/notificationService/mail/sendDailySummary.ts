@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { DB_NOTICE_TYPE, EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
-import { notificationQueue } from 'connectors/queue/notification'
+import { mailService } from 'connectors'
 import { LANGUAGES, NoticeItem } from 'definitions'
 
 import {
@@ -138,7 +138,7 @@ export const sendDailySummary = async ({
   //   )
   // )
 
-  notificationQueue.sendMail({
+  await mailService.send({
     from: environment.emailFromAsk as string,
     templateId,
     personalizations: [

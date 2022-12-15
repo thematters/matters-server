@@ -1,6 +1,6 @@
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
-import { notificationQueue } from 'connectors/queue/notification'
+import { mailService } from 'connectors'
 import { LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
@@ -28,7 +28,7 @@ export const sendAssignAsTagEditor = async ({
   }
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.assignAsTagEditor[language]
-  notificationQueue.sendMail({
+  await mailService.send({
     from: environment.emailFromAsk as string,
     templateId,
     personalizations: [

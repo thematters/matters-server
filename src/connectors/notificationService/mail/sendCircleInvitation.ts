@@ -1,6 +1,6 @@
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
-import { notificationQueue } from 'connectors/queue/notification'
+import { mailService } from 'connectors'
 import { GQLVerificationCodeType, LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
@@ -41,7 +41,7 @@ export const sendCircleInvitation = async ({
     ? undefined
     : `${environment.siteDomain}/~${circle.name}`
 
-  notificationQueue.sendMail({
+  await mailService.send({
     from: environment.emailFromAsk as string,
     templateId,
     personalizations: [

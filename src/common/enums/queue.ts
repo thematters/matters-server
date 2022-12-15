@@ -15,9 +15,6 @@ export const QUEUE_JOB = {
   // refresh IPNS Feed
   refreshIPNSFeed: 'refreshIPNSFeed',
 
-  // Notification
-  sendMail: 'sendMail',
-
   // LikeCoin
   like: 'likeCoinLike',
   sendPV: 'likeCoinSendPV',
@@ -77,7 +74,6 @@ export const QUEUE_JOB = {
 }
 
 export const QUEUE_NAME = {
-  notification: 'notification',
   publication: 'publication',
   emails: 'emails',
   refreshViews: 'refreshViews',

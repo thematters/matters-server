@@ -62,7 +62,6 @@ export const environment = {
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
-  sgKey: process.env.MATTERS_SENDGRID_API_KEY,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
