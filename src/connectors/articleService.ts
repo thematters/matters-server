@@ -1,3 +1,5 @@
+// import type { SearchTotalHits } from '@elastic/elasticsearch'
+
 import {
   ArticlePageContext,
   makeArticlePage,
@@ -858,6 +860,8 @@ export class ArticleService extends BaseService {
         if (excludeBlocked) {
           items = items.filter((item) => !blockedIds.includes(item.authorId))
         }
+
+        // TODO: check totalCount
         return { nodes: items, totalCount: items.length }
       }
 
@@ -875,20 +879,29 @@ export class ArticleService extends BaseService {
         index: this.table,
         body: searchBody.build(),
       })
-      const { hits } = body
+      const { hits, ...rest } = body
       const ids = idsByTitle.concat(
         hits.hits.map(({ _id }: { _id: any }) => _id)
       )
 
-      let nodes = (await this.draftLoader.loadMany(ids)) as Array<
-        Record<string, any>
-      >
+      let nodes = (await this.draftLoader.loadMany(ids)) as Item[]
 
       if (excludeBlocked) {
         nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
       }
 
-      return { nodes, totalCount: nodes.length }
+      console.log(
+        new Date(),
+        'searchBody:',
+        JSON.stringify(searchBody.build()),
+        `elasticsearch got ${hits?.hits?.length} from res:`,
+        JSON.stringify(hits?.total),
+        JSON.stringify(rest)
+      )
+
+      // TODO: check totalCount
+      // error TS2339: Property 'value' does not exist on type 'number | SearchTotalHits'.
+      return { nodes, totalCount: (hits?.total as any)?.value ?? nodes.length }
     } catch (err) {
       console.error(
         new Date(),
@@ -922,30 +935,46 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    console.log(new Date(), `meilisearch got search key:`, {
-      key,
-      keyOriginal,
-    })
-    const { hits, ...rest } = await this.meili.index('articles').search(key, {
-      limit: take,
-      offset: skip,
-      filter: [
-        // 'articleId != null',
-        'state = active',
-      ],
-    })
-    // const { hits, ...rest } = res
-    console.log(new Date(), `meilisearch got ${hits.length} res:`, rest)
+    // console.log(new Date(), `meilisearch got search key:`, {key, keyOriginal,})
 
-    const nodes = (await this.draftLoader.loadMany(
-      hits?.map(({ articleId }) => articleId).filter(Boolean)
+    // gather users that blocked viewer
+    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    let blockedIds: string[] = []
+    if (excludeBlocked) {
+      blockedIds = (
+        await this.knex('action_user')
+          .select('user_id')
+          .where({ action: USER_ACTION.block, targetId: viewerId })
+      ).map(({ userId }) => userId)
+    }
+
+    const { hits, ...rest } = await this.meili
+      .index('articles')
+      .search(keyOriginal, {
+        limit: take,
+        offset: skip,
+        filter: [
+          // 'articleId != null',
+          'state = active',
+        ],
+      })
+
+    let nodes = (await this.draftLoader.loadMany(
+      hits.map(({ articleId }) => articleId).filter(Boolean)
     )) as Item[]
-    // const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
-    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
 
-    console.log(new Date(), `meilisearch got ${nodes.length} drafts:`, nodes)
+    if (excludeBlocked) {
+      nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
+    }
 
-    return { nodes, totalCount: nodes.length }
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `meilisearch got ${hits.length} from res:`,
+      JSON.stringify(rest)
+    )
+
+    return { nodes, totalCount: rest?.estimatedTotalHits ?? nodes.length }
   }
 
   /*********************************
