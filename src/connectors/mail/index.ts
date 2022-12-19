@@ -20,7 +20,12 @@ class MailService {
       return
     }
 
-    await this.mail.send(params)
+    await this.mail.send({
+      mailSettings: {
+        bypassListManagement: { enable: true },
+      },
+      ...params,
+    })
   }
 }
 
