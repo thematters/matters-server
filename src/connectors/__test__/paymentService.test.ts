@@ -7,10 +7,26 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { PaymentService } from 'connectors'
+import { ArticleService, PaymentService, UserService } from 'connectors'
+import { notificationQueue } from 'connectors/queue/notification'
 import { GQLChain } from 'definitions'
 
+import { createDonationTx } from './utils'
+
+// setup mock
+jest.mock('connectors/queue/notification', () => {
+  return {
+    __esModule: true,
+    notificationQueue: {
+      sendMail: jest.fn(),
+    },
+  }
+})
+
+// services
+
 const paymentService = new PaymentService()
+const userService = new UserService()
 
 // helpers
 
@@ -270,5 +286,40 @@ describe('Transaction CRUD', () => {
     expect(HKDTxs.map((tx) => tx.id)).not.toContain(donateLikeTx.id)
     expect(HKDTxs.map((tx) => tx.id)).toContain(payoutHKDTx.id)
     expect(HKDTxs.map((tx) => tx.id)).not.toContain(canceledLikeTx.id)
+  })
+})
+
+describe('notifyDonation', () => {
+  test('donationCount value is correct', async () => {
+    const getDonationCount = () =>
+      // @ts-ignore
+      notificationQueue.sendMail.mock.calls[0][0].personalizations[0]
+        .dynamic_template_data.tx.donationCount
+
+    const articleService = new ArticleService()
+    const sender = await userService.create({
+      userName: 'sender',
+      email: 'sender@example.com',
+    })
+    const recipient = await userService.create({
+      userName: 'recipient',
+      email: 'recipient@example.com',
+    })
+    const tx = await createDonationTx({
+      senderId: sender.id,
+      recipientId: recipient.id,
+    })
+    const article = await articleService.baseFindById('1')
+    await paymentService.notifyDonation({ tx, sender, recipient, article })
+    expect(getDonationCount()).toBe(1)
+
+    // @ts-ignore
+    notificationQueue.sendMail.mockClear()
+    const tx2 = await createDonationTx({
+      senderId: sender.id,
+      recipientId: recipient.id,
+    })
+    await paymentService.notifyDonation({ tx: tx2, sender, recipient, article })
+    expect(getDonationCount()).toBe(2)
   })
 })

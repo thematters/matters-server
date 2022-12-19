@@ -1070,6 +1070,7 @@ export class PaymentService extends BaseService {
       hasReplyToDonator,
     }
 
+    const donationCount = await this.donationCount(sender.id)
     await notificationService.mail.sendPayment({
       to: sender.email,
       recipient: {
@@ -1083,6 +1084,7 @@ export class PaymentService extends BaseService {
         sender,
         amount,
         currency: tx.currency,
+        donationCount,
       },
     })
 
@@ -1114,5 +1116,19 @@ export class PaymentService extends BaseService {
       },
       article: _article,
     })
+  }
+  private donationCount = async (senderId: string) => {
+    const result = await this.knex('transaction')
+      .where({
+        senderId,
+        purpose: TRANSACTION_PURPOSE.donation,
+        state: TRANSACTION_STATE.succeeded,
+      })
+      .count()
+
+    if (!result || !result[0]) {
+      return 0
+    }
+    return parseInt(`${result[0].count}` || '0', 10)
   }
 }

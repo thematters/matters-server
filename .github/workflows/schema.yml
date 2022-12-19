@@ -26,17 +26,19 @@ jobs:
         id: version
         uses: martinbeentjes/npm-get-version-action@master
 
-      - name: Cache Dependencies
-        id: cache
-        uses: actions/cache@v2
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        id: node_modules_cache
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          path: node_modules
+          key: ${{ runner.os }}-npm-v3-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
-        run: npm ci --force && npm install --force @apollo/rover
+        if: steps.node_modules_cache.outputs.cache-hit != 'true'
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Apollo Rover
+        run: npm install --force @apollo/rover
 
       - name: Push Schema (develop)
         if: github.base_ref == 'develop'

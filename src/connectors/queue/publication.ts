@@ -226,8 +226,8 @@ class PublicationQueue extends BaseQueue {
         )
         job.progress(75)
 
-        // Step 6: add to search
-        await this.articleService.addToSearch({
+        // Step 6: add to search; async
+        this.articleService.addToSearch({
           id: article.id,
           title: draft.title,
           content: draft.content,
@@ -365,7 +365,31 @@ class PublicationQueue extends BaseQueue {
           MessageBody: {
             articleId: article.id,
             title: article.title,
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
+            dataHash: article.dataHash,
+            mediaHash: article.mediaHash,
+
+            // ipns info:
+            ipnsKey: ipnsRes?.ipnsKey,
+            lastDataHash: ipnsRes?.lastDataHash,
+
+            // author info:
+            userName,
+            displayName,
+          },
+        })
+        .catch((err: Error) =>
+          console.error(new Date(), 'failed sqs notify:', err)
+        )
+
+      // no await to notify async
+      this.atomService.aws
+        .snsPublishMessage({
+          // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+          MessageBody: {
+            articleId: article.id,
+            title: article.title,
+            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
             dataHash: article.dataHash,
             mediaHash: article.mediaHash,
 
@@ -380,7 +404,7 @@ class PublicationQueue extends BaseQueue {
         })
         // .then(res => {})
         .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
+          console.error(new Date(), 'failed sns notify:', err)
         )
 
       done(null, {

@@ -39,7 +39,7 @@ import {
   // stripAllPunct,
   stripClass,
 } from 'common/utils'
-import { revisionQueue } from 'connectors/queue'
+import { publicationQueue, revisionQueue } from 'connectors/queue'
 import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
@@ -111,6 +111,10 @@ const resolver: MutationToEditArticleResolver = async (
   }
   if (state === ARTICLE_STATE.archived) {
     await articleService.archive(dbId)
+
+    // refresh after archived any article
+    const author = await userService.baseFindById(article.authorId)
+    publicationQueue.refreshIPNSFeed({ userName: author.userName })
   }
 
   /**

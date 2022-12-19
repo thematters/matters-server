@@ -262,7 +262,7 @@ export class TagService extends BaseService {
 
     // add tag into search engine
     if (tag) {
-      await this.addToSearch({
+      this.addToSearch({
         id: tag.id,
         content: tag.content,
         description: tag.description,
@@ -558,6 +558,7 @@ export class TagService extends BaseService {
     }
   }
 
+  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     take,
@@ -667,6 +668,79 @@ export class TagService extends BaseService {
       // console.error(new Date(), 'ERROR:', err)
       throw new ServerError('tag search failed')
     }
+  }
+
+  searchV1 = async ({
+    key,
+    keyOriginal,
+    take,
+    skip,
+    includeAuthorTags,
+    viewerId,
+  }: {
+    key: string
+    keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    includeAuthorTags?: boolean
+    viewerId?: string | null
+  }) => {
+    console.log(new Date(), `searchV1 tag got search key:`, {
+      key,
+      keyOriginal,
+    })
+    const strip0 = key.startsWith('#') || key.startsWith('＃')
+    const _key = strip0 ? key.slice(1) : key
+
+    if (!_key) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    const mattyChoiceTagIds = environment.mattyChoiceTagId
+      ? [environment.mattyChoiceTagId]
+      : []
+
+    // search from original tags but return duplicate free tags
+    const queryIds = this.knex('search_index.tag')
+      .select('id')
+      .whereLike('content', `%${_key}%`)
+      .orWhere((builder: Knex.QueryBuilder) => {
+        if (keyOriginal) {
+          builder.orWhereLike('content', `%${keyOriginal}%`)
+        }
+      })
+
+    const queryTags = this.knex
+      .select(
+        this.knex.raw(
+          'id, content, description, num_articles, num_authors, created_at, count(id) OVER() AS total_count'
+        )
+      )
+      .from(VIEW.tags_lasts_view)
+      .whereIn('id', queryIds)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder.whereNotIn('id', mattyChoiceTagIds)
+      })
+      .modify((builder: Knex.QueryBuilder) => {
+        if (keyOriginal) {
+          builder.orderByRaw('content = ? DESC', [keyOriginal]) // always show original key before normalized exact match at first
+        }
+      })
+      .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+      .orderBy('num_articles', 'desc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    const nodes = await queryTags
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    return { nodes, totalCount }
   }
 
   /*********************************
@@ -1100,7 +1174,7 @@ export class TagService extends BaseService {
     const newTag = await this.create({ content, creator, editors, owner })
 
     // add tag into search engine
-    await this.addToSearch({
+    this.addToSearch({
       id: newTag.id,
       content: newTag.content,
       description: newTag.description,

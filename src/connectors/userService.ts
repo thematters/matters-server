@@ -2,6 +2,7 @@ import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
+import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
@@ -9,8 +10,10 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
+  CACHE_PREFIX,
   CIRCLE_ACTION,
   COMMENT_STATE,
+  HOUR,
   MATERIALIZED_VIEW,
   PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -40,7 +43,13 @@ import {
   isValidUserName,
   makeUserName,
 } from 'common/utils'
-import { AtomService, BaseService, ipfsServers, OAuthService } from 'connectors'
+import {
+  AtomService,
+  BaseService,
+  CacheService,
+  ipfsServers,
+  OAuthService,
+} from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -122,7 +131,7 @@ export class UserService extends BaseService {
     )
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    await this.addToSearch(user)
+    this.addToSearch(user)
 
     return user
   }
@@ -491,6 +500,7 @@ export class UserService extends BaseService {
     }
   }
 
+  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     take,
@@ -578,6 +588,78 @@ export class UserService extends BaseService {
       logger.error(err)
       throw new ServerError('search failed')
     }
+  }
+
+  searchV1 = async ({
+    key,
+    // keyNormalized,
+    take,
+    skip,
+    oss = false,
+    filter,
+    exclude,
+    viewerId,
+  }: {
+    key: string
+    // keyNormalized: string
+    author?: string
+    take: number
+    skip: number
+    oss?: boolean
+    filter?: Record<string, any>
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+  }) => {
+    const displayName = key
+    const userName =
+      key.startsWith('@') || key.startsWith('＠') ? key.slice(1) : key
+
+    if (!userName) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    const baseQuery = this.knex('search_index.user')
+      .select('id')
+      .whereLike('display_name', `%${displayName}%`)
+      .orWhereLike('user_name', `%${userName}%`)
+      .orderByRaw('display_name = ? DESC', [displayName])
+      .orderByRaw('user_name = ? DESC', [userName])
+      .orderByRaw('display_name ~ ? DESC', [displayName])
+      .orderByRaw('num_followers DESC NULLS LAST')
+
+    let query
+    if (exclude === GQLSearchExclude.blocked && viewerId) {
+      query = this.knex
+        .select(
+          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
+        )
+        .from(baseQuery.as('result'))
+        .whereNotIn(
+          'result.id',
+          this.knex('action_user')
+            .select('user_id')
+            .where({ action: USER_ACTION.block, targetId: viewerId })
+        )
+    } else {
+      query = this.knex
+        .select(
+          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
+        )
+        .from(baseQuery.as('result'))
+    }
+    query.modify((builder: Knex.QueryBuilder) => {
+      if (skip !== undefined && Number.isFinite(skip)) {
+        builder.offset(skip)
+      }
+      if (take !== undefined && Number.isFinite(take)) {
+        builder.limit(take)
+      }
+    })
+
+    const records = await query
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const nodes = await this.baseFindByIds(records.map(({ id }) => id))
+    return { nodes, totalCount }
   }
 
   findRecentSearches = async (userId: string) => {
@@ -1748,5 +1830,31 @@ export class UserService extends BaseService {
         privKeyName: kname,
       },
     })
+  }
+
+  /*********************************
+   *                               *
+   *            Misc               *
+   *                               *
+   *********************************/
+  updateLastSeen = async (id: string, threshold = HOUR) => {
+    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const _lastSeen = (await cacheService.getObject({
+      keys: { id },
+      getter: async () => {
+        const { lastSeen } = await this.knex(this.table)
+          .select('last_seen')
+          .where({ id })
+          .first()
+        return lastSeen
+      },
+      expire: Math.ceil(threshold / 1000),
+    })) as any
+    const last = new Date(_lastSeen)
+    const now = new Date()
+    const delta = +now - +last
+    if (delta > threshold) {
+      await this.knex(this.table).update('last_seen', now).where({ id })
+    }
   }
 }

@@ -1,4 +1,8 @@
-import { UserService } from 'connectors'
+import Redis from 'ioredis'
+
+import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
+import { CacheService, UserService } from 'connectors'
+import { GQLSearchExclude } from 'definitions'
 
 import { createDonationTx } from './utils'
 
@@ -127,5 +131,136 @@ describe('countDonators', () => {
       end: tx4.createdAt,
     })
     expect(count5).toBe(1)
+  })
+})
+
+describe('searchV1', () => {
+  test('empty result', async () => {
+    const res = await userService.searchV1({
+      key: 'not-exist',
+      take: 1,
+      skip: 0,
+    })
+    expect(res.totalCount).toBe(0)
+  })
+  test('prefer exact match', async () => {
+    const res = await userService.searchV1({ key: 'test1', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(2)
+    expect(res.nodes[0].userName).toBe('test1')
+  })
+  test('prefer more num_followers', async () => {
+    const getNumFollowers = async (id: string) =>
+      (
+        await userService
+          .knex('search_index.user')
+          .where({ id })
+          .select('num_followers')
+      )[0].numFollowers || 0
+    const res = await userService.searchV1({ key: 'test', take: 3, skip: 0 })
+    expect(await getNumFollowers(res.nodes[0].id)).toBeGreaterThanOrEqual(
+      await getNumFollowers(res.nodes[1].id)
+    )
+    expect(await getNumFollowers(res.nodes[1].id)).toBeGreaterThanOrEqual(
+      await getNumFollowers(res.nodes[2].id)
+    )
+  })
+  test('handle prefix @,＠', async () => {
+    const res = await userService.searchV1({ key: '@test1', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(2)
+    expect(res.nodes[0].userName).toBe('test1')
+    const res2 = await userService.searchV1({
+      key: '＠test1',
+      take: 3,
+      skip: 0,
+    })
+    expect(res2.totalCount).toBe(2)
+    expect(res2.nodes[0].userName).toBe('test1')
+  })
+  test('handle empty string', async () => {
+    const res1 = await userService.searchV1({ key: '', take: 3, skip: 0 })
+    expect(res1.totalCount).toBe(0)
+    const res2 = await userService.searchV1({ key: '@', take: 3, skip: 0 })
+    expect(res2.totalCount).toBe(0)
+  })
+  test('handle blocked', async () => {
+    await userService
+      .knex('action_user')
+      .insert({ userId: '2', action: USER_ACTION.block, targetId: '1' })
+
+    const res = await userService.searchV1({ key: 'test2', take: 3, skip: 0 })
+    expect(res.totalCount).toBe(1)
+
+    const res2 = await userService.searchV1({
+      key: 'test2',
+      take: 3,
+      skip: 0,
+      exclude: GQLSearchExclude.blocked,
+      viewerId: '1',
+    })
+    expect(res2.totalCount).toBe(0)
+  })
+  test('right totalCount with take and skip', async () => {
+    const res1 = await userService.searchV1({ key: 'test', take: 10, skip: 0 })
+    expect(res1.nodes.length).toBe(6)
+    expect(res1.totalCount).toBe(6)
+    const res2 = await userService.searchV1({ key: 'test', take: 1, skip: 0 })
+    expect(res2.nodes.length).toBe(1)
+    expect(res2.totalCount).toBe(6)
+    const res3 = await userService.searchV1({ key: 'test', take: 10, skip: 1 })
+    expect(res3.nodes.length).toBe(5)
+    expect(res3.totalCount).toBe(6)
+  })
+})
+
+describe('updateLastSeen', () => {
+  const getLastseen = async (id: string) => {
+    const { lastSeen } = await userService
+      .knex('public.user')
+      .select('last_seen')
+      .where({ id })
+      .first()
+    return lastSeen
+  }
+  test('do not update during threshold', async () => {
+    const id = '1'
+
+    const last1 = await getLastseen(id)
+    expect(last1).toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+
+    const last2 = await getLastseen(id)
+    expect(last2).not.toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+
+    const last3 = await getLastseen(id)
+    expect(last3).toStrictEqual(last2)
+  })
+  test('update beyond threshold', async () => {
+    const id = '2'
+
+    const last = await getLastseen(id)
+
+    await userService.updateLastSeen(id, 1)
+
+    const now = await getLastseen(id)
+    expect(now).not.toStrictEqual(last)
+  })
+  test('caching', async () => {
+    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const redisGet = async (_id: string) =>
+      (cacheService.redis.client as Redis.Redis).get(
+        cacheService.genKey({ id: _id })
+      )
+    const id = '3'
+
+    await userService.updateLastSeen(id, 1000)
+    const data1 = await redisGet(id)
+    expect(data1).toBeNull()
+
+    await userService.updateLastSeen(id, 1000)
+    const data2 = await redisGet(id)
+    expect(data2).not.toBeNull()
   })
 })
