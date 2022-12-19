@@ -74,6 +74,7 @@ export const updateTxState = async (
         amount: numRound(tx.amount),
         currency: tx.currency,
       },
+      language: recipient.language,
     })
   }
 }

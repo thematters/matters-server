@@ -1086,6 +1086,7 @@ export class PaymentService extends BaseService {
         currency: tx.currency,
         donationCount,
       },
+      language: sender.language,
     })
 
     // send email to recipient
@@ -1115,6 +1116,7 @@ export class PaymentService extends BaseService {
         currency: tx.currency,
       },
       article: _article,
+      language: recipient.language,
     })
   }
   private donationCount = async (senderId: string) => {
