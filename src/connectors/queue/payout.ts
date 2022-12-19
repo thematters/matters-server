@@ -200,6 +200,7 @@ class PayoutQueue extends BaseQueue {
           amount: net,
           currency: tx.currency,
         },
+        language: recipient.language,
       })
 
       slack.sendPayoutMessage({

@@ -10,6 +10,7 @@ import {
 import { isValidPassword, isValidPaymentPassword } from 'common/utils'
 import {
   GQLVerificationCodeType,
+  LANGUAGES,
   MutationToResetPasswordResolver,
 } from 'definitions'
 
@@ -82,6 +83,7 @@ const resolver: MutationToResetPasswordResolver = async (
         userName: user.userName,
       },
       type: 'passwordChanged',
+      language: user.language as LANGUAGES,
     })
   }
 

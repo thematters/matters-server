@@ -229,6 +229,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         userName: viewer.userName,
       },
       type: 'passwordSet',
+      language: user.language,
     })
   }
 

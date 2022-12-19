@@ -50,7 +50,7 @@ export const sendPayment = async ({
     }
     hasReplyToDonator?: boolean
   }
-  language?: LANGUAGES
+  language: LANGUAGES
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.payment[language]
   const subject = trans.payment[type](language, {})
