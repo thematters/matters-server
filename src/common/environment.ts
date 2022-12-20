@@ -44,6 +44,8 @@ export const environment = {
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
   awsIpfsArticlesQueueUrl:
     process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
+  awsMailQueueUrl:
+    process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
   esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
   esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
