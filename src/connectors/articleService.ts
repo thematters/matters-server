@@ -957,6 +957,7 @@ export class ArticleService extends BaseService {
           // 'articleId != null',
           'state = active',
         ],
+        sort: ['numViews:desc'],
       })
 
     let nodes = (await this.draftLoader.loadMany(
