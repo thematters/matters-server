@@ -621,7 +621,7 @@ export class UserService extends BaseService {
     const baseQuery = this.knex('search_index.user')
       .select('id')
       .whereLike('display_name', `%${displayName}%`)
-      .orWhereILike('user_name', `%${userName}%`)
+      .orWhereLike('user_name', `%${userName}%`)
       .orderByRaw('display_name = ? DESC', [displayName])
       .orderByRaw('user_name = ? DESC', [userName])
       .orderByRaw('display_name ~ ? DESC', [displayName])
