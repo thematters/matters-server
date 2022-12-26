@@ -66,14 +66,7 @@ export class IPFSServer {
       body: formData,
     })
     try {
-      console.log(
-        new Date(),
-        `POST ${ipfsServerUrls[idx]}/api/v0/key/import with formData:`,
-        formData,
-        'res:',
-        res.ok,
-        res.headers
-      )
+      // console.log(new Date(), `POST ${ipfsServerUrls[idx]}/api/v0/key/import with formData:`, formData, 'res:', res.ok, res.headers)
       const imported = await res.json()
 
       return { imported, client: this.clients[idx] }
