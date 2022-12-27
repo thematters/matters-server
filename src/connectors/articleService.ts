@@ -948,17 +948,12 @@ export class ArticleService extends BaseService {
       ).map(({ userId }) => userId)
     }
 
-    const { hits, ...rest } = await this.meili
-      .index('articles')
-      .search(keyOriginal, {
-        limit: take,
-        offset: skip,
-        filter: [
-          // 'articleId != null',
-          'state = active',
-        ],
-        sort: ['numViews:desc'],
-      })
+    const { hits, ...rest } = await this.meili.index('articles').search(key, {
+      limit: take,
+      offset: skip,
+      filter: ['state = active'],
+      sort: ['numViews:desc'],
+    })
 
     let nodes = (await this.draftLoader.loadMany(
       hits.map(({ articleId }) => articleId).filter(Boolean)
