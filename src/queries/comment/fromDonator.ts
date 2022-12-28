@@ -1,4 +1,5 @@
 import {
+  COMMENT_TYPE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -6,10 +7,14 @@ import {
 import { CommentToFromDonatorResolver } from 'definitions'
 
 const resolver: CommentToFromDonatorResolver = async (
-  { authorId, articleId },
+  { authorId, targetId, type },
   _,
   { dataSources: { atomService, articleService } }
 ) => {
+  if (!targetId || type !== COMMENT_TYPE.article) {
+    return false
+  }
+
   const { id: entityTypeId } = await articleService.baseFindEntityTypeId(
     TRANSACTION_TARGET_TYPE.article
   )
@@ -17,7 +22,7 @@ const resolver: CommentToFromDonatorResolver = async (
   const record = await atomService.findFirst({
     table: 'transaction',
     where: {
-      targetId: articleId,
+      targetId,
       targetType: entityTypeId,
       senderId: authorId,
       state: TRANSACTION_STATE.succeeded,
