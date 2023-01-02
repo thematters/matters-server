@@ -705,11 +705,11 @@ export class TagService extends BaseService {
     const queryIds = this.knex('search_index.tag')
       .select('id')
       .whereLike('content', `%${_key}%`)
-      .orWhere((builder: Knex.QueryBuilder) => {
+    /* .orWhere((builder: Knex.QueryBuilder) => {
         if (keyOriginal) {
           builder.orWhereLike('content', `%${keyOriginal}%`)
         }
-      })
+      }) */
 
     const queryTags = this.knex
       .select(
@@ -721,12 +721,11 @@ export class TagService extends BaseService {
       .whereIn('id', queryIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder.whereNotIn('id', mattyChoiceTagIds)
-      })
-      .modify((builder: Knex.QueryBuilder) => {
+      }) /* .modify((builder: Knex.QueryBuilder) => {
         if (keyOriginal) {
           builder.orderByRaw('content = ? DESC', [keyOriginal]) // always show original key before normalized exact match at first
         }
-      })
+      }) */
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
       .orderBy('num_articles', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
