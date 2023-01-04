@@ -875,7 +875,7 @@ export class ArticleService extends BaseService {
         })
         let items = (await this.draftLoader.loadMany(
           matched.nodes.map((item) => item.id)
-        )) as Array<Record<string, any>>
+        )) as Item[]
 
         if (excludeBlocked) {
           items = items.filter((item) => !blockedIds.includes(item.authorId))
@@ -895,11 +895,12 @@ export class ArticleService extends BaseService {
       }
       searchBody.notFilter('ids', { values: idsByTitle })
 
-      const body = await this.es.client.search({
+      const {
+        hits, // ...rest
+      } = await this.es.client.search({
         index: this.table,
         body: searchBody.build(),
       })
-      const { hits, ...rest } = body
       const ids = idsByTitle.concat(
         hits.hits.map(({ _id }: { _id: any }) => _id)
       )
@@ -910,14 +911,7 @@ export class ArticleService extends BaseService {
         nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
       }
 
-      console.log(
-        new Date(),
-        'searchBody:',
-        JSON.stringify(searchBody.build()),
-        `elasticsearch got ${hits?.hits?.length} from res:`,
-        JSON.stringify(hits?.total),
-        JSON.stringify(rest)
-      )
+      // console.log(new Date(), 'searchBody:', JSON.stringify(searchBody.build()), `elasticsearch got ${hits?.hits?.length} from res:`, JSON.stringify(hits?.total), JSON.stringify(rest))
 
       // TODO: check totalCount
       // error TS2339: Property 'value' does not exist on type 'number | SearchTotalHits'.
@@ -983,12 +977,7 @@ export class ArticleService extends BaseService {
       nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
     }
 
-    console.log(
-      new Date(),
-      { key, keyOriginal },
-      `meilisearch got ${hits.length} from res:`,
-      JSON.stringify(rest)
-    )
+    // console.log(new Date(), { key, keyOriginal }, `meilisearch got ${hits.length} from res:`, JSON.stringify(rest))
 
     return { nodes, totalCount: rest?.estimatedTotalHits ?? nodes.length }
   }
