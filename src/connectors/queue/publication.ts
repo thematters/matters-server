@@ -341,7 +341,8 @@ class PublicationQueue extends BaseQueue {
 
         ipnsRes = await this.articleService.publishFeedToIPNS({
           userName,
-          incremental: true, // attach the last just published article
+          // incremental: true, // attach the last just published article
+          updatedDrafts: [draft],
         })
 
         job.progress(100)
