@@ -1,6 +1,6 @@
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 
-import { isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { aws } from 'connectors'
 
 class MailService {
@@ -13,8 +13,11 @@ class MailService {
     if (isTest) {
       return
     }
+    return this.aws.sqsSendMessage({
+      messageBody: params,
+      queueUrl: environment.awsMailQueueUrl,
+    })
   }
 }
 
 export const mailService = new MailService()
-// export const notificationQueue = new NotificationQueue()
