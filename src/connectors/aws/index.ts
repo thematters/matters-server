@@ -20,9 +20,7 @@ export class AWSService {
     this.s3 = new AWS.S3()
     this.s3Bucket = this.getS3Bucket()
     this.s3Endpoint = this.getS3Endpoint()
-    if (environment.awsIpfsArticlesQueueUrl) {
-      this.sqs = new AWS.SQS()
-    }
+    this.sqs = new AWS.SQS()
     if (environment.awsArticlesSnsTopic) {
       this.sns = new AWS.SNS()
     }
@@ -206,7 +204,7 @@ export class AWSService {
   }) =>
     this.sqs
       ?.sendMessage({
-        MessageGroupId: messageBody,
+        MessageGroupId: messageGroupId,
         MessageBody: JSON.stringify(messageBody),
         QueueUrl: queueUrl,
       })
