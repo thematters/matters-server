@@ -196,19 +196,19 @@ export class AWSService {
 
   // no-op if sqs not initialized; when env sqs queue-url not set
   sqsSendMessage = async ({
-    MessageBody,
-    QueueUrl,
-    MessageGroupId,
+    messageBody,
+    queueUrl,
+    messageGroupId,
   }: {
-    MessageBody: any
-    QueueUrl: string
-    MessageGroupId?: string
+    messageBody: any
+    queueUrl: string
+    messageGroupId?: string
   }) =>
     this.sqs
       ?.sendMessage({
-        MessageGroupId,
-        MessageBody: JSON.stringify(MessageBody),
-        QueueUrl,
+        MessageGroupId: messageBody,
+        MessageBody: JSON.stringify(messageBody),
+        QueueUrl: queueUrl,
       })
       .promise()
 

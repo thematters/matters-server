@@ -496,8 +496,8 @@ export class ArticleService extends BaseService {
 
       this.aws
         .sqsSendMessage({
-          MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
-          MessageBody: {
+          messageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
+          messageBody: {
             articleId: lastDraft.id,
             title: lastDraft.title,
             dataHash: lastDraft.dataHash,
@@ -511,7 +511,7 @@ export class ArticleService extends BaseService {
             userName: author.userName,
             displayName: author.displayName,
           },
-          QueueUrl: environment.awsIpfsArticlesQueueUrl,
+          queueUrl: environment.awsIpfsArticlesQueueUrl,
         })
         // .then(res => {})
         .catch((err: Error) =>
@@ -574,8 +574,8 @@ export class ArticleService extends BaseService {
     }
   }) =>
     this.aws?.sqsSendMessage({
-      MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-      MessageBody: {
+      messageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+      messageBody: {
         articleId: article.id,
         title: article.title,
         url: `${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
@@ -590,7 +590,7 @@ export class ArticleService extends BaseService {
         userName: author.userName,
         displayName: author.displayName,
       },
-      QueueUrl: environment.awsIpfsArticlesQueueUrl,
+      queueUrl: environment.awsIpfsArticlesQueueUrl,
     })
 
   /**
