@@ -1,4 +1,8 @@
-import { HomepageContext, makeHomepage } from '@matters/ipns-site-generator'
+import {
+  // HomepageArticleDigest,
+  HomepageContext,
+  makeHomepage,
+} from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
 import { environment } from 'common/environment'
@@ -17,6 +21,7 @@ export class Feed {
   // internal use
   publishedDrafts: Item[]
   userImg?: string | null
+  articles?: Map<string, Item>
 
   articleService: InstanceType<typeof ArticleService>
   draftService: InstanceType<typeof DraftService>
@@ -40,9 +45,17 @@ export class Feed {
       (await this.systemService.findAssetUrl(this.author.avatar))
 
     const articles = await this.articleService.findByAuthor(this.author.id, {
-      columns: ['article.id', 'article.draft_id'],
+      columns: [
+        'article.id',
+        'article.draft_id',
+        'article.uuid',
+        'article.slug',
+        'article.created_at',
+      ],
       take: 50,
-    })
+    }) // as Item[]
+    this.articles = new Map(articles.map((item: Item) => [item.id, item]))
+
     const publishedDraftIds = articles.map(
       ({ draftId }: { draftId: string }) => draftId
     )
@@ -83,22 +96,30 @@ export class Feed {
             json: './feed.json',
           }
         : undefined,
-      articles: this.publishedDrafts.map((draft) => ({
-        id: draft.id,
-        author: {
-          userName,
-          displayName,
-        },
-        title: draft.title,
-        summary: draft.summary,
-        date: draft.updatedAt,
-        content: draft.content,
-        tags: draft.tags || [],
-        uri: `./${draft.articleId}-${slugify(draft.title)}/`,
-        sourceUri: `${environment.siteDomain}/@${userName}/${
-          draft.articleId
-        }-${slugify(draft.title)}/`,
-      })),
+      articles: this.publishedDrafts
+        .map((draft) => {
+          const arti = this.articles?.get(draft.articleId)
+          if (arti) {
+            return {
+              id: arti.uuid ?? draft.articleId ?? draft.id,
+              author: {
+                userName,
+                displayName,
+              },
+              title: draft.title,
+              summary: draft.summary,
+              // date: draft.updatedAt,
+              date: arti.createdAt, // || draft.updatedAt,
+              content: draft.content,
+              tags: draft.tags || [],
+              uri: `./${draft.articleId}-${arti.slug ?? slugify(draft.title)}/`,
+              sourceUri: `${environment.siteDomain}/@${userName}/${
+                arti.id ?? draft.articleId
+              }-${arti.slug ?? slugify(draft.title)}/`,
+            }
+          }
+        })
+        .filter(Boolean) as any[],
     }
 
     return makeHomepage(context)
