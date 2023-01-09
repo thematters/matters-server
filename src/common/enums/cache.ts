@@ -25,6 +25,7 @@ export const CACHE_PREFIX = {
   OBJECTS: 'cache-objects',
   NFTS: 'cache-alchemy-nfts',
   OPERATION_LOG: 'operation-log',
+  LIKECOIN: 'likecoin',
   CIVIC_LIKER: 'civic-liker',
   USER_LAST_SEEN: 'cache-user-last-seen',
 }

@@ -6,4 +6,5 @@ export const QUEUE_URL = {
   // likecoin
   likecoinLike: environment?.awsLikecoinLikeUrl,
   likecoinSendPV: environment?.awsLikecoinSendPVUrl,
+  likecoinUpdateCivicLikerCache: environment?.awsLikecoinUpdateCivicLikerCache,
 } as const
