@@ -1,6 +1,6 @@
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS search_index.tag AS
-  SELECT id, content, description, num_articles, num_authors, num_followers
+  SELECT id, content, content AS content_orig, description, num_articles, num_authors, num_followers
   FROM public.tag
   LEFT JOIN (
     SELECT target_id, COUNT(*) ::int AS num_followers
