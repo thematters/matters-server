@@ -704,7 +704,7 @@ export class TagService extends BaseService {
     const queryTags = this.knex
       .select(
         this.knex.raw(
-          'id, content_orig AS content, content AS converted,  description, coalesce(num_articles, 0) AS num_articles, coalesce(num_authors, 0) AS num_authors, count(id) OVER() AS total_count'
+          'id, content_orig AS content, description, coalesce(num_articles, 0) AS num_articles, coalesce(num_authors, 0) AS num_authors, count(id) OVER() AS total_count'
         )
       )
       .from('search_index.tag')
