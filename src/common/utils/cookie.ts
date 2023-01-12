@@ -24,7 +24,8 @@ const getCookieOption = ({
   const origin = req.headers.origin || ''
   const isLocalDev =
     /(localhost|127\.0\.0\.1):\d+$/.test(origin) ||
-    /githubpreview\.dev$/.test(origin)
+    /githubpreview\.dev$/.test(origin) ||
+    /\.vercel\.app$/.test(origin)
   const domain =
     publicSuffix && !isLocalDev ? psl.get(req.hostname) : req.hostname
 
