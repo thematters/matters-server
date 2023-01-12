@@ -227,7 +227,6 @@ const resolver: MutationToEditArticleResolver = async (
     where: { articleId: article.id },
   })
   const resetCircle = currAccess && circleGlobalId === null
-  let isUpdatingAccess = false
   let circle: any
 
   if (circleGlobalId) {
@@ -249,13 +248,6 @@ const resolver: MutationToEditArticleResolver = async (
 
     if (!accessType) {
       throw new UserInputError('"accessType" is required on `circle`.')
-    }
-
-    if (
-      circle.id !== currAccess?.circleId ||
-      (circle.id === currAccess?.circleId && accessType !== currAccess?.access)
-    ) {
-      isUpdatingAccess = true
     }
 
     // insert to db
@@ -294,7 +286,6 @@ const resolver: MutationToEditArticleResolver = async (
    */
   const isUpdatingContent = !!content
   const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
-  const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
@@ -422,7 +413,8 @@ const resolver: MutationToEditArticleResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
-      iscnPublish,
+      iscnPublish: isUpdatingISCNPublish,
+      increaseRevisionCount: !!newContent,
     })
   }
 
@@ -441,7 +433,7 @@ const resolver: MutationToEditArticleResolver = async (
       // only republish when have changes
       await republish(content)
     }
-  } else if (isUpdatingCircleOrAccess || isUpdatingISCNPublish) {
+  } else if (isUpdatingISCNPublish) {
     await republish()
   }
 
