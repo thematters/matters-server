@@ -50,13 +50,15 @@ class PublicationQueue extends BaseQueue {
   refreshIPNSFeed = ({
     userName,
     numArticles = 50,
+    forceReplace,
   }: {
     userName: string
     numArticles?: number
+    forceReplace?: boolean
   }) =>
     this.q.add(
       QUEUE_JOB.refreshIPNSFeed,
-      { userName, numArticles }
+      { userName, numArticles, forceReplace }
       // { priority: QUEUE_PRIORITY.CRITICAL, }
     )
 
@@ -651,6 +653,7 @@ class PublicationQueue extends BaseQueue {
         job.data as {
           userName: string
           numArticles: number
+          forceReplace?: boolean
         }
       )
 }

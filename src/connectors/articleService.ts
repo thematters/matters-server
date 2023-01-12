@@ -305,7 +305,14 @@ export class ArticleService extends BaseService {
     }
 
     const articles = await this.findByAuthor(author.id, {
-      columns: ['article.id', 'article.draft_id'],
+      // columns: ['article.id', 'article.draft_id', 'article.created_at'],
+      columns: [
+        'article.id',
+        'article.draft_id',
+        'article.uuid',
+        'article.slug',
+        'article.created_at',
+      ],
       take: numArticles, // 10, // most recent 10 articles
     })
     const publishedDraftIds = articles.map(
@@ -421,6 +428,7 @@ export class ArticleService extends BaseService {
               timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
             })
             attached.push(newEntry)
+            break
           } catch (err) {
             // ignore HTTPError: GATEWAY_TIMEOUT
             console.error(
@@ -965,12 +973,12 @@ export class ArticleService extends BaseService {
     const { hits, ...rest } = await this.meili.index('articles').search(key, {
       limit: take,
       offset: skip,
-      filter: ['state = active'],
+      // filter: ['state = active'],
       sort: ['numViews:desc'],
     })
 
     let nodes = (await this.draftLoader.loadMany(
-      hits.map(({ articleId }) => articleId).filter(Boolean)
+      hits.map(({ articleId, id }) => articleId ?? id).filter(Boolean)
     )) as Item[]
 
     if (excludeBlocked) {
