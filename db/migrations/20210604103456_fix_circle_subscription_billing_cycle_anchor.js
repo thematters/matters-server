@@ -1,4 +1,5 @@
 require('dotenv').config()
+const Stripe = require('stripe')
 
 const circleSubscription = 'circle_subscription'
 
@@ -42,21 +43,15 @@ const getUTCNextMonday = () => {
 }
 
 exports.up = async (knex) => {
-  if (!process.env['MATTERS_ENV']) {
-    console.error('`MATTERS_ENV` are required.')
-    return
-  }
   const isProd = process.env['MATTERS_ENV'] === 'production'
   const secret = process.env['MATTERS_STRIPE_SECRET']
-
-  if (isProd && !secret) {
-    console.error('`MATTERS_STRIPE_SECRET` are required.')
-    return
-  }
-
-  const Stripe = require('stripe')
   const stripeAPI = new Stripe(secret, { apiVersion: '2020-08-27' })
   const envLabel = `[${process.env['MATTERS_ENV']}]`
+
+  if (!process.env['MATTERS_ENV'] || !secret) {
+    console.error('`MATTERS_ENV` and `MATTERS_STRIPE_SECRET` are required.')
+    return
+  }
 
   // retrieve active and trialing subscriptions
   const subs = await knex

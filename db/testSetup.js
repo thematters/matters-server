@@ -66,7 +66,7 @@ module.exports = async () => {
   await runShellDBRollup()
 
   const tables = await knex('information_schema.tables').select()
-  console.log(new Date(), `currently having ${tables.length} tables:`, tables)
+  // console.log(new Date(), `currently having ${tables.length} tables:`, tables)
 }
 
 async function runShellDBRollup() {
