@@ -65,11 +65,12 @@ module.exports = async () => {
   // connect postgres container to run PSQL scripts
   await runShellDBRollup()
 
-  const tables = await knex('information_schema.tables').select()
-  // console.log(new Date(), `currently having ${tables.length} tables:`, tables)
+  //const tables = await knex('information_schema.tables').select()
+  //console.log(new Date(), `currently having ${tables.length} tables:`, tables)
 }
 
 async function runShellDBRollup() {
+  const dbPath = __dirname // '{project-root}/db'
   exec('pwd; ls -la; docker container ls -a', (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`)
@@ -81,8 +82,8 @@ async function runShellDBRollup() {
     }
     console.log(`stdout: ${stdout}`)
   })
-  const dockerCmd = `docker container exec postgres-db sh -xc 'pwd; ls -la; cd /db; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`
-  const nativeCmd = `cd db; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
+  const dockerCmd = `docker container exec postgres-db sh -xc 'pwd; ls -la; cd ${dbPath}; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`
+  const nativeCmd = `cd ${dbPath}; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
     const sh = spawn('sh', ['-xc', dockerCmd + ' || ' + nativeCmd])
