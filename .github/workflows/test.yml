@@ -33,26 +33,18 @@ jobs:
         ports:
           - 12111:12111
           - 12112:12112
+      postgres:
+        image: postgres:10-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: matters-test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-
-      - name: Spawn Postgres DB container (manually)
-        # to mount local source code into the container, can only manually spawn it
-        run: |
-          docker container run -d --name postgres-db --hostname postgres-db \
-            --network ${{ job.container.network }} --network-alias postgres -p 5432:5432 \
-            -e "POSTGRES_DB=matters-test" \
-            -e "POSTGRES_USER=postgres" \
-            -e "POSTGRES_PASSWORD=postgres" \
-            -e GITHUB_ACTIONS=true -e CI=true \
-            -v "postgres_data":"/var/lib/postgresql/data/" \
-            -v "$PWD/db":"/db" \
-            postgres:12-alpine
-          # docker start cff7d3d3876b619bc17ed89fa45b3aae388ebbffa46e4a833c3c453303a76a5f
-          docker container ls -a
-          docker container exec postgres-db sh -xc 'pwd; ls -la; find /db'
 
       - name: Setup Node.js
         uses: actions/setup-node@v2

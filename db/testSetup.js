@@ -57,27 +57,14 @@ module.exports = async () => {
 
   // connect postgres container to run PSQL scripts
   await runShellDBRollup()
-
 }
 
 async function runShellDBRollup() {
   const dbPath = __dirname // '{project-root}/db'
-  exec('pwd; ls -la; docker container ls -a', (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`)
-      return
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`)
-      return
-    }
-    console.log(`stdout: ${stdout}`)
-  })
-  const dockerCmd = `docker container exec postgres-db sh -xc 'pwd; ls -la; cd ${dbPath}; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`
-  const nativeCmd = `cd ${dbPath}; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
+  const cmd = `cd ${dbPath}; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
-    const sh = spawn('sh', ['-xc', dockerCmd + ' || ' + nativeCmd])
+    const sh = spawn('sh', ['-xc', cmd])
 
     sh.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`)
