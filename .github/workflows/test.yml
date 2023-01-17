@@ -34,7 +34,7 @@ jobs:
           - 12111:12111
           - 12112:12112
       postgres:
-        image: postgres:10-alpine
+        image: postgres:12-alpine
         ports:
           - 5432:5432
         env:
