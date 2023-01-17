@@ -43,14 +43,16 @@ module.exports = async () => {
 
   await rollbackAllMigrations()
   await knex.migrate.latest()
+  // print migration status
+  console.log(JSON.stringify(await knex.migrate.list(), null, 4))
   await knex.seed.run()
 
-  const matty = await knex('user')
-    .select('id')
-    .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
-    .first()
-  const count = await knex('user').count().first()
-  console.log(new Date(), 'got matty?', { matty, count })
+  // const matty = await knex('user')
+  //   .select('id')
+  //   .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
+  //   .first()
+  // const count = await knex('user').count().first()
+  // console.log(new Date(), 'got matty?', { matty, count })
 
   // re-run specific migrations after seeding
   const tasks = [
@@ -65,8 +67,8 @@ module.exports = async () => {
   // connect postgres container to run PSQL scripts
   await runShellDBRollup()
 
-  //const tables = await knex('information_schema.tables').select()
-  //console.log(new Date(), `currently having ${tables.length} tables:`, tables)
+  // const tables = await knex('information_schema.tables').select()
+  // console.log(new Date(), `currently having ${tables.length} tables:`, tables)
 }
 
 async function runShellDBRollup() {
