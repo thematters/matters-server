@@ -45,13 +45,6 @@ module.exports = async () => {
   await knex.migrate.latest()
   await knex.seed.run()
 
-  const matty = await knex('user')
-    .select('id')
-    .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
-    .first()
-  const count = await knex('user').count().first()
-  console.log(new Date(), 'got matty?', { matty, count })
-
   // re-run specific migrations after seeding
   const tasks = [
     // '20200904104135_create_curation_tag_materialized.js',
@@ -64,28 +57,14 @@ module.exports = async () => {
 
   // connect postgres container to run PSQL scripts
   await runShellDBRollup()
-
-  const tables = await knex('information_schema.tables').select()
-  // console.log(new Date(), `currently having ${tables.length} tables:`, tables)
 }
 
 async function runShellDBRollup() {
-  exec('pwd; ls -la; docker container ls -a', (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`)
-      return
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`)
-      return
-    }
-    console.log(`stdout: ${stdout}`)
-  })
-  const dockerCmd = `docker container exec postgres-db sh -xc 'pwd; ls -la; cd /db; env PSQL="psql -U postgres -d ${database} -w" sh -x bin/refresh-lasts.sh; date'`
-  const nativeCmd = `cd db; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
+  const dbPath = __dirname // '{project-root}/db'
+  const cmd = `cd ${dbPath}; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
-    const sh = spawn('sh', ['-xc', dockerCmd + ' || ' + nativeCmd])
+    const sh = spawn('sh', ['-xc', cmd])
 
     sh.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`)
