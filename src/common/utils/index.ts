@@ -102,7 +102,7 @@ export const getQueueNameForEnv = (name: string) =>
 
 // not yet supports for TLD like .co.jp
 // use https://www.npmjs.com/package/psl if needed
-export const extractTLD = (url: string) => {
+export const extractRootDomain = (url: string) => {
   const parts = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)
 
   if (!parts) {

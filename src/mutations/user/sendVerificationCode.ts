@@ -12,7 +12,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { extractTLD } from 'common/utils'
+import { extractRootDomain } from 'common/utils'
 import { gcp } from 'connectors'
 import {
   GQLVerificationCodeType,
@@ -70,7 +70,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
 
   // check redirectUrl
   if (redirectUrl) {
-    const tld = extractTLD(redirectUrl)
+    const tld = extractRootDomain(redirectUrl)
 
     if (!tld || !VERIFICATION_DOMAIN_WHITELIST.includes(tld)) {
       throw new UserInputError('"redirectUrl" is invalid.')
