@@ -76,7 +76,7 @@ export const setCookie = ({
       req,
       domain: hostname,
       httpOnly: false,
-      sameSite: devOrigin ? 'none' : 'lax',
+      sameSite: devOrigin ? 'none' : 'strict',
     })
   )
 
@@ -88,7 +88,7 @@ export const setCookie = ({
       req,
       domain: hostname,
       httpOnly: false,
-      sameSite: devOrigin ? 'none' : 'lax',
+      sameSite: devOrigin ? 'none' : 'strict',
     })
   )
 }
@@ -118,7 +118,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
       req,
       domain: hostname,
       httpOnly: false,
-      sameSite: devOrigin ? 'none' : 'lax',
+      sameSite: devOrigin ? 'none' : 'strict',
     })
   )
 
