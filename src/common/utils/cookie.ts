@@ -1,5 +1,4 @@
 import { CookieOptions, Request, Response } from 'express'
-import psl from 'psl'
 
 import {
   COOKIE_LANGUAGE,
@@ -10,31 +9,26 @@ import {
 import { isTest } from 'common/environment'
 import { getUserGroup } from 'common/utils'
 
+const isDevOrigin = (url: string) =>
+  /(localhost|127\.0\.0\.1)(:\d+)?$/.test(url) || /\.vercel\.app$/.test(url)
+
 const getCookieOption = ({
   req,
   httpOnly,
-  publicSuffix,
   sameSite,
+  domain,
 }: {
   req: Request
   httpOnly?: boolean
-  publicSuffix?: boolean
-  sameSite: boolean | 'strict' | 'lax' | 'none' | undefined
+  sameSite?: boolean | 'strict' | 'lax' | 'none'
+  domain?: string
 }) => {
-  const origin = req.headers.origin || ''
-  const isLocalDev =
-    /(localhost|127\.0\.0\.1):\d+$/.test(origin) ||
-    /githubpreview\.dev$/.test(origin) ||
-    /\.vercel\.app$/.test(origin)
-  const domain =
-    publicSuffix && !isLocalDev ? psl.get(req.hostname) : req.hostname
-
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly,
     secure: true,
     domain,
-    sameSite: isLocalDev ? 'none' : sameSite,
+    sameSite,
   } as CookieOptions
 }
 
@@ -46,7 +40,7 @@ export const setCookie = ({
 }: {
   req: Request
   res: Response
-  token: string
+  token?: string
   user: any
 }) => {
   if (isTest) {
@@ -54,56 +48,97 @@ export const setCookie = ({
     return
   }
 
-  res.cookie(
-    COOKIE_TOKEN_NAME,
-    token,
-    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
-  )
+  // e.g. server.matters.news / web-develop.matters.news
+  const hostname = req.hostname
+
+  // e.g. web-develop.matters.news / *.vercel.app / localhost
+  const devOrigin = isDevOrigin(req.headers.origin || '')
+
+  // cookie:token
+  if (token) {
+    res.cookie(
+      COOKIE_TOKEN_NAME,
+      token,
+      getCookieOption({
+        req,
+        domain: hostname,
+        httpOnly: true,
+        sameSite: devOrigin ? 'none' : 'strict',
+      })
+    )
+  }
+
+  // cookie:user group
   res.cookie(
     COOKIE_USER_GROUP,
     getUserGroup(user),
     getCookieOption({
       req,
+      domain: hostname,
       httpOnly: false,
-      publicSuffix: true,
-      sameSite: 'lax',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
+
+  // cookie:language
   res.cookie(
     COOKIE_LANGUAGE,
     user.language,
     getCookieOption({
       req,
+      domain: hostname,
       httpOnly: false,
-      publicSuffix: true,
-      sameSite: 'lax',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
+  // e.g. server.matters.news / web-develop.matters.news
+  const hostname = req.hostname
+
+  // e.g. web-develop.matters.news / *.vercel.app / localhost
+  const origin = req.headers.origin ? new URL(req.headers.origin).hostname : ''
+  const devOrigin = isDevOrigin(req.headers.origin || '')
+
+  // cookie:token
   res.clearCookie(
     COOKIE_TOKEN_NAME,
-    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
+    getCookieOption({
+      req,
+      domain: hostname,
+      httpOnly: true,
+      sameSite: devOrigin ? 'none' : 'strict',
+    })
+  )
+  res.clearCookie(
+    COOKIE_TOKEN_NAME,
+    getCookieOption({
+      req,
+      domain: origin,
+      httpOnly: true,
+      sameSite: devOrigin ? 'none' : 'strict',
+    })
+  )
+  // cookie:user group
+  res.clearCookie(
+    COOKIE_USER_GROUP,
+    getCookieOption({
+      req,
+      domain: hostname,
+      httpOnly: false,
+      sameSite: devOrigin ? 'none' : 'lax',
+    })
   )
   res.clearCookie(
     COOKIE_USER_GROUP,
     getCookieOption({
       req,
+      domain: origin,
       httpOnly: false,
-      publicSuffix: true,
-      sameSite: 'lax',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 
-  // TBD: keep it for anonymous language setting
-  // res.clearCookie(
-  //   COOKIE_LANGUAGE,
-  //   getCookieOption({
-  //     req,
-  //     httpOnly: false,
-  //     publicSuffix: true,
-  //     sameSite: 'lax',
-  //   })
-  // )
+  // TBD: keep language cookies for anonymous language settings
 }
