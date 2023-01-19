@@ -98,7 +98,6 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   const hostname = req.hostname
 
   // e.g. web-develop.matters.news / *.vercel.app / localhost
-  const origin = req.headers.origin ? new URL(req.headers.origin).hostname : ''
   const devOrigin = isDevOrigin(req.headers.origin || '')
 
   // cookie:token
@@ -111,30 +110,13 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
       sameSite: devOrigin ? 'none' : 'strict',
     })
   )
-  res.clearCookie(
-    COOKIE_TOKEN_NAME,
-    getCookieOption({
-      req,
-      domain: origin,
-      httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'strict',
-    })
-  )
+
   // cookie:user group
   res.clearCookie(
     COOKIE_USER_GROUP,
     getCookieOption({
       req,
       domain: hostname,
-      httpOnly: false,
-      sameSite: devOrigin ? 'none' : 'lax',
-    })
-  )
-  res.clearCookie(
-    COOKIE_USER_GROUP,
-    getCookieOption({
-      req,
-      domain: origin,
       httpOnly: false,
       sameSite: devOrigin ? 'none' : 'lax',
     })
