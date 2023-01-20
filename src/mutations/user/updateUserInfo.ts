@@ -18,6 +18,7 @@ import {
   isValidDisplayName,
   isValidPaymentPassword,
   isValidUserName,
+  setCookie,
 } from 'common/utils'
 import { aws } from 'connectors'
 import {
@@ -37,6 +38,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       notificationService,
       atomService,
     },
+    req,
+    res,
   }
 ) => {
   if (!viewer.id) {
@@ -197,27 +200,22 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   // update user info to es
-  const { description, displayName, userName, state, role } = updateParams
+  const { description, displayName, userName } = updateParams
 
-  if (!(description || displayName || userName || state || role)) {
-    return user
-  }
+  if (description || displayName || userName) {
+    const searchable = omitBy({ description, displayName, userName }, isNil)
 
-  const searchable = omitBy(
-    { description, displayName, userName, state },
-    isNil
-  )
-
-  try {
-    await atomService.es.client.update({
-      index: 'user',
-      id: viewer.id,
-      body: {
-        doc: searchable,
-      },
-    })
-  } catch (err) {
-    logger.error(err)
+    try {
+      await atomService.es.client.update({
+        index: 'user',
+        id: viewer.id,
+        body: {
+          doc: searchable,
+        },
+      })
+    } catch (err) {
+      logger.error(err)
+    }
   }
 
   // trigger notifications
@@ -231,6 +229,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       type: 'passwordSet',
       language: user.language,
     })
+  }
+
+  // set language cookie if needed
+  if (updateParams.language) {
+    setCookie({ req, res, user })
   }
 
   return user

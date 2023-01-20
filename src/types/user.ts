@@ -447,6 +447,7 @@ export default /* GraphQL */ `
     auth: Boolean!
     token: String
     type: AuthResultType!
+    user: User
   }
 
   enum AuthResultType {
