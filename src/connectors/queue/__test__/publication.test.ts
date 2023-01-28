@@ -57,7 +57,7 @@ describe('publicationQueue.publishArticle', () => {
     )
 
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.error)
-    expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
+    expect(updatedArticle.state).toBe(ARTICLE_STATE.error)
   })
 })
 

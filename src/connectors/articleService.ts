@@ -78,7 +78,7 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Create a active article with linked draft
+   * Create a pending article with linked draft
    */
   createArticle = async ({
     draftId,
@@ -94,7 +94,7 @@ export class ArticleService extends BaseService {
   }: Record<string, any>) =>
     this.baseCreate({
       uuid: v4(),
-      state: ARTICLE_STATE.active,
+      state: ARTICLE_STATE.pending,
       draftId,
       authorId,
       title,

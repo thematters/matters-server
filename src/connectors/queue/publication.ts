@@ -5,6 +5,7 @@ import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
+  ARTICLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PIN_STATE,
@@ -92,6 +93,7 @@ class PublicationQueue extends BaseQueue {
       iscnPublish?: boolean
     }
     let draft = await this.draftService.baseFindById(draftId)
+    let article
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
@@ -106,7 +108,6 @@ class PublicationQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: create an article
-      let article
       const articleData = {
         ...draft,
         draftId: draft.id,
@@ -322,7 +323,7 @@ class PublicationQueue extends BaseQueue {
           updatedDrafts: [draft],
         })
 
-        await job.progress(100)
+        await job.progress(95)
       } catch (err) {
         // ignore errors caused by these steps
         logger.error(err)
@@ -335,6 +336,11 @@ class PublicationQueue extends BaseQueue {
           draft
         )
       }
+
+      await this.articleService.baseUpdate(article.id, {
+        state: ARTICLE_STATE.active,
+      })
+      await job.progress(100)
 
       // no await to notify async
       this.atomService.aws
@@ -394,9 +400,14 @@ class PublicationQueue extends BaseQueue {
         iscnId: article.iscnId,
       })
     } catch (e) {
-      await this.draftService.baseUpdate(draft.id, {
-        publishState: PUBLISH_STATE.error,
-      })
+      await Promise.all([
+        this.articleService.baseUpdate(article.id, {
+          state: ARTICLE_STATE.error,
+        }),
+        this.draftService.baseUpdate(draft.id, {
+          publishState: PUBLISH_STATE.error,
+        }),
+      ])
       done(e)
     }
   }
