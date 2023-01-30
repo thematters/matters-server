@@ -1,5 +1,3 @@
-import psl from 'psl'
-
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
@@ -14,6 +12,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
+import { extractRootDomain } from 'common/utils'
 import { gcp } from 'connectors'
 import {
   GQLVerificationCodeType,
@@ -71,10 +70,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
 
   // check redirectUrl
   if (redirectUrl) {
-    const url = new URL(redirectUrl)
-    const tld = url?.hostname ? psl.get(url.hostname) : null
+    const tld = extractRootDomain(redirectUrl)
 
-    if (tld && !VERIFICATION_DOMAIN_WHITELIST.includes(tld)) {
+    if (!tld || !VERIFICATION_DOMAIN_WHITELIST.includes(tld)) {
       throw new UserInputError('"redirectUrl" is invalid.')
     }
   }

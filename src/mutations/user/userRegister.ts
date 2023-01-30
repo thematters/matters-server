@@ -154,7 +154,12 @@ const resolver: MutationToUserRegisterResolver = async (
 
   setCookie({ req, res, token, user })
 
-  return { token, auth: true, type: GQLAuthResultType.Signup }
+  return {
+    token,
+    auth: true,
+    type: GQLAuthResultType.Signup,
+    user,
+  }
 }
 
 export default resolver

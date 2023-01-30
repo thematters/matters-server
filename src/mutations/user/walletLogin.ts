@@ -1,7 +1,7 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
+import { utils } from 'ethers'
 import { Knex } from 'knex'
-import Web3 from 'web3'
 
 import {
   AUTO_FOLLOW_TAGS,
@@ -47,7 +47,7 @@ const resolver: MutationToWalletLoginResolver = async (
     knex,
   } = context
 
-  if (!ethAddress || !Web3.utils.isAddress(ethAddress)) {
+  if (!ethAddress || !utils.isAddress(ethAddress)) {
     throw new UserInputError('address is invalid')
   }
 
@@ -119,6 +119,7 @@ const resolver: MutationToWalletLoginResolver = async (
       token: viewer.token,
       auth: true,
       type: GQLAuthResultType.LinkAccount,
+      user: viewer,
     }
   }
 
@@ -149,7 +150,7 @@ const resolver: MutationToWalletLoginResolver = async (
       },
     })
 
-    return { token, auth: true, type }
+    return { token, auth: true, type, user }
   }
 
   /**
