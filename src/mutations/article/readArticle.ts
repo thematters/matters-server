@@ -5,7 +5,7 @@ import { ARTICLE_STATE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 // import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
-// import { likeCoinQueue } from 'connectors/queue'
+// import { likecoin } from 'connectors'
 import { MutationToReadArticleResolver } from 'definitions'
 
 const resolver: MutationToReadArticleResolver = async (
@@ -41,15 +41,14 @@ const resolver: MutationToReadArticleResolver = async (
       ip: viewer.ip,
     })
 
-    // FIXME: likeCoinQueue.sendPV cannot handle very large concurrency
     // const { newRead } = await articleService.read({
     //   articleId: article.id,
     //   userId: viewer.id || null,
     //   ip: viewer.ip,
     // })
 
-    // if it's a new read
-    // call like.co count api for like.co analytic pageview
+    // // if it's a new read
+    // // call like.co count api for like.co analytic pageview
     // if (newRead) {
     //   try {
     //     let liker
@@ -60,7 +59,7 @@ const resolver: MutationToReadArticleResolver = async (
     //     const author = await userService.dataloader.load(article.authorId)
     //     // const slug = slugify(node.title)
 
-    //     likeCoinQueue.sendPV({
+    //     likecoin.sendPV({
     //       likerId: liker ? liker.likerId : undefined,
     //       likerIp: viewer.ip,
     //       userAgent: viewer.userAgent,
