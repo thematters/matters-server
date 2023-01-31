@@ -99,3 +99,15 @@ export const getFileName = (disposition: string, url: string) => {
 
 export const getQueueNameForEnv = (name: string) =>
   isTest ? 'test-' + name : name
+
+// not yet supports for TLD like .co.jp
+// use https://www.npmjs.com/package/psl if needed
+export const extractRootDomain = (url: string) => {
+  const parts = url.match(/^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i)
+
+  if (!parts) {
+    return
+  }
+
+  return parts[1].split('.').slice(-2).join('.')
+}

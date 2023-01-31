@@ -20,9 +20,6 @@ export const QUEUE_JOB = {
   activateOnboardingUsers: 'activateOnboardingUsers',
   unbanUsers: 'unbanUsers',
 
-  // Emails
-  sendDailySummaryEmails: 'sendDailySummaryEmails',
-
   // Refresh Views
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
@@ -70,7 +67,6 @@ export const QUEUE_JOB = {
 
 export const QUEUE_NAME = {
   publication: 'publication',
-  emails: 'emails',
   refreshViews: 'refreshViews',
   user: 'user',
   migration: 'migration',

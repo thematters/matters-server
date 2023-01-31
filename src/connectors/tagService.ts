@@ -701,31 +701,17 @@ export class TagService extends BaseService {
       ? [environment.mattyChoiceTagId]
       : []
 
-    // search from original tags but return duplicate free tags
-    const queryIds = this.knex('search_index.tag')
-      .select('id')
-      .whereLike('content', `%${_key}%`)
-    /* .orWhere((builder: Knex.QueryBuilder) => {
-        if (keyOriginal) {
-          builder.orWhereLike('content', `%${keyOriginal}%`)
-        }
-      }) */
-
     const queryTags = this.knex
       .select(
         this.knex.raw(
-          'id, content, description, num_articles, num_authors, created_at, count(id) OVER() AS total_count'
+          'id, content_orig AS content, description, coalesce(num_articles, 0) AS num_articles, coalesce(num_authors, 0) AS num_authors, count(id) OVER() AS total_count'
         )
       )
-      .from(VIEW.tags_lasts_view)
-      .whereIn('id', queryIds)
+      .from('search_index.tag')
+      .whereLike('content', `%${_key}%`)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder.whereNotIn('id', mattyChoiceTagIds)
-      }) /* .modify((builder: Knex.QueryBuilder) => {
-        if (keyOriginal) {
-          builder.orderByRaw('content = ? DESC', [keyOriginal]) // always show original key before normalized exact match at first
-        }
-      }) */
+      })
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
       .orderBy('num_articles', 'desc')
       .modify((builder: Knex.QueryBuilder) => {

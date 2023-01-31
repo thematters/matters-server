@@ -1,7 +1,6 @@
 import { sendAdoptTag } from './sendAdoptTag'
 import { sendAssignAsTagEditor } from './sendAssignAsTagEditor'
 import { sendCircleInvitation } from './sendCircleInvitation'
-import { sendDailySummary } from './sendDailySummary'
 import { sendMigrationSuccess } from './sendMigrationSuccess'
 import { sendPayment } from './sendPayment'
 import { sendRegisterSuccess } from './sendRegisterSuccess'
@@ -12,7 +11,6 @@ export const mail = {
   sendAdoptTag,
   sendAssignAsTagEditor,
   sendCircleInvitation,
-  sendDailySummary,
   sendMigrationSuccess,
   sendRegisterSuccess,
   sendUserDeletedByAdmin,
