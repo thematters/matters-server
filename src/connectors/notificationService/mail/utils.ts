@@ -1,16 +1,4 @@
-import { makeSummary } from '@matters/ipns-site-generator'
-import _ from 'lodash'
-
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
-import {
-  ArticleService,
-  CommentService,
-  SystemService,
-  UserService,
-} from 'connectors'
-import { User } from 'definitions'
 
 export const trans = {
   verificationCode: {
@@ -38,12 +26,6 @@ export const trans = {
   registerSuccess: i18n({
     zh_hant: '歡迎來到 Matters 宇宙航艦，這是為你準備的登船指南',
     zh_hans: '欢迎来到 Matters 宇宙航舰，这是为你准备的登船指南',
-  }),
-  dailySummary: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) =>
-      `🐿️ ${displayName}，這是專屬於你的 Matters 日報`,
-    zh_hans: ({ displayName }) =>
-      `🐿️ ${displayName}，这是专属于你的 Matters 日报`,
   }),
   userDeleted: i18n({
     zh_hant: 'Matters | 你的賬號已被註銷',
@@ -115,79 +97,4 @@ export const trans = {
       zh_hans: 'Matters | 你已经成功设定加密钱包！',
     }),
   },
-}
-
-const userService = new UserService()
-const articleService = new ArticleService()
-const commentService = new CommentService()
-const systemService = new SystemService()
-
-export const getUserDigest = async (user: User | undefined) => {
-  if (!user) {
-    return
-  }
-
-  let avatar = user.avatar
-  if (avatar) {
-    const url = await systemService.findAssetUrl(avatar)
-    if (url) {
-      avatar = url
-    }
-  }
-
-  return {
-    id: user.id,
-    userName: user.userName,
-    displayName: user.displayName,
-    avatar,
-  }
-}
-
-export const getArticleDigest = async (article: any | undefined) => {
-  if (!article) {
-    return
-  }
-
-  const author = await getUserDigest(
-    await userService.baseFindById(article.authorId)
-  )
-  const appreciationsReceivedTotal = await articleService.sumAppreciation(
-    article.id
-  )
-  const [articleCount, commentCount] = await Promise.all([
-    articleService.countActiveCollectedBy(article.id),
-    commentService.countByArticle(article.id),
-  ])
-  const responseCount = articleCount + commentCount
-
-  return {
-    id: article.id,
-    author,
-    title: article.title,
-    slug: encodeURIComponent(article.slug),
-    mediaHash: article.mediaHash,
-    appreciationsReceivedTotal,
-    responseCount,
-  }
-}
-
-export const getCommentDigest = async (comment: any | undefined) => {
-  if (!comment) {
-    return
-  }
-
-  const content = makeSummary(comment.content, 21)
-
-  return {
-    id: comment.id,
-    globalId: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
-    content: content.length === comment.content ? content : `${content}…`,
-    article: await getArticleDigest(
-      await articleService.baseFindById(comment.targetId)
-    ),
-  }
-}
-
-export const getActors = async (actors: User[]) => {
-  return Promise.all(actors.map(async (actor) => getUserDigest(actor)))
 }
