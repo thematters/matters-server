@@ -11,11 +11,6 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-0be942cd60ff4082b35ab836b60a728f',
     en: 'd-06a6075fefe54a0f96157f69a726e46e',
   },
-  dailySummary: {
-    zh_hant: 'd-805ccf4182244f59a5388b581df1eeab',
-    zh_hans: 'd-e242f3e39f014279966e43425b208cbe',
-    en: 'd-805ccf4182244f59a5388b581df1eeab',
-  },
   userDeleted: {
     zh_hant: 'd-b370a6eddc394814959b49db1ba4cfec',
     zh_hans: 'd-9774a8882f914afaa43e2634a234762b',
@@ -58,11 +53,6 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-765b335a77d244438891a62f023b8c2e',
     zh_hans: 'd-30589f459aac4df1ab66e0f8af79fc4d',
     en: 'd-765b335a77d244438891a62f023b8c2e',
-  },
-  dailySummary: {
-    zh_hant: 'd-4a5a938cdc0c4020a1e2feb67a553946',
-    zh_hans: 'd-7f4276f1b32f48a4a51df90cbbb1447a',
-    en: 'd-4a5a938cdc0c4020a1e2feb67a553946',
   },
   userDeleted: {
     zh_hant: 'd-231ada8640374adb9d79a0130480c801',
