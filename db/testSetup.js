@@ -57,6 +57,11 @@ module.exports = async () => {
 
   // connect postgres container to run PSQL scripts
   await runShellDBRollup()
+
+  // grant read-only right to all users
+  await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA public TO PUBLIC;')
+  // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA mat_views TO PUBLIC;')
+  // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA search_index TO PUBLIC;')
 }
 
 async function runShellDBRollup() {
