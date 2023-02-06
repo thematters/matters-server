@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 
 # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-linux-extend.html
 
@@ -27,6 +26,10 @@ else
 
   # Create a copy of the environment variable file.
   ls -l /opt/elasticbeanstalk/deployment/
+  echo '/opt/elasticbeanstalk/deployment/env:'
+  cat /opt/elasticbeanstalk/deployment/env
+  echo '/opt/elasticbeanstalk/deployment/env.list:'
+  cat /opt/elasticbeanstalk/deployment/env.list
   cp /opt/elasticbeanstalk/deployment/env /opt/elasticbeanstalk/deployment/custom_env_var
 
   jq_actions=$(echo -e ".Parameters | .[] | [.Name, .Value] | \042\(.[0])=\(.[1])\042 | sub(\042${ENV_STORE_PATH}\042; \042\042)")
