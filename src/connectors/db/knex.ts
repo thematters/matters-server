@@ -12,6 +12,12 @@ export const knex = knexInstantiator({
   ...knexSnakeCaseMappers(),
 })
 
+export const searchKnexDB = knexInstantiator({
+  client: 'postgresql',
+  connection: environment.searchPgConnectionString,
+  // searchPath: ['knex', 'public'],
+})
+
 export const refreshView = async (view: MaterializedView) =>
   knex.raw(/*sql*/ `
     create unique index if not exists ${view}_id on public.${view} (id);
