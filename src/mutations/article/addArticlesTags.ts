@@ -2,7 +2,11 @@ import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
+import {
+  DB_NOTICE_TYPE,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -10,6 +14,7 @@ import {
   ForbiddenError,
   NotAllowAddOfficialTagError,
   TagNotFoundError,
+  TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -118,6 +123,18 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     }
   }
 
+  // check article tags
+  for (const articleId of addIds) {
+    const tagIds = await articleService.findTagIds({ id: articleId })
+
+    if (tagIds.length > MAX_TAGS_PER_ARTICLE_LIMIT - 1) {
+      throw new TooManyTagsForArticleError(
+        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on article ${articleId}`
+      )
+    }
+  }
+
+  // add tag to articles
   await tagService.createArticleTags({
     articleIds: addIds,
     creator: viewer.id,
