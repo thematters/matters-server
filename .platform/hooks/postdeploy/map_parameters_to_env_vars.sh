@@ -41,7 +41,7 @@ else
   aws ssm get-parameters-by-path \
   --path $ENV_STORE_PATH \
   --with-decryption \
-  --region us-east-1 \
+  --region ap-southeast-1 \
   | jq -r "$jq_actions" >> /opt/elasticbeanstalk/deployment/custom_env_var
 
   cp /opt/elasticbeanstalk/deployment/custom_env_var /opt/elasticbeanstalk/deployment/env
