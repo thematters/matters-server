@@ -6,8 +6,8 @@ import {
   COOKIE_USER_GROUP,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
-import { isTest } from 'common/environment'
-import { getUserGroup } from 'common/utils'
+import { isProd, isTest } from 'common/environment'
+import { extractRootDomain, getUserGroup } from 'common/utils'
 
 const isDevOrigin = (url: string) =>
   /(localhost|127\.0\.0\.1)(:\d+)?$/.test(url) || /\.vercel\.app$/.test(url)
@@ -48,10 +48,12 @@ export const setCookie = ({
     return
   }
 
-  // e.g. server.matters.news / web-develop.matters.news
+  // e.g. server.matters.news / server-develop.matters.news
   const hostname = req.hostname
+  const tld = extractRootDomain(hostname) // matters.news
+  const domain = isProd ? tld : hostname
 
-  // e.g. web-develop.matters.news / *.vercel.app / localhost
+  // e.g. *.vercel.app / localhost
   const devOrigin = isDevOrigin(req.headers.origin || '')
 
   // cookie:token
@@ -61,7 +63,7 @@ export const setCookie = ({
       token,
       getCookieOption({
         req,
-        domain: hostname,
+        domain,
         httpOnly: true,
         sameSite: devOrigin ? 'none' : 'strict',
       })
@@ -74,8 +76,8 @@ export const setCookie = ({
     getUserGroup(user),
     getCookieOption({
       req,
-      domain: hostname,
-      httpOnly: false,
+      domain,
+      httpOnly: true,
       sameSite: devOrigin ? 'none' : 'strict',
     })
   )
@@ -86,18 +88,20 @@ export const setCookie = ({
     user.language,
     getCookieOption({
       req,
-      domain: hostname,
-      httpOnly: false,
+      domain,
+      httpOnly: true,
       sameSite: devOrigin ? 'none' : 'strict',
     })
   )
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
-  // e.g. server.matters.news / web-develop.matters.news
+  // e.g. server.matters.news / server-develop.matters.news
   const hostname = req.hostname
+  const tld = extractRootDomain(hostname) // matters.news
+  const domain = isProd ? tld : hostname
 
-  // e.g. web-develop.matters.news / *.vercel.app / localhost
+  // e.g. *.vercel.app / localhost
   const devOrigin = isDevOrigin(req.headers.origin || '')
 
   // cookie:token
@@ -105,7 +109,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
     COOKIE_TOKEN_NAME,
     getCookieOption({
       req,
-      domain: hostname,
+      domain,
       httpOnly: true,
       sameSite: devOrigin ? 'none' : 'strict',
     })
@@ -116,8 +120,8 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
     COOKIE_USER_GROUP,
     getCookieOption({
       req,
-      domain: hostname,
-      httpOnly: false,
+      domain,
+      httpOnly: true,
       sameSite: devOrigin ? 'none' : 'strict',
     })
   )
