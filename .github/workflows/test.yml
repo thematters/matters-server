@@ -7,7 +7,6 @@ on:
       - main
       - master
       - stage
-      - fix/hook-scripts
 
 jobs:
   build_and_test:
