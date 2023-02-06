@@ -2,7 +2,7 @@
 
 # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-linux-extend.html
 
-echo ".platform/confighooks/postdeploy/map_parameters_to_env_vars.sh executing"
+echo ".platform/hooks/postdeploy/map_parameters_to_env_vars.sh executing"
 echo "Running script to fetch parameter store values and add them to /opt/elasticbeanstalk/deployment/env file."
 
 # We need to check the Elastic Beanstalk environment properties to find out
