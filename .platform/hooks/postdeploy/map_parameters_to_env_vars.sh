@@ -14,7 +14,6 @@ else
   echo "Success: ENV_STORE_PATH is set to '$ENV_STORE_PATH'";
 
   # Create a copy of the environment variable file.
-  ls -l .
 
   jq_actions=$(echo -e ".Parameters | .[] | [.Name, .Value] | \042\(.[0])=\(.[1])\042 | sub(\042${ENV_STORE_PATH}\042; \042\042)")
 
@@ -24,6 +23,9 @@ else
   --region ap-southeast-1 \
   | jq -r "$jq_actions" >> .env
 
+  echo ".env length: "
   wc -l .env
 
+  echo "cwd files: "
+  ls -l .
 fi
