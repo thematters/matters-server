@@ -15,6 +15,9 @@ const host = process.env['MATTERS_PG_HOST']
 const user = process.env['MATTERS_PG_USER']
 const password = process.env['MATTERS_PG_PASSWORD']
 
+// https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+const isCI = !!process.env['CI']
+
 global.knex = knex
 
 module.exports = async () => {
@@ -65,18 +68,22 @@ module.exports = async () => {
 }
 
 async function runShellDBRollup() {
-  const dbPath = __dirname // '{project-root}/db'
-  const cmd = `cd ${dbPath}; env PGPASSWORD=${password} PSQL="psql -h ${host} -U ${user} -d ${database} -w" sh -x bin/refresh-lasts.sh; date`
+  const cwd = __dirname // '{project-root}/db'
+  const env = {
+    PGPASSWORD: password,
+    PSQL: `psql -h ${host} -U ${user} -d ${database} -w`,
+  }
+  const cmd = `sh -x bin/refresh-lasts.sh; date`
 
   return new Promise((fulfilled, rejected) => {
-    const sh = spawn('sh', ['-xc', cmd])
+    const sh = spawn('sh', ['-xc', cmd], { cwd, env })
 
     sh.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`)
+      if (isCI) console.log(`stdout: ${data}`)
     })
 
     sh.stderr.on('data', (data) => {
-      console.log(`stderr: ${data}`)
+      if (isCI) console.log(`stderr: ${data}`)
     })
 
     sh.on('error', (error) => {
@@ -85,7 +92,7 @@ async function runShellDBRollup() {
     })
 
     sh.on('close', (code) => {
-      console.log(`child process exited with code ${code}`)
+      if (isCI) console.log(`child process exited with code ${code}`)
       fulfilled()
     })
   })

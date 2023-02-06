@@ -5,6 +5,7 @@ import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
+  ARTICLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PIN_STATE,
@@ -14,7 +15,7 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 import logger from 'common/logger'
 import {
   countWords,
@@ -66,31 +67,6 @@ class PublicationQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    if (isTest) {
-      return
-    }
-
-    this.q
-      .on('error', (err) => {
-        // An error occured.
-        console.error('PublicationQueue: job error unhandled:', err)
-      })
-      .on('waiting', (jobId) => {
-        // A Job is waiting to be processed as soon as a worker is idling.
-      })
-      .on('progress', (job, progress) => {
-        // A job's progress was updated!
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} progress`)
-      })
-      .on('failed', (job, err) => {
-        // A job failed with reason `err`!
-        console.error('PublicationQueue: job failed:', err, job)
-      })
-      .on('completed', (job, result) => {
-        // A job successfully completed with a `result`.
-        console.log(`PublicationQueue: Job#${job.id}/${job.name} completed`)
-      })
-
     // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,
@@ -117,21 +93,21 @@ class PublicationQueue extends BaseQueue {
       iscnPublish?: boolean
     }
     let draft = await this.draftService.baseFindById(draftId)
+    let article
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
-      job.progress(100)
+      await job.progress(100)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
       return
     }
-    job.progress(5)
+    await job.progress(5)
 
     try {
       const summary = draft.summary || makeSummary(draft.content)
       const wordCount = countWords(draft.content)
 
       // Step 2: create an article
-      let article
       const articleData = {
         ...draft,
         draftId: draft.id,
@@ -150,7 +126,7 @@ class PublicationQueue extends BaseQueue {
         article = await this.articleService.createArticle(articleData)
       }
 
-      job.progress(20)
+      await job.progress(20)
 
       // Step 3: update draft
       const [publishedDraft] = await Promise.all([
@@ -169,7 +145,7 @@ class PublicationQueue extends BaseQueue {
         // this.articleService.baseUpdate(article.id, { iscnId }),
       ])
 
-      job.progress(30)
+      await job.progress(30)
 
       const author = await this.userService.baseFindById(draft.authorId)
       const { userName, displayName } = author
@@ -180,20 +156,20 @@ class PublicationQueue extends BaseQueue {
       try {
         // Step 4: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
-        job.progress(40)
+        await job.progress(40)
 
         await this.handleCircle({
           draft,
           article,
           // secret: key // TO update secret in 'article_circle' later after IPFS published
         })
-        job.progress(45)
+        await job.progress(45)
 
         tags = await this.handleTags({ draft, article })
-        job.progress(50)
+        await job.progress(50)
 
         await this.handleMentions({ draft, article })
-        job.progress(60)
+        await job.progress(60)
 
         /**
          * Step 5: Handle Assets
@@ -213,7 +189,7 @@ class PublicationQueue extends BaseQueue {
 
         // Remove unused assets
         await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-        job.progress(70)
+        await job.progress(70)
 
         // Swap cover assets from draft to article
         const coverAssets = await this.systemService.findAssetAndAssetMap({
@@ -226,7 +202,7 @@ class PublicationQueue extends BaseQueue {
           articleEntityTypeId,
           article.id
         )
-        job.progress(75)
+        await job.progress(75)
 
         // Step 6: add to search; async
         this.articleService.addToSearch({
@@ -271,7 +247,7 @@ class PublicationQueue extends BaseQueue {
           mediaHash,
           key,
         } = (await this.articleService.publishToIPFS(draft))!
-        job.progress(80)
+        await job.progress(80)
         ;[article, draft] = await Promise.all([
           this.articleService.baseUpdate(article.id, {
             dataHash,
@@ -339,7 +315,7 @@ class PublicationQueue extends BaseQueue {
             }),
           ])
         }
-        job.progress(90)
+        await job.progress(90)
 
         ipnsRes = await this.articleService.publishFeedToIPNS({
           userName,
@@ -347,7 +323,7 @@ class PublicationQueue extends BaseQueue {
           updatedDrafts: [draft],
         })
 
-        job.progress(100)
+        await job.progress(95)
       } catch (err) {
         // ignore errors caused by these steps
         logger.error(err)
@@ -360,6 +336,11 @@ class PublicationQueue extends BaseQueue {
           draft
         )
       }
+
+      await this.articleService.baseUpdate(article.id, {
+        state: ARTICLE_STATE.active,
+      })
+      await job.progress(100)
 
       // no await to notify async
       this.atomService.aws
@@ -419,9 +400,14 @@ class PublicationQueue extends BaseQueue {
         iscnId: article.iscnId,
       })
     } catch (e) {
-      await this.draftService.baseUpdate(draft.id, {
-        publishState: PUBLISH_STATE.error,
-      })
+      await Promise.all([
+        this.articleService.baseUpdate(article.id, {
+          state: ARTICLE_STATE.error,
+        }),
+        this.draftService.baseUpdate(draft.id, {
+          publishState: PUBLISH_STATE.error,
+        }),
+      ])
       done(e)
     }
   }

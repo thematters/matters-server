@@ -78,6 +78,8 @@ export const ARTICLE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
+  pending: 'pending',
+  error: 'error',
 }
 
 export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {

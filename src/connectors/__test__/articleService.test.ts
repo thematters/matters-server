@@ -26,7 +26,7 @@ test('publish', async () => {
   })
   expect(mediaHash).toBeDefined()
   expect(dataHash).toBeDefined()
-  expect(articlePublished.state).toBe('active')
+  expect(articlePublished.state).toBe('pending')
 
   // publish to IPNS
   // await articleService.publishFeedToIPNS({ userName: 'test1' })
