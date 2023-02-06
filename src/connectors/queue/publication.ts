@@ -129,7 +129,7 @@ class PublicationQueue extends BaseQueue {
       await job.progress(20)
 
       // Step 3: update draft
-      const [publishedDraft] = await Promise.all([
+      const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
           articleId: article.id,
           summary,
@@ -143,6 +143,9 @@ class PublicationQueue extends BaseQueue {
           updatedAt: this.knex.fn.now(), // new Date(),
         }),
         // this.articleService.baseUpdate(article.id, { iscnId }),
+        this.articleService.baseUpdate(article.id, {
+          state: ARTICLE_STATE.active,
+        }),
       ])
 
       await job.progress(30)
@@ -337,9 +340,6 @@ class PublicationQueue extends BaseQueue {
         )
       }
 
-      await this.articleService.baseUpdate(article.id, {
-        state: ARTICLE_STATE.active,
-      })
       await job.progress(100)
 
       // no await to notify async
