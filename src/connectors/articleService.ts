@@ -43,6 +43,10 @@ import { GQLSearchExclude, Item } from 'definitions'
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
+const searchV1ArticlesCoefficientA = environment.searchPgCoefficients?.[0] || 1
+const searchV1ArticlesCoefficientB = environment.searchPgCoefficients?.[1] || 1
+const searchV1ArticlesCoefficientC = environment.searchPgCoefficients?.[2] || 1
+
 export class ArticleService extends BaseService {
   ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
@@ -1001,8 +1005,6 @@ export class ArticleService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
   }) => {
-    // console.log(new Date(), `meilisearch got search key:`, {key, keyOriginal,})
-
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
     let blockedIds: string[] = []
@@ -1014,24 +1016,55 @@ export class ArticleService extends BaseService {
       ).map(({ userId }) => userId)
     }
 
-    const { hits, ...rest } = await this.meili.index('articles').search(key, {
-      limit: take,
-      offset: skip,
-      // filter: ['state = active'],
-      sort: ['numViews:desc'],
-    })
+    const [countRes, articleIds] = await Promise.all([
+      // make sure WHERE clause match
+      this.searchKnex.raw(
+        `-- count'ing
+SELECT COUNT(*) ::int
+FROM search_index.article, plainto_tsquery('chinese_zh', ?) query
+WHERE query @@ title_ts OR query @@ text_ts`,
+        [key]
+      ),
+      this.searchKnex.raw(
+        `-- page with limit/offset
+SELECT *, (? * views_rank + ? * title_rank + ? * text_rank) AS score
+FROM (
+  SELECT id, num_views, last_read_at, -- title, slug,
+    percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank,
+    ts_rank(title_ts, query) AS title_rank,
+    ts_rank(text_ts, query, 1) AS text_rank
+  FROM search_index.article, plainto_tsquery('chinese_zh', ?) query
+  WHERE query @@ title_ts OR query @@ text_ts
+) t
+ORDER BY score DESC NULLS LAST
+LIMIT ? OFFSET ?`,
+        [
+          searchV1ArticlesCoefficientA,
+          searchV1ArticlesCoefficientB,
+          searchV1ArticlesCoefficientC,
+          key,
+          take,
+          skip,
+        ]
+      ),
+    ])
 
     let nodes = (await this.draftLoader.loadMany(
-      hits.map(({ articleId, id }) => articleId ?? id).filter(Boolean)
+      articleIds.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
     if (excludeBlocked) {
       nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
     }
 
-    // console.log(new Date(), { key, keyOriginal }, `meilisearch got ${hits.length} from res:`, JSON.stringify(rest))
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `searchKnex instance got res:`,
+      { countRes, articleIds }
+    )
 
-    return { nodes, totalCount: rest?.estimatedTotalHits ?? nodes.length }
+    return { nodes, totalCount: countRes?.[0]?.count ?? nodes.length }
   }
 
   /*********************************
