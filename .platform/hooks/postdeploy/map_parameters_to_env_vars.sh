@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-linux-extend.html
 
@@ -24,17 +25,9 @@ if [ -z ${ENV_STORE_PATH+x} ]; then
 else
   echo "Success: ENV_STORE_PATH is set to '$ENV_STORE_PATH'";
 
-  # For info of 169.254.169.254, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
-  TOKEN=`curl -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds:21600"`
-  AWS_DEFAULT_REGION=`curl -H "X-aws-ec2-metadata-token:$TOKEN" -v http://169.254.169.254/latest/meta-data/placement/region`
-
-  export AWS_DEFAULT_REGION
-
   # Create a copy of the environment variable file.
+  ls -l /opt/elasticbeanstalk/deployment/
   cp /opt/elasticbeanstalk/deployment/env /opt/elasticbeanstalk/deployment/custom_env_var
-
-  # Add values to the custom file
-  echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION" >> /opt/elasticbeanstalk/deployment/custom_env_var
 
   jq_actions=$(echo -e ".Parameters | .[] | [.Name, .Value] | \042\(.[0])=\(.[1])\042 | sub(\042${ENV_STORE_PATH}\042; \042\042)")
 
