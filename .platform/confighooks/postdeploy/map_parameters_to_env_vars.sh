@@ -21,11 +21,7 @@ else
   --path $ENV_STORE_PATH \
   --with-decryption \
   --region ap-southeast-1 \
-  | jq -r "$jq_actions" >> .env
+  | jq -r "$jq_actions" >> /opt/elasticbeanstalk/deployment/env.list
 
-  echo ".env length: "
-  wc -l .env
-
-  echo "cwd files: "
-  ls -l .
+  wc -l /opt/elasticbeanstalk/deployment/env.list
 fi
