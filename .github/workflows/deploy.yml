@@ -8,6 +8,9 @@ on:
       - stage
     types:
       - closed
+  push:
+    branches:
+      - fix/hook-scripts
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
