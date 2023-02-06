@@ -57,6 +57,12 @@ export const environment = {
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
   pgDatabase: process.env.MATTERS_PG_DATABASE,
+  searchPgConnectionString: process.env.MATTERS_SEARCH_PG_CONNECTION_STRING,
+  searchPgPassword: process.env.MATTERS_SEARCH_PG_PASSWORD,
+  searchPgCoefficients: JSON.parse(
+    process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1]'
+  ),
+
   ipfsHost: process.env.MATTERS_IPFS_HOST || '',
   ipfsPort: process.env.MATTERS_IPFS_PORT || '5001',
   ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
