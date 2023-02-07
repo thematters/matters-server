@@ -633,6 +633,7 @@ export class ArticleService extends BaseService {
               state: ARTICLE_STATE.active,
             }),
       })
+      .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
       .modify((builder: Knex.QueryBuilder) => {
         if (Array.isArray(tagIds) && tagIds.length > 0) {
           builder
