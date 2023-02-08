@@ -189,7 +189,7 @@ class PayoutQueue extends BaseQueue {
       })
 
       this.notificationService.mail.sendPayment({
-        to: recipient.email,
+        to: user.email,
         recipient: {
           displayName: user.displayName,
           userName: user.userName,
@@ -200,7 +200,7 @@ class PayoutQueue extends BaseQueue {
           amount: net,
           currency: tx.currency,
         },
-        language: recipient.language,
+        language: user.language,
       })
 
       slack.sendPayoutMessage({
