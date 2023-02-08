@@ -4,13 +4,14 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'
-import { aws, es, knex, meiliClient } from 'connectors'
+import { aws, cfsvc, es, knex, meiliClient } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {
   es: typeof es
   meili: typeof meiliClient
   aws: typeof aws
+  cfsvc: typeof cfsvc
   knex: Knex
   dataloader: DataLoader<string, Item>
   table: TableName
@@ -22,6 +23,7 @@ export class BaseService extends DataSource {
     this.knex = knex
     this.table = table
     this.aws = aws
+    this.cfsvc = cfsvc
   }
 
   baseCount = async (where?: { [key: string]: any }, table?: TableName) => {

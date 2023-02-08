@@ -4,7 +4,7 @@ import { Knex } from 'knex'
 
 import { EntityNotFoundError } from 'common/errors'
 import logger from 'common/logger'
-import { aws, es, knex } from 'connectors'
+import { aws, cfsvc, es, knex } from 'connectors'
 import { Item, TableName } from 'definitions'
 
 interface InitLoaderInput {
@@ -78,6 +78,7 @@ interface MaxInput {
 export class AtomService extends DataSource {
   es: typeof es
   aws: typeof aws
+  cfsvc: typeof cfsvc
   knex: Knex
 
   circleIdLoader: DataLoader<string, Item>
@@ -90,6 +91,7 @@ export class AtomService extends DataSource {
     super()
     this.es = es
     this.aws = aws
+    this.cfsvc = cfsvc
     this.knex = knex
 
     this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })

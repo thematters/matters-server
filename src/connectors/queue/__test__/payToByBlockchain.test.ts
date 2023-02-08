@@ -36,7 +36,7 @@ jest.mock('connectors/blockchain', () => {
 })
 
 // test data
-//
+
 const polygonCurationContractAddress =
   environment.polygonCurationContractAddress.toLowerCase()
 const zeroAdress = '0x0000000000000000000000000000000000000000'

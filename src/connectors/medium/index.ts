@@ -9,18 +9,20 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { getFileName } from 'common/utils'
-import { aws, knex } from 'connectors'
+import { aws, cfsvc, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
 import { GQLAssetType } from 'definitions'
 
 export class Medium {
   aws: AWSService
+  cfsvc: typeof cfsvc
   knex: Knex
 
   private section = 'section.section--body'
 
   constructor() {
     this.aws = aws
+    this.cfsvc = cfsvc
     this.knex = knex
   }
 
@@ -91,12 +93,31 @@ export class Medium {
         throw new Error('Invalid image type.')
       }
 
-      const key = await this.aws.baseUploadFile(
-        'embed' as GQLAssetType,
-        upload,
-        uuid
-      )
-      return { uuid, key }
+      // make sure both settled
+      const [awsRes, cfsvcRes] = await Promise.allSettled([
+        this.aws.baseUploadFile('embed' as GQLAssetType, upload, uuid),
+        this.cfsvc.baseUploadFile('embed' as GQLAssetType, upload, uuid),
+      ])
+
+      // const failure = results.find((r) => r.status !== 'fulfilled')
+      if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
+        if (awsRes.status !== 'fulfilled') {
+          console.error(new Date(), 'aws s3 upload image ERROR:', awsRes.reason)
+          throw awsRes.reason
+        }
+        if (cfsvcRes.status !== 'fulfilled') {
+          console.error(
+            new Date(),
+            'cloudflare upload image ERROR:',
+            cfsvcRes.reason
+          )
+          throw cfsvcRes.reason
+        }
+      }
+
+      // const key = (settled.find((r) => r.status === 'fulfilled') as PromiseFulfilledResult<string>)?.value
+
+      return { uuid, key: awsRes.value }
     } catch (error) {
       throw new Error(`Unable to upload from url: ${error}`)
     }

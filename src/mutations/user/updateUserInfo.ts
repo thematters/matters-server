@@ -1,4 +1,5 @@
 import { has, isEmpty, isNil, omitBy } from 'lodash'
+import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
@@ -20,7 +21,7 @@ import {
   isValidUserName,
   setCookie,
 } from 'common/utils'
-import { aws } from 'connectors'
+import { aws, cfsvc } from 'connectors'
 import {
   GQLAssetType,
   ItemData,
@@ -59,12 +60,33 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
 
+      const uuid = v4()
+
       let keyPath: string | undefined
       try {
-        keyPath = await aws.baseServerSideUploadFile(
-          GQLAssetType.imgCached,
-          origUrl
-        )
+        const [awsRes, cfsvcRes] = await Promise.allSettled([
+          aws.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
+          cfsvc.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
+        ])
+        if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
+          if (awsRes.status !== 'fulfilled') {
+            console.error(
+              new Date(),
+              'aws s3 upload image ERROR:',
+              awsRes.reason
+            )
+            throw awsRes.reason
+          }
+          if (cfsvcRes.status !== 'fulfilled') {
+            console.error(
+              new Date(),
+              'cloudflare upload image ERROR:',
+              cfsvcRes.reason
+            )
+            throw cfsvcRes.reason
+          }
+        }
+        keyPath = awsRes.value
       } catch (err) {
         // ...
         console.error(`baseServerSideUploadFile error:`, err)
@@ -76,7 +98,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         )
 
         const assetItem: ItemData = {
-          // uuid: v4(),
+          uuid,
           authorId: viewer.id,
           type: ASSET_TYPE.avatar,
           path: keyPath,

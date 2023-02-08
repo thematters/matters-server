@@ -78,6 +78,8 @@ export const ARTICLE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
+  pending: 'pending',
+  error: 'error',
 }
 
 export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
@@ -241,7 +243,7 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
-export const MAX_TAGS_PER_ARTICLE_LIMIT = 10
+export const MAX_TAGS_PER_ARTICLE_LIMIT = 8
 export const TAGS_RECOMMENDED_LIMIT = 100
 
 export const MAX_TAG_CONTENT_LENGTH = 50
