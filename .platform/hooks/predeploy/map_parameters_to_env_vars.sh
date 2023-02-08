@@ -2,8 +2,8 @@
 
 # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-linux-extend.html
 
-echo ".platform/hooks/postdeploy/map_parameters_to_env_vars.sh executing"
-echo "Running script to fetch parameter store values and add them to <root>/.env file."
+echo ".platform/hooks/predeploy/map_parameters_to_env_vars.sh executing"
+echo "Running script to fetch parameter store values and add them to /opt/elasticbeanstalk/deployment/env.list file."
 
 ENV_STORE_PATH=$(/opt/elasticbeanstalk/bin/get-config environment -k ENV_STORE_PATH)
 
