@@ -232,7 +232,7 @@ class PublicationQueue extends BaseQueue {
       // Step 8: invalidate user cache
       await Promise.all([
         invalidateFQC({
-          node: { type: NODE_TYPES.Draft, id: draft.id },
+          node: { type: NODE_TYPES.Article, id: article.id },
           redis: this.cacheService.redis,
         }),
         invalidateFQC({
