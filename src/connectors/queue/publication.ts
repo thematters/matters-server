@@ -128,7 +128,7 @@ class PublicationQueue extends BaseQueue {
 
       await job.progress(20)
 
-      // Step 3: update draft
+      // Step 3: update draft and article state
       const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
           articleId: article.id,
@@ -230,16 +230,10 @@ class PublicationQueue extends BaseQueue {
       })
 
       // Step 8: invalidate user cache
-      await Promise.all([
-        invalidateFQC({
-          node: { type: NODE_TYPES.Article, id: article.id },
-          redis: this.cacheService.redis,
-        }),
-        invalidateFQC({
-          node: { type: NODE_TYPES.User, id: article.authorId },
-          redis: this.cacheService.redis,
-        }),
-      ])
+      invalidateFQC({
+        node: { type: NODE_TYPES.User, id: article.authorId },
+        redis: this.cacheService.redis,
+      })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
       let ipnsRes: any
@@ -339,6 +333,12 @@ class PublicationQueue extends BaseQueue {
           draft
         )
       }
+
+      // invalidate article cache
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: article.id },
+        redis: this.cacheService.redis,
+      })
 
       await job.progress(100)
 
