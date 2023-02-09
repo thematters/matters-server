@@ -17,7 +17,7 @@ exports.seed = function (knex, Promise) {
           email_verified: true,
           state: 'active',
           mobile: '999',
-          liker_id: 'test_liker_id',
+          liker_id: 'test_liker_id_1',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
         },
@@ -28,8 +28,10 @@ exports.seed = function (knex, Promise) {
           description: 'test user 2 description',
           email: 'test2@matters.news',
           mobile: '999',
+          liker_id: 'test_liker_id_2',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           language: 'zh_hans',
+          eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08g',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -38,6 +40,7 @@ exports.seed = function (knex, Promise) {
           description: 'test user 3 description',
           email: 'test3@matters.news',
           mobile: '999',
+          liker_id: 'test_liker_id_3',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           language: 'en',
         },
@@ -46,6 +49,7 @@ exports.seed = function (knex, Promise) {
           user_name: 'test4',
           display_name: 'test4',
           email: 'test4@matters.news',
+          liker_id: 'test_liker_id_4',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           state: 'onboarding',
         },
@@ -56,6 +60,7 @@ exports.seed = function (knex, Promise) {
           email: 'admin1@matters.news',
           role: 'admin',
           state: 'active',
+          liker_id: 'test_liker_id_5',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           payment_password_hash: bcrypt.hashSync('123456', BCRYPT_ROUNDS),
         },
@@ -66,6 +71,7 @@ exports.seed = function (knex, Promise) {
           email: 'hi@matters.news',
           role: 'admin',
           state: 'active',
+          liker_id: 'test_liker_id_6',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
         {
@@ -93,6 +99,7 @@ exports.seed = function (knex, Promise) {
           email: 'test9@matters.news',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           state: 'active',
+          liker_id: 'test_liker_id_7',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000010',
@@ -101,6 +108,7 @@ exports.seed = function (knex, Promise) {
           email: 'test10@matters.news',
           state: 'active',
           eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+          liker_id: 'test_liker_id_8',
         },
       ])
     })
