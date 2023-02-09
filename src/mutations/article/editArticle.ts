@@ -80,8 +80,16 @@ const resolver: MutationToEditArticleResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.state === USER_STATE.frozen) {
+  if (
+    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+      viewer.state
+    )
+  ) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  if (!viewer.likerId) {
+    throw new ForbiddenError('user has no liker id')
   }
 
   // checks

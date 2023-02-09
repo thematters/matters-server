@@ -3,6 +3,7 @@ import {
   AuthenticationError,
   DraftNotFoundError,
   ForbiddenByStateError,
+  ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
@@ -23,6 +24,10 @@ const resolver: MutationToPublishArticleResolver = async (
     )
   ) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  if (!viewer.likerId) {
+    throw new ForbiddenError('user has no liker id')
   }
 
   // retrive data from draft

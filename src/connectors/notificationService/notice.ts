@@ -1,12 +1,11 @@
 import DataLoader from 'dataloader'
-import { isArray, isEqual, mergeWith, uniq, uniqBy } from 'lodash'
+import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
-import { DAY, DB_NOTICE_TYPE } from 'common/enums'
+import { DB_NOTICE_TYPE } from 'common/enums'
 // import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
-  DBNoticeType,
   GQLNotificationSettingType,
   NoticeData,
   NoticeDetail,
@@ -450,86 +449,6 @@ class Notice extends BaseService {
         }
       })
     )
-  }
-
-  findDailySummaryUsers = async (): Promise<User[]> => {
-    const recipients = await this.knex('notice')
-      .select('user.*')
-      .where({
-        unread: true,
-        deleted: false,
-        'user_notify_setting.enable': true,
-        'user_notify_setting.email': true,
-      })
-      .where(
-        'notice.updated_at',
-        '>=',
-        this.knex.raw(`now() -  interval '1 days'`)
-      )
-      .join('user', 'user.id', 'recipient_id')
-      .join(
-        'user_notify_setting',
-        'user_notify_setting.user_id',
-        'recipient_id'
-      )
-      .groupBy('user.id')
-
-    return recipients
-  }
-
-  findDailySummaryNoticesByUser = async (
-    userId: string
-  ): Promise<NoticeItem[]> => {
-    const validNoticeTypes: DBNoticeType[] = [
-      DB_NOTICE_TYPE.user_new_follower,
-      DB_NOTICE_TYPE.article_new_collected,
-      DB_NOTICE_TYPE.article_new_appreciation,
-      DB_NOTICE_TYPE.article_new_subscriber,
-      DB_NOTICE_TYPE.article_new_comment,
-      DB_NOTICE_TYPE.article_mentioned_you,
-      DB_NOTICE_TYPE.comment_new_reply,
-      DB_NOTICE_TYPE.comment_mentioned_you,
-    ]
-    const noticeDetails = await this.findDetail({
-      where: [
-        [{ recipientId: userId, deleted: false, unread: true }],
-        [
-          'notice.updated_at',
-          '>=',
-          this.knex.raw(`now() -  interval '1 days'`),
-        ],
-      ],
-      whereIn: ['notice_detail.notice_type', validNoticeTypes],
-    })
-
-    const notices = await Promise.all(
-      noticeDetails.map(async (n: NoticeDetail) => {
-        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
-        const actors = (await this.findActors(n.id)).filter(
-          (actor) =>
-            new Date(actor.noticeActorCreatedAt) >=
-            new Date(Date.now() - DAY * 1)
-        )
-
-        return {
-          ...n,
-          createdAt: n.updatedAt,
-          type: n.noticeType,
-          actors,
-          entities,
-        }
-      })
-    )
-
-    const uniqNotices = uniqBy(notices, (n) => {
-      const actors = n.actors.map(({ id }) => id).join('')
-      const entities = `${n?.entities?.target?.id || ''}`
-      const uniqId = `type:${n.type}::actors:${actors}::entities:${entities}`
-
-      return uniqId
-    })
-
-    return uniqNotices
   }
 
   checkUserNotifySetting = async ({

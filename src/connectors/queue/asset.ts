@@ -65,14 +65,20 @@ class AssetQueue extends BaseQueue {
 
       // delete s3 object
       await Promise.all(
-        assets.map((asset) => this.atomService.aws.baseDeleteFile(asset.path))
+        assets
+          .map((asset) => [
+            this.atomService.aws.baseDeleteFile(asset.path),
+            this.atomService.cfsvc.baseDeleteFile(asset.path),
+          ])
+          .flat()
       )
 
       job.progress(100)
       done(null, job.data)
-    } catch (error) {
-      logger.error(error)
-      done(error)
+    } catch (err) {
+      logger.error(err)
+      console.error('delete assets ERROR:', err)
+      done(err)
     }
   }
 }

@@ -1218,7 +1218,7 @@ describe('likecoin', () => {
     // check if exists
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
-      variables: { input: { userName: 'test1' } },
+      variables: { input: { userName: 'test2' } },
     })
 
     // reset
@@ -1243,7 +1243,7 @@ describe('crypto wallet', () => {
     // check if exists
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
-      variables: { input: { userName: 'test1' } },
+      variables: { input: { userName: 'test2' } },
     })
 
     // reset

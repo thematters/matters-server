@@ -31,8 +31,12 @@ const resolver: MutationToUserLoginResolver = async (
   context.viewer.authMode = user.role as AuthMode
   context.viewer.scope = {}
 
-  // return { token, auth: true }
-  return { token, auth: true, type: GQLAuthResultType.Login }
+  return {
+    token,
+    auth: true,
+    type: GQLAuthResultType.Login,
+    user,
+  }
 }
 
 export default resolver

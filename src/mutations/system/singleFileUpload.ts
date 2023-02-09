@@ -15,7 +15,7 @@ import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {
   if (disposition) {
-    const match = disposition.match(/filename="(.*)"/) || []
+    const match = disposition.match(/filename="(.*)"/i) || []
     if (match.length >= 2) {
       return decodeURI(match[1])
     }
@@ -117,12 +117,33 @@ const resolver: MutationToSingleFileUploadResolver = async (
   }
 
   const uuid = v4()
-  const key = await systemService.aws.baseUploadFile(type, upload, uuid)
+  // make sure both settled
+  const [awsRes, cfsvcRes] = await Promise.allSettled([
+    systemService.aws.baseUploadFile(type, upload, uuid),
+    isImageType && systemService.cfsvc.baseUploadFile(type, upload, uuid),
+  ])
+
+  // assert both "fulfilled" ?
+  if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
+    if (awsRes.status !== 'fulfilled') {
+      console.error(new Date(), 'aws s3 upload image ERROR:', awsRes.reason)
+      throw awsRes.reason
+    }
+    if (cfsvcRes.status !== 'fulfilled') {
+      console.error(
+        new Date(),
+        'cloudflare upload image ERROR:',
+        cfsvcRes.reason
+      )
+      throw cfsvcRes.reason
+    }
+  }
+
   const asset: ItemData = {
     uuid,
     authorId: viewer.id,
     type,
-    path: key,
+    path: awsRes.value, // key,
   }
 
   const newAsset = await systemService.createAssetAndAssetMap(

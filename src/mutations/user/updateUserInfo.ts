@@ -1,4 +1,5 @@
 import { has, isEmpty, isNil, omitBy } from 'lodash'
+import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
 import { imgCacheServicePrefix } from 'common/environment'
@@ -18,8 +19,9 @@ import {
   isValidDisplayName,
   isValidPaymentPassword,
   isValidUserName,
+  setCookie,
 } from 'common/utils'
-import { aws } from 'connectors'
+import { aws, cfsvc } from 'connectors'
 import {
   GQLAssetType,
   ItemData,
@@ -37,6 +39,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       notificationService,
       atomService,
     },
+    req,
+    res,
   }
 ) => {
   if (!viewer.id) {
@@ -56,12 +60,33 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     if (input.avatar?.startsWith(imgCacheServicePrefix)) {
       const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
 
+      const uuid = v4()
+
       let keyPath: string | undefined
       try {
-        keyPath = await aws.baseServerSideUploadFile(
-          GQLAssetType.imgCached,
-          origUrl
-        )
+        const [awsRes, cfsvcRes] = await Promise.allSettled([
+          aws.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
+          cfsvc.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
+        ])
+        if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
+          if (awsRes.status !== 'fulfilled') {
+            console.error(
+              new Date(),
+              'aws s3 upload image ERROR:',
+              awsRes.reason
+            )
+            throw awsRes.reason
+          }
+          if (cfsvcRes.status !== 'fulfilled') {
+            console.error(
+              new Date(),
+              'cloudflare upload image ERROR:',
+              cfsvcRes.reason
+            )
+            throw cfsvcRes.reason
+          }
+        }
+        keyPath = awsRes.value
       } catch (err) {
         // ...
         console.error(`baseServerSideUploadFile error:`, err)
@@ -73,7 +98,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         )
 
         const assetItem: ItemData = {
-          // uuid: v4(),
+          uuid,
           authorId: viewer.id,
           type: ASSET_TYPE.avatar,
           path: keyPath,
@@ -197,27 +222,22 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   // update user info to es
-  const { description, displayName, userName, state, role } = updateParams
+  const { description, displayName, userName } = updateParams
 
-  if (!(description || displayName || userName || state || role)) {
-    return user
-  }
+  if (description || displayName || userName) {
+    const searchable = omitBy({ description, displayName, userName }, isNil)
 
-  const searchable = omitBy(
-    { description, displayName, userName, state },
-    isNil
-  )
-
-  try {
-    await atomService.es.client.update({
-      index: 'user',
-      id: viewer.id,
-      body: {
-        doc: searchable,
-      },
-    })
-  } catch (err) {
-    logger.error(err)
+    try {
+      await atomService.es.client.update({
+        index: 'user',
+        id: viewer.id,
+        body: {
+          doc: searchable,
+        },
+      })
+    } catch (err) {
+      logger.error(err)
+    }
   }
 
   // trigger notifications
@@ -231,6 +251,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       type: 'passwordSet',
       language: user.language,
     })
+  }
+
+  // set language cookie if needed
+  if (updateParams.language) {
+    setCookie({ req, res, user })
   }
 
   return user

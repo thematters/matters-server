@@ -51,6 +51,8 @@ export const environment = {
     process.env.MATTERS_MEILISEARCH_SERVER || 'http://meili.dev.vpc:7700',
   meiliSearch_apiKey: process.env.MATTERS_MEILISEARCH_APIKEY || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
+  cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
+  cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,

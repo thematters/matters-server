@@ -3551,6 +3551,7 @@ export interface GQLAuthResult {
   auth: boolean
   token?: string
   type: GQLAuthResultType
+  user?: GQLUser
 }
 
 export const enum GQLAuthResultType {
@@ -12091,6 +12092,7 @@ export interface GQLAuthResultTypeResolver<TParent = any> {
   auth?: AuthResultToAuthResolver<TParent>
   token?: AuthResultToTokenResolver<TParent>
   type?: AuthResultToTypeResolver<TParent>
+  user?: AuthResultToUserResolver<TParent>
 }
 
 export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
@@ -12112,6 +12114,15 @@ export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
 }
 
 export interface AuthResultToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AuthResultToUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

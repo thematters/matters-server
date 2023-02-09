@@ -1,5 +1,5 @@
+import { utils } from 'ethers'
 import { customAlphabet } from 'nanoid'
-import Web3 from 'web3'
 
 import { UserInputError } from 'common/errors'
 import {
@@ -15,7 +15,7 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   { viewer, dataSources: { atomService } }
 ) => {
   // check address is a valid one,
-  if (!address || !Web3.utils.isAddress(address)) {
+  if (!address || !utils.isAddress(address)) {
     throw new UserInputError('address is invalid')
   }
 

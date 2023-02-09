@@ -6,7 +6,7 @@ import {
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
 } from 'common/enums'
-import logger from 'common/logger'
+// import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   GQLFeatureFlag,
@@ -296,11 +296,19 @@ export class SystemService extends BaseService {
       await trx('asset').whereIn('id', ids).del()
     })
 
-    try {
-      await Promise.all(paths.map((path) => this.aws.baseDeleteFile(path)))
-    } catch (e) {
-      logger.error(e)
+    const logError = (err: Error) => {
+      // logger.error(err)
+      console.error('delete assets ERROR:', err)
     }
+
+    await Promise.allSettled(
+      paths
+        .map((path) => [
+          this.aws.baseDeleteFile(path).catch(logError),
+          this.cfsvc.baseDeleteFile(path).catch(logError),
+        ])
+        .flat()
+    )
   }
 
   /**
