@@ -18,6 +18,7 @@ import {
   PasswordInvalidError,
 } from 'common/errors'
 import {
+  getViewerFromUser,
   isValidDisplayName,
   isValidEmail,
   isValidPassword,
@@ -25,6 +26,7 @@ import {
   setCookie,
 } from 'common/utils'
 import {
+  AuthMode,
   GQLAuthResultType,
   GQLVerificationCodeType,
   MutationToUserRegisterResolver,
@@ -33,13 +35,14 @@ import {
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  {
+  context
+) => {
+  const {
     viewer,
     dataSources: { atomService, tagService, userService, notificationService },
     req,
     res,
-  }
-) => {
+  } = context
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
@@ -153,6 +156,10 @@ const resolver: MutationToUserRegisterResolver = async (
   const { token, user } = await userService.loginByEmail({ ...input, email })
 
   setCookie({ req, res, token, user })
+
+  context.viewer = await getViewerFromUser(user)
+  context.viewer.authMode = user.role as AuthMode
+  context.viewer.scope = {}
 
   return {
     token,
