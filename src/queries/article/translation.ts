@@ -1,7 +1,7 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 
-import { NODE_TYPES } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import logger from 'common/logger'
 import { CacheService, gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
@@ -15,14 +15,36 @@ const resolver: ArticleToTranslationResolver = async (
     language: storedLanguage,
   },
   { input },
-  { viewer, dataSources: { atomService, articleService, tagService } }
+  {
+    viewer,
+    dataSources: { atomService, articleService, paymentService, tagService },
+  }
 ) => {
   const language = input && input.language ? input.language : viewer.language
+
+  // paywalled content
+  let isPaywalledContent = false
+  const articleCircle = await articleService.findArticleCircle(articleId)
+  if (articleCircle && articleCircle.access === ARTICLE_ACCESS_TYPE.paywall) {
+    if (viewer.id) {
+      const isCircleMember = await paymentService.isCircleMember({
+        userId: viewer.id,
+        circleId: articleCircle.circleId,
+      })
+
+      // not circle member
+      if (!isCircleMember) {
+        isPaywalledContent = true
+      }
+    } else {
+      isPaywalledContent = true
+    }
+  }
 
   // it's same as original language
   if (language === storedLanguage) {
     return {
-      content: originContent,
+      content: isPaywalledContent ? '' : originContent,
       title: originTitle,
       summary: originSummary,
       language,
@@ -36,7 +58,10 @@ const resolver: ArticleToTranslationResolver = async (
   })
 
   if (translation) {
-    return translation
+    return {
+      ...translation,
+      content: isPaywalledContent ? '' : translation.content,
+    }
   }
 
   // or translate and store to db
@@ -100,7 +125,12 @@ const resolver: ArticleToTranslationResolver = async (
       redis: cacheService.redis,
     })
 
-    return { title, content, summary, language }
+    return {
+      title,
+      content: isPaywalledContent ? '' : content,
+      summary,
+      language,
+    }
   } else {
     return null
   }
