@@ -31,6 +31,7 @@ exports.seed = function (knex, Promise) {
           liker_id: 'test_liker_id_2',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
           language: 'zh_hans',
+          eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08g',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
