@@ -316,25 +316,8 @@ class RevisionQueue extends BaseQueue {
         job.progress(100)
 
         // no await to notify async
-        this.atomService.aws
-          ?.sqsSendMessage({
-            MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-            MessageBody: {
-              articleId: article.id,
-              title: article.title,
-              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
-              dataHash: article.dataHash,
-              mediaHash: article.mediaHash,
-
-              // ipns info:
-              ipnsKey: ipnsRes?.ipnsKey,
-              lastDataHash: ipnsRes?.lastDataHash,
-
-              // author info:
-              userName,
-              displayName,
-            },
-          })
+        this.articleService
+          .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
           .catch((err: Error) =>
             console.error(new Date(), 'failed sqs notify:', err)
           )

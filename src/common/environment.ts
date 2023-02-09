@@ -44,6 +44,12 @@ export const environment = {
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
   awsIpfsArticlesQueueUrl:
     process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
+  awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
+  awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
+  awsLikecoinSendPVUrl:
+    process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
+  awsLikecoinUpdateCivicLikerCache:
+    process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
   awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
   esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
   esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
@@ -64,7 +70,6 @@ export const environment = {
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
-  sgKey: process.env.MATTERS_SENDGRID_API_KEY,
   mattyId: process.env.MATTERS_MATTY_ID || '',
   mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,

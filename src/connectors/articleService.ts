@@ -20,6 +20,7 @@ import {
   COMMENT_TYPE,
   MINUTE,
   PUBLISH_STATE,
+  QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -502,10 +503,10 @@ export class ArticleService extends BaseService {
 
       console.log(new Date(), `/${directoryName} published:`, published)
 
-      atomService.aws
+      this.aws
         .sqsSendMessage({
-          MessageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
-          MessageBody: {
+          messageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
+          messageBody: {
             articleId: lastDraft.id,
             title: lastDraft.title,
             dataHash: lastDraft.dataHash,
@@ -519,6 +520,7 @@ export class ArticleService extends BaseService {
             userName: author.userName,
             displayName: author.displayName,
           },
+          queueUrl: QUEUE_URL.ipfsArticles,
         })
         // .then(res => {})
         .catch((err: Error) =>
@@ -558,6 +560,47 @@ export class ArticleService extends BaseService {
       )
     }
   }
+
+  sendArticleFeedMsgToSQS = async ({
+    article,
+    author,
+    ipnsData,
+  }: {
+    article: {
+      id: string
+      title: string
+      slug: string
+      dataHash: string
+      mediaHash: string
+    }
+    author: {
+      userName: string
+      displayName: string
+    }
+    ipnsData: {
+      ipnsKey: string
+      lastDataHash: string
+    }
+  }) =>
+    this.aws?.sqsSendMessage({
+      messageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
+      messageBody: {
+        articleId: article.id,
+        title: article.title,
+        url: `${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
+        dataHash: article.dataHash,
+        mediaHash: article.mediaHash,
+
+        // ipns info:
+        ipnsKey: ipnsData.ipnsKey,
+        lastDataHash: ipnsData.lastDataHash,
+
+        // author info:
+        userName: author.userName,
+        displayName: author.displayName,
+      },
+      queueUrl: QUEUE_URL.ipfsArticles,
+    })
 
   /**
    * Archive article

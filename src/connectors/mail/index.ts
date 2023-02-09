@@ -1,30 +1,22 @@
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
-import sgMail from '@sendgrid/mail'
 
-import { environment, isTest } from 'common/environment'
+import { QUEUE_URL } from 'common/enums'
+import { isTest } from 'common/environment'
+import { aws } from 'connectors'
 
 class MailService {
-  mail: typeof sgMail
-
+  aws: typeof aws
   constructor() {
-    this.mail = this.__setup()
-  }
-
-  __setup = () => {
-    sgMail.setApiKey(environment.sgKey as string)
-    return sgMail
+    this.aws = aws
   }
 
   send = async (params: MailDataRequired) => {
     if (isTest) {
       return
     }
-
-    await this.mail.send({
-      mailSettings: {
-        bypassListManagement: { enable: true },
-      },
-      ...params,
+    return this.aws.sqsSendMessage({
+      messageBody: params,
+      queueUrl: QUEUE_URL.mail,
     })
   }
 }
