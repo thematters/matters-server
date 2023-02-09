@@ -85,7 +85,6 @@ const resolver: MutationToPutDraftResolver = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  console.log('viewer: ', viewer)
   if (!viewer.likerId) {
     throw new ForbiddenError('user has no liker id')
   }
