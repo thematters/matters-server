@@ -12,6 +12,7 @@ const resolver: ArticleToTranslationResolver = async (
     title: originTitle,
     summary: originSummary,
     articleId,
+    authorId,
     language: storedLanguage,
   },
   { input },
@@ -24,8 +25,13 @@ const resolver: ArticleToTranslationResolver = async (
 
   // paywalled content
   let isPaywalledContent = false
+  const isAuthor = authorId === viewer.id
   const articleCircle = await articleService.findArticleCircle(articleId)
-  if (articleCircle && articleCircle.access === ARTICLE_ACCESS_TYPE.paywall) {
+  if (
+    !isAuthor &&
+    articleCircle &&
+    articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
+  ) {
     if (viewer.id) {
       const isCircleMember = await paymentService.isCircleMember({
         userId: viewer.id,
