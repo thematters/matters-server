@@ -14,7 +14,7 @@ import { GQLAssetType } from 'definitions'
 
 export class AWSService {
   s3: AWS.S3
-  sqs?: AWS.SQS
+  sqs: AWS.SQS
   sns?: AWS.SNS
   s3Bucket: string
   s3Endpoint: string
@@ -196,7 +196,6 @@ export class AWSService {
       })
       .promise()
 
-  // no-op if sqs not initialized; when env sqs queue-url not set
   sqsSendMessage = async ({
     messageBody,
     queueUrl,
