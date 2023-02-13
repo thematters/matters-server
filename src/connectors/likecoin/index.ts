@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
+import { v4 } from 'uuid'
 
 import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from 'common/enums'
 import { environment } from 'common/environment'
@@ -420,6 +421,8 @@ export class LikeCoin {
     this.aws.sqsSendMessage({
       messageBody: data,
       queueUrl: QUEUE_URL.likecoinLike,
+      messageGroupId: 'like',
+      messageDeduplicationId: v4(),
     })
 
   /**
