@@ -19,21 +19,6 @@ export const QUEUE_JOB = {
   activateOnboardingUsers: 'activateOnboardingUsers',
   unbanUsers: 'unbanUsers',
 
-  // Refresh Views
-  refreshTagCountMaterialView: 'refreshTagCountMaterialView',
-  refreshUserReaderView: 'refreshUserReaderView',
-  refreshFeaturedCommentView: 'refreshFeaturedCommentView',
-  refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
-  refreshArticleHottestView: 'refreshArticleHottestView',
-  refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
-  refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
-  refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
-  refreshUserActivityView: 'refreshUserActivityView',
-  refreshArticleReadTimeView: 'refreshArticleReadTimeView',
-  refreshRecentlyReadTagsView: 'refreshRecentlyReadTagsView',
-  refreshRecommendedArticlesFromReadTagsView:
-    'refreshRecommendedArticlesFromReadTagsView',
-
   // Migration
   migration: 'migration',
 
@@ -66,7 +51,6 @@ export const QUEUE_JOB = {
 
 export const QUEUE_NAME = {
   publication: 'publication',
-  refreshViews: 'refreshViews',
   user: 'user',
   migration: 'migration',
   payout: 'payout',
