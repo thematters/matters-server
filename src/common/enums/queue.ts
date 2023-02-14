@@ -56,9 +56,6 @@ export const QUEUE_JOB = {
   // Asset
   deleteAsset: 'deleteAsset',
 
-  // Circle
-  transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
-
   // ExchangeRate
   updateFiat: 'updateFiat',
   updateToken: 'updateToken',
@@ -77,7 +74,6 @@ export const QUEUE_NAME = {
   revision: 'revision',
   asset: 'asset',
   stripe: 'stripe',
-  circle: 'circle',
   ipfs: 'ipfs',
   exchangeRate: 'exchangeRate',
 }
