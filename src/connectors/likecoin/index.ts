@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from 'common/enums'
+import { CACHE_TTL, QUEUE_URL } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
@@ -29,13 +29,6 @@ interface SendPVData {
   userAgent: string
   authorLikerId: string
   url: string
-}
-
-interface UpdateCivicLikerCacheData {
-  likerId: string
-  userId: string
-  key: string
-  expire: typeof CACHE_TTL[keyof typeof CACHE_TTL]
 }
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
@@ -96,7 +89,7 @@ export class LikeCoin {
 
   constructor() {
     this.knex = knex
-    this.cache = new CacheService(CACHE_PREFIX.LIKECOIN)
+    this.cache = new CacheService('likecoin')
     this.aws = aws
   }
 
@@ -367,29 +360,14 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  isCivicLiker = async ({
-    likerId,
-    userId,
-  }: {
-    likerId: string
-    userId: string
-  }) => {
-    const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
-    const keys = { id: likerId }
-    const isCivicLiker = await cache.getObject({
-      keys,
-      getter: async () => {
-        this.updateCivicLikerCache({
-          likerId,
-          userId,
-          key: cache.genKey(keys),
-          expire: CACHE_TTL.LONG,
-        })
-        return false
-      },
-      expire: CACHE_TTL.SHORT,
+  isCivicLiker = async ({ likerId }: { likerId: string }) => {
+    const res = await this.request({
+      endpoint: `/users/id/${likerId}/min`,
+      method: 'GET',
+      timeout: 2000,
+      // liker,
     })
-    return isCivicLiker
+    return !!_.get(res, 'data.isSubscribedCivicLiker')
   }
 
   /**
@@ -635,12 +613,6 @@ export class LikeCoin {
     const amount = _.get(msgSend, 'value.amount[0].amount')
     return { amount }
   }
-
-  private updateCivicLikerCache = async (data: UpdateCivicLikerCacheData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
-      queueUrl: QUEUE_URL.likecoinUpdateCivicLikerCache,
-    })
 }
 
 export const likecoin = new LikeCoin()
