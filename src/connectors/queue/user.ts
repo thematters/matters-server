@@ -6,9 +6,9 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  QUEUE_URL,
   USER_STATE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { aws } from 'connectors'
 
@@ -57,7 +57,7 @@ class UserQueue extends BaseQueue {
   archiveUser = (data: ArchiveUserData) =>
     aws.sqsSendMessage({
       messageBody: data,
-      queueUrl: QUEUE_URL.archiveUser,
+      queueUrl: environment.awsArchiveUserQueueUrl,
     })
 
   /**
