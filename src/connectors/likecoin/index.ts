@@ -11,17 +11,8 @@ import {
   OAuthTokenInvalidError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { aws, CacheService, knex } from 'connectors'
+import { CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
-
-interface LikeData {
-  likerId: string
-  likerIp?: string
-  userAgent: string
-  authorLikerId: string
-  url: string
-  amount: number
-}
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
@@ -77,12 +68,10 @@ const ENDPOINTS = {
 export class LikeCoin {
   knex: Knex
   cache: CacheService
-  aws: typeof aws
 
   constructor() {
     this.knex = knex
     this.cache = new CacheService('likecoin')
-    this.aws = aws
   }
 
   /**
@@ -414,11 +403,43 @@ export class LikeCoin {
   /**
    * Like a content.
    */
-  like = async (likeData: LikeData) => {
-    return this.aws.sqsSendMessage({
-      messageBody: likeData,
-      queueUrl: environment.awsLikecoinLikeUrl,
-    })
+  like = async ({
+    authorLikerId,
+    liker,
+    url,
+    likerIp,
+    amount,
+    userAgent,
+  }: {
+    authorLikerId: string
+    liker: UserOAuthLikeCoin
+    url: string
+    likerIp?: string
+    amount: number
+    userAgent: string
+  }) => {
+    try {
+      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
+      const result = await this.request({
+        ip: likerIp,
+        userAgent,
+        endpoint,
+        withClientCredential: true,
+        method: 'POST',
+        liker,
+        data: {
+          referrer: encodeURI(url),
+        },
+      })
+      const data = _.get(result, 'data')
+      if (data === 'OK') {
+        return data
+      } else {
+        throw result
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
