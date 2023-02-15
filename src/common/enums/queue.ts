@@ -43,9 +43,6 @@ export const QUEUE_JOB = {
   txTimeout: 'txTimeout',
   syncCurationEvents: 'syncCurationEvents',
 
-  // Stripe
-  syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
-
   // Appreciation
   appreciation: 'appreciation',
 
@@ -76,7 +73,6 @@ export const QUEUE_NAME = {
   txTimeout: 'txTimeout',
   revision: 'revision',
   asset: 'asset',
-  stripe: 'stripe',
   circle: 'circle',
   ipfs: 'ipfs',
   exchangeRate: 'exchangeRate',
