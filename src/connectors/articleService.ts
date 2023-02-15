@@ -20,7 +20,6 @@ import {
   COMMENT_TYPE,
   MINUTE,
   PUBLISH_STATE,
-  QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -524,7 +523,7 @@ export class ArticleService extends BaseService {
             userName: author.userName,
             displayName: author.displayName,
           },
-          queueUrl: QUEUE_URL.ipfsArticles,
+          queueUrl: environment.awsIpfsArticlesQueueUrl,
         })
         // .then(res => {})
         .catch((err: Error) =>
@@ -603,7 +602,7 @@ export class ArticleService extends BaseService {
         userName: author.userName,
         displayName: author.displayName,
       },
-      queueUrl: QUEUE_URL.ipfsArticles,
+      queueUrl: environment.awsIpfsArticlesQueueUrl,
     })
 
   /**
