@@ -23,14 +23,6 @@ interface LikeData {
   amount: number
 }
 
-interface SendPVData {
-  likerId?: string
-  likerIp?: string
-  userAgent: string
-  authorLikerId: string
-  url: string
-}
-
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
 const ERROR_CODES = {
@@ -383,22 +375,51 @@ export class LikeCoin {
   }
 
   /**
-   * Send page view to likecoin
+   * current user like count of a content
    */
-  sendPV = async (data: SendPVData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
-      queueUrl: QUEUE_URL.likecoinSendPV,
+  count = async ({
+    liker,
+    authorLikerId,
+    url,
+    likerIp,
+    userAgent,
+  }: {
+    liker?: UserOAuthLikeCoin
+    authorLikerId: string
+    url: string
+    likerIp?: string
+    userAgent: string
+  }) => {
+    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
+    const res = await this.request({
+      endpoint,
+      method: 'GET',
+      liker,
+      ip: likerIp,
+      userAgent,
+      withClientCredential: true,
+      params: {
+        referrer: encodeURI(url),
+      },
     })
+    const data = _.get(res, 'data')
+
+    if (!data) {
+      throw res
+    }
+
+    return data.count
+  }
 
   /**
    * Like a content.
    */
-  like = async (data: LikeData) =>
-    this.aws.sqsSendMessage({
-      messageBody: data,
+  like = async (likeData: LikeData) => {
+    return this.aws.sqsSendMessage({
+      messageBody: likeData,
       queueUrl: QUEUE_URL.likecoinLike,
     })
+  }
 
   /**
    * Super Like
