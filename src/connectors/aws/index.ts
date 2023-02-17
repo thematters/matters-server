@@ -10,7 +10,7 @@ import { GQLAssetType } from 'definitions'
 
 export class AWSService {
   s3: AWS.S3
-  sqs?: AWS.SQS
+  sqs: AWS.SQS
   sns?: AWS.SNS
   s3Bucket: string
   s3Endpoint: string
@@ -20,9 +20,7 @@ export class AWSService {
     this.s3 = new AWS.S3()
     this.s3Bucket = this.getS3Bucket()
     this.s3Endpoint = this.getS3Endpoint()
-    if (environment.awsIpfsArticlesQueueUrl) {
-      this.sqs = new AWS.SQS()
-    }
+    this.sqs = new AWS.SQS()
     if (environment.awsArticlesSnsTopic) {
       this.sns = new AWS.SNS()
     }
@@ -194,19 +192,20 @@ export class AWSService {
       })
       .promise()
 
-  // no-op if sqs not initialized; when env sqs queue-url not set
   sqsSendMessage = async ({
-    MessageGroupId,
-    MessageBody,
+    messageBody,
+    queueUrl,
+    messageGroupId,
   }: {
-    MessageGroupId: string
-    MessageBody: any
+    messageBody: any
+    queueUrl: string
+    messageGroupId?: string
   }) =>
     this.sqs
       ?.sendMessage({
-        MessageGroupId,
-        MessageBody: JSON.stringify(MessageBody),
-        QueueUrl: environment.awsIpfsArticlesQueueUrl,
+        MessageGroupId: messageGroupId,
+        MessageBody: JSON.stringify(messageBody),
+        QueueUrl: queueUrl,
       })
       .promise()
 

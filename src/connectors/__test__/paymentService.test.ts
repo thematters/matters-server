@@ -7,26 +7,25 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { ArticleService, PaymentService, UserService } from 'connectors'
-import { notificationQueue } from 'connectors/queue/notification'
+import {
+  ArticleService,
+  mailService,
+  PaymentService,
+  UserService,
+} from 'connectors'
 import { GQLChain } from 'definitions'
 
 import { createDonationTx } from './utils'
 
 // setup mock
-jest.mock('connectors/queue/notification', () => {
-  return {
-    __esModule: true,
-    notificationQueue: {
-      sendMail: jest.fn(),
-    },
-  }
-})
-
-// services
-
-const paymentService = new PaymentService()
-const userService = new UserService()
+// jest.mock('connectors', () => {
+//  return {
+//    __esModule: true,
+//    mailService: {
+//      send: jest.fn(),
+//    },
+//  }
+// })
 
 // helpers
 
@@ -35,6 +34,8 @@ const genRandomProviderTxId = () => 'testProviderTxId' + Math.random()
 // tests
 
 describe('Transaction CRUD', () => {
+  const paymentService = new PaymentService()
+
   const amount = 1
   const fee = 0.1
   const state = TRANSACTION_STATE.pending
@@ -290,10 +291,13 @@ describe('Transaction CRUD', () => {
 })
 
 describe('notifyDonation', () => {
+  const paymentService = new PaymentService()
+  const userService = new UserService()
+  mailService.send = jest.fn()
   test('donationCount value is correct', async () => {
     const getDonationCount = () =>
       // @ts-ignore
-      notificationQueue.sendMail.mock.calls[0][0].personalizations[0]
+      mailService.send.mock.calls[0][0].personalizations[0]
         .dynamic_template_data.tx.donationCount
 
     const articleService = new ArticleService()
@@ -314,7 +318,7 @@ describe('notifyDonation', () => {
     expect(getDonationCount()).toBe(1)
 
     // @ts-ignore
-    notificationQueue.sendMail.mockClear()
+    mailService.send.mockClear()
     const tx2 = await createDonationTx({
       senderId: sender.id,
       recipientId: recipient.id,
