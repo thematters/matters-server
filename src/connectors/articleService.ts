@@ -45,6 +45,10 @@ const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 const searchV1ArticlesCoefficientA = environment.searchPgCoefficients?.[0] || 1
 const searchV1ArticlesCoefficientB = environment.searchPgCoefficients?.[1] || 1
 const searchV1ArticlesCoefficientC = environment.searchPgCoefficients?.[2] || 1
+const searchV1ArticlesCoefficientD = environment.searchPgCoefficients?.[3] || 1
+
+const SEARCH_TITLE_RANK_THRESHOLD = 0.001
+const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService {
   ipfsServers: typeof ipfsServers
@@ -1015,55 +1019,80 @@ export class ArticleService extends BaseService {
       ).map(({ userId }) => userId)
     }
 
+    const baseQuery = this.searchKnex
+      .from(
+        this.searchKnex
+          .select(
+            '*',
+            this.searchKnex.raw(
+              `(_text_cd_rank/(_text_cd_rank + 1)) AS text_rank`
+            )
+          )
+          .from(
+            this.searchKnex
+              .select([
+                'id',
+                'num_views',
+                'title_orig', // 'title',
+                'created_at',
+                'last_read_at', // -- title, slug,
+                this.searchKnex.raw(
+                  `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
+                ),
+                this.searchKnex.raw(`ts_rank(title_ts, query) AS title_rank`),
+                this.searchKnex.raw(
+                  `ts_rank(summary_ts, query, 1) AS summary_rank`
+                ),
+                this.searchKnex.raw(
+                  `ts_rank_cd(text_ts, query, 4) AS _text_cd_rank`
+                ),
+              ])
+              .from('search_index.article')
+              .crossJoin(
+                this.searchKnex.raw(
+                  `plainto_tsquery('chinese_zh', ?) query`,
+                  key
+                )
+              )
+              .whereRaw(
+                `query @@ title_ts OR query @@ summary_ts OR query @@ text_ts`
+              )
+              .as('t0')
+          )
+          .as('t1')
+      )
+      // .whereNotIn('author_id', blockedIds)
+      .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
+      // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+
     const [countRes, articleIds] = await Promise.all([
-      // make sure WHERE clause match
-      this.searchKnex
-        .count()
-        .first()
-        .from('search_index.article')
-        .crossJoin(
-          this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
-        )
-        .whereRaw(`query @@ title_ts OR query @@ text_ts`),
+      baseQuery.clone().count().first(),
+
+      // the actual search page
       this.searchKnex
         .select([
           '*',
           this.searchKnex.raw(
-            '(? * views_rank + ? * title_rank + ? * text_rank) AS score',
+            '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
             [
               searchV1ArticlesCoefficientA,
               searchV1ArticlesCoefficientB,
               searchV1ArticlesCoefficientC,
+              searchV1ArticlesCoefficientD,
             ]
           ),
         ])
-        .from(
-          this.searchKnex
-            .select([
-              'id',
-              'num_views',
-              // 'last_read_at', // -- title, slug,
-              this.searchKnex.raw(
-                `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
-              ),
-              this.searchKnex.raw(`ts_rank(title_ts, query) AS title_rank`),
-              this.searchKnex.raw(`ts_rank(text_ts, query, 1) AS text_rank`),
-            ])
-            .from('search_index.article')
-            .crossJoin(
-              this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
-            )
-            .whereRaw(`query @@ title_ts OR query @@ text_ts`)
-            .as('t')
-        ) // .as('t')
-        .orderByRaw(`score DESC NULLS LAST`)
+        .from(baseQuery.clone().as('t2'))
+        .orderByRaw('score DESC NULLS LAST')
+        .orderByRaw('id DESC')
         .limit(take)
         .offset(skip),
     ])
 
     console.log(
       new Date(),
-      { key, keyOriginal },
+      { key, keyOriginal, baseQuery: baseQuery.toString() },
       `searchKnex instance got res:`,
       { countRes, articleIds }
     )
