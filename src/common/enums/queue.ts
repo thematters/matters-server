@@ -25,7 +25,6 @@ export const QUEUE_JOB = {
   // Payment
   payout: 'payout',
   payTo: 'payTo',
-  txTimeout: 'txTimeout',
   syncCurationEvents: 'syncCurationEvents',
 
   // Stripe
@@ -53,7 +52,6 @@ export const QUEUE_NAME = {
   payTo: 'payTo',
   payToByBlockchain: 'payToByBlockchain',
   appreciation: 'appreciation',
-  txTimeout: 'txTimeout',
   revision: 'revision',
   asset: 'asset',
   stripe: 'stripe',
