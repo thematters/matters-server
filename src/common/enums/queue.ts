@@ -27,9 +27,6 @@ export const QUEUE_JOB = {
   payTo: 'payTo',
   syncCurationEvents: 'syncCurationEvents',
 
-  // Stripe
-  syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
-
   // Appreciation
   appreciation: 'appreciation',
 
@@ -54,7 +51,6 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   revision: 'revision',
   asset: 'asset',
-  stripe: 'stripe',
   circle: 'circle',
   ipfs: 'ipfs',
 }
