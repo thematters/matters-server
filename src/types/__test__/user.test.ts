@@ -859,8 +859,7 @@ describe('mutations on User object', () => {
       query: UPDATE_USER_INFO,
       variables: { input: { displayName } },
     })
-    const info = _get(data, 'updateUserInfo.info')
-    expect(info.displayName).toEqual(displayName)
+    expect(_get(data, 'updateUserInfo.displayName')).toEqual(displayName)
 
     // user cannnot use reserved name
     const userReservedNameResult = await server.executeOperation({
@@ -882,7 +881,7 @@ describe('mutations on User object', () => {
     })
     const adminReservedNameDisplayName = _get(
       adminReservedNameData,
-      'updateUserInfo.info.displayName'
+      'updateUserInfo.displayName'
     )
     expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
   })
