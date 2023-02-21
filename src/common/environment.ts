@@ -64,7 +64,11 @@ export const environment = {
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
   pgDatabase: process.env.MATTERS_PG_DATABASE,
-  searchPgConnectionString: process.env.MATTERS_SEARCH_PG_CONNECTION_STRING,
+  searchPgConnectionString:
+    process.env.MATTERS_SEARCH_PG_CONNECTION_STRING ||
+    // fallback to primary DB for test'ing
+    // `postgresql://${process.env.MATTERS_PG_HOST}:${process.env.MATTERS_PG_PASSWORD}@${process.env.MATTERS_PG_HOST}/${process.env.MATTERS_PG_DATABASE}`,
+    'postgresql://no-exist@no-exist/no-exist',
   searchPgPassword: process.env.MATTERS_SEARCH_PG_PASSWORD,
   searchPgCoefficients: JSON.parse(
     process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1]'

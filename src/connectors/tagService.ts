@@ -17,7 +17,7 @@ import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { ItemData } from 'definitions'
+import { Item, ItemData } from 'definitions'
 
 export class TagService extends BaseService {
   constructor() {
@@ -701,19 +701,36 @@ export class TagService extends BaseService {
       ? [environment.mattyChoiceTagId]
       : []
 
-    const queryTags = this.knex
+    const baseQuery = this.searchKnex
       .select(
-        this.knex.raw(
-          'id, content_orig AS content, description, coalesce(num_articles, 0) AS num_articles, coalesce(num_authors, 0) AS num_authors, count(id) OVER() AS total_count'
-        )
+        'id',
+        'content_orig AS content',
+        'description',
+        this.searchKnex.raw(
+          'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
+        ),
+        this.searchKnex.raw('ts_rank(content_ts, query) AS name_rank'),
+        this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
+        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
       )
       .from('search_index.tag')
-      .whereLike('content', `%${_key}%`)
+      .crossJoin(
+        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
+      )
+      .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder.whereNotIn('id', mattyChoiceTagIds)
+        builder // .whereNotIn('id', mattyChoiceTagIds)
+          .whereLike('content', `%${_key}%`)
+          .orWhereRaw('content_ts @@ query')
       })
+
+    const queryTags = this.searchKnex
+      .from(baseQuery.as('base'))
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-      .orderBy('num_articles', 'desc')
+      .orderByRaw('(name_rank+followers_rank) DESC')
+      .orderByRaw('num_articles DESC')
+      .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -723,8 +740,11 @@ export class TagService extends BaseService {
         }
       })
 
-    const nodes = await queryTags
-    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    const records = (await queryTags) as Item[]
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const nodes = (await this.dataloader.loadMany(
+      records.map(({ id }) => id)
+    )) as Item[]
     return { nodes, totalCount }
   }
 

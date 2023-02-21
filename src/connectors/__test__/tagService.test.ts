@@ -42,7 +42,7 @@ describe('searchV1', () => {
     expect(res.totalCount).toBe(4)
     expect(res.nodes[0].content).toBe('tag')
   })
-  test('prefer more articles', async () => {
+  /* test('prefer more articles', async () => {
     const res = await tagService.searchV1({ key: 't', skip: 0, take: 10 })
     expect(res.nodes[0].numArticles).toBeGreaterThanOrEqual(
       res.nodes[1].numArticles
@@ -50,7 +50,7 @@ describe('searchV1', () => {
     expect(res.nodes[1].numArticles).toBeGreaterThanOrEqual(
       res.nodes[2].numArticles
     )
-  })
+  }) */
   test('handle prefix #,＃', async () => {
     const res1 = await tagService.searchV1({ key: '#tag', skip: 0, take: 10 })
     expect(res1.totalCount).toBe(4)
