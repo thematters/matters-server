@@ -36,9 +36,6 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
-
-  // Circle
-  transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
 }
 
 export const QUEUE_NAME = {
@@ -51,7 +48,6 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   revision: 'revision',
   asset: 'asset',
-  circle: 'circle',
   ipfs: 'ipfs',
 }
 
