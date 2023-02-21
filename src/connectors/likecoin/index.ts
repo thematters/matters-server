@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, QUEUE_URL } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
@@ -417,7 +417,7 @@ export class LikeCoin {
   like = async (likeData: LikeData) => {
     return this.aws.sqsSendMessage({
       messageBody: likeData,
-      queueUrl: environment.awsLikecoinLikeUrl,
+      queueUrl: QUEUE_URL.likecoinLike,
     })
   }
 

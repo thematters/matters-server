@@ -1,6 +1,7 @@
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 
-import { environment, isTest } from 'common/environment'
+import { QUEUE_URL } from 'common/enums'
+import { isTest } from 'common/environment'
 import { aws } from 'connectors'
 
 class MailService {
@@ -15,7 +16,7 @@ class MailService {
     }
     return this.aws.sqsSendMessage({
       messageBody: params,
-      queueUrl: environment.awsMailQueueUrl,
+      queueUrl: QUEUE_URL.mail,
     })
   }
 }
