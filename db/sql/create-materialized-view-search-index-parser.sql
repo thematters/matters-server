@@ -1,0 +1,2 @@
+
+CREATE TEXT SEARCH CONFIGURATION chinese_zh (COPY = english) ;

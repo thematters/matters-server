@@ -1,7 +1,7 @@
 import { knex as knexInstantiator } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-import { environment } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { MaterializedView } from 'definitions'
 
 // @ts-ignore
@@ -13,10 +13,11 @@ export const knex = knexInstantiator({
 })
 
 export const searchKnexDB = knexInstantiator({
-  client: 'postgresql',
-  connection: environment.searchPgConnectionString,
+  ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
-  // searchPath: ['knex', 'public'],
+  ...(isTest
+    ? {} // knexConfig[environment.env].connection
+    : { connection: environment.searchPgConnectionString }),
 })
 
 export const refreshView = async (view: MaterializedView) =>
