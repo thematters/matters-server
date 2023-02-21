@@ -18,9 +18,9 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import logger from 'common/logger'
+import { likecoin } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
-import { likeCoinQueue } from './likecoin'
 
 interface AppreciationParams {
   amount: number
@@ -129,7 +129,7 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // insert record to LikeCoin
-      likeCoinQueue.like({
+      likecoin.like({
         likerId: sender.likerId,
         likerIp: senderIP,
         userAgent,
