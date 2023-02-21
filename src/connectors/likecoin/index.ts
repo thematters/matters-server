@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   LikerEmailExistsError,
@@ -11,8 +11,32 @@ import {
   OAuthTokenInvalidError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { CacheService, knex } from 'connectors'
+import { aws, CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
+
+interface LikeData {
+  likerId: string
+  likerIp?: string
+  userAgent: string
+  authorLikerId: string
+  url: string
+  amount: number
+}
+
+interface SendPVData {
+  likerId?: string
+  likerIp?: string
+  userAgent: string
+  authorLikerId: string
+  url: string
+}
+
+interface UpdateCivicLikerCacheData {
+  likerId: string
+  userId: string
+  key: string
+  expire: typeof CACHE_TTL[keyof typeof CACHE_TTL]
+}
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
@@ -68,10 +92,12 @@ const ENDPOINTS = {
 export class LikeCoin {
   knex: Knex
   cache: CacheService
+  aws: typeof aws
 
   constructor() {
     this.knex = knex
-    this.cache = new CacheService('likecoin')
+    this.cache = new CacheService(CACHE_PREFIX.LIKECOIN)
+    this.aws = aws
   }
 
   /**
@@ -341,14 +367,29 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  isCivicLiker = async ({ likerId }: { likerId: string }) => {
-    const res = await this.request({
-      endpoint: `/users/id/${likerId}/min`,
-      method: 'GET',
-      timeout: 2000,
-      // liker,
+  isCivicLiker = async ({
+    likerId,
+    userId,
+  }: {
+    likerId: string
+    userId: string
+  }) => {
+    const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
+    const keys = { id: likerId }
+    const isCivicLiker = await cache.getObject({
+      keys,
+      getter: async () => {
+        this.updateCivicLikerCache({
+          likerId,
+          userId,
+          key: cache.genKey(keys),
+          expire: CACHE_TTL.LONG,
+        })
+        return false
+      },
+      expire: CACHE_TTL.SHORT,
     })
-    return !!_.get(res, 'data.isSubscribedCivicLiker')
+    return isCivicLiker
   }
 
   /**
@@ -364,83 +405,22 @@ export class LikeCoin {
   }
 
   /**
-   * current user like count of a content
+   * Send page view to likecoin
    */
-  count = async ({
-    liker,
-    authorLikerId,
-    url,
-    likerIp,
-    userAgent,
-  }: {
-    liker?: UserOAuthLikeCoin
-    authorLikerId: string
-    url: string
-    likerIp?: string
-    userAgent: string
-  }) => {
-    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
-    const res = await this.request({
-      endpoint,
-      method: 'GET',
-      liker,
-      ip: likerIp,
-      userAgent,
-      withClientCredential: true,
-      params: {
-        referrer: encodeURI(url),
-      },
+  sendPV = async (data: SendPVData) =>
+    this.aws.sqsSendMessage({
+      messageBody: data,
+      queueUrl: QUEUE_URL.likecoinSendPV,
     })
-    const data = _.get(res, 'data')
-
-    if (!data) {
-      throw res
-    }
-
-    return data.count
-  }
 
   /**
    * Like a content.
    */
-  like = async ({
-    authorLikerId,
-    liker,
-    url,
-    likerIp,
-    amount,
-    userAgent,
-  }: {
-    authorLikerId: string
-    liker: UserOAuthLikeCoin
-    url: string
-    likerIp?: string
-    amount: number
-    userAgent: string
-  }) => {
-    try {
-      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
-      const result = await this.request({
-        ip: likerIp,
-        userAgent,
-        endpoint,
-        withClientCredential: true,
-        method: 'POST',
-        liker,
-        data: {
-          referrer: encodeURI(url),
-        },
-      })
-      const data = _.get(result, 'data')
-      if (data === 'OK') {
-        return data
-      } else {
-        throw result
-      }
-    } catch (error) {
-      throw error
-    }
-  }
+  like = async (data: LikeData) =>
+    this.aws.sqsSendMessage({
+      messageBody: data,
+      queueUrl: QUEUE_URL.likecoinLike,
+    })
 
   /**
    * Super Like
@@ -655,6 +635,12 @@ export class LikeCoin {
     const amount = _.get(msgSend, 'value.amount[0].amount')
     return { amount }
   }
+
+  private updateCivicLikerCache = async (data: UpdateCivicLikerCacheData) =>
+    this.aws.sqsSendMessage({
+      messageBody: data,
+      queueUrl: QUEUE_URL.likecoinUpdateCivicLikerCache,
+    })
 }
 
 export const likecoin = new LikeCoin()

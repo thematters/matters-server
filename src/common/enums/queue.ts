@@ -15,11 +15,6 @@ export const QUEUE_JOB = {
   // refresh IPNS Feed
   refreshIPNSFeed: 'refreshIPNSFeed',
 
-  // LikeCoin
-  like: 'likeCoinLike',
-  sendPV: 'likeCoinSendPV',
-  getCivicLiker: 'getCivicLiker',
-
   // User
   activateOnboardingUsers: 'activateOnboardingUsers',
   unbanUsers: 'unbanUsers',
@@ -72,7 +67,6 @@ export const QUEUE_JOB = {
 export const QUEUE_NAME = {
   publication: 'publication',
   refreshViews: 'refreshViews',
-  likecoin: 'likecoin',
   user: 'user',
   migration: 'migration',
   payout: 'payout',
