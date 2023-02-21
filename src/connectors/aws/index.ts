@@ -200,19 +200,16 @@ export class AWSService {
     messageBody,
     queueUrl,
     messageGroupId,
-    messageDeduplicationId,
   }: {
     messageBody: any
     queueUrl: typeof QUEUE_URL[keyof typeof QUEUE_URL]
     messageGroupId?: string
-    messageDeduplicationId?: string
   }) =>
     this.sqs
       ?.sendMessage({
+        MessageGroupId: messageGroupId,
         MessageBody: JSON.stringify(messageBody),
         QueueUrl: queueUrl,
-        MessageGroupId: messageGroupId,
-        MessageDeduplicationId: messageDeduplicationId,
       })
       .promise()
 

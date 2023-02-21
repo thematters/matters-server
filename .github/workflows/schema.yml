@@ -35,7 +35,7 @@ jobs:
 
       - name: Install Dependencies
         if: steps.node_modules_cache.outputs.cache-hit != 'true'
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Install Apollo Rover
         run: npm install --force @apollo/rover

@@ -19,32 +19,13 @@ export const QUEUE_JOB = {
   activateOnboardingUsers: 'activateOnboardingUsers',
   unbanUsers: 'unbanUsers',
 
-  // Refresh Views
-  refreshTagCountMaterialView: 'refreshTagCountMaterialView',
-  refreshUserReaderView: 'refreshUserReaderView',
-  refreshFeaturedCommentView: 'refreshFeaturedCommentView',
-  refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
-  refreshArticleHottestView: 'refreshArticleHottestView',
-  refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
-  refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
-  refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
-  refreshUserActivityView: 'refreshUserActivityView',
-  refreshArticleReadTimeView: 'refreshArticleReadTimeView',
-  refreshRecentlyReadTagsView: 'refreshRecentlyReadTagsView',
-  refreshRecommendedArticlesFromReadTagsView:
-    'refreshRecommendedArticlesFromReadTagsView',
-
   // Migration
   migration: 'migration',
 
   // Payment
   payout: 'payout',
   payTo: 'payTo',
-  txTimeout: 'txTimeout',
   syncCurationEvents: 'syncCurationEvents',
-
-  // Stripe
-  syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
 
   // Appreciation
   appreciation: 'appreciation',
@@ -55,27 +36,19 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
-
-  // ExchangeRate
-  updateFiat: 'updateFiat',
-  updateToken: 'updateToken',
 }
 
 export const QUEUE_NAME = {
   publication: 'publication',
-  refreshViews: 'refreshViews',
   user: 'user',
   migration: 'migration',
   payout: 'payout',
   payTo: 'payTo',
   payToByBlockchain: 'payToByBlockchain',
   appreciation: 'appreciation',
-  txTimeout: 'txTimeout',
   revision: 'revision',
   asset: 'asset',
-  stripe: 'stripe',
   ipfs: 'ipfs',
-  exchangeRate: 'exchangeRate',
 }
 
 export const QUEUE_CONCURRENCY = {

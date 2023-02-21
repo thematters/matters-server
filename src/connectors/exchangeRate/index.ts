@@ -39,14 +39,6 @@ const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price'
 const EXCHANGE_RATES_DATA_API_URL =
   'https://api.apilayer.com/exchangerates_data/latest'
 
-// TYPE PREDICATES
-
-const isToken = (currency: FromCurrency): currency is TokenCurrency =>
-  tokenCurrencies.includes(currency as any)
-
-const isFiat = (currency: FromCurrency): currency is FiatCurrency =>
-  fiatCurrencies.includes(currency as any)
-
 // MAIN
 
 export class ExchangeRate {
@@ -71,14 +63,6 @@ export class ExchangeRate {
     }
 
     return Promise.all(pairs.map((p) => this.getRate(p.from, p.to)))
-  }
-
-  updateTokenRates = async () => {
-    await this.updateRatesToCache(await this.fetchTokenRates())
-  }
-
-  updateFiatRates = async () => {
-    await this.updateRatesToCache(await this.fetchFiatRates())
   }
 
   getRate = async (
@@ -106,6 +90,12 @@ export class ExchangeRate {
       'exchangeRate requested APIs to get rates instead of from cache'
     )
 
+    // type predicates
+    const isToken = (currency: FromCurrency): currency is TokenCurrency =>
+      tokenCurrencies.includes(currency as any)
+    const isFiat = (currency: FromCurrency): currency is FiatCurrency =>
+      fiatCurrencies.includes(currency as any)
+
     let rate: Rate
     if (isToken(from)) {
       const data = await this.requestCoingeckoAPI([from], [to])
@@ -117,16 +107,6 @@ export class ExchangeRate {
       throw new UnknownError('Unknown currency')
     }
     return rate
-  }
-
-  private updateRatesToCache = async (rates: Rate[]) => {
-    for (const rate of rates) {
-      this.cache.storeObject({
-        keys: this.genCacheKeys(rate),
-        data: rate,
-        expire: this.expire,
-      })
-    }
   }
 
   private genCacheKeys = (pair: Pair) => ({ id: pair.from + pair.to })
@@ -149,31 +129,6 @@ export class ExchangeRate {
       }
     }
     return pairs
-  }
-
-  private fetchTokenRates = async (): Promise<Rate[]> => {
-    const data = await this.requestCoingeckoAPI(
-      tokenCurrencies,
-      quoteCurrencies
-    )
-    const rates: Rate[] = []
-    for (const t of tokenCurrencies) {
-      for (const q of quoteCurrencies) {
-        rates.push(this.parseCoingeckoData(data, { from: t, to: q }))
-      }
-    }
-    return rates
-  }
-
-  private fetchFiatRates = async (): Promise<Rate[]> => {
-    const rates: Rate[] = []
-    for (const f of fiatCurrencies) {
-      const data = await this.requestExchangeRatesDataAPI(f, quoteCurrencies)
-      for (const q of quoteCurrencies) {
-        rates.push(this.parseExchangeRateData(data, { from: f, to: q }))
-      }
-    }
-    return rates
   }
 
   private parseCoingeckoData = (

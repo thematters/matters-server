@@ -65,7 +65,7 @@ export const setCookie = ({
         req,
         domain,
         httpOnly: true,
-        sameSite: devOrigin ? 'none' : 'strict',
+        sameSite: devOrigin ? 'none' : 'lax',
       })
     )
   }
@@ -78,7 +78,7 @@ export const setCookie = ({
       req,
       domain,
       httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'strict',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 
@@ -90,7 +90,7 @@ export const setCookie = ({
       req,
       domain,
       httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'strict',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 }
@@ -111,7 +111,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
       req,
       domain,
       httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'strict',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 
@@ -122,7 +122,7 @@ export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
       req,
       domain,
       httpOnly: true,
-      sameSite: devOrigin ? 'none' : 'strict',
+      sameSite: devOrigin ? 'none' : 'lax',
     })
   )
 
