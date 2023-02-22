@@ -55,6 +55,7 @@ import {
   GQLResetPasswordType,
   GQLSearchExclude,
   GQLVerificationCodeType,
+  Item,
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
@@ -616,47 +617,62 @@ export class UserService extends BaseService {
       return { nodes: [], totalCount: 0 }
     }
 
-    const baseQuery = this.knex('search_index.user')
-      .select('id')
-      .whereLike('display_name', `%${displayName}%`)
-      .orWhereLike('user_name', `%${userName}%`)
+    const baseQuery = this.searchKnex
+      .from('search_index.user')
+      .crossJoin(
+        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
+      )
+      .select(
+        '*',
+        this.searchKnex.raw(
+          'percent_rank() over (ORDER by num_followers NULLS FIRST) AS followers_rank'
+        ),
+        this.searchKnex.raw('ts_rank(display_name_ts, query) AS name_rank')
+      )
+      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder
+          .whereLike('display_name', `%${displayName}%`)
+          .orWhereLike('user_name', `%${userName}%`)
+          .orWhereRaw('display_name_ts @@ query')
+      })
+
+    const queryUsers = this.searchKnex
+      .select(
+        '*',
+        this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
+      )
+      .from(baseQuery.as('result'))
+      .modify((builder: Knex.QueryBuilder) => {
+        if (exclude === GQLSearchExclude.blocked && viewerId) {
+          builder.whereNotIn(
+            'result.id',
+            this.knex('action_user')
+              .select('user_id')
+              .where({ action: USER_ACTION.block, targetId: viewerId })
+          )
+        }
+      })
       .orderByRaw('display_name = ? DESC', [displayName])
       .orderByRaw('user_name = ? DESC', [userName])
+      .orderByRaw('(name_rank+followers_rank) DESC')
       .orderByRaw('display_name ~ ? DESC', [displayName])
       .orderByRaw('num_followers DESC NULLS LAST')
+      .orderByRaw('id') // fallback to earlier first
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
-    let query
-    if (exclude === GQLSearchExclude.blocked && viewerId) {
-      query = this.knex
-        .select(
-          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
-        )
-        .from(baseQuery.as('result'))
-        .whereNotIn(
-          'result.id',
-          this.knex('action_user')
-            .select('user_id')
-            .where({ action: USER_ACTION.block, targetId: viewerId })
-        )
-    } else {
-      query = this.knex
-        .select(
-          this.knex.raw('result.id, count(result.id) OVER() AS total_count')
-        )
-        .from(baseQuery.as('result'))
-    }
-    query.modify((builder: Knex.QueryBuilder) => {
-      if (skip !== undefined && Number.isFinite(skip)) {
-        builder.offset(skip)
-      }
-      if (take !== undefined && Number.isFinite(take)) {
-        builder.limit(take)
-      }
-    })
-
-    const records = await query
+    const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-    const nodes = await this.baseFindByIds(records.map(({ id }) => id))
+    const nodes = (await this.dataloader.loadMany(
+      records.map(({ id }) => id)
+    )) as Item[]
     return { nodes, totalCount }
   }
 
