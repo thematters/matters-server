@@ -6,6 +6,7 @@ import {
   MATERIALIZED_VIEW,
   NODE_TYPES,
   PAYMENT_CURRENCY,
+  RESERVED_NAMES,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
@@ -54,23 +55,20 @@ const TOGGLE_BLOCK_USER = /* GraphQL */ `
   }
 `
 
-const UPDATE_USER_INFO_DESCRIPTION = /* GraphQL */ `
+const UPDATE_USER_INFO = /* GraphQL */ `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
+      id
+      userName
+      displayName
+      avatar
       info {
         description
       }
     }
   }
 `
-const UPDATE_USER_INFO_AVATAR = /* GraphQL */ `
-  mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
-    updateUserInfo(input: $input) {
-      id
-      avatar
-    }
-  }
-`
+
 const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
   mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
     updateNotificationSetting(input: $input) {
@@ -851,13 +849,50 @@ describe('mutations on User object', () => {
     expect(_get(result.data, 'toggleBlockUser.isBlocked')).toBe(false)
   })
 
+  test('updateUserInfoDisplayName', async () => {
+    // user can change its display name
+    const displayName = 'abc2244'
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { displayName } },
+    })
+    expect(_get(data, 'updateUserInfo.displayName')).toEqual(displayName)
+
+    // user cannnot use reserved name
+    const userReservedNameResult = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { displayName: RESERVED_NAMES[0] } },
+    })
+    expect(_get(userReservedNameResult, 'errors.0.extensions.code')).toBe(
+      'DISPLAYNAME_INVALID'
+    )
+
+    // admin can use reserved name
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data: adminReservedNameData } = await adminServer.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { displayName: RESERVED_NAMES[0] } },
+    })
+    const adminReservedNameDisplayName = _get(
+      adminReservedNameData,
+      'updateUserInfo.displayName'
+    )
+    expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
+  })
+
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
     const server = await testClient({
       isAuth: true,
     })
     const { data } = await server.executeOperation({
-      query: UPDATE_USER_INFO_DESCRIPTION,
+      query: UPDATE_USER_INFO,
       variables: { input: { description } },
     })
     const info = _get(data, 'updateUserInfo.info')
@@ -870,7 +905,7 @@ describe('mutations on User object', () => {
       isAuth: true,
     })
     const { data } = await server.executeOperation({
-      query: UPDATE_USER_INFO_AVATAR,
+      query: UPDATE_USER_INFO,
       variables: { input: { avatar: avatarAssetUUID } },
     })
     const avatar = _get(data, 'updateUserInfo.avatar')
