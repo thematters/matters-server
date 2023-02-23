@@ -3,7 +3,11 @@ import axios from 'axios'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
-import { LOCAL_S3_ENDPOINT, UPLOAD_IMAGE_SIZE_LIMIT } from 'common/enums'
+import {
+  LOCAL_S3_ENDPOINT,
+  QUEUE_URL,
+  UPLOAD_IMAGE_SIZE_LIMIT,
+} from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
 import { getFileName } from 'common/utils'
 import { GQLAssetType } from 'definitions'
@@ -196,16 +200,19 @@ export class AWSService {
     messageBody,
     queueUrl,
     messageGroupId,
+    messageDeduplicationId,
   }: {
     messageBody: any
-    queueUrl: string
+    queueUrl: typeof QUEUE_URL[keyof typeof QUEUE_URL]
     messageGroupId?: string
+    messageDeduplicationId?: string
   }) =>
     this.sqs
       ?.sendMessage({
-        MessageGroupId: messageGroupId,
         MessageBody: JSON.stringify(messageBody),
         QueueUrl: queueUrl,
+        MessageGroupId: messageGroupId,
+        MessageDeduplicationId: messageDeduplicationId,
       })
       .promise()
 

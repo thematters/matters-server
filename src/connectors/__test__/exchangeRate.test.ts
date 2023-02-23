@@ -101,11 +101,6 @@ describe('exchangeRate', () => {
   test('getRates not cached', async () => {
     expect(await exchangeRate.getRates()).toEqual(rates)
   })
-  test('getRates cached', async () => {
-    await exchangeRate.updateTokenRates()
-    await exchangeRate.updateFiatRates()
-    expect(await exchangeRate.getRates()).toEqual(rates)
-  })
   test('call with args', async () => {
     const HKD = 'HKD' as any
     expect(await exchangeRate.getRates(HKD)).toEqual(

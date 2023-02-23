@@ -69,7 +69,11 @@ const resolver: MutationToPutCircleResolver = async (
     throw new NameInvalidError('invalid circle name')
   }
 
-  if (trimedDisplayName && !isValidDisplayName(trimedDisplayName, 12)) {
+  if (
+    trimedDisplayName &&
+    !isValidDisplayName(trimedDisplayName, 12) &&
+    !viewer.hasRole('admin')
+  ) {
     throw new DisplayNameInvalidError('invalid display name')
   }
 
