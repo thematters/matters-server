@@ -1216,7 +1216,11 @@ export class ArticleService extends BaseService {
     skip?: number
   }) =>
     this.knex('appreciation')
-      .select('reference_id', 'sender_id')
+      .select(
+        'reference_id',
+        'sender_id',
+        this.knex.raw('count(1) OVER() AS total_count')
+      )
       .where({
         referenceId,
         purpose: APPRECIATION_PURPOSE.appreciate,
