@@ -1,2 +1,3 @@
 
 CREATE TEXT SEARCH CONFIGURATION chinese_zh (COPY = english) ;
+CREATE TEXT SEARCH CONFIGURATION jiebacfg (COPY = english) ;

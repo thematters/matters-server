@@ -71,7 +71,16 @@ export const environment = {
     'postgresql://no-exist@no-exist/no-exist',
   searchPgPassword: process.env.MATTERS_SEARCH_PG_PASSWORD,
   searchPgCoefficients: JSON.parse(
-    process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1]'
+    process.env.MATTERS_SEARCH_PG_COEFFICIENTS || '[1,1,1,1]'
+  ),
+  searchPgArticleCoefficients: JSON.parse(
+    process.env.MATTERS_SEARCH_PG_ARTICLE_COEFFICIENTS || '[1,1,1,1]'
+  ),
+  searchPgUserCoefficients: JSON.parse(
+    process.env.MATTERS_SEARCH_PG_USER_COEFFICIENTS || '[1,1,1,1]'
+  ),
+  searchPgTagCoefficients: JSON.parse(
+    process.env.MATTERS_SEARCH_PG_TAG_COEFFICIENTS || '[1,1,1,1]'
   ),
 
   ipfsHost: process.env.MATTERS_IPFS_HOST || '',

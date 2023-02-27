@@ -25,6 +25,7 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_ACTION,
+  USER_STATE,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
@@ -1055,7 +1056,13 @@ export class ArticleService extends BaseService {
                   key
                 )
               )
-              .whereRaw(
+              .whereIn('state', [ARTICLE_STATE.active])
+              .andWhere('author_state', 'IN', [
+                USER_STATE.active,
+                USER_STATE.onboarding,
+              ])
+              .andWhere('author_id', 'NOT IN', blockedIds)
+              .andWhereRaw(
                 `query @@ title_ts OR query @@ summary_ts OR query @@ text_ts`
               )
               .as('t0')
@@ -1098,13 +1105,11 @@ export class ArticleService extends BaseService {
       { countRes, articleIds }
     )
 
-    let nodes = (await this.draftLoader.loadMany(
+    const nodes = (await this.draftLoader.loadMany(
       articleIds.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
-    if (excludeBlocked) {
-      nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
-    }
+    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
 
     const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     console.log(
