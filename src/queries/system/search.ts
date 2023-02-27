@@ -17,69 +17,6 @@ import {
 } from 'definitions'
 
 // the original ElasticSearch based solution
-const resolverV0: QueryToSearchResolver = async (
-  root,
-  { input },
-  {
-    dataSources: { systemService, articleService, userService, tagService },
-    viewer,
-  }
-) => {
-  const { take, skip } = fromConnectionArgs(input)
-
-  const serviceMap = {
-    Article: articleService,
-    User: userService,
-    Tag: tagService,
-  }
-
-  const connection = await serviceMap[input.type]
-    .search({ ...input, take, skip, viewerId: viewer.id })
-    .then(({ nodes, totalCount }) => {
-      nodes = _.compact(nodes)
-      return {
-        nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
-        totalCount,
-      }
-    })
-
-  return connectionFromArray(connection.nodes, input, connection.totalCount)
-}
-
-const resolverV1: QueryToSearchResolver = async (
-  root,
-  { input },
-  {
-    dataSources: { systemService, articleService, userService, tagService },
-    viewer,
-  }
-) => {
-  const { take, skip } = fromConnectionArgs(input)
-
-  // TBD: searchV1 for each {user,tag,article}Service
-
-  const serviceMap = {
-    Article: articleService,
-    User: userService,
-    Tag: tagService,
-  }
-
-  const keyOriginal = input.key
-  input.key = await normalizeQueryInput(keyOriginal)
-
-  const connection = await serviceMap[input.type]
-    .searchV1({ ...input, keyOriginal, take, skip, viewerId: viewer.id })
-    .then(({ nodes, totalCount }) => {
-      nodes = _.compact(nodes)
-      return {
-        nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
-        totalCount,
-      }
-    })
-
-  return connectionFromArray(connection.nodes, input, connection.totalCount)
-  // return connectionFromArray([], input, 0)
-}
 
 const resolver: QueryToSearchResolver = async (
   root,
@@ -89,7 +26,8 @@ const resolver: QueryToSearchResolver = async (
 ) => {
   const { input } = args
   const {
-    dataSources: { systemService },
+    // dataSources: { systemService },
+    dataSources: { systemService, articleService, userService, tagService },
     viewer,
   } = context
 
@@ -112,13 +50,41 @@ const resolver: QueryToSearchResolver = async (
     input.filter.authorId = authorId
   }
 
-  // TODO: after V1 released and verified successful, this new V1 will be switched as default
-  if (input.version === GQLSearchAPIVersion.v20221212) {
-    return resolverV1(root, args, context, info)
-  } else {
-    // V0 is default
-    return resolverV0(root, args, context, info)
+  const { take, skip } = fromConnectionArgs(input)
+
+  const serviceMap = {
+    Article: articleService,
+    User: userService,
+    Tag: tagService,
   }
+
+  const keyOriginal = input.key
+  input.key = await normalizeQueryInput(keyOriginal)
+
+  const connection = await (input.version === GQLSearchAPIVersion.v20230301
+    ? serviceMap[input.type].searchV2
+    : input.version === GQLSearchAPIVersion.v20221212
+    ? serviceMap[input.type].searchV1
+    : serviceMap[input.type].search)({
+    ...input,
+    keyOriginal,
+    take,
+    skip,
+    viewerId: viewer.id,
+  }).then(({ nodes, totalCount }) => {
+    nodes = _.compact(nodes)
+    return {
+      nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
+      totalCount,
+    }
+  })
+
+  return connectionFromArray(connection.nodes, input, connection.totalCount)
+
+  // let res = resolverV0
+  // switch (input.version) {// case GQLSearchAPIVersion.v20230301: case GQLSearchAPIVersion.v20221212: res = resolverV1 break}
+
+  // return res(root, args, context, info)
 }
 
 export default resolver
