@@ -44,11 +44,6 @@ import { GQLSearchExclude, Item } from 'definitions'
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
-const searchV1ArticlesCoefficientA = environment.searchPgCoefficients?.[0] || 1
-const searchV1ArticlesCoefficientB = environment.searchPgCoefficients?.[1] || 1
-const searchV1ArticlesCoefficientC = environment.searchPgCoefficients?.[2] || 1
-const searchV1ArticlesCoefficientD = environment.searchPgCoefficients?.[3] || 1
-
 const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -879,6 +874,7 @@ export class ArticleService extends BaseService {
     viewerId,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -999,6 +995,7 @@ export class ArticleService extends BaseService {
     filter,
     exclude,
     viewerId,
+    coefficients,
   }: {
     key: string
     keyOriginal?: string
@@ -1009,7 +1006,36 @@ export class ArticleService extends BaseService {
     filter?: Record<string, any>
     viewerId?: string | null
     exclude?: GQLSearchExclude
+    coefficients?: string
   }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(
+      coeffs?.[0] ||
+      environment.searchPgArticleCoefficients?.[0] ||
+      1
+    )
+    const b = +(
+      coeffs?.[1] ||
+      environment.searchPgArticleCoefficients?.[1] ||
+      1
+    )
+    const c = +(
+      coeffs?.[2] ||
+      environment.searchPgArticleCoefficients?.[2] ||
+      1
+    )
+    const d = +(
+      coeffs?.[3] ||
+      environment.searchPgArticleCoefficients?.[3] ||
+      1
+    )
+
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
     let blockedIds: string[] = []
@@ -1083,12 +1109,7 @@ export class ArticleService extends BaseService {
           '*',
           this.searchKnex.raw(
             '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
-            [
-              searchV1ArticlesCoefficientA,
-              searchV1ArticlesCoefficientB,
-              searchV1ArticlesCoefficientC,
-              searchV1ArticlesCoefficientD,
-            ]
+            [a, b, c, d]
           ),
         ])
         .from(baseQuery.clone().as('t2'))
@@ -1119,6 +1140,164 @@ export class ArticleService extends BaseService {
     )
 
     return { nodes, totalCount }
+  }
+
+  // the jieba based schema
+  searchV2 = async ({
+    key,
+    keyOriginal,
+    take = 10,
+    skip = 0,
+    oss = false,
+    filter,
+    exclude,
+    viewerId,
+    coefficients,
+  }: {
+    key: string
+    keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    oss?: boolean
+    filter?: Record<string, any>
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+    coefficients?: string
+  }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(
+      coeffs?.[0] ||
+      environment.searchPgArticleCoefficients?.[0] ||
+      1
+    )
+    const b = +(
+      coeffs?.[1] ||
+      environment.searchPgArticleCoefficients?.[1] ||
+      1
+    )
+    const c = +(
+      coeffs?.[2] ||
+      environment.searchPgArticleCoefficients?.[2] ||
+      1
+    )
+    const d = +(
+      coeffs?.[3] ||
+      environment.searchPgArticleCoefficients?.[3] ||
+      1
+    )
+
+    // gather users that blocked viewer
+    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    let blockedIds: string[] = []
+    if (excludeBlocked) {
+      blockedIds = (
+        await this.knex('action_user')
+          .select('user_id')
+          .where({ action: USER_ACTION.block, targetId: viewerId })
+      ).map(({ userId }) => userId)
+    }
+
+    const baseQuery = this.searchKnex
+      .from(
+        this.searchKnex
+          .select(
+            '*',
+            this.searchKnex.raw(
+              `(_text_cd_rank/(_text_cd_rank + 1)) AS text_rank`
+            )
+          )
+          .from(
+            this.searchKnex
+              .select([
+                'id',
+                'num_views',
+                'title_orig', // 'title',
+                'created_at',
+                'last_read_at', // -- title, slug,
+                this.searchKnex.raw(
+                  `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
+                ),
+                this.searchKnex.raw(
+                  `ts_rank(title_jieba_ts, query) AS title_rank`
+                ),
+                this.searchKnex.raw(
+                  `ts_rank(summary_jieba_ts, query, 1) AS summary_rank`
+                ),
+                this.searchKnex.raw(
+                  `ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank`
+                ),
+              ])
+              .from('search_index.article')
+              .crossJoin(
+                this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+              )
+              .whereIn('state', [ARTICLE_STATE.active])
+              .andWhere('author_state', 'IN', [
+                USER_STATE.active,
+                USER_STATE.onboarding,
+              ])
+              .andWhere('author_id', 'NOT IN', blockedIds)
+              .andWhereRaw(
+                `query @@ title_jieba_ts OR query @@ summary_jieba_ts OR query @@ text_jieba_ts`
+              )
+              .as('t0')
+          )
+          .as('t1')
+      )
+      // .whereNotIn('author_id', blockedIds)
+      .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
+      // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+
+    const [countRes, articleIds] = await Promise.all([
+      baseQuery.clone().count().first(),
+
+      // the actual search page
+      this.searchKnex
+        .select([
+          '*',
+          this.searchKnex.raw(
+            '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
+            [a, b, c, d]
+          ),
+        ])
+        .from(baseQuery.clone().as('t2'))
+        .orderByRaw('score DESC NULLS LAST')
+        .orderByRaw('id DESC')
+        .limit(take)
+        .offset(skip),
+    ])
+
+    console.log(
+      new Date(),
+      { key, keyOriginal, baseQuery: baseQuery.toString() },
+      `searchKnex instance got res:`,
+      { countRes, articleIds }
+    )
+
+    const nodes = (await this.draftLoader.loadMany(
+      articleIds.map((item: any) => item.id).filter(Boolean)
+    )) as Item[]
+
+    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
+
+    const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`
+    )
+
+    return { nodes, totalCount }
+
+    // return { nodes: [], totalCount: 0 }
   }
 
   /*********************************

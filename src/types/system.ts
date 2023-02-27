@@ -229,6 +229,7 @@ export default /* GraphQL */ `
 
     "use the api version; omit to use latest version"
     version: SearchAPIVersion
+    coefficients: String
   }
 
   input SearchFilter {
@@ -321,6 +322,7 @@ export default /* GraphQL */ `
   }
 
   enum SearchAPIVersion {
+    v20230301
     v20221212
     v20221212prior ## the original ElasticSearch based solution; to be deprecated
   }
