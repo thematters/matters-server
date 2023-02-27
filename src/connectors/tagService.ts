@@ -19,6 +19,12 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
+const searchV1TagCoefficientA = environment.searchPgTagCoefficients?.[0] || 1
+const searchV1TagCoefficientB = environment.searchPgTagCoefficients?.[1] || 1
+const searchV1TagCoefficientC = environment.searchPgTagCoefficients?.[2] || 1
+
+// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+
 export class TagService extends BaseService {
   constructor() {
     super('tag')
@@ -706,10 +712,14 @@ export class TagService extends BaseService {
         'id',
         'content_orig AS content',
         'description',
+        // 'num_articles', // 'num_followers',
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
         ),
-        this.searchKnex.raw('ts_rank(content_ts, query) AS name_rank'),
+        this.searchKnex.raw('ts_rank(content_ts, query) AS content_rank'),
+        this.searchKnex.raw(
+          'ts_rank(description_ts, query) AS description_rank'
+        ),
         this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
         this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count')
@@ -723,13 +733,23 @@ export class TagService extends BaseService {
         builder // .whereNotIn('id', mattyChoiceTagIds)
           .whereLike('content', `%${_key}%`)
           .orWhereRaw('content_ts @@ query')
+          .orWhereRaw('description_ts @@ query')
       })
 
     const queryTags = this.searchKnex
+      .select('*')
       .from(baseQuery.as('base'))
+      // .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD) .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-      .orderByRaw('(name_rank+followers_rank) DESC')
-      .orderByRaw('num_articles DESC')
+      .orderByRaw(
+        '(? * followers_rank + ? * content_rank + ? * description_rank) DESC',
+        [
+          searchV1TagCoefficientA,
+          searchV1TagCoefficientB,
+          searchV1TagCoefficientC,
+        ]
+      )
+      .orderByRaw('num_articles DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
@@ -740,12 +760,39 @@ export class TagService extends BaseService {
         }
       })
 
-    const records = (await queryTags) as Item[]
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-    const nodes = (await this.dataloader.loadMany(
-      records.map(({ id }) => id)
-    )) as Item[]
-    return { nodes, totalCount }
+    const tagIds = (await queryTags) as Item[]
+    const totalCount = tagIds.length === 0 ? 0 : +tagIds[0].totalCount
+
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
+      tagIds?.[0]
+    )
+
+    /*
+    const items = (await this.knex
+      .select(
+        'id',
+        'content',
+        'description',
+        'num_articles',
+        'num_authors',
+        'created_at'
+      )
+      .from(VIEW.tags_lasts_view)
+      .whereIn(
+        'id',
+        tagIds.map(({ id }) => id)
+      )) as Item[]
+    const m = new Map(items.map((rec) => [rec.id, rec]))
+    // const nodes = (await this.dataloader.loadMany(ids) as Item[]
+*/
+
+    // to keep the order from search_index
+    // const nodes = tagIds.map(({ id }) => m.get(id)).filter(Boolean) as Item[]
+
+    return { nodes: tagIds, totalCount }
   }
 
   /*********************************

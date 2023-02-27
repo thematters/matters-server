@@ -42,15 +42,16 @@ describe('searchV1', () => {
     expect(res.totalCount).toBe(4)
     expect(res.nodes[0].content).toBe('tag')
   })
-  /* test('prefer more articles', async () => {
+  test('prefer more articles', async () => {
     const res = await tagService.searchV1({ key: 't', skip: 0, take: 10 })
+    console.log(new Date(), 'res:', res)
     expect(res.nodes[0].numArticles).toBeGreaterThanOrEqual(
       res.nodes[1].numArticles
     )
     expect(res.nodes[1].numArticles).toBeGreaterThanOrEqual(
       res.nodes[2].numArticles
     )
-  }) */
+  })
   test('handle prefix #,＃', async () => {
     const res1 = await tagService.searchV1({ key: '#tag', skip: 0, take: 10 })
     expect(res1.totalCount).toBe(4)
@@ -67,6 +68,7 @@ describe('searchV1', () => {
   })
   test('right totalCount with take and skip', async () => {
     const res1 = await tagService.searchV1({ key: 'tag', skip: 0, take: 10 })
+    console.log(new Date(), 'res:', res1)
     expect(res1.nodes.length).toBe(4)
     expect(res1.totalCount).toBe(4)
     const res2 = await tagService.searchV1({ key: 'tag', skip: 0, take: 1 })
