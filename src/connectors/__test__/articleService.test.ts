@@ -52,6 +52,13 @@ test('findAppreciations', async () => {
     referenceId: '1',
   })
   expect(appreciations.length).toBe(3)
+
+  const appreciations2 = await articleService.findAppreciations({
+    referenceId: '1',
+    take: 1,
+  })
+  expect(appreciations2.length).toBe(1)
+  expect(appreciations[0].totalCount).toBe('3')
 })
 
 test('findTagIds', async () => {

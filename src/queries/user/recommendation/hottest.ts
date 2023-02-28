@@ -21,7 +21,7 @@ export const hottest: RecommendationToHottestResolver = async (
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
     const query = knex
-      .select('article.draft_id')
+      .select('article.draft_id', knex.raw('count(1) OVER() AS total_count'))
       .from(
         knex
           .select()
@@ -43,21 +43,15 @@ export const hottest: RecommendationToHottestResolver = async (
     }
 
     return query
-  }
-
-  const [countRecord, articles] = await Promise.all([
-    knex.select().from(makeHottestQuery()).count().first(),
-    makeHottestQuery()
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .offset(skip)
-      .limit(take),
-  ])
+      .limit(take)
+  }
 
-  const totalCount = parseInt(
-    countRecord ? (countRecord.count as string) : '0',
-    10
-  )
+  const articles = await makeHottestQuery()
+
+  const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
 
   return connectionFromPromisedArray(
     draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),

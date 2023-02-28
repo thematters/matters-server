@@ -244,6 +244,7 @@ query($input: ConnectionArgs!) {
   viewer {
     recommendation {
       ${list}(input: $input) {
+        totalCount
         edges {
           node {
             id
@@ -964,6 +965,8 @@ describe('user recommendations', () => {
       const { data } = result
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
+      const count = _get(data, `viewer.recommendation.${list}.totalCount`)
+      expect(count).toBeGreaterThan(0)
     }
   })
 
