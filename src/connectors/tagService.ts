@@ -1305,7 +1305,7 @@ export class TagService extends BaseService {
    * Find article covers by tag id.
    */
   findArticleCovers = async ({ id }: { id: string }) =>
-    this.knex
+    this.knexRO
       .select('article.cover')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')

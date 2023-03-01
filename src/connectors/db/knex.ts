@@ -12,6 +12,27 @@ export const knex = knexInstantiator({
   ...knexSnakeCaseMappers(),
 })
 
+export const readonlyKnex = knexInstantiator({
+  ...knexConfig[environment.env],
+  ...knexSnakeCaseMappers(),
+  ...(isTest
+    ? {
+        pool: {
+          afterCreate(conn: any, done: any) {
+            conn.query(
+              'SET default_transaction_read_only = on;',
+              (err: any) => {
+                if (err) {
+                  done(err, conn)
+                }
+              }
+            )
+          },
+        },
+      }
+    : { connection: environment.pgReadonlyConnectionString }),
+})
+
 export const searchKnexDB = knexInstantiator({
   ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
