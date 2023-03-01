@@ -329,11 +329,11 @@ export class BaseService extends DataSource {
    * Find entity type id by a given type string.
    */
   baseFindEntityTypeId = async (entityType: string) =>
-    this.knex('entity_type').select('id').where({ table: entityType }).first()
+    this.knexRO('entity_type').select('id').where({ table: entityType }).first()
 
   /**
    * Find entity type table by a given id.
    */
   baseFindEntityTypeTable = async (id: string) =>
-    this.knex('entity_type').select('table').where({ id }).first()
+    this.knexRO('entity_type').select('table').where({ id }).first()
 }

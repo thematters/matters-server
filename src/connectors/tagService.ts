@@ -1149,16 +1149,16 @@ export class TagService extends BaseService {
     selected?: boolean
     withSynonyms?: boolean
   }) => {
-    const knex = this.knex
+    const knexRO = this.knexRO
 
     let result: any
     try {
-      result = await this.knex(VIEW.tags_lasts_view)
+      result = await this.knexRO(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('tag_id', tagId)
           if (withSynonyms) {
-            this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+            this.orWhere(knexRO.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
           } // else { this.where('id', tagId) // exactly }
         })
         .first()
@@ -1170,7 +1170,7 @@ export class TagService extends BaseService {
       return parseInt(result.numArticles ?? '0', 10)
     }
 
-    result = await this.knex('article_tag')
+    result = await this.knexRO('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()

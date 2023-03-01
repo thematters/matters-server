@@ -414,7 +414,7 @@ export class UserService extends BaseService {
    * Find activatable users
    */
   findActivatableUsers = () =>
-    this.knex
+    this.knexRO
       .select('user.*', 'total', 'read_count')
       .from(this.table)
       .innerJoin(
@@ -423,7 +423,7 @@ export class UserService extends BaseService {
         'user.liker_id'
       )
       .leftJoin(
-        this.knex
+        this.knexRO
           .select('recipient_id')
           .sum('amount as total')
           .from('appreciation')
@@ -433,7 +433,7 @@ export class UserService extends BaseService {
         'user.id'
       )
       .leftJoin(
-        this.knex
+        this.knexRO
           .select('user_id')
           .countDistinct('article_id as read_count')
           .from('article_read_count')
@@ -447,7 +447,7 @@ export class UserService extends BaseService {
         accountType: 'general',
       })
       .andWhere(
-        this.knex.raw(
+        this.knexRO.raw(
           '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 10'
         )
       )
@@ -1251,7 +1251,7 @@ export class UserService extends BaseService {
         const table = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
-        const query = this.knex(table)
+        const query = this.knexRO(table)
           .select()
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
@@ -1277,7 +1277,7 @@ export class UserService extends BaseService {
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
 
-        const query = this.knex
+        const query = this.knexRO
           .select()
           .from({ view })
           .innerJoin('user', 'view.id', 'user.id')

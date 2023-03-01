@@ -4,7 +4,7 @@ import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 const resolver: ArticleToAppreciationsReceivedResolver = async (
   { articleId },
   { input },
-  { dataSources: { articleService }, knex }
+  { dataSources: { articleService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
