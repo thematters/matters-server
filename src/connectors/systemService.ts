@@ -214,7 +214,7 @@ export class SystemService extends BaseService {
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
-    const result = await this.knexRO.from('asset').where({ id }).first()
+    const result = await this.baseFindById(id, 'asset')
     return result && result.path
       ? `${this.aws.s3Endpoint}/${result.path}`
       : null
