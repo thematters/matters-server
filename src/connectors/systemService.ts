@@ -37,13 +37,13 @@ export class SystemService extends BaseService {
     key?: string
     first?: number
   }) => {
-    const query = this.knex('search_history')
+    const query = this.knexRO('search_history')
       .select('search_key')
       .count('id')
       .whereNot({ searchKey: '' })
       .whereNotIn(
         'searchKey',
-        this.knex.from('blocked_search_keyword').select('searchKey')
+        this.knexRO.from('blocked_search_keyword').select('searchKey')
       )
       .groupBy('search_key')
       .orderBy('count', 'desc')
@@ -55,7 +55,7 @@ export class SystemService extends BaseService {
       query.where(
         'created_at',
         '>=',
-        this.knex.raw(`now() -  interval '1 days'`)
+        this.knexRO.raw(`now() -  interval '1 days'`)
       )
     }
 

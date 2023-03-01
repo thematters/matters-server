@@ -1,12 +1,13 @@
 import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { readonlyKnex as knexRO } from 'connectors'
 import { RecommendationToHottestResolver } from 'definitions'
 
 export const hottest: RecommendationToHottestResolver = async (
   _,
   { input },
-  { viewer, dataSources: { draftService }, knex }
+  { viewer, dataSources: { draftService } }
 ) => {
   const { oss = false } = input
 
@@ -20,10 +21,10 @@ export const hottest: RecommendationToHottestResolver = async (
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
-    const query = knex
-      .select('article.draft_id', knex.raw('count(1) OVER() AS total_count'))
+    const query = knexRO
+      .select('article.draft_id', knexRO.raw('count(1) OVER() AS total_count'))
       .from(
-        knex
+        knexRO
           .select()
           .from(MATERIALIZED_VIEW.article_hottest_materialized)
           .orderByRaw('score desc nulls last')
