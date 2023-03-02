@@ -230,6 +230,7 @@ export default /* GraphQL */ `
     "use the api version; omit to use latest version"
     version: SearchAPIVersion
     coefficients: String
+    quicksearch: Boolean
   }
 
   input SearchFilter {
