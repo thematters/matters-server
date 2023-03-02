@@ -8,6 +8,14 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
+  if (take === 0) {
+    return connectionFromArray(
+      [],
+      input,
+      await articleService.countAppreciations(articleId)
+    )
+  }
+
   const records = await articleService.findAppreciations({
     referenceId: articleId,
     take,

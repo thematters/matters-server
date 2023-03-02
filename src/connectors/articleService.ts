@@ -1388,6 +1388,20 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Count an article's appreciations by a given articleId.
+   */
+  countAppreciations = async (articleId: string) => {
+    const result = await this.knexRO('appreciation')
+      .countDistinct(this.knexRO.raw('(sender_id, reference_id)'))
+      .where({
+        referenceId: articleId,
+        purpose: APPRECIATION_PURPOSE.appreciate,
+      })
+    const count = (result[0] as { count: string }).count
+    return +count
+  }
+
+  /**
    * Find an article's appreciations by a given articleId.
    */
   findAppreciations = async ({
