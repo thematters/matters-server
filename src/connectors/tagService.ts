@@ -19,7 +19,7 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
-// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class TagService extends BaseService {
   constructor() {
@@ -681,6 +681,7 @@ export class TagService extends BaseService {
     includeAuthorTags,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     keyOriginal?: string
@@ -690,6 +691,7 @@ export class TagService extends BaseService {
     includeAuthorTags?: boolean
     viewerId?: string | null
     coefficients?: string
+    quicksearch?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -748,14 +750,31 @@ export class TagService extends BaseService {
       })
 
     const queryTags = this.searchKnex
-      .select('*')
-      .from(baseQuery.as('base'))
-      // .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD) .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-      .orderByRaw(
-        '(? * followers_rank + ? * content_rank + ? * description_rank) DESC',
-        [a, b, c]
+      .select(
+        '*',
+        this.searchKnex.raw(
+          '(? * followers_rank + ? * content_rank + ? * description_rank) AS score',
+          [a, b, c]
+        )
       )
+      .from(baseQuery.as('base'))
+      .modify((builder: Knex.QueryBuilder) => {
+        if (!quicksearch) {
+          builder
+            .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+            .orWhere(
+              'description_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+        }
+
+        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+
+        if (!quicksearch) {
+          builder.orderByRaw('score DESC NULLS LAST')
+        }
+      })
       .orderByRaw('num_articles DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
@@ -810,6 +829,7 @@ export class TagService extends BaseService {
     includeAuthorTags,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     keyOriginal?: string
@@ -819,6 +839,7 @@ export class TagService extends BaseService {
     includeAuthorTags?: boolean
     viewerId?: string | null
     coefficients?: string
+    quicksearch?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -832,7 +853,7 @@ export class TagService extends BaseService {
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
     // const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
-    console.log(new Date(), `searchV1 tag got search key:`, {
+    console.log(new Date(), `searchV2 tag got search key:`, {
       key,
       keyOriginal,
     })
@@ -877,14 +898,31 @@ export class TagService extends BaseService {
       })
 
     const queryTags = this.searchKnex
-      .select('*')
-      .from(baseQuery.as('base'))
-      // .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD) .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-      .orderByRaw(
-        '(? * followers_rank + ? * content_rank + ? * description_rank) DESC',
-        [a, b, c]
+      .select(
+        '*',
+        this.searchKnex.raw(
+          '(? * followers_rank + ? * content_rank + ? * description_rank) AS score',
+          [a, b, c]
+        )
       )
+      .from(baseQuery.as('base'))
+      .modify((builder: Knex.QueryBuilder) => {
+        if (!quicksearch) {
+          builder
+            .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+            .orWhere(
+              'description_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+        }
+
+        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+
+        if (!quicksearch) {
+          builder.orderByRaw('score DESC NULLS LAST')
+        }
+      })
       .orderByRaw('num_articles DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
