@@ -64,6 +64,8 @@ import {
 import { likecoin } from './likecoin'
 import { medium } from './medium'
 
+const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+
 export class UserService extends BaseService {
   ipfs: typeof ipfsServers
   likecoin: typeof likecoin
@@ -598,6 +600,7 @@ export class UserService extends BaseService {
     filter,
     exclude,
     viewerId,
+    coefficients,
   }: {
     key: string
     // keyNormalized: string
@@ -608,33 +611,68 @@ export class UserService extends BaseService {
     filter?: Record<string, any>
     viewerId?: string | null
     exclude?: GQLSearchExclude
+    coefficients?: string
   }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
+    const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
+    const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
+    const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+
     const displayName = key
-    const userName =
-      key.startsWith('@') || key.startsWith('＠') ? key.slice(1) : key
+    const searchUserName = key.startsWith('@') || key.startsWith('＠')
+    const userName = (searchUserName ? key.slice(1) : key).trim()
 
     if (!userName) {
       return { nodes: [], totalCount: 0 }
     }
 
+    // gather users that blocked viewer
+    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    let blockedIds: string[] = []
+    if (excludeBlocked) {
+      blockedIds = (
+        await this.knex('action_user')
+          .select('user_id')
+          .where({ action: USER_ACTION.block, targetId: viewerId })
+      ).map(({ userId }) => userId)
+    }
+
     const baseQuery = this.searchKnex
-      .from('search_index.user')
-      .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
-      )
       .select(
         '*',
         this.searchKnex.raw(
           'percent_rank() over (ORDER by num_followers NULLS FIRST) AS followers_rank'
         ),
-        this.searchKnex.raw('ts_rank(display_name_ts, query) AS name_rank')
+        this.searchKnex.raw(
+          '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
+          [userName]
+        ),
+        this.searchKnex.raw(
+          'ts_rank(display_name_ts, query) AS display_name_rank'
+        ),
+        this.searchKnex.raw(
+          'ts_rank(description_ts, query) AS description_rank'
+        )
+      )
+      .from('search_index.user')
+      .crossJoin(
+        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
       )
       .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
           .whereLike('display_name', `%${displayName}%`)
           .orWhereLike('user_name', `%${userName}%`)
           .orWhereRaw('display_name_ts @@ query')
+          .orWhereRaw('description_ts @@ query')
       })
 
     const queryUsers = this.searchKnex
@@ -643,20 +681,20 @@ export class UserService extends BaseService {
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
+      .where('user_name_rank', '>', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('display_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .modify((builder: Knex.QueryBuilder) => {
-        if (exclude === GQLSearchExclude.blocked && viewerId) {
-          builder.whereNotIn(
-            'result.id',
-            this.knex('action_user')
-              .select('user_id')
-              .where({ action: USER_ACTION.block, targetId: viewerId })
-          )
+        if (searchUserName) {
+          builder.orderByRaw('user_name = ? DESC', [userName])
+        } else {
+          builder.orderByRaw('display_name = ? DESC', [displayName])
         }
       })
-      .orderByRaw('display_name = ? DESC', [displayName])
-      .orderByRaw('user_name = ? DESC', [userName])
-      .orderByRaw('(name_rank+followers_rank) DESC')
-      .orderByRaw('display_name ~ ? DESC', [displayName])
+      .orderByRaw(
+        '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) DESC',
+        [a, b, c, d]
+      )
       .orderByRaw('num_followers DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
@@ -674,6 +712,131 @@ export class UserService extends BaseService {
       records.map(({ id }) => id)
     )) as Item[]
     return { nodes, totalCount }
+  }
+
+  searchV2 = async ({
+    key,
+    // keyNormalized,
+    take,
+    skip,
+    oss = false,
+    filter,
+    exclude,
+    viewerId,
+    coefficients,
+  }: {
+    key: string
+    // keyNormalized: string
+    author?: string
+    take: number
+    skip: number
+    oss?: boolean
+    filter?: Record<string, any>
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+    coefficients?: string
+  }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
+    const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
+    const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
+    const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+
+    const displayName = key
+    const searchUserName = key.startsWith('@') || key.startsWith('＠')
+    const userName = (searchUserName ? key.slice(1) : key).trim()
+
+    if (!userName) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    // gather users that blocked viewer
+    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    let blockedIds: string[] = []
+    if (excludeBlocked) {
+      blockedIds = (
+        await this.knex('action_user')
+          .select('user_id')
+          .where({ action: USER_ACTION.block, targetId: viewerId })
+      ).map(({ userId }) => userId)
+    }
+
+    const baseQuery = this.searchKnex
+      .select(
+        '*',
+        this.searchKnex.raw(
+          'percent_rank() over (ORDER by num_followers NULLS FIRST) AS followers_rank'
+        ),
+        this.searchKnex.raw(
+          '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
+          [userName]
+        ),
+        this.searchKnex.raw(
+          'ts_rank(display_name_jieba_ts, query) AS display_name_rank'
+        ),
+        this.searchKnex.raw(
+          'ts_rank(description_jieba_ts, query) AS description_rank'
+        )
+      )
+      .from('search_index.user')
+      .crossJoin(
+        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+      )
+      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .andWhere('id', 'NOT IN', blockedIds)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder
+          .whereLike('display_name', `%${displayName}%`)
+          .orWhereLike('user_name', `%${userName}%`)
+          .orWhereRaw('display_name_jieba_ts @@ query')
+          .orWhereRaw('description_jieba_ts @@ query')
+      })
+
+    const queryUsers = this.searchKnex
+      .select(
+        '*',
+        this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
+      )
+      .from(baseQuery.as('result'))
+      .where('user_name_rank', '>', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('display_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (searchUserName) {
+          builder.orderByRaw('user_name = ? DESC', [userName])
+        } else {
+          builder.orderByRaw('display_name = ? DESC', [displayName])
+        }
+      })
+      .orderByRaw(
+        '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) DESC',
+        [a, b, c, d]
+      )
+      .orderByRaw('num_followers DESC NULLS LAST')
+      .orderByRaw('id') // fallback to earlier first
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    const records = (await queryUsers) as Item[]
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const nodes = (await this.dataloader.loadMany(
+      records.map(({ id }) => id)
+    )) as Item[]
+    return { nodes, totalCount }
+
+    // return { nodes: [], totalCount: 0 }
   }
 
   findRecentSearches = async (userId: string) => {

@@ -19,6 +19,8 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
+// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+
 export class TagService extends BaseService {
   constructor() {
     super('tag')
@@ -567,6 +569,7 @@ export class TagService extends BaseService {
     viewerId,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -677,6 +680,7 @@ export class TagService extends BaseService {
     skip,
     includeAuthorTags,
     viewerId,
+    coefficients,
   }: {
     key: string
     keyOriginal?: string
@@ -685,7 +689,20 @@ export class TagService extends BaseService {
     skip: number
     includeAuthorTags?: boolean
     viewerId?: string | null
+    coefficients?: string
   }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
+    const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
+    const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
+    // const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
+
     console.log(new Date(), `searchV1 tag got search key:`, {
       key,
       keyOriginal,
@@ -706,10 +723,14 @@ export class TagService extends BaseService {
         'id',
         'content_orig AS content',
         'description',
+        // 'num_articles', // 'num_followers',
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
         ),
-        this.searchKnex.raw('ts_rank(content_ts, query) AS name_rank'),
+        this.searchKnex.raw('ts_rank(content_ts, query) AS content_rank'),
+        this.searchKnex.raw(
+          'ts_rank(description_ts, query) AS description_rank'
+        ),
         this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
         this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count')
@@ -723,13 +744,19 @@ export class TagService extends BaseService {
         builder // .whereNotIn('id', mattyChoiceTagIds)
           .whereLike('content', `%${_key}%`)
           .orWhereRaw('content_ts @@ query')
+          .orWhereRaw('description_ts @@ query')
       })
 
     const queryTags = this.searchKnex
+      .select('*')
       .from(baseQuery.as('base'))
+      // .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD) .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-      .orderByRaw('(name_rank+followers_rank) DESC')
-      .orderByRaw('num_articles DESC')
+      .orderByRaw(
+        '(? * followers_rank + ? * content_rank + ? * description_rank) DESC',
+        [a, b, c]
+      )
+      .orderByRaw('num_articles DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
@@ -740,12 +767,148 @@ export class TagService extends BaseService {
         }
       })
 
-    const records = (await queryTags) as Item[]
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-    const nodes = (await this.dataloader.loadMany(
-      records.map(({ id }) => id)
-    )) as Item[]
-    return { nodes, totalCount }
+    const tagIds = (await queryTags) as Item[]
+    const totalCount = tagIds.length === 0 ? 0 : +tagIds[0].totalCount
+
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
+      tagIds?.[0]
+    )
+
+    /*
+    const items = (await this.knex
+      .select(
+        'id',
+        'content',
+        'description',
+        'num_articles',
+        'num_authors',
+        'created_at'
+      )
+      .from(VIEW.tags_lasts_view)
+      .whereIn(
+        'id',
+        tagIds.map(({ id }) => id)
+      )) as Item[]
+    const m = new Map(items.map((rec) => [rec.id, rec]))
+    // const nodes = (await this.dataloader.loadMany(ids) as Item[]
+*/
+
+    // to keep the order from search_index
+    // const nodes = tagIds.map(({ id }) => m.get(id)).filter(Boolean) as Item[]
+
+    return { nodes: tagIds, totalCount }
+  }
+
+  searchV2 = async ({
+    key,
+    keyOriginal,
+    take,
+    skip,
+    includeAuthorTags,
+    viewerId,
+    coefficients,
+  }: {
+    key: string
+    keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    includeAuthorTags?: boolean
+    viewerId?: string | null
+    coefficients?: string
+  }) => {
+    let coeffs = [1, 1, 1, 1]
+    try {
+      coeffs = JSON.parse(coefficients || '[]')
+    } catch (err) {
+      // do nothing
+    }
+
+    const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
+    const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
+    const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
+    // const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
+
+    console.log(new Date(), `searchV1 tag got search key:`, {
+      key,
+      keyOriginal,
+    })
+    const strip0 = key.startsWith('#') || key.startsWith('＃')
+    const _key = strip0 ? key.slice(1) : key
+
+    if (!_key) {
+      return { nodes: [], totalCount: 0 }
+    }
+
+    const mattyChoiceTagIds = environment.mattyChoiceTagId
+      ? [environment.mattyChoiceTagId]
+      : []
+
+    const baseQuery = this.searchKnex
+      .select(
+        'id',
+        'content_orig AS content',
+        'description',
+        // 'num_articles', // 'num_followers',
+        this.searchKnex.raw(
+          'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
+        ),
+        this.searchKnex.raw('ts_rank(content_jieba_ts, query) AS content_rank'),
+        this.searchKnex.raw(
+          'ts_rank(description_jieba_ts, query) AS description_rank'
+        ),
+        this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
+        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
+      )
+      .from('search_index.tag')
+      .crossJoin(
+        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+      )
+      .whereNotIn('id', mattyChoiceTagIds)
+      .andWhere((builder: Knex.QueryBuilder) => {
+        builder // .whereNotIn('id', mattyChoiceTagIds)
+          .whereLike('content', `%${_key}%`)
+          .orWhereRaw('content_jieba_ts @@ query')
+          .orWhereRaw('description_jieba_ts @@ query')
+      })
+
+    const queryTags = this.searchKnex
+      .select('*')
+      .from(baseQuery.as('base'))
+      // .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD) .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+      .orderByRaw(
+        '(? * followers_rank + ? * content_rank + ? * description_rank) DESC',
+        [a, b, c]
+      )
+      .orderByRaw('num_articles DESC NULLS LAST')
+      .orderByRaw('id') // fallback to earlier first
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    const tagIds = (await queryTags) as Item[]
+    const totalCount = tagIds.length === 0 ? 0 : +tagIds[0].totalCount
+
+    console.log(
+      new Date(),
+      { key, keyOriginal },
+      `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
+      tagIds?.[0]
+    )
+
+    return { nodes: tagIds, totalCount }
+
+    // return { nodes: [], totalCount: 0 }
   }
 
   /*********************************

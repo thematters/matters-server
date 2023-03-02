@@ -2774,6 +2774,7 @@ export interface GQLSearchInput {
    * use the api version; omit to use latest version
    */
   version?: GQLSearchAPIVersion
+  coefficients?: string
 }
 
 export interface GQLSearchFilter {
@@ -2872,6 +2873,7 @@ export const enum GQLSearchTypes {
 }
 
 export const enum GQLSearchAPIVersion {
+  v20230301 = 'v20230301',
   v20221212 = 'v20221212',
   v20221212prior = 'v20221212prior',
 }
