@@ -601,6 +601,7 @@ export class UserService extends BaseService {
     exclude,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     // keyNormalized: string
@@ -612,6 +613,7 @@ export class UserService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -648,7 +650,7 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          'percent_rank() over (ORDER by num_followers NULLS FIRST) AS followers_rank'
+          'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
         ),
         this.searchKnex.raw(
           '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
@@ -678,23 +680,38 @@ export class UserService extends BaseService {
     const queryUsers = this.searchKnex
       .select(
         '*',
+        this.searchKnex.raw(
+          '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) AS score',
+          [a, b, c, d]
+        ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
-      .where('user_name_rank', '>', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('display_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .modify((builder: Knex.QueryBuilder) => {
+        if (!quicksearch) {
+          builder
+            .where('user_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+            .orWhere(
+              'display_name_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+            .orWhere(
+              'description_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+        }
         if (searchUserName) {
           builder.orderByRaw('user_name = ? DESC', [userName])
         } else {
           builder.orderByRaw('display_name = ? DESC', [displayName])
         }
+
+        if (!quicksearch) {
+          builder.orderByRaw('score DESC NULLS LAST')
+        }
       })
-      .orderByRaw(
-        '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) DESC',
-        [a, b, c, d]
-      )
       .orderByRaw('num_followers DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
@@ -724,6 +741,7 @@ export class UserService extends BaseService {
     exclude,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     // keyNormalized: string
@@ -735,6 +753,7 @@ export class UserService extends BaseService {
     viewerId?: string | null
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -771,7 +790,7 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          'percent_rank() over (ORDER by num_followers NULLS FIRST) AS followers_rank'
+          'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
         ),
         this.searchKnex.raw(
           '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
@@ -801,23 +820,37 @@ export class UserService extends BaseService {
     const queryUsers = this.searchKnex
       .select(
         '*',
+        this.searchKnex.raw(
+          '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) AS score',
+          [a, b, c, d]
+        ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
-      .where('user_name_rank', '>', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('display_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('description_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .modify((builder: Knex.QueryBuilder) => {
+        if (!quicksearch) {
+          builder
+            .where('user_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+            .orWhere(
+              'display_name_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+            .orWhere(
+              'description_rank',
+              '>=',
+              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
+            )
+        }
         if (searchUserName) {
           builder.orderByRaw('user_name = ? DESC', [userName])
         } else {
           builder.orderByRaw('display_name = ? DESC', [displayName])
         }
+        if (!quicksearch) {
+          builder.orderByRaw('score DESC NULLS LAST')
+        }
       })
-      .orderByRaw(
-        '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) DESC',
-        [a, b, c, d]
-      )
       .orderByRaw('num_followers DESC NULLS LAST')
       .orderByRaw('id') // fallback to earlier first
       .modify((builder: Knex.QueryBuilder) => {
