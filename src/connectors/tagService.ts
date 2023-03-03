@@ -752,7 +752,9 @@ export class TagService extends BaseService {
           .whereLike('content', `%${_key}%`)
           // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_ts @@ query')
-          .orWhereRaw('description_ts @@ query')
+        if (!quicksearch) {
+          builder.orWhereRaw('description_ts @@ query')
+        }
       })
 
     const queryTags = this.searchKnex
@@ -873,7 +875,10 @@ export class TagService extends BaseService {
           .whereLike('content', `%${_key}%`)
           // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_jieba_ts @@ query')
-          .orWhereRaw('description_jieba_ts @@ query')
+
+        if (!quicksearch) {
+          builder.orWhereRaw('description_jieba_ts @@ query')
+        }
       })
 
     const queryTags = this.searchKnex

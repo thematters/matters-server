@@ -680,7 +680,9 @@ export class UserService extends BaseService {
           .whereLike('user_name', `%${userName}%`)
           .orWhereLike('display_name', `%${displayName}%`)
           .orWhereRaw('display_name_ts @@ query')
-          .orWhereRaw('description_ts @@ query')
+        if (!quicksearch) {
+          builder.orWhereRaw('description_ts @@ query')
+        }
       })
 
     const queryUsers = this.searchKnex
@@ -811,7 +813,10 @@ export class UserService extends BaseService {
           .whereLike('user_name', `%${userName}%`)
           .orWhereLike('display_name', `%${displayName}%`)
           .orWhereRaw('display_name_jieba_ts @@ query')
-          .orWhereRaw('description_jieba_ts @@ query')
+
+        if (!quicksearch) {
+          builder.orWhereRaw('description_jieba_ts @@ query')
+        }
       })
 
     const queryUsers = this.searchKnex
