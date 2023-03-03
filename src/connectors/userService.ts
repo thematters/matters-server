@@ -504,6 +504,7 @@ export class UserService extends BaseService {
   // the searchV0: TBDeprecated in next release
   search = async ({
     key,
+    keyOriginal,
     take,
     skip,
     oss = false,
@@ -512,6 +513,7 @@ export class UserService extends BaseService {
     viewerId,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -523,13 +525,13 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .from(skip)
       .size(take)
-      .query('match', 'displayName.raw', key)
+      .query('match', 'displayName.raw', keyOriginal)
       .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
 
     body.suggest = {
       userName: {
-        prefix: key,
+        prefix: keyOriginal,
         completion: {
           field: 'userName',
           fuzzy: {
@@ -539,7 +541,7 @@ export class UserService extends BaseService {
         },
       },
       displayName: {
-        prefix: key,
+        prefix: keyOriginal,
         completion: {
           field: 'displayName',
           fuzzy: {
@@ -587,13 +589,13 @@ export class UserService extends BaseService {
       return { nodes, totalCount: nodes.length }
     } catch (err) {
       logger.error(err)
-      throw new ServerError('search failed')
+      console.error(new Date(), 'user searchV0 ERROR:', err)
+      throw new ServerError('user search failed')
     }
   }
 
   searchV1 = async ({
     key,
-    // keyNormalized,
     take,
     skip,
     oss = false,
@@ -604,7 +606,6 @@ export class UserService extends BaseService {
     quicksearch,
   }: {
     key: string
-    // keyNormalized: string
     author?: string
     take: number
     skip: number
