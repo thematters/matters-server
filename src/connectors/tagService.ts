@@ -16,6 +16,7 @@ import {
 import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
+import { cutWords } from 'common/utils'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
@@ -682,6 +683,7 @@ export class TagService extends BaseService {
     viewerId,
     coefficients,
     quicksearch,
+    usePreSplit,
   }: {
     key: string
     keyOriginal?: string
@@ -692,6 +694,7 @@ export class TagService extends BaseService {
     viewerId?: string | null
     coefficients?: string
     quicksearch?: boolean
+    usePreSplit?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -744,7 +747,12 @@ export class TagService extends BaseService {
       )
       .from('search_index.tag')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
+        usePreSplit
+          ? this.searchKnex.raw(
+              "to_tsquery('chinese_zh', ?) query",
+              cutWords(key).join(' | ')
+            )
+          : this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", key)
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
@@ -804,6 +812,7 @@ export class TagService extends BaseService {
     viewerId,
     coefficients,
     quicksearch,
+    usePreSplit,
   }: {
     key: string
     keyOriginal?: string
@@ -814,6 +823,7 @@ export class TagService extends BaseService {
     viewerId?: string | null
     coefficients?: string
     quicksearch?: boolean
+    usePreSplit?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -865,7 +875,12 @@ export class TagService extends BaseService {
       )
       .from('search_index.tag')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        usePreSplit
+          ? this.searchKnex.raw(
+              "to_tsquery('chinese_zh', ?) query",
+              cutWords(key).join(' | ')
+            )
+          : this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", key)
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {

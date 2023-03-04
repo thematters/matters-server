@@ -1,4 +1,5 @@
 import {
+  cutWords,
   normalizeQueryInput,
   // normalizeTagInput,
   stripAllPunct,
@@ -64,4 +65,8 @@ test('normalizeQueryInput', async () => {
   expect(await normalizeQueryInput('小說')).toBe('小说')
   expect(await normalizeQueryInput('Abc')).toBe('abc')
   expect(await normalizeQueryInput(' Abc小說')).toBe('abc小说')
+})
+
+test('cutWords', async () => {
+  expect(await cutWords('电影音乐')).toEqual(['电影', '音乐'])
 })

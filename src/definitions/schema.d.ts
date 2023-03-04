@@ -2776,6 +2776,7 @@ export interface GQLSearchInput {
   version?: GQLSearchAPIVersion
   coefficients?: string
   quicksearch?: boolean
+  usePreSplit?: boolean
 }
 
 export interface GQLSearchFilter {

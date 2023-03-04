@@ -1980,6 +1980,7 @@ input SearchInput {
   version: SearchAPIVersion
   coefficients: String
   quicksearch: Boolean
+  usePreSplit: Boolean
 }
 
 input SearchFilter {

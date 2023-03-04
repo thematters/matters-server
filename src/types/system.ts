@@ -231,6 +231,7 @@ export default /* GraphQL */ `
     version: SearchAPIVersion
     coefficients: String
     quicksearch: Boolean
+    usePreSplit: Boolean
   }
 
   input SearchFilter {

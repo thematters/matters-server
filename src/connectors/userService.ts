@@ -39,6 +39,7 @@ import {
 } from 'common/errors'
 import logger from 'common/logger'
 import {
+  cutWords,
   generatePasswordhash,
   isValidUserName,
   makeUserName,
@@ -602,6 +603,7 @@ export class UserService extends BaseService {
     viewerId,
     coefficients,
     quicksearch,
+    usePreSplit,
   }: {
     key: string
     // keyNormalized: string
@@ -614,6 +616,7 @@ export class UserService extends BaseService {
     exclude?: GQLSearchExclude
     coefficients?: string
     quicksearch?: boolean
+    usePreSplit?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -671,7 +674,12 @@ export class UserService extends BaseService {
       )
       .from('search_index.user')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
+        usePreSplit
+          ? this.searchKnex.raw(
+              `to_tsquery('chinese_zh', ?) query`,
+              cutWords(key).join(' | ')
+            )
+          : this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
       )
       .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
       .andWhere('id', 'NOT IN', blockedIds)
@@ -734,6 +742,7 @@ export class UserService extends BaseService {
     viewerId,
     coefficients,
     quicksearch,
+    usePreSplit,
   }: {
     key: string
     // keyNormalized: string
@@ -746,6 +755,7 @@ export class UserService extends BaseService {
     exclude?: GQLSearchExclude
     coefficients?: string
     quicksearch?: boolean
+    usePreSplit?: boolean
   }) => {
     let coeffs = [1, 1, 1, 1]
     try {
@@ -802,7 +812,13 @@ export class UserService extends BaseService {
       )
       .from('search_index.user')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        // this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        usePreSplit
+          ? this.searchKnex.raw(
+              `to_tsquery('jiebacfg', ?) query`,
+              cutWords(key).join(' | ')
+            )
+          : this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
       )
       .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
       .andWhere('id', 'NOT IN', blockedIds)

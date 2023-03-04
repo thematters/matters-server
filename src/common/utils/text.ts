@@ -1,4 +1,5 @@
 import { distance } from 'fastest-levenshtein'
+import nodejieba from 'nodejieba'
 import { OpenCC } from 'opencc'
 
 import { MAX_TAG_CONTENT_LENGTH } from 'common/enums'
@@ -44,3 +45,7 @@ const t2sConverter: OpenCC = new OpenCC('t2s.json')
 
 export const normalizeQueryInput = async (content: string): Promise<string> =>
   t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)
+
+nodejieba.load()
+
+export const cutWords = (content: string): string[] => nodejieba.cut(content)
