@@ -19,7 +19,7 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
-const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class TagService extends BaseService {
   constructor() {
@@ -703,7 +703,7 @@ export class TagService extends BaseService {
     const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
     const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
-    // const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
+    const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
     console.log(new Date(), `searchV1 tag got search key:`, {
       key,
@@ -729,12 +729,17 @@ export class TagService extends BaseService {
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
         ),
+        this.searchKnex.raw(
+          '(CASE WHEN content LIKE ? THEN 1 ELSE 0 END) ::float AS content_like_rank',
+          [`%${_key}%`]
+        ),
         this.searchKnex.raw('ts_rank(content_ts, query) AS content_rank'),
         this.searchKnex.raw(
           'ts_rank(description_ts, query) AS description_rank'
         ),
         this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
         this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
+        // this.searchKnex.raw('COALESCE(num_followers, 0) AS num_followers'),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count')
       )
       .from('search_index.tag')
@@ -745,6 +750,7 @@ export class TagService extends BaseService {
       .andWhere((builder: Knex.QueryBuilder) => {
         builder // .whereNotIn('id', mattyChoiceTagIds)
           .whereLike('content', `%${_key}%`)
+          // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_ts @@ query')
           .orWhereRaw('description_ts @@ query')
       })
@@ -753,22 +759,12 @@ export class TagService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * content_rank + ? * description_rank) AS score',
-          [a, b, c]
+          '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
+          [a, b, c, d]
         )
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (!quicksearch) {
-          builder
-            .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-            .orWhere(
-              'description_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-        }
-
         builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
 
         if (!quicksearch) {
@@ -795,28 +791,6 @@ export class TagService extends BaseService {
       `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
       tagIds?.[0]
     )
-
-    /*
-    const items = (await this.knex
-      .select(
-        'id',
-        'content',
-        'description',
-        'num_articles',
-        'num_authors',
-        'created_at'
-      )
-      .from(VIEW.tags_lasts_view)
-      .whereIn(
-        'id',
-        tagIds.map(({ id }) => id)
-      )) as Item[]
-    const m = new Map(items.map((rec) => [rec.id, rec]))
-    // const nodes = (await this.dataloader.loadMany(ids) as Item[]
-*/
-
-    // to keep the order from search_index
-    // const nodes = tagIds.map(({ id }) => m.get(id)).filter(Boolean) as Item[]
 
     return { nodes: tagIds, totalCount }
   }
@@ -851,7 +825,7 @@ export class TagService extends BaseService {
     const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
     const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
-    // const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
+    const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
     console.log(new Date(), `searchV2 tag got search key:`, {
       key,
@@ -877,6 +851,10 @@ export class TagService extends BaseService {
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
         ),
+        this.searchKnex.raw(
+          '(CASE WHEN content LIKE ? THEN 1 ELSE 0 END) ::float AS content_like_rank',
+          [`%${_key}%`]
+        ),
         this.searchKnex.raw('ts_rank(content_jieba_ts, query) AS content_rank'),
         this.searchKnex.raw(
           'ts_rank(description_jieba_ts, query) AS description_rank'
@@ -891,8 +869,9 @@ export class TagService extends BaseService {
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder // .whereNotIn('id', mattyChoiceTagIds)
+        builder
           .whereLike('content', `%${_key}%`)
+          // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_jieba_ts @@ query')
           .orWhereRaw('description_jieba_ts @@ query')
       })
@@ -901,22 +880,12 @@ export class TagService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * content_rank + ? * description_rank) AS score',
-          [a, b, c]
+          '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
+          [a, b, c, d]
         )
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (!quicksearch) {
-          builder
-            .where('content_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-            .orWhere(
-              'description_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-        }
-
         builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
 
         if (!quicksearch) {
@@ -1187,16 +1156,16 @@ export class TagService extends BaseService {
     selected?: boolean
     withSynonyms?: boolean
   }) => {
-    const knex = this.knex
+    const knexRO = this.knexRO
 
     let result: any
     try {
-      result = await this.knex(VIEW.tags_lasts_view)
+      result = await this.knexRO(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('tag_id', tagId)
           if (withSynonyms) {
-            this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
+            this.orWhere(knexRO.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
           } // else { this.where('id', tagId) // exactly }
         })
         .first()
@@ -1208,7 +1177,7 @@ export class TagService extends BaseService {
       return parseInt(result.numArticles ?? '0', 10)
     }
 
-    result = await this.knex('article_tag')
+    result = await this.knexRO('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
       .first()
@@ -1343,7 +1312,7 @@ export class TagService extends BaseService {
    * Find article covers by tag id.
    */
   findArticleCovers = async ({ id }: { id: string }) =>
-    this.knex
+    this.knexRO
       .select('article.cover')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')

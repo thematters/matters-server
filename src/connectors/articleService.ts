@@ -1388,6 +1388,20 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Count an article's appreciations by a given articleId.
+   */
+  countAppreciations = async (articleId: string) => {
+    const result = await this.knexRO('appreciation')
+      .countDistinct(this.knexRO.raw('(sender_id, reference_id)'))
+      .where({
+        referenceId: articleId,
+        purpose: APPRECIATION_PURPOSE.appreciate,
+      })
+    const count = (result[0] as { count: string }).count
+    return +count
+  }
+
+  /**
    * Find an article's appreciations by a given articleId.
    */
   findAppreciations = async ({
@@ -1399,8 +1413,12 @@ export class ArticleService extends BaseService {
     take?: number
     skip?: number
   }) =>
-    this.knex('appreciation')
-      .select('reference_id', 'sender_id')
+    this.knexRO('appreciation')
+      .select(
+        'reference_id',
+        'sender_id',
+        this.knexRO.raw('count(1) OVER() AS total_count')
+      )
       .where({
         referenceId,
         purpose: APPRECIATION_PURPOSE.appreciate,
@@ -1726,7 +1744,7 @@ export class ArticleService extends BaseService {
    * Count an article is collected by how many active articles.
    */
   countActiveCollectedBy = async (id: string) => {
-    const query = this.knex('collection')
+    const query = this.knexRO('collection')
       .rightJoin('article', 'collection.entrance_id', 'article.id')
       .where({
         'collection.article_id': id,
@@ -1920,7 +1938,7 @@ export class ArticleService extends BaseService {
     senderId?: string
   }) => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-    const result = await this.knex
+    const result = await this.knexRO
       .select()
       .from((knex: any) => {
         const source = knex

@@ -4,7 +4,15 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'
-import { aws, cfsvc, es, knex, meiliClient, searchKnexDB } from 'connectors'
+import {
+  aws,
+  cfsvc,
+  es,
+  knex,
+  meiliClient,
+  readonlyKnex,
+  searchKnexDB,
+} from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {
@@ -13,6 +21,7 @@ export class BaseService extends DataSource {
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
+  knexRO: Knex
   searchKnex: Knex
   dataloader: DataLoader<string, Item>
   table: TableName
@@ -22,6 +31,7 @@ export class BaseService extends DataSource {
     this.es = es
     this.meili = meiliClient
     this.knex = knex
+    this.knexRO = readonlyKnex
     this.searchKnex = searchKnexDB
     this.table = table
     this.aws = aws
@@ -319,11 +329,11 @@ export class BaseService extends DataSource {
    * Find entity type id by a given type string.
    */
   baseFindEntityTypeId = async (entityType: string) =>
-    this.knex('entity_type').select('id').where({ table: entityType }).first()
+    this.knexRO('entity_type').select('id').where({ table: entityType }).first()
 
   /**
    * Find entity type table by a given id.
    */
   baseFindEntityTypeTable = async (id: string) =>
-    this.knex('entity_type').select('table').where({ id }).first()
+    this.knexRO('entity_type').select('table').where({ id }).first()
 }

@@ -64,7 +64,7 @@ import {
 import { likecoin } from './likecoin'
 import { medium } from './medium'
 
-const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class UserService extends BaseService {
   ipfs: typeof ipfsServers
@@ -414,7 +414,7 @@ export class UserService extends BaseService {
    * Find activatable users
    */
   findActivatableUsers = () =>
-    this.knex
+    this.knexRO
       .select('user.*', 'total', 'read_count')
       .from(this.table)
       .innerJoin(
@@ -423,7 +423,7 @@ export class UserService extends BaseService {
         'user.liker_id'
       )
       .leftJoin(
-        this.knex
+        this.knexRO
           .select('recipient_id')
           .sum('amount as total')
           .from('appreciation')
@@ -433,7 +433,7 @@ export class UserService extends BaseService {
         'user.id'
       )
       .leftJoin(
-        this.knex
+        this.knexRO
           .select('user_id')
           .countDistinct('article_id as read_count')
           .from('article_read_count')
@@ -447,7 +447,7 @@ export class UserService extends BaseService {
         accountType: 'general',
       })
       .andWhere(
-        this.knex.raw(
+        this.knexRO.raw(
           '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 10'
         )
       )
@@ -626,6 +626,7 @@ export class UserService extends BaseService {
     const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
     const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+    const e = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
 
     const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
@@ -652,15 +653,20 @@ export class UserService extends BaseService {
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
         ),
+
         this.searchKnex.raw(
-          '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
-          [userName]
+          '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
+          [`%${userName}%`]
         ),
         this.searchKnex.raw(
-          'ts_rank(display_name_ts, query) AS display_name_rank'
+          '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
+          [`%${displayName}%`]
         ),
         this.searchKnex.raw(
-          'ts_rank(description_ts, query) AS description_rank'
+          'ts_rank(display_name_ts, query) AS display_name_ts_rank'
+        ),
+        this.searchKnex.raw(
+          'ts_rank(description_ts, query) AS description_ts_rank'
         )
       )
       .from('search_index.user')
@@ -671,8 +677,8 @@ export class UserService extends BaseService {
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
-          .whereLike('display_name', `%${displayName}%`)
-          .orWhereLike('user_name', `%${userName}%`)
+          .whereLike('user_name', `%${userName}%`)
+          .orWhereLike('display_name', `%${displayName}%`)
           .orWhereRaw('display_name_ts @@ query')
           .orWhereRaw('description_ts @@ query')
       })
@@ -681,27 +687,13 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) AS score',
-          [a, b, c, d]
+          '(? * followers_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
+          [a, b, c, d, e]
         ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (!quicksearch) {
-          builder
-            .where('user_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-            .orWhere(
-              'display_name_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-            .orWhere(
-              'description_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-        }
         if (searchUserName) {
           builder.orderByRaw('user_name = ? DESC', [userName])
         } else {
@@ -766,6 +758,7 @@ export class UserService extends BaseService {
     const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
     const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+    const e = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
 
     const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
@@ -793,14 +786,18 @@ export class UserService extends BaseService {
           'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
         ),
         this.searchKnex.raw(
-          '(CASE WHEN user_name ~* ? THEN 1 ELSE 0 END) ::float AS user_name_rank',
-          [userName]
+          '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
+          [`%${userName}%`]
         ),
         this.searchKnex.raw(
-          'ts_rank(display_name_jieba_ts, query) AS display_name_rank'
+          '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
+          [`%${displayName}%`]
         ),
         this.searchKnex.raw(
-          'ts_rank(description_jieba_ts, query) AS description_rank'
+          'ts_rank(display_name_jieba_ts, query) AS display_name_ts_rank'
+        ),
+        this.searchKnex.raw(
+          'ts_rank(description_jieba_ts, query) AS description_ts_rank'
         )
       )
       .from('search_index.user')
@@ -811,8 +808,8 @@ export class UserService extends BaseService {
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
-          .whereLike('display_name', `%${displayName}%`)
-          .orWhereLike('user_name', `%${userName}%`)
+          .whereLike('user_name', `%${userName}%`)
+          .orWhereLike('display_name', `%${displayName}%`)
           .orWhereRaw('display_name_jieba_ts @@ query')
           .orWhereRaw('description_jieba_ts @@ query')
       })
@@ -821,32 +818,19 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_rank + ? * display_name_rank + ? * description_rank) AS score',
-          [a, b, c, d]
+          '(? * followers_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
+          [a, b, c, d, e]
         ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (!quicksearch) {
-          builder
-            .where('user_name_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-            .orWhere(
-              'display_name_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-            .orWhere(
-              'description_rank',
-              '>=',
-              SEARCH_DEFAULT_TEXT_RANK_THRESHOLD
-            )
-        }
         if (searchUserName) {
           builder.orderByRaw('user_name = ? DESC', [userName])
         } else {
           builder.orderByRaw('display_name = ? DESC', [displayName])
         }
+
         if (!quicksearch) {
           builder.orderByRaw('score DESC NULLS LAST')
         }
@@ -1284,7 +1268,7 @@ export class UserService extends BaseService {
         const table = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
-        const query = this.knex(table)
+        const query = this.knexRO(table)
           .select()
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
@@ -1310,7 +1294,7 @@ export class UserService extends BaseService {
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
 
-        const query = this.knex
+        const query = this.knexRO
           .select()
           .from({ view })
           .innerJoin('user', 'view.id', 'user.id')

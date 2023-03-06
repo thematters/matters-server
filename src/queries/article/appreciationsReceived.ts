@@ -1,41 +1,29 @@
-import { APPRECIATION_PURPOSE } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedResolver = async (
   { articleId },
   { input },
-  { dataSources: { articleService }, knex }
+  { dataSources: { articleService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
-  const record = await knex
-    .select()
-    .from((kx: any) => {
-      const source = kx
-        .select('reference_id', 'sender_id')
-        .from('appreciation')
-        .where({
-          referenceId: articleId,
-          purpose: APPRECIATION_PURPOSE.appreciate,
-        })
-        .groupBy('sender_id', 'reference_id')
-      source.as('source')
-    })
-    .count()
-    .first()
+  if (take === 0) {
+    return connectionFromArray(
+      [],
+      input,
+      await articleService.countAppreciations(articleId)
+    )
+  }
 
-  const totalCount = parseInt((record?.count as string) || '0', 10)
+  const records = await articleService.findAppreciations({
+    referenceId: articleId,
+    take,
+    skip,
+  })
+  const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-  return connectionFromPromisedArray(
-    articleService.findAppreciations({
-      referenceId: articleId,
-      take,
-      skip,
-    }),
-    input,
-    totalCount
-  )
+  return connectionFromArray(records, input, totalCount)
 }
 
 export default resolver
