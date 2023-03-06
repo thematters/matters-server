@@ -830,7 +830,6 @@ export class UserService extends BaseService {
         } else {
           builder.orderByRaw('display_name = ? DESC', [displayName])
         }
-
         if (!quicksearch) {
           builder.orderByRaw('score DESC NULLS LAST')
         }
