@@ -67,14 +67,17 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
-    """creator message asking for support"""
+    "creator message asking for support"
     requestForDonation: String
 
-    """creator message after support"""
+    "creator message after support"
     replyToDonator: String
 
     "whether publish to ISCN"
     iscnPublish: Boolean
+
+    "whether readers can comment"
+    canComment: Boolean!
   }
 
   type DraftConnection implements Connection {
@@ -110,6 +113,9 @@ export default /* GraphQL */ `
 
     "whether publish to ISCN"
     iscnPublish: Boolean
+
+    "whether readers can comment"
+    canComment: Boolean
   }
 
   input DeleteDraftInput {

@@ -198,6 +198,7 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         requestForDonation
         replyToDonator
         iscnPublish
+        canComment
       }
     }
   `
