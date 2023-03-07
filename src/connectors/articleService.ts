@@ -18,6 +18,7 @@ import {
   ARTICLE_STATE,
   CIRCLE_STATE,
   COMMENT_TYPE,
+  DEFAULT_IPNS_LIFETIME,
   MINUTE,
   PUBLISH_STATE,
   QUEUE_URL,
@@ -474,7 +475,7 @@ export class ArticleService extends BaseService {
           try {
             // HTTPError: no key by the given name was found
             published = await ipfs.name.publish(cidToPublish, {
-              lifetime: '1680h',
+              lifetime: DEFAULT_IPNS_LIFETIME, // '7200h',
               key: ipnsKey, // kname,
               timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
             })
@@ -541,14 +542,22 @@ export class ArticleService extends BaseService {
         userName: author.userName,
       })
     } finally {
+      let updatedRec
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
-        await atomService.update({
+        updatedRec = await atomService.update({
           table: 'user_ipns_keys',
           where: { userId: author.id },
           data: {
             lastDataHash: cidToPublish.toString(),
             lastPublished: this.knex.fn.now(),
           },
+          columns: [
+            'id',
+            'user_id',
+            'ipns_key',
+            'last_data_hash',
+            'last_published',
+          ],
         })
       } else {
         console.error(
@@ -557,10 +566,12 @@ export class ArticleService extends BaseService {
           { published, cidToPublish: cidToPublish.toString() }
         )
       }
+
       const end = new Date()
       console.log(
         end,
-        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`
+        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`,
+        updatedRec
       )
     }
   }

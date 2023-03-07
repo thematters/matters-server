@@ -29,3 +29,5 @@ export const CACHE_PREFIX = {
   CIVIC_LIKER: 'civic-liker',
   USER_LAST_SEEN: 'cache-user-last-seen',
 }
+
+export const DEFAULT_IPNS_LIFETIME = '7200h' // the maximum, is 300days, almost 1 year

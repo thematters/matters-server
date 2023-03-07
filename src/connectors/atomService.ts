@@ -45,6 +45,7 @@ interface UpdateInput {
   table: TableName
   where: Record<string, any>
   data: Record<string, any>
+  columns?: string | string[]
 }
 
 interface UpsertInput {
@@ -212,12 +213,12 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for updating a record.
    */
-  update = async ({ table, where, data }: UpdateInput) => {
+  update = async ({ table, where, data, columns = '*' }: UpdateInput) => {
     const [record] = await this.knex
       .where(where)
       .update(data)
       .into(table)
-      .returning('*')
+      .returning(columns)
     return record
   }
 
@@ -226,14 +227,8 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for updating many records.
    */
-  updateMany = async ({ table, where, data }: UpdateInput) => {
-    const records = await this.knex
-      .where(where)
-      .update(data)
-      .into(table)
-      .returning('*')
-    return records
-  }
+  updateMany = async ({ table, where, data, columns = '*' }: UpdateInput) =>
+    this.knex.where(where).update(data).into(table).returning(columns)
 
   /**
    * Upsert an unique record.
