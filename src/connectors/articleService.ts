@@ -1046,11 +1046,7 @@ export class ArticleService extends BaseService {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    const c4 = +(
-      coeffs?.[4] ||
-      environment.searchPgArticleCoefficients?.[4] ||
-      1
-    )
+    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
@@ -1126,7 +1122,7 @@ export class ArticleService extends BaseService {
         '*',
         this.searchKnex.raw(
           '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3, c4]
+          [c0, c1, c2, c3]
         ),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
       ])
@@ -1205,11 +1201,7 @@ export class ArticleService extends BaseService {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    const c4 = +(
-      coeffs?.[4] ||
-      environment.searchPgArticleCoefficients?.[4] ||
-      1
-    )
+    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
@@ -1283,7 +1275,7 @@ export class ArticleService extends BaseService {
         '*',
         this.searchKnex.raw(
           '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3, c4]
+          [c0, c1, c2, c3]
         ),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
       ])
