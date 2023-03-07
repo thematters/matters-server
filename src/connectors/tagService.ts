@@ -563,6 +563,7 @@ export class TagService extends BaseService {
   // the searchV0: TBDeprecated in next release
   search = async ({
     key,
+    keyOriginal,
     take,
     skip,
     includeAuthorTags,
@@ -577,7 +578,7 @@ export class TagService extends BaseService {
     viewerId?: string | null
   }) => {
     const body = bodybuilder()
-      .query('match', 'content', key)
+      .query('match', 'content', keyOriginal)
       .sort([
         { _score: 'desc' },
         { numArticles: 'desc' },
@@ -616,7 +617,7 @@ export class TagService extends BaseService {
         res2.forEach(({ tagId }) => ids.add(+tagId))
       }
 
-      if (key) {
+      if (keyOriginal) {
         const result = await this.es.client.search({
           index: this.table,
           body,
@@ -668,7 +669,7 @@ export class TagService extends BaseService {
       }
     } catch (err) {
       logger.error(err)
-      // console.error(new Date(), 'ERROR:', err)
+      console.error(new Date(), 'tag searchV0 ERROR:', err)
       throw new ServerError('tag search failed')
     }
   }
@@ -752,7 +753,9 @@ export class TagService extends BaseService {
           .whereLike('content', `%${_key}%`)
           // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_ts @@ query')
-          .orWhereRaw('description_ts @@ query')
+        if (!quicksearch) {
+          builder.orWhereRaw('description_ts @@ query')
+        }
       })
 
     const queryTags = this.searchKnex
@@ -873,7 +876,10 @@ export class TagService extends BaseService {
           .whereLike('content', `%${_key}%`)
           // .where('content_like_rank', '>', 0)
           .orWhereRaw('content_jieba_ts @@ query')
-          .orWhereRaw('description_jieba_ts @@ query')
+
+        if (!quicksearch) {
+          builder.orWhereRaw('description_jieba_ts @@ query')
+        }
       })
 
     const queryTags = this.searchKnex
