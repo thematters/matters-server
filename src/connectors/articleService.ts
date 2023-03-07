@@ -1116,9 +1116,8 @@ export class ArticleService extends BaseService {
           )
           .as('t1')
       )
-      .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
-      // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
+      .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .as('base')
 
     const articleIds = await // Promise.all([
@@ -1277,9 +1276,8 @@ export class ArticleService extends BaseService {
           )
           .as('t1')
       )
-      .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
-      // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
+      .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .as('base')
 
     const articleIds = await // Promise.all([
