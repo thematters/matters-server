@@ -768,9 +768,9 @@ export class TagService extends BaseService {
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-
-        if (!quicksearch) {
+        if (quicksearch) {
+          builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+        } else {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
@@ -892,9 +892,9 @@ export class TagService extends BaseService {
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-
-        if (!quicksearch) {
+        if (quicksearch) {
+          builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+        } else {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
