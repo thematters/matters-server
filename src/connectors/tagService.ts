@@ -646,8 +646,8 @@ export class TagService extends BaseService {
           'num_articles',
           'num_authors',
           'created_at',
-          this.knex.raw('(content = ? DESC) AS content_equal_rank', [_key]),
-          this.knex.raw('(content ILIKE ? DESC) AS content_ilike_rank', [_key]),
+          this.knex.raw('(content = ?) AS content_equal_rank', [_key]),
+          this.knex.raw('(content ILIKE ?) AS content_ilike_rank', [_key]),
           this.knex.raw('COUNT(id) OVER() AS total_count')
         )
         .from(VIEW.tags_lasts_view)
