@@ -1083,10 +1083,7 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
                 ),
-                this.searchKnex.raw(
-                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
-                  [`%${key}%`]
-                ),
+                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_ts, query) AS title_ts_rank'
                 ),
@@ -1128,7 +1125,7 @@ export class ArticleService extends BaseService {
       .select([
         '*',
         this.searchKnex.raw(
-          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
           [c0, c1, c2, c3, c4]
         ),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
@@ -1245,10 +1242,7 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
                 ),
-                this.searchKnex.raw(
-                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
-                  [`%${key}%`]
-                ),
+                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_jieba_ts, query) AS title_ts_rank'
                 ),
@@ -1288,7 +1282,7 @@ export class ArticleService extends BaseService {
       .select([
         '*',
         this.searchKnex.raw(
-          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
           [c0, c1, c2, c3, c4]
         ),
         this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
