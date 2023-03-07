@@ -1026,24 +1026,29 @@ export class ArticleService extends BaseService {
       // do nothing
     }
 
-    const a = +(
+    const c0 = +(
       coeffs?.[0] ||
       environment.searchPgArticleCoefficients?.[0] ||
       1
     )
-    const b = +(
+    const c1 = +(
       coeffs?.[1] ||
       environment.searchPgArticleCoefficients?.[1] ||
       1
     )
-    const c = +(
+    const c2 = +(
       coeffs?.[2] ||
       environment.searchPgArticleCoefficients?.[2] ||
       1
     )
-    const d = +(
+    const c3 = +(
       coeffs?.[3] ||
       environment.searchPgArticleCoefficients?.[3] ||
+      1
+    )
+    const c4 = +(
+      coeffs?.[4] ||
+      environment.searchPgArticleCoefficients?.[4] ||
       1
     )
 
@@ -1064,7 +1069,7 @@ export class ArticleService extends BaseService {
           .select(
             '*',
             this.searchKnex.raw(
-              `(_text_cd_rank/(_text_cd_rank + 1)) AS text_rank`
+              '(_text_cd_rank/(_text_cd_rank + 1)) AS text_cd_rank'
             )
           )
           .from(
@@ -1078,20 +1083,25 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
                 ),
-                this.searchKnex.raw(`ts_rank(title_ts, query) AS title_rank`),
                 this.searchKnex.raw(
-                  `ts_rank(summary_ts, query, 1) AS summary_rank`
+                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
+                  [`%${key}%`]
                 ),
                 this.searchKnex.raw(
-                  `ts_rank_cd(text_ts, query, 4) AS _text_cd_rank`
+                  'ts_rank(title_ts, query) AS title_ts_rank'
+                ),
+                this.searchKnex.raw(
+                  'COALESCE(ts_rank(summary_ts, query, 1), 0) ::float AS summary_ts_rank'
+                ),
+                this.searchKnex.raw(
+                  'ts_rank_cd(text_ts, query, 4) AS _text_cd_rank'
                 ),
               ])
               .from('search_index.article')
               .crossJoin(
-                this.searchKnex.raw(
-                  `plainto_tsquery('chinese_zh', ?) query`,
-                  key
-                )
+                this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", [
+                  key,
+                ])
               )
               .whereIn('state', [ARTICLE_STATE.active])
               .andWhere('author_state', 'IN', [
@@ -1106,49 +1116,44 @@ export class ArticleService extends BaseService {
           )
           .as('t1')
       )
-      // .whereNotIn('author_id', blockedIds)
       .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .as('base')
 
-    const [countRes, articleIds] = await Promise.all([
-      baseQuery.clone().count().first(),
+    const articleIds = await // Promise.all([
+    // baseQuery.clone().count().first(),
 
-      // the actual search page
-      this.searchKnex
-        .select([
-          '*',
-          this.searchKnex.raw(
-            '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
-            [a, b, c, d]
-          ),
-          this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-        ])
-        .from(baseQuery.clone().as('t2'))
-        .orderByRaw('score DESC NULLS LAST')
-        .orderByRaw('id DESC')
-        .limit(take)
-        .offset(skip),
-    ])
-
-    console.log(
-      new Date(),
-      { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got res:`,
-      { countRes, articleIds }
-    )
+    // the actual search page
+    this.searchKnex
+      .select([
+        '*',
+        this.searchKnex.raw(
+          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          [c0, c1, c2, c3, c4]
+        ),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
+      ])
+      .from(baseQuery)
+      .orderByRaw('score DESC NULLS LAST')
+      .orderByRaw('num_views DESC NULLS LAST')
+      .orderByRaw('id DESC')
+      .limit(take)
+      .offset(skip) // , ])
 
     const nodes = (await this.draftLoader.loadMany(
       articleIds.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
-    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
+    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     console.log(
       new Date(),
-      { key, keyOriginal },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`
+      { key, keyOriginal, baseQuery: baseQuery.toString() },
+      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      // { countRes, articleIds }
+      { sample: articleIds?.slice(0, 3) }
     )
 
     return { nodes, totalCount }
@@ -1184,24 +1189,29 @@ export class ArticleService extends BaseService {
       // do nothing
     }
 
-    const a = +(
+    const c0 = +(
       coeffs?.[0] ||
       environment.searchPgArticleCoefficients?.[0] ||
       1
     )
-    const b = +(
+    const c1 = +(
       coeffs?.[1] ||
       environment.searchPgArticleCoefficients?.[1] ||
       1
     )
-    const c = +(
+    const c2 = +(
       coeffs?.[2] ||
       environment.searchPgArticleCoefficients?.[2] ||
       1
     )
-    const d = +(
+    const c3 = +(
       coeffs?.[3] ||
       environment.searchPgArticleCoefficients?.[3] ||
+      1
+    )
+    const c4 = +(
+      coeffs?.[4] ||
+      environment.searchPgArticleCoefficients?.[4] ||
       1
     )
 
@@ -1222,7 +1232,7 @@ export class ArticleService extends BaseService {
           .select(
             '*',
             this.searchKnex.raw(
-              `(_text_cd_rank/(_text_cd_rank + 1)) AS text_rank`
+              '(_text_cd_rank/(_text_cd_rank + 1)) AS text_cd_rank'
             )
           )
           .from(
@@ -1234,21 +1244,25 @@ export class ArticleService extends BaseService {
                 'created_at',
                 'last_read_at', // -- title, slug,
                 this.searchKnex.raw(
-                  `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
+                  'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
                 ),
                 this.searchKnex.raw(
-                  `ts_rank(title_jieba_ts, query) AS title_rank`
+                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
+                  [`%${key}%`]
                 ),
                 this.searchKnex.raw(
-                  `ts_rank(summary_jieba_ts, query, 1) AS summary_rank`
+                  'ts_rank(title_jieba_ts, query) AS title_ts_rank'
                 ),
                 this.searchKnex.raw(
-                  `ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank`
+                  'COALESCE(ts_rank(summary_jieba_ts, query, 1), 0) ::float AS summary_ts_rank'
+                ),
+                this.searchKnex.raw(
+                  'ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank'
                 ),
               ])
               .from('search_index.article')
               .crossJoin(
-                this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+                this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
               )
               .whereIn('state', [ARTICLE_STATE.active])
               .andWhere('author_state', 'IN', [
@@ -1263,54 +1277,47 @@ export class ArticleService extends BaseService {
           )
           .as('t1')
       )
-      // .whereNotIn('author_id', blockedIds)
       .where('title_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       // .orWhere('summary_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
       .orWhere('text_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
+      .as('base')
 
-    const [countRes, articleIds] = await Promise.all([
-      baseQuery.clone().count().first(),
+    const articleIds = await // Promise.all([
+    // baseQuery.clone().count().first(),
 
-      // the actual search page
-      this.searchKnex
-        .select([
-          '*',
-          this.searchKnex.raw(
-            '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
-            [a, b, c, d]
-          ),
-          this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-        ])
-        .from(baseQuery.clone().as('t2'))
-        .orderByRaw('score DESC NULLS LAST')
-        .orderByRaw('id DESC')
-        .limit(take)
-        .offset(skip),
-    ])
-
-    console.log(
-      new Date(),
-      { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got res:`,
-      { countRes, articleIds }
-    )
+    // the actual search page
+    this.searchKnex
+      .select([
+        '*',
+        this.searchKnex.raw(
+          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          [c0, c1, c2, c3, c4]
+        ),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
+      ])
+      .from(baseQuery)
+      .orderByRaw('score DESC NULLS LAST')
+      .orderByRaw('num_views DESC NULLS LAST')
+      .orderByRaw('id DESC')
+      .limit(take)
+      .offset(skip) // , ])
 
     const nodes = (await this.draftLoader.loadMany(
       articleIds.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
-    // if (excludeBlocked) { nodes = nodes.filter((node) => !blockedIds.includes(node.authorId)) }
+    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     console.log(
       new Date(),
-      { key, keyOriginal },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`
+      { key, keyOriginal, baseQuery: baseQuery.toString() },
+      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      // { countRes, articleIds }
+      { sample: articleIds?.slice(0, 3) }
     )
 
     return { nodes, totalCount }
-
-    // return { nodes: [], totalCount: 0 }
   }
 
   /*********************************

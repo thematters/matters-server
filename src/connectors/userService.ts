@@ -692,9 +692,11 @@ export class UserService extends BaseService {
         builder
           .whereLike('user_name', `%${strippedName}%`)
           .orWhereLike('display_name', `%${strippedName}%`)
-          .orWhereRaw('display_name_ts @@ query')
+
         if (!quicksearch) {
-          builder.orWhereRaw('description_ts @@ query')
+          builder
+            .orWhereRaw('display_name_ts @@ query')
+            .orWhereRaw('description_ts @@ query')
         }
       })
 
@@ -849,10 +851,11 @@ export class UserService extends BaseService {
         builder
           .whereLike('user_name', `%${strippedName}%`)
           .orWhereLike('display_name', `%${strippedName}%`)
-          .orWhereRaw('display_name_jieba_ts @@ query')
 
         if (!quicksearch) {
-          builder.orWhereRaw('description_jieba_ts @@ query')
+          builder
+            .orWhereRaw('display_name_jieba_ts @@ query')
+            .orWhereRaw('description_jieba_ts @@ query')
         }
       })
 
