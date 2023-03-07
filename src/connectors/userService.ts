@@ -623,17 +623,19 @@ export class UserService extends BaseService {
       // do nothing
     }
 
-    const a = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
-    const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
-    const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
-    const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
-    const e = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
+    const c0 = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
+    const c1 = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
+    const c2 = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
+    const c3 = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+    const c4 = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
+    const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
+    const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    const displayName = key
+    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
-    const userName = (searchUserName ? key.slice(1) : key).trim()
+    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
-    if (!userName) {
+    if (!strippedName) {
       return { nodes: [], totalCount: 0 }
     }
 
@@ -656,12 +658,20 @@ export class UserService extends BaseService {
         ),
 
         this.searchKnex.raw(
+          '(CASE WHEN user_name = ? THEN 1 ELSE 0 END) ::float AS user_name_equal_rank',
+          [strippedName]
+        ),
+        this.searchKnex.raw(
+          '(CASE WHEN display_name = ? THEN 1 ELSE 0 END) ::float AS display_name_equal_rank',
+          [strippedName]
+        ),
+        this.searchKnex.raw(
           '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
-          [`%${userName}%`]
+          [`%${strippedName}%`]
         ),
         this.searchKnex.raw(
           '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
-          [`%${displayName}%`]
+          [`%${strippedName}%`]
         ),
         this.searchKnex.raw(
           'ts_rank(display_name_ts, query) AS display_name_ts_rank'
@@ -678,8 +688,8 @@ export class UserService extends BaseService {
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
-          .whereLike('user_name', `%${userName}%`)
-          .orWhereLike('display_name', `%${displayName}%`)
+          .whereLike('user_name', `%${strippedName}%`)
+          .orWhereLike('display_name', `%${strippedName}%`)
           .orWhereRaw('display_name_ts @@ query')
         if (!quicksearch) {
           builder.orWhereRaw('description_ts @@ query')
@@ -690,17 +700,21 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
-          [a, b, c, d, e]
+          '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
+          [c0, c1, c2, c3, c4, c5, c6]
         ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
         if (searchUserName) {
-          builder.orderByRaw('user_name = ? DESC', [userName])
+          builder
+            .orderByRaw('user_name = ? DESC', [strippedName])
+            .orderByRaw('display_name = ? DESC', [strippedName])
         } else {
-          builder.orderByRaw('display_name = ? DESC', [displayName])
+          builder
+            .orderByRaw('display_name = ? DESC', [strippedName])
+            .orderByRaw('user_name = ? DESC', [strippedName])
         }
 
         if (!quicksearch) {
@@ -757,17 +771,19 @@ export class UserService extends BaseService {
       // do nothing
     }
 
-    const a = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
-    const b = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
-    const c = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
-    const d = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
-    const e = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
+    const c0 = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
+    const c1 = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
+    const c2 = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
+    const c3 = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
+    const c4 = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
+    const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
+    const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    const displayName = key
+    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
-    const userName = (searchUserName ? key.slice(1) : key).trim()
+    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
-    if (!userName) {
+    if (!strippedName) {
       return { nodes: [], totalCount: 0 }
     }
 
@@ -785,16 +801,25 @@ export class UserService extends BaseService {
     const baseQuery = this.searchKnex
       .select(
         '*',
+
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
         ),
         this.searchKnex.raw(
+          '(CASE WHEN user_name = ? THEN 1 ELSE 0 END) ::float AS user_name_equal_rank',
+          [strippedName]
+        ),
+        this.searchKnex.raw(
+          '(CASE WHEN display_name = ? THEN 1 ELSE 0 END) ::float AS display_name_equal_rank',
+          [strippedName]
+        ),
+        this.searchKnex.raw(
           '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
-          [`%${userName}%`]
+          [`%${strippedName}%`]
         ),
         this.searchKnex.raw(
           '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
-          [`%${displayName}%`]
+          [`%${strippedName}%`]
         ),
         this.searchKnex.raw(
           'ts_rank(display_name_jieba_ts, query) AS display_name_ts_rank'
@@ -811,8 +836,8 @@ export class UserService extends BaseService {
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
-          .whereLike('user_name', `%${userName}%`)
-          .orWhereLike('display_name', `%${displayName}%`)
+          .whereLike('user_name', `%${strippedName}%`)
+          .orWhereLike('display_name', `%${strippedName}%`)
           .orWhereRaw('display_name_jieba_ts @@ query')
 
         if (!quicksearch) {
@@ -824,17 +849,21 @@ export class UserService extends BaseService {
       .select(
         '*',
         this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
-          [a, b, c, d, e]
+          '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
+          [c0, c1, c2, c3, c4, c5, c6]
         ),
         this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
         if (searchUserName) {
-          builder.orderByRaw('user_name = ? DESC', [userName])
+          builder
+            .orderByRaw('user_name = ? DESC', [strippedName])
+            .orderByRaw('display_name = ? DESC', [strippedName])
         } else {
-          builder.orderByRaw('display_name = ? DESC', [displayName])
+          builder
+            .orderByRaw('display_name = ? DESC', [strippedName])
+            .orderByRaw('user_name = ? DESC', [strippedName])
         }
 
         if (!quicksearch) {
