@@ -12,8 +12,8 @@ module.exports = {
     '^queries(.*)$': '<rootDir>/src/queries$1',
   },
   testPathIgnorePatterns: ['/node_modules/'],
-  globalSetup: '<rootDir>/db/testSetup.js',
-  globalTeardown: '<rootDir>/db/testTeardown.js',
+  globalSetup: '<rootDir>/db/globalTestSetup.js',
+  globalTeardown: '<rootDir>/db/globalTestTeardown.js',
   coverageDirectory: './coverage/',
   collectCoverage: true,
   globals: {
