@@ -1089,7 +1089,7 @@ export class ArticleService extends BaseService {
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
-                `query @@ title_ts OR query @@ summary_ts OR query @@ text_ts`
+                `(query @@ title_ts OR query @@ summary_ts OR query @@ text_ts)`
               )
               .as('t0')
           )
@@ -1111,6 +1111,7 @@ export class ArticleService extends BaseService {
             '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
             [a, b, c, d]
           ),
+          this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
         ])
         .from(baseQuery.clone().as('t2'))
         .orderByRaw('score DESC NULLS LAST')
@@ -1245,7 +1246,7 @@ export class ArticleService extends BaseService {
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
-                `query @@ title_jieba_ts OR query @@ summary_jieba_ts OR query @@ text_jieba_ts`
+                `(query @@ title_jieba_ts OR query @@ summary_jieba_ts OR query @@ text_jieba_ts)`
               )
               .as('t0')
           )
@@ -1267,6 +1268,7 @@ export class ArticleService extends BaseService {
             '(? * views_rank + ? * title_rank + ? * summary_rank + ? * text_rank) AS score',
             [a, b, c, d]
           ),
+          this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
         ])
         .from(baseQuery.clone().as('t2'))
         .orderByRaw('score DESC NULLS LAST')

@@ -596,6 +596,7 @@ export class UserService extends BaseService {
 
   searchV1 = async ({
     key,
+    keyOriginal,
     take,
     skip,
     oss = false,
@@ -606,6 +607,7 @@ export class UserService extends BaseService {
     quicksearch,
   }: {
     key: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -707,17 +709,17 @@ export class UserService extends BaseService {
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (searchUserName) {
-          builder
-            .orderByRaw('user_name = ? DESC', [strippedName])
-            .orderByRaw('display_name = ? DESC', [strippedName])
+        if (quicksearch) {
+          if (searchUserName) {
+            builder
+              .orderByRaw('user_name = ? DESC', [strippedName])
+              .orderByRaw('display_name = ? DESC', [strippedName])
+          } else {
+            builder
+              .orderByRaw('display_name = ? DESC', [strippedName])
+              .orderByRaw('user_name = ? DESC', [strippedName])
+          }
         } else {
-          builder
-            .orderByRaw('display_name = ? DESC', [strippedName])
-            .orderByRaw('user_name = ? DESC', [strippedName])
-        }
-
-        if (!quicksearch) {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
@@ -733,16 +735,25 @@ export class UserService extends BaseService {
       })
 
     const records = (await queryUsers) as Item[]
+
+    console.log(
+      new Date(),
+      { key, keyOriginal, queryUsers: queryUsers.toString() },
+      `searchKnex instance got res:`,
+      { sample: records?.slice(0, 3) }
+    )
+
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     const nodes = (await this.dataloader.loadMany(
       records.map(({ id }) => id)
     )) as Item[]
+
     return { nodes, totalCount }
   }
 
   searchV2 = async ({
     key,
-    // keyNormalized,
+    keyOriginal,
     take,
     skip,
     oss = false,
@@ -753,7 +764,7 @@ export class UserService extends BaseService {
     quicksearch,
   }: {
     key: string
-    // keyNormalized: string
+    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -856,17 +867,17 @@ export class UserService extends BaseService {
       )
       .from(baseQuery.as('result'))
       .modify((builder: Knex.QueryBuilder) => {
-        if (searchUserName) {
-          builder
-            .orderByRaw('user_name = ? DESC', [strippedName])
-            .orderByRaw('display_name = ? DESC', [strippedName])
+        if (quicksearch) {
+          if (searchUserName) {
+            builder
+              .orderByRaw('user_name = ? DESC', [strippedName])
+              .orderByRaw('display_name = ? DESC', [strippedName])
+          } else {
+            builder
+              .orderByRaw('display_name = ? DESC', [strippedName])
+              .orderByRaw('user_name = ? DESC', [strippedName])
+          }
         } else {
-          builder
-            .orderByRaw('display_name = ? DESC', [strippedName])
-            .orderByRaw('user_name = ? DESC', [strippedName])
-        }
-
-        if (!quicksearch) {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
@@ -883,12 +894,19 @@ export class UserService extends BaseService {
 
     const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+
+    console.log(
+      new Date(),
+      { key, keyOriginal, queryUsers: queryUsers.toString() },
+      `searchKnex instance got res:`,
+      { sample: records?.slice(0, 3) }
+    )
+
     const nodes = (await this.dataloader.loadMany(
       records.map(({ id }) => id)
     )) as Item[]
-    return { nodes, totalCount }
 
-    // return { nodes: [], totalCount: 0 }
+    return { nodes, totalCount }
   }
 
   findRecentSearches = async (userId: string) => {

@@ -785,17 +785,17 @@ export class TagService extends BaseService {
         }
       })
 
-    const tagIds = (await queryTags) as Item[]
-    const totalCount = tagIds.length === 0 ? 0 : +tagIds[0].totalCount
+    const nodes = (await queryTags) as Item[]
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     console.log(
       new Date(),
-      { key, keyOriginal },
-      `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
-      tagIds?.[0]
+      { key, keyOriginal, queryTags: queryTags.toString() },
+      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      { sample: nodes?.slice(0, 3) }
     )
 
-    return { nodes: tagIds, totalCount }
+    return { nodes, totalCount }
   }
 
   searchV2 = async ({
@@ -909,19 +909,17 @@ export class TagService extends BaseService {
         }
       })
 
-    const tagIds = (await queryTags) as Item[]
-    const totalCount = tagIds.length === 0 ? 0 : +tagIds[0].totalCount
+    const nodes = (await queryTags) as Item[]
+    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     console.log(
       new Date(),
-      { key, keyOriginal },
-      `searchKnex instance got ${tagIds.length} nodes from: ${totalCount} total`,
-      tagIds?.[0]
+      { key, keyOriginal, queryTags: queryTags.toString() },
+      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      { sample: nodes?.slice(0, 3) }
     )
 
-    return { nodes: tagIds, totalCount }
-
-    // return { nodes: [], totalCount: 0 }
+    return { nodes, totalCount }
   }
 
   /*********************************
