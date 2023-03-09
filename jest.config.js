@@ -14,6 +14,7 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/'],
   globalSetup: '<rootDir>/db/globalTestSetup.js',
   globalTeardown: '<rootDir>/db/globalTestTeardown.js',
+  setupFilesAfterEnv: ['<rootDir>/db/afterEnvTestSetup.js'],
   coverageDirectory: './coverage/',
   collectCoverage: true,
   globals: {
