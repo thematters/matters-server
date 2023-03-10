@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
-import { utils } from 'ethers'
+import { utils, Contract } from 'ethers'
 import { Knex } from 'knex'
 
 import {
@@ -18,7 +18,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getViewerFromUser, setCookie } from 'common/utils'
+import { getAlchemyProvider, getViewerFromUser, setCookie } from 'common/utils'
 import { CacheService } from 'connectors'
 import {
   AuthMode,
@@ -26,6 +26,8 @@ import {
   GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
+
+import IERC1271Abi from './IERC1271'
 
 const resolver: MutationToWalletLoginResolver = async (
   _,
@@ -68,6 +70,27 @@ const resolver: MutationToWalletLoginResolver = async (
       `wallet signing for "${ethAddress}" not found`
     )
   }
+
+  //if it's smart contract wallet
+
+  const MAGICVALUE = 0x1626ba7e;
+
+  const provider = getAlchemyProvider(5)
+
+  const bytecode = await provider.getCode(ethAddress);
+
+  const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== "0x";
+
+  const hash = utils.hashMessage(signedMessage)
+
+  if (isSmartContract) {
+    // verify the message for a decentralized account (contract wallet)
+    const contractWallet = new Contract(ethAddress, IERC1271Abi, provider);
+    const verification = await contractWallet.isValidSignature(hash, signature);
+    console.log("Message is verified?", verification === MAGICVALUE);
+    const doneVerified =  verification === MAGICVALUE;
+    console.log('verified', doneVerified)
+  } 
 
   // verify signature
   const verifiedAddress = recoverPersonalSignature({
