@@ -577,8 +577,9 @@ export class TagService extends BaseService {
     includeAuthorTags?: boolean
     viewerId?: string | null
   }) => {
+    const _key = keyOriginal || key
     const body = bodybuilder()
-      .query('match', 'content', keyOriginal)
+      .query('match', 'content', _key)
       .sort([
         { _score: 'desc' },
         { numArticles: 'desc' },
@@ -617,19 +618,23 @@ export class TagService extends BaseService {
         res2.forEach(({ tagId }) => ids.add(+tagId))
       }
 
-      if (keyOriginal) {
-        const result = await this.es.client.search({
-          index: this.table,
-          body,
-        })
+      if (_key) {
+        try {
+          const result = await this.es.client.search({
+            index: this.table,
+            body,
+          })
 
-        const { hits } = result
+          const { hits } = result
 
-        hits.hits.forEach((hit) => ids.add((hit._source as any)?.id))
-        if (typeof hits.total === 'number') {
-          totalCount = hits.total
-        } else if (hits.total) {
-          totalCount = hits.total.value
+          hits.hits.forEach((hit) => ids.add((hit._source as any)?.id))
+          if (typeof hits.total === 'number') {
+            totalCount = hits.total
+          } else if (hits.total) {
+            totalCount = hits.total.value // es version upgrade changed internal scheme
+          }
+        } catch (err) {
+          console.error(new Date(), 'es client search ERROR:', err)
         }
       }
 
@@ -640,18 +645,31 @@ export class TagService extends BaseService {
           'description',
           'num_articles',
           'num_authors',
-          'created_at'
+          'created_at',
+          this.knex.raw('(content = ? DESC) AS content_equal_rank', [_key]),
+          this.knex.raw('(content ILIKE ? DESC) AS content_ilike_rank', [_key]),
+          this.knex.raw('COUNT(id) OVER() AS total_count')
         )
         .from(VIEW.tags_lasts_view)
-        .whereIn('id', Array.from(ids))
+        .where((builder: Knex.QueryBuilder) => {
+          // if either author's freq-use tags have something, or es client told a number
+          if (ids.size > 0) {
+            builder.whereIn('id', Array.from(ids))
+          }
+
+          if (totalCount === 0) {
+            // otherwise if es client got nothing, try some slower ilike match, better than nothing
+            builder.whereILike('content', _key)
+          }
+        })
         .andWhere((builder: Knex.QueryBuilder) => {
           builder.whereNotIn('id', [environment.mattyChoiceTagId])
         })
-        .orderByRaw('content = ? DESC', [key]) // always show exact match at first
-        .orderByRaw('content ~* ? DESC', [key]) // then show inclusive match, by regular expression, case insensitive
-        .orderBy('num_authors', 'desc')
-        .orderBy('num_articles', 'desc')
-        .orderBy('created_at', 'asc')
+        .orderByRaw('content_equal_rank DESC') // always show exact match at first
+        .orderByRaw('content_ilike_rank DESC') // then show inclusive match, by case insensitive
+        .orderByRaw('num_authors DESC NULLS LAST')
+        .orderByRaw('num_articles DESC NULLS LAST')
+        .orderByRaw('id') // fallback earlier ones
         .modify((builder: Knex.QueryBuilder) => {
           if (skip !== undefined && Number.isFinite(skip)) {
             builder.offset(skip)
@@ -661,12 +679,18 @@ export class TagService extends BaseService {
           }
         })
 
-      const tags = await queryTags
+      const nodes = await queryTags
 
-      return {
-        nodes: tags,
-        totalCount, // : hits.total.value,
-      }
+      totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+
+      console.log(
+        new Date(),
+        { key, keyOriginal, queryTags: queryTags.toString() },
+        `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+        { sample: nodes?.slice(0, 3) }
+      )
+
+      return { nodes, totalCount }
     } catch (err) {
       logger.error(err)
       console.error(new Date(), 'tag searchV0 ERROR:', err)
@@ -739,9 +763,8 @@ export class TagService extends BaseService {
           'ts_rank(description_ts, query) AS description_rank'
         ),
         this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
-        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
+        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors')
         // this.searchKnex.raw('COALESCE(num_followers, 0) AS num_followers'),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
       )
       .from('search_index.tag')
       .crossJoin(
@@ -749,12 +772,12 @@ export class TagService extends BaseService {
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder // .whereNotIn('id', mattyChoiceTagIds)
-          .whereLike('content', `%${_key}%`)
-          // .where('content_like_rank', '>', 0)
-          .orWhereRaw('content_ts @@ query')
+        builder.whereLike('content', `%${_key}%`)
+
         if (!quicksearch) {
-          builder.orWhereRaw('description_ts @@ query')
+          builder
+            .orWhereRaw('content_ts @@ query')
+            .orWhereRaw('description_ts @@ query')
         }
       })
 
@@ -764,13 +787,14 @@ export class TagService extends BaseService {
         this.searchKnex.raw(
           '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
           [a, b, c, d]
-        )
+        ),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-
-        if (!quicksearch) {
+        if (quicksearch) {
+          builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+        } else {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
@@ -863,8 +887,7 @@ export class TagService extends BaseService {
           'ts_rank(description_jieba_ts, query) AS description_rank'
         ),
         this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
-        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors'),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
+        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors')
       )
       .from('search_index.tag')
       .crossJoin(
@@ -872,13 +895,12 @@ export class TagService extends BaseService {
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder
-          .whereLike('content', `%${_key}%`)
-          // .where('content_like_rank', '>', 0)
-          .orWhereRaw('content_jieba_ts @@ query')
+        builder.whereLike('content', `%${_key}%`)
 
         if (!quicksearch) {
-          builder.orWhereRaw('description_jieba_ts @@ query')
+          builder
+            .orWhereRaw('content_jieba_ts @@ query')
+            .orWhereRaw('description_jieba_ts @@ query')
         }
       })
 
@@ -888,13 +910,14 @@ export class TagService extends BaseService {
         this.searchKnex.raw(
           '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
           [a, b, c, d]
-        )
+        ),
+        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
-        builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-
-        if (!quicksearch) {
+        if (quicksearch) {
+          builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
+        } else {
           builder.orderByRaw('score DESC NULLS LAST')
         }
       })
