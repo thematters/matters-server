@@ -647,7 +647,9 @@ export class TagService extends BaseService {
           'num_authors',
           'created_at',
           this.knex.raw('(content = ?) AS content_equal_rank', [_key]),
-          this.knex.raw('(content ILIKE ?) AS content_ilike_rank', [_key]),
+          this.knex.raw('(content ILIKE ?) AS content_ilike_rank', [
+            `%${_key}%`,
+          ]),
           this.knex.raw('COUNT(id) OVER() AS total_count')
         )
         .from(VIEW.tags_lasts_view)
@@ -659,7 +661,7 @@ export class TagService extends BaseService {
 
           if (totalCount === 0) {
             // otherwise if es client got nothing, try some slower ilike match, better than nothing
-            builder.whereILike('content', _key)
+            builder.whereILike('content', [`%${_key}%`])
           }
         })
         .andWhere((builder: Knex.QueryBuilder) => {
