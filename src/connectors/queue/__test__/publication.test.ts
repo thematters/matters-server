@@ -36,6 +36,7 @@ describe('publicationQueue.publishArticle', () => {
   test('publish pending draft unsuccessfully', async () => {
     // mock
     publicationQueue.userService.baseFindById = async (id) => {
+      console.log('mocked publicationQueue.userService.baseFindById is called')
       throw Error('mock error in publicationQueue test')
     }
     const draft = await createPendingDraft()
