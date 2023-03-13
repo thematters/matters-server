@@ -32,6 +32,7 @@ const GET_ARTICLE = /* GraphQL */ `
       id
       requestForDonation
       replyToDonator
+      canComment
     }
   }
 `
@@ -119,6 +120,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
       requestForDonation
       replyToDonator
       revisionCount
+      canComment
     }
   }
 `
@@ -662,6 +664,51 @@ describe('edit article', () => {
       requestForDonation2
     )
     expect(_get(result5, 'data.article.replyToDonator')).toBe(replyToDonator)
+  })
+  test('edit comment settings', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await server.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash,
+        },
+      },
+    })
+    expect(_get(result, 'data.article.canComment')).toBeTruthy()
+
+    // can not turn off
+    const result2 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          canComment: false,
+        },
+      },
+    })
+    expect(result2.errors).not.toBeUndefined()
+
+    // can turn on
+    const atomService = new AtomService()
+    await atomService.update({
+      table: 'draft',
+      where: { id: 1 },
+      data: { canComment: false },
+    })
+    const result3 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          canComment: true,
+        },
+      },
+    })
+    expect(_get(result3, 'data.editArticle.canComment')).toBeTruthy()
   })
 
   test('archive article', async () => {

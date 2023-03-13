@@ -60,6 +60,7 @@ const resolver: MutationToEditArticleResolver = async (
       requestForDonation,
       replyToDonator,
       iscnPublish,
+      canComment,
     },
   },
   {
@@ -498,6 +499,24 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
+   * Comment settings
+   */
+  if (canComment !== undefined && canComment !== draft.canComment) {
+    if (canComment === true) {
+      await atomService.update({
+        table: 'draft',
+        where: { id: article.draftId },
+        data: {
+          canComment,
+          updatedAt: knex.fn.now(),
+        },
+      })
+    } else {
+      throw new ForbiddenError(`canComment can not be turned off`)
+    }
+  }
+
+  /**
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
@@ -547,6 +566,7 @@ const resolver: MutationToEditArticleResolver = async (
         license: currDraft?.license,
         requestForDonation: currDraft?.requestForDonation,
         replyToDonator: currDraft?.replyToDonator,
+        canComment: currDraft?.canComment,
         // iscnPublish,
       },
       lodash.isUndefined // to drop only undefined // _.isNil
