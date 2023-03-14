@@ -8,6 +8,7 @@ import {
 import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import createDebug from 'debug'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -42,6 +43,8 @@ import {
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
+
+const debugLog = createDebug('article-service')
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
@@ -1140,7 +1143,7 @@ export class ArticleService extends BaseService {
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, baseQuery: baseQuery.toString() },
       `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
@@ -1293,7 +1296,7 @@ export class ArticleService extends BaseService {
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, baseQuery: baseQuery.toString() },
       `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,

@@ -1,5 +1,6 @@
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import createDebug from 'debug'
 import { Knex } from 'knex'
 // import _ from 'lodash'
 
@@ -18,6 +19,8 @@ import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
+
+const debugLog = createDebug('tag-service')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -685,7 +688,7 @@ export class TagService extends BaseService {
 
       totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-      console.log(
+      debugLog(
         new Date(),
         { key, keyOriginal, queryTags: queryTags.toString() },
         `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
@@ -814,7 +817,7 @@ export class TagService extends BaseService {
     const nodes = (await queryTags) as Item[]
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, queryTags: queryTags.toString() },
       `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
@@ -937,7 +940,7 @@ export class TagService extends BaseService {
     const nodes = (await queryTags) as Item[]
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, queryTags: queryTags.toString() },
       `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,

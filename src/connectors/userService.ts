@@ -1,6 +1,7 @@
 import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import createDebug from 'debug'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -63,6 +64,8 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
+
+const debugLog = createDebug('user-service')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -738,7 +741,7 @@ export class UserService extends BaseService {
 
     const records = (await queryUsers) as Item[]
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, queryUsers: queryUsers.toString() },
       `searchKnex instance got res:`,
@@ -898,7 +901,7 @@ export class UserService extends BaseService {
     const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    console.log(
+    debugLog(
       new Date(),
       { key, keyOriginal, queryUsers: queryUsers.toString() },
       `searchKnex instance got res:`,
