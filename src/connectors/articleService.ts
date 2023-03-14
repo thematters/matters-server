@@ -1116,7 +1116,7 @@ export class ArticleService extends BaseService {
       .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
 
-    const articleIds = await this.searchKnex
+    const records = await this.searchKnex
       .select(
         '*',
         this.searchKnex.raw(
@@ -1139,18 +1139,17 @@ export class ArticleService extends BaseService {
       })
 
     const nodes = (await this.draftLoader.loadMany(
-      articleIds.map((item: any) => item.id).filter(Boolean)
+      records.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
-    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
-    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `articleService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `articleService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
-      { sample: articleIds?.slice(0, 3) }
+      { sample: records?.slice(0, 3) }
     )
 
     return { nodes, totalCount }
@@ -1301,9 +1300,9 @@ export class ArticleService extends BaseService {
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
       { sample: articleIds?.slice(0, 3) }
     )

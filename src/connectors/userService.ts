@@ -746,9 +746,9 @@ export class UserService extends BaseService {
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     debugLog(
-      new Date(),
-      { key, keyOriginal, queryUsers: queryUsers.toString() },
+      // new Date(),
       `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
+      { key, keyOriginal, queryUsers: queryUsers.toString() },
       { sample: records?.slice(0, 3) }
     )
 
@@ -908,9 +908,9 @@ export class UserService extends BaseService {
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `userService::searchV2 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryUsers: queryUsers.toString() },
-      `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { sample: records?.slice(0, 3) }
     )
 

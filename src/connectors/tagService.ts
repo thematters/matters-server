@@ -689,9 +689,9 @@ export class TagService extends BaseService {
       totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
       debugLog(
-        new Date(),
+        // new Date(),
+        `tagService::searchV0 got ${nodes.length} nodes from: ${totalCount} total:`,
         { key, keyOriginal, queryTags: queryTags.toString() },
-        `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
         { sample: nodes?.slice(0, 3) }
       )
 
@@ -816,9 +816,9 @@ export class TagService extends BaseService {
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `tagService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
-      `tagService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       { sample: nodes?.slice(0, 3) }
     )
 
@@ -937,9 +937,9 @@ export class TagService extends BaseService {
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `tagService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
-      `tagService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       { sample: nodes?.slice(0, 3) }
     )
 
