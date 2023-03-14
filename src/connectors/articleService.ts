@@ -1100,9 +1100,10 @@ export class ArticleService extends BaseService {
                 ])
               )
               .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'IN', [
-                USER_STATE.active,
-                USER_STATE.onboarding,
+              .andWhere('author_state', 'NOT IN', [
+                // USER_STATE.active, USER_STATE.onboarding,
+                USER_STATE.archived,
+                USER_STATE.banned,
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
@@ -1253,9 +1254,10 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
               )
               .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'IN', [
-                USER_STATE.active,
-                USER_STATE.onboarding,
+              .andWhere('author_state', 'NOT IN', [
+                // USER_STATE.active, USER_STATE.onboarding,
+                USER_STATE.archived,
+                USER_STATE.banned,
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
