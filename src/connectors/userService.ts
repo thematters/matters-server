@@ -689,7 +689,11 @@ export class UserService extends BaseService {
       .crossJoin(
         this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
       )
-      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .where('state', 'NOT IN ', [
+        // USER_STATE.active, USER_STATE.onboarding,
+        USER_STATE.archived,
+        USER_STATE.banned,
+      ])
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
@@ -848,7 +852,11 @@ export class UserService extends BaseService {
       .crossJoin(
         this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
       )
-      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .where('state', 'NOT IN', [
+        // USER_STATE.active, USER_STATE.onboarding,
+        USER_STATE.archived,
+        USER_STATE.banned,
+      ])
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
