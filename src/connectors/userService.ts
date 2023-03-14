@@ -636,7 +636,6 @@ export class UserService extends BaseService {
     const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
     const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
     const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
@@ -744,15 +743,15 @@ export class UserService extends BaseService {
       })
 
     const records = (await queryUsers) as Item[]
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     debugLog(
       new Date(),
       { key, keyOriginal, queryUsers: queryUsers.toString() },
-      `searchKnex instance got res:`,
+      `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { sample: records?.slice(0, 3) }
     )
 
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     const nodes = (await this.dataloader.loadMany(
       records.map(({ id }) => id)
     )) as Item[]
@@ -799,7 +798,6 @@ export class UserService extends BaseService {
     const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
     const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
     const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
@@ -877,9 +875,9 @@ export class UserService extends BaseService {
           '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
           [c0, c1, c2, c3, c4, c5, c6]
         ),
-        this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
       )
-      .from(baseQuery.as('result'))
+      .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
         if (quicksearch) {
           if (searchUserName) {
@@ -912,7 +910,7 @@ export class UserService extends BaseService {
     debugLog(
       new Date(),
       { key, keyOriginal, queryUsers: queryUsers.toString() },
-      `searchKnex instance got res:`,
+      `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { sample: records?.slice(0, 3) }
     )
 

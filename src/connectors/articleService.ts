@@ -1073,7 +1073,7 @@ export class ArticleService extends BaseService {
           )
           .from(
             this.searchKnex
-              .select([
+              .select(
                 'id',
                 'num_views',
                 'title_orig', // 'title',
@@ -1091,8 +1091,8 @@ export class ArticleService extends BaseService {
                 ),
                 this.searchKnex.raw(
                   'ts_rank_cd(text_ts, query, 4) AS _text_cd_rank'
-                ),
-              ])
+                )
+              )
               .from('search_index.article')
               .crossJoin(
                 this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", [
@@ -1115,27 +1115,28 @@ export class ArticleService extends BaseService {
       )
       .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .as('base')
 
-    const articleIds = await // Promise.all([
-    // baseQuery.clone().count().first(),
-
-    // the actual search page
-    this.searchKnex
-      .select([
+    const articleIds = await this.searchKnex
+      .select(
         '*',
         this.searchKnex.raw(
           '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
           [c0, c1, c2, c3]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-      ])
-      .from(baseQuery)
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
+      )
+      .from(baseQuery.as('base'))
       .orderByRaw('score DESC NULLS LAST')
       .orderByRaw('num_views DESC NULLS LAST')
       .orderByRaw('id DESC')
-      .limit(take)
-      .offset(skip) // , ])
+      .modify((builder: Knex.QueryBuilder) => {
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
 
     const nodes = (await this.draftLoader.loadMany(
       articleIds.map((item: any) => item.id).filter(Boolean)
@@ -1147,7 +1148,7 @@ export class ArticleService extends BaseService {
     debugLog(
       new Date(),
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      `articleService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
       { sample: articleIds?.slice(0, 3) }
     )
@@ -1229,7 +1230,7 @@ export class ArticleService extends BaseService {
           )
           .from(
             this.searchKnex
-              .select([
+              .select(
                 'id',
                 'num_views',
                 'title_orig', // 'title',
@@ -1247,8 +1248,8 @@ export class ArticleService extends BaseService {
                 ),
                 this.searchKnex.raw(
                   'ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank'
-                ),
-              ])
+                )
+              )
               .from('search_index.article')
               .crossJoin(
                 this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
@@ -1269,27 +1270,28 @@ export class ArticleService extends BaseService {
       )
       .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .as('base')
 
-    const articleIds = await // Promise.all([
-    // baseQuery.clone().count().first(),
-
-    // the actual search page
-    this.searchKnex
-      .select([
+    const articleIds = await this.searchKnex
+      .select(
         '*',
         this.searchKnex.raw(
           '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
           [c0, c1, c2, c3]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-      ])
-      .from(baseQuery)
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
+      )
+      .from(baseQuery.as('base'))
       .orderByRaw('score DESC NULLS LAST')
       .orderByRaw('num_views DESC NULLS LAST')
       .orderByRaw('id DESC')
-      .limit(take)
-      .offset(skip) // , ])
+      .modify((builder: Knex.QueryBuilder) => {
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
 
     const nodes = (await this.draftLoader.loadMany(
       articleIds.map((item: any) => item.id).filter(Boolean)
@@ -1301,7 +1303,7 @@ export class ArticleService extends BaseService {
     debugLog(
       new Date(),
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
+      `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
       { sample: articleIds?.slice(0, 3) }
     )
