@@ -653,7 +653,7 @@ export class TagService extends BaseService {
           this.knex.raw('(content ILIKE ?) AS content_ilike_rank', [
             `%${_key}%`,
           ]),
-          this.knex.raw('COUNT(id) OVER() AS total_count')
+          this.knex.raw('COUNT(id) OVER() ::int AS total_count')
         )
         .from(VIEW.tags_lasts_view)
         .where((builder: Knex.QueryBuilder) => {
@@ -689,9 +689,9 @@ export class TagService extends BaseService {
       totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
       debugLog(
-        new Date(),
+        // new Date(),
+        `tagService::searchV0 got ${nodes.length} nodes from: ${totalCount} total:`,
         { key, keyOriginal, queryTags: queryTags.toString() },
-        `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
         { sample: nodes?.slice(0, 3) }
       )
 
@@ -735,10 +735,8 @@ export class TagService extends BaseService {
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
-    console.log(new Date(), `searchV1 tag got search key:`, {
-      key,
-      keyOriginal,
-    })
+    // debugLog(new Date(), `searchV1 tag got search key:`, {key, keyOriginal,})
+
     const strip0 = key.startsWith('#') || key.startsWith('＃')
     const _key = strip0 ? key.slice(1) : key
 
@@ -793,7 +791,7 @@ export class TagService extends BaseService {
           '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
           [a, b, c, d]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
@@ -818,9 +816,9 @@ export class TagService extends BaseService {
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `tagService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       { sample: nodes?.slice(0, 3) }
     )
 
@@ -859,10 +857,8 @@ export class TagService extends BaseService {
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
-    console.log(new Date(), `searchV2 tag got search key:`, {
-      key,
-      keyOriginal,
-    })
+    // debugLog(new Date(), `searchV2 tag got search key:`, {key, keyOriginal,})
+
     const strip0 = key.startsWith('#') || key.startsWith('＃')
     const _key = strip0 ? key.slice(1) : key
 
@@ -916,7 +912,7 @@ export class TagService extends BaseService {
           '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
           [a, b, c, d]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count')
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
       )
       .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
@@ -941,9 +937,9 @@ export class TagService extends BaseService {
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
     debugLog(
-      new Date(),
+      // new Date(),
+      `tagService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       { sample: nodes?.slice(0, 3) }
     )
 
