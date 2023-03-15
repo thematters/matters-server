@@ -1,6 +1,7 @@
 import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import createDebug from 'debug'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -63,6 +64,8 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
+
+const debugLog = createDebug('user-service')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -633,7 +636,6 @@ export class UserService extends BaseService {
     const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
     const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
     const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
@@ -686,7 +688,11 @@ export class UserService extends BaseService {
       .crossJoin(
         this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
       )
-      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .where('state', 'NOT IN ', [
+        // USER_STATE.active, USER_STATE.onboarding,
+        USER_STATE.archived,
+        USER_STATE.banned,
+      ])
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
@@ -737,15 +743,15 @@ export class UserService extends BaseService {
       })
 
     const records = (await queryUsers) as Item[]
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    console.log(
-      new Date(),
+    debugLog(
+      // new Date(),
+      `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryUsers: queryUsers.toString() },
-      `searchKnex instance got res:`,
       { sample: records?.slice(0, 3) }
     )
 
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     const nodes = (await this.dataloader.loadMany(
       records.map(({ id }) => id)
     )) as Item[]
@@ -792,7 +798,6 @@ export class UserService extends BaseService {
     const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
     const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
-    // const displayName = key
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
     const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
 
@@ -845,7 +850,11 @@ export class UserService extends BaseService {
       .crossJoin(
         this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
       )
-      .whereIn('state', [USER_STATE.active, USER_STATE.onboarding])
+      .where('state', 'NOT IN', [
+        // USER_STATE.active, USER_STATE.onboarding,
+        USER_STATE.archived,
+        USER_STATE.banned,
+      ])
       .andWhere('id', 'NOT IN', blockedIds)
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
@@ -866,9 +875,9 @@ export class UserService extends BaseService {
           '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
           [c0, c1, c2, c3, c4, c5, c6]
         ),
-        this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
       )
-      .from(baseQuery.as('result'))
+      .from(baseQuery.as('base'))
       .modify((builder: Knex.QueryBuilder) => {
         if (quicksearch) {
           if (searchUserName) {
@@ -898,10 +907,10 @@ export class UserService extends BaseService {
     const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    console.log(
-      new Date(),
+    debugLog(
+      // new Date(),
+      `userService::searchV2 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryUsers: queryUsers.toString() },
-      `searchKnex instance got res:`,
       { sample: records?.slice(0, 3) }
     )
 
