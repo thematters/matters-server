@@ -8,6 +8,7 @@ import {
 import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
+import createDebug from 'debug'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -42,6 +43,8 @@ import {
   UserService,
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
+
+const debugLog = createDebug('article-service')
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
@@ -1046,11 +1049,7 @@ export class ArticleService extends BaseService {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    const c4 = +(
-      coeffs?.[4] ||
-      environment.searchPgArticleCoefficients?.[4] ||
-      1
-    )
+    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
@@ -1074,7 +1073,7 @@ export class ArticleService extends BaseService {
           )
           .from(
             this.searchKnex
-              .select([
+              .select(
                 'id',
                 'num_views',
                 'title_orig', // 'title',
@@ -1083,10 +1082,7 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
                 ),
-                this.searchKnex.raw(
-                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
-                  [`%${key}%`]
-                ),
+                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_ts, query) AS title_ts_rank'
                 ),
@@ -1095,8 +1091,8 @@ export class ArticleService extends BaseService {
                 ),
                 this.searchKnex.raw(
                   'ts_rank_cd(text_ts, query, 4) AS _text_cd_rank'
-                ),
-              ])
+                )
+              )
               .from('search_index.article')
               .crossJoin(
                 this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", [
@@ -1104,9 +1100,10 @@ export class ArticleService extends BaseService {
                 ])
               )
               .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'IN', [
-                USER_STATE.active,
-                USER_STATE.onboarding,
+              .andWhere('author_state', 'NOT IN', [
+                // USER_STATE.active, USER_STATE.onboarding,
+                USER_STATE.archived,
+                USER_STATE.banned,
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
@@ -1118,41 +1115,41 @@ export class ArticleService extends BaseService {
       )
       .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .as('base')
 
-    const articleIds = await // Promise.all([
-    // baseQuery.clone().count().first(),
-
-    // the actual search page
-    this.searchKnex
-      .select([
+    const records = await this.searchKnex
+      .select(
         '*',
         this.searchKnex.raw(
-          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3, c4]
+          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          [c0, c1, c2, c3]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-      ])
-      .from(baseQuery)
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
+      )
+      .from(baseQuery.as('base'))
       .orderByRaw('score DESC NULLS LAST')
       .orderByRaw('num_views DESC NULLS LAST')
       .orderByRaw('id DESC')
-      .limit(take)
-      .offset(skip) // , ])
+      .modify((builder: Knex.QueryBuilder) => {
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
 
     const nodes = (await this.draftLoader.loadMany(
-      articleIds.map((item: any) => item.id).filter(Boolean)
+      records.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
-    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
-    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    console.log(
-      new Date(),
+    debugLog(
+      // new Date(),
+      `articleService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
-      { sample: articleIds?.slice(0, 3) }
+      { sample: records?.slice(0, 3) }
     )
 
     return { nodes, totalCount }
@@ -1208,11 +1205,7 @@ export class ArticleService extends BaseService {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    const c4 = +(
-      coeffs?.[4] ||
-      environment.searchPgArticleCoefficients?.[4] ||
-      1
-    )
+    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
@@ -1236,7 +1229,7 @@ export class ArticleService extends BaseService {
           )
           .from(
             this.searchKnex
-              .select([
+              .select(
                 'id',
                 'num_views',
                 'title_orig', // 'title',
@@ -1245,10 +1238,7 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
                 ),
-                this.searchKnex.raw(
-                  '(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank',
-                  [`%${key}%`]
-                ),
+                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_jieba_ts, query) AS title_ts_rank'
                 ),
@@ -1257,16 +1247,17 @@ export class ArticleService extends BaseService {
                 ),
                 this.searchKnex.raw(
                   'ts_rank_cd(text_jieba_ts, query, 4) AS _text_cd_rank'
-                ),
-              ])
+                )
+              )
               .from('search_index.article')
               .crossJoin(
                 this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
               )
               .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'IN', [
-                USER_STATE.active,
-                USER_STATE.onboarding,
+              .andWhere('author_state', 'NOT IN', [
+                // USER_STATE.active, USER_STATE.onboarding,
+                USER_STATE.archived,
+                USER_STATE.banned,
               ])
               .andWhere('author_id', 'NOT IN', blockedIds)
               .andWhereRaw(
@@ -1278,41 +1269,42 @@ export class ArticleService extends BaseService {
       )
       .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
       .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-      .as('base')
 
-    const articleIds = await // Promise.all([
-    // baseQuery.clone().count().first(),
-
-    // the actual search page
-    this.searchKnex
-      .select([
+    const records = await this.searchKnex
+      .select(
         '*',
         this.searchKnex.raw(
-          '(? * views_rank + ? * title_like_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3, c4]
+          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
+          [c0, c1, c2, c3]
         ),
-        this.searchKnex.raw('COUNT(id) OVER() AS total_count'),
-      ])
-      .from(baseQuery)
+        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
+      )
+      .from(baseQuery.as('base'))
       .orderByRaw('score DESC NULLS LAST')
       .orderByRaw('num_views DESC NULLS LAST')
       .orderByRaw('id DESC')
-      .limit(take)
-      .offset(skip) // , ])
+      .modify((builder: Knex.QueryBuilder) => {
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
 
     const nodes = (await this.draftLoader.loadMany(
-      articleIds.map((item: any) => item.id).filter(Boolean)
+      records.map((item: any) => item.id).filter(Boolean)
     )) as Item[]
 
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
-    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    console.log(
-      new Date(),
+    debugLog(
+      // new Date(),
+      `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      `searchKnex instance got ${nodes.length} nodes from: ${totalCount} total`,
       // { countRes, articleIds }
-      { sample: articleIds?.slice(0, 3) }
+      { sample: records?.slice(0, 3) }
     )
 
     return { nodes, totalCount }

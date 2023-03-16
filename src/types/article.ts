@@ -204,15 +204,18 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
-    """creator message asking for support"""
+    "creator message asking for support"
     requestForDonation: String
 
-    """creator message after support"""
+    "creator message after support"
     replyToDonator: String
 
 
     "the iscnId if published to ISCN"
     iscnId: String
+
+    "whether readers can comment"
+    canComment: Boolean!
 
     ##############
     #     OSS    #
@@ -433,6 +436,9 @@ export default /* GraphQL */ `
 
     "whether publish to ISCN"
     iscnPublish: Boolean
+
+    "whether readers can comment"
+    canComment: Boolean
   }
 
   input AppreciateArticleInput {

@@ -176,4 +176,25 @@ describe('put draft', () => {
     expect(_get(result4, 'requestForDonation')).toBe(text)
     expect(_get(result4, 'replyToDonator')).toBe(text)
   })
+  test('edit draft comment setting', async () => {
+    const { id, canComment } = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+    })
+    // default
+    expect(canComment).toBeTruthy()
+
+    // turn off canComment
+    draftId = id
+    const result = await putDraft({ draft: { id: draftId, canComment: false } })
+
+    expect(_get(result, 'canComment')).toBeFalsy()
+
+    // turn on canComment
+    const result2 = await putDraft({ draft: { id: draftId, canComment: true } })
+
+    expect(_get(result2, 'canComment')).toBeTruthy()
+  })
 })

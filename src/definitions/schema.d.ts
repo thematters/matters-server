@@ -620,6 +620,11 @@ export interface GQLArticle extends GQLNode {
   iscnId?: string
 
   /**
+   * whether readers can comment
+   */
+  canComment: boolean
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -955,6 +960,11 @@ export interface GQLEditArticleInput {
    * whether publish to ISCN
    */
   iscnPublish?: boolean
+
+  /**
+   * whether readers can comment
+   */
+  canComment?: boolean
 }
 
 export interface GQLAppreciateArticleInput {
@@ -1964,6 +1974,11 @@ export interface GQLDraft extends GQLNode {
    * whether publish to ISCN
    */
   iscnPublish?: boolean
+
+  /**
+   * whether readers can comment
+   */
+  canComment: boolean
 }
 
 export interface GQLDraftConnection extends GQLConnection {
@@ -2000,6 +2015,11 @@ export interface GQLPutDraftInput {
    * whether publish to ISCN
    */
   iscnPublish?: boolean
+
+  /**
+   * whether readers can comment
+   */
+  canComment?: boolean
 }
 
 export interface GQLDeleteDraftInput {
@@ -6049,6 +6069,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   requestForDonation?: ArticleToRequestForDonationResolver<TParent>
   replyToDonator?: ArticleToReplyToDonatorResolver<TParent>
   iscnId?: ArticleToIscnIdResolver<TParent>
+  canComment?: ArticleToCanCommentResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -6506,6 +6527,15 @@ export interface ArticleToReplyToDonatorResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToIscnIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToCanCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8649,6 +8679,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   requestForDonation?: DraftToRequestForDonationResolver<TParent>
   replyToDonator?: DraftToReplyToDonatorResolver<TParent>
   iscnPublish?: DraftToIscnPublishResolver<TParent>
+  canComment?: DraftToCanCommentResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -8841,6 +8872,15 @@ export interface DraftToReplyToDonatorResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToIscnPublishResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToCanCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

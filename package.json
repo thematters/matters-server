@@ -5,7 +5,7 @@
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
   "engines": {
-    "node": ">=16"
+    "node": ">=16.14 <17.0"
   },
   "license": "Apache-2.0",
   "scripts": {
@@ -20,9 +20,9 @@
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
-    "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit",
-    "test:utils": "MATTERS_ENV=test jest src/common/utils --forceExit",
-    "test:types": "MATTERS_ENV=test jest src/types --forceExit",
+    "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit --runInBand",
+    "test:utils": "MATTERS_ENV=test jest src/common/utils --forceExit --runInBand",
+    "test:types": "MATTERS_ENV=test jest src/types --forceExit --runInBand",
     "test": "npm run test:utils && npm run test:connectors && npm run test:types && codecov",
     "lint": "tslint -p .",
     "lint:fix": "tslint -p . --fix",
@@ -65,6 +65,7 @@
     "cookie": "^0.4.1",
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",
+    "debug": "^4.3.4",
     "dotenv": "^10.0.0",
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.6.1",
@@ -114,6 +115,7 @@
     "@types/bcrypt": "^5.0.0",
     "@types/bull": "^3.15.6",
     "@types/cookie": "^0.4.1",
+    "@types/debug": "^4.1.7",
     "@types/dotenv": "^8.2.0",
     "@types/graphql": "^14.5.0",
     "@types/graphql-depth-limit": "^1.1.2",
