@@ -1,4 +1,4 @@
-const IERC1271 = [
+export const IERC1271 = [
     {
         "inputs": [
             {
@@ -24,5 +24,3 @@ const IERC1271 = [
         "type": "function"
     }
 ]
-
-export default IERC1271
