@@ -27,6 +27,7 @@ import {
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
+  normalizeHTML,
   // normalizeTagInput,
   sanitize,
   // stripAllPunct,
@@ -206,7 +207,7 @@ const resolver: MutationToPutDraftResolver = async (
       title,
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
-      content: content && sanitize(content),
+      content: content && normalizeHTML(sanitize(content)),
       tags, // : input.tags === undefined ? undefined : tags,
       cover: coverId,
       collection: collectionIds,

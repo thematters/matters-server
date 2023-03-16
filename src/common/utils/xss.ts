@@ -11,9 +11,6 @@ const IFRAME_SANDBOX_WHITELIST = [
   'allow-scripts',
   'allow-same-origin',
   'allow-popups',
-  'allow-popups-to-escape-sandbox',
-  'allow-storage-access-by-user-activation',
-  'allow-top-navigation-by-user-activation',
 ]
 
 const IFRAME_DOMAIN_WHITELIST = [
@@ -21,7 +18,8 @@ const IFRAME_DOMAIN_WHITELIST = [
   'button.like.co',
   'www.youtube.com',
   'player.vimeo.com',
-  'player.youku.com',
+  'player.bilibili.com',
+  'codepen.io',
 ]
 
 const onTagAttr = (
