@@ -92,12 +92,14 @@ class PublicationQueue extends BaseQueue {
       draftId: string
       iscnPublish?: boolean
     }
+    console.log(`mocked queue draft id ${ draft.id } inside`)
     let draft = await this.draftService.baseFindById(draftId)
     let article
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       await job.progress(100)
+      console.log(`mocked queue wtf`)
       done(null, `Draft ${draftId} isn\'t in pending state.`)
       return
     }
