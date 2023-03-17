@@ -1,4 +1,5 @@
 import { makeSummary } from '@matters/ipns-site-generator'
+import { normalizeArticleHTML, sanitizeHTML } from '@matters/matters-editor'
 import { v4 } from 'uuid'
 
 import {
@@ -12,7 +13,6 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
-import { sanitize } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -104,7 +104,9 @@ class MigrationQueue extends BaseQueue {
                   uuid: v4(),
                   title,
                   summary: content && makeSummary(content),
-                  content: content && sanitize(content),
+                  content:
+                    content &&
+                    normalizeArticleHTML(await sanitizeHTML(content)),
                 })
 
                 // add asset and assetmap

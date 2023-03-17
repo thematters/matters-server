@@ -1,3 +1,4 @@
+import { normalizeCommentHTML, sanitizeHTML } from '@matters/matters-editor'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -20,7 +21,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import {
   GQLCommentType,
   MutationToPutCommentResolver,
@@ -69,7 +70,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   const data: { [key: string]: any } = {
-    content: sanitize(content),
+    content: normalizeCommentHTML(await sanitizeHTML(content)),
     authorId: viewer.id,
   }
 

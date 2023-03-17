@@ -1,3 +1,4 @@
+import { normalizeArticleHTML, sanitizeHTML } from '@matters/matters-editor'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -24,13 +25,7 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import {
-  extractAssetDataFromHtml,
-  fromGlobalId,
-  // normalizeTagInput,
-  sanitize,
-  // stripAllPunct,
-} from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 function sanitizeTags(tags: string[] | null | undefined) {
@@ -206,7 +201,7 @@ const resolver: MutationToPutDraftResolver = async (
       title,
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
-      content: content && sanitize(content),
+      content: content && normalizeArticleHTML(await sanitizeHTML(content)),
       tags, // : input.tags === undefined ? undefined : tags,
       cover: coverId,
       collection: collectionIds,

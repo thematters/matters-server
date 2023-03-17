@@ -1,5 +1,6 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import lodash, { difference, flow, uniq } from 'lodash'
+import { normalizeArticleHTML, sanitizeHTML } from '@matters/matters-editor'
+import lodash, { difference, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -31,12 +32,9 @@ import {
   UserInputError,
 } from 'common/errors'
 import {
-  correctHtml,
   fromGlobalId,
   measureDiffs,
   normalizeTagInput,
-  sanitize,
-  // stripAllPunct,
   stripClass,
 } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
@@ -546,7 +544,6 @@ const resolver: MutationToEditArticleResolver = async (
       newContent || currDraft.content,
       'u-area-disable'
     )
-    const pipe = flow(sanitize, correctHtml)
     const data: Record<string, any> = lodash.omitBy(
       {
         uuid: v4(),
@@ -555,7 +552,7 @@ const resolver: MutationToEditArticleResolver = async (
         title: currDraft.title,
         summary: currDraft.summary,
         summaryCustomized: currDraft.summaryCustomized,
-        content: pipe(cleanedContent),
+        content: normalizeArticleHTML(await sanitizeHTML(cleanedContent)),
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,
