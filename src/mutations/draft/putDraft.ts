@@ -72,6 +72,7 @@ const resolver: MutationToPutDraftResolver = async (
     requestForDonation,
     replyToDonator,
     iscnPublish,
+    canComment,
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -215,6 +216,7 @@ const resolver: MutationToPutDraftResolver = async (
       requestForDonation,
       replyToDonator,
       iscnPublish,
+      canComment,
     },
     _.isUndefined // to drop only undefined // _.isNil
   )
