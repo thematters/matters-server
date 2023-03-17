@@ -1,4 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-
+npm run lint && npm run build && npm run gen && \
+npm run format -- --list-different && \
+git add schema.graphql src/definitions/schema.d.ts

@@ -1,10 +1,11 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
-import { utils, Contract } from 'ethers'
+import { Contract, utils } from 'ethers'
 import { Knex } from 'knex'
 
 import {
   AUTO_FOLLOW_TAGS,
+  BLOCKCHAIN_CHAINID,
   NODE_TYPES,
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
@@ -18,7 +19,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { IERC1271, getAlchemyProvider, getViewerFromUser, setCookie } from 'common/utils'
+import { getAlchemyProvider, getViewerFromUser, IERC1271, setCookie } from 'common/utils'
 import { CacheService } from 'connectors'
 import {
   AuthMode,
@@ -69,11 +70,11 @@ const resolver: MutationToWalletLoginResolver = async (
     )
   }
 
-  //if it's smart contract wallet
+  // if it's smart contract wallet
   const isValidSignature = async () => {
     const MAGICVALUE = '0x1626ba7e'
 
-    const provider = getAlchemyProvider(137)
+    const provider = getAlchemyProvider(parseInt(BLOCKCHAIN_CHAINID['Polygon']['PolygonMainnet']))
 
     const bytecode = await provider.getCode(ethAddress.toLowerCase())
 
@@ -130,7 +131,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
     await userService.baseUpdate(viewer.id, {
       updatedAt: knex.fn.now(),
-      ethAddress: ethAddress, // save the lower case ones
+      ethAddress, // save the lower case ones
     })
 
     // archive crypto_wallet entry
