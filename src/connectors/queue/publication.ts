@@ -92,7 +92,7 @@ class PublicationQueue extends BaseQueue {
       draftId: string
       iscnPublish?: boolean
     }
-    console.log(`mocked queue draft id ${ draft.id } inside`)
+    console.log(`mocked queue draft id ${draftId} inside`)
     let draft = await this.draftService.baseFindById(draftId)
     let article
 

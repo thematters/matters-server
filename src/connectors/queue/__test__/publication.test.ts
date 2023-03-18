@@ -40,7 +40,7 @@ describe('publicationQueue.publishArticle', () => {
       throw Error('mock error in publicationQueue test')
     }
     const draft = await createPendingDraft()
-    console.log(`mocked queue draft id ${ draft.id } outside`)
+    console.log(`mocked queue draft id ${draft.id} outside`)
     const job = await publicationQueue.publishArticle({
       draftId: draft.id,
     })
