@@ -211,13 +211,17 @@ export class SystemService extends BaseService {
     this.baseFindByUUIDs(uuids, 'asset')
 
   /**
+   * Gen the url of an asset according asset type.
+   */
+  genAssetUrl = (asset: { path: string; type: string }): string => {
+    return `${this.aws.s3Endpoint}/${asset.path}`
+  }
+  /**
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
     const result = await this.baseFindById(id, 'asset')
-    return result && result.path
-      ? `${this.aws.s3Endpoint}/${result.path}`
-      : null
+    return result ? this.genAssetUrl(result) : null
   }
 
   /**
