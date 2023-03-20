@@ -16,12 +16,12 @@ beforeAll(async () => {
   }
   console.time('truncate')
   const tables = await getTables(knex)
-  await Promise.all([
-    knex.raw(`TRUNCATE ${tables.join(', ')} RESTART IDENTITY CASCADE;`),
-    knex
-      .raw('select relation::regclass, * from pg_locks where not granted;')
-      .then((res) => console.log(res.rows)),
-  ])
+  try {
+    await knex.raw(`TRUNCATE ${tables.join(', ')} RESTART IDENTITY CASCADE;`)
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
   console.timeEnd('truncate')
   console.time('seed')
   await knex.seed.run()
