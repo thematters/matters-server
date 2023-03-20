@@ -16,7 +16,7 @@ const service = new SystemService()
 
 test('findAssetUrl', async () => {
   const url = await service.findAssetUrl('1')
-  expect(url).toEqual(expect.any(String))
+  expect(url).toBe('http://localhost:4569/matters-server-dev/path/to/file.jpg')
 })
 
 test('create and delete asset', async () => {

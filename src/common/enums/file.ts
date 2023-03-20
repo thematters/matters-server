@@ -1,8 +1,7 @@
-export const ASSET_TYPE = {
+export const IMAGE_ASSET_TYPE = {
   avatar: 'avatar',
   cover: 'cover',
   embed: 'embed',
-  embedaudio: 'embedaudio',
   profileCover: 'profileCover',
   oauthClientAvatar: 'oauthClientAvatar',
   tagCover: 'tagCover',
@@ -10,8 +9,16 @@ export const ASSET_TYPE = {
   circleCover: 'circleCover',
   announcementCover: 'announcementCover',
   topicCover: 'topicCover',
-
   imgCached: 'img-cached',
+}
+
+export const AUDIO_ASSET_TYPE = {
+  embedaudio: 'embedaudio',
+}
+
+export const ASSET_TYPE = {
+  ...IMAGE_ASSET_TYPE,
+  ...AUDIO_ASSET_TYPE,
 }
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
