@@ -144,7 +144,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
 
   return {
     ...newAsset,
-    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`,
+    path: systemService.genAssetUrl(newAsset),
   }
 }
 

@@ -50,7 +50,7 @@ export class Medium {
    */
   createImageBlock = async (url: string, caption: string) => {
     const asset = await this.fetchAndUploadAsset(url, 'image')
-    const src = `${this.aws.s3Endpoint}/${asset.key}`
+    const src = this.cfsvc.genUrl(asset.key)
     const content =
       `<figure class="image"><img src="${src}" data-asset-id="${asset.uuid}">` +
       `<figcaption><span>${caption}</span></figcaption></figure>`
@@ -130,7 +130,7 @@ export class Medium {
 
       // const key = (settled.find((r) => r.status === 'fulfilled') as PromiseFulfilledResult<string>)?.value
 
-      return { uuid, key: awsRes.value }
+      return { uuid, key: cfsvcRes.value }
     } catch (error) {
       throw new Error(`Unable to upload from url: ${error}`)
     }
