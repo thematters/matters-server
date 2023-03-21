@@ -74,7 +74,11 @@ const resolver: MutationToWalletLoginResolver = async (
   const isValidSignature = async () => {
     const MAGICVALUE = '0x1626ba7e'
 
-    const provider = getAlchemyProvider(parseInt(BLOCKCHAIN_CHAINID['Polygon']['PolygonMainnet']))
+    const chainType = 'Polygon'
+
+    const chainNetwork = 'PolygonMainnet'
+
+    const provider = getAlchemyProvider(Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork]))
 
     const bytecode = await provider.getCode(ethAddress.toLowerCase())
 
