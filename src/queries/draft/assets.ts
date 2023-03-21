@@ -23,7 +23,7 @@ const resolver: DraftToAssetsResolver = async (
   return assets.map((asset) => {
     return {
       ...asset,
-      path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
+      path: systemService.genAssetUrl(asset),
     }
   })
 }

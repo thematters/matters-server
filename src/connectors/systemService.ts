@@ -2,6 +2,7 @@ import { v4 } from 'uuid'
 
 import {
   ASSET_TYPE,
+  IMAGE_ASSET_TYPE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
@@ -214,7 +215,10 @@ export class SystemService extends BaseService {
    * Gen the url of an asset according asset type.
    */
   genAssetUrl = (asset: { path: string; type: string }): string => {
-    return `${this.aws.s3Endpoint}/${asset.path}`
+    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(asset.type)
+    return isImageType
+      ? this.cfsvc.genUrl(asset.path)
+      : `${this.aws.s3Endpoint}/${asset.path}`
   }
   /**
    * Find the url of an asset by a given id.
