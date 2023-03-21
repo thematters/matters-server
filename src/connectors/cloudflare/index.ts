@@ -11,11 +11,6 @@ const envPrefix = isProd ? 'prod' : 'non-prod'
 const CLOUDFLARE_IMAGES_URL = `https://api.cloudflare.com/client/v4/accounts/${environment.cloudflareAccountId}/images/v1`
 const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountId}/${envPrefix}`
 
-export const Variant = {
-  thumbnail: 'thumbnail',
-  public: 'public',
-}
-
 export class CloudflareService {
   // constructor() {}
 
@@ -118,11 +113,12 @@ export class CloudflareService {
     return res.json()
   }
 
-  genUrl = (
-    assetPath: string,
-    variantType: keyof typeof Variant = 'public'
-  ): string =>
-    `${CLOUDFLARE_IMAGE_ENDPOINT}/${assetPath}/${Variant[variantType]}`
+  /**
+   * Gen full url from keys (asset path in db).
+   */
+  genUrl = (key: string): string => `${CLOUDFLARE_IMAGE_ENDPOINT}/${key}/public`
+
+  // internal helpers
 
   private genKey = (folder: string, uuid: string, extension: string): string =>
     `${envPrefix}/${folder}/${uuid}.${extension}`
