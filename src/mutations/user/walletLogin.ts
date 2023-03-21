@@ -1,10 +1,11 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
-import { utils } from 'ethers'
+import { Contract, utils } from 'ethers'
 import { Knex } from 'knex'
 
 import {
   AUTO_FOLLOW_TAGS,
+  BLOCKCHAIN_CHAINID,
   NODE_TYPES,
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
@@ -18,7 +19,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getViewerFromUser, setCookie } from 'common/utils'
+import { getAlchemyProvider, getViewerFromUser, IERC1271, setCookie } from 'common/utils'
 import { CacheService } from 'connectors'
 import {
   AuthMode,
@@ -26,6 +27,7 @@ import {
   GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
+
 
 const resolver: MutationToWalletLoginResolver = async (
   _,
@@ -50,7 +52,6 @@ const resolver: MutationToWalletLoginResolver = async (
   if (!ethAddress || !utils.isAddress(ethAddress)) {
     throw new UserInputError('address is invalid')
   }
-
   const sig_table = 'crypto_wallet_signature'
 
   const lastSigning = await atomService.findFirst({
@@ -69,15 +70,49 @@ const resolver: MutationToWalletLoginResolver = async (
     )
   }
 
-  // verify signature
-  const verifiedAddress = recoverPersonalSignature({
-    data: signedMessage,
-    sig: signature,
-  }).toLowerCase()
+  // if it's smart contract wallet
+  const isValidSignature = async () => {
+    const MAGICVALUE = '0x1626ba7e'
 
-  if (ethAddress.toLowerCase() !== verifiedAddress) {
-    throw new UserInputError('signature is not valid')
+    const chainType = 'Polygon'
+
+    const chainNetwork = 'PolygonMainnet'
+
+    const provider = getAlchemyProvider(Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork]))
+
+    const bytecode = await provider.getCode(ethAddress.toLowerCase())
+
+    const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== '0x'
+
+    const hash = utils.hashMessage(signedMessage)
+
+    if (isSmartContract) {
+      // verify the message for a decentralized account (contract wallet)
+      const contractWallet = new Contract(ethAddress, IERC1271, provider)
+      const verification = await contractWallet.isValidSignature(
+        hash,
+        signature
+      )
+
+      const doneVerified = verification === MAGICVALUE
+
+      if (!doneVerified) {
+        throw new UserInputError('signature is not valid')
+      }
+    } else {
+      // verify signature for EOA account
+      const verifiedAddress = recoverPersonalSignature({
+        data: signedMessage,
+        sig: signature,
+      }).toLowerCase()
+
+      if (ethAddress.toLowerCase() !== verifiedAddress) {
+        throw new UserInputError('signature is not valid')
+      }
+    }
   }
+
+  isValidSignature()
 
   /**
    * Link
@@ -93,14 +128,14 @@ const resolver: MutationToWalletLoginResolver = async (
       },
     })
 
-    const user = await userService.findByEthAddress(verifiedAddress)
+    const user = await userService.findByEthAddress(ethAddress)
     if (user) {
       throw new CryptoWalletExistsError('eth address already has a user')
     }
 
     await userService.baseUpdate(viewer.id, {
       updatedAt: knex.fn.now(),
-      ethAddress: verifiedAddress, // save the lower case ones
+      ethAddress, // save the lower case ones
     })
 
     // archive crypto_wallet entry
@@ -204,7 +239,7 @@ const resolver: MutationToWalletLoginResolver = async (
     email,
     userName,
     displayName: userName,
-    ethAddress: verifiedAddress, // save the lower case ones
+    ethAddress: ethAddress.toLowerCase(), // save the lower case ones
   })
 
   // auto follow matty
