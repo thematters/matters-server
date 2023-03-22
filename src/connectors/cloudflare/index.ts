@@ -9,7 +9,7 @@ import { GQLAssetType } from 'definitions'
 const envPrefix = isProd ? 'prod' : 'non-prod'
 
 const CLOUDFLARE_IMAGES_URL = `https://api.cloudflare.com/client/v4/accounts/${environment.cloudflareAccountId}/images/v1`
-const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountId}/${envPrefix}`
+const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountHash}/${envPrefix}`
 
 export class CloudflareService {
   // constructor() {}
