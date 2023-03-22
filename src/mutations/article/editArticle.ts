@@ -262,7 +262,7 @@ const resolver: MutationToEditArticleResolver = async (
    */
   const resetCollection =
     collection === null || (collection && collection.length === 0)
-  if (collection) {
+  if (collection && collection.length > 0) {
     // compare new and old collections
     const oldIds = (
       await articleService.findCollections({
