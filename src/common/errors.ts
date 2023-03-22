@@ -242,6 +242,16 @@ export class ArticleRevisionReachLimitError extends ApolloError {
   }
 }
 
+export class ArticleCollectionReachLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'ARTICLE_COLLECTION_REACH_LIMIT')
+
+    Object.defineProperty(this, 'name', {
+      value: 'ArticleCollectionReachLimitError',
+    })
+  }
+}
+
 /*********************************
  *                               *
  *              Tag              *

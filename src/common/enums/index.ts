@@ -244,6 +244,8 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
+export const MAX_ARTICLES_PER_COLLECTION_LIMIT = 10
+
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 5
 export const TAGS_RECOMMENDED_LIMIT = 100
 

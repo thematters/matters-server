@@ -10,6 +10,7 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -17,6 +18,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleCollectionReachLimitError,
   ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
@@ -309,6 +311,15 @@ const resolver: MutationToEditArticleResolver = async (
         )
       ).filter((articleId): articleId is string => !!articleId)
     )
+
+    if (
+      newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+      newIds.length >= oldIds.length
+    ) {
+      throw new ArticleCollectionReachLimitError(
+        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+      )
+    }
 
     interface Item {
       entranceId: string
