@@ -15,7 +15,8 @@
         "body-parser",
         "ioredis",
         "node:url",
-        "node:path"
+        "node:path",
+        "@jest/globals"
       ]
     ],
     "no-var-requires": false,

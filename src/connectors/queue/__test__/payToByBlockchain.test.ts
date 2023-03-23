@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -20,7 +22,7 @@ import { GQLChain } from 'definitions'
 const mockFetchLogs = jest.fn()
 const mockFetchTxReceipt = jest.fn()
 const mockFetchBlockNumber = jest.fn()
-jest.mock('connectors/blockchain', () => {
+jest.unstable_mockModule('connectors/blockchain', () => {
   return {
     __esModule: true,
     CurationContract: jest.fn().mockImplementation(() => {
@@ -101,6 +103,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   beforeAll(() => {
     queue.delay = 1
     mockFetchTxReceipt.mockClear()
+    // @ts-ignore
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
@@ -271,6 +274,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const syncRecordTable = 'blockchain_sync_record'
 
   beforeAll(() => {
+    // @ts-ignore
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
@@ -283,6 +287,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       }
     })
     mockFetchLogs.mockImplementation(
+      // @ts-ignore
       async (fromBlock: number, toBlock: number) => {
         return []
       }

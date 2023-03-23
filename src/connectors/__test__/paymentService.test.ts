@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -293,7 +295,10 @@ describe('Transaction CRUD', () => {
 describe('notifyDonation', () => {
   const paymentService = new PaymentService()
   const userService = new UserService()
+
+  // @ts-ignore
   mailService.send = jest.fn()
+
   test('donationCount value is correct', async () => {
     const getDonationCount = () =>
       // @ts-ignore

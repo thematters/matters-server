@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals'
+
 import { CurationContract } from 'connectors/blockchain'
 
 describe('curationContract', () => {
