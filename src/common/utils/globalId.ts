@@ -1,4 +1,4 @@
-import Base64 from 'js-base64'
+import * as Base64 from 'js-base64'
 
 import { NODE_TYPES } from 'common/enums/index.js'
 import { UserInputError } from 'common/errors.js'

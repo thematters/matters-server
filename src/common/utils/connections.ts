@@ -1,5 +1,5 @@
 import { connectionFromArraySlice } from 'graphql-relay'
-import Base64 from 'js-base64'
+import * as Base64 from 'js-base64'
 
 import { DEFAULT_TAKE_PER_PAGE } from 'common/enums/index.js'
 import { Item } from 'definitions'
