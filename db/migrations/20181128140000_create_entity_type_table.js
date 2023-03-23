@@ -1,12 +1,12 @@
 const table = 'entity_type'
 
-exports.up = function (knex, Promise) {
+export const up = function (knex, Promise) {
   return knex.schema.createTable(table, function (t) {
     t.bigIncrements('id').primary()
     t.string('table').notNullable().unique()
   })
 }
 
-exports.down = function (knex, Promise) {
+export const down = function (knex, Promise) {
   return knex.schema.dropTable(table)
 }

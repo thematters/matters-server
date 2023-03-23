@@ -4,7 +4,7 @@ const materialized = `article_value_materialized`
 const drop_view = `article_activity_b_view`
 const drop_materialized = `article_activity_b_materialized`
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.raw(/*sql*/ `
   drop view ${drop_view} cascade;
 
@@ -90,7 +90,7 @@ exports.up = (knex) =>
   from ${view}
   `)
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.raw(/*sql*/ `
   drop view ${view} cascade;
 

@@ -2,7 +2,7 @@ const table = 'crypto_wallet'
 
 const indexName = `${table}_address_archived_unique`
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.boolean('archived').defaultTo(false)
     t.dropUnique(['address'])
@@ -14,7 +14,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('archived')
     t.unique(['address'])

@@ -1,8 +1,8 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'tag_boost'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.bigInteger('tag_id').unsigned().notNullable()
@@ -14,4 +14,4 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = baseDown(table)
+export const down = baseDown(table)

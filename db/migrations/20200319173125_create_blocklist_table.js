@@ -1,8 +1,8 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'blocklist'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // create table
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
@@ -24,4 +24,4 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = baseDown(table)
+export const down = baseDown(table)

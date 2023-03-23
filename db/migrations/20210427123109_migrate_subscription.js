@@ -1,4 +1,4 @@
-const { v4 } = require('uuid')
+import { v4 } from 'uuid'
 
 const t_coupon = 'circle_coupon'
 
@@ -12,7 +12,7 @@ const t_subscription_item = 'circle_subscription_item'
 
 const t_user = 'user'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const findFirst = async ({ table, where }) => {
     return knex.select().from(table).where(where).first()
   }
@@ -188,4 +188,4 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

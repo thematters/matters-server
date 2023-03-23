@@ -1,6 +1,6 @@
 const table = 'matters_choice'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

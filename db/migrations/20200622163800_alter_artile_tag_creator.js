@@ -1,6 +1,6 @@
 const table = 'article_tag'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add creator column
   await knex.schema.table(table, function (t) {
     t.bigInteger('creator').unsigned()
@@ -23,7 +23,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('creator')
   })

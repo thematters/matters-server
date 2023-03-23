@@ -1,6 +1,6 @@
 const table = 'oauth_client'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.specificType('redirect_uri', 'text ARRAY').alter()
     t.specificType('grant_types', 'text ARRAY').alter()
@@ -8,7 +8,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.text('scope').alter()
     t.string('grant_types').alter()

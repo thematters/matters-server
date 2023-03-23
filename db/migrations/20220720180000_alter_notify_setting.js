@@ -1,6 +1,6 @@
 const table = 'user_notify_setting'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.boolean('circle_member_new_broadcast_reply').notNullable().defaultTo(true)
     t.renameColumn('circle_member_boradcast', 'circle_member_broadcast')
@@ -12,7 +12,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('circle_member_new_broadcast_reply')
     t.renameColumn('circle_member_broadcast', 'circle_member_boradcast')

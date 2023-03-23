@@ -1,6 +1,6 @@
 const table = 'tag'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const user = await knex('user')
     .select('id')
     .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
@@ -13,7 +13,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('creator')
   })

@@ -1,8 +1,8 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const table = 'transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // rename old transaction table
   await knex.schema.renameTable(table, 'transaction_obsolete')
 
@@ -47,7 +47,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.dropTable(table)
   await knex.schema.renameTable('transaction_obsolete', table)
 }

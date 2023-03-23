@@ -1,6 +1,6 @@
 const table = 'audio_draft'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

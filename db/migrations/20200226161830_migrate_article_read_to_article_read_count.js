@@ -1,7 +1,7 @@
 const source = 'article_read'
 const target = 'article_read_count'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // get total count of collapesed records
   const querySource = knex(source)
     .select('user_id', 'article_id')
@@ -35,6 +35,6 @@ exports.up = async (knex) => {
   console.log('migrated count', check)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex(target).truncate()
 }

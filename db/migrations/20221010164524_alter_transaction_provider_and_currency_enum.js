@@ -1,8 +1,8 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const table = 'transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'provider', [
       'stripe',
@@ -14,7 +14,7 @@ exports.up = async (knex) => {
   await knex.raw(alterEnumString(table, 'currency', ['HKD', 'LIKE', 'USDT']))
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'provider', ['stripe', 'likecoin', 'matters'])
   )

@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add `iscn_publish` column
   await knex.schema.table('draft', (t) => {
     t.boolean('iscn_publish')
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table('article', (t) => {
     t.dropColumn('iscn_id')
   })

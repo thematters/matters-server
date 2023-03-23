@@ -1,7 +1,7 @@
 const customer = 'customer'
 const payoutAccount = 'payout_account'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(customer, function (t) {
     t.boolean('archived').defaultTo(false)
   })
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(customer, function (t) {
     t.dropColumn('archived')
   })

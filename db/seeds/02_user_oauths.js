@@ -1,7 +1,7 @@
 const table = 'user_oauth'
 const table_likecoin = 'user_oauth_likecoin'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

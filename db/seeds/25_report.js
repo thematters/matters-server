@@ -3,7 +3,7 @@ const table = {
   report_asset: 'report_asset',
 }
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   // create report
   await knex(table.report).insert([
     // article

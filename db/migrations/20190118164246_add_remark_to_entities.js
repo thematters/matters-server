@@ -1,6 +1,6 @@
 const tables = ['article', 'user', 'comment', 'tag', 'report', 'feedback']
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await Promise.all(
     tables.map(async (table) => {
       await knex.schema.table(table, function (t) {
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await Promise.all(
     tables.map(async (table) => {
       await knex.raw(

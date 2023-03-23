@@ -1,6 +1,6 @@
-const Knex = require('knex')
-const knexConfig = require('../knexfile')
-const Redis = require('ioredis')
+import Knex from 'knex'
+import knexConfig from '../knexfile.js'
+import Redis from 'ioredis'
 
 const knex = Knex(knexConfig.test)
 

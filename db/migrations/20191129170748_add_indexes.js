@@ -4,7 +4,7 @@ const table_notice_detail = 'notice_detail'
 const table_notice_entity = 'notice_entity'
 const table_notice_actor = 'notice_actor'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // article_tag
   await knex.schema.table(table_article_tag, (t) => {
     t.index('article_id').index('tag_id')
@@ -34,7 +34,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // article_tag
   await knex.schema.table(table_article_tag, (t) => {
     t.dropIndex('article_id').dropIndex('tag_id')

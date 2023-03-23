@@ -1,5 +1,7 @@
-require('dotenv').config()
-const Stripe = require('stripe')
+import dotenv from 'dotenv'
+dotenv.config()
+
+import Stripe from 'stripe'
 
 const circleSubscription = 'circle_subscription'
 
@@ -42,7 +44,7 @@ const getUTCNextMonday = () => {
   return date.getTime()
 }
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const isProd = process.env['MATTERS_ENV'] === 'production'
   const secret = process.env['MATTERS_STRIPE_SECRET']
   const stripeAPI = new Stripe(secret, { apiVersion: '2020-08-27' })
@@ -89,4 +91,4 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async () => {}
+export const down = async () => {}

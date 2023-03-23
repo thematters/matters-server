@@ -4,7 +4,7 @@ const recent_read_limit = 30
 const global_appearance_threshold = 5
 const tag_read_limit = 10
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // create materialized view
   await knex.raw(/*sql*/ `
     DROP MATERIALIZED VIEW IF EXISTS ${materialized_view_name} CASCADE;
@@ -72,7 +72,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     /*sql*/ `DROP MATERIALIZED VIEW ${materialized_view_name} CASCADE`
   )

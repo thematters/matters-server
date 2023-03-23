@@ -2,7 +2,7 @@ const table = 'article_activity_view'
 
 const materialized = 'article_activity_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Drop materialzied view
   await knex.raw(`drop materialized view if exists ${materialized}`)
 
@@ -58,7 +58,7 @@ exports.up = async (knex) => {
     `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // Drop materialized view
   await knex.raw(`drop materialized view if exists ${materialized}`)
 

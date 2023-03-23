@@ -1,12 +1,12 @@
 const table = 'user_notify_setting'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.boolean('email').notNullable().defaultTo(true)
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('email')
   })

@@ -3,7 +3,7 @@ const draft_table = 'draft'
 const asset_map_table = 'asset_map'
 const entity_type_table = 'entity_type'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const { id: articleTypeId } = await knex(entity_type_table)
     .select('id')
     .where({ table: article_table })
@@ -41,4 +41,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

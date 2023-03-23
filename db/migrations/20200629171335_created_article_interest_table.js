@@ -1,7 +1,7 @@
 const view = `article_interest_view`
 const materialized = `article_interest_materialized`
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.raw(/*sql*/ `
   create view ${view} as
   with tag_interest as
@@ -62,7 +62,7 @@ exports.up = (knex) =>
   from ${view};
   `)
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.raw(/*sql*/ `
   drop view if exists ${view} cascade;
   `)

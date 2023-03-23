@@ -1,4 +1,4 @@
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   // topics
   await knex('topic').del()
   await knex('topic').insert([

@@ -1,6 +1,6 @@
 const table = 'article_circle'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.enu('access', ['public', 'paywall']).notNullable().defaultTo('paywall')
     t.text('secret')
@@ -9,7 +9,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropIndex('access')
 

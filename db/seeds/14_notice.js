@@ -1,4 +1,4 @@
-const { v4 } = require('uuid')
+import { v4 } from 'uuid'
 
 const table = {
   notice: 'notice',
@@ -7,7 +7,7 @@ const table = {
   notice_entity: 'notice_entity',
 }
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   /**
    * prepare seeds
    */

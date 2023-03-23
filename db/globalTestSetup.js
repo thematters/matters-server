@@ -1,14 +1,21 @@
-const { exec, spawn, spawnSync } = require('child_process')
+import { spawn } from 'child_process'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import dotenv from 'dotenv'
 
-require('dotenv').config()
+dotenv.config()
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // MATTERS_ENV must be 'test' in order to run test cases
 if (process.env['MATTERS_ENV'] !== 'test')
   throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
 
-const { Client } = require('pg')
-const Knex = require('knex')
-const knexConfig = require('../knexfile')
+import pg from 'pg'
+import Knex from 'knex'
+import knexConfig from '../knexfile.js'
+
+const { Client } = pg
 const knex = Knex(knexConfig.test)
 const database = knexConfig.test.connection.database
 const host = process.env['MATTERS_PG_HOST']
@@ -20,7 +27,7 @@ const isCI = !!process.env['CI']
 
 global.knex = knex
 
-module.exports = async () => {
+export default async () => {
   const rollbackAllMigrations = async () => {
     const migration = await knex.migrate.currentVersion()
     if (migration !== 'none') {

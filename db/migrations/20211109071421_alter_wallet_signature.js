@@ -1,7 +1,7 @@
 const table = 'crypto_wallet_signature'
 const wallet_table = 'crypto_wallet'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.bigInteger('user_id').unsigned()
     t.foreign('user_id').references('id').inTable('user')
@@ -32,7 +32,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('user_id')
   })

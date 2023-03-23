@@ -3,7 +3,7 @@
 const article = 'article'
 const draft = 'draft'
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   const articles = await knex(article).select()
   await Promise.all(
     articles.map(async (article) => {

@@ -1,12 +1,12 @@
 const customer = 'customer'
 const payoutAccount = 'payout_account'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex(customer).update({ archived: true })
   await knex(payoutAccount).update({ archived: true })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex(customer).update({ archived: false })
   await knex(payoutAccount).update({ archived: false })
 }

@@ -1,6 +1,6 @@
 const payoutAccount = 'payout_account'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(payoutAccount, function (t) {
     t.boolean('capabilities_transfers').defaultTo(false)
   })
@@ -9,7 +9,7 @@ exports.up = async (knex) => {
   await knex(payoutAccount).update({ archived: true })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(payoutAccount, function (t) {
     t.dropColumn('capabilities_transfers')
   })

@@ -1,6 +1,6 @@
 const table = 'draft'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.enu('access', ['public', 'paywall']).notNullable().defaultTo('public')
   })
@@ -15,7 +15,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     t.dropColumn('access')
   })

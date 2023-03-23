@@ -6,7 +6,7 @@ const activeView = 'most_active_author_materialized'
 const appreciatedView = 'most_appreciated_author_materialized'
 const trendyView = 'most_trendy_author_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // create most active author materialized
   await knex.raw(`
     CREATE MATERIALIZED VIEW ${activeView} AS
@@ -76,7 +76,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${activeView}`)
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${appreciatedView}`)
   await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${trendyView}`)

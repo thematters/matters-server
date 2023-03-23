@@ -1,13 +1,13 @@
 const table_user = 'user'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // user
   await knex.schema.table(table_user, (t) => {
     t.index('uuid')
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // user
   await knex.schema.table(table_user, (t) => {
     t.dropIndex('uuid')

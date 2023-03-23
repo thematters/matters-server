@@ -1,9 +1,9 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const user_table = 'user'
 const crypto_wallet_table = 'crypto_wallet_signature'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema
     .raw(`ALTER TABLE "user" ALTER COLUMN state SET DEFAULT 'onboarding';`)
     .alterTable(user_table, (t) => {
@@ -38,7 +38,7 @@ exports.up = async (knex) => {
     })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema
     .alterTable(crypto_wallet_table, (t) => {
       // t.enu('purpose', ['airdrop', 'connect']).alter()

@@ -1,7 +1,7 @@
 const draft_table = 'draft'
 const article_table = 'article'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Draft
   await knex.schema.table(draft_table, (t) => {
     // drop deprecated
@@ -31,7 +31,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // Article
   await knex.schema.table(article_table, (t) => {
     t.dropIndex('draft_id')

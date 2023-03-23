@@ -1,9 +1,9 @@
-const bcrypt = require('bcrypt')
+import bcrypt from 'bcrypt'
 const BCRYPT_ROUNDS = 12
 
 const table = 'user'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

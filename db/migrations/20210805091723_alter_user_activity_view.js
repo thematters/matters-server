@@ -1,7 +1,7 @@
 const period = 30
 const materialized_view_name = 'user_activity_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Drop user_activity_long_materialized
   await knex.raw(
     /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_long_materialized CASCADE`
@@ -171,7 +171,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(
     /*sql*/ `DROP MATERIALIZED VIEW IF EXISTS user_activity_materialized CASCADE`
   )

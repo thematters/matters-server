@@ -3,7 +3,7 @@ const table = {
   feedback_asset: 'feedback_asset',
 }
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   // create feedback
   await knex(table.feedback).insert([
     {

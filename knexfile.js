@@ -1,4 +1,7 @@
-const { name, version } = require('./package.json')
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const baseConfig = {
   client: 'postgresql',
@@ -7,7 +10,7 @@ const baseConfig = {
     user: process.env.MATTERS_PG_USER,
     password: process.env.MATTERS_PG_PASSWORD,
     database: process.env.MATTERS_PG_DATABASE,
-    application_name: `${name}/${version}`,
+    application_name: 'matters-server',
   },
   migrations: {
     tableName: 'knex_migrations',
@@ -18,7 +21,7 @@ const baseConfig = {
   },
 }
 
-module.exports = {
+export default {
   test: {
     ...baseConfig,
     connection: {
