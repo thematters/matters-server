@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
-import 'module-alias/register'
 import requestIp from 'request-ip'
 
 import { CORS_OPTIONS, IMG_CACHE_PATH } from 'common/enums'

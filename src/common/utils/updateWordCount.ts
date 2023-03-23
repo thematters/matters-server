@@ -1,5 +1,3 @@
-import 'module-alias/register'
-
 import logger from 'common/logger'
 import { ArticleService, DraftService } from 'connectors'
 

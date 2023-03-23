@@ -144,6 +144,7 @@ class PayoutQueue extends BaseQueue {
           data,
           message: error?.message || 'failed to get currency rate.',
         })
+
         throw error
       }
 
@@ -224,6 +225,8 @@ class PayoutQueue extends BaseQueue {
         message: `failed to payout: ${data.txId}.`,
       })
 
+      logger.error(error)
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -232,7 +235,6 @@ class PayoutQueue extends BaseQueue {
         }
       }
 
-      logger.error(error)
       done(error)
     }
   }

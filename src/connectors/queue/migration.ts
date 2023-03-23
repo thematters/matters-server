@@ -78,7 +78,6 @@ class MigrationQueue extends BaseQueue {
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
-            return
           }
 
           if (!htmls || htmls.length === 0) {

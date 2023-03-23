@@ -162,8 +162,8 @@ class UserQueue extends BaseQueue {
       )
 
       done(null, users)
-    } catch (e) {
-      done(e)
+    } catch (error) {
+      done(error)
     }
   }
 }

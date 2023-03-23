@@ -14,7 +14,6 @@ import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
 import { graphqlUploadExpress } from 'graphql-upload'
 import _ from 'lodash'
-import 'module-alias/register'
 
 import {
   CACHE_TTL,

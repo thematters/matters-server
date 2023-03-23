@@ -123,9 +123,6 @@ export class AWSService {
     )
 
     return key
-    const newPath = `${aws.s3Endpoint}/${key}`
-
-    return newPath
   }
 
   /**

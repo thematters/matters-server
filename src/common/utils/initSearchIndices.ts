@@ -1,5 +1,4 @@
 import elasticsearch from '@elastic/elasticsearch'
-import 'module-alias/register'
 
 import { environment } from 'common/environment'
 import logger from 'common/logger'

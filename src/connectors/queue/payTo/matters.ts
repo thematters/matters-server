@@ -166,6 +166,8 @@ class PayToByMattersQueue extends BaseQueue {
       job.progress(100)
       done(null, job.data)
     } catch (error) {
+      logger.error(error)
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -173,7 +175,6 @@ class PayToByMattersQueue extends BaseQueue {
           logger.error(error)
         }
       }
-      logger.error(error)
       done(error)
     }
   }

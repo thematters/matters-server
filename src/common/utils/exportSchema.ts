@@ -1,7 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import fs from 'fs'
 import { printSchema } from 'graphql'
-import 'module-alias/register'
 
 import logger from 'common/logger'
 import typeDefs from 'types'

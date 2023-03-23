@@ -75,8 +75,8 @@ class StripeService {
         email: user.email,
         metadata: { [METADATA_KEY.USER_ID]: user.id },
       })
-    } catch (err) {
-      this.handleError(err)
+    } catch (error) {
+      this.handleError(error)
     }
   }
 
