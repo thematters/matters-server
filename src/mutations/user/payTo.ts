@@ -9,8 +9,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -23,9 +23,12 @@ import {
   PaymentReachMaximumLimitError,
   UserInputError,
   UserNotFoundError,
-} from 'common/errors'
-import { fromGlobalId, isValidTransactionHash } from 'common/utils'
-import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { fromGlobalId, isValidTransactionHash } from 'common/utils/index.js'
+import {
+  payToByBlockchainQueue,
+  payToByMattersQueue,
+} from 'connectors/queue/index.js'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (

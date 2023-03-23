@@ -1,10 +1,10 @@
 import Queue from 'bull'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { isTest } from 'common/environment'
-import logger from 'common/logger'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums/index.js'
+import { isTest } from 'common/environment.js'
+import logger from 'common/logger.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 interface AssetParams {
   ids: string[]

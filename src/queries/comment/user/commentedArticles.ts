@@ -1,5 +1,8 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { UserToCommentedArticlesResolver } from 'definitions'
 
 const resolver: UserToCommentedArticlesResolver = async (

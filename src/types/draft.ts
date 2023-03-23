@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums/index.js'
 
 export default /* GraphQL */ `
   extend type Mutation {

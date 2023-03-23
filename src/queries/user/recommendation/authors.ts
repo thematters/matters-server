@@ -1,11 +1,11 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
-import { ForbiddenError } from 'common/errors'
+import { ForbiddenError } from 'common/errors.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { GQLAuthorsType, RecommendationToAuthorsResolver } from 'definitions'
 
 export const authors: RecommendationToAuthorsResolver = async (

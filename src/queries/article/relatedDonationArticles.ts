@@ -1,6 +1,9 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (

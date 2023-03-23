@@ -2,9 +2,9 @@ import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
-import { EntityNotFoundError } from 'common/errors'
-import logger from 'common/logger'
-import { aws, cfsvc, es, knex } from 'connectors'
+import { EntityNotFoundError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { aws, cfsvc, es, knex } from 'connectors/index.js'
 import { Item, TableName } from 'definitions'
 
 interface InitLoaderInput {

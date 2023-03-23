@@ -8,8 +8,8 @@ import {
   BLOCKCHAIN_CHAINID,
   NODE_TYPES,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -18,16 +18,20 @@ import {
   EmailExistsError,
   EthAddressNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { getAlchemyProvider, getViewerFromUser, IERC1271, setCookie } from 'common/utils'
-import { CacheService } from 'connectors'
+} from 'common/errors.js'
+import {
+  getAlchemyProvider,
+  getViewerFromUser,
+  IERC1271,
+  setCookie,
+} from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import {
   AuthMode,
   GQLAuthResultType,
   GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
-
 
 const resolver: MutationToWalletLoginResolver = async (
   _,
@@ -78,7 +82,9 @@ const resolver: MutationToWalletLoginResolver = async (
 
     const chainNetwork = 'PolygonMainnet'
 
-    const provider = getAlchemyProvider(Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork]))
+    const provider = getAlchemyProvider(
+      Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
+    )
 
     const bytecode = await provider.getCode(ethAddress.toLowerCase())
 

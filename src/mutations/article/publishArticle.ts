@@ -1,12 +1,12 @@
-import { PUBLISH_STATE, USER_STATE } from 'common/enums'
+import { PUBLISH_STATE, USER_STATE } from 'common/enums/index.js'
 import {
   AuthenticationError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { publicationQueue } from 'connectors/queue/index.js'
 import { MutationToPublishArticleResolver } from 'definitions'
 
 const resolver: MutationToPublishArticleResolver = async (

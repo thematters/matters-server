@@ -1,5 +1,5 @@
-import { LOG_RECORD_TYPES } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
+import { LOG_RECORD_TYPES } from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
 import { MutationToLogRecordResolver } from 'definitions'
 
 const resolver: MutationToLogRecordResolver = async (

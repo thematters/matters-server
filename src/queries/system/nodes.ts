@@ -1,10 +1,10 @@
-import { GRAPHQL_COST_LIMIT } from 'common/enums'
+import { GRAPHQL_COST_LIMIT } from 'common/enums/index.js'
 import {
   ActionLimitExceededError,
   EntityNotFoundError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { Item, QueryToNodesResolver } from 'definitions'
 
 const resolver: QueryToNodesResolver = async (

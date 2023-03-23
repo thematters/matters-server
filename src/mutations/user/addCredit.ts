@@ -4,13 +4,13 @@ import {
   PAYMENT_MINIMAL_ADD_CREDIT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   PaymentAmountInvalidError,
   PaymentAmountTooSmallError,
   ServerError,
-} from 'common/errors'
+} from 'common/errors.js'
 import { Customer, MutationToAddCreditResolver } from 'definitions'
 
 const resolver: MutationToAddCreditResolver = async (

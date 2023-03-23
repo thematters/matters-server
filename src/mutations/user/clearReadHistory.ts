@@ -1,4 +1,4 @@
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToClearReadHistoryResolver } from 'definitions'
 
 const resolver: MutationToClearReadHistoryResolver = async (

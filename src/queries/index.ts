@@ -1,16 +1,16 @@
-import { merge } from 'lodash'
+import merge from 'lodash/merge.js'
 
-import article from './article'
-import circle from './circle'
-import comment from './comment'
-import draft from './draft'
-import exchangeRates from './exchangeRates'
-import notice from './notice'
-import oauthClient from './oauthClient'
-import response from './response'
-import scalars from './scalars'
-import system from './system'
-import user from './user'
+import article from './article/index.js'
+import circle from './circle/index.js'
+import comment from './comment/index.js'
+import draft from './draft/index.js'
+import exchangeRates from './exchangeRates.js'
+import notice from './notice/index.js'
+import oauthClient from './oauthClient/index.js'
+import response from './response/index.js'
+import scalars from './scalars.js'
+import system from './system/index.js'
+import user from './user/index.js'
 
 export default merge(
   scalars,

@@ -1,4 +1,8 @@
-import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+import {
+  ActivityType,
+  LOG_RECORD_TYPES,
+  MATERIALIZED_VIEW,
+} from 'common/enums/index.js'
 import { UserStatusToUnreadFollowingResolver } from 'definitions'
 
 const resolver: UserStatusToUnreadFollowingResolver = async (

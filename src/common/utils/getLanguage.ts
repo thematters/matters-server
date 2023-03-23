@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { LANGUAGE } from 'common/enums'
-import logger from 'common/logger'
+import { LANGUAGE } from 'common/enums/index.js'
+import logger from 'common/logger.js'
 
 // map supported language to header language
 export const langMap = {

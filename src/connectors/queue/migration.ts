@@ -9,12 +9,12 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums'
-import { isTest } from 'common/environment'
-import logger from 'common/logger'
-import { sanitize } from 'common/utils'
+} from 'common/enums/index.js'
+import { isTest } from 'common/environment.js'
+import logger from 'common/logger.js'
+import { sanitize } from 'common/utils/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 class MigrationQueue extends BaseQueue {
   constructor() {
@@ -78,7 +78,6 @@ class MigrationQueue extends BaseQueue {
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
-            return
           }
 
           if (!htmls || htmls.length === 0) {

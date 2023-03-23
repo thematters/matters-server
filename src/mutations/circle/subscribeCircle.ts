@@ -10,7 +10,7 @@ import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   CircleNotFoundError,
@@ -20,9 +20,9 @@ import {
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (

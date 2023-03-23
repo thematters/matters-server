@@ -1,5 +1,5 @@
-import { INVITATION_STATE } from 'common/enums'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { INVITATION_STATE } from 'common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 import { InvitesToAcceptedResolver } from 'definitions'
 
 const resolver: InvitesToAcceptedResolver = async (

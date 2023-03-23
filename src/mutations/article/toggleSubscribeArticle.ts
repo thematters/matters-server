@@ -3,13 +3,13 @@ import {
   DB_NOTICE_TYPE,
   USER_ACTION,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleNotFoundError,
   AuthenticationError,
   ForbiddenByStateError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 
 const resolver: MutationToToggleSubscribeArticleResolver = async (

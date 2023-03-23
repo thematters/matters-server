@@ -1,10 +1,10 @@
 import { v3 as TranslateAPI } from '@google-cloud/translate'
 import axios from 'axios'
 
-import { LANGUAGE } from 'common/enums'
-import { environment, isTest } from 'common/environment'
-import { ActionFailedError, UserInputError } from 'common/errors'
-import logger from 'common/logger'
+import { LANGUAGE } from 'common/enums/index.js'
+import { environment, isTest } from 'common/environment.js'
+import { ActionFailedError, UserInputError } from 'common/errors.js'
+import logger from 'common/logger.js'
 
 const { zh_hans, zh_hant, en } = LANGUAGE
 

@@ -6,12 +6,12 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TransactionRemarkText,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { WalletToTransactionsResolver } from 'definitions'
 
 const resolver: WalletToTransactionsResolver = async (

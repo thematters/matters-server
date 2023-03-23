@@ -1,6 +1,6 @@
 import NP from 'number-precision'
 
-import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
+import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums/index.js'
 
 NP.enableBoundaryChecking(false)
 

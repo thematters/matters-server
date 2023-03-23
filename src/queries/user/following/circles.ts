@@ -1,9 +1,9 @@
-import { CIRCLE_ACTION } from 'common/enums'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { FollowingToCirclesResolver } from 'definitions'
 
 const resolver: FollowingToCirclesResolver = async (

@@ -1,5 +1,5 @@
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
 import { ArticleToCanSuperLikeResolver } from 'definitions'
 
 const resolver: ArticleToCanSuperLikeResolver = async (

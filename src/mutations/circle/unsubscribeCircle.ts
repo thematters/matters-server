@@ -7,14 +7,14 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_ITEM_REMARK,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   CircleNotFoundError,
   EntityNotFoundError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToUnsubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToUnsubscribeCircleResolver = async (

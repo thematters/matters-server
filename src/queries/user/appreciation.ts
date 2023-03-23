@@ -1,9 +1,9 @@
-import { camelCase } from 'lodash'
+import camelCase from 'lodash/camelCase.js'
 
-import { APPRECIATION_PURPOSE } from 'common/enums'
-import { ArticleNotFoundError } from 'common/errors'
-import logger from 'common/logger'
-import { i18n } from 'common/utils/i18n'
+import { APPRECIATION_PURPOSE } from 'common/enums/index.js'
+import { ArticleNotFoundError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { i18n } from 'common/utils/i18n.js'
 import { GQLAppreciationTypeResolver } from 'definitions'
 
 const trans = {

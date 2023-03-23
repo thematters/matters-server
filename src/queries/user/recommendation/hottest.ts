@@ -1,7 +1,10 @@
-import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { readonlyKnex as knexRO } from 'connectors'
+import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
+import { readonlyKnex as knexRO } from 'connectors/index.js'
 import { RecommendationToHottestResolver } from 'definitions'
 
 export const hottest: RecommendationToHottestResolver = async (

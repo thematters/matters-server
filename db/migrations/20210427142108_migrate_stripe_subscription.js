@@ -1,12 +1,13 @@
-require('dotenv').config()
+import dotenv from 'dotenv'
+dotenv.config()
 
-const Stripe = require('stripe')
+import Stripe from 'stripe'
 
 const t_subscription = 'circle_subscription'
 
 const t_subscription_item = 'circle_subscription_item'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   const secret = process.env['MATTERS_STRIPE_SECRET']
 
   if (!secret) {
@@ -114,4 +115,4 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

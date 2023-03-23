@@ -6,14 +6,14 @@ import {
   PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   PaymentBalanceInsufficientError,
   PaymentPayoutAccountExistsError,
   ServerError,
-} from 'common/errors'
-import { CacheService } from 'connectors'
+} from 'common/errors.js'
+import { CacheService } from 'connectors/index.js'
 import { MutationToConnectStripeAccountResolver } from 'definitions'
 
 const resolver: MutationToConnectStripeAccountResolver = async (

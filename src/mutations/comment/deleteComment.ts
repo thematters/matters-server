@@ -4,13 +4,13 @@ import {
   COMMENT_TYPE,
   NODE_TYPES,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToDeleteCommentResolver } from 'definitions'
 
 const resolver: MutationToDeleteCommentResolver = async (

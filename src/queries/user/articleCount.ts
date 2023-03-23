@@ -1,4 +1,4 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums/index.js'
 import { UserStatusToArticleCountResolver } from 'definitions'
 
 const resolver: UserStatusToArticleCountResolver = async (

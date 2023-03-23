@@ -2,7 +2,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { FollowingToUsersResolver } from 'definitions'
 
 const resolver: FollowingToUsersResolver = async (

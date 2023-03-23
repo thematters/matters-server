@@ -1,6 +1,6 @@
 import { stripHtml } from '@matters/ipns-site-generator'
 
-import { gcp } from 'connectors'
+import { gcp } from 'connectors/index.js'
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = async (

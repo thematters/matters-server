@@ -1,12 +1,12 @@
 // create indexes for query performance
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`-- create indexes
 CREATE UNIQUE INDEX IF NOT EXISTS tag_content_unique_index ON public.tag (content) WHERE NOT deleted ;
 `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`-- drop indexes
 DROP INDEX IF EXISTS tag_content_unique_index ;
 `)

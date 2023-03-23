@@ -1,4 +1,4 @@
-import { USER_ACTION } from 'common/enums'
+import { USER_ACTION } from 'common/enums/index.js'
 import { ArticleToSubscribedResolver } from 'definitions'
 
 const resolver: ArticleToSubscribedResolver = async (

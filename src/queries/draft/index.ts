@@ -1,16 +1,16 @@
 import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
-import { countWords, toGlobalId } from 'common/utils'
+import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums/index.js'
+import { countWords, toGlobalId } from 'common/utils/index.js'
 
-import * as draftAccess from './access'
-import articleDrafts from './article/drafts'
-import assets from './assets'
-import collection from './collection'
-import draftContent from './content'
-import draftCover from './cover'
-import drafts from './drafts'
+import * as draftAccess from './access/index.js'
+import articleDrafts from './article/drafts.js'
+import assets from './assets.js'
+import collection from './collection.js'
+import draftContent from './content.js'
+import draftCover from './cover.js'
+import drafts from './drafts.js'
 
 export default {
   Article: {

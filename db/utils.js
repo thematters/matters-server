@@ -1,4 +1,4 @@
-exports.baseDown = (table) => async (knex) => {
+export const baseDown = (table) => async (knex) => {
   const _tables = await knex('pg_catalog.pg_tables').select('tablename').where({
     schemaname: 'public',
   })
@@ -20,7 +20,7 @@ exports.baseDown = (table) => async (knex) => {
   await knex.schema.dropTable(table)
 }
 
-exports.alterEnumString = (table, column, enums) => {
+export const alterEnumString = (table, column, enums) => {
   // put quotes for table user
   const tableName = table === 'user' ? '"user"' : table
   const constraints = `${table}_${column}_check`

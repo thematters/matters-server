@@ -1,5 +1,8 @@
-import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums/index.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { RecommendationToIcymiResolver } from 'definitions'
 
 export const icymi: RecommendationToIcymiResolver = async (

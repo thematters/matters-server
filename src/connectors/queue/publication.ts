@@ -14,18 +14,18 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
 import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
   normalizeTagInput,
   // stripAllPunct,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 class PublicationQueue extends BaseQueue {
   constructor() {
@@ -382,7 +382,7 @@ class PublicationQueue extends BaseQueue {
         iscnPublish: iscnPublish || draft.iscnPublish,
         iscnId: article.iscnId,
       })
-    } catch (e) {
+    } catch (error) {
       await Promise.all([
         this.articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.error,
@@ -391,7 +391,8 @@ class PublicationQueue extends BaseQueue {
           publishState: PUBLISH_STATE.error,
         }),
       ])
-      done(e)
+
+      done(error)
     }
   }
 

@@ -10,7 +10,7 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -19,8 +19,8 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId, sanitize } from 'common/utils/index.js'
 import {
   GQLCommentType,
   MutationToPutCommentResolver,

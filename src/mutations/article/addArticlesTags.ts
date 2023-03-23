@@ -1,13 +1,13 @@
-import _difference from 'lodash/difference'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import _difference from 'lodash/difference.js'
+import _some from 'lodash/some.js'
+import _uniq from 'lodash/uniq.js'
 
 import {
   DB_NOTICE_TYPE,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -16,9 +16,9 @@ import {
   TagNotFoundError,
   TooManyTagsForArticleError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { ArticleService, NotificationService } from 'connectors'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { ArticleService, NotificationService } from 'connectors/index.js'
 import { MutationToAddArticlesTagsResolver } from 'definitions'
 
 const triggerNotice = async ({

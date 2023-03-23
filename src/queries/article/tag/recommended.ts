@@ -1,12 +1,12 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
-import { TAGS_RECOMMENDED_LIMIT } from 'common/enums'
+import { TAGS_RECOMMENDED_LIMIT } from 'common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
   normalizeTagInput,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { Item, TagToRecommendedResolver } from 'definitions'
 
 const resolver: TagToRecommendedResolver = async (

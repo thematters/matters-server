@@ -3,14 +3,14 @@ import { recoverPersonalSignature } from 'eth-sig-util'
 import { ethers } from 'ethers'
 import { Knex } from 'knex'
 
-import { environment, isProd } from 'common/environment'
+import { environment, isProd } from 'common/environment.js'
 import {
   EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { getProvider } from 'common/utils'
-import { alchemy, AlchemyNetwork } from 'connectors'
+} from 'common/errors.js'
+import { getProvider } from 'common/utils/index.js'
+import { alchemy, AlchemyNetwork } from 'connectors/index.js'
 import {
   GQLSigningMessagePurpose,
   MutationToClaimLogbooksResolver,

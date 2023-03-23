@@ -3,13 +3,13 @@ import {
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ActionLimitExceededError,
   AuthenticationError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToTogglePinCommentResolver } from 'definitions'
 
 const resolver: MutationToTogglePinCommentResolver = async (

@@ -1,6 +1,6 @@
 // create indexes for query performance
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`-- create indexes
 CREATE INDEX IF NOT EXISTS draft_article_id_index ON draft(article_id DESC NULLS LAST) ;
 
@@ -12,7 +12,7 @@ CREATE INDEX IF NOT EXISTS article_read_count_user_id_index ON article_read_coun
 `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.raw(`-- drop indexes
 DROP INDEX IF EXISTS draft_article_id_index;
 

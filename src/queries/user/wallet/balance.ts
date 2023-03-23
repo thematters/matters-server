@@ -1,4 +1,4 @@
-import { PAYMENT_CURRENCY } from 'common/enums'
+import { PAYMENT_CURRENCY } from 'common/enums/index.js'
 import { WalletToBalanceResolver } from 'definitions'
 
 const resolver: WalletToBalanceResolver = async (

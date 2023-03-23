@@ -1,7 +1,7 @@
-const { v4 } = require('uuid')
+import { v4 } from 'uuid'
 const table = 'article_read'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   return knex(table)
     .del()
     .then(function () {

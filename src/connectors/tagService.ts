@@ -13,11 +13,11 @@ import {
   TAG_ACTION,
   TAGS_RECOMMENDED_LIMIT,
   VIEW,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { ServerError } from 'common/errors'
-import logger from 'common/logger'
-import { BaseService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { ServerError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { BaseService } from 'connectors/index.js'
 import { Item, ItemData } from 'definitions'
 
 const debugLog = createDebug('tag-service')

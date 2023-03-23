@@ -1,6 +1,6 @@
 import { CacheScope } from 'apollo-cache-control'
 
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL } from 'common/enums/index.js'
 import { QueryToUserResolver } from 'definitions'
 
 const resolver: QueryToUserResolver = async (

@@ -1,18 +1,19 @@
-import { knex as knexInstantiator } from 'knex'
+import knexLib from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-import { environment, isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment.js'
 import { MaterializedView } from 'definitions'
 
-// @ts-ignore
-import knexConfig from '../../../knexfile'
+import knexConfig from './config.js'
 
-export const knex = knexInstantiator({
+export const knex = knexLib({
+  // @ts-ignore
   ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
 })
 
-export const readonlyKnex = knexInstantiator({
+export const readonlyKnex = knexLib({
+  // @ts-ignore
   ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
   ...(isTest ? {} : { connection: environment.pgReadonlyConnectionString }),
@@ -26,7 +27,8 @@ if (isTest) {
   })
 }
 
-export const searchKnexDB = knexInstantiator({
+export const searchKnexDB = knexLib({
+  // @ts-ignore
   ...knexConfig[environment.env],
   ...knexSnakeCaseMappers(),
   ...(isTest

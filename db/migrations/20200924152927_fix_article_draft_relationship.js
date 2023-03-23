@@ -6,7 +6,7 @@ const collection_table = 'collection'
 
 const REMARK = '{20200924152927_fix_article_draft_relationship,}'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Create drafts from articles
   await knex.raw(`
     INSERT INTO ${draft_table} (
@@ -97,4 +97,4 @@ exports.up = async (knex) => {
   console.log('updated articles.')
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

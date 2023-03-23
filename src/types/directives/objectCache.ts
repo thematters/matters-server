@@ -1,8 +1,8 @@
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField, GraphQLObjectType } from 'graphql'
 
-import { CACHE_PREFIX } from 'common/enums'
-import { CacheService } from 'connectors'
+import { CACHE_PREFIX } from 'common/enums/index.js'
+import { CacheService } from 'connectors/index.js'
 
 type EnhancedObject = GraphQLObjectType & {
   _ttl?: number

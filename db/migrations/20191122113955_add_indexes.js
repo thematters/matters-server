@@ -9,7 +9,7 @@ const table_action_comment = 'action_comment'
 const table_action_user = 'action_user'
 const table_log_record = 'log_record'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // article
   await knex.schema.table(table_article, (t) => {
     t.index('state').index('created_at').index('author_id')
@@ -63,7 +63,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // article
   await knex.schema.table(table_article, (t) => {
     t.dropIndex('state').dropIndex('created_at').dropIndex('author_id')

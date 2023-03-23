@@ -1,9 +1,9 @@
 import { makeSummary } from '@matters/ipns-site-generator'
 
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE } from 'common/enums/index.js'
 import { ArticleToSummaryResolver } from 'definitions'
 
-import { type as accessTypeResolver } from './access/type'
+import { type as accessTypeResolver } from './access/type.js'
 
 const resolver: ArticleToSummaryResolver = async (
   parent,

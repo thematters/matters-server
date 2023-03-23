@@ -7,7 +7,7 @@ const boost = 2
 const boost_window = 3
 const matty_donation_decay_factor = 0.95
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(/*sql*/ `
   drop view if exists ${view} cascade;
 
@@ -85,7 +85,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = function (knex) {
+export const down = function (knex) {
   knex.raw(/*sql*/ `
   drop view ${view} cascade;
   `)

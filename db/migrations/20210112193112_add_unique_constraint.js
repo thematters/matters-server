@@ -1,7 +1,7 @@
 const action_circle = 'action_circle'
 const article_circle = 'article_circle'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(action_circle, (t) => {
     t.unique(['user_id', 'action', 'target_id'])
   })
@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(article_circle, (t) => {
     t.dropUnique(['article_id', 'circle_id'])
   })

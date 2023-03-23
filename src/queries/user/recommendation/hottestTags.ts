@@ -1,10 +1,10 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { RecommendationToHottestTagsResolver } from 'definitions'
 
 export const hottestTags: RecommendationToHottestTagsResolver = async (

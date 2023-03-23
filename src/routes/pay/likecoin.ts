@@ -9,16 +9,16 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { LikeCoinWebhookError } from 'common/errors'
-import logger from 'common/logger'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { LikeCoinWebhookError } from 'common/errors.js'
+import logger from 'common/logger.js'
 import {
   AtomService,
   CacheService,
   PaymentService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 
 const likecoinRouter = Router()
 

@@ -1,9 +1,9 @@
-import { COMMENT_STATE, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE, NODE_TYPES } from 'common/enums/index.js'
 import {
   connectionFromArray, // fromConnectionArgs
   fromGlobalId,
   toGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { CircleToDiscussionResolver } from 'definitions'
 
 const resolver: CircleToDiscussionResolver = async (

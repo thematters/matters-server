@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { AuthenticationError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToPutFeaturedTagsResolver } from 'definitions'
 
 const resolver: MutationToPutFeaturedTagsResolver = async (

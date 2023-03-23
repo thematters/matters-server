@@ -1,9 +1,9 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums/index.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   loadManyFilterError,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { ArticleToCollectedByResolver } from 'definitions'
 
 const resolver: ArticleToCollectedByResolver = async (

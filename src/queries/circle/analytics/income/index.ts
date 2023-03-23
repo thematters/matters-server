@@ -1,9 +1,9 @@
 import { GQLCircleIncomeAnalyticsTypeResolver } from 'definitions/schema'
 
-import history from './history'
-import nextMonth from './nextMonth'
-import thisMonth from './thisMonth'
-import total from './total'
+import history from './history.js'
+import nextMonth from './nextMonth.js'
+import thisMonth from './thisMonth.js'
+import total from './total.js'
 
 const resolvers: GQLCircleIncomeAnalyticsTypeResolver = {
   history,

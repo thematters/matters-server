@@ -2,7 +2,7 @@ import {
   correctNestedBrTag,
   correctSelfClosingHtmlTag,
   countWords,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 test('correctSelfClosingHtmlTag', async () => {
   const htmls = [

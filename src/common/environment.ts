@@ -1,8 +1,11 @@
 import dotenv from 'dotenv'
 import fs from 'fs'
-import path from 'path'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-import { IMG_CACHE_PATH } from 'common/enums'
+import { IMG_CACHE_PATH } from 'common/enums/routes.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 dotenv.config()
 

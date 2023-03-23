@@ -4,20 +4,20 @@ import {
   PurgeCacheDirective,
 } from '@matters/apollo-response-cache'
 import { constraintDirective } from 'graphql-constraint-directive'
-import { merge } from 'lodash'
+import merge from 'lodash/merge.js'
 
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums/index.js'
 
-import mutations from './mutations'
-import queries from './queries'
-import typeDefs from './types'
+import mutations from './mutations/index.js'
+import queries from './queries/index.js'
 import {
   AuthDirective,
   DeprecatedDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
   RateLimitDirective,
-} from './types/directives'
+} from './types/directives/index.js'
+import typeDefs from './types/index.js'
 
 const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [

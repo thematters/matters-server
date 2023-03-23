@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import _capitalize from 'lodash/capitalize'
+import _capitalize from 'lodash/capitalize.js'
 
 import {
   BLOCKCHAIN_SAFE_CONFIRMS,
@@ -17,25 +17,29 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   environment,
   isProd,
   polygonUSDTContractAddress,
   polygonUSDTContractDecimals,
-} from 'common/environment'
-import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
+} from 'common/environment.js'
+import { PaymentQueueJobDataError, UnknownError } from 'common/errors.js'
 import {
   fromTokenBaseUnit,
   getQueueNameForEnv,
   toTokenBaseUnit,
-} from 'common/utils'
-import { PaymentService } from 'connectors'
-import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
-import SlackService from 'connectors/slack'
+} from 'common/utils/index.js'
+import {
+  CurationContract,
+  CurationEvent,
+  Log,
+} from 'connectors/blockchain/index.js'
+import { PaymentService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 import { GQLChain } from 'definitions'
 
-import { BaseQueue } from '../baseQueue'
+import { BaseQueue } from '../baseQueue.js'
 
 interface PaymentParams {
   txId: string

@@ -3,12 +3,12 @@ import {
   GQLPossibleNodeTypeNames,
 } from 'definitions'
 
-import frequentSearch from './frequentSearch'
-import node from './node'
-import nodes from './nodes'
-import { announcements, features, translations } from './official'
-import OSS from './oss'
-import search from './search'
+import frequentSearch from './frequentSearch.js'
+import node from './node.js'
+import nodes from './nodes.js'
+import { announcements, features, translations } from './official/index.js'
+import OSS from './oss/index.js'
+import search from './search.js'
 
 export default {
   Query: {

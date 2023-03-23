@@ -1,8 +1,8 @@
 import elasticsearch from '@elastic/elasticsearch'
 import _ from 'lodash'
 
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
 
 interface Item {
   [key: string]: any

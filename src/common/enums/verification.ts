@@ -1,4 +1,4 @@
-import { DAY, MINUTE } from './time'
+import { DAY, MINUTE } from './time.js'
 
 export enum VERIFICATION_CODE_STATUS {
   active = 'active',

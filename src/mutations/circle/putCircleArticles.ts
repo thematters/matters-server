@@ -14,7 +14,7 @@ import {
   PUBLISH_STATE,
   SUBSCRIPTION_STATE,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionReachLimitError,
@@ -23,9 +23,9 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
-import { revisionQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { correctHtml, fromGlobalId, sanitize } from 'common/utils/index.js'
+import { revisionQueue } from 'connectors/queue/index.js'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (

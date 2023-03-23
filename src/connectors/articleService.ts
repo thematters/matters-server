@@ -28,10 +28,10 @@ import {
   TRANSACTION_TARGET_TYPE,
   USER_ACTION,
   USER_STATE,
-} from 'common/enums'
-import { environment, isTest } from 'common/environment'
-import { ArticleNotFoundError, ServerError } from 'common/errors'
-import logger from 'common/logger'
+} from 'common/enums/index.js'
+import { environment, isTest } from 'common/environment.js'
+import { ArticleNotFoundError, ServerError } from 'common/errors.js'
+import logger from 'common/logger.js'
 import {
   AtomService,
   BaseService,
@@ -41,7 +41,7 @@ import {
   ipfsServers,
   SystemService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 import { GQLSearchExclude, Item } from 'definitions'
 
 const debugLog = createDebug('article-service')

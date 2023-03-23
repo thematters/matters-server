@@ -1,7 +1,7 @@
 const article_translation_table = 'article_translation'
 const tag_translation_table = 'tag_translation'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(article_translation_table, (t) => {
     t.dropUnique(['article_id'])
     t.unique(['article_id', 'language'])
@@ -12,7 +12,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(article_translation_table, (t) => {
     t.dropUnique(['article_id', 'language'])
     t.unique(['article_id'])

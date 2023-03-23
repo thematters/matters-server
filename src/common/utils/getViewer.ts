@@ -8,12 +8,12 @@ import {
   COOKIE_USER_GROUP,
   USER_ROLE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
-import logger from 'common/logger'
-import { clearCookie, getLanguage } from 'common/utils'
-import { OAuthService, SystemService, UserService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { ForbiddenByStateError, TokenInvalidError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { clearCookie, getLanguage } from 'common/utils/index.js'
+import { OAuthService, SystemService, UserService } from 'connectors/index.js'
 import { Viewer } from 'definitions'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]

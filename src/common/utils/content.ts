@@ -1,7 +1,7 @@
 import { stripHtml } from '@matters/ipns-site-generator'
 import * as cheerio from 'cheerio'
-import cloneDeep from 'lodash/cloneDeep'
-import flow from 'lodash/flow'
+import cloneDeep from 'lodash/cloneDeep.js'
+import flow from 'lodash/flow.js'
 
 export const countWords = (html: string) => {
   // Chinese(\u4e00-\u9fcc); Korean(\uac00-\ud7af); Japanese(\u3040-\u309f\u30a0-\u30ff); Russian([\u0401\u0451\u0410-\u044f]+)

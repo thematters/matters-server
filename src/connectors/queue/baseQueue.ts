@@ -1,7 +1,8 @@
 import Queue from 'bull'
 import { Knex } from 'knex'
 
-import logger from 'common/logger'
+import logger from 'common/logger.js'
+import { knex } from 'connectors/db/index.js'
 import {
   ArticleService,
   AtomService,
@@ -11,10 +12,9 @@ import {
   SystemService,
   TagService,
   UserService,
-} from 'connectors'
-import { knex } from 'connectors/db'
+} from 'connectors/index.js'
 
-import { createQueue, CustomQueueOpts } from './utils'
+import { createQueue, CustomQueueOpts } from './utils.js'
 
 export class BaseQueue {
   q: InstanceType<typeof Queue>

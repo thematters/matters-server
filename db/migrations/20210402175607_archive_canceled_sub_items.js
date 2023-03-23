@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`
     UPDATE
       circle_subscription_item
@@ -17,4 +17,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = () => {}
+export const down = () => {}

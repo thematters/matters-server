@@ -1,5 +1,5 @@
-// import logger from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+// import logger from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToUpdateUserRoleResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserRoleResolver = async (

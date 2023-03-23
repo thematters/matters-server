@@ -1,6 +1,6 @@
-import _get from 'lodash/get'
-import _set from 'lodash/set'
-import _values from 'lodash/values'
+import _get from 'lodash/get.js'
+import _set from 'lodash/set.js'
+import _values from 'lodash/values.js'
 
 import {
   MATERIALIZED_VIEW,
@@ -10,9 +10,9 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
-import { refreshView, UserService } from 'connectors'
+} from 'common/enums/index.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
+import { refreshView, UserService } from 'connectors/index.js'
 
 import { createDonationTx, createTx } from '../../connectors/__test__/utils'
 import {
@@ -20,7 +20,7 @@ import {
   getUserContext,
   registerUser,
   testClient,
-} from './utils'
+} from './utils.js'
 
 let userService: any
 beforeAll(async () => {

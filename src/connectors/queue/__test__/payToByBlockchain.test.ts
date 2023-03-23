@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -8,11 +10,11 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { environment, polygonUSDTContractAddress } from 'common/environment'
-import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
+} from 'common/enums/index.js'
+import { environment, polygonUSDTContractAddress } from 'common/environment.js'
+import { PaymentQueueJobDataError, UnknownError } from 'common/errors.js'
 import { CurationContract } from 'connectors/blockchain'
-import { payToByBlockchainQueue } from 'connectors/queue'
+import { payToByBlockchainQueue } from 'connectors/queue/index.js'
 import { GQLChain } from 'definitions'
 
 // setup mock
@@ -20,7 +22,7 @@ import { GQLChain } from 'definitions'
 const mockFetchLogs = jest.fn()
 const mockFetchTxReceipt = jest.fn()
 const mockFetchBlockNumber = jest.fn()
-jest.mock('connectors/blockchain', () => {
+jest.unstable_mockModule('connectors/blockchain', () => {
   return {
     __esModule: true,
     CurationContract: jest.fn().mockImplementation(() => {
@@ -101,6 +103,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   beforeAll(() => {
     queue.delay = 1
     mockFetchTxReceipt.mockClear()
+    // @ts-ignore
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
@@ -271,6 +274,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const syncRecordTable = 'blockchain_sync_record'
 
   beforeAll(() => {
+    // @ts-ignore
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
@@ -283,6 +287,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       }
     })
     mockFetchLogs.mockImplementation(
+      // @ts-ignore
       async (fromBlock: number, toBlock: number) => {
         return []
       }

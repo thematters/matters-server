@@ -1,8 +1,8 @@
-import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
-import { environment, imgCacheServicePrefix } from 'common/environment'
-import { toGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
-import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
+import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums/index.js'
+import { environment, imgCacheServicePrefix } from 'common/environment.js'
+import { toGlobalId } from 'common/utils/index.js'
+import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index.js'
+import { CacheService } from 'connectors/index.js'
 import {
   CryptoWalletToHasNFTsResolver,
   CryptoWalletToNftsResolver,

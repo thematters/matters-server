@@ -1,6 +1,6 @@
 const table = 'user_notify_setting'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.table(table, (t) => {
     // rename
     t.renameColumn('follow', 'user_new_follower')
@@ -22,7 +22,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(table, (t) => {
     // drop circle related settings
     t.dropColumn('circle_new_follower')

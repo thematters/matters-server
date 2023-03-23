@@ -1,13 +1,13 @@
-import { merge } from 'lodash'
+import merge from 'lodash/merge.js'
 
-import article from './article'
-import circle from './circle'
-import comment from './comment'
-import draft from './draft'
-import notice from './notice'
-import oauthClient from './oauthClient'
-import system from './system'
-import user from './user'
+import article from './article/index.js'
+import circle from './circle/index.js'
+import comment from './comment/index.js'
+import draft from './draft/index.js'
+import notice from './notice/index.js'
+import oauthClient from './oauthClient/index.js'
+import system from './system/index.js'
+import user from './user/index.js'
 
 export default merge(
   article,

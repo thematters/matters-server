@@ -1,8 +1,8 @@
-import { has, isEmpty, isNil, omitBy } from 'lodash'
+import lodash from 'lodash'
 import { v4 } from 'uuid'
 
-import { ASSET_TYPE } from 'common/enums'
-import { imgCacheServicePrefix } from 'common/environment'
+import { ASSET_TYPE } from 'common/enums/index.js'
+import { imgCacheServicePrefix } from 'common/environment.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -12,16 +12,16 @@ import {
   NameInvalidError,
   PasswordInvalidError,
   UserInputError,
-} from 'common/errors'
-import logger from 'common/logger'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
 import {
   generatePasswordhash,
   isValidDisplayName,
   isValidPaymentPassword,
   isValidUserName,
   setCookie,
-} from 'common/utils'
-import { aws, cfsvc } from 'connectors'
+} from 'common/utils/index.js'
+import { aws, cfsvc } from 'connectors/index.js'
 import {
   GQLAssetType,
   ItemData,
@@ -48,8 +48,10 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   const updateParams: { [key: string]: any } = {
-    ...(has(input, 'description') ? { description: input.description } : {}),
-    ...(has(input, 'language') ? { language: input.language } : {}),
+    ...(lodash.has(input, 'description')
+      ? { description: input.description }
+      : {}),
+    ...(lodash.has(input, 'language') ? { language: input.language } : {}),
   }
 
   // check avatar
@@ -198,7 +200,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     }
   }
 
-  if (isEmpty(updateParams)) {
+  if (lodash.isEmpty(updateParams)) {
     throw new UserInputError('bad request')
   }
 
@@ -225,7 +227,10 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   const { description, displayName, userName } = updateParams
 
   if (description || displayName || userName) {
-    const searchable = omitBy({ description, displayName, userName }, isNil)
+    const searchable = lodash.omitBy(
+      { description, displayName, userName },
+      lodash.isNil
+    )
 
     try {
       await atomService.es.client.update({

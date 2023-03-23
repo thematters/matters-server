@@ -1,5 +1,5 @@
-import { UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { UserInputError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToToggleSeedingUsersResolver } from 'definitions'
 
 const resolver: MutationToToggleSeedingUsersResolver = async (

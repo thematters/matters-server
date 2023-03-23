@@ -1,9 +1,12 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
-import { VIEW } from 'common/enums'
-// import { environment } from 'common/environment'
-import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { VIEW } from 'common/enums/index.js'
+// import { environment } from 'common/environment.js'
+import { ForbiddenError } from 'common/errors.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { RecommendationToTagsResolver } from 'definitions'
 
 export const tags: RecommendationToTagsResolver = async (

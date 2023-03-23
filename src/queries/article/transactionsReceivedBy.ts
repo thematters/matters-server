@@ -1,9 +1,9 @@
-import { TRANSACTION_PURPOSE } from 'common/enums'
+import { TRANSACTION_PURPOSE } from 'common/enums/index.js'
 import {
   connectionFromPromisedArray,
   fromConnectionArgs,
   fromGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { ArticleToTransactionsReceivedByResolver, Item } from 'definitions'
 
 const dashCase = (str: string) =>

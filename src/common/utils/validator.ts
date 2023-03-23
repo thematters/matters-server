@@ -1,6 +1,6 @@
-import isEmail from 'validator/lib/isEmail'
+import isEmail from 'validator/lib/isEmail.js'
 
-import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums'
+import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums/index.js'
 
 /**
  * Validate email address.

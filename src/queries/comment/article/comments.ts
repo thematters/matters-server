@@ -1,5 +1,5 @@
-import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 import { ArticleToCommentsResolver } from 'definitions'
 
 const resolver: ArticleToCommentsResolver = async (

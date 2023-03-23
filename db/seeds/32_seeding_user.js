@@ -1,6 +1,6 @@
 const table = 'seeding_user'
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   await knex(table).del()
   await knex(table).insert([
     {

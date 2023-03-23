@@ -1,9 +1,9 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const schema = 'bq_etl'
 const table = 'bq_traffic'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
   await knex.schema.createTable(`${schema}.${table}`, (t) => {
     t.bigIncrements('id').primary()
@@ -24,7 +24,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await baseDown(`${schema}.${table}`)(knex)
   await knex.raw(`DROP SCHEMA IF EXISTS ${schema}`)
 }

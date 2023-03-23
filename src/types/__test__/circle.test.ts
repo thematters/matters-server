@@ -1,16 +1,16 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
   // PUBLISH_STATE,
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
-// import { AtomService } from 'connectors'
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
+// import { AtomService } from 'connectors/index.js'
 import { GQLCommentType } from 'definitions'
 
-import { delay, publishArticle, putDraft, testClient } from './utils'
+import { delay, publishArticle, putDraft, testClient } from './utils.js'
 
 const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {

@@ -1,10 +1,10 @@
 import { GQLWalletTypeResolver } from 'definitions'
 
-import balance from './balance'
-import cardLast4 from './cardLast4'
-import customerPortal from './customerPortal'
-import stripeAccount from './stripeAccount'
-import transactions from './transactions'
+import balance from './balance.js'
+import cardLast4 from './cardLast4.js'
+import customerPortal from './customerPortal.js'
+import stripeAccount from './stripeAccount.js'
+import transactions from './transactions.js'
 
 const Wallet: GQLWalletTypeResolver = {
   balance,

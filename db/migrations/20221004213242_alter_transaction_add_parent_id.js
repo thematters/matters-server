@@ -1,6 +1,6 @@
 const table = 'transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.bigInteger('parent_id').unsigned().nullable()
 
@@ -10,7 +10,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.alterTable(table, (t) => {
     t.dropIndex('parent_id')
     t.dropColumn('parent_id')

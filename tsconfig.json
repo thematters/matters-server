@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "node",
     "strict": true,
     "removeComments": true,
     "noUnusedLocals": true,
@@ -11,12 +12,12 @@
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "paths": {
-      "common": ["common/"],
-      "connectors": ["connectors/"],
-      "definitions": ["definitions/"],
-      "middlewares": ["middlewares"],
-      "mutations": ["mutations/"],
-      "queries": ["queries/"]
+      "common/*": ["common/*"],
+      "connectors/*": ["connectors/*"],
+      "definitions/*": ["definitions/*"],
+      "middlewares/*": ["middlewares/*"],
+      "mutations/*": ["mutations/*"],
+      "queries/*": ["queries/*"]
     },
     "pretty": true,
     "lib": [
@@ -29,10 +30,10 @@
       "esnext"
     ],
     "outDir": "./build",
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "strictPropertyInitialization": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "useUnknownInCatchVariables": false
   },
   "exclude": ["node_modules"]
 }

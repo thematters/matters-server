@@ -1,7 +1,7 @@
 const article_table = 'article'
 const draft_table = 'draft'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   await knex.raw(`
     UPDATE
       ${draft_table}
@@ -26,4 +26,4 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

@@ -1,6 +1,6 @@
 import { makeSummary } from '@matters/ipns-site-generator'
 
-import { i18n } from 'common/utils/i18n'
+import { i18n } from 'common/utils/i18n.js'
 
 export default {
   user_new_follower: i18n<{ displayName: string }>({

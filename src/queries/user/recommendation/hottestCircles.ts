@@ -1,4 +1,4 @@
-import { connectionFromArray } from 'common/utils'
+import { connectionFromArray } from 'common/utils/index.js'
 import { RecommendationToHottestCirclesResolver } from 'definitions'
 
 const resolver: RecommendationToHottestCirclesResolver = async (

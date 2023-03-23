@@ -3,7 +3,7 @@ import {
   // normalizeTagInput,
   stripAllPunct,
   tagSlugify,
-} from 'common/utils'
+} from 'common/utils/index.js'
 
 test('stripAllPunct', () => {
   const pairs = [

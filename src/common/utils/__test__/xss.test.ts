@@ -1,4 +1,4 @@
-import { sanitize } from 'common/utils'
+import { sanitize } from 'common/utils/index.js'
 
 test('valid contents', async () => {
   const htmls = [

@@ -7,14 +7,14 @@ import {
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
-import { numMinus, numRound, numTimes } from 'common/utils'
-import { AtomService, ExchangeRate, PaymentService } from 'connectors'
-import SlackService from 'connectors/slack'
+} from 'common/enums/index.js'
+import { PaymentQueueJobDataError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { numMinus, numRound, numTimes } from 'common/utils/index.js'
+import { AtomService, ExchangeRate, PaymentService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 interface PaymentParams {
   txId: string
@@ -144,6 +144,7 @@ class PayoutQueue extends BaseQueue {
           data,
           message: error?.message || 'failed to get currency rate.',
         })
+
         throw error
       }
 
@@ -224,6 +225,8 @@ class PayoutQueue extends BaseQueue {
         message: `failed to payout: ${data.txId}.`,
       })
 
+      logger.error(error)
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -232,7 +235,6 @@ class PayoutQueue extends BaseQueue {
         }
       }
 
-      logger.error(error)
       done(error)
     }
   }

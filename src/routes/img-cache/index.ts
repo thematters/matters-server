@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express'
 import { v4 } from 'uuid'
 
-import { getViewerFromReq } from 'common/utils'
-import { aws, cfsvc } from 'connectors'
+import { getViewerFromReq } from 'common/utils/index.js'
+import { aws, cfsvc } from 'connectors/index.js'
 import { GQLAssetType } from 'definitions'
 
 export const imgCache = Router()

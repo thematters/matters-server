@@ -1,9 +1,9 @@
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   toGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { OSSToSkippedListItemsResolver } from 'definitions'
 
 export const skippedListItems: OSSToSkippedListItemsResolver = async (

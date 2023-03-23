@@ -1,6 +1,6 @@
 import { MutationToUnpinCommentResolver } from 'definitions'
 
-import togglePinCommentResolver from './togglePinComment'
+import togglePinCommentResolver from './togglePinComment.js'
 
 const resolver: MutationToUnpinCommentResolver = async (
   parent,

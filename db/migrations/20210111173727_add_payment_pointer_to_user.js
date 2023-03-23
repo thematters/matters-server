@@ -1,12 +1,12 @@
 const table = 'user'
 const column = 'payment_pointer'
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.schema.table(table, (t) => {
     t.text(column)
   })
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.schema.table(table, (t) => {
     t.dropColumn(column)
   })

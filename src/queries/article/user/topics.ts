@@ -1,4 +1,4 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 import { UserToTopicsResolver } from 'definitions'
 
 const resolver: UserToTopicsResolver = async (

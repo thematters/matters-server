@@ -1,12 +1,12 @@
 const table = 'transaction'
 const column = 'remark'
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.schema.table(table, (t) => {
     t.string(column)
   })
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.schema.table(table, (t) => {
     t.dropColumn(column)
   })

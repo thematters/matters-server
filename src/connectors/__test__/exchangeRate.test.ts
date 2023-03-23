@@ -1,4 +1,4 @@
-import { CacheService, ExchangeRate } from 'connectors'
+import { CacheService, ExchangeRate } from 'connectors/index.js'
 
 // stub data
 

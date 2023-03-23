@@ -1,10 +1,10 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import _uniq from 'lodash/uniq'
+import _uniq from 'lodash/uniq.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import { MutationToDeleteTopicsResolver } from 'definitions'
 
 const resolver: MutationToDeleteTopicsResolver = async (

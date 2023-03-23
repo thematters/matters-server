@@ -1,8 +1,8 @@
 import { WebClient } from '@slack/web-api'
 
-import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
 
 class SlackService {
   client: WebClient

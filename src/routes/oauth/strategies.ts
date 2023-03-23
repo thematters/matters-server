@@ -3,10 +3,10 @@ import LikeCoinStrategy from '@matters/passport-likecoin'
 import _ from 'lodash'
 import passport from 'passport'
 
-import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import { CacheService, UserService } from 'connectors'
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
+import { CacheService, UserService } from 'connectors/index.js'
 
 export default () => {
   passport.use(

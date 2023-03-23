@@ -1,4 +1,4 @@
-import { correctHtml } from 'common/utils'
+import { correctHtml } from 'common/utils/index.js'
 import { DraftToContentResolver } from 'definitions'
 
 // ACL for article content

@@ -1,4 +1,4 @@
-import { getUserGroup } from 'common/utils'
+import { getUserGroup } from 'common/utils/index.js'
 import { UserInfoToGroupResolver } from 'definitions'
 
 const resolver: UserInfoToGroupResolver = async ({ id }, _, { viewer }) => {

@@ -1,6 +1,6 @@
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk.js'
 
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 import { RecommendationToSelectedTagsResolver } from 'definitions'
 
 export const selectedTags: RecommendationToSelectedTagsResolver = async (

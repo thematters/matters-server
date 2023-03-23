@@ -2,9 +2,9 @@ import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 import Redis from 'ioredis'
 
-import { CACHE_PREFIX } from 'common/enums'
-import { ActionLimitExceededError } from 'common/errors'
-import { CacheService } from 'connectors'
+import { CACHE_PREFIX } from 'common/enums/index.js'
+import { ActionLimitExceededError } from 'common/errors.js'
+import { CacheService } from 'connectors/index.js'
 
 const checkOperationLimit = async ({
   user,

@@ -5,13 +5,13 @@ import {
 } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 import {
   ArticleService,
   DraftService,
   SystemService,
   TagService,
-} from 'connectors'
+} from 'connectors/index.js'
 import { Item } from 'definitions'
 
 export class Feed {

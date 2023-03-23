@@ -1,16 +1,16 @@
-import _difference from 'lodash/difference'
-import _inter from 'lodash/intersection'
-import _uniq from 'lodash/uniq'
+import _difference from 'lodash/difference.js'
+import _inter from 'lodash/intersection.js'
+import _uniq from 'lodash/uniq.js'
 
-import { ASSET_TYPE, USER_STATE } from 'common/enums'
+import { ASSET_TYPE, USER_STATE } from 'common/enums/index.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToPutTopicResolver } from 'definitions'
 
 const resolver: MutationToPutTopicResolver = async (

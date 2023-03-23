@@ -1,10 +1,10 @@
-import _last from 'lodash/last'
+import _last from 'lodash/last.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { RecommendationToReadTagsArticlesResolver } from 'definitions'
 
 const resolver: RecommendationToReadTagsArticlesResolver = async (

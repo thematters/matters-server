@@ -1,4 +1,4 @@
-import { ForbiddenError } from 'common/errors'
+import { ForbiddenError } from 'common/errors.js'
 import { ArticleAccessToSecretResolver } from 'definitions'
 
 export const secret: ArticleAccessToSecretResolver = async (

@@ -5,9 +5,9 @@ import {
   responsePathAsArray,
 } from 'graphql'
 
-import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
-import { isScopeAllowed } from 'common/utils/scope'
+import { AUTH_MODE, SCOPE_GROUP } from 'common/enums/index.js'
+import { ForbiddenError } from 'common/errors.js'
+import { isScopeAllowed } from 'common/utils/scope.js'
 
 export class AuthDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {

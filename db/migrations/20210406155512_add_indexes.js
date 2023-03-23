@@ -1,6 +1,6 @@
 const table_transaction = 'transaction'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // transaction
   await knex.schema.table(table_transaction, (t) => {
     t.index('target_id')
@@ -9,7 +9,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // transaction
   await knex.schema.table(table_transaction, (t) => {
     t.dropIndex('target_id')

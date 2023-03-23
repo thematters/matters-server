@@ -4,7 +4,7 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import { CircleIncomeAnalyticsToTotalResolver } from 'definitions'
 
 const resolver: CircleIncomeAnalyticsToTotalResolver = async (

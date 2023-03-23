@@ -1,4 +1,9 @@
-import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import {
+  AUTH_MODE,
+  CACHE_TTL,
+  NODE_TYPES,
+  SCOPE_GROUP,
+} from 'common/enums/index.js'
 
 const TranslatedAnnouncementFields = `
   language: UserLanguage!

@@ -10,8 +10,8 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   ArticleNotFoundError,
   AssetNotFoundError,
@@ -23,14 +23,14 @@ import {
   NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
   // normalizeTagInput,
   sanitize,
   // stripAllPunct,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 function sanitizeTags(tags: string[] | null | undefined) {

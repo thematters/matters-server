@@ -1,4 +1,7 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { OSSToOauthClientsResolver } from 'definitions'
 
 export const oauthClients: OSSToOauthClientsResolver = async (

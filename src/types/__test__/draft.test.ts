@@ -1,16 +1,16 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
   // PUBLISH_STATE
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
 import {
   // publishArticle,
   putDraft,
-} from './utils'
+} from './utils.js'
 
 describe('put draft', () => {
   let draftId: string

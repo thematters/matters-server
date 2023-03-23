@@ -1,5 +1,5 @@
-import { TagNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { TagNotFoundError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToToggleTagRecommendResolver } from 'definitions'
 
 const resolver: MutationToToggleTagRecommendResolver = async (

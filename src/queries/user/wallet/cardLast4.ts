@@ -1,4 +1,4 @@
-import { PAYMENT_PROVIDER } from 'common/enums'
+import { PAYMENT_PROVIDER } from 'common/enums/index.js'
 import { Customer, WalletToCardLast4Resolver } from 'definitions'
 
 const resolver: WalletToCardLast4Resolver = async (

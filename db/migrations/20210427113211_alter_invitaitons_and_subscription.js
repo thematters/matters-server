@@ -1,4 +1,4 @@
-const { alterEnumString } = require('../utils')
+import { alterEnumString } from '../utils.js'
 
 const coupon = 'circle_coupon'
 
@@ -10,7 +10,7 @@ const subscription_item = 'circle_subscription_item'
 
 const durations = [1, 3, 6, 12]
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // alter circle invitation
   await knex.schema.table(invitation, (t) => {
     t.bigInteger('coupon_id').nullable().alter()
@@ -59,7 +59,7 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // revert circle invitation
   await knex.schema.table(invitation, (t) => {
     t.bigInteger('coupon_id').notNullable().alter()

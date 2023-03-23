@@ -1,1 +1,1 @@
-export * from './knex'
+export * from './knex.js'

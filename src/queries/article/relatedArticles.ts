@@ -1,12 +1,12 @@
 import _ from 'lodash'
 
-import { ARTICLE_STATE } from 'common/enums'
-import logger from 'common/logger'
+import { ARTICLE_STATE } from 'common/enums/index.js'
+import logger from 'common/logger.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   loadManyFilterError,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (

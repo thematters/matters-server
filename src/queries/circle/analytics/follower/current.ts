@@ -1,4 +1,4 @@
-import { CIRCLE_ACTION } from 'common/enums'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
 import { CircleFollowerAnalyticsToCurrentResolver } from 'definitions'
 
 const resolver: CircleFollowerAnalyticsToCurrentResolver = (

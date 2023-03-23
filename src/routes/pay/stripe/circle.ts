@@ -12,18 +12,18 @@ import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import { ServerError } from 'common/errors'
-import logger from 'common/logger'
-import { toDBAmount } from 'common/utils'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { ServerError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { toDBAmount } from 'common/utils/index.js'
 import {
   AtomService,
   CacheService,
   NotificationService,
   PaymentService,
-} from 'connectors'
-import SlackService from 'connectors/slack'
+} from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 const stripe = new Stripe(environment.stripeSecret, {

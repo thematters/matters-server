@@ -1,9 +1,9 @@
-import _difference from 'lodash/difference'
-import _inter from 'lodash/intersection'
-import _uniq from 'lodash/uniq'
+import _difference from 'lodash/difference.js'
+import _inter from 'lodash/intersection.js'
+import _uniq from 'lodash/uniq.js'
 
-import { ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { ForbiddenError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToSortTopicsResolver } from 'definitions'
 
 const resolver: MutationToSortTopicsResolver = async (

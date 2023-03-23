@@ -1,6 +1,6 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // copy transaction table
   await knex.raw(/*sql*/ `
   create table if not exists appreciation as
@@ -71,4 +71,4 @@ exports.up = async (knex) => {
   from article_activity_view`)
 }
 
-exports.down = async () => {}
+export const down = async () => {}

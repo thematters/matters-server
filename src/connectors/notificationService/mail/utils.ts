@@ -1,4 +1,4 @@
-import { i18n } from 'common/utils/i18n'
+import { i18n } from 'common/utils/i18n.js'
 
 export const trans = {
   verificationCode: {

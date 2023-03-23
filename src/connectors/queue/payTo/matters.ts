@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import _capitalize from 'lodash/capitalize'
+import _capitalize from 'lodash/capitalize.js'
 
 import {
   NODE_TYPES,
@@ -9,13 +9,13 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
   TRANSACTION_STATE,
-} from 'common/enums'
-import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
-import { getQueueNameForEnv } from 'common/utils'
-import { PaymentService } from 'connectors'
+} from 'common/enums/index.js'
+import { PaymentQueueJobDataError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { getQueueNameForEnv } from 'common/utils/index.js'
+import { PaymentService } from 'connectors/index.js'
 
-import { BaseQueue } from '../baseQueue'
+import { BaseQueue } from '../baseQueue.js'
 
 interface PaymentParams {
   txId: string
@@ -166,6 +166,8 @@ class PayToByMattersQueue extends BaseQueue {
       job.progress(100)
       done(null, job.data)
     } catch (error) {
+      logger.error(error)
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -173,7 +175,6 @@ class PayToByMattersQueue extends BaseQueue {
           logger.error(error)
         }
       }
-      logger.error(error)
       done(error)
     }
   }

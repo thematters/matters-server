@@ -1,5 +1,5 @@
-import { environment } from 'common/environment'
-import { mailService } from 'connectors'
+import { environment } from 'common/environment.js'
+import { mailService } from 'connectors/index.js'
 
 test('send', async () => {
   await mailService.send({

@@ -1,10 +1,10 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 import { GQLCommentType } from 'definitions'
 
-import { testClient } from './utils'
+import { testClient } from './utils.js'
 
 const isDesc = (ints: number[]) =>
   ints

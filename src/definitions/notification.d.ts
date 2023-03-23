@@ -2,7 +2,7 @@ import {
   DB_NOTICE_TYPE,
   BUNDLED_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums/notification'
+} from 'common/enums/notification.js'
 import { TableName, User } from 'definitions'
 
 export type DBNoticeType = keyof typeof DB_NOTICE_TYPE

@@ -10,7 +10,7 @@ const baseConfig = {
     user: process.env.MATTERS_PG_USER,
     password: process.env.MATTERS_PG_PASSWORD,
     database: process.env.MATTERS_PG_DATABASE,
-    application_name: 'matters-server',
+    // application_name: ``,
   },
   migrations: {
     tableName: 'knex_migrations',
@@ -21,12 +21,12 @@ const baseConfig = {
   },
 }
 
-export default {
+const configs = {
   test: {
     ...baseConfig,
     connection: {
       ...baseConfig.connection,
-      database: 'test_' + process.env['MATTERS_PG_DATABASE'], // always prefix test db with 'test_'
+      database: 'test_' + process.env.MATTERS_PG_DATABASE, // always prefix test db with 'test_'
     },
   },
 
@@ -44,3 +44,5 @@ export default {
     },
   },
 }
+
+export default configs

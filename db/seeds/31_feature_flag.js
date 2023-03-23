@@ -1,6 +1,6 @@
 const table = 'feature_flag'
 
-exports.seed = async (knex) => {
+export const seed = async (knex) => {
   await knex(table).del()
   await knex(table).insert([
     {

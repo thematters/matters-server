@@ -2,7 +2,7 @@ const view = 'tag_count_view'
 
 const materialized = 'tag_count_materialized'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // drop materialzied view
   await knex.raw(`drop materialized view if exists ${materialized}`)
 
@@ -75,7 +75,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // drop materialzied view
   await knex.raw(`drop materialized view if exists ${materialized}`)
 

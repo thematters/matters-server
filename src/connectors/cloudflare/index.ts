@@ -3,7 +3,7 @@ import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
 
-import { environment, isProd } from 'common/environment'
+import { environment, isProd } from 'common/environment.js'
 import { GQLAssetType } from 'definitions'
 
 const envPrefix = isProd ? 'prod' : 'non-prod'

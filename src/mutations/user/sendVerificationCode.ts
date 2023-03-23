@@ -3,17 +3,17 @@ import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_DOMAIN_WHITELIST,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import logger from 'common/logger'
-import { extractRootDomain } from 'common/utils'
-import { gcp } from 'connectors'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
+import { extractRootDomain } from 'common/utils/index.js'
+import { gcp } from 'connectors/index.js'
 import {
   GQLVerificationCodeType,
   MutationToSendVerificationCodeResolver,

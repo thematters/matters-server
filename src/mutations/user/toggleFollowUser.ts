@@ -3,15 +3,15 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ActionFailedError,
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
   UserNotFoundError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToToggleFollowUserResolver } from 'definitions'
 
 const resolver: MutationToToggleFollowUserResolver = async (

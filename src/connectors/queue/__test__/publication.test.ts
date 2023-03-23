@@ -1,7 +1,7 @@
 import { v4 } from 'uuid'
 
-import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
-import { publicationQueue } from 'connectors/queue'
+import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums/index.js'
+import { publicationQueue } from 'connectors/queue/index.js'
 
 describe('publicationQueue.publishArticle', () => {
   test('publish not pending draft', async () => {

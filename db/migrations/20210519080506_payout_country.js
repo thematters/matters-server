@@ -1,9 +1,11 @@
-require('dotenv').config()
-const Stripe = require('stripe')
+import dotenv from 'dotenv'
+dotenv.config()
+
+import Stripe from 'stripe'
 
 const payoutAccount = 'payout_account'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add `country` and `currency` column
   await knex.schema.table(payoutAccount, function (t) {
     t.string('country')
@@ -71,7 +73,7 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   await knex.schema.table(payoutAccount, function (t) {
     t.dropColumn('currency')
     t.dropColumn('country')

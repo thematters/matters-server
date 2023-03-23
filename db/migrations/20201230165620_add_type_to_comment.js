@@ -1,7 +1,7 @@
 const table = 'comment'
 const column = 'type'
 
-exports.up = (knex) =>
+export const up = (knex) =>
   knex.schema.table(table, (t) => {
     t.enu(column, ['article', 'circle_discussion', 'circle_announcement'])
       .notNullable()
@@ -10,7 +10,7 @@ exports.up = (knex) =>
     t.index(column)
   })
 
-exports.down = (knex) =>
+export const down = (knex) =>
   knex.schema.table(table, (t) => {
     t.dropColumn(column)
   })

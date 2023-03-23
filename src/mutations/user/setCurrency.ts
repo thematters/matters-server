@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError } from 'common/errors.js'
 import { MutationToSetCurrencyResolver } from 'definitions'
 
 const resolver: MutationToSetCurrencyResolver = async (

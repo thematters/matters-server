@@ -1,6 +1,6 @@
 const table = 'action_article'
 
-exports.seed = function (knex, Promise) {
+export const seed = function (knex, Promise) {
   // Deletes ALL existing entries
   return knex(table)
     .del()

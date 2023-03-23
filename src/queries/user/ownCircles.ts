@@ -1,4 +1,4 @@
-import { CIRCLE_STATE } from 'common/enums'
+import { CIRCLE_STATE } from 'common/enums/index.js'
 import { UserToOwnCirclesResolver } from 'definitions'
 
 const resolver: UserToOwnCirclesResolver = async (

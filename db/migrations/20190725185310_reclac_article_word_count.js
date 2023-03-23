@@ -1,5 +1,4 @@
-const chunk = require('lodash/chunk')
-const pick = require('lodash/pick')
+import chunk from 'lodash/chunk.js'
 
 const table = 'article'
 
@@ -13,7 +12,7 @@ const countWords = (html) => {
   return matches ? matches.length : 0
 }
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // Gather ids
   const chunks = chunk(await knex(table).select('id'), 5)
   for (const ids of chunks) {
@@ -40,4 +39,4 @@ exports.up = async (knex) => {
   }
 }
 
-exports.down = async (knex) => {}
+export const down = async (knex) => {}

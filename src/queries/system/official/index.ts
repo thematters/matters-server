@@ -1,3 +1,3 @@
-export * from './announcements'
-export * from './features'
-export * from './translations'
+export * from './announcements.js'
+export * from './features.js'
+export * from './translations.js'

@@ -1,7 +1,7 @@
 import { distance } from 'fastest-levenshtein'
-import { OpenCC } from 'opencc'
+import opencc from 'opencc'
 
-import { MAX_TAG_CONTENT_LENGTH } from 'common/enums'
+import { MAX_TAG_CONTENT_LENGTH } from 'common/enums/index.js'
 
 /**
  * Get distances of two context diffs.
@@ -40,7 +40,7 @@ export const stripSpaces = (content: string | null) =>
 export const normalizeTagInput = (content: string) =>
   stripAllPunct(content).substring(0, MAX_TAG_CONTENT_LENGTH)
 
-const t2sConverter: OpenCC = new OpenCC('t2s.json')
+const t2sConverter: opencc.OpenCC = new opencc.OpenCC('t2s.json')
 
 export const normalizeQueryInput = async (content: string): Promise<string> =>
   t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)

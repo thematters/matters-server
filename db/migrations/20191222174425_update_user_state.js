@@ -1,10 +1,10 @@
 const table = 'user'
 
-exports.up = async (knex) =>
+export const up = async (knex) =>
   await knex(table)
     .where({
       state: 'onboarding',
     })
     .update('state', 'active')
 
-exports.down = () => {}
+export const down = () => {}

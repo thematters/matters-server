@@ -1,7 +1,7 @@
 import { utils } from 'ethers'
 import { customAlphabet } from 'nanoid'
 
-import { UserInputError } from 'common/errors'
+import { UserInputError } from 'common/errors.js'
 import {
   GQLSigningMessagePurpose,
   MutationToGenerateSigningMessageResolver,

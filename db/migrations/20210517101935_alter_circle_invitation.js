@@ -1,9 +1,9 @@
-const { baseDown } = require('../utils')
+import { baseDown } from '../utils.js'
 
 const circle_invitation = 'circle_invitation'
 const circle_coupon = 'circle_coupon'
 
-exports.up = async (knex) => {
+export const up = async (knex) => {
   // add `state` column
   await knex.schema.table(circle_invitation, (t) => {
     t.enu('state', [
@@ -38,7 +38,7 @@ exports.up = async (knex) => {
   await knex.schema.dropTable(circle_coupon)
 }
 
-exports.down = async (knex) => {
+export const down = async (knex) => {
   // add back `circle_coupon` table
   await knex('entity_type').insert({ table: circle_coupon })
   await knex.schema.createTable(circle_coupon, (t) => {

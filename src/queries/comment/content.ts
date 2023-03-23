@@ -1,4 +1,4 @@
-import { COMMENT_STATE } from 'common/enums'
+import { COMMENT_STATE } from 'common/enums/index.js'
 import { CommentToContentResolver } from 'definitions'
 
 const resolver: CommentToContentResolver = (

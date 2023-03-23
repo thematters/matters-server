@@ -1,4 +1,4 @@
-import { CIRCLE_ACTION } from 'common/enums'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
 import { CircleToIsFollowerResolver } from 'definitions'
 
 const resolver: CircleToIsFollowerResolver = async (

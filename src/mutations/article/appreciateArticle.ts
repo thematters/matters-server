@@ -7,8 +7,8 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
@@ -17,10 +17,10 @@ import {
   ForbiddenByTargetStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { gcp } from 'connectors'
-import { appreciationQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { gcp } from 'connectors/index.js'
+import { appreciationQueue } from 'connectors/queue/index.js'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
