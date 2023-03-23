@@ -3,6 +3,7 @@ export default {
   transform: {},
   // preset: 'ts-jest',
   // roots: ['<rootDir>/src'],
+  maxWorkers: '50%',
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   // moduleNameMapper: {
