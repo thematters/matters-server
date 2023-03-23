@@ -1,6 +1,6 @@
 export default {
   testEnvironment: 'node',
-  // preset: 'ts-jest',
+  preset: 'ts-jest',
   // roots: ['<rootDir>/src'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(js|ts)x?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
@@ -10,9 +10,9 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/db/afterEnvTestSetup.js'],
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  // globals: {
-  //   'ts-jest': {
-  //     diagnostics: false,
-  //   },
-  // },
+  globals: {
+    'ts-jest': {
+      diagnostics: false,
+    },
+  },
 }
