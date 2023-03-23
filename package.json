@@ -29,12 +29,12 @@
     "lint:fix": "tslint -p . --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
-    "gen:schema": "tsc -p . && ts-node --files src/common/utils/exportSchema.ts",
-    "gen:types": "tsc -p . && ts-node --files src/common/utils/generateTypes.ts",
+    "gen:schema": "node build/common/utils/exportSchema.js",
+    "gen:types": "node build/common/utils/generateTypes.js",
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
     "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
-    "search:init": "ts-node --files src/common/utils/initSearchIndices.ts",
+    "search:init": "npm run build && node build/common/utils/initSearchIndices.ts",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -153,7 +153,6 @@
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.7",
-    "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.4",
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0"

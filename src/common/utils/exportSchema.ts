@@ -3,7 +3,7 @@ import fs from 'fs'
 import { printSchema } from 'graphql'
 
 import logger from 'common/logger.js'
-import typeDefs from 'types'
+import typeDefs from 'types/index.js'
 
 const schemaObj = makeExecutableSchema({
   typeDefs,
