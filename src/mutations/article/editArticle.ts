@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import lodash, { difference, flow, uniq } from 'lodash'
+import lodash, { difference, flow, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -42,7 +42,11 @@ import {
   stripClass,
 } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
-import { MutationToEditArticleResolver } from 'definitions'
+import {
+  Article,
+  DataSources,
+  MutationToEditArticleResolver,
+} from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -262,136 +266,18 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Collection
    */
-  const resetCollection =
-    collection === null || (collection && collection.length === 0)
-  if (collection && collection.length > 0) {
-    // compare new and old collections
-    const oldIds = (
-      await articleService.findCollections({
-        entranceId: article.id,
-      })
-    ).map(({ articleId }: { articleId: string }) => articleId)
-
-    const newIds = uniq(
-      (
-        await Promise.all(
-          collection.map(async (articleId) => {
-            const articleDbId = fromGlobalId(articleId).id
-
-            if (!articleDbId) {
-              return
-            }
-
-            const collectedArticle = await atomService.findUnique({
-              table: 'article',
-              where: { id: articleDbId },
-            })
-
-            if (!collectedArticle) {
-              throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
-            }
-
-            if (collectedArticle.state !== ARTICLE_STATE.active) {
-              throw new ForbiddenError(
-                `Article ${articleId} cannot be collected.`
-              )
-            }
-
-            const isBlocked = await userService.blocked({
-              userId: collectedArticle.authorId,
-              targetId: viewer.id,
-            })
-
-            if (isBlocked) {
-              throw new ForbiddenError('viewer has no permission')
-            }
-
-            return articleDbId
-          })
-        )
-      ).filter((articleId): articleId is string => !!articleId)
-    )
-
-    if (
-      newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
-      newIds.length >= oldIds.length
-    ) {
-      throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
-      )
-    }
-
-    interface Item {
-      entranceId: string
-      articleId: string
-      order: number
-    }
-    const addItems: Item[] = []
-    const updateItems: Item[] = []
-    const diff = difference(newIds, oldIds)
-
-    // gather data
-    newIds.forEach((articleId: string, index: number) => {
-      const indexOf = oldIds.indexOf(articleId)
-      if (indexOf < 0) {
-        addItems.push({ entranceId: article.id, articleId, order: index })
-      }
-      if (indexOf >= 0 && index !== indexOf) {
-        updateItems.push({ entranceId: article.id, articleId, order: index })
-      }
-    })
-
-    // add and update
-    await Promise.all([
-      ...addItems.map((item) =>
-        atomService.create({
-          table: 'collection',
-          data: {
-            ...item,
-            // createdAt: new Date(),
-            // updatedAt: knex.fn.now(),
-          },
-        })
-      ),
-      ...updateItems.map((item) =>
-        atomService.update({
-          table: 'collection',
-          where: { entranceId: item.entranceId, articleId: item.articleId },
-          data: { order: item.order, updatedAt: knex.fn.now() },
-        })
-      ),
-    ])
-
-    // delete unwanted
-    await atomService.deleteMany({
-      table: 'collection',
-      where: { entranceId: article.id },
-      whereIn: ['article_id', difference(oldIds, newIds)],
-    })
-
-    // trigger notifications
-    diff.forEach(async (articleId) => {
-      const targetCollection = await articleService.baseFindById(articleId)
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_collected,
-        recipientId: targetCollection.authorId,
-        actorId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: targetCollection },
-          {
-            type: 'collection',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
-    })
-  } else if (resetCollection) {
-    await atomService.deleteMany({
-      table: 'collection',
-      where: { entranceId: article.id },
-    })
-  }
+  await handleCollection({
+    viewerId: viewer.id,
+    collection,
+    article,
+    dataSources: {
+      atomService,
+      userService,
+      articleService,
+      notificationService,
+    },
+    knex,
+  })
 
   /**
    * Circle
@@ -626,6 +512,142 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   return node
+}
+
+const handleCollection = async ({
+  viewerId,
+  collection,
+  article,
+  dataSources: {
+    atomService,
+    userService,
+    articleService,
+    notificationService,
+  },
+  knex,
+}: {
+  viewerId: string
+  collection: string[] | undefined | null
+  article: Article
+  dataSources: Pick<
+    DataSources,
+    'atomService' | 'userService' | 'articleService' | 'notificationService'
+  >
+  knex: any
+}) => {
+  const oldIds = (
+    await articleService.findCollections({
+      entranceId: article.id,
+    })
+  ).map(({ articleId }: { articleId: string }) => articleId)
+  const newIds =
+    collection == null
+      ? []
+      : uniq(collection.map((articleId) => fromGlobalId(articleId).id)).filter(
+          (id) => !!id
+        )
+  // validate collection only when it changes
+  if (!isEqual(oldIds.sort(), newIds.sort())) {
+    if (
+      newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+      newIds.length >= oldIds.length
+    ) {
+      throw new ArticleCollectionReachLimitError(
+        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+      )
+    }
+    await Promise.all(
+      newIds.map(async (articleId) => {
+        const collectedArticle = await atomService.findUnique({
+          table: 'article',
+          where: { id: articleId },
+        })
+
+        if (!collectedArticle) {
+          throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+        }
+
+        if (collectedArticle.state !== ARTICLE_STATE.active) {
+          throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
+        }
+
+        const isBlocked = await userService.blocked({
+          userId: collectedArticle.authorId,
+          targetId: viewerId,
+        })
+
+        if (isBlocked) {
+          throw new ForbiddenError('viewer has no permission')
+        }
+      })
+    )
+
+    interface Item {
+      entranceId: string
+      articleId: string
+      order: number
+    }
+    const addItems: Item[] = []
+    const updateItems: Item[] = []
+    const diff = difference(newIds, oldIds)
+
+    // gather data
+    newIds.forEach((articleId: string, index: number) => {
+      const indexOf = oldIds.indexOf(articleId)
+      if (indexOf < 0) {
+        addItems.push({ entranceId: article.id, articleId, order: index })
+      }
+      if (indexOf >= 0 && index !== indexOf) {
+        updateItems.push({ entranceId: article.id, articleId, order: index })
+      }
+    })
+
+    // add and update
+    await Promise.all([
+      ...addItems.map((item) =>
+        atomService.create({
+          table: 'collection',
+          data: {
+            ...item,
+            // createdAt: new Date(),
+            // updatedAt: knex.fn.now(),
+          },
+        })
+      ),
+      ...updateItems.map((item) =>
+        atomService.update({
+          table: 'collection',
+          where: { entranceId: item.entranceId, articleId: item.articleId },
+          data: { order: item.order, updatedAt: knex.fn.now() },
+        })
+      ),
+    ])
+
+    // delete unwanted
+    await atomService.deleteMany({
+      table: 'collection',
+      where: { entranceId: article.id },
+      whereIn: ['article_id', difference(oldIds, newIds)],
+    })
+
+    // trigger notifications
+    diff.forEach(async (articleId) => {
+      const targetCollection = await articleService.baseFindById(articleId)
+      notificationService.trigger({
+        event: DB_NOTICE_TYPE.article_new_collected,
+        recipientId: targetCollection.authorId,
+        actorId: article.authorId,
+        entities: [
+          { type: 'target', entityTable: 'article', entity: targetCollection },
+          {
+            type: 'collection',
+            entityTable: 'article',
+            entity: article,
+          },
+        ],
+      })
+    })
+  }
 }
 
 export default resolver

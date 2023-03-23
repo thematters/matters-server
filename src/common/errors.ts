@@ -1,5 +1,8 @@
 import { ApolloError } from 'apollo-server-express'
 
+// Error design document see https://paper.dropbox.com/doc/Error-Codes-for-GraphQL-API--B0_SdxSw3WrYTkjmzu7bKxLwAg-cUucb1Cllkj9O0lZhnnmj
+// Note that the document is not longer maintained, but still provides useful infomation for error usage
+
 /*********************************
  *                               *
  *             Common            *
