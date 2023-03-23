@@ -1,9 +1,9 @@
-import { EMAIL_TEMPLATE_ID } from 'common/enums'
-import { environment } from 'common/environment'
-import { mailService } from 'connectors'
+import { EMAIL_TEMPLATE_ID } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { mailService } from 'connectors/index.js'
 import { LANGUAGES } from 'definitions'
 
-import { trans } from './utils'
+import { trans } from './utils.js'
 
 export const sendUserDeletedByAdmin = async ({
   to,

@@ -16,15 +16,19 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { isProd } from 'common/environment'
-import { ServerError } from 'common/errors'
-import logger from 'common/logger'
-import { getUTC8Midnight, numRound } from 'common/utils'
-import { AtomService, BaseService, NotificationService } from 'connectors'
+} from 'common/enums/index.js'
+import { isProd } from 'common/environment.js'
+import { ServerError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { getUTC8Midnight, numRound } from 'common/utils/index.js'
+import {
+  AtomService,
+  BaseService,
+  NotificationService,
+} from 'connectors/index.js'
 import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
-import { stripe } from './stripe'
+import { stripe } from './stripe/index.js'
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe

@@ -1,5 +1,5 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { connectionFromArray } from 'common/utils'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
+import { connectionFromArray } from 'common/utils/index.js'
 import { ArticleToFeaturedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToFeaturedCommentsResolver = async (

@@ -1,9 +1,9 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
-import { testClient } from './utils'
+import { testClient } from './utils.js'
 
 const USER_ID = toGlobalId({ type: NODE_TYPES.User, id: 1 })
 const GET_NOTICES = /* GraphQL */ `

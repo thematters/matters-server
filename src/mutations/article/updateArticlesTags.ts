@@ -1,17 +1,17 @@
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import _some from 'lodash/some.js'
+import _uniq from 'lodash/uniq.js'
 
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
-import { environment } from 'common/environment'
+import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
   TagNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { ArticleService, NotificationService } from 'connectors'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { ArticleService, NotificationService } from 'connectors/index.js'
 import { MutationToUpdateArticlesTagsResolver } from 'definitions'
 
 const triggerNotice = async ({

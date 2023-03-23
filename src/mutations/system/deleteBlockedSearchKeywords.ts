@@ -1,4 +1,4 @@
-import { UserInputError } from 'common/errors'
+import { UserInputError } from 'common/errors.js'
 import { MutationToDeleteBlockedSearchKeywordsResolver } from 'definitions'
 
 const resolver: MutationToDeleteBlockedSearchKeywordsResolver = async (

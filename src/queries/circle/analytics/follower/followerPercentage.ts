@@ -1,5 +1,5 @@
-import { CIRCLE_ACTION } from 'common/enums'
-import { numRound } from 'common/utils'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
+import { numRound } from 'common/utils/index.js'
 import { CircleFollowerAnalyticsToFollowerPercentageResolver } from 'definitions'
 
 const resolver: CircleFollowerAnalyticsToFollowerPercentageResolver = async (

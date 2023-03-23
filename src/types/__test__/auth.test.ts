@@ -1,9 +1,14 @@
 import _ from 'lodash'
 
-import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 
-import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
+import {
+  adminUser,
+  defaultTestUser,
+  getUserContext,
+  testClient,
+} from './utils.js'
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 

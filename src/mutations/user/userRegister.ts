@@ -4,8 +4,8 @@ import {
   DB_NOTICE_TYPE,
   INVITATION_STATE,
   VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -16,7 +16,7 @@ import {
   NameExistsError,
   NameInvalidError,
   PasswordInvalidError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   getViewerFromUser,
   isValidDisplayName,
@@ -24,7 +24,7 @@ import {
   isValidPassword,
   isValidUserName,
   setCookie,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import {
   AuthMode,
   GQLAuthResultType,

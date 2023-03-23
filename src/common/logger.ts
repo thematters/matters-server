@@ -1,11 +1,13 @@
 import * as Sentry from '@sentry/node'
 import * as fs from 'fs'
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 import * as path from 'path'
-import { createLogger, format, transports } from 'winston'
+import winston from 'winston'
 import Transport from 'winston-transport'
 
-import { isProd, isTest } from 'common/environment'
+import { isProd, isTest } from 'common/environment.js'
+
+const { createLogger, format, transports } = winston
 
 const logPath = 'logs'
 

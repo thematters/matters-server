@@ -5,11 +5,11 @@ import {
   NODE_TYPES,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import { isScopeAllowed, toGlobalId } from 'common/utils'
-import { BaseService, UserService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
+import { isScopeAllowed, toGlobalId } from 'common/utils/index.js'
+import { BaseService, UserService } from 'connectors/index.js'
 import {
   Falsey,
   OAuthAuthorizationCode,

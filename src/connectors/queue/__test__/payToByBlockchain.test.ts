@@ -8,11 +8,11 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { environment, polygonUSDTContractAddress } from 'common/environment'
-import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
+} from 'common/enums/index.js'
+import { environment, polygonUSDTContractAddress } from 'common/environment.js'
+import { PaymentQueueJobDataError, UnknownError } from 'common/errors.js'
 import { CurationContract } from 'connectors/blockchain'
-import { payToByBlockchainQueue } from 'connectors/queue'
+import { payToByBlockchainQueue } from 'connectors/queue/index.js'
 import { GQLChain } from 'definitions'
 
 // setup mock

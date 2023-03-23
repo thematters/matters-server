@@ -1,10 +1,10 @@
 import type { Log as EthersLog } from '@ethersproject/abstract-provider'
 // import { ethers } from 'ethers'
 
-import { BLOCKCHAIN_CHAINID } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { BLOCKCHAIN_CHAINID } from 'common/enums/index.js'
+import { environment, isProd } from 'common/environment.js'
 
-import { BaseContract } from './baseContract'
+import { BaseContract } from './baseContract.js'
 
 // type
 

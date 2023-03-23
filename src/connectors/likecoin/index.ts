@@ -3,16 +3,16 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
-import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from 'common/enums'
-import { environment } from 'common/environment'
+import { CACHE_PREFIX, CACHE_TTL, QUEUE_URL } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   LikerEmailExistsError,
   LikerISCNPublishWithoutWalletError,
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
-} from 'common/errors'
-import logger from 'common/logger'
-import { aws, CacheService, knex } from 'connectors'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
+import { aws, CacheService, knex } from 'connectors/index.js'
 import { UserOAuthLikeCoin } from 'definitions'
 
 interface LikeData {

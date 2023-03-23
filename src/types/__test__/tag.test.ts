@@ -1,8 +1,8 @@
-import _difference from 'lodash/difference'
-import _get from 'lodash/get'
+import _difference from 'lodash/difference.js'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 import {
   GQLFeatureFlag,
   GQLFeatureName,
@@ -11,7 +11,7 @@ import {
   GQLUpdateTagSettingType,
 } from 'definitions'
 
-import { setFeature, testClient } from './utils'
+import { setFeature, testClient } from './utils.js'
 
 const QUERY_TAG = /* GraphQL */ `
   query ($input: NodeInput!) {

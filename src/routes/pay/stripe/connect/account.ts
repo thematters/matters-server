@@ -2,9 +2,9 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import _ from 'lodash'
 import Stripe from 'stripe'
 
-import { METADATA_KEY, NODE_TYPES } from 'common/enums'
-import { AtomService, CacheService } from 'connectors'
-import SlackService from 'connectors/slack'
+import { METADATA_KEY, NODE_TYPES } from 'common/enums/index.js'
+import { AtomService, CacheService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 
 export const updateAccount = async ({
   account,

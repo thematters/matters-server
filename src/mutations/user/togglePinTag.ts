@@ -1,6 +1,6 @@
-import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
-import { AuthenticationError, TagNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums/index.js'
+import { AuthenticationError, TagNotFoundError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToTogglePinTagResolver } from 'definitions'
 
 const resolver: MutationToTogglePinTagResolver = async (

@@ -1,12 +1,12 @@
-import _chunk from 'lodash/chunk'
-import _times from 'lodash/times'
+import _chunk from 'lodash/chunk.js'
+import _times from 'lodash/times.js'
 
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
   indexToCursor,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { RecommendationToFollowingResolver } from 'definitions'
 
 import {
@@ -16,7 +16,7 @@ import {
   makeUserDonateArticleActivityQuery,
   makeUserFollowUserActivityQuery,
   makeUserSubscribeCircleActivityQuery,
-} from './sql'
+} from './sql.js'
 
 export enum RecommendationSource {
   ReadArticlesTags = 'ReadArticlesTags',

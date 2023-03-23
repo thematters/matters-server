@@ -1,8 +1,8 @@
 import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 
-import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { CACHE_TTL } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
 
 export class OpenSeaService extends RESTDataSource {
   apiKey?: string | undefined

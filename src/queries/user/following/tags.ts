@@ -1,9 +1,9 @@
-import { TAG_ACTION } from 'common/enums'
+import { TAG_ACTION } from 'common/enums/index.js'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { FollowingToTagsResolver } from 'definitions'
 
 const resolver: FollowingToTagsResolver = async (

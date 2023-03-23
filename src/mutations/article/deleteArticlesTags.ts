@@ -1,17 +1,17 @@
-import _difference from 'lodash/difference'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import _difference from 'lodash/difference.js'
+import _some from 'lodash/some.js'
+import _uniq from 'lodash/uniq.js'
 
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
-import { environment } from 'common/environment'
+import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
   TagNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToDeleteArticlesTagsResolver } from 'definitions'
 
 const resolver: MutationToDeleteArticlesTagsResolver = async (

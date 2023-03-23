@@ -1,1 +1,1 @@
-export * from './curation'
+export * from './curation.js'

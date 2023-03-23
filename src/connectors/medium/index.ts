@@ -6,11 +6,11 @@ import { v4 } from 'uuid'
 import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   UPLOAD_FILE_SIZE_LIMIT,
-} from 'common/enums'
-import logger from 'common/logger'
-import { getFileName } from 'common/utils'
-import { aws, cfsvc, knex } from 'connectors'
+} from 'common/enums/index.js'
+import logger from 'common/logger.js'
+import { getFileName } from 'common/utils/index.js'
 import { AWSService } from 'connectors/aws'
+import { aws, cfsvc, knex } from 'connectors/index.js'
 import { GQLAssetType } from 'definitions'
 
 export class Medium {

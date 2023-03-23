@@ -1,4 +1,4 @@
-import { getViewerFromUser, setCookie } from 'common/utils'
+import { getViewerFromUser, setCookie } from 'common/utils/index.js'
 import {
   AuthMode,
   GQLAuthResultType,

@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray } from 'common/utils/index.js'
 import { UserToTagsResolver } from 'definitions'
 
 const resolver: UserToTagsResolver = async (

@@ -4,7 +4,7 @@ import DataLoader from 'dataloader'
 import createDebug from 'debug'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
-import _, { random } from 'lodash'
+import _ from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
@@ -27,8 +27,8 @@ import {
   VERIFICATION_CODE_EXPIRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VIEW,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   EmailNotFoundError,
   EthAddressNotFoundError,
@@ -37,20 +37,20 @@ import {
   PasswordNotAvailableError,
   ServerError,
   UserInputError,
-} from 'common/errors'
-import logger from 'common/logger'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
 import {
   generatePasswordhash,
   isValidUserName,
   makeUserName,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import {
   AtomService,
   BaseService,
   CacheService,
   ipfsServers,
   OAuthService,
-} from 'connectors'
+} from 'connectors/index.js'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
@@ -62,8 +62,8 @@ import {
   UserOAuthLikeCoinAccountType,
 } from 'definitions'
 
-import { likecoin } from './likecoin'
-import { medium } from './medium'
+import { likecoin } from './likecoin/index.js'
+import { medium } from './medium/index.js'
 
 const debugLog = createDebug('user-service')
 
@@ -328,7 +328,7 @@ export class UserService extends BaseService {
       if (retries >= 20) {
         throw new NameInvalidError('cannot generate user name')
       }
-      userName = `${mainName}${random(1, 999)}`
+      userName = `${mainName}${_.random(1, 999)}`
       retries += 1
     }
 

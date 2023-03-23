@@ -2,9 +2,9 @@ import { RedisCache } from 'apollo-server-cache-redis'
 import Redis from 'ioredis'
 import _ from 'lodash'
 
-import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
-import { UnknownError } from 'common/errors'
+import { CACHE_TTL } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { UnknownError } from 'common/errors.js'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares

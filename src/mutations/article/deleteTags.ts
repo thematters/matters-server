@@ -1,8 +1,8 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
-import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import { MutationToDeleteTagsResolver } from 'definitions'
 
 const resolver: MutationToDeleteTagsResolver = async (

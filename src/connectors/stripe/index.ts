@@ -7,16 +7,16 @@ import {
   OAUTH_CALLBACK_ERROR_CODE,
   PAYMENT_CURRENCY,
   PAYMENT_MAX_DECIMAL_PLACES,
-} from 'common/enums'
-import { environment, isProd, isTest } from 'common/environment'
-import { PaymentAmountInvalidError, ServerError } from 'common/errors'
-import logger from 'common/logger'
+} from 'common/enums/index.js'
+import { environment, isProd, isTest } from 'common/environment.js'
+import { PaymentAmountInvalidError, ServerError } from 'common/errors.js'
+import logger from 'common/logger.js'
 import {
   getUTCNextMonday,
   getUTCNextMonthDayOne,
   toProviderAmount,
-} from 'common/utils'
-import SlackService from 'connectors/slack'
+} from 'common/utils/index.js'
+import SlackService from 'connectors/slack/index.js'
 import { User } from 'definitions'
 
 /**

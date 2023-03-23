@@ -1,4 +1,4 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { VERIFICATION_CODE_STATUS } from 'common/enums/index.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -6,8 +6,8 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   UserNotFoundError,
-} from 'common/errors'
-import { isValidPassword, isValidPaymentPassword } from 'common/utils'
+} from 'common/errors.js'
+import { isValidPassword, isValidPaymentPassword } from 'common/utils/index.js'
 import {
   GQLVerificationCodeType,
   LANGUAGES,

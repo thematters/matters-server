@@ -3,13 +3,13 @@ import _ from 'lodash'
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
   normalizeQueryInput,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import {
   GQLNode,
   GQLSearchAPIVersion,

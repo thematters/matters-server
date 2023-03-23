@@ -1,7 +1,10 @@
-import { ARTICLE_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
-// import { environment } from 'common/environment'
-import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue'
+import {
+  ARTICLE_STATE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from 'common/enums/index.js'
+// import { environment } from 'common/environment.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { publicationQueue } from 'connectors/queue/index.js'
 import { MutationToUpdateArticleStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateArticleStateResolver = async (

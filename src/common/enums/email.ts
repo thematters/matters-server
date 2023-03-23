@@ -1,4 +1,4 @@
-import { isProd } from 'common/environment'
+import { isProd } from 'common/environment.js'
 
 const DEV_EMAIL_TEMPLATE_ID = {
   verificationCode: {

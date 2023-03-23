@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { environment, isProd } from 'common/environment'
+import { environment, isProd } from 'common/environment.js'
 
 // TODO getProvider should accept chain name
 export const getProvider = () =>

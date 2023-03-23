@@ -1,10 +1,10 @@
-import { COMMENT_TYPE, USER_STATE } from 'common/enums'
+import { COMMENT_TYPE, USER_STATE } from 'common/enums/index.js'
 import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToUnvoteCommentResolver } from 'definitions'
 
 const resolver: MutationToUnvoteCommentResolver = async (

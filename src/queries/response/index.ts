@@ -1,7 +1,7 @@
 import { ResponseType } from 'definitions'
 
-import articleResponseCount from './article/responseCount'
-import articleResponses from './article/responses'
+import articleResponseCount from './article/responseCount.js'
+import articleResponses from './article/responses.js'
 
 export default {
   Article: {

@@ -1,8 +1,8 @@
-import { OFFICIAL_NOTICE_EXTEND_TYPE, USER_STATE } from 'common/enums'
-import { ActionFailedError, UserInputError } from 'common/errors'
-import logger from 'common/logger'
-import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
-import { userQueue } from 'connectors/queue'
+import { OFFICIAL_NOTICE_EXTEND_TYPE, USER_STATE } from 'common/enums/index.js'
+import { ActionFailedError, UserInputError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { fromGlobalId, getPunishExpiredDate } from 'common/utils/index.js'
+import { userQueue } from 'connectors/queue/index.js'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (

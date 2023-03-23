@@ -1,10 +1,10 @@
 import axios from 'axios'
 
-import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
-import { NetworkError, UnknownError } from 'common/errors'
-import logger from 'common/logger'
-import { CacheService } from 'connectors'
+import { CACHE_TTL } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
+import { NetworkError, UnknownError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { CacheService } from 'connectors/index.js'
 
 // TYPES
 

@@ -1,4 +1,7 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { OSSToUsersResolver } from 'definitions'
 
 export const users: OSSToUsersResolver = async (

@@ -3,7 +3,7 @@ import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import { CircleIncomeAnalyticsToNextMonthResolver } from 'definitions'
 
 const resolver: CircleIncomeAnalyticsToNextMonthResolver = async (

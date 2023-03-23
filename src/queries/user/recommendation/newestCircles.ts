@@ -1,5 +1,5 @@
-import { CIRCLE_STATE } from 'common/enums'
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { CIRCLE_STATE } from 'common/enums/index.js'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 import { RecommendationToNewestCirclesResolver } from 'definitions'
 
 const resolver: RecommendationToNewestCirclesResolver = async (

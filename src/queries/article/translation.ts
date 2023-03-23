@@ -1,9 +1,9 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 
-import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
-import logger from 'common/logger'
-import { CacheService, gcp } from 'connectors'
+import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums/index.js'
+import logger from 'common/logger.js'
+import { CacheService, gcp } from 'connectors/index.js'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const resolver: ArticleToTranslationResolver = async (

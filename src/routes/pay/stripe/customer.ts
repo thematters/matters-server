@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import Stripe from 'stripe'
 
-import { PAYMENT_PROVIDER } from 'common/enums'
-import { AtomService, PaymentService } from 'connectors'
-import SlackService from 'connectors/slack'
+import { PAYMENT_PROVIDER } from 'common/enums/index.js'
+import { AtomService, PaymentService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 import { Customer } from 'definitions'
 
 export const updateCustomerCard = async ({

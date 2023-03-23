@@ -1,4 +1,4 @@
-import { PRICE_STATE } from 'common/enums'
+import { PRICE_STATE } from 'common/enums/index.js'
 import { MemberToPriceResolver } from 'definitions'
 
 const resolver: MemberToPriceResolver = async (

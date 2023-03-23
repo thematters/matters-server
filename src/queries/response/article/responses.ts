@@ -1,7 +1,7 @@
-import _last from 'lodash/last'
+import _last from 'lodash/last.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 import { ArticleToResponsesResolver } from 'definitions'
 
 const resolver: ArticleToResponsesResolver = async (

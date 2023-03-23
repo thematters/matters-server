@@ -1,4 +1,4 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -9,9 +9,9 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { AtomService, PaymentService } from 'connectors'
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
+import { AtomService, PaymentService } from 'connectors/index.js'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import {
@@ -20,7 +20,7 @@ import {
   putDraft,
   testClient,
   updateUserState,
-} from './utils'
+} from './utils.js'
 
 const mediaHash = 'someIpfsMediaHash1'
 

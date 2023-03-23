@@ -2,7 +2,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { GQLUserActivityTypeResolver } from 'definitions'
 
 const resolver: GQLUserActivityTypeResolver = {

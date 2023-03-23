@@ -6,19 +6,19 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   ArticleService,
   mailService,
   PaymentService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 import { GQLChain } from 'definitions'
 
-import { createDonationTx } from './utils'
+import { createDonationTx } from './utils.js'
 
 // setup mock
-// jest.mock('connectors', () => {
+// jest.mock('connectors/index.js', () => {
 //  return {
 //    __esModule: true,
 //    mailService: {

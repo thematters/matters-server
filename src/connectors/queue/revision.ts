@@ -3,8 +3,8 @@ import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-import _difference from 'lodash/difference'
-import _uniq from 'lodash/uniq'
+import _difference from 'lodash/difference.js'
+import _uniq from 'lodash/uniq.js'
 
 import {
   ARTICLE_STATE,
@@ -16,12 +16,12 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums'
-import { environment, isTest } from 'common/environment'
-import { countWords, fromGlobalId } from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+} from 'common/enums/index.js'
+import { environment, isTest } from 'common/environment.js'
+import { countWords, fromGlobalId } from 'common/utils/index.js'
+import { AtomService, NotificationService } from 'connectors/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 interface RevisedArticleData {
   draftId: string

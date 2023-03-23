@@ -7,9 +7,13 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { numRound, toDBAmount } from 'common/utils'
-import { NotificationService, PaymentService, UserService } from 'connectors'
+} from 'common/enums/index.js'
+import { numRound, toDBAmount } from 'common/utils/index.js'
+import {
+  NotificationService,
+  PaymentService,
+  UserService,
+} from 'connectors/index.js'
 
 const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
   switch (type) {

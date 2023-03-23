@@ -1,13 +1,13 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums/index.js'
 import {
   AuthenticationError,
   DraftNotFoundError,
   ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+} from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import { MutationToDeleteDraftResolver } from 'definitions'
 
 const resolver: MutationToDeleteDraftResolver = async (

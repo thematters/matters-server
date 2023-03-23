@@ -1,4 +1,7 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+} from 'common/utils/index.js'
 import { DraftToCollectionResolver } from 'definitions'
 
 const resolver: DraftToCollectionResolver = (

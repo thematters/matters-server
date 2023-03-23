@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError } from 'common/errors.js'
 import { MutationToGenerateLikerIdResolver } from 'definitions'
 
 const resolver: MutationToGenerateLikerIdResolver = async (

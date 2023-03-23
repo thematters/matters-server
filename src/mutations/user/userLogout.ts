@@ -1,4 +1,4 @@
-import { clearCookie } from 'common/utils'
+import { clearCookie } from 'common/utils/index.js'
 import { MutationToUserLogoutResolver } from 'definitions'
 
 const resolver: MutationToUserLogoutResolver = async (

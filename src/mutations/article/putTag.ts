@@ -3,8 +3,8 @@ import {
   MAX_TAG_CONTENT_LENGTH,
   MAX_TAG_DESCRIPTION_LENGTH,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -14,11 +14,11 @@ import {
   NameInvalidError,
   TagNotFoundError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   fromGlobalId,
   normalizeTagInput, // stripAllPunct,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (

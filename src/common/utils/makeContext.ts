@@ -1,10 +1,10 @@
 import * as Sentry from '@sentry/node'
 import { Request, Response } from 'express'
-import { cloneDeep } from 'lodash'
+import cloneDeep from 'lodash/cloneDeep.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { getViewerFromReq, toGlobalId } from 'common/utils'
-import { knex, UserService } from 'connectors'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { getViewerFromReq, toGlobalId } from 'common/utils/index.js'
+import { knex, UserService } from 'connectors/index.js'
 import { RequestContext } from 'definitions'
 
 const purgeSentryData = (req?: Request): any => {

@@ -1,5 +1,5 @@
-// import { UserNotFoundError } from 'common/errors'
-import { publicationQueue } from 'connectors/queue'
+// import { UserNotFoundError } from 'common/errors.js'
+import { publicationQueue } from 'connectors/queue/index.js'
 import { MutationToRefreshIPNSFeedResolver } from 'definitions'
 
 const resolver: MutationToRefreshIPNSFeedResolver = async (

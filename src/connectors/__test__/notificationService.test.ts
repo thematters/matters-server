@@ -1,5 +1,5 @@
-import { NOTIFICATION_TYPES } from 'common/enums'
-import { knex, NotificationService, UserService } from 'connectors'
+import { NOTIFICATION_TYPES } from 'common/enums/index.js'
+import { knex, NotificationService, UserService } from 'connectors/index.js'
 import { sharedQueueOpts } from 'connectors/queue/utils'
 import { NotificationType } from 'definitions'
 

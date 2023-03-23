@@ -1,4 +1,4 @@
-import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
+import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums/index.js'
 import { CommentToNodeResolver } from 'definitions'
 
 const resolver: CommentToNodeResolver = async (

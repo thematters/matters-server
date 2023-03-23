@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import lodash, { difference, flow, uniq } from 'lodash'
+import lodash from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -14,8 +14,8 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
@@ -29,7 +29,7 @@ import {
   NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   correctHtml,
   fromGlobalId,
@@ -38,8 +38,8 @@ import {
   sanitize,
   // stripAllPunct,
   stripClass,
-} from 'common/utils'
-import { publicationQueue, revisionQueue } from 'connectors/queue'
+} from 'common/utils/index.js'
+import { publicationQueue, revisionQueue } from 'connectors/queue/index.js'
 import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
@@ -203,7 +203,7 @@ const resolver: MutationToEditArticleResolver = async (
     // check if add tags include matty's tag
     const mattyTagId = environment.mattyChoiceTagId || ''
     const isMatty = environment.mattyId === viewer.id
-    const addIds = difference(newIds, oldIds)
+    const addIds = lodash.difference(newIds, oldIds)
     if (addIds.includes(mattyTagId) && !isMatty) {
       throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
@@ -212,13 +212,13 @@ const resolver: MutationToEditArticleResolver = async (
     await tagService.createArticleTags({
       articleIds: [article.id],
       creator: article.authorId,
-      tagIds: difference(newIds, oldIds),
+      tagIds: lodash.difference(newIds, oldIds),
     })
 
     // delete unwanted
     await tagService.deleteArticleTagsByTagIds({
       articleId: article.id,
-      tagIds: difference(oldIds, newIds),
+      tagIds: lodash.difference(oldIds, newIds),
     })
   } else if (resetTags) {
     const oldIds = (
@@ -270,7 +270,7 @@ const resolver: MutationToEditArticleResolver = async (
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
 
-    const newIds = uniq(
+    const newIds = lodash.uniq(
       (
         await Promise.all(
           collection.map(async (articleId) => {
@@ -317,7 +317,7 @@ const resolver: MutationToEditArticleResolver = async (
     }
     const addItems: Item[] = []
     const updateItems: Item[] = []
-    const diff = difference(newIds, oldIds)
+    const diff = lodash.difference(newIds, oldIds)
 
     // gather data
     newIds.forEach((articleId: string, index: number) => {
@@ -355,7 +355,7 @@ const resolver: MutationToEditArticleResolver = async (
     await atomService.deleteMany({
       table: 'collection',
       where: { entranceId: article.id },
-      whereIn: ['article_id', difference(oldIds, newIds)],
+      whereIn: ['article_id', lodash.difference(oldIds, newIds)],
     })
 
     // trigger notifications
@@ -546,7 +546,7 @@ const resolver: MutationToEditArticleResolver = async (
       newContent || currDraft.content,
       'u-area-disable'
     )
-    const pipe = flow(sanitize, correctHtml)
+    const pipe = lodash.flow(sanitize, correctHtml)
     const data: Record<string, any> = lodash.omitBy(
       {
         uuid: v4(),

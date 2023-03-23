@@ -1,4 +1,4 @@
-import * as AWS from 'aws-sdk'
+import AWS from 'aws-sdk'
 import axios from 'axios'
 import getStream from 'get-stream'
 import mime from 'mime-types'
@@ -7,9 +7,9 @@ import {
   LOCAL_S3_ENDPOINT,
   QUEUE_URL,
   UPLOAD_IMAGE_SIZE_LIMIT,
-} from 'common/enums'
-import { environment, isLocal, isTest } from 'common/environment'
-import { getFileName } from 'common/utils'
+} from 'common/enums/index.js'
+import { environment, isLocal, isTest } from 'common/environment.js'
+import { getFileName } from 'common/utils/index.js'
 import { GQLAssetType } from 'definitions'
 
 export class AWSService {

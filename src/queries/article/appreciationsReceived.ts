@@ -1,4 +1,4 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils/index.js'
 import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedResolver = async (

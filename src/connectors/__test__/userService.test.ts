@@ -1,10 +1,10 @@
 import Redis from 'ioredis'
 
-import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
-import { CacheService, UserService } from 'connectors'
+import { CACHE_PREFIX, USER_ACTION } from 'common/enums/index.js'
+import { CacheService, UserService } from 'connectors/index.js'
 import { GQLSearchExclude } from 'definitions'
 
-import { createDonationTx } from './utils'
+import { createDonationTx } from './utils.js'
 
 const TEST_RECIPIENT_ID = '9'
 const userService = new UserService()

@@ -2,9 +2,9 @@ import {
   BUNDLED_NOTICE_TYPE,
   DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums'
-import logger from 'common/logger'
-import { BaseService, UserService } from 'connectors'
+} from 'common/enums/index.js'
+import logger from 'common/logger.js'
+import { BaseService, UserService } from 'connectors/index.js'
 import {
   LANGUAGES,
   NotificationPrarms,
@@ -12,9 +12,9 @@ import {
   User,
 } from 'definitions'
 
-import { mail } from './mail'
-import { notice } from './notice'
-import trans from './translations'
+import { mail } from './mail/index.js'
+import { notice } from './notice.js'
+import trans from './translations/index.js'
 
 export class NotificationService extends BaseService {
   mail: typeof mail

@@ -1,7 +1,7 @@
-import logger from 'common/logger'
-import { ArticleService, DraftService } from 'connectors'
+import logger from 'common/logger.js'
+import { ArticleService, DraftService } from 'connectors/index.js'
 
-import { countWords } from './content'
+import { countWords } from './content.js'
 
 async function main() {
   const articleIds = process.argv.slice(2)

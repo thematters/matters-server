@@ -1,4 +1,4 @@
-import { DraftService } from 'connectors'
+import { DraftService } from 'connectors/index.js'
 
 const service = new DraftService()
 

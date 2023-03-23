@@ -3,7 +3,7 @@ import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import logger from 'common/logger'
+import logger from 'common/logger.js'
 import {
   aws,
   cfsvc,
@@ -12,7 +12,7 @@ import {
   meiliClient,
   readonlyKnex,
   searchKnexDB,
-} from 'connectors'
+} from 'connectors/index.js'
 import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {

@@ -1,7 +1,7 @@
 import { ArticleToDraftsResolver } from 'definitions'
 
-import publishedResolver from './newestPublishedDraft'
-import unpublishedResolver from './newestUnpublishedDraft'
+import publishedResolver from './newestPublishedDraft.js'
+import unpublishedResolver from './newestUnpublishedDraft.js'
 
 const resolver: ArticleToDraftsResolver = async (
   parent,

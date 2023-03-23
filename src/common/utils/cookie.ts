@@ -5,9 +5,9 @@ import {
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
-} from 'common/enums'
-import { isProd, isTest } from 'common/environment'
-import { extractRootDomain, getUserGroup } from 'common/utils'
+} from 'common/enums/index.js'
+import { isProd, isTest } from 'common/environment.js'
+import { extractRootDomain, getUserGroup } from 'common/utils/index.js'
 
 const isDevOrigin = (url: string) =>
   /(localhost|127\.0\.0\.1)(:\d+)?$/.test(url) || /\.vercel\.app$/.test(url)

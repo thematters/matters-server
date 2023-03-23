@@ -13,7 +13,9 @@
         "@sendgrid/helpers",
         "apollo-server-testing",
         "body-parser",
-        "ioredis"
+        "ioredis",
+        "node:url",
+        "node:path"
       ]
     ],
     "no-var-requires": false,

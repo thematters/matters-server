@@ -1,4 +1,4 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums/index.js'
 import { ArticleToPinnedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToPinnedCommentsResolver = (

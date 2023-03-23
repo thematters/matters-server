@@ -1,4 +1,4 @@
-import { getUserGroup } from 'common/utils'
+import { getUserGroup } from 'common/utils/index.js'
 
 test('getUserGroup test', () => {
   const pairs = [{ id: null, ip: '1.2.3.4', group: 'a' }]

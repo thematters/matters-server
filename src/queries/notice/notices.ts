@@ -2,7 +2,7 @@ import {
   connectionFromArray,
   filterMissingFieldNoticeEdges,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { UserToNoticesResolver } from 'definitions'
 
 const resolver: UserToNoticesResolver = async (

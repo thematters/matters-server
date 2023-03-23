@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import logger from 'common/logger'
+import logger from 'common/logger.js'
 import { LikerToRateUSDResolver } from 'definitions'
 
 const resolver: LikerToRateUSDResolver = async (

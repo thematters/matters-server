@@ -2,11 +2,11 @@ import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import SlackService from 'connectors/slack'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
+import SlackService from 'connectors/slack/index.js'
 
-import { updateAccount } from './account'
+import { updateAccount } from './account.js'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

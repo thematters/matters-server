@@ -1,13 +1,13 @@
 import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
-import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
+import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums/index.js'
 import {
   AuthenticationError,
   MigrationReachLimitError,
   UserInputError,
-} from 'common/errors'
-import { migrationQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { migrationQueue } from 'connectors/queue/index.js'
 import { MutationToMigrationResolver } from 'definitions'
 
 const resolver: MutationToMigrationResolver = async (

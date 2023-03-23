@@ -1,4 +1,4 @@
-import { likecoin } from 'connectors'
+import { likecoin } from 'connectors/index.js'
 import { LikerToCivicLikerResolver } from 'definitions'
 
 const resolver: LikerToCivicLikerResolver = async (

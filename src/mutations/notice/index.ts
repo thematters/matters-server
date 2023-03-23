@@ -1,4 +1,4 @@
-import markAllNoticesAsRead from './markAllNoticesAsRead'
+import markAllNoticesAsRead from './markAllNoticesAsRead.js'
 
 export default {
   Mutation: {

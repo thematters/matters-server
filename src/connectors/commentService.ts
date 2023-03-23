@@ -5,9 +5,9 @@ import {
   COMMENT_STATE,
   COMMENT_TYPE,
   USER_ACTION,
-} from 'common/enums'
-import { CommentNotFoundError } from 'common/errors'
-import { BaseService } from 'connectors'
+} from 'common/enums/index.js'
+import { CommentNotFoundError } from 'common/errors.js'
+import { BaseService } from 'connectors/index.js'
 import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
 interface CommentFilter {

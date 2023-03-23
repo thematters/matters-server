@@ -7,20 +7,20 @@ import {
   INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   fromGlobalId,
   generateRegisterRedirectUrl,
   makeUserName,
-} from 'common/utils'
-import { CacheService } from 'connectors'
+} from 'common/utils/index.js'
+import { CacheService } from 'connectors/index.js'
 import { GQLVerificationCodeType, MutationToInviteResolver } from 'definitions'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]

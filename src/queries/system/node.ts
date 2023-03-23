@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { EntityNotFoundError, ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { EntityNotFoundError, ForbiddenError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { QueryToNodeResolver } from 'definitions'
 
 const resolver: QueryToNodeResolver = async (

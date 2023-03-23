@@ -1,5 +1,5 @@
-import { ArticleNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { ArticleNotFoundError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { TagToSelectedResolver } from 'definitions'
 
 const resolver: TagToSelectedResolver = async (

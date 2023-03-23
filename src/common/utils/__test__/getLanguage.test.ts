@@ -1,4 +1,4 @@
-import { getLanguage } from 'common/utils'
+import { getLanguage } from 'common/utils/index.js'
 
 test('getLanguageTest', () => {
   const pairs = [

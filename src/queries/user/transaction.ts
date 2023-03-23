@@ -1,7 +1,11 @@
-import { camelCase } from 'lodash'
+import camelCase from 'lodash/camelCase.js'
 
-import { BLOCKCHAIN_CHAINID, NODE_TYPES, PAYMENT_PROVIDER } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import {
+  BLOCKCHAIN_CHAINID,
+  NODE_TYPES,
+  PAYMENT_PROVIDER,
+} from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {

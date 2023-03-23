@@ -1,9 +1,9 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { VERIFICATION_CODE_STATUS } from 'common/enums/index.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
-} from 'common/errors'
+} from 'common/errors.js'
 import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToConfirmVerificationCodeResolver = async (

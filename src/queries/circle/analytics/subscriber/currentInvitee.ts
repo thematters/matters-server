@@ -1,4 +1,8 @@
-import { PAYMENT_PROVIDER, PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
+import {
+  PAYMENT_PROVIDER,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
+} from 'common/enums/index.js'
 import { CircleSubscriberAnalyticsToCurrentInviteeResolver } from 'definitions'
 
 const resolver: CircleSubscriberAnalyticsToCurrentInviteeResolver = async (

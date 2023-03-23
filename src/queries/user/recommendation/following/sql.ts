@@ -7,8 +7,8 @@ import {
   MATERIALIZED_VIEW,
   TAG_ACTION,
   USER_ACTION,
-} from 'common/enums'
-import { knex } from 'connectors'
+} from 'common/enums/index.js'
+import { knex } from 'connectors/index.js'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 

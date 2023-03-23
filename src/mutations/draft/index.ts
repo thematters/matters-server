@@ -1,5 +1,5 @@
-import deleteDraft from './deleteDraft'
-import putDraft from './putDraft'
+import deleteDraft from './deleteDraft.js'
+import putDraft from './putDraft.js'
 
 export default {
   Mutation: {

@@ -9,13 +9,13 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
-} from 'common/enums'
-import logger from 'common/logger'
-import { timeout } from 'common/utils'
-import { ipfsServers } from 'connectors'
-import SlackService from 'connectors/slack'
+} from 'common/enums/index.js'
+import logger from 'common/logger.js'
+import { timeout } from 'common/utils/index.js'
+import { ipfsServers } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>

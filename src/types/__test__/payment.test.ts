@@ -1,14 +1,14 @@
-import _get from 'lodash/get'
+import _get from 'lodash/get.js'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { NODE_TYPES } from 'common/enums/index.js'
+import { toGlobalId } from 'common/utils/index.js'
 import {
   GQLChain,
   GQLTransactionCurrency,
   GQLTransactionPurpose,
 } from 'definitions'
 
-import { testClient } from './utils'
+import { testClient } from './utils.js'
 
 describe('donation', () => {
   const PAYTO = /* GraphQL */ `

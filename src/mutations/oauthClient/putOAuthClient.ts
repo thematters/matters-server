@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import { nanoid } from 'nanoid'
 
-import { ASSET_TYPE } from 'common/enums'
+import { ASSET_TYPE } from 'common/enums/index.js'
 import {
   AssetNotFoundError,
   AuthenticationError,
   UserInputError,
-} from 'common/errors'
-import logger from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToPutOAuthClientResolver } from 'definitions'
 
 const resolver: MutationToPutOAuthClientResolver = async (

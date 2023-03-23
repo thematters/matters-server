@@ -1,11 +1,11 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { VERIFICATION_CODE_STATUS } from 'common/enums/index.js'
 import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
   EmailExistsError,
   UserNotFoundError,
-} from 'common/errors'
+} from 'common/errors.js'
 import {
   GQLVerificationCodeType,
   MutationToChangeEmailResolver,

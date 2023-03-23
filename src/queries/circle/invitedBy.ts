@@ -1,4 +1,4 @@
-import { INVITATION_STATE } from 'common/enums'
+import { INVITATION_STATE } from 'common/enums/index.js'
 import { CircleToInvitedByResolver } from 'definitions'
 
 const resolver: CircleToInvitedByResolver = async (

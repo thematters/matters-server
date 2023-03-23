@@ -1,4 +1,4 @@
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE } from 'common/enums/index.js'
 import { ArticleAccessToTypeResolver } from 'definitions'
 
 export const type: ArticleAccessToTypeResolver = async (

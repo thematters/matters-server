@@ -1,7 +1,7 @@
 import { ApolloServer } from 'apollo-server-express'
 import { Request } from 'express'
 
-import { authModes, roleAccess } from 'common/utils'
+import { authModes, roleAccess } from 'common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -14,7 +14,7 @@ import {
   SystemService,
   TagService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 import {
   GQLPublishArticleInput,
   GQLPutDraftInput,

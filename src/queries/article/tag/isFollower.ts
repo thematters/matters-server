@@ -1,4 +1,4 @@
-import { TAG_ACTION } from 'common/enums'
+import { TAG_ACTION } from 'common/enums/index.js'
 import { TagToIsFollowerResolver } from 'definitions'
 
 const resolver: TagToIsFollowerResolver = async (

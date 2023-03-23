@@ -7,7 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -17,9 +17,9 @@ import {
   PaymentPasswordNotSetError,
   PaymentPayoutTransactionExistsError,
   UserInputError,
-} from 'common/errors'
-import { calcMattersFee } from 'common/utils'
-import { payoutQueue } from 'connectors/queue'
+} from 'common/errors.js'
+import { calcMattersFee } from 'common/utils/index.js'
+import { payoutQueue } from 'connectors/queue/index.js'
 import { MutationToPayoutResolver } from 'definitions'
 
 const resolver: MutationToPayoutResolver = async (

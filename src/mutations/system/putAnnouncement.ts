@@ -1,12 +1,12 @@
 import lodash from 'lodash'
 
-import { ASSET_TYPE, NODE_TYPES } from 'common/enums'
+import { ASSET_TYPE, NODE_TYPES } from 'common/enums/index.js'
 import {
   AssetNotFoundError,
   EntityNotFoundError,
   UserInputError,
-} from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+} from 'common/errors.js'
+import { fromGlobalId, toGlobalId } from 'common/utils/index.js'
 import { MutationToPutAnnouncementResolver } from 'definitions'
 
 const resolver: MutationToPutAnnouncementResolver = async (

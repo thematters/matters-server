@@ -1,4 +1,4 @@
-import { APPRECIATION_PURPOSE } from 'common/enums'
+import { APPRECIATION_PURPOSE } from 'common/enums/index.js'
 import { ArticleToHasAppreciateResolver } from 'definitions'
 
 const resolver: ArticleToHasAppreciateResolver = async (

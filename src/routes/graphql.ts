@@ -21,11 +21,11 @@ import {
   GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
-} from 'common/enums'
-import { environment, isProd } from 'common/environment'
-import { ActionLimitExceededError } from 'common/errors'
-import logger from 'common/logger'
-import { makeContext } from 'common/utils'
+} from 'common/enums/index.js'
+import { environment, isProd } from 'common/environment.js'
+import { ActionLimitExceededError } from 'common/errors.js'
+import logger from 'common/logger.js'
+import { makeContext } from 'common/utils/index.js'
 import {
   ArticleService,
   AtomService,
@@ -38,10 +38,10 @@ import {
   SystemService,
   TagService,
   UserService,
-} from 'connectors'
-import { sentryMiddleware } from 'middlewares/sentry'
+} from 'connectors/index.js'
+import { sentryMiddleware } from 'middlewares/sentry.js'
 
-import schema from '../schema'
+import schema from '../schema.js'
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
@@ -61,7 +61,8 @@ class ProtectedApolloServer extends ApolloServer {
       ...options,
       validationRules: [
         ...(options.validationRules || []),
-        costAnalysis({
+        // @ts-ignore
+        costAnalysis.default({
           variables: req.body.variables,
           maximumCost,
           defaultCost: 1,
@@ -177,7 +178,8 @@ export const graphql = async (app: Express) => {
   // Playground
   app.get(
     PLAYGROUND_ENDPOINT,
-    expressPlayground({
+    // @ts-ignore
+    expressPlayground.default({
       endpoint: API_ENDPOINT,
       // @ts-ignore
       settings: {

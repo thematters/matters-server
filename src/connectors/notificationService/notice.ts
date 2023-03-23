@@ -1,10 +1,10 @@
 import DataLoader from 'dataloader'
-import { isArray, isEqual, mergeWith, uniq } from 'lodash'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 
-import { DB_NOTICE_TYPE } from 'common/enums'
-// import logger from 'common/logger'
-import { BaseService } from 'connectors'
+import { DB_NOTICE_TYPE } from 'common/enums/index.js'
+// import logger from 'common/logger.js'
+import { BaseService } from 'connectors/index.js'
 import {
   GQLNotificationSettingType,
   NoticeData,
@@ -22,13 +22,13 @@ import {
 export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
 
 const mergeDataCustomizer = (objValue: any, srcValue: any) => {
-  if (isArray(objValue)) {
-    return uniq(objValue.concat(srcValue))
+  if (_.isArray(objValue)) {
+    return _.uniq(objValue.concat(srcValue))
   }
 }
 
 const mergeDataWith = (objValue: any, srcValue: any) => {
-  return mergeWith(objValue, srcValue, mergeDataCustomizer)
+  return _.mergeWith(objValue, srcValue, mergeDataCustomizer)
 }
 
 class Notice extends BaseService {
@@ -230,7 +230,7 @@ class Notice extends BaseService {
     await Promise.all(
       notices.map(async (n) => {
         // skip if data isn't the same
-        if (!isEqual(n.data, data) && !mergeData) {
+        if (!_.isEqual(n.data, data) && !mergeData) {
           return
         }
 
@@ -267,7 +267,7 @@ class Notice extends BaseService {
           sourceEntitiesHashMap[hash] = true
         })
 
-        if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
+        if (_.isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
           bundleables.push(n)
           return
         }

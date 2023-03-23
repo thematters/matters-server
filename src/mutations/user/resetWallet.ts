@@ -1,5 +1,5 @@
-import { ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { ForbiddenError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToResetWalletResolver } from 'definitions'
 
 const resolver: MutationToResetWalletResolver = async (

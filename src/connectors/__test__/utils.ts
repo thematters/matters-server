@@ -4,8 +4,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-import { PaymentService } from 'connectors'
+} from 'common/enums/index.js'
+import { PaymentService } from 'connectors/index.js'
 
 export const createDonationTx = async ({
   senderId,

@@ -1,5 +1,8 @@
-import { USER_ACTION } from 'common/enums'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { USER_ACTION } from 'common/enums/index.js'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { ArticleToSubscribersResolver } from 'definitions'
 
 const resolver: ArticleToSubscribersResolver = async (

@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError } from 'common/errors.js'
 import { MutationToUpdateNotificationSettingResolver } from 'definitions'
 
 const resolver: MutationToUpdateNotificationSettingResolver = async (

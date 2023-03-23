@@ -1,6 +1,6 @@
 import { v4 } from 'uuid'
 
-import { SystemService } from 'connectors'
+import { SystemService } from 'connectors/index.js'
 
 const assetValidation = {
   id: expect.any(String),

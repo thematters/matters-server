@@ -1,4 +1,4 @@
-import { ExchangeRate } from 'connectors'
+import { ExchangeRate } from 'connectors/index.js'
 import { GQLQuoteCurrency, GQLTransactionCurrency } from 'definitions'
 
 export default {

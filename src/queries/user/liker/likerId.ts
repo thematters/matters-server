@@ -1,4 +1,4 @@
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 import { LikerToLikerIdResolver } from 'definitions'
 
 const resolver: LikerToLikerIdResolver = async (

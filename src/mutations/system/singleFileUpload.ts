@@ -8,9 +8,9 @@ import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   ASSET_TYPE,
   UPLOAD_IMAGE_SIZE_LIMIT,
-} from 'common/enums'
-import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+} from 'common/enums/index.js'
+import { UnableToUploadFromUrl, UserInputError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {

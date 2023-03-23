@@ -1,11 +1,11 @@
-import { articles } from './articles'
-import { badgedUsers } from './badgedUsers'
-import { comments } from './comments'
-import { oauthClients } from './oauthClients'
-import { seedingUsers } from './seedingUsers'
-import { skippedListItems } from './skippedListItems'
-import { tags } from './tags'
-import { users } from './users'
+import { articles } from './articles.js'
+import { badgedUsers } from './badgedUsers.js'
+import { comments } from './comments.js'
+import { oauthClients } from './oauthClients.js'
+import { seedingUsers } from './seedingUsers.js'
+import { skippedListItems } from './skippedListItems.js'
+import { tags } from './tags.js'
+import { users } from './users.js'
 
 export default {
   users,

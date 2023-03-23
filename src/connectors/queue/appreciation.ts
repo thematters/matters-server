@@ -9,18 +9,18 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-} from 'common/enums'
-import { environment } from 'common/environment'
+} from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
   ForbiddenError,
   UserNotFoundError,
-} from 'common/errors'
-import logger from 'common/logger'
-import { likecoin } from 'connectors'
+} from 'common/errors.js'
+import logger from 'common/logger.js'
+import { likecoin } from 'connectors/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 interface AppreciationParams {
   amount: number

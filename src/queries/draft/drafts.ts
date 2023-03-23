@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray } from 'common/utils/index.js'
 import { UserToDraftsResolver } from 'definitions'
 
 const resolver: UserToDraftsResolver = (

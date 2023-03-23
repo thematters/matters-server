@@ -1,6 +1,6 @@
-import _capitalize from 'lodash/capitalize'
+import _capitalize from 'lodash/capitalize.js'
 
-import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
+import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums/index.js'
 import {
   DBNoticeType,
   GQLArticleArticleNoticeType,
@@ -27,7 +27,7 @@ import {
   GQLUserTypeResolver,
 } from 'definitions'
 
-import notices from './notices'
+import notices from './notices.js'
 
 enum NOTICE_TYPE {
   UserNotice = 'UserNotice',

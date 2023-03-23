@@ -1,5 +1,5 @@
-import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
-import { correctHtml } from 'common/utils'
+import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums/index.js'
+import { correctHtml } from 'common/utils/index.js'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content

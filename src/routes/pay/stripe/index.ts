@@ -3,18 +3,18 @@ import { RequestHandler, Router } from 'express'
 import _ from 'lodash'
 import Stripe from 'stripe'
 
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import { PaymentService } from 'connectors'
-import SlackService from 'connectors/slack'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
+import { PaymentService } from 'connectors/index.js'
+import SlackService from 'connectors/slack/index.js'
 
 import {
   completeCircleInvoice,
   completeCircleSubscription,
   updateSubscription,
-} from './circle'
-import { updateCustomerCard } from './customer'
-import { createRefundTxs, updateTxState } from './transaction'
+} from './circle.js'
+import { updateCustomerCard } from './customer.js'
+import { createRefundTxs, updateTxState } from './transaction.js'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

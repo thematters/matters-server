@@ -2,7 +2,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromGlobalId,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { UserToArticlesResolver } from 'definitions'
 
 const resolver: UserToArticlesResolver = async (

@@ -1,11 +1,11 @@
 // import slugify from '@matters/slugify'
 
-import { ARTICLE_STATE } from 'common/enums'
-// import { environment } from 'common/environment'
-import { ArticleNotFoundError } from 'common/errors'
-// import logger from 'common/logger'
-import { fromGlobalId } from 'common/utils'
-// import { likecoin } from 'connectors'
+import { ARTICLE_STATE } from 'common/enums/index.js'
+// import { environment } from 'common/environment.js'
+import { ArticleNotFoundError } from 'common/errors.js'
+// import logger from 'common/logger.js'
+import { fromGlobalId } from 'common/utils/index.js'
+// import { likecoin } from 'connectors/index.js'
 import { MutationToReadArticleResolver } from 'definitions'
 
 const resolver: MutationToReadArticleResolver = async (

@@ -8,11 +8,11 @@ import {
   QUEUE_PRIORITY,
   QUEUE_URL,
   USER_STATE,
-} from 'common/enums'
-import logger from 'common/logger'
-import { aws } from 'connectors'
+} from 'common/enums/index.js'
+import logger from 'common/logger.js'
+import { aws } from 'connectors/index.js'
 
-import { BaseQueue } from './baseQueue'
+import { BaseQueue } from './baseQueue.js'
 
 interface ArchiveUserData {
   userId: string

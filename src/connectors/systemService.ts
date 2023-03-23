@@ -5,9 +5,9 @@ import {
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
-} from 'common/enums'
-// import logger from 'common/logger'
-import { BaseService } from 'connectors'
+} from 'common/enums/index.js'
+// import logger from 'common/logger.js'
+import { BaseService } from 'connectors/index.js'
 import {
   GQLFeatureFlag,
   GQLFeatureName,

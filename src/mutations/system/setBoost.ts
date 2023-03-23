@@ -1,5 +1,5 @@
-import { EntityNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { EntityNotFoundError } from 'common/errors.js'
+import { fromGlobalId } from 'common/utils/index.js'
 import { MutationToSetBoostResolver } from 'definitions'
 
 const resolver: MutationToSetBoostResolver = async (

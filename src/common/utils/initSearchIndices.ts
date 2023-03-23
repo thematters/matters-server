@@ -1,8 +1,8 @@
 import elasticsearch from '@elastic/elasticsearch'
 
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import { ArticleService, TagService, UserService } from 'connectors'
+import { environment } from 'common/environment.js'
+import logger from 'common/logger.js'
+import { ArticleService, TagService, UserService } from 'connectors/index.js'
 
 const articleIndexDef = {
   index: 'article',

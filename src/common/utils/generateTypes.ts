@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { generateTypeScriptTypes } from 'graphql-schema-typescript'
 
-import logger from 'common/logger'
+import logger from 'common/logger.js'
 
 const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 

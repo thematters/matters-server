@@ -3,7 +3,7 @@ import {
   connectionFromArrayWithKeys,
   cursorToKeys,
   fromConnectionArgs,
-} from 'common/utils'
+} from 'common/utils/index.js'
 import { TagToFollowersResolver } from 'definitions'
 
 const resolver: TagToFollowersResolver = async (

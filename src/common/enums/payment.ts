@@ -1,4 +1,4 @@
-import { LANGUAGE } from './language'
+import { LANGUAGE } from './language.js'
 
 export enum TRANSACTION_STATE {
   pending = 'pending',

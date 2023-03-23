@@ -1,4 +1,4 @@
-import { PUBLISH_STATE } from 'common/enums'
+import { PUBLISH_STATE } from 'common/enums/index.js'
 import { ArticleToRevisedAtResolver } from 'definitions'
 
 const resolver: ArticleToRevisedAtResolver = async (

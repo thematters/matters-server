@@ -1,6 +1,6 @@
 import { Contract, providers } from 'ethers'
 
-import { getAlchemyProvider } from 'common/utils'
+import { getAlchemyProvider } from 'common/utils/index.js'
 
 export class BaseContract {
   chainId: number

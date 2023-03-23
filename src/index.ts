@@ -4,10 +4,12 @@ import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
 import requestIp from 'request-ip'
 
-import { CORS_OPTIONS, IMG_CACHE_PATH } from 'common/enums'
-import { environment } from 'common/environment'
+import { CORS_OPTIONS, IMG_CACHE_PATH } from 'common/enums/index.js'
+import { environment } from 'common/environment.js'
 
-import * as routes from './routes'
+import * as routes from './routes/index.js'
+
+//
 ;(async () => {
   /**
    * Init

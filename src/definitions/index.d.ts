@@ -7,7 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
-} from 'common/enums'
+} from 'common/enums/index.js'
 import {
   Alchemy,
   ArticleService,
@@ -21,10 +21,10 @@ import {
   SystemService,
   TagService,
   UserService,
-} from 'connectors'
+} from 'connectors/index.js'
 
-export * from './schema'
-export * from './notification'
+export * from './schema.js'
+export * from './notification.js'
 
 export type User = {
   id: string

@@ -1,4 +1,4 @@
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums/index.js'
 
 export default /* GraphQL */ `
   union Response = Article | Comment

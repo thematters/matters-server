@@ -1,4 +1,7 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils/index.js'
 import { CommentToCommentsResolver } from 'definitions'
 
 const resolver: CommentToCommentsResolver = (

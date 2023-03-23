@@ -1,6 +1,6 @@
 import { Knex } from 'knex'
 
-import { CIRCLE_ACTION } from 'common/enums'
+import { CIRCLE_ACTION } from 'common/enums/index.js'
 import { CircleFollowerAnalyticsToHistoryResolver } from 'definitions'
 
 const resolver: CircleFollowerAnalyticsToHistoryResolver = async (

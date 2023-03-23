@@ -8,7 +8,7 @@ import { promisify } from 'util'
 
 const generateKeyPairPromisified = promisify(generateKeyPair)
 
-import { environment } from 'common/environment'
+import { environment } from 'common/environment.js'
 
 const ipfsServerUrls = (
   environment.ipfsServers ||
