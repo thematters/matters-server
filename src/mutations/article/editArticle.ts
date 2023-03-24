@@ -546,8 +546,15 @@ const handleCollection = async ({
       : uniq(collection.map((articleId) => fromGlobalId(articleId).id)).filter(
           (id) => !!id
         )
-  // validate collection only when it changes
-  if (!isEqual(oldIds.sort(), newIds.sort())) {
+  const newIdsToAdd = difference(newIds, oldIds)
+  const oldIdsTodelete = difference(oldIds, newIds)
+
+  // do nothing if no change
+  if (isEqual(oldIds, newIds)) {
+    return
+  }
+  // only validate when new articles added
+  if (!!newIdsToAdd.length) {
     if (
       newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
       newIds.length >= oldIds.length
@@ -581,73 +588,71 @@ const handleCollection = async ({
         }
       })
     )
-
-    interface Item {
-      entranceId: string
-      articleId: string
-      order: number
-    }
-    const addItems: Item[] = []
-    const updateItems: Item[] = []
-    const diff = difference(newIds, oldIds)
-
-    // gather data
-    newIds.forEach((articleId: string, index: number) => {
-      const indexOf = oldIds.indexOf(articleId)
-      if (indexOf < 0) {
-        addItems.push({ entranceId: article.id, articleId, order: index })
-      }
-      if (indexOf >= 0 && index !== indexOf) {
-        updateItems.push({ entranceId: article.id, articleId, order: index })
-      }
-    })
-
-    // add and update
-    await Promise.all([
-      ...addItems.map((item) =>
-        atomService.create({
-          table: 'collection',
-          data: {
-            ...item,
-            // createdAt: new Date(),
-            // updatedAt: knex.fn.now(),
-          },
-        })
-      ),
-      ...updateItems.map((item) =>
-        atomService.update({
-          table: 'collection',
-          where: { entranceId: item.entranceId, articleId: item.articleId },
-          data: { order: item.order, updatedAt: knex.fn.now() },
-        })
-      ),
-    ])
-
-    // delete unwanted
-    await atomService.deleteMany({
-      table: 'collection',
-      where: { entranceId: article.id },
-      whereIn: ['article_id', difference(oldIds, newIds)],
-    })
-
-    // trigger notifications
-    diff.forEach(async (articleId) => {
-      const targetCollection = await articleService.baseFindById(articleId)
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_collected,
-        recipientId: targetCollection.authorId,
-        actorId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: targetCollection },
-          {
-            type: 'collection',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
-    })
   }
+
+  interface Item {
+    entranceId: string
+    articleId: string
+    order: number
+  }
+  const addItems: Item[] = []
+  const updateItems: Item[] = []
+
+  // gather data
+  newIds.forEach((articleId: string, index: number) => {
+    const isNew = newIdsToAdd.includes(articleId)
+    if (isNew) {
+      addItems.push({ entranceId: article.id, articleId, order: index })
+    }
+    if (!isNew && index !== oldIds.indexOf(articleId)) {
+      updateItems.push({ entranceId: article.id, articleId, order: index })
+    }
+  })
+
+  await Promise.all([
+    ...addItems.map((item) =>
+      atomService.create({
+        table: 'collection',
+        data: {
+          ...item,
+          // createdAt: new Date(),
+          // updatedAt: knex.fn.now(),
+        },
+      })
+    ),
+    ...updateItems.map((item) =>
+      atomService.update({
+        table: 'collection',
+        where: { entranceId: item.entranceId, articleId: item.articleId },
+        data: { order: item.order, updatedAt: knex.fn.now() },
+      })
+    ),
+  ])
+
+  // delete unwanted
+  await atomService.deleteMany({
+    table: 'collection',
+    where: { entranceId: article.id },
+    whereIn: ['article_id', oldIdsTodelete],
+  })
+
+  // trigger notifications
+  newIdsToAdd.forEach(async (articleId) => {
+    const targetCollection = await articleService.baseFindById(articleId)
+    notificationService.trigger({
+      event: DB_NOTICE_TYPE.article_new_collected,
+      recipientId: targetCollection.authorId,
+      actorId: article.authorId,
+      entities: [
+        { type: 'target', entityTable: 'article', entity: targetCollection },
+        {
+          type: 'collection',
+          entityTable: 'article',
+          entity: article,
+        },
+      ],
+    })
+  })
 }
 
 export default resolver
