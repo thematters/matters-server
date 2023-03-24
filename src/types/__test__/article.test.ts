@@ -248,7 +248,7 @@ describe('query drafts on article', () => {
 
     // publishedDraft
     const publishedDraft = data && data.node && data.node.newestPublishedDraft
-    expect(publishedDraft).toEqual(PUBLISH_STATE.published)
+    expect(publishedDraft.publishState).toEqual(PUBLISH_STATE.published)
   })
 })
 
