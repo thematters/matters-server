@@ -1,4 +1,5 @@
 import { stripHtml } from '@matters/ipns-site-generator'
+import type { Knex } from 'knex'
 import lodash, { difference, flow, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -533,7 +534,7 @@ const handleCollection = async ({
     DataSources,
     'atomService' | 'userService' | 'articleService' | 'notificationService'
   >
-  knex: any
+  knex: Knex
 }) => {
   const oldIds = (
     await articleService.findCollections({
@@ -547,7 +548,7 @@ const handleCollection = async ({
           (id) => !!id
         )
   const newIdsToAdd = difference(newIds, oldIds)
-  const oldIdsTodelete = difference(oldIds, newIds)
+  const oldIdsToDelete = difference(oldIds, newIds)
 
   // do nothing if no change
   if (isEqual(oldIds, newIds)) {
@@ -615,8 +616,6 @@ const handleCollection = async ({
         table: 'collection',
         data: {
           ...item,
-          // createdAt: new Date(),
-          // updatedAt: knex.fn.now(),
         },
       })
     ),
@@ -633,7 +632,7 @@ const handleCollection = async ({
   await atomService.deleteMany({
     table: 'collection',
     where: { entranceId: article.id },
-    whereIn: ['article_id', oldIdsTodelete],
+    whereIn: ['article_id', oldIdsToDelete],
   })
 
   // trigger notifications
