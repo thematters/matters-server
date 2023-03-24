@@ -553,7 +553,7 @@ const handleCollection = async ({
   if (isEqual(oldIds, newIds)) {
     return
   }
-  // only validate when new articles added
+  // only validate new-added articles
   if (!!newIdsToAdd.length) {
     if (
       newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
@@ -564,7 +564,7 @@ const handleCollection = async ({
       )
     }
     await Promise.all(
-      newIds.map(async (articleId) => {
+      newIdsToAdd.map(async (articleId) => {
         const collectedArticle = await atomService.findUnique({
           table: 'article',
           where: { id: articleId },
