@@ -11,7 +11,7 @@ const resolver: ArticleToNewestUnpublishedDraftResolver = async (
     where: { articleId },
     whereIn: [
       'publish_state',
-      [PUBLISH_STATE.unpublished, PUBLISH_STATE.pending],
+      [PUBLISH_STATE.unpublished, PUBLISH_STATE.pending, PUBLISH_STATE.error],
     ],
     orderBy: [{ column: 'created_at', order: 'desc' }],
   })

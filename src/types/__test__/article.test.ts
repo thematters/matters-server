@@ -64,6 +64,28 @@ const GET_ARTICLE_TAGS = /* GraphQL */ `
   }
 `
 
+const GET_ARTICLE_DRAFTS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Article {
+        id
+        drafts {
+          id
+          publishState
+        }
+        newestPublishedDraft {
+          id
+          publishState
+        }
+        newestUnpublishedDraft {
+          id
+          publishState
+        }
+      }
+    }
+  }
+`
+
 const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -203,6 +225,30 @@ describe('query tag on article', () => {
     expect(
       new Set(tags.map(({ content }: { content: string }) => content))
     ).toEqual(new Set(['article', 'test']))
+  })
+})
+
+describe('query drafts on article', () => {
+  test('query drafts on article', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_ARTICLE_DRAFTS,
+      variables: { input: { id } },
+    })
+
+    // drafts
+    const drafts = data && data.node && data.node.drafts
+    expect(drafts[0].publishState).toEqual(PUBLISH_STATE.unpublished)
+
+    // unpublishedDraft
+    const unpublishedDraft =
+      data && data.node && data.node.newestUnpublishedDraft
+    expect(unpublishedDraft.publishState).toEqual(PUBLISH_STATE.unpublished)
+
+    // publishedDraft
+    const publishedDraft = data && data.node && data.node.newestPublishedDraft
+    expect(publishedDraft).toBeNull()
   })
 })
 

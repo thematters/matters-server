@@ -402,7 +402,7 @@ type Article implements Node {
   drafts: [Draft!] @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
 
   """Newest unpublished draft linked to this article."""
-  newestUnpublishedDraft: Draft!
+  newestUnpublishedDraft: Draft
 
   """Newest published draft linked to this article."""
   newestPublishedDraft: Draft!

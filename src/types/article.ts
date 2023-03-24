@@ -190,7 +190,7 @@ export default /* GraphQL */ `
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}") @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
 
     "Newest unpublished draft linked to this article."
-    newestUnpublishedDraft: Draft! @logCache(type: "${NODE_TYPES.Draft}")
+    newestUnpublishedDraft: Draft @logCache(type: "${NODE_TYPES.Draft}")
 
     "Newest published draft linked to this article."
     newestPublishedDraft: Draft! @logCache(type: "${NODE_TYPES.Draft}")

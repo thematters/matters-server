@@ -582,7 +582,7 @@ export interface GQLArticle extends GQLNode {
   /**
    * Newest unpublished draft linked to this article.
    */
-  newestUnpublishedDraft: GQLDraft
+  newestUnpublishedDraft?: GQLDraft
 
   /**
    * Newest published draft linked to this article.
