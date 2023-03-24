@@ -230,7 +230,7 @@ describe('query tag on article', () => {
 
 describe('query drafts on article', () => {
   test('query drafts on article', async () => {
-    const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
     const server = await testClient()
     const { data } = await server.executeOperation({
       query: GET_ARTICLE_DRAFTS,
@@ -239,16 +239,16 @@ describe('query drafts on article', () => {
 
     // drafts
     const drafts = data && data.node && data.node.drafts
-    expect(drafts[0].publishState).toEqual(PUBLISH_STATE.unpublished)
+    expect(drafts[0].publishState).toEqual(PUBLISH_STATE.published)
 
     // unpublishedDraft
     const unpublishedDraft =
       data && data.node && data.node.newestUnpublishedDraft
-    expect(unpublishedDraft.publishState).toEqual(PUBLISH_STATE.unpublished)
+    expect(unpublishedDraft).toBeNull()
 
     // publishedDraft
     const publishedDraft = data && data.node && data.node.newestPublishedDraft
-    expect(publishedDraft).toBeNull()
+    expect(publishedDraft).toEqual(PUBLISH_STATE.published)
   })
 })
 
