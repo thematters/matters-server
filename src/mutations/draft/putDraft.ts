@@ -6,6 +6,7 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -13,6 +14,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleCollectionReachLimitError,
   ArticleNotFoundError,
   AssetNotFoundError,
   AuthenticationError,
@@ -243,6 +245,16 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for collection limit
+    const oldCollectionLength =
+      draft.collection == null ? 0 : draft.collection.length
+    if (
+      newCollectionIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+      newCollectionIds.length > oldCollectionLength
+    ) {
+      throw new ArticleCollectionReachLimitError(
+        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+      )
+    }
 
     // handle candidate cover
     const isUpdateContent = content || content === ''
@@ -288,6 +300,11 @@ const resolver: MutationToPutDraftResolver = async (
 
   // Create
   else {
+    if (newCollectionIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+      throw new ArticleCollectionReachLimitError(
+        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+      )
+    }
     const draft = await draftService.baseCreate({ uuid: v4(), ...data })
     draft[CACHE_KEYWORD] = [
       {
