@@ -160,14 +160,16 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Tags
    */
-  await handleTags({
-    viewerId: viewer.id,
-    tags,
-    article,
-    dataSources: {
-      tagService,
-    },
-  })
+  if (tags !== undefined) {
+    await handleTags({
+      viewerId: viewer.id,
+      tags,
+      article,
+      dataSources: {
+        tagService,
+      },
+    })
+  }
 
   /**
    * Cover
@@ -198,18 +200,20 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Collection
    */
-  await handleCollection({
-    viewerId: viewer.id,
-    collection,
-    article,
-    dataSources: {
-      atomService,
-      userService,
-      articleService,
-      notificationService,
-    },
-    knex,
-  })
+  if (collection !== undefined) {
+    await handleCollection({
+      viewerId: viewer.id,
+      collection,
+      article,
+      dataSources: {
+        atomService,
+        userService,
+        articleService,
+        notificationService,
+      },
+      knex,
+    })
+  }
 
   /**
    * Circle
@@ -453,7 +457,7 @@ const handleTags = async ({
   dataSources: { tagService },
 }: {
   viewerId: string
-  tags: string[] | undefined | null
+  tags: string[] | null
   article: Article
   dataSources: Pick<DataSources, 'tagService'>
 }) => {
@@ -549,7 +553,7 @@ const handleCollection = async ({
   knex,
 }: {
   viewerId: string
-  collection: string[] | undefined | null
+  collection: string[] | null
   article: Article
   dataSources: Pick<
     DataSources,
@@ -563,7 +567,7 @@ const handleCollection = async ({
     })
   ).map(({ articleId }: { articleId: string }) => articleId)
   const newIds =
-    collection == null
+    collection === null
       ? []
       : uniq(collection.map((articleId) => fromGlobalId(articleId).id)).filter(
           (id) => !!id

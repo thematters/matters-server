@@ -543,6 +543,21 @@ describe('edit article', () => {
       `Not allow more than ${limit} articles in collection`
     )
 
+    // do not change collection when collection is not in input
+    const otherRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+        },
+      },
+    })
+    expect(_get(otherRes, 'data.editArticle.collection.totalCount')).toBe(limit)
+    expect([
+      _get(otherRes, 'data.editArticle.collection.edges.0.node.id'),
+      _get(otherRes, 'data.editArticle.collection.edges.1.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
     // reorder collection
     const reorderCollection = [...collection.slice(0, limit)].reverse()
     expect(reorderCollection).not.toBe(collection.slice(0, limit))
