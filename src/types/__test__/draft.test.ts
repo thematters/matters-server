@@ -156,7 +156,6 @@ describe('put draft', () => {
         collection: collection.slice(0, smallerlimit + 1),
       },
     })
-    console.log(remainRes)
     expect(_get(remainRes, 'collection.totalCount')).toBe(smallerlimit + 1)
     expect([
       _get(remainRes, 'collection.edges.0.node.id'),
