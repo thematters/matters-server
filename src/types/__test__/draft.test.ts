@@ -47,29 +47,64 @@ describe('put draft', () => {
   })
 
   test('edit draft tags', async () => {
+    const limit = 4
+    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = limit
     const tags = [
       'abc',
       '123',
       'tags too long | too long | too long | too long | too long', // will be omitted at publishing time
+      'tag4',
+      'tag5',
     ]
-    const draft = await putDraft({ draft: { id: draftId, tags } })
-    expect(_get(draft, 'tags.length')).toBe(3)
+
+    // create draft setting tags out of limit
+    const createFailedRes = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        tags: tags.slice(0, limit + 1),
+      },
+    })
+    expect(_get(createFailedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} tags on an article`
+    )
+
+    // create draft setting tags within limit
+    const draft = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        tags: tags.slice(0, limit),
+      },
+    })
+    expect(_get(draft, 'tags.length')).toBe(limit)
     expect(_get(draft, 'tags.0')).toBe(tags[0])
     expect(_get(draft, 'tags.1')).toBe(tags[1])
-    // expect(_get(draft, 'tags.2')).toBe(tags[2])
+    expect(_get(draft, 'tags.2')).toBe(tags[2])
 
     // const { publishState } = await publishArticle({ id: draft.id })
     // expect(publishState).toBe(PUBLISH_STATE.pending)
     // to check dbTags.length should be 2;
 
+    draftId = draft.id
     // should retain the tags after setting something else, without changing tags
     const tagsResult1 = await putDraft({
       draft: { id: draftId, summary: 'any-summary' },
     })
-    expect(_get(tagsResult1, 'tags.length')).toBe(3)
+    expect(_get(tagsResult1, 'tags.length')).toBe(limit)
     expect(_get(tagsResult1, 'tags.0')).toBe(tags[0])
     expect(_get(tagsResult1, 'tags.1')).toBe(tags[1])
 
+    // create draft setting tags out of limit
+    const editFailedRes = await putDraft({
+      draft: {
+        id: draftId,
+        tags: tags.slice(0, limit + 1),
+      },
+    })
+    expect(_get(editFailedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} tags on an article`
+    )
     // reset tags
     const resetResult1 = await putDraft({
       draft: { id: draftId, tags: null as any },
@@ -91,7 +126,7 @@ describe('put draft', () => {
       toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
     ]
 
-    // create draft settting collection out of limit
+    // create draft setting collection out of limit
     const createFailedRes = await putDraft({
       draft: {
         title: Math.random().toString(),
@@ -103,7 +138,7 @@ describe('put draft', () => {
       `Not allow more than ${limit} articles in collection`
     )
 
-    // create draft settting collection within limit
+    // create draft setting collection within limit
     const createSucceedRes = await putDraft({
       draft: {
         title: Math.random().toString(),
@@ -119,8 +154,20 @@ describe('put draft', () => {
       _get(createSucceedRes, 'collection.edges.3.node.id'),
     ]).toEqual(collection.slice(0, limit))
 
-    // edit collection
     draftId = createSucceedRes.id
+
+    // should retain the collection after setting something else, without changing collection
+    const editRes = await putDraft({
+      draft: { id: draftId, summary: 'any-summary' },
+    })
+    expect(_get(editRes, 'collection.totalCount')).toBe(limit)
+    expect([
+      _get(editRes, 'collection.edges.0.node.id'),
+      _get(editRes, 'collection.edges.1.node.id'),
+      _get(editRes, 'collection.edges.2.node.id'),
+      _get(editRes, 'collection.edges.3.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
     // edit draft settting collection out of limit
     const editFailedRes = await putDraft({
       draft: {
