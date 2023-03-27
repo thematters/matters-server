@@ -33,17 +33,7 @@ import {
   sanitize,
   // stripAllPunct,
 } from 'common/utils'
-import { ItemData, MutationToPutDraftResolver } from 'definitions'
-
-function sanitizeTags(tags: string[] | null | undefined) {
-  if (Array.isArray(tags)) {
-    // tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
-    if (tags.length === 0) {
-      return null
-    }
-  }
-  return tags
-}
+import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -116,36 +106,11 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // handle Collection
-  const newCollectionIds =
-    collection == null
-      ? []
-      : _.uniq(
-          collection
-            .filter(_.isString)
-            .map((articleId: string) => fromGlobalId(articleId).id)
-        ).filter((articleId) => !!articleId)
-  // validate collection items
-  await Promise.all(
-    newCollectionIds.map(async (articleId) => {
-      const article = await articleService.baseFindById(articleId)
-
-      if (!article) {
-        throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
-      }
-
-      if (article.state !== ARTICLE_STATE.active) {
-        throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
-      }
-
-      const isBlocked = await userService.blocked({
-        userId: article.authorId,
-        targetId: viewer.id,
-      })
-      if (isBlocked) {
-        throw new ForbiddenError('viewer has no permission')
-      }
-    })
-  )
+  const newCollectionIds = await validateCollectionOrThrow({
+    viewerId: viewer.id,
+    collection,
+    dataSources: { userService, articleService },
+  })
 
   // check circle
   let circleId // leave as undefined // = null
@@ -314,6 +279,58 @@ const resolver: MutationToPutDraftResolver = async (
     ]
     return draft
   }
+}
+
+const sanitizeTags = (tags: string[] | null | undefined) => {
+  if (Array.isArray(tags)) {
+    // tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
+    if (tags.length === 0) {
+      return null
+    }
+  }
+  return tags
+}
+
+const validateCollectionOrThrow = async ({
+  viewerId,
+  collection,
+  dataSources: { userService, articleService },
+}: {
+  viewerId: string
+  collection: Array<string | null> | undefined
+  dataSources: Pick<DataSources, 'userService' | 'articleService'>
+}) => {
+  const ids =
+    collection == null
+      ? []
+      : _.uniq(
+          collection
+            .filter(_.isString)
+            .map((articleId: string) => fromGlobalId(articleId).id)
+        ).filter((articleId) => !!articleId)
+  // validate collection items
+  await Promise.all(
+    ids.map(async (articleId) => {
+      const article = await articleService.baseFindById(articleId)
+
+      if (!article) {
+        throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+      }
+
+      if (article.state !== ARTICLE_STATE.active) {
+        throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
+      }
+
+      const isBlocked = await userService.blocked({
+        userId: article.authorId,
+        targetId: viewerId,
+      })
+      if (isBlocked) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+    })
+  )
+  return ids
 }
 
 export default resolver
