@@ -348,6 +348,26 @@ export class ArticleService extends BaseService {
     let published
 
     try {
+      const updatedIPNSRec = await atomService.update({
+        table: 'user_ipns_keys',
+        where: { userId: author.id },
+        data: {
+          // lastDataHash: cidToPublish.toString(),
+          // lastPublished: this.knex.fn.now(),
+          updatedAt: this.knex.fn.now(),
+        },
+        columns: [
+          'id',
+          'user_id',
+          'ipns_key',
+          'last_data_hash',
+          'created_at',
+          'updated_at',
+          'last_published',
+        ],
+      })
+      console.log(new Date(), 'start update IPNSRec:', updatedIPNSRec)
+
       // make a bundle of json+xml+html index
       const feed = new Feed(author, ipnsKey, publishedDrafts)
       await feed.loadData()
@@ -371,8 +391,8 @@ export class ArticleService extends BaseService {
       for await (const result of ipfs.addAll(contents)) {
         results.push(result)
       }
-      const entriesMap = new Map(results.map((e: any) => [e.path, e]))
-      console.log(new Date(), 'contents feed.json ::', results, entriesMap)
+      // const entriesMap = new Map(results.map((e: any) => [e.path, e]))
+      // console.log(new Date(), 'contents feed.json ::', results, entriesMap)
 
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
@@ -422,7 +442,7 @@ export class ArticleService extends BaseService {
       // only attach the just published 1 article, at every publihsing time
       for (const dft of updatedDrafts ??
         (incremental // to include last one only
-          ? [lastDraft]
+          ? publishedDrafts.slice(0, 3) // retry last 3 articles instead of one [lastDraft]
           : publishedDrafts)) {
         let retries = 0
 
@@ -553,12 +573,15 @@ export class ArticleService extends BaseService {
           data: {
             lastDataHash: cidToPublish.toString(),
             lastPublished: this.knex.fn.now(),
+            updatedAt: this.knex.fn.now(),
           },
           columns: [
             'id',
             'user_id',
             'ipns_key',
             'last_data_hash',
+            'created_at',
+            'updated_at',
             'last_published',
           ],
         })
