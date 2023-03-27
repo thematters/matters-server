@@ -461,83 +461,64 @@ const handleTags = async ({
   article: Article
   dataSources: Pick<DataSources, 'tagService'>
 }) => {
-  const resetTags = tags === null || (tags && tags.length === 0)
-  if (tags) {
-    // get tag editor
-    const tagEditors = environment.mattyId
-      ? [environment.mattyId, article.authorId]
-      : [article.authorId]
-
-    // tags = uniq(tags.map(stripAllPunct).filter(Boolean))
-
-    if (tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
-      throw new TooManyTagsForArticleError(
-        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-      )
-    }
-
-    // create tag records
-    const dbTags = (
-      await Promise.all(
-        // eslint-disable-next-line no-shadow
-        // tslint:disable-next-line
-        tags.filter(Boolean).map(async (content: string) =>
-          tagService.create(
-            {
-              content,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
-            {
-              columns: ['id', 'content'],
-              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
-            }
-          )
-        )
-      )
+  // validate
+  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+    throw new TooManyTagsForArticleError(
+      `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
-      // eslint-disable-next-line no-shadow
-      // tslint:disable-next-line
-      .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
-      { id: string; content: string }
-    ]
-
-    const newIds = dbTags.map(({ id: tagId }) => tagId)
-    const oldIds = (
-      await tagService.findByArticleId({ articleId: article.id })
-    ).map(({ id: tagId }: { id: string }) => tagId)
-
-    // check if add tags include matty's tag
-    const mattyTagId = environment.mattyChoiceTagId || ''
-    const isMatty = environment.mattyId === viewerId
-    const addIds = difference(newIds, oldIds)
-    if (addIds.includes(mattyTagId) && !isMatty) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
-    }
-
-    // add
-    await tagService.createArticleTags({
-      articleIds: [article.id],
-      creator: article.authorId,
-      tagIds: difference(newIds, oldIds),
-    })
-
-    // delete unwanted
-    await tagService.deleteArticleTagsByTagIds({
-      articleId: article.id,
-      tagIds: difference(oldIds, newIds),
-    })
-  } else if (resetTags) {
-    const oldIds = (
-      await tagService.findByArticleId({ articleId: article.id })
-    ).map(({ id: tagId }: { id: string }) => tagId)
-
-    await tagService.deleteArticleTagsByTagIds({
-      articleId: article.id,
-      tagIds: oldIds,
-    })
   }
+
+  // create tag records
+  const tagEditors = environment.mattyId
+    ? [environment.mattyId, article.authorId]
+    : [article.authorId]
+  const dbTags =
+    tags === null
+      ? []
+      : (
+          await Promise.all(
+            tags.filter(Boolean).map(async (content: string) =>
+              tagService.create(
+                {
+                  content,
+                  creator: article.authorId,
+                  editors: tagEditors,
+                  owner: article.authorId,
+                },
+                {
+                  columns: ['id', 'content'],
+                  skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+                }
+              )
+            )
+          )
+        ).map(({ id, content }) => ({ id: `${id}`, content }))
+
+  const newIds = dbTags.map(({ id: tagId }) => tagId)
+  const oldIds = (
+    await tagService.findByArticleId({ articleId: article.id })
+  ).map(({ id: tagId }: { id: string }) => tagId)
+
+  // check if add tags include matty's tag
+  const mattyTagId = environment.mattyChoiceTagId || ''
+  const isMatty = environment.mattyId === viewerId
+  const addIds = difference(newIds, oldIds)
+  if (addIds.includes(mattyTagId) && !isMatty) {
+    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  }
+
+  // add
+  await tagService.createArticleTags({
+    articleIds: [article.id],
+    creator: article.authorId,
+    tagIds: addIds,
+  })
+
+  // delete unwanted
+  await tagService.deleteArticleTagsByTagIds({
+    articleId: article.id,
+    tagIds: difference(oldIds, newIds),
+  })
 }
 
 const handleCollection = async ({
