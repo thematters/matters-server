@@ -80,7 +80,7 @@ describe('put draft', () => {
     expect(_get(resetResult2, 'tags')).toBeNull()
   })
 
-  test.only('edit draft collection', async () => {
+  test('edit draft collection', async () => {
     const limit = 4
     globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
     const collection = [
