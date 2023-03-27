@@ -1,16 +1,22 @@
 import _get from 'lodash/get'
 
-import {
-  ARTICLE_LICENSE_TYPE,
-  NODE_TYPES,
-  // PUBLISH_STATE
-} from 'common/enums'
+import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import {
-  // publishArticle,
-  putDraft,
-} from './utils'
+import { putDraft } from './utils'
+
+declare global {
+  var mockEnums: any
+}
+
+jest.mock('common/enums', () => {
+  const originalModule = jest.requireActual('common/enums')
+  globalThis.mockEnums = {
+    ...originalModule,
+    __esModule: true,
+  }
+  return globalThis.mockEnums
+})
 
 describe('put draft', () => {
   let draftId: string
@@ -75,18 +81,108 @@ describe('put draft', () => {
   })
 
   test('edit draft collection', async () => {
+    const limit = 4
+    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
     const collection = [
       toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 5 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 6 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
     ]
-    const result = await putDraft({ draft: { id: draftId, collection } })
-    expect(_get(result, 'collection.totalCount')).toBe(2)
-    expect(
-      [
-        _get(result, 'collection.edges.0.node.id'),
-        _get(result, 'collection.edges.1.node.id'),
-      ].sort()
-    ).toEqual(collection.sort())
+
+    // create draft settting collection out of limit
+    const createFailedRes = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        collection: collection.slice(0, limit + 1),
+      },
+    })
+    expect(_get(createFailedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} articles in collection`
+    )
+
+    // create draft settting collection within limit
+    const createSucceedRes = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+        collection: collection.slice(0, limit),
+      },
+    })
+    expect(_get(createSucceedRes, 'collection.totalCount')).toBe(limit)
+    expect([
+      _get(createSucceedRes, 'collection.edges.0.node.id'),
+      _get(createSucceedRes, 'collection.edges.1.node.id'),
+      _get(createSucceedRes, 'collection.edges.2.node.id'),
+      _get(createSucceedRes, 'collection.edges.3.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
+    // edit collection
+    draftId = createSucceedRes.id
+    // edit draft settting collection out of limit
+    const editFailedRes = await putDraft({
+      draft: {
+        id: draftId,
+        collection: collection.slice(0, limit + 1),
+      },
+    })
+    expect(_get(editFailedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} articles in collection`
+    )
+
+    // edit draft settting collection within limit
+    const editSucceedRes = await putDraft({
+      draft: {
+        id: draftId,
+        collection: collection.slice(0, limit),
+      },
+    })
+    expect(_get(editSucceedRes, 'collection.totalCount')).toBe(limit)
+    expect([
+      _get(editSucceedRes, 'collection.edges.0.node.id'),
+      _get(editSucceedRes, 'collection.edges.1.node.id'),
+      _get(editSucceedRes, 'collection.edges.2.node.id'),
+      _get(editSucceedRes, 'collection.edges.3.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
+    // out of limit collection can remain
+    const smallerlimit = limit - 1
+    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = smallerlimit
+    const remainRes = await putDraft({
+      draft: {
+        id: draftId,
+        collection: collection.slice(0, smallerlimit + 1),
+      },
+    })
+    expect(_get(remainRes, 'collection.totalCount')).toBe(smallerlimit + 1)
+    expect([
+      _get(remainRes, 'collection.edges.0.node.id'),
+      _get(remainRes, 'collection.edges.1.node.id'),
+      _get(remainRes, 'collection.edges.2.node.id'),
+      _get(remainRes, 'collection.edges.3.node.id'),
+    ]).toEqual(collection.slice(0, smallerlimit + 1))
+
+    // out of limit collection can not increase
+    const increaseRes = await putDraft({
+      draft: {
+        id: draftId,
+        collection: collection.slice(0, smallerlimit + 2),
+      },
+    })
+    expect(_get(increaseRes, 'errors.0.message')).toBe(
+      `Not allow more than ${smallerlimit} articles in collection`
+    )
+
+    // out of limit collection can decrease
+    const decreaseRes = await putDraft({
+      draft: {
+        id: draftId,
+        collection: collection.slice(0, smallerlimit - 1),
+      },
+    })
+    expect(_get(decreaseRes, 'collection.totalCount')).toBe(smallerlimit - 1)
 
     // reset collection
     const resetResult1 = await putDraft({
