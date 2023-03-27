@@ -19,7 +19,12 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getAlchemyProvider, getViewerFromUser, IERC1271, setCookie } from 'common/utils'
+import {
+  getAlchemyProvider,
+  getViewerFromUser,
+  IERC1271,
+  setCookie,
+} from 'common/utils'
 import { CacheService } from 'connectors'
 import {
   AuthMode,
@@ -27,7 +32,6 @@ import {
   GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
-
 
 const resolver: MutationToWalletLoginResolver = async (
   _,
@@ -78,7 +82,9 @@ const resolver: MutationToWalletLoginResolver = async (
 
     const chainNetwork = 'PolygonMainnet'
 
-    const provider = getAlchemyProvider(Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork]))
+    const provider = getAlchemyProvider(
+      Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
+    )
 
     const bytecode = await provider.getCode(ethAddress.toLowerCase())
 
