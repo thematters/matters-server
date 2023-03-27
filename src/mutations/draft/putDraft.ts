@@ -113,46 +113,37 @@ const resolver: MutationToPutDraftResolver = async (
     coverId = asset.id
   }
 
-  // check for collection existence
-  // add to dbId array if ok
-  let collectionIds // leave as undefined // = null
-  if (collection) {
-    collectionIds = await Promise.all(
-      collection.map(async (articleGlobalId) => {
-        if (!articleGlobalId) {
-          return
-        }
+  // handle Collection
+  const newCollectionIds =
+    collection == null
+      ? []
+      : _.uniq(
+          collection
+            .filter(_.isString)
+            .map((articleId: string) => fromGlobalId(articleId).id)
+        ).filter((articleId) => !!articleId)
+  // validate collection items
+  await Promise.all(
+    newCollectionIds.map(async (articleId) => {
+      const article = await articleService.baseFindById(articleId)
 
-        const { id: articleId } = fromGlobalId(articleGlobalId)
-        const article = await articleService.baseFindById(articleId)
+      if (!article) {
+        throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+      }
 
-        if (!article) {
-          throw new ArticleNotFoundError(
-            `Cannot find article ${articleGlobalId}`
-          )
-        }
+      if (article.state !== ARTICLE_STATE.active) {
+        throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
+      }
 
-        if (article.state !== ARTICLE_STATE.active) {
-          throw new ForbiddenError(
-            `Article ${articleGlobalId} cannot be collected.`
-          )
-        }
-
-        const isBlocked = await userService.blocked({
-          userId: article.authorId,
-          targetId: viewer.id,
-        })
-
-        if (isBlocked) {
-          throw new ForbiddenError('viewer has no permission')
-        }
-
-        return articleId
+      const isBlocked = await userService.blocked({
+        userId: article.authorId,
+        targetId: viewer.id,
       })
-    )
-
-    collectionIds = collectionIds.filter((_id) => !!_id)
-  }
+      if (isBlocked) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+    })
+  )
 
   // check circle
   let circleId // leave as undefined // = null
@@ -209,7 +200,7 @@ const resolver: MutationToPutDraftResolver = async (
       content: content && sanitize(content),
       tags, // : input.tags === undefined ? undefined : tags,
       cover: coverId,
-      collection: collectionIds,
+      collection: newCollectionIds,
       circleId,
       access: accessType,
       license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
@@ -250,6 +241,8 @@ const resolver: MutationToPutDraftResolver = async (
     if (data?.summary?.length > 200) {
       throw new UserInputError('summary reach length limit')
     }
+
+    // check for collection limit
 
     // handle candidate cover
     const isUpdateContent = content || content === ''
