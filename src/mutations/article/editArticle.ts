@@ -1,5 +1,8 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import { normalizeArticleHTML, sanitizeHTML } from '@matters/matters-editor'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import lodash, { difference, uniq } from 'lodash'
 import { v4 } from 'uuid'
 

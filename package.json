@@ -44,7 +44,7 @@
     "@graphql-tools/utils": "^7.10.0",
     "@matters/apollo-response-cache": "^1.4.0-rc.0",
     "@matters/ipns-site-generator": "^0.1.1",
-    "@matters/matters-editor": "^0.2.0-alpha.4",
+    "@matters/matters-editor": "^0.2.0-alpha.26",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^7.4.5",

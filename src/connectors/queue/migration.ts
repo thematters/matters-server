@@ -1,5 +1,8 @@
 import { makeSummary } from '@matters/ipns-site-generator'
-import { normalizeArticleHTML, sanitizeHTML } from '@matters/matters-editor'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import { v4 } from 'uuid'
 
 import {
@@ -78,7 +81,6 @@ class MigrationQueue extends BaseQueue {
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
-            return
           }
 
           if (!htmls || htmls.length === 0) {

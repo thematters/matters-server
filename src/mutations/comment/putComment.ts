@@ -1,4 +1,7 @@
-import { normalizeCommentHTML, sanitizeHTML } from '@matters/matters-editor'
+import {
+  normalizeCommentHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
