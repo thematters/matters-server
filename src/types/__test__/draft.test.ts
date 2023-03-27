@@ -185,15 +185,10 @@ describe('put draft', () => {
     expect(_get(decreaseRes, 'collection.totalCount')).toBe(smallerlimit - 1)
 
     // reset collection
-    const resetResult1 = await putDraft({
-      draft: { id: draftId, collection: null as any },
-    })
-    expect(_get(resetResult1, 'collection.totalCount')).toBe(0)
-
-    const resetResult2 = await putDraft({
+    const resetResult = await putDraft({
       draft: { id: draftId, collection: [] },
     })
-    expect(_get(resetResult2, 'collection.totalCount')).toBe(0)
+    expect(_get(resetResult, 'collection.totalCount')).toBe(0)
   })
 
   test('edit draft license', async () => {

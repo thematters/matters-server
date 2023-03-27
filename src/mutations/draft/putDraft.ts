@@ -55,9 +55,9 @@ const resolver: MutationToPutDraftResolver = async (
     title,
     summary,
     content,
-    // tags,
+    tags,
     cover,
-    collection,
+    collection: collectionGlobalId,
     circle: circleGlobalId,
     accessType,
     license,
@@ -82,11 +82,13 @@ const resolver: MutationToPutDraftResolver = async (
     throw new ForbiddenError('user has no liker id')
   }
 
-  const tags = sanitizeTags(input.tags)
-  if (Array.isArray(tags) && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
-    throw new TooManyTagsForArticleError(
-      `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-    )
+  // check tags
+  if (tags !== undefined) {
+    await validateTags({
+      viewerId: viewer.id,
+      tags,
+      dataSources: { atomService },
+    })
   }
 
   // check for asset existence
@@ -105,12 +107,22 @@ const resolver: MutationToPutDraftResolver = async (
     coverId = asset.id
   }
 
-  // handle Collection
-  const newCollectionIds = await validateCollectionOrThrow({
-    viewerId: viewer.id,
-    collection,
-    dataSources: { userService, articleService },
-  })
+  // check collection
+  const collection =
+    collectionGlobalId === undefined
+      ? undefined
+      : _.uniq(
+          collectionGlobalId
+            .filter(_.isString)
+            .map((articleId: string) => fromGlobalId(articleId).id)
+        ).filter((articleId) => !!articleId)
+  if (collection) {
+    await validateCollection({
+      viewerId: viewer.id,
+      collection,
+      dataSources: { userService, articleService },
+    })
+  }
 
   // check circle
   let circleId // leave as undefined // = null
@@ -138,25 +150,10 @@ const resolver: MutationToPutDraftResolver = async (
     circleId = cId
   }
 
-  // check if tags includes matty's tag
-  const isMatty = viewer.id === environment.mattyId
-  const mattyTagId = environment.mattyChoiceTagId
-  if (mattyTagId && !isMatty) {
-    const mattyTag = await atomService.findUnique({
-      table: 'tag',
-      where: { id: mattyTagId },
-    })
-    if (mattyTag && tags?.includes(mattyTag.content)) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
-    }
-  }
-
   // assemble data
   const resetSummary = summary === null || summary === ''
   const resetCover = cover === null
   const resetCircle = circleGlobalId === null
-  const resetCollection =
-    collection === null || (collection && collection.length === 0)
 
   const data: ItemData = _.omitBy(
     {
@@ -165,9 +162,9 @@ const resolver: MutationToPutDraftResolver = async (
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && sanitize(content),
-      tags, // : input.tags === undefined ? undefined : tags,
+      tags: tags?.length === 0 ? null : tags,
       cover: coverId,
-      collection: newCollectionIds,
+      collection: collection?.length === 0 ? null : collection,
       circleId,
       access: accessType,
       license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
@@ -210,15 +207,18 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for collection limit
-    const oldCollectionLength =
-      draft.collection == null ? 0 : draft.collection.length
-    if (
-      newCollectionIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
-      newCollectionIds.length > oldCollectionLength
-    ) {
-      throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
-      )
+
+    if (collection) {
+      const oldCollectionLength =
+        draft.collection == null ? 0 : draft.collection.length
+      if (
+        collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+        collection.length > oldCollectionLength
+      ) {
+        throw new ArticleCollectionReachLimitError(
+          `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+        )
+      }
     }
 
     // handle candidate cover
@@ -256,8 +256,6 @@ const resolver: MutationToPutDraftResolver = async (
       ...data,
       // reset fields
       summary: resetSummary ? null : data.summary || draft.summary,
-      collection: resetCollection ? null : data.collection || draft.collection,
-      // tags: resetTags ? null : data.tags || draft.tags,
       circleId: resetCircle ? null : data.circleId || draft.circleId,
       updatedAt: knex.fn.now(),
     })
@@ -265,7 +263,12 @@ const resolver: MutationToPutDraftResolver = async (
 
   // Create
   else {
-    if (newCollectionIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+    if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+      throw new TooManyTagsForArticleError(
+        `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
+    if (collection && collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
       throw new ArticleCollectionReachLimitError(
         `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
       )
@@ -281,36 +284,40 @@ const resolver: MutationToPutDraftResolver = async (
   }
 }
 
-const sanitizeTags = (tags: string[] | null | undefined) => {
-  if (Array.isArray(tags)) {
-    // tags = Array.from(new Set(tags.map(stripAllPunct).filter(Boolean)))
-    if (tags.length === 0) {
-      return null
+const validateTags = async ({
+  viewerId,
+  tags,
+  dataSources: { atomService },
+}: {
+  viewerId: string
+  tags: string[]
+  dataSources: Pick<DataSources, 'atomService'>
+}) => {
+  // check if tags includes matty's tag
+  const isMatty = viewerId === environment.mattyId
+  const mattyTagId = environment.mattyChoiceTagId
+  if (mattyTagId && !isMatty) {
+    const mattyTag = await atomService.findUnique({
+      table: 'tag',
+      where: { id: mattyTagId },
+    })
+    if (mattyTag && tags.includes(mattyTag.content)) {
+      throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
   }
-  return tags
 }
 
-const validateCollectionOrThrow = async ({
+const validateCollection = async ({
   viewerId,
   collection,
   dataSources: { userService, articleService },
 }: {
   viewerId: string
-  collection: Array<string | null> | undefined
+  collection: string[]
   dataSources: Pick<DataSources, 'userService' | 'articleService'>
 }) => {
-  const ids =
-    collection == null
-      ? []
-      : _.uniq(
-          collection
-            .filter(_.isString)
-            .map((articleId: string) => fromGlobalId(articleId).id)
-        ).filter((articleId) => !!articleId)
-  // validate collection items
   await Promise.all(
-    ids.map(async (articleId) => {
+    collection.map(async (articleId) => {
       const article = await articleService.baseFindById(articleId)
 
       if (!article) {
@@ -330,7 +337,6 @@ const validateCollectionOrThrow = async ({
       }
     })
   )
-  return ids
 }
 
 export default resolver
