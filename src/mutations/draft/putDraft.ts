@@ -83,7 +83,7 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // check tags
-  if (tags !== undefined) {
+  if (tags) {
     await validateTags({
       viewerId: viewer.id,
       tags,
@@ -108,14 +108,13 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // check collection
-  const collection =
-    collectionGlobalId === undefined
-      ? undefined
-      : _.uniq(
-          collectionGlobalId
-            .filter(_.isString)
-            .map((articleId: string) => fromGlobalId(articleId).id)
-        ).filter((articleId) => !!articleId)
+  const collection = collectionGlobalId
+    ? _.uniq(
+        collectionGlobalId
+          .filter(_.isString)
+          .map((articleId: string) => fromGlobalId(articleId).id)
+      ).filter((articleId) => !!articleId)
+    : collectionGlobalId // do not convert null or undefined
   if (collection) {
     await validateCollection({
       viewerId: viewer.id,
@@ -204,6 +203,19 @@ const resolver: MutationToPutDraftResolver = async (
     // check for summary length limit
     if (data?.summary?.length > 200) {
       throw new UserInputError('summary reach length limit')
+    }
+
+    // check for tags limit
+    if (tags) {
+      const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
+      if (
+        tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
+        tags.length > oldTagsLength
+      ) {
+        throw new TooManyTagsForArticleError(
+          `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+        )
+      }
     }
 
     // check for collection limit
