@@ -462,9 +462,17 @@ const handleTags = async ({
   dataSources: Pick<DataSources, 'tagService'>
 }) => {
   // validate
-  if (tags && tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
+  const oldIds = (
+    await tagService.findByArticleId({ articleId: article.id })
+  ).map(({ id: tagId }: { id: string }) => tagId)
+
+  if (
+    tags &&
+    tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
+    tags.length > oldIds.length
+  ) {
     throw new TooManyTagsForArticleError(
-      `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
     )
   }
 
@@ -495,9 +503,6 @@ const handleTags = async ({
         ).map(({ id, content }) => ({ id: `${id}`, content }))
 
   const newIds = dbTags.map(({ id: tagId }) => tagId)
-  const oldIds = (
-    await tagService.findByArticleId({ articleId: article.id })
-  ).map(({ id: tagId }: { id: string }) => tagId)
 
   // check if add tags include matty's tag
   const mattyTagId = environment.mattyChoiceTagId || ''
