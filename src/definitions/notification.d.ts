@@ -243,12 +243,6 @@ export interface NoticePaymentReceivedDonationParams
   entities: [NotificationEntity<'target', 'transaction'>]
 }
 
-export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.payment_payout
-  recipientId: string
-  entities: [NotificationEntity<'target', 'transaction'>]
-}
-
 /**
  * Circle
  */
@@ -421,7 +415,6 @@ export type NotificationPrarms =
   | NoticeTagLeaveEditorParams
   // Payment
   | NoticePaymentReceivedDonationParams
-  | NoticePaymentPayoutParams
   // Circle
   | NoticeCircleInvitationParams
   | NoticeCircleNewSubscriberParams

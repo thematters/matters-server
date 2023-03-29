@@ -259,7 +259,6 @@ export default /* GraphQL */ `
 
   enum TransactionNoticeType {
     PaymentReceivedDonation
-    PaymentPayout
   }
 
 
