@@ -492,13 +492,13 @@ describe('register and login functionarlities', () => {
 
 describe('user query fields', () => {
   test('get user by username', async () => {
-    const userName = 'test1'
+    const userName = 'Test1'
     const server = await testClient()
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
       variables: { input: { userName } },
     })
-    expect(_get(data, 'user.userName')).toBe(userName)
+    expect(_get(data, 'user.userName')).toBe(userName.toLowerCase())
   })
   test('retrive user articles', async () => {
     const server = await testClient({
