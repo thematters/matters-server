@@ -492,13 +492,13 @@ describe('register and login functionarlities', () => {
 
 describe('user query fields', () => {
   test('get user by username', async () => {
-    const userName = 'Test1'
+    const userName = 'test1'
     const server = await testClient()
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
       variables: { input: { userName } },
     })
-    expect(_get(data, 'user.userName')).toBe(userName.toLowerCase())
+    expect(_get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const server = await testClient({
@@ -885,6 +885,29 @@ describe('mutations on User object', () => {
       'updateUserInfo.displayName'
     )
     expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
+  })
+
+  test('updateUserInfoUserName', async () => {
+    const server = await testClient({ isAuth: true })
+
+    // user cannnot use reserved name
+    const userName = 'Test1'
+    const existedUserNameResult = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName } },
+    })
+    expect(_get(existedUserNameResult, 'errors.0.extensions.code')).toBe(
+      'NAME_EXISTS'
+    )
+
+    const userName2 = 'UPPERTest'
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName: userName2 } },
+    })
+    expect(_get(data, 'updateUserInfo.userName')).toEqual(
+      userName.toLowerCase()
+    )
   })
 
   test('updateUserInfoDescription', async () => {
