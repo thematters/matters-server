@@ -906,7 +906,7 @@ describe('mutations on User object', () => {
       variables: { input: { userName: userName2 } },
     })
     expect(_get(data, 'updateUserInfo.userName')).toEqual(
-      userName.toLowerCase()
+      userName2.toLowerCase()
     )
   })
 
