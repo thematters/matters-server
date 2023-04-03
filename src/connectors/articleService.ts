@@ -624,24 +624,37 @@ export class ArticleService extends BaseService {
    * Archive article
    */
   archive = async (id: string) => {
-    // update search
-    try {
-      await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: { state: ARTICLE_STATE.archived },
-        },
-      })
-    } catch (e) {
-      logger.error(e)
-    }
-
-    return this.baseUpdate(id, {
-      state: ARTICLE_STATE.archived,
-      sticky: false,
-      updatedAt: new Date(),
+    const atomService = new AtomService()
+    const targetArticle = await atomService.findFirst({
+      table: 'article',
+      where: { id },
     })
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { draftId: targetArticle.draftId },
+    })
+
+    // update db
+    for (const article of articles) {
+      await this.baseUpdate(article.id, {
+        state: ARTICLE_STATE.archived,
+        sticky: false,
+        updatedAt: new Date(),
+      })
+
+      // update search
+      try {
+        await this.es.client.update({
+          index: this.table,
+          id: article.id,
+          body: {
+            doc: { state: ARTICLE_STATE.archived },
+          },
+        })
+      } catch (e) {
+        logger.error(e)
+      }
+    }
   }
 
   /**
