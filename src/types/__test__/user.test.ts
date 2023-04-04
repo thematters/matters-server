@@ -1,6 +1,8 @@
 import _get from 'lodash/get'
+import _omit from 'lodash/omit'
 import _set from 'lodash/set'
 import _values from 'lodash/values'
+import { v4 } from 'uuid'
 
 import {
   MATERIALIZED_VIEW,
@@ -12,7 +14,7 @@ import {
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { refreshView, UserService } from 'connectors'
+import { ArticleService, refreshView, UserService } from 'connectors'
 
 import { createDonationTx, createTx } from '../../connectors/__test__/utils'
 import {
@@ -232,9 +234,18 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
 const GET_VIEWER_STATUS = /* GraphQL */ `
   query {
     viewer {
+      id
+      articles(input: { first: 1 }) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
       status {
         articleCount
         commentCount
+        totalWordCount
       }
     }
   }
@@ -600,9 +611,32 @@ describe('user query fields', () => {
     const { data } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
-    const status = _get(data, 'viewer.status')
-    expect(status).toBeDefined()
+    const firstArticleId = fromGlobalId(
+      _get(data, 'viewer.status.article.edges.0.node.id')
+    ).id
+
+    // create duplicate article with same draft
+    const articleService = new ArticleService()
+    const firstArticle = await articleService.baseFindById(firstArticleId)
+    await articleService.baseCreate({
+      ..._omit(firstArticle, ['id', 'updatedAt', 'createdAt']),
+      uuid: v4(),
+    })
+
+    // refetch
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_STATUS,
+    })
+
+    // expect de-duplicated
+    expect(_get(data, 'viewer.status.articleCount')).toBe(
+      _get(data2, 'viewer.status.articleCount')
+    )
+    expect(_get(data, 'viewer.status.totalWordCount')).toBe(
+      _get(data2, 'viewer.status.totalWordCount')
+    )
   })
+
   test('retrive topDonators by visitor', async () => {
     const server = await testClient()
     const { data } = await server.executeOperation({
@@ -612,6 +646,7 @@ describe('user query fields', () => {
     const donators = _get(data, 'viewer.analytics.topDonators')
     expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
+
   test.skip('retrive topDonators by user', async () => {
     const server = await testClient({
       isAuth: true,
