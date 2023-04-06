@@ -658,14 +658,18 @@ export class ArticleService extends BaseService {
     })
 
     // update db
-    for (const article of articles) {
-      await this.baseUpdate(article.id, {
+    await atomService.updateMany({
+      table: 'article',
+      whereIn: ['id', articles.map((a) => a.id)],
+      data: {
         state: ARTICLE_STATE.archived,
         sticky: false,
-        updatedAt: new Date(),
-      })
+        updatedAt: this.knex.fn.now(),
+      },
+    })
 
-      // update search
+    // update search
+    for (const article of articles) {
       try {
         await this.es.client.update({
           index: this.table,

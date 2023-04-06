@@ -12,7 +12,7 @@ const resolver: UserStatusToTotalWordCountResolver = async (
     .whereNotExists(
       knex('article as a2')
         .select(1)
-        .where('a2.draft_id', '=', knex.raw('a1.draft_id'))
+        .whereRaw('a2.draft_id = a1.draft_id')
         .andWhere({
           'a2.state': ARTICLE_STATE.archived,
           'a2.author_id': id,

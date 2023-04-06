@@ -48,6 +48,14 @@ interface UpdateInput {
   columns?: string | string[]
 }
 
+interface UpdateManyInput {
+  table: TableName
+  where?: Record<string, any>
+  whereIn?: [string, string[]]
+  data: Record<string, any>
+  columns?: string | string[]
+}
+
 interface UpsertInput {
   table: TableName
   where?: Record<string, any>
@@ -227,8 +235,24 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for updating many records.
    */
-  updateMany = async ({ table, where, data, columns = '*' }: UpdateInput) =>
-    this.knex.where(where).update(data).into(table).returning(columns)
+  updateMany = async ({
+    table,
+    where,
+    whereIn,
+    data,
+    columns = '*',
+  }: UpdateManyInput) => {
+    const action = this.knex
+
+    if (where) {
+      action.where(where)
+    }
+    if (whereIn) {
+      action.whereIn(...whereIn)
+    }
+
+    return action.update(data).into(table).returning(columns)
+  }
 
   /**
    * Upsert an unique record.
