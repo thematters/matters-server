@@ -1,4 +1,6 @@
 import _get from 'lodash/get'
+import _omit from 'lodash/omit'
+import { v4 } from 'uuid'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -10,8 +12,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { AtomService, PaymentService } from 'connectors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { ArticleService, AtomService, PaymentService } from 'connectors'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import {
@@ -46,6 +48,26 @@ const GET_ARTICLES = /* GraphQL */ `
             id
           }
         }
+      }
+    }
+  }
+`
+
+const GET_VIEWER_STATUS = /* GraphQL */ `
+  query {
+    viewer {
+      id
+      articles(input: { first: null }) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      status {
+        articleCount
+        commentCount
+        totalWordCount
       }
     }
   }
@@ -714,17 +736,46 @@ describe('edit article', () => {
   test('archive article', async () => {
     const server = await testClient({
       isAuth: true,
-      isAdmin: false,
     })
-    const result = await server.executeOperation({
+
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_STATUS,
+    })
+    const articleId = _get(data, 'viewer.articles.edges.0.node.id')
+    const articleDbId = fromGlobalId(articleId).id
+
+    // create duplicate article with same draft
+    const articleService = new ArticleService()
+    const article = await articleService.baseFindById(articleDbId)
+    const article2 = await articleService.baseCreate({
+      ..._omit(article, ['id', 'updatedAt', 'createdAt']),
+      uuid: v4(),
+    })
+    const article2Id = toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
+
+    // archive
+    const archiveResult = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
-          id: ARTICLE_ID,
+          id: article2Id,
           state: ARTICLE_STATE.archived,
         },
       },
     })
-    expect(_get(result, 'data.editArticle.state')).toBe(ARTICLE_STATE.archived)
+    expect(_get(archiveResult, 'data.editArticle.state')).toBe(
+      ARTICLE_STATE.archived
+    )
+
+    // refetch & expect de-duplicated
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_STATUS,
+    })
+    expect(_get(data, 'viewer.status.articleCount') - 1).toBe(
+      _get(data2, 'viewer.status.articleCount')
+    )
+    expect(_get(data, 'viewer.status.totalWordCount') - article.wordCount).toBe(
+      _get(data2, 'viewer.status.totalWordCount')
+    )
   })
 })

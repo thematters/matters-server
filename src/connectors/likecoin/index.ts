@@ -461,7 +461,7 @@ export class LikeCoin {
         ),
       })
       const data = _.get(result, 'data')
-      if (data === 'OK') {
+      if (data) {
         return data
       } else {
         throw result

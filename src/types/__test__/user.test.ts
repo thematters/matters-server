@@ -229,16 +229,7 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
     }
   }
 `
-const GET_VIEWER_STATUS = /* GraphQL */ `
-  query {
-    viewer {
-      status {
-        articleCount
-        commentCount
-      }
-    }
-  }
-`
+
 const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: ConnectionArgs!) {
   viewer {
@@ -593,16 +584,6 @@ describe('user query fields', () => {
     expect(Array.isArray(tags)).toBe(true)
   })
 
-  test('retrive UserStatus', async () => {
-    const server = await testClient({
-      isAuth: true,
-    })
-    const { data } = await server.executeOperation({
-      query: GET_VIEWER_STATUS,
-    })
-    const status = _get(data, 'viewer.status')
-    expect(status).toBeDefined()
-  })
   test('retrive topDonators by visitor', async () => {
     const server = await testClient()
     const { data } = await server.executeOperation({
@@ -612,6 +593,7 @@ describe('user query fields', () => {
     const donators = _get(data, 'viewer.analytics.topDonators')
     expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
+
   test.skip('retrive topDonators by user', async () => {
     const server = await testClient({
       isAuth: true,
