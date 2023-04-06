@@ -2,7 +2,7 @@ import Redis from 'ioredis'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { CacheService, UserService } from 'connectors'
-import { GQLSearchExclude } from 'definitions'
+import { GQLSearchExclude, GQLUserRestriction } from 'definitions'
 
 import { createDonationTx } from './utils'
 
@@ -262,5 +262,29 @@ describe('updateLastSeen', () => {
     await userService.updateLastSeen(id, 1000)
     const data2 = await redisGet(id)
     expect(data2).not.toBeNull()
+  })
+})
+
+describe('restrictions CRUD', () => {
+  const userId = '1'
+  const restriction1 = 'articleHottest' as GQLUserRestriction
+  const restriction2 = 'articleNewest' as GQLUserRestriction
+  test('get empty result', async () => {
+    expect(await userService.getRestrictions(userId)).toEqual([])
+  })
+  test('update', async () => {
+    await userService.updateRestrictions(userId, [restriction1])
+    expect(await userService.getRestrictions(userId)).toEqual([restriction1])
+
+    await userService.updateRestrictions(userId, [restriction2])
+    expect(await userService.getRestrictions(userId)).toEqual([restriction2])
+
+    await userService.updateRestrictions(userId, [restriction1, restriction2])
+    expect((await userService.getRestrictions(userId)).sort()).toEqual(
+      [restriction1, restriction2].sort()
+    )
+
+    await userService.updateRestrictions(userId, [])
+    expect(await userService.getRestrictions(userId)).toEqual([])
   })
 })

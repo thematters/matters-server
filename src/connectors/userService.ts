@@ -55,6 +55,7 @@ import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchExclude,
+  GQLUserRestriction,
   GQLVerificationCodeType,
   Item,
   ItemData,
@@ -2089,6 +2090,50 @@ export class UserService extends BaseService {
         privKeyName: kname,
       },
     })
+  }
+
+  /*********************************
+   *                               *
+   *        Restrictions           *
+   *                               *
+   *********************************/
+  getRestrictions = async (id: string): Promise<GQLUserRestriction[]> => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    return (
+      await atomService.findMany({
+        table,
+        select: ['restriction'],
+        where: { userId: id },
+      })
+    ).map(({ restriction }) => restriction)
+  }
+
+  updateRestrictions = async (
+    id: string,
+    restrictions: GQLUserRestriction[]
+  ) => {
+    const olds = await this.getRestrictions(id)
+    const news = [...new Set(restrictions)]
+    const toAdd = news.filter((i) => !olds.includes(i))
+    const toDel = olds.filter((i) => !news.includes(i))
+    await Promise.all(
+      toAdd
+        .map((i) => this.addRestriction(id, i))
+        .concat(toDel.map((i) => this.removeRestriction(id, i)))
+    )
+  }
+
+  addRestriction = async (id: string, restriction: GQLUserRestriction) => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    await atomService.create({ table, data: { userId: id, restriction } })
+  }
+
+  removeRestriction = async (id: string, restriction: GQLUserRestriction) => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    await atomService.deleteMany({ table, where: { userId: id, restriction } })
   }
 
   /*********************************

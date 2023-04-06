@@ -239,6 +239,7 @@ export interface GQLMutation {
   toggleSeedingUsers: Array<GQLUser | null>
   putAnnouncement: GQLAnnouncement
   deleteAnnouncements: boolean
+  putRestrictedUsers: Array<GQLUser>
 
   /**
    * Send verification code for email.
@@ -2887,6 +2888,11 @@ export interface GQLDeleteAnnouncementsInput {
   ids?: Array<string>
 }
 
+export interface GQLPutRestrictedUsersInput {
+  ids: Array<string>
+  restrictions: Array<GQLUserRestriction>
+}
+
 export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
@@ -3002,6 +3008,11 @@ export const enum GQLAnnouncementType {
   community = 'community',
   product = 'product',
   seminar = 'seminar',
+}
+
+export const enum GQLUserRestriction {
+  articleHottest = 'articleHottest',
+  articleNewest = 'articleNewest',
 }
 
 /**
@@ -4892,6 +4903,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
   putAnnouncement?: MutationToPutAnnouncementResolver<TParent>
   deleteAnnouncements?: MutationToDeleteAnnouncementsResolver<TParent>
+  putRestrictedUsers?: MutationToPutRestrictedUsersResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5593,6 +5605,21 @@ export interface MutationToDeleteAnnouncementsResolver<
   (
     parent: TParent,
     args: MutationToDeleteAnnouncementsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutRestrictedUsersArgs {
+  input: GQLPutRestrictedUsersInput
+}
+export interface MutationToPutRestrictedUsersResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutRestrictedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

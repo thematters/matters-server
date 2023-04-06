@@ -122,6 +122,7 @@ export type BasicTableName =
   | 'user_oauth'
   | 'user_badge'
   | 'user_notify_setting'
+  | 'user_restriction'
   | 'username_edit_history'
   | 'notice_detail'
   | 'notice'

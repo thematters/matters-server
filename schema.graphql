@@ -190,6 +190,7 @@ type Mutation {
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
+  putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -2081,6 +2082,11 @@ input DeleteAnnouncementsInput {
   ids: [ID!]
 }
 
+input PutRestrictedUsersInput {
+  ids: [ID!]!
+  restrictions: [UserRestriction!]!
+}
+
 enum SearchTypes {
   Article
   User
@@ -2188,6 +2194,11 @@ enum AnnouncementType {
   community
   product
   seminar
+}
+
+enum UserRestriction {
+  articleHottest
+  articleNewest
 }
 
 """
