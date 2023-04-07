@@ -247,7 +247,12 @@ query($input: ConnectionArgs!) {
         totalCount
         edges {
           node {
-            id
+            ...on Article {
+              id
+              author {
+                id
+              }
+            }
           }
         }
       }
@@ -280,7 +285,6 @@ query($input: RecommendInput!) {
         edges {
           node {
             id
-          }
         }
       }
     }
@@ -990,16 +994,92 @@ describe('user recommendations', () => {
   test('retrive users from authors', async () => {
     await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
 
-    const serverNew = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const result = await serverNew.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
       variables: { input: { first: 1 } },
     })
-    const { data } = result
     const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')
+  })
+
+  test('articleHottest restricted authors not show in hottest', async () => {
+    const getAuthorIds = (data: any) =>
+      data!
+        .viewer!.recommendation!.hottest!.edges.map(
+          ({
+            node: {
+              author: { id },
+            },
+          }: {
+            node: { author: { id: string } }
+          }) => id
+        )
+        .map((id: string) => fromGlobalId(id).id)
+
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
+    // before restricted
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('hottest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsBefore = getAuthorIds(data1)
+
+    const restrictedUserId = '1'
+    expect(authorIdsBefore).toContain(restrictedUserId)
+
+    // after restricted
+    await userService.addRestriction('1', 'articleHottest')
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('hottest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsAfter = getAuthorIds(data2)
+    expect(authorIdsAfter).not.toContain(restrictedUserId)
+  })
+
+  test('articleNewest restricted authors not show in newest', async () => {
+    const getAuthorIds = (data: any) =>
+      data!
+        .viewer!.recommendation!.newest!.edges.map(
+          ({
+            node: {
+              author: { id },
+            },
+          }: {
+            node: { author: { id: string } }
+          }) => id
+        )
+        .map((id: string) => fromGlobalId(id).id)
+
+    // before restricted
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsBefore = getAuthorIds(data1)
+
+    const restrictedUserId = '1'
+    expect(authorIdsBefore).toContain(restrictedUserId)
+
+    // after restricted
+    await userService.addRestriction('1', 'articleNewest')
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsAfter = getAuthorIds(data2)
+    expect(authorIdsAfter).not.toContain(restrictedUserId)
   })
 })
 
