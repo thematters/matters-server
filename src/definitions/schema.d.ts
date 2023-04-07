@@ -2745,6 +2745,11 @@ export interface GQLSkippedListItem {
   updatedAt: GQLDateTime
 }
 
+export interface GQLUserRestriction {
+  type: GQLUserRestrictionType
+  createdAt: GQLDateTime
+}
+
 export interface GQLNodeInput {
   id: string
 }
@@ -2891,7 +2896,7 @@ export interface GQLDeleteAnnouncementsInput {
 
 export interface GQLPutRestrictedUsersInput {
   ids: Array<string>
-  restrictions: Array<GQLUserRestriction>
+  restrictions: Array<GQLUserRestrictionType>
 }
 
 export const enum GQLSearchTypes {
@@ -3011,7 +3016,7 @@ export const enum GQLAnnouncementType {
   seminar = 'seminar',
 }
 
-export const enum GQLUserRestriction {
+export const enum GQLUserRestrictionType {
   articleHottest = 'articleHottest',
   articleNewest = 'articleNewest',
 }
@@ -4637,6 +4642,7 @@ export interface GQLResolver {
   SkippedListItemsConnection?: GQLSkippedListItemsConnectionTypeResolver
   SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
   SkippedListItem?: GQLSkippedListItemTypeResolver
+  UserRestriction?: GQLUserRestrictionTypeResolver
   User?: GQLUserTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   UserInfo?: GQLUserInfoTypeResolver
@@ -10682,6 +10688,32 @@ export interface SkippedListItemToCreatedAtResolver<
 }
 
 export interface SkippedListItemToUpdatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLUserRestrictionTypeResolver<TParent = any> {
+  type?: UserRestrictionToTypeResolver<TParent>
+  createdAt?: UserRestrictionToCreatedAtResolver<TParent>
+}
+
+export interface UserRestrictionToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserRestrictionToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {

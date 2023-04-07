@@ -1955,6 +1955,11 @@ type SkippedListItem {
   updatedAt: DateTime!
 }
 
+type UserRestriction {
+  type: UserRestrictionType!
+  createdAt: DateTime!
+}
+
 input NodeInput {
   id: ID!
 }
@@ -2085,7 +2090,7 @@ input DeleteAnnouncementsInput {
 
 input PutRestrictedUsersInput {
   ids: [ID!]!
-  restrictions: [UserRestriction!]!
+  restrictions: [UserRestrictionType!]!
 }
 
 enum SearchTypes {
@@ -2197,7 +2202,7 @@ enum AnnouncementType {
   seminar
 }
 
-enum UserRestriction {
+enum UserRestrictionType {
   articleHottest
   articleNewest
 }

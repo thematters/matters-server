@@ -2,7 +2,7 @@ import Redis from 'ioredis'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { CacheService, UserService } from 'connectors'
-import { GQLSearchExclude, GQLUserRestriction } from 'definitions'
+import { GQLSearchExclude, GQLUserRestrictionType } from 'definitions'
 
 import { createDonationTx } from './utils'
 
@@ -267,22 +267,30 @@ describe('updateLastSeen', () => {
 
 describe('restrictions CRUD', () => {
   const userId = '1'
-  const restriction1 = 'articleHottest' as GQLUserRestriction
-  const restriction2 = 'articleNewest' as GQLUserRestriction
+  const restriction1 = 'articleHottest' as GQLUserRestrictionType
+  const restriction2 = 'articleNewest' as GQLUserRestrictionType
+
   test('get empty result', async () => {
     expect(await userService.findRestrictions(userId)).toEqual([])
   })
+
   test('update', async () => {
     await userService.updateRestrictions(userId, [restriction1])
-    expect(await userService.findRestrictions(userId)).toEqual([restriction1])
+    expect(
+      (await userService.findRestrictions(userId)).map(({ type }) => type)
+    ).toEqual([restriction1])
 
     await userService.updateRestrictions(userId, [restriction2])
-    expect(await userService.findRestrictions(userId)).toEqual([restriction2])
+    expect(
+      (await userService.findRestrictions(userId)).map(({ type }) => type)
+    ).toEqual([restriction2])
 
     await userService.updateRestrictions(userId, [restriction1, restriction2])
-    expect((await userService.findRestrictions(userId)).sort()).toEqual(
-      [restriction1, restriction2].sort()
-    )
+    expect(
+      (await userService.findRestrictions(userId))
+        .map(({ type }) => type)
+        .sort()
+    ).toEqual([restriction1, restriction2].sort())
 
     await userService.updateRestrictions(userId, [])
     expect(await userService.findRestrictions(userId)).toEqual([])

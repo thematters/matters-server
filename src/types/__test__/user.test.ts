@@ -13,6 +13,7 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
+import { GQLUserRestrictionType } from 'definitions'
 
 import { createDonationTx, createTx } from '../../connectors/__test__/utils'
 import {
@@ -108,7 +109,10 @@ const GET_USER_OSS_BY_USERNAME = /* GraphQL */ `
       oss {
         score
         boost
-        restrictions
+        restrictions {
+          type
+          createdAt
+        }
       }
     }
   }
@@ -440,7 +444,10 @@ const PUT_USER_RESTRICTIONS = /* GraphQL */ `
       oss {
         score
         boost
-        restrictions
+        restrictions {
+          type
+          createdAt
+        }
       }
     }
   }
@@ -1341,7 +1348,7 @@ describe('crypto wallet', () => {
   })
 })
 
-describe.only('restrictions CRUD', () => {
+describe('restrictions CRUD', () => {
   const userId1 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
   const userName1 = 'test2'
   const userId2 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
@@ -1351,10 +1358,11 @@ describe.only('restrictions CRUD', () => {
       isAdmin: true,
     })
 
-    const { data } = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: GET_USER_OSS_BY_USERNAME,
       variables: { input: { userName: userName1 } },
     })
+    console.log(errors)
     expect(data!.user.oss.restrictions).toEqual([])
   })
   test('only admin can update restrictions', async () => {
@@ -1380,9 +1388,11 @@ describe.only('restrictions CRUD', () => {
         input: { ids: [userId1], restrictions: ['articleHottest'] },
       },
     })
-    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([
-      'articleHottest',
-    ])
+    expect(
+      data!.putRestrictedUsers![0]!.oss!.restrictions!.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
   })
   test('reset restrictions', async () => {
     const server = await testClient({
@@ -1406,11 +1416,15 @@ describe.only('restrictions CRUD', () => {
         input: { ids: [userId1, userId2], restrictions: ['articleHottest'] },
       },
     })
-    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([
-      'articleHottest',
-    ])
-    expect(data!.putRestrictedUsers![1]!.oss!.restrictions).toEqual([
-      'articleHottest',
-    ])
+    expect(
+      data!.putRestrictedUsers![0]!.oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
+    expect(
+      data!.putRestrictedUsers![1]!.oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
   })
 })

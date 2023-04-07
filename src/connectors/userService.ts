@@ -56,6 +56,7 @@ import {
   GQLResetPasswordType,
   GQLSearchExclude,
   GQLUserRestriction,
+  GQLUserRestrictionType,
   GQLVerificationCodeType,
   Item,
   ItemData,
@@ -2100,21 +2101,16 @@ export class UserService extends BaseService {
   findRestrictions = async (id: string): Promise<GQLUserRestriction[]> => {
     const table = 'user_restriction'
     const atomService = new AtomService()
-    return (
-      await atomService.findMany({
-        table,
-        select: ['restriction'],
-        where: { userId: id },
-      })
-    ).map(({ restriction }) => restriction)
+    return atomService.findMany({
+      table,
+      select: ['type', 'created_at'],
+      where: { userId: id },
+    })
   }
 
-  updateRestrictions = async (
-    id: string,
-    restrictions: GQLUserRestriction[]
-  ) => {
-    const olds = await this.findRestrictions(id)
-    const news = [...new Set(restrictions)]
+  updateRestrictions = async (id: string, types: GQLUserRestrictionType[]) => {
+    const olds = (await this.findRestrictions(id)).map(({ type }) => type)
+    const news = [...new Set(types)]
     const toAdd = news.filter((i) => !olds.includes(i))
     const toDel = olds.filter((i) => !news.includes(i))
     await Promise.all(
@@ -2124,16 +2120,16 @@ export class UserService extends BaseService {
     )
   }
 
-  addRestriction = async (id: string, restriction: GQLUserRestriction) => {
+  addRestriction = async (id: string, type: GQLUserRestrictionType) => {
     const table = 'user_restriction'
     const atomService = new AtomService()
-    await atomService.create({ table, data: { userId: id, restriction } })
+    await atomService.create({ table, data: { userId: id, type } })
   }
 
-  removeRestriction = async (id: string, restriction: GQLUserRestriction) => {
+  removeRestriction = async (id: string, type: GQLUserRestrictionType) => {
     const table = 'user_restriction'
     const atomService = new AtomService()
-    await atomService.deleteMany({ table, where: { userId: id, restriction } })
+    await atomService.deleteMany({ table, where: { userId: id, type } })
   }
 
   /*********************************

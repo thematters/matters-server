@@ -193,11 +193,16 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
+  type UserRestriction {
+    type: UserRestrictionType!
+    createdAt: DateTime!
+  }
+
   input NodeInput {
     id: ID!
   }
 
-  input NodesInput {
+  input NodesInput{
     ids: [ID!]!
   }
 
@@ -320,7 +325,7 @@ export default /* GraphQL */ `
 
   input PutRestrictedUsersInput {
     ids: [ID!]!
-    restrictions: [UserRestriction!]!
+    restrictions: [UserRestrictionType!]!
   }
 
   enum SearchTypes {
@@ -432,7 +437,7 @@ export default /* GraphQL */ `
     seminar
   }
 
-  enum UserRestriction {
+  enum UserRestrictionType {
     articleHottest
     articleNewest
   }
