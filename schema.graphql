@@ -1887,6 +1887,7 @@ type OSS {
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
+  restrictedUsers(input: ConnectionArgs!): UserConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2536,6 +2537,7 @@ type Liker {
 type UserOSS {
   boost: Float!
   score: Float!
+  restrictions: [UserRestriction!]!
 }
 
 type Appreciation {

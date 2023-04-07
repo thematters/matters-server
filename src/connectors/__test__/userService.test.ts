@@ -270,21 +270,21 @@ describe('restrictions CRUD', () => {
   const restriction1 = 'articleHottest' as GQLUserRestriction
   const restriction2 = 'articleNewest' as GQLUserRestriction
   test('get empty result', async () => {
-    expect(await userService.getRestrictions(userId)).toEqual([])
+    expect(await userService.findRestrictions(userId)).toEqual([])
   })
   test('update', async () => {
     await userService.updateRestrictions(userId, [restriction1])
-    expect(await userService.getRestrictions(userId)).toEqual([restriction1])
+    expect(await userService.findRestrictions(userId)).toEqual([restriction1])
 
     await userService.updateRestrictions(userId, [restriction2])
-    expect(await userService.getRestrictions(userId)).toEqual([restriction2])
+    expect(await userService.findRestrictions(userId)).toEqual([restriction2])
 
     await userService.updateRestrictions(userId, [restriction1, restriction2])
-    expect((await userService.getRestrictions(userId)).sort()).toEqual(
+    expect((await userService.findRestrictions(userId)).sort()).toEqual(
       [restriction1, restriction2].sort()
     )
 
     await userService.updateRestrictions(userId, [])
-    expect(await userService.getRestrictions(userId)).toEqual([])
+    expect(await userService.findRestrictions(userId)).toEqual([])
   })
 })

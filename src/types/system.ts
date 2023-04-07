@@ -122,6 +122,7 @@ export default /* GraphQL */ `
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
+    restrictedUsers(input: ConnectionArgs!): UserConnection!
   }
 
 

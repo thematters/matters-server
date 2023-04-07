@@ -2667,6 +2667,7 @@ export interface GQLOSS {
   skippedListItems: GQLSkippedListItemsConnection
   seedingUsers: GQLUserConnection
   badgedUsers: GQLUserConnection
+  restrictedUsers: GQLUserConnection
 }
 
 /**
@@ -3512,6 +3513,7 @@ export interface GQLLiker {
 export interface GQLUserOSS {
   boost: number
   score: number
+  restrictions: Array<GQLUserRestriction>
 }
 
 export interface GQLAppreciation {
@@ -10316,6 +10318,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
   seedingUsers?: OSSToSeedingUsersResolver<TParent>
   badgedUsers?: OSSToBadgedUsersResolver<TParent>
+  restrictedUsers?: OSSToRestrictedUsersResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -10409,6 +10412,18 @@ export interface OSSToBadgedUsersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToBadgedUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToRestrictedUsersArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToRestrictedUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToRestrictedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -11753,6 +11768,7 @@ export interface LikerToRateUSDResolver<TParent = any, TResult = any> {
 export interface GQLUserOSSTypeResolver<TParent = any> {
   boost?: UserOSSToBoostResolver<TParent>
   score?: UserOSSToScoreResolver<TParent>
+  restrictions?: UserOSSToRestrictionsResolver<TParent>
 }
 
 export interface UserOSSToBoostResolver<TParent = any, TResult = any> {
@@ -11765,6 +11781,15 @@ export interface UserOSSToBoostResolver<TParent = any, TResult = any> {
 }
 
 export interface UserOSSToScoreResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserOSSToRestrictionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

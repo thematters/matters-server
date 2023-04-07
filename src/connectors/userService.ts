@@ -2097,7 +2097,7 @@ export class UserService extends BaseService {
    *        Restrictions           *
    *                               *
    *********************************/
-  getRestrictions = async (id: string): Promise<GQLUserRestriction[]> => {
+  findRestrictions = async (id: string): Promise<GQLUserRestriction[]> => {
     const table = 'user_restriction'
     const atomService = new AtomService()
     return (
@@ -2113,7 +2113,7 @@ export class UserService extends BaseService {
     id: string,
     restrictions: GQLUserRestriction[]
   ) => {
-    const olds = await this.getRestrictions(id)
+    const olds = await this.findRestrictions(id)
     const news = [...new Set(restrictions)]
     const toAdd = news.filter((i) => !olds.includes(i))
     const toDel = olds.filter((i) => !news.includes(i))

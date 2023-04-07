@@ -100,6 +100,20 @@ const GET_USER_BY_USERNAME = /* GraphQL */ `
   }
 `
 
+const GET_USER_OSS_BY_USERNAME = /* GraphQL */ `
+  query ($input: UserInput!) {
+    user(input: $input) {
+      id
+      userName
+      oss {
+        score
+        boost
+        restrictions
+      }
+    }
+  }
+`
+
 const GET_VIEWER_INFO = /* GraphQL */ `
   query {
     viewer {
@@ -414,6 +428,19 @@ const RESET_USER_WALLET = /* GraphQL */ `
       id
       info {
         ethAddress
+      }
+    }
+  }
+`
+const PUT_USER_RESTRICTIONS = /* GraphQL */ `
+  mutation PutRestrictedUsers($input: PutRestrictedUsersInput!) {
+    putRestrictedUsers(input: $input) {
+      id
+      userName
+      oss {
+        score
+        boost
+        restrictions
       }
     }
   }
@@ -1311,5 +1338,79 @@ describe('crypto wallet', () => {
       variables: { input: { id: _get(data, 'user.id') } },
     })
     expect(_get(resetResult, 'data.resetWallet.id')).toBeFalsy()
+  })
+})
+
+describe.only('restrictions CRUD', () => {
+  const userId1 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  const userName1 = 'test2'
+  const userId2 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  test('no restrictions by default', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    const { data } = await server.executeOperation({
+      query: GET_USER_OSS_BY_USERNAME,
+      variables: { input: { userName: userName1 } },
+    })
+    expect(data!.user.oss.restrictions).toEqual([])
+  })
+  test('only admin can update restrictions', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([
+      'articleHottest',
+    ])
+  })
+  test('reset restrictions', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: { input: { ids: [userId1], restrictions: [] } },
+    })
+    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([])
+  })
+  test('bulk update', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1, userId2], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([
+      'articleHottest',
+    ])
+    expect(data!.putRestrictedUsers![1]!.oss!.restrictions).toEqual([
+      'articleHottest',
+    ])
   })
 })
