@@ -1712,7 +1712,6 @@ type TransactionNotice implements Notice {
 
 enum TransactionNoticeType {
   PaymentReceivedDonation
-  PaymentPayout
 }
 
 """

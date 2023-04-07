@@ -2376,7 +2376,6 @@ export interface GQLTransactionNotice extends GQLNotice {
 
 export const enum GQLTransactionNoticeType {
   PaymentReceivedDonation = 'PaymentReceivedDonation',
-  PaymentPayout = 'PaymentPayout',
 }
 
 /**

@@ -48,8 +48,6 @@ export class NotificationService extends BaseService {
         }
       // system as the actor
       case DB_NOTICE_TYPE.article_published:
-      case DB_NOTICE_TYPE.comment_pinned:
-      case DB_NOTICE_TYPE.payment_payout:
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
       case DB_NOTICE_TYPE.circle_new_article: // deprecated
@@ -66,6 +64,7 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
+      case DB_NOTICE_TYPE.comment_pinned:
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
