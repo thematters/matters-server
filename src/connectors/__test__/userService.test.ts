@@ -275,16 +275,19 @@ describe('restrictions CRUD', () => {
   })
 
   test('update', async () => {
+    // add a restriction
     await userService.updateRestrictions(userId, [restriction1])
     expect(
       (await userService.findRestrictions(userId)).map(({ type }) => type)
     ).toEqual([restriction1])
 
+    // change restriction
     await userService.updateRestrictions(userId, [restriction2])
     expect(
       (await userService.findRestrictions(userId)).map(({ type }) => type)
     ).toEqual([restriction2])
 
+    // add more restrictions
     await userService.updateRestrictions(userId, [restriction1, restriction2])
     expect(
       (await userService.findRestrictions(userId))
@@ -292,7 +295,45 @@ describe('restrictions CRUD', () => {
         .sort()
     ).toEqual([restriction1, restriction2].sort())
 
+    // remove all restrictions
     await userService.updateRestrictions(userId, [])
     expect(await userService.findRestrictions(userId)).toEqual([])
+  })
+  test.only('findRestrictedUsers', async () => {
+    // no restricted users
+    const [noUsers, zero] = await userService.findRestrictedUsersAndCount()
+    expect(noUsers).toEqual([])
+    expect(zero).toBe(0)
+
+    // one restricted user
+    await userService.updateRestrictions(userId, [restriction1])
+    const [oneUser, one] = await userService.findRestrictedUsersAndCount()
+    expect(oneUser.map(({ id }: { id: string }) => id)).toEqual([userId])
+    expect(one).toBe(1)
+
+    // multi restricted users, order by updated at desc
+    const newRestrictedUserId = '2'
+    await userService.updateRestrictions(newRestrictedUserId, [restriction1])
+    const [users, count] = await userService.findRestrictedUsersAndCount()
+    expect(users.map(({ id }: { id: string }) => id)).toEqual([
+      newRestrictedUserId,
+      userId,
+    ])
+    expect(count).toBe(2)
+
+    // take
+    const [takeUsers, takeCount] =
+      await userService.findRestrictedUsersAndCount({ take: 1 })
+    expect(takeUsers.map(({ id }: { id: string }) => id)).toEqual([
+      newRestrictedUserId,
+    ])
+    expect(takeCount).toBe(2)
+
+    // skip
+    const [skipUser, skipCount] = await userService.findRestrictedUsersAndCount(
+      { skip: 1 }
+    )
+    expect(skipUser.map(({ id }: { id: string }) => id)).toEqual([userId])
+    expect(skipCount).toBe(2)
   })
 })

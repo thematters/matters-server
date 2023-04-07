@@ -2132,6 +2132,28 @@ export class UserService extends BaseService {
     await atomService.deleteMany({ table, where: { userId: id, type } })
   }
 
+  findRestrictedUsersAndCount = async ({
+    skip,
+    take,
+  }: { skip?: number; take?: number } = {}) => {
+    const users = await this.knexRO
+      .select('user.*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .from('user')
+      .join('user_restriction', 'user.id', 'user_restriction.user_id')
+      .groupBy('user.id')
+      .orderByRaw('MAX(user_restriction.created_at) DESC')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    return [users, users[0]?.totalCount || 0]
+  }
+
   /*********************************
    *                               *
    *            Misc               *
