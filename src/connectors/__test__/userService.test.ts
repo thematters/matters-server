@@ -299,7 +299,7 @@ describe('restrictions CRUD', () => {
     await userService.updateRestrictions(userId, [])
     expect(await userService.findRestrictions(userId)).toEqual([])
   })
-  test.only('findRestrictedUsers', async () => {
+  test('findRestrictedUsers', async () => {
     // no restricted users
     const [noUsers, zero] = await userService.findRestrictedUsersAndCount()
     expect(noUsers).toEqual([])
