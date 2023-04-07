@@ -102,7 +102,6 @@ const notice: {
 
         // transaction
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
-        payment_payout: NOTICE_TYPE.TransactionNotice,
 
         // circle
         circle_invitation: NOTICE_TYPE.CircleNotice,
@@ -250,8 +249,6 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.payment_received_donation:
           return GQLTransactionNoticeType.PaymentReceivedDonation
-        case DB_NOTICE_TYPE.payment_payout:
-          return GQLTransactionNoticeType.PaymentPayout
       }
     },
     target: ({ entities }) => entities.target,

@@ -229,16 +229,7 @@ const GET_VIEWER_TOPDONATORS = /* GraphQL */ `
     }
   }
 `
-const GET_VIEWER_STATUS = /* GraphQL */ `
-  query {
-    viewer {
-      status {
-        articleCount
-        commentCount
-      }
-    }
-  }
-`
+
 const GET_VIEWER_RECOMMENDATION = (list: string) => /* GraphQL */ `
 query($input: ConnectionArgs!) {
   viewer {
@@ -597,16 +588,6 @@ describe('user query fields', () => {
     expect(Array.isArray(tags)).toBe(true)
   })
 
-  test('retrive UserStatus', async () => {
-    const server = await testClient({
-      isAuth: true,
-    })
-    const { data } = await server.executeOperation({
-      query: GET_VIEWER_STATUS,
-    })
-    const status = _get(data, 'viewer.status')
-    expect(status).toBeDefined()
-  })
   test('retrive topDonators by visitor', async () => {
     const server = await testClient()
     const { data } = await server.executeOperation({
@@ -616,6 +597,7 @@ describe('user query fields', () => {
     const donators = _get(data, 'viewer.analytics.topDonators')
     expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
+
   test.skip('retrive topDonators by user', async () => {
     const server = await testClient({
       isAuth: true,
@@ -889,6 +871,29 @@ describe('mutations on User object', () => {
       'updateUserInfo.displayName'
     )
     expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
+  })
+
+  test('updateUserInfoUserName', async () => {
+    const server = await testClient({ isAuth: true })
+
+    // user cannnot use reserved name
+    const userName = 'Test1'
+    const existedUserNameResult = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName } },
+    })
+    expect(_get(existedUserNameResult, 'errors.0.extensions.code')).toBe(
+      'NAME_EXISTS'
+    )
+
+    const userName2 = 'UPPERTest'
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName: userName2 } },
+    })
+    expect(_get(data, 'updateUserInfo.userName')).toEqual(
+      userName2.toLowerCase()
+    )
   })
 
   test('updateUserInfoDescription', async () => {
