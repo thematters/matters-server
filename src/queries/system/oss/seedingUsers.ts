@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToSeedingUsersResolver } from 'definitions'
 
 export const seedingUsers: OSSToSeedingUsersResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { atomService, userService } }
+  { dataSources: { atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
