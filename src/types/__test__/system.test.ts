@@ -635,5 +635,10 @@ describe('manage user restrictions', () => {
       variables: { input: {} },
     })
     expect(data2!.oss.restrictedUsers.totalCount).toBe(2)
+    expect(
+      data2!.oss.restrictedUsers.edges[0].oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
   })
 })
