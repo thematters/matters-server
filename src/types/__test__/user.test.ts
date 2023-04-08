@@ -269,13 +269,14 @@ const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
 `
 
 const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
-query($input: RecommendInput!) {
-  viewer {
-    recommendation {
-      ${list}(input: $input) {
-        edges {
-          node {
-            id
+  query($input: RecommendInput!) {
+    viewer {
+      recommendation {
+        ${list}(input: $input) {
+          edges {
+            node {
+              id
+          }
         }
       }
     }
@@ -734,7 +735,6 @@ describe('user query fields', () => {
       query: GET_VIEWER_WALLET_TRANSACTIONS,
       variables: { input: { filter: { purpose: 'subscriptionSplit' } } },
     })
-    console.log(purposeRes.errors)
     checkContains(purposeRes, succeededHKDSubscriptionSplitTx)
     checkNotContains(purposeRes, failedUSDTdonationTx)
     checkNotContains(purposeRes, canceledLIKEdonationTx)
