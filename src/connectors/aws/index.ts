@@ -94,7 +94,12 @@ export class AWSService {
       /^https:\/\/res.cloudinary.com\/alchemyapi\/image\/(?:.*)?$/
     )
 
-    if (!isGoogleContent && !isIPFS && !isCloudinary) {
+    // e.g. https://nft-cdn.alchemy.com/eth-mainnet/56896c641e448eed954cac71048051b2
+    const isAlchemyCDN = origUrl.match(
+      /^https:\/\/nft-cdn.alchemy.com\/(?:.*)?$/
+    )
+
+    if (!isGoogleContent && !isIPFS && !isCloudinary && !isAlchemyCDN) {
       return
     }
     const origRes = await axios.get(origUrl, {
