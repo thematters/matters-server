@@ -14,6 +14,7 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleService, AtomService, PaymentService } from 'connectors'
+import { publicationQueue } from 'connectors/queue'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import {
@@ -45,6 +46,11 @@ const GET_ARTICLE = /* GraphQL */ `
   query ($input: ArticleInput!) {
     article(input: $input) {
       id
+      content
+      contents {
+        html
+        markdown
+      }
       requestForDonation
       replyToDonator
       canComment
@@ -288,16 +294,34 @@ describe('query drafts on article', () => {
 })
 
 describe('publish article', () => {
-  test('create a draft & publish it', async () => {
+  test('create & publish a draft', async () => {
     jest.setTimeout(10000)
+
+    const content = Math.random().toString()
+    const contentHTML = `<p>${content} <strong>abc</strong></p>`
     const draft = {
       title: Math.random().toString(),
-      content: Math.random().toString(),
+      content: contentHTML,
     }
     const { id } = await putDraft({ draft })
-    const { publishState, article } = await publishArticle({ id })
-    expect(publishState).toBe(PUBLISH_STATE.pending)
-    expect(article).toBeNull()
+    const dbId = fromGlobalId(id).id
+    const job = await publicationQueue.publishArticle({ draftId: dbId })
+    const { mediaHash: draftMediaHash } = await job.finished()
+    expect(draftMediaHash).toBeTruthy()
+
+    // check contents
+    const anonymousServer = await testClient()
+    const result = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: draftMediaHash },
+      },
+    })
+    expect(_get(result, 'data.article.content')).toBe(contentHTML)
+    expect(_get(result, 'data.article.contents.html')).toBe(contentHTML)
+    expect(
+      _get(result, 'data.article.contents.markdown').includes(content)
+    ).toBeTruthy()
   })
 
   test('create a draft & publish with iscn', async () => {

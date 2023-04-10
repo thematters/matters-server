@@ -129,8 +129,11 @@ export default /* GraphQL */ `
     "Media hash, composed of cid encoding, of this article."
     mediaHash: String!
 
-    "Content of this article."
+    "Content (HTML) of this article."
     content: String!
+
+    "Different foramts of content."
+    contents: ArticleContents!
 
     "Original language of content"
     language: String
@@ -245,7 +248,6 @@ export default /* GraphQL */ `
     topic: Topic! @logCache(type: "${NODE_TYPES.Topic}")
   }
 
-
   "This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types."
   type Topic implements Node {
     "Unique id of this topic."
@@ -345,6 +347,14 @@ export default /* GraphQL */ `
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type ArticleContents {
+    "Markdown content of this article."
+    markdown: String!
+
+    "HTML content of this article."
+    html: String!
   }
 
   type ArticleAccess {

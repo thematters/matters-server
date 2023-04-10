@@ -23,6 +23,7 @@ import chapterTopic from './chapter/topic'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
+import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
@@ -166,6 +167,10 @@ export default {
     articleCount: chapterArticleCount,
     articles: chapterArticles,
     topic: chapterTopic,
+  },
+  ArticleContents: {
+    html: contents.html,
+    markdown: contents.markdown,
   },
   ArticleAccess: {
     type: articleAccess.type,

@@ -1,4 +1,5 @@
 import { stripHtml } from '@matters/ipns-site-generator'
+import { html2md } from '@matters/matters-editor'
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -380,6 +381,13 @@ const resolver: MutationToEditArticleResolver = async (
       newContent || currDraft.content,
       'u-area-disable'
     )
+    const _content = normalizeArticleHTML(await sanitizeHTML(cleanedContent))
+    let conetentMd = ''
+    try {
+      conetentMd = await html2md(_content)
+    } catch (e) {
+      console.error('failed to convert HTML to Markdown', draft.id)
+    }
     const data: Record<string, any> = lodash.omitBy(
       {
         uuid: v4(),
@@ -388,7 +396,8 @@ const resolver: MutationToEditArticleResolver = async (
         title: currDraft.title,
         summary: currDraft.summary,
         summaryCustomized: currDraft.summaryCustomized,
-        content: normalizeArticleHTML(await sanitizeHTML(cleanedContent)),
+        content: _content,
+        conetentMd,
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,
