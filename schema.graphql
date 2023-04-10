@@ -190,6 +190,7 @@ type Mutation {
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
+  setUsersIPNSSupportLevel(input: SetUsersIPNSSupportLevelInput!): [User!]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -2049,6 +2050,16 @@ input SetFeatureInput {
 input ToggleSeedingUsersInput {
   ids: [ID!]
   enabled: Boolean!
+}
+
+enum IPNSSupportLevel {
+  Traveloggers
+  VIP
+}
+
+input SetUsersIPNSSupportLevelInput {
+  ids: [ID!]
+  supportLevel: IPNSSupportLevel
 }
 
 input AnnouncementsInput {

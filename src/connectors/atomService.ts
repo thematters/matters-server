@@ -2,7 +2,7 @@ import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
-import { EntityNotFoundError } from 'common/errors'
+import { EntityNotFoundError, UserInputError } from 'common/errors'
 import logger from 'common/logger'
 import { aws, cfsvc, es, knex } from 'connectors'
 import { Item, TableName } from 'definitions'
@@ -43,7 +43,8 @@ interface CreateInput {
 
 interface UpdateInput {
   table: TableName
-  where: Record<string, any>
+  where?: Record<string, any>
+  whereIn?: [string, string[]]
   data: Record<string, any>
   columns?: string | string[]
 }
@@ -214,6 +215,10 @@ export class AtomService extends DataSource {
    * A Prisma like method for updating a record.
    */
   update = async ({ table, where, data, columns = '*' }: UpdateInput) => {
+    if (!where) {
+      throw new UserInputError('need where clause') // return // do nothing instead of changing all table rows
+    }
+
     const [record] = await this.knex
       .where(where)
       .update(data)
@@ -227,8 +232,30 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for updating many records.
    */
-  updateMany = async ({ table, where, data, columns = '*' }: UpdateInput) =>
-    this.knex.where(where).update(data).into(table).returning(columns)
+  updateMany = async ({
+    table,
+    where,
+    whereIn,
+    data,
+    columns = '*',
+  }: UpdateInput) => {
+    if (!where && !whereIn) {
+      throw new UserInputError('need where or whereIn clause') // do nothing instead of changing all table rows
+    }
+
+    return this.knex // .where(where)
+      .table(table)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (where) {
+          builder.where(where)
+        }
+        if (whereIn) {
+          builder.whereIn(...whereIn)
+        }
+      })
+      .update(data)
+      .returning(columns)
+  }
 
   /**
    * Upsert an unique record.

@@ -7,6 +7,7 @@ import putRemark from './putRemark'
 import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
+import setUsersIPNSSupportLevel from './setUsersIPNSSupportLevel'
 import singleFileUpload from './singleFileUpload'
 import toggleSeedingUsers from './toggleSeedingUsers'
 
@@ -23,5 +24,6 @@ export default {
     deleteAnnouncements,
     addBlockedSearchKeyword,
     deleteBlockedSearchKeywords,
+    setUsersIPNSSupportLevel,
   },
 }

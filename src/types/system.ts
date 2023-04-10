@@ -41,6 +41,7 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    setUsersIPNSSupportLevel(input: SetUsersIPNSSupportLevelInput!): [User!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
 
@@ -289,6 +290,16 @@ export default /* GraphQL */ `
   input ToggleSeedingUsersInput {
     ids: [ID!]
     enabled: Boolean!
+  }
+
+  enum IPNSSupportLevel {
+    Traveloggers
+    VIP
+  }
+
+  input SetUsersIPNSSupportLevelInput {
+    ids: [ID!]
+    supportLevel: IPNSSupportLevel
   }
 
   input AnnouncementsInput {

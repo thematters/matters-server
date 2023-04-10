@@ -239,6 +239,7 @@ export interface GQLMutation {
   toggleSeedingUsers: Array<GQLUser | null>
   putAnnouncement: GQLAnnouncement
   deleteAnnouncements: boolean
+  setUsersIPNSSupportLevel: Array<GQLUser>
 
   /**
    * Send verification code for email.
@@ -2857,6 +2858,16 @@ export interface GQLToggleSeedingUsersInput {
   enabled: boolean
 }
 
+export const enum GQLIPNSSupportLevel {
+  Traveloggers = 'Traveloggers',
+  VIP = 'VIP',
+}
+
+export interface GQLSetUsersIPNSSupportLevelInput {
+  ids?: Array<string>
+  supportLevel?: GQLIPNSSupportLevel
+}
+
 export interface GQLAnnouncementsInput {
   id?: string
   visible?: boolean
@@ -4891,6 +4902,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
   putAnnouncement?: MutationToPutAnnouncementResolver<TParent>
   deleteAnnouncements?: MutationToDeleteAnnouncementsResolver<TParent>
+  setUsersIPNSSupportLevel?: MutationToSetUsersIPNSSupportLevelResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5592,6 +5604,21 @@ export interface MutationToDeleteAnnouncementsResolver<
   (
     parent: TParent,
     args: MutationToDeleteAnnouncementsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetUsersIPNSSupportLevelArgs {
+  input: GQLSetUsersIPNSSupportLevelInput
+}
+export interface MutationToSetUsersIPNSSupportLevelResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSetUsersIPNSSupportLevelArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
