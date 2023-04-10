@@ -2114,11 +2114,10 @@ export class UserService extends BaseService {
     const news = [...new Set(types)]
     const toAdd = news.filter((i) => !olds.includes(i))
     const toDel = olds.filter((i) => !news.includes(i))
-    await Promise.all(
-      toAdd
-        .map((i) => this.addRestriction(id, i))
-        .concat(toDel.map((i) => this.removeRestriction(id, i)))
-    )
+    await Promise.all([
+      ...toAdd.map((i) => this.addRestriction(id, i)),
+      ...toDel.map((i) => this.removeRestriction(id, i)),
+    ])
   }
 
   addRestriction = async (id: string, type: GQLUserRestrictionType) => {
