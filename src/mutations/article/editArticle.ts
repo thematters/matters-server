@@ -3,7 +3,8 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import lodash, { difference, uniq } from 'lodash'
+import type { Knex } from 'knex'
+import lodash, { difference, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -14,6 +15,7 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -21,6 +23,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleCollectionReachLimitError,
   ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
@@ -41,7 +44,11 @@ import {
   stripClass,
 } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
-import { MutationToEditArticleResolver } from 'definitions'
+import {
+  Article,
+  DataSources,
+  MutationToEditArticleResolver,
+} from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -154,81 +161,14 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Tags
    */
-  const resetTags = tags === null || (tags && tags.length === 0)
-  if (tags) {
-    // get tag editor
-    const tagEditors = environment.mattyId
-      ? [environment.mattyId, article.authorId]
-      : [article.authorId]
-
-    // tags = uniq(tags.map(stripAllPunct).filter(Boolean))
-
-    if (tags.length > MAX_TAGS_PER_ARTICLE_LIMIT) {
-      throw new TooManyTagsForArticleError(
-        `not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
-      )
-    }
-
-    // create tag records
-    const dbTags = (
-      await Promise.all(
-        // eslint-disable-next-line no-shadow
-        // tslint:disable-next-line
-        tags.filter(Boolean).map(async (content: string) =>
-          tagService.create(
-            {
-              content,
-              creator: article.authorId,
-              editors: tagEditors,
-              owner: article.authorId,
-            },
-            {
-              columns: ['id', 'content'],
-              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
-            }
-          )
-        )
-      )
-    )
-      // eslint-disable-next-line no-shadow
-      // tslint:disable-next-line
-      .map(({ id, content }) => ({ id: `${id}`, content })) as unknown as [
-      { id: string; content: string }
-    ]
-
-    const newIds = dbTags.map(({ id: tagId }) => tagId)
-    const oldIds = (
-      await tagService.findByArticleId({ articleId: article.id })
-    ).map(({ id: tagId }: { id: string }) => tagId)
-
-    // check if add tags include matty's tag
-    const mattyTagId = environment.mattyChoiceTagId || ''
-    const isMatty = environment.mattyId === viewer.id
-    const addIds = difference(newIds, oldIds)
-    if (addIds.includes(mattyTagId) && !isMatty) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
-    }
-
-    // add
-    await tagService.createArticleTags({
-      articleIds: [article.id],
-      creator: article.authorId,
-      tagIds: difference(newIds, oldIds),
-    })
-
-    // delete unwanted
-    await tagService.deleteArticleTagsByTagIds({
-      articleId: article.id,
-      tagIds: difference(oldIds, newIds),
-    })
-  } else if (resetTags) {
-    const oldIds = (
-      await tagService.findByArticleId({ articleId: article.id })
-    ).map(({ id: tagId }: { id: string }) => tagId)
-
-    await tagService.deleteArticleTagsByTagIds({
-      articleId: article.id,
-      tagIds: oldIds,
+  if (tags !== undefined) {
+    await handleTags({
+      viewerId: viewer.id,
+      tags,
+      article,
+      dataSources: {
+        tagService,
+      },
     })
   }
 
@@ -261,125 +201,18 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Collection
    */
-  const resetCollection =
-    collection === null || (collection && collection.length === 0)
-  if (collection) {
-    // compare new and old collections
-    const oldIds = (
-      await articleService.findCollections({
-        entranceId: article.id,
-      })
-    ).map(({ articleId }: { articleId: string }) => articleId)
-
-    const newIds = uniq(
-      (
-        await Promise.all(
-          collection.map(async (articleId) => {
-            const articleDbId = fromGlobalId(articleId).id
-
-            if (!articleDbId) {
-              return
-            }
-
-            const collectedArticle = await atomService.findUnique({
-              table: 'article',
-              where: { id: articleDbId },
-            })
-
-            if (!collectedArticle) {
-              throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
-            }
-
-            if (collectedArticle.state !== ARTICLE_STATE.active) {
-              throw new ForbiddenError(
-                `Article ${articleId} cannot be collected.`
-              )
-            }
-
-            const isBlocked = await userService.blocked({
-              userId: collectedArticle.authorId,
-              targetId: viewer.id,
-            })
-
-            if (isBlocked) {
-              throw new ForbiddenError('viewer has no permission')
-            }
-
-            return articleDbId
-          })
-        )
-      ).filter((articleId): articleId is string => !!articleId)
-    )
-
-    interface Item {
-      entranceId: string
-      articleId: string
-      order: number
-    }
-    const addItems: Item[] = []
-    const updateItems: Item[] = []
-    const diff = difference(newIds, oldIds)
-
-    // gather data
-    newIds.forEach((articleId: string, index: number) => {
-      const indexOf = oldIds.indexOf(articleId)
-      if (indexOf < 0) {
-        addItems.push({ entranceId: article.id, articleId, order: index })
-      }
-      if (indexOf >= 0 && index !== indexOf) {
-        updateItems.push({ entranceId: article.id, articleId, order: index })
-      }
-    })
-
-    // add and update
-    await Promise.all([
-      ...addItems.map((item) =>
-        atomService.create({
-          table: 'collection',
-          data: {
-            ...item,
-            // createdAt: new Date(),
-            // updatedAt: knex.fn.now(),
-          },
-        })
-      ),
-      ...updateItems.map((item) =>
-        atomService.update({
-          table: 'collection',
-          where: { entranceId: item.entranceId, articleId: item.articleId },
-          data: { order: item.order, updatedAt: knex.fn.now() },
-        })
-      ),
-    ])
-
-    // delete unwanted
-    await atomService.deleteMany({
-      table: 'collection',
-      where: { entranceId: article.id },
-      whereIn: ['article_id', difference(oldIds, newIds)],
-    })
-
-    // trigger notifications
-    diff.forEach(async (articleId) => {
-      const targetCollection = await articleService.baseFindById(articleId)
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_collected,
-        recipientId: targetCollection.authorId,
-        actorId: article.authorId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: targetCollection },
-          {
-            type: 'collection',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
-    })
-  } else if (resetCollection) {
-    await atomService.deleteMany({
-      table: 'collection',
-      where: { entranceId: article.id },
+  if (collection !== undefined) {
+    await handleCollection({
+      viewerId: viewer.id,
+      collection,
+      article,
+      dataSources: {
+        atomService,
+        userService,
+        articleService,
+        notificationService,
+      },
+      knex,
     })
   }
 
@@ -615,6 +448,221 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   return node
+}
+
+const handleTags = async ({
+  viewerId,
+  tags,
+  article,
+  dataSources: { tagService },
+}: {
+  viewerId: string
+  tags: string[] | null
+  article: Article
+  dataSources: Pick<DataSources, 'tagService'>
+}) => {
+  // validate
+  const oldIds = (
+    await tagService.findByArticleId({ articleId: article.id })
+  ).map(({ id: tagId }: { id: string }) => tagId)
+
+  if (
+    tags &&
+    tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
+    tags.length > oldIds.length
+  ) {
+    throw new TooManyTagsForArticleError(
+      `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+    )
+  }
+
+  // create tag records
+  const tagEditors = environment.mattyId
+    ? [environment.mattyId, article.authorId]
+    : [article.authorId]
+  const dbTags =
+    tags === null
+      ? []
+      : (
+          await Promise.all(
+            tags.filter(Boolean).map(async (content: string) =>
+              tagService.create(
+                {
+                  content,
+                  creator: article.authorId,
+                  editors: tagEditors,
+                  owner: article.authorId,
+                },
+                {
+                  columns: ['id', 'content'],
+                  skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+                }
+              )
+            )
+          )
+        ).map(({ id, content }) => ({ id: `${id}`, content }))
+
+  const newIds = dbTags.map(({ id: tagId }) => tagId)
+
+  // check if add tags include matty's tag
+  const mattyTagId = environment.mattyChoiceTagId || ''
+  const isMatty = environment.mattyId === viewerId
+  const addIds = difference(newIds, oldIds)
+  if (addIds.includes(mattyTagId) && !isMatty) {
+    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  }
+
+  // add
+  await tagService.createArticleTags({
+    articleIds: [article.id],
+    creator: article.authorId,
+    tagIds: addIds,
+  })
+
+  // delete unwanted
+  await tagService.deleteArticleTagsByTagIds({
+    articleId: article.id,
+    tagIds: difference(oldIds, newIds),
+  })
+}
+
+const handleCollection = async ({
+  viewerId,
+  collection,
+  article,
+  dataSources: {
+    atomService,
+    userService,
+    articleService,
+    notificationService,
+  },
+  knex,
+}: {
+  viewerId: string
+  collection: string[] | null
+  article: Article
+  dataSources: Pick<
+    DataSources,
+    'atomService' | 'userService' | 'articleService' | 'notificationService'
+  >
+  knex: Knex
+}) => {
+  const oldIds = (
+    await articleService.findCollections({
+      entranceId: article.id,
+    })
+  ).map(({ articleId }: { articleId: string }) => articleId)
+  const newIds =
+    collection === null
+      ? []
+      : uniq(collection.map((articleId) => fromGlobalId(articleId).id)).filter(
+          (id) => !!id
+        )
+  const newIdsToAdd = difference(newIds, oldIds)
+  const oldIdsToDelete = difference(oldIds, newIds)
+
+  // do nothing if no change
+  if (isEqual(oldIds, newIds)) {
+    return
+  }
+  // only validate new-added articles
+  if (!!newIdsToAdd.length) {
+    if (
+      newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+      newIds.length >= oldIds.length
+    ) {
+      throw new ArticleCollectionReachLimitError(
+        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+      )
+    }
+    await Promise.all(
+      newIdsToAdd.map(async (articleId) => {
+        const collectedArticle = await atomService.findUnique({
+          table: 'article',
+          where: { id: articleId },
+        })
+
+        if (!collectedArticle) {
+          throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+        }
+
+        if (collectedArticle.state !== ARTICLE_STATE.active) {
+          throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
+        }
+
+        const isBlocked = await userService.blocked({
+          userId: collectedArticle.authorId,
+          targetId: viewerId,
+        })
+
+        if (isBlocked) {
+          throw new ForbiddenError('viewer has no permission')
+        }
+      })
+    )
+  }
+
+  interface Item {
+    entranceId: string
+    articleId: string
+    order: number
+  }
+  const addItems: Item[] = []
+  const updateItems: Item[] = []
+
+  // gather data
+  newIds.forEach((articleId: string, index: number) => {
+    const isNew = newIdsToAdd.includes(articleId)
+    if (isNew) {
+      addItems.push({ entranceId: article.id, articleId, order: index })
+    }
+    if (!isNew && index !== oldIds.indexOf(articleId)) {
+      updateItems.push({ entranceId: article.id, articleId, order: index })
+    }
+  })
+
+  await Promise.all([
+    ...addItems.map((item) =>
+      atomService.create({
+        table: 'collection',
+        data: {
+          ...item,
+        },
+      })
+    ),
+    ...updateItems.map((item) =>
+      atomService.update({
+        table: 'collection',
+        where: { entranceId: item.entranceId, articleId: item.articleId },
+        data: { order: item.order, updatedAt: knex.fn.now() },
+      })
+    ),
+  ])
+
+  // delete unwanted
+  await atomService.deleteMany({
+    table: 'collection',
+    where: { entranceId: article.id },
+    whereIn: ['article_id', oldIdsToDelete],
+  })
+
+  // trigger notifications
+  newIdsToAdd.forEach(async (articleId) => {
+    const targetCollection = await articleService.baseFindById(articleId)
+    notificationService.trigger({
+      event: DB_NOTICE_TYPE.article_new_collected,
+      recipientId: targetCollection.authorId,
+      actorId: article.authorId,
+      entities: [
+        { type: 'target', entityTable: 'article', entity: targetCollection },
+        {
+          type: 'collection',
+          entityTable: 'article',
+          entity: article,
+        },
+      ],
+    })
+  })
 }
 
 export default resolver

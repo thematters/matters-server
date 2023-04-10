@@ -57,7 +57,6 @@ describe('user notify setting', () => {
 
     // transaction
     payment_received_donation: true,
-    payment_payout: true,
 
     // circle
     circle_invitation: true,

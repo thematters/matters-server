@@ -154,7 +154,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     if (await userService.checkUserNameExists(input.userName)) {
       throw new NameExistsError('user name already exists')
     }
-    updateParams.userName = input.userName
+    updateParams.userName = input.userName.toLowerCase()
   }
 
   // check user display name

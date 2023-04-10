@@ -303,13 +303,14 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Check if user name exists.
+   * Check if user name (case insensitive) exists.
    */
   checkUserNameExists = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ userName })
+      .where('userName', 'ILIKE', `%${userName}%`)
       .first()
+
     const count = parseInt(result ? (result.count as string) : '0', 10)
     return count > 0
   }
