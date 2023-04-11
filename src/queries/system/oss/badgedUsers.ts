@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToBadgedUsersResolver } from 'definitions'
 
 export const badgedUsers: OSSToBadgedUsersResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { atomService }, knex }
+  { dataSources: { atomService }, knex }
 ) => {
   const { type } = input
   const { take, skip } = fromConnectionArgs(input)

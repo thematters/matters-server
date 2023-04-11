@@ -386,6 +386,7 @@ export default /* GraphQL */ `
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: Float!
     score: Float!
+    restrictions: [UserRestriction!]!
   }
 
   type Appreciation {

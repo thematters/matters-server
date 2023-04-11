@@ -48,7 +48,7 @@ import Liker from './liker'
 import likerId from './liker/likerId'
 import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
-import { boost, score } from './oss'
+import { boost, restrictions, score } from './oss'
 import ownCircles from './ownCircles'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
@@ -180,6 +180,7 @@ const user: {
   UserOSS: {
     boost,
     score,
+    restrictions,
   },
 
   // Payment

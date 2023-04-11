@@ -4,6 +4,7 @@ import deleteBlockedSearchKeywords from './deleteBlockedSearchKeywords'
 import logRecord from './logRecord'
 import putAnnouncement from './putAnnouncement'
 import putRemark from './putRemark'
+import putRestrictedUsers from './putRestrictedUsers'
 import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
@@ -23,5 +24,6 @@ export default {
     deleteAnnouncements,
     addBlockedSearchKeyword,
     deleteBlockedSearchKeywords,
+    putRestrictedUsers,
   },
 }
