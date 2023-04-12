@@ -100,7 +100,9 @@ class GCP {
     }
 
     if (!token) {
-      throw new UserInputError('operation is only allowed on matters.news')
+      throw new UserInputError(
+        'operation is only allowed on matters.{town,news}'
+      )
     }
 
     // Turing test with recaptcha
@@ -117,6 +119,7 @@ class GCP {
     const { success, score } = data
 
     if (!success) {
+      console.error(new Date(), 'gcp recaptcha no success:', data)
       throw new ActionFailedError(`please try again: ${data['error-codes']}`)
     }
 
