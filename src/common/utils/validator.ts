@@ -9,7 +9,7 @@ export interface ValidEmailOptions {
   allowPlusSign: boolean
 }
 
-const EMAIL_DOMAIN_WHITELIST = ['matters.news', 'like.co']
+const EMAIL_DOMAIN_WHITELIST = ['matters.town', 'matters.news', 'like.co']
 
 // the unicode RegExp `/\p{Punctuation}+/gu` might be better?
 const PUNCTUATION_CHINESE =

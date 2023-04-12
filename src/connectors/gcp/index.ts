@@ -100,7 +100,9 @@ class GCP {
     }
 
     if (!token) {
-      throw new UserInputError('operation is only allowed on matters.news')
+      throw new UserInputError(
+        'operation is only allowed on matters.{town,news}'
+      )
     }
 
     // Turing test with recaptcha
