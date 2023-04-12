@@ -18,4 +18,4 @@ export const VERIFICATION_CODE_EXPIRED_AFTER = MINUTE * 20 // 20 mins
 
 export const CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER = DAY * 180 // 6 months
 
-export const VERIFICATION_DOMAIN_WHITELIST = ['matters.news']
+export const VERIFICATION_DOMAIN_WHITELIST = ['matters.town', 'matters.news']

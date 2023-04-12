@@ -35,7 +35,7 @@ export const environment = {
   env: process.env.MATTERS_ENV,
   domain: process.env.MATTERS_DOMAIN || '',
   siteDomain: (process.env.MATTERS_SITE_DOMAIN ||
-    'https://matters.news') as string,
+    'https://matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
   awsRegion: process.env.MATTERS_AWS_REGION,
   awsAccessId: process.env.MATTERS_AWS_ACCESS_ID,

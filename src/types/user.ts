@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    "Register user, can only be used on matters.news website."
+    "Register user, can only be used on matters.{town,news} website."
     userRegister(input: UserRegisterInput!): AuthResult!
 
     "Login user."
