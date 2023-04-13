@@ -14,7 +14,6 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleService, AtomService, PaymentService } from 'connectors'
-import { publicationQueue } from 'connectors/queue'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import {
@@ -294,34 +293,16 @@ describe('query drafts on article', () => {
 })
 
 describe('publish article', () => {
-  test('create & publish a draft', async () => {
+  test('create a draft & publish it', async () => {
     jest.setTimeout(10000)
-
-    const content = Math.random().toString()
-    const contentHTML = `<p>${content} <strong>abc</strong></p>`
     const draft = {
       title: Math.random().toString(),
-      content: contentHTML,
+      content: Math.random().toString(),
     }
     const { id } = await putDraft({ draft })
-    const dbId = fromGlobalId(id).id
-    const job = await publicationQueue.publishArticle({ draftId: dbId })
-    const { mediaHash: draftMediaHash } = await job.finished()
-    expect(draftMediaHash).toBeTruthy()
-
-    // check contents
-    const anonymousServer = await testClient()
-    const result = await anonymousServer.executeOperation({
-      query: GET_ARTICLE,
-      variables: {
-        input: { mediaHash: draftMediaHash },
-      },
-    })
-    expect(_get(result, 'data.article.content')).toBe(contentHTML)
-    expect(_get(result, 'data.article.contents.html')).toBe(contentHTML)
-    expect(
-      _get(result, 'data.article.contents.markdown').includes(content)
-    ).toBeTruthy()
+    const { publishState, article } = await publishArticle({ id })
+    expect(publishState).toBe(PUBLISH_STATE.pending)
+    expect(article).toBeNull()
   })
 
   test('create a draft & publish with iscn', async () => {

@@ -17,8 +17,9 @@ describe('publicationQueue.publishArticle', () => {
     await job.finished()
     expect(await job.getState()).toBe('completed')
   })
+
   test('publish pending draft successfully', async () => {
-    const draft = await createPendingDraft()
+    const { draft, content, contentHTML } = await createPendingDraft()
     const job = await publicationQueue.publishArticle({
       draftId: draft.id,
     })
@@ -30,16 +31,20 @@ describe('publicationQueue.publishArticle', () => {
     const updatedArticle = await publicationQueue.articleService.baseFindById(
       updatedDraft.articleId
     )
+
+    expect(updatedDraft.content).toBe(contentHTML)
+    expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
   })
+
   test('publish pending draft unsuccessfully', async () => {
     // mock
     publicationQueue.userService.baseFindById = async (id) => {
       console.log('mocked publicationQueue.userService.baseFindById is called')
       throw Error('mock error in publicationQueue test')
     }
-    const draft = await createPendingDraft()
+    const { draft } = await createPendingDraft()
     const job = await publicationQueue.publishArticle({
       draftId: draft.id,
     })
@@ -62,12 +67,20 @@ describe('publicationQueue.publishArticle', () => {
   })
 })
 
-const createPendingDraft = async () =>
-  publicationQueue.draftService.baseCreate({
-    authorId: '1',
-    uuid: v4(),
-    title: 'test title',
-    summary: 'test summary',
-    content: 'test content',
-    publishState: PUBLISH_STATE.pending,
-  })
+const createPendingDraft = async () => {
+  const content = Math.random().toString()
+  const contentHTML = `<p>${content} <strong>abc</strong></p>`
+
+  return {
+    draft: await publicationQueue.draftService.baseCreate({
+      authorId: '1',
+      uuid: v4(),
+      title: 'test title',
+      summary: 'test summary',
+      content: contentHTML,
+      publishState: PUBLISH_STATE.pending,
+    }),
+    content,
+    contentHTML,
+  }
+}
