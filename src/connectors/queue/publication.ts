@@ -130,9 +130,9 @@ class PublicationQueue extends BaseQueue {
       await job.progress(20)
 
       // Step 3: update draft and article state
-      let conetentMd = ''
+      let contentMd = ''
       try {
-        conetentMd = await html2md(draft.content)
+        contentMd = await html2md(draft.content)
       } catch (e) {
         console.error('failed to convert HTML to Markdown', draft.id)
       }
@@ -141,7 +141,7 @@ class PublicationQueue extends BaseQueue {
           articleId: article.id,
           summary,
           wordCount,
-          conetentMd,
+          contentMd,
           // dataHash,
           // mediaHash,
           archived: true,
