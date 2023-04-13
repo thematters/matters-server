@@ -190,6 +190,7 @@ type Mutation {
   toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
+  putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -402,7 +403,7 @@ type Article implements Node {
   drafts: [Draft!] @deprecated(reason: "Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead")
 
   """Newest unpublished draft linked to this article."""
-  newestUnpublishedDraft: Draft!
+  newestUnpublishedDraft: Draft
 
   """Newest published draft linked to this article."""
   newestPublishedDraft: Draft!
@@ -1712,7 +1713,6 @@ type TransactionNotice implements Notice {
 
 enum TransactionNoticeType {
   PaymentReceivedDonation
-  PaymentPayout
 }
 
 """
@@ -1886,6 +1886,7 @@ type OSS {
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
+  restrictedUsers(input: ConnectionArgs!): UserConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -1951,6 +1952,11 @@ type SkippedListItem {
   archived: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type UserRestriction {
+  type: UserRestrictionType!
+  createdAt: DateTime!
 }
 
 input NodeInput {
@@ -2081,6 +2087,11 @@ input DeleteAnnouncementsInput {
   ids: [ID!]
 }
 
+input PutRestrictedUsersInput {
+  ids: [ID!]!
+  restrictions: [UserRestrictionType!]!
+}
+
 enum SearchTypes {
   Article
   User
@@ -2188,6 +2199,11 @@ enum AnnouncementType {
   community
   product
   seminar
+}
+
+enum UserRestrictionType {
+  articleHottest
+  articleNewest
 }
 
 """
@@ -2525,6 +2541,7 @@ type Liker {
 type UserOSS {
   boost: Float!
   score: Float!
+  restrictions: [UserRestriction!]!
 }
 
 type Appreciation {

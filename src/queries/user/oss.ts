@@ -1,4 +1,8 @@
-import { UserOSSToBoostResolver, UserOSSToScoreResolver } from 'definitions'
+import {
+  UserOSSToBoostResolver,
+  UserOSSToRestrictionsResolver,
+  UserOSSToScoreResolver,
+} from 'definitions'
 
 export const boost: UserOSSToBoostResolver = (
   { id },
@@ -11,3 +15,9 @@ export const score: UserOSSToScoreResolver = (
   _,
   { dataSources: { userService } }
 ) => userService.findScore(id)
+
+export const restrictions: UserOSSToRestrictionsResolver = (
+  { id },
+  _,
+  { dataSources: { userService } }
+) => userService.findRestrictions(id)

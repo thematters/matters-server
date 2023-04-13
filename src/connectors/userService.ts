@@ -55,6 +55,8 @@ import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchExclude,
+  GQLUserRestriction,
+  GQLUserRestrictionType,
   GQLVerificationCodeType,
   Item,
   ItemData,
@@ -303,13 +305,14 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Check if user name exists.
+   * Check if user name (case insensitive) exists.
    */
   checkUserNameExists = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ userName })
+      .where('userName', 'ILIKE', `%${userName}%`)
       .first()
+
     const count = parseInt(result ? (result.count as string) : '0', 10)
     return count > 0
   }
@@ -2089,6 +2092,66 @@ export class UserService extends BaseService {
         privKeyName: kname,
       },
     })
+  }
+
+  /*********************************
+   *                               *
+   *        Restrictions           *
+   *                               *
+   *********************************/
+  findRestrictions = async (id: string): Promise<GQLUserRestriction[]> => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    return atomService.findMany({
+      table,
+      select: ['type', 'created_at'],
+      where: { userId: id },
+    })
+  }
+
+  updateRestrictions = async (id: string, types: GQLUserRestrictionType[]) => {
+    const olds = (await this.findRestrictions(id)).map(({ type }) => type)
+    const news = [...new Set(types)]
+    const toAdd = news.filter((i) => !olds.includes(i))
+    const toDel = olds.filter((i) => !news.includes(i))
+    await Promise.all([
+      ...toAdd.map((i) => this.addRestriction(id, i)),
+      ...toDel.map((i) => this.removeRestriction(id, i)),
+    ])
+  }
+
+  addRestriction = async (id: string, type: GQLUserRestrictionType) => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    await atomService.create({ table, data: { userId: id, type } })
+  }
+
+  removeRestriction = async (id: string, type: GQLUserRestrictionType) => {
+    const table = 'user_restriction'
+    const atomService = new AtomService()
+    await atomService.deleteMany({ table, where: { userId: id, type } })
+  }
+
+  findRestrictedUsersAndCount = async ({
+    skip,
+    take,
+  }: { skip?: number; take?: number } = {}) => {
+    const users = await this.knexRO
+      .select('user.*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .from('user')
+      .join('user_restriction', 'user.id', 'user_restriction.user_id')
+      .groupBy('user.id')
+      .orderByRaw('MAX(user_restriction.created_at) DESC')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    return [users, users[0]?.totalCount || 0]
   }
 
   /*********************************

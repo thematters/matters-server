@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToUsersResolver } from 'definitions'
 
 export const users: OSSToUsersResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { userService } }
+  { dataSources: { userService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

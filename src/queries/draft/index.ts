@@ -6,6 +6,8 @@ import { countWords, toGlobalId } from 'common/utils'
 
 import * as draftAccess from './access'
 import articleDrafts from './article/drafts'
+import articleNewestPublishedDraft from './article/newestPublishedDraft'
+import articleNewestUnpublishedDraft from './article/newestUnpublishedDraft'
 import assets from './assets'
 import collection from './collection'
 import draftContent from './content'
@@ -15,6 +17,8 @@ import drafts from './drafts'
 export default {
   Article: {
     drafts: articleDrafts,
+    newestUnpublishedDraft: articleNewestUnpublishedDraft,
+    newestPublishedDraft: articleNewestPublishedDraft,
   },
   User: {
     drafts,

@@ -238,7 +238,12 @@ query($input: ConnectionArgs!) {
         totalCount
         edges {
           node {
-            id
+            ...on Article {
+              id
+              author {
+                id
+              }
+            }
           }
         }
       }
@@ -264,13 +269,13 @@ const GET_VIEWER_RECOMMENDATION_TAGS = /* GraphQL */ `
 `
 
 const GET_AUTHOR_RECOMMENDATION = (list: string) => /* GraphQL */ `
-query($input: RecommendInput!) {
-  viewer {
-    recommendation {
-      ${list}(input: $input) {
-        edges {
-          node {
-            id
+  query($input: RecommendInput!) {
+    viewer {
+      recommendation {
+        ${list}(input: $input) {
+          edges {
+            node {
+              id
           }
         }
       }
@@ -730,7 +735,6 @@ describe('user query fields', () => {
       query: GET_VIEWER_WALLET_TRANSACTIONS,
       variables: { input: { filter: { purpose: 'subscriptionSplit' } } },
     })
-    console.log(purposeRes.errors)
     checkContains(purposeRes, succeededHKDSubscriptionSplitTx)
     checkNotContains(purposeRes, failedUSDTdonationTx)
     checkNotContains(purposeRes, canceledLIKEdonationTx)
@@ -869,6 +873,29 @@ describe('mutations on User object', () => {
     expect(adminReservedNameDisplayName).toEqual(RESERVED_NAMES[0])
   })
 
+  test('updateUserInfoUserName', async () => {
+    const server = await testClient({ isAuth: true })
+
+    // user cannnot use reserved name
+    const userName = 'Test1'
+    const existedUserNameResult = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName } },
+    })
+    expect(_get(existedUserNameResult, 'errors.0.extensions.code')).toBe(
+      'NAME_EXISTS'
+    )
+
+    const userName2 = 'UPPERTest'
+    const { data } = await server.executeOperation({
+      query: UPDATE_USER_INFO,
+      variables: { input: { userName: userName2 } },
+    })
+    expect(_get(data, 'updateUserInfo.userName')).toEqual(
+      userName2.toLowerCase()
+    )
+  })
+
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
     const server = await testClient({
@@ -972,16 +999,92 @@ describe('user recommendations', () => {
   test('retrive users from authors', async () => {
     await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
 
-    const serverNew = await testClient({
+    const server = await testClient({
       isAuth: true,
     })
-    const result = await serverNew.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
       variables: { input: { first: 1 } },
     })
-    const { data } = result
     const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')
+  })
+
+  test('articleHottest restricted authors not show in hottest', async () => {
+    const getAuthorIds = (data: any) =>
+      data!
+        .viewer!.recommendation!.hottest!.edges.map(
+          ({
+            node: {
+              author: { id },
+            },
+          }: {
+            node: { author: { id: string } }
+          }) => id
+        )
+        .map((id: string) => fromGlobalId(id).id)
+
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
+    // before restricted
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('hottest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsBefore = getAuthorIds(data1)
+
+    const restrictedUserId = '1'
+    expect(authorIdsBefore).toContain(restrictedUserId)
+
+    // after restricted
+    await userService.addRestriction('1', 'articleHottest')
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('hottest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsAfter = getAuthorIds(data2)
+    expect(authorIdsAfter).not.toContain(restrictedUserId)
+  })
+
+  test('articleNewest restricted authors not show in newest', async () => {
+    const getAuthorIds = (data: any) =>
+      data!
+        .viewer!.recommendation!.newest!.edges.map(
+          ({
+            node: {
+              author: { id },
+            },
+          }: {
+            node: { author: { id: string } }
+          }) => id
+        )
+        .map((id: string) => fromGlobalId(id).id)
+
+    // before restricted
+    const server = await testClient({
+      isAuth: true,
+    })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsBefore = getAuthorIds(data1)
+
+    const restrictedUserId = '1'
+    expect(authorIdsBefore).toContain(restrictedUserId)
+
+    // after restricted
+    await userService.addRestriction('1', 'articleNewest')
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION('newest'),
+      variables: { input: { first: 10 } },
+    })
+    const authorIdsAfter = getAuthorIds(data2)
+    expect(authorIdsAfter).not.toContain(restrictedUserId)
   })
 })
 

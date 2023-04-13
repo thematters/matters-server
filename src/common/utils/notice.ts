@@ -5,7 +5,6 @@ import { DBNoticeType, NoticeItem } from 'definitions'
 const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   article_published: true,
   official_announcement: true,
-  payment_payout: true,
   revised_article_published: true,
   revised_article_not_published: true,
   circle_new_article: true,

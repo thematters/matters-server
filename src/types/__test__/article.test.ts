@@ -24,6 +24,19 @@ import {
   updateUserState,
 } from './utils'
 
+declare global {
+  var mockEnums: any
+}
+
+jest.mock('common/enums', () => {
+  const originalModule = jest.requireActual('common/enums')
+  globalThis.mockEnums = {
+    ...originalModule,
+    __esModule: true,
+  }
+  return globalThis.mockEnums
+})
+
 const mediaHash = 'someIpfsMediaHash1'
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
@@ -80,6 +93,28 @@ const GET_ARTICLE_TAGS = /* GraphQL */ `
         id
         tags {
           content
+        }
+      }
+    }
+  }
+`
+
+const GET_ARTICLE_DRAFTS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Article {
+        id
+        drafts {
+          id
+          publishState
+        }
+        newestPublishedDraft {
+          id
+          publishState
+        }
+        newestUnpublishedDraft {
+          id
+          publishState
         }
       }
     }
@@ -225,6 +260,30 @@ describe('query tag on article', () => {
     expect(
       new Set(tags.map(({ content }: { content: string }) => content))
     ).toEqual(new Set(['article', 'test']))
+  })
+})
+
+describe('query drafts on article', () => {
+  test('query drafts on article', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_ARTICLE_DRAFTS,
+      variables: { input: { id } },
+    })
+
+    // drafts
+    const drafts = data && data.node && data.node.drafts
+    expect(drafts[0].publishState).toEqual(PUBLISH_STATE.published)
+
+    // unpublishedDraft
+    const unpublishedDraft =
+      data && data.node && data.node.newestUnpublishedDraft
+    expect(unpublishedDraft).toBeNull()
+
+    // publishedDraft
+    const publishedDraft = data && data.node && data.node.newestPublishedDraft
+    expect(publishedDraft.publishState).toEqual(PUBLISH_STATE.published)
   })
 })
 
@@ -419,23 +478,126 @@ describe('edit article', () => {
   })
 
   test('edit article tags', async () => {
-    const tags = ['abc', '123']
+    const tags = ['abc', '123', 'tag3', 'tag4', 'tag5']
     const server = await testClient({
       isAuth: true,
       isAdmin: false,
     })
+    const limit = 3
+    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = limit
+    // set tags out of limit
+    const failedRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, limit + 1),
+        },
+      },
+    })
+    expect(_get(failedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} tags on an article`
+    )
+
+    // set tags within limit
     const result = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: ARTICLE_ID,
-          tags,
+          tags: tags.slice(0, limit),
         },
       },
     })
-    expect(_get(result, 'data.editArticle.tags.length')).toBe(2)
+    expect(_get(result, 'data.editArticle.tags.length')).toBe(limit)
     expect(_get(result, 'data.editArticle.tags.0.content')).toBe(tags[0])
     expect(_get(result, 'data.editArticle.tags.1.content')).toBe(tags[1])
+    expect(_get(result, 'data.editArticle.tags.2.content')).toBe(tags[2])
+
+    // do not change tags when not in input
+    const otherRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+        },
+      },
+    })
+    expect(_get(otherRes, 'data.editArticle.tags.length')).toBe(limit)
+    expect(_get(otherRes, 'data.editArticle.tags.0.content')).toBe(tags[0])
+    expect(_get(otherRes, 'data.editArticle.tags.1.content')).toBe(tags[1])
+    expect(_get(otherRes, 'data.editArticle.tags.2.content')).toBe(tags[2])
+
+    // decrease tags
+    const decreaseRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, limit - 1),
+        },
+      },
+    })
+    expect(_get(decreaseRes, 'data.editArticle.tags.length')).toBe(limit - 1)
+
+    // increase tags
+    const increaseRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, limit),
+        },
+      },
+    })
+    expect(_get(increaseRes, 'data.editArticle.tags.length')).toBe(limit)
+
+    // out of limit tags can remain
+    const smallerLimit = limit - 2
+    globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = smallerLimit
+
+    const remainRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, smallerLimit + 2),
+        },
+      },
+    })
+    expect(_get(remainRes, 'data.editArticle.tags.length')).toBe(
+      smallerLimit + 2
+    )
+
+    // out of limit collection can not increase
+
+    const failedRes2 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, smallerLimit + 3),
+        },
+      },
+    })
+    expect(_get(failedRes2, 'errors.0.message')).toBe(
+      `Not allow more than ${smallerLimit} tags on an article`
+    )
+
+    // out of limit collection can decrease,  even to a amount still out of limit
+
+    const stillOutLimitRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: tags.slice(0, smallerLimit + 1),
+        },
+      },
+    })
+    expect(_get(stillOutLimitRes, 'data.editArticle.tags.length')).toBe(
+      smallerLimit + 1
+    )
 
     // reset tags
     const resetResult1 = await server.executeOperation({
@@ -448,7 +610,6 @@ describe('edit article', () => {
       },
     })
     expect(_get(resetResult1, 'data.editArticle.tags.length')).toBe(0)
-
     const resetResult2 = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
@@ -462,30 +623,103 @@ describe('edit article', () => {
   })
 
   test('edit article collection', async () => {
-    const collection = [
-      toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
-    ]
     const server = await testClient({
       isAuth: true,
       isAdmin: false,
     })
-    const result = await server.executeOperation({
+    const collection = [
+      toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 5 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 6 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 7 }),
+    ]
+    const limit = 2
+
+    // set collection within limit
+    const res = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
           id: ARTICLE_ID,
-          collection,
+          collection: collection.slice(0, limit),
         },
       },
     })
-    expect(_get(result, 'data.editArticle.collection.totalCount')).toBe(2)
-    expect(
-      [
-        _get(result, 'data.editArticle.collection.edges.0.node.id'),
-        _get(result, 'data.editArticle.collection.edges.1.node.id'),
-      ].sort()
-    ).toEqual(collection.sort())
+    expect(_get(res, 'data.editArticle.collection.totalCount')).toBe(limit)
+    expect([
+      _get(res, 'data.editArticle.collection.edges.0.node.id'),
+      _get(res, 'data.editArticle.collection.edges.1.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
+    // set collection out of limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    const failedRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit + 1),
+        },
+      },
+    })
+    expect(_get(failedRes, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} articles in collection`
+    )
+
+    // do not change collection when not in input
+    const otherRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+        },
+      },
+    })
+    expect(_get(otherRes, 'data.editArticle.collection.totalCount')).toBe(limit)
+    expect([
+      _get(otherRes, 'data.editArticle.collection.edges.0.node.id'),
+      _get(otherRes, 'data.editArticle.collection.edges.1.node.id'),
+    ]).toEqual(collection.slice(0, limit))
+
+    // reorder collection
+    const reorderCollection = [...collection.slice(0, limit)].reverse()
+    expect(reorderCollection).not.toBe(collection.slice(0, limit))
+
+    const reorderRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: reorderCollection,
+        },
+      },
+    })
+    expect(_get(reorderRes, 'data.editArticle.collection.totalCount')).toBe(
+      reorderCollection.length
+    )
+    expect([
+      _get(reorderRes, 'data.editArticle.collection.edges.0.node.id'),
+      _get(reorderRes, 'data.editArticle.collection.edges.1.node.id'),
+    ]).toEqual(reorderCollection)
+
+    // decrease collection
+    const decreaseRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit - 1),
+        },
+      },
+    })
+
+    expect(_get(decreaseRes, 'data.editArticle.collection.totalCount')).toBe(
+      limit - 1
+    )
+    expect([
+      _get(decreaseRes, 'data.editArticle.collection.edges.0.node.id'),
+    ]).toEqual(collection.slice(0, limit - 1))
 
     // reset collection
     const resetResult1 = await server.executeOperation({
@@ -509,6 +743,75 @@ describe('edit article', () => {
       },
     })
     expect(_get(resetResult2, 'data.editArticle.collection.totalCount')).toBe(0)
+
+    // out of limit collection can remain
+    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = 10
+
+    const res1 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit + 2),
+        },
+      },
+    })
+    expect(_get(res1, 'data.editArticle.collection.totalCount')).toBe(limit + 2)
+
+    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    const remainRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit + 2),
+        },
+      },
+    })
+    expect(_get(remainRes, 'data.editArticle.collection.totalCount')).toBe(
+      limit + 2
+    )
+
+    // out of limit collection can not increase
+    const failedRes2 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit + 3),
+        },
+      },
+    })
+    expect(_get(failedRes2, 'errors.0.message')).toBe(
+      `Not allow more than ${limit} articles in collection`
+    )
+
+    // out of limit collection can decrease,  even to a amount still out of limit
+    const stillOutLimitRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit + 1),
+        },
+      },
+    })
+    expect(
+      _get(stillOutLimitRes, 'data.editArticle.collection.totalCount')
+    ).toBe(limit + 1)
+
+    const withinLimitRes = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: collection.slice(0, limit - 1),
+        },
+      },
+    })
+    expect(_get(withinLimitRes, 'data.editArticle.collection.totalCount')).toBe(
+      limit - 1
+    )
   })
 
   test('toggle article sticky', async () => {

@@ -41,6 +41,7 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @auth(mode: "${AUTH_MODE.admin}")
   }
 
 
@@ -121,6 +122,7 @@ export default /* GraphQL */ `
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
+    restrictedUsers(input: ConnectionArgs!): UserConnection!
   }
 
 
@@ -191,11 +193,16 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
+  type UserRestriction {
+    type: UserRestrictionType!
+    createdAt: DateTime!
+  }
+
   input NodeInput {
     id: ID!
   }
 
-  input NodesInput {
+  input NodesInput{
     ids: [ID!]!
   }
 
@@ -316,6 +323,11 @@ export default /* GraphQL */ `
     ids: [ID!]
   }
 
+  input PutRestrictedUsersInput {
+    ids: [ID!]!
+    restrictions: [UserRestrictionType!]!
+  }
+
   enum SearchTypes {
     Article
     User
@@ -423,6 +435,11 @@ export default /* GraphQL */ `
     community
     product
     seminar
+  }
+
+  enum UserRestrictionType {
+    articleHottest
+    articleNewest
   }
 
   ####################

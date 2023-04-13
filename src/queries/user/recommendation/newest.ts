@@ -3,12 +3,13 @@ import { Knex } from 'knex'
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { readonlyKnex as knexRO } from 'connectors'
 import { RecommendationToNewestResolver } from 'definitions'
 
 export const newest: RecommendationToNewestResolver = async (
   _,
   { input },
-  { viewer, dataSources: { draftService }, knex }
+  { viewer, dataSources: { draftService } }
 ) => {
   const { oss = false } = input
 
@@ -21,11 +22,11 @@ export const newest: RecommendationToNewestResolver = async (
   const { take, skip } = fromConnectionArgs(input)
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
-  const query = knex
+  const query = knexRO
     .select('article_set.draft_id', 'article_set.id')
     .from(
-      knex
-        .select('id', 'draft_id')
+      knexRO
+        .select('id', 'draft_id', 'author_id')
         .from('article')
         .where({ state: ARTICLE_STATE.active })
         .orderBy('id', 'desc')
@@ -37,17 +38,23 @@ export const newest: RecommendationToNewestResolver = async (
       'article_set.id',
       'setting.article_id'
     )
-    .andWhere((builder: Knex.QueryBuilder) => {
+    .where((builder: Knex.QueryBuilder) => {
       if (!oss) {
-        // this.where({ inNewest: true }).orWhereNull('in_newest')
-        builder.whereRaw('in_newest IS NOT false')
+        builder
+          .whereRaw('in_newest IS NOT false')
+          .whereNotIn(
+            'article_set.author_id',
+            knexRO('user_restriction')
+              .select('user_id')
+              .where('type', 'articleNewest')
+          )
       }
     })
     .as('newest')
 
   const [_countRecord, articles] = await Promise.all([
-    MAX_ITEM_COUNT, // always 500 // knex.select().from(query.clone().limit(MAX_ITEM_COUNT)).count().first(),
-    knex
+    MAX_ITEM_COUNT, // always 500
+    knexRO
       .select()
       .from(query.orderBy('id', 'desc').limit(MAX_ITEM_COUNT))
       .orderBy('id', 'desc')

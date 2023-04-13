@@ -23,6 +23,8 @@ import {
   UserService,
 } from 'connectors'
 
+export * from './article'
+export * from './language'
 export * from './schema'
 export * from './notification'
 
@@ -120,6 +122,7 @@ export type BasicTableName =
   | 'user_oauth'
   | 'user_badge'
   | 'user_notify_setting'
+  | 'user_restriction'
   | 'username_edit_history'
   | 'notice_detail'
   | 'notice'
@@ -225,8 +228,6 @@ export type S3Bucket =
 export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
-
-export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
 
