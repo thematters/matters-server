@@ -7,9 +7,9 @@ import {
 import { OSSToSkippedListItemsResolver } from 'definitions'
 
 export const skippedListItems: OSSToSkippedListItemsResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { systemService } }
+  { dataSources: { systemService } }
 ) => {
   const { type } = input
   const types = type ? [type] : ['email', 'agent_hash'] // backward compatible

@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToTagsResolver } from 'definitions'
 
 export const tags: OSSToTagsResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { tagService } }
+  { dataSources: { tagService } }
 ) => {
   const { sort } = input
   const { take, skip } = fromConnectionArgs(input)

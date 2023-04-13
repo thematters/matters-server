@@ -1,3 +1,5 @@
+import { Knex } from 'knex'
+
 import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
@@ -33,18 +35,26 @@ export const hottest: RecommendationToHottestResolver = async (
       )
       .leftJoin('article', 'view.id', 'article.id')
       .leftJoin(
-        'article_recommend_setting as setting',
+        'article_recommend_setting AS setting',
         'view.id',
         'setting.article_id'
       )
+      .where((builder: Knex.QueryBuilder) => {
+        if (!oss) {
+          builder
+            .whereRaw('in_hottest IS NOT false')
+            .whereNotIn(
+              'article.author_id',
+              knexRO('user_restriction')
+                .select('user_id')
+                .where('type', 'articleHottest')
+            )
+        }
+      })
       .as('hottest')
 
-    if (!oss) {
-      query.where({ inHottest: true }).orWhereNull('in_hottest')
-    }
-
     return query
-      .orderByRaw('score desc nulls last')
+      .orderByRaw('score DESC NULLS LAST')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .offset(skip)
       .limit(take)

@@ -239,6 +239,7 @@ export interface GQLMutation {
   toggleSeedingUsers: Array<GQLUser | null>
   putAnnouncement: GQLAnnouncement
   deleteAnnouncements: boolean
+  putRestrictedUsers: Array<GQLUser>
 
   /**
    * Send verification code for email.
@@ -2682,6 +2683,7 @@ export interface GQLOSS {
   skippedListItems: GQLSkippedListItemsConnection
   seedingUsers: GQLUserConnection
   badgedUsers: GQLUserConnection
+  restrictedUsers: GQLUserConnection
 }
 
 /**
@@ -2757,6 +2759,11 @@ export interface GQLSkippedListItem {
   archived: boolean
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
+}
+
+export interface GQLUserRestriction {
+  type: GQLUserRestrictionType
+  createdAt: GQLDateTime
 }
 
 export interface GQLNodeInput {
@@ -2903,6 +2910,11 @@ export interface GQLDeleteAnnouncementsInput {
   ids?: Array<string>
 }
 
+export interface GQLPutRestrictedUsersInput {
+  ids: Array<string>
+  restrictions: Array<GQLUserRestrictionType>
+}
+
 export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
@@ -3018,6 +3030,11 @@ export const enum GQLAnnouncementType {
   community = 'community',
   product = 'product',
   seminar = 'seminar',
+}
+
+export const enum GQLUserRestrictionType {
+  articleHottest = 'articleHottest',
+  articleNewest = 'articleNewest',
 }
 
 /**
@@ -3517,6 +3534,7 @@ export interface GQLLiker {
 export interface GQLUserOSS {
   boost: number
   score: number
+  restrictions: Array<GQLUserRestriction>
 }
 
 export interface GQLAppreciation {
@@ -4641,6 +4659,7 @@ export interface GQLResolver {
   SkippedListItemsConnection?: GQLSkippedListItemsConnectionTypeResolver
   SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
   SkippedListItem?: GQLSkippedListItemTypeResolver
+  UserRestriction?: GQLUserRestrictionTypeResolver
   User?: GQLUserTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   UserInfo?: GQLUserInfoTypeResolver
@@ -4909,6 +4928,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
   putAnnouncement?: MutationToPutAnnouncementResolver<TParent>
   deleteAnnouncements?: MutationToDeleteAnnouncementsResolver<TParent>
+  putRestrictedUsers?: MutationToPutRestrictedUsersResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5610,6 +5630,21 @@ export interface MutationToDeleteAnnouncementsResolver<
   (
     parent: TParent,
     args: MutationToDeleteAnnouncementsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutRestrictedUsersArgs {
+  input: GQLPutRestrictedUsersInput
+}
+export interface MutationToPutRestrictedUsersResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutRestrictedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10342,6 +10377,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
   seedingUsers?: OSSToSeedingUsersResolver<TParent>
   badgedUsers?: OSSToBadgedUsersResolver<TParent>
+  restrictedUsers?: OSSToRestrictedUsersResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -10435,6 +10471,18 @@ export interface OSSToBadgedUsersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToBadgedUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToRestrictedUsersArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToRestrictedUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToRestrictedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10693,6 +10741,32 @@ export interface SkippedListItemToCreatedAtResolver<
 }
 
 export interface SkippedListItemToUpdatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLUserRestrictionTypeResolver<TParent = any> {
+  type?: UserRestrictionToTypeResolver<TParent>
+  createdAt?: UserRestrictionToCreatedAtResolver<TParent>
+}
+
+export interface UserRestrictionToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserRestrictionToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -11779,6 +11853,7 @@ export interface LikerToRateUSDResolver<TParent = any, TResult = any> {
 export interface GQLUserOSSTypeResolver<TParent = any> {
   boost?: UserOSSToBoostResolver<TParent>
   score?: UserOSSToScoreResolver<TParent>
+  restrictions?: UserOSSToRestrictionsResolver<TParent>
 }
 
 export interface UserOSSToBoostResolver<TParent = any, TResult = any> {
@@ -11791,6 +11866,15 @@ export interface UserOSSToBoostResolver<TParent = any, TResult = any> {
 }
 
 export interface UserOSSToScoreResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserOSSToRestrictionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

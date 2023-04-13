@@ -2,6 +2,7 @@ import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { GQLUserRestrictionType } from 'definitions'
 
 import {
   delay,
@@ -50,6 +51,24 @@ const GET_USER = /* GraphQL */ `
     }
   }
 `
+
+const GET_USER_OSS_BY_USERNAME = /* GraphQL */ `
+  query ($input: UserInput!) {
+    user(input: $input) {
+      id
+      userName
+      oss {
+        score
+        boost
+        restrictions {
+          type
+          createdAt
+        }
+      }
+    }
+  }
+`
+
 const GET_ARTICLE = /* GraphQL */ `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -156,10 +175,49 @@ const QUERY_BADGED_USERS = `
   }
 `
 
+const QUERY_RESTRICTED_USERS = /* GraphQL */ `
+  query ($input: ConnectionArgs!) {
+    oss {
+      restrictedUsers(input: $input) {
+        totalCount
+        edges {
+          node {
+            id
+            userName
+            oss {
+              restrictions {
+                type
+                createdAt
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const TOGGLE_USERS_BADGE = `
   mutation($input: ToggleUsersBadgeInput!) {
     toggleUsersBadge(input: $input) {
       id
+    }
+  }
+`
+
+const PUT_USER_RESTRICTIONS = /* GraphQL */ `
+  mutation PutRestrictedUsers($input: PutRestrictedUsersInput!) {
+    putRestrictedUsers(input: $input) {
+      id
+      userName
+      oss {
+        score
+        boost
+        restrictions {
+          type
+          createdAt
+        }
+      }
     }
   }
 `
@@ -475,5 +533,112 @@ describe('manage user badges', () => {
       },
     })
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
+  })
+})
+
+describe('manage user restrictions', () => {
+  const userId1 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+  const userId2 = toGlobalId({ type: NODE_TYPES.User, id: '3' })
+  const userName1 = 'test2'
+  test.only('no restrictions by default', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+
+    // query this single user
+    const { data: data1 } = await server.executeOperation({
+      query: GET_USER_OSS_BY_USERNAME,
+      variables: { input: { userName: userName1 } },
+    })
+    expect(data1!.user.oss.restrictions).toEqual([])
+
+    // query restricted users
+    const { data: data2 } = await server.executeOperation({
+      query: QUERY_RESTRICTED_USERS,
+      variables: { input: {} },
+    })
+    expect(data2!.oss.restrictedUsers.totalCount).toBe(0)
+  })
+  test('only admin can update restrictions', async () => {
+    const notAdminServer = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const { errors } = await notAdminServer.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(errors![0]!.extensions!.code).toBe('FORBIDDEN')
+
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await adminServer.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(
+      data!.putRestrictedUsers![0]!.oss!.restrictions!.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
+
+    // query restricted users
+    const { data: data2 } = await adminServer.executeOperation({
+      query: QUERY_RESTRICTED_USERS,
+      variables: { input: {} },
+    })
+    expect(data2!.oss.restrictedUsers.totalCount).toBe(1)
+  })
+  test('reset restrictions', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: { input: { ids: [userId1], restrictions: [] } },
+    })
+    expect(data!.putRestrictedUsers![0]!.oss!.restrictions).toEqual([])
+  })
+  test('bulk update', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data } = await server.executeOperation({
+      query: PUT_USER_RESTRICTIONS,
+      variables: {
+        input: { ids: [userId1, userId2], restrictions: ['articleHottest'] },
+      },
+    })
+    expect(
+      data!.putRestrictedUsers![0]!.oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
+    expect(
+      data!.putRestrictedUsers![1]!.oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
+
+    // query restricted users
+    const { data: data2 } = await server.executeOperation({
+      query: QUERY_RESTRICTED_USERS,
+      variables: { input: {} },
+    })
+    expect(data2!.oss.restrictedUsers.totalCount).toBe(2)
+    expect(
+      data2!.oss.restrictedUsers.edges[0].oss!.restrictions.map(
+        ({ type }: { type: GQLUserRestrictionType }) => type
+      )
+    ).toEqual(['articleHottest'])
   })
 })

@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToCommentsResolver } from 'definitions'
 
 export const comments: OSSToCommentsResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { commentService } }
+  { dataSources: { commentService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
