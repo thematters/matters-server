@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor'
+import { html2md } from '@matters/matters-editor/transformers'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'

@@ -1,6 +1,6 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor'
 import {
+  html2md,
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
