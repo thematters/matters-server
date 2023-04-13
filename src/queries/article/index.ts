@@ -92,6 +92,7 @@ export default {
       return toGlobalId({ type: NODE_TYPES.Article, id: articleId })
     },
     content,
+    contents: (root: any) => root,
     summary,
     appreciationsReceived,
     appreciationsReceivedTotal,

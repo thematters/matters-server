@@ -14,7 +14,7 @@ export const markdown: ArticleContentsToMarkdownResolver = async (
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return contentMd
+    return contentMd || ''
   }
 
   // check article state
@@ -26,14 +26,14 @@ export const markdown: ArticleContentsToMarkdownResolver = async (
 
   // not in circle
   if (!articleCircle) {
-    return contentMd
+    return contentMd || ''
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return contentMd
+    return contentMd || ''
   }
 
   if (!viewer.id) {
@@ -50,5 +50,5 @@ export const markdown: ArticleContentsToMarkdownResolver = async (
     return ''
   }
 
-  return contentMd
+  return contentMd || ''
 }
