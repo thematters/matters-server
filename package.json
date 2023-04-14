@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "4.16.0",
+  "version": "4.17.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -98,6 +98,7 @@
     "oauth2-server": "^3.1.1",
     "objection": "^3.0.1",
     "opencc": "^1.1.3",
+    "p-throttle": "^4.1.1",
     "passport": "^0.6.0",
     "passport-oauth2": "^1.6.1",
     "pg": "^8.7.1",

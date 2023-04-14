@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToArticlesResolver } from 'definitions'
 
 export const articles: OSSToArticlesResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { articleService, draftService } }
+  { dataSources: { articleService, draftService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

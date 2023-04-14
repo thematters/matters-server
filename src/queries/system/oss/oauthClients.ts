@@ -2,9 +2,9 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { OSSToOauthClientsResolver } from 'definitions'
 
 export const oauthClients: OSSToOauthClientsResolver = async (
-  root,
+  _,
   { input },
-  { viewer, dataSources: { oauthService } }
+  { dataSources: { oauthService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

@@ -106,7 +106,7 @@ const resolver: MutationToUserRegisterResolver = async (
   const newUser = await userService.create({
     ...input,
     email,
-    userName: newUserName,
+    userName: newUserName.toLowerCase(),
   })
 
   // auto follow matty

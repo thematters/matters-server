@@ -1,6 +1,7 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import { Knex } from 'knex'
+import pThrottle from 'p-throttle'
 import { v4 } from 'uuid'
 
 import {
@@ -13,6 +14,11 @@ import { aws, cfsvc, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
 import { GQLAssetType } from 'definitions'
 
+const throttle = pThrottle({
+  limit: 2,
+  interval: 1000, // equals to 600/5min, don't use more than half of cloudflare 1,200/5min global API rate limit
+})
+
 export class Medium {
   aws: AWSService
   cfsvc: typeof cfsvc
@@ -24,6 +30,7 @@ export class Medium {
     this.aws = aws
     this.cfsvc = cfsvc
     this.knex = knex
+    // this.cfThrottledUpload = throttle(async (...args) => cfsvc.baseUploadFile(...args))
   }
 
   /**
@@ -93,10 +100,16 @@ export class Medium {
         throw new Error('Invalid image type.')
       }
 
+      const cfThrottledUpload = throttle(
+        (...args: [GQLAssetType, any, string]) =>
+          this.cfsvc.baseUploadFile(...args)
+      )
+
       // make sure both settled
       const [awsRes, cfsvcRes] = await Promise.allSettled([
         this.aws.baseUploadFile('embed' as GQLAssetType, upload, uuid),
-        this.cfsvc.baseUploadFile('embed' as GQLAssetType, upload, uuid),
+        // this.cfsvc.baseUploadFile('embed' as GQLAssetType, upload, uuid)
+        cfThrottledUpload('embed' as GQLAssetType, upload, uuid),
       ])
 
       // const failure = results.find((r) => r.status !== 'fulfilled')
