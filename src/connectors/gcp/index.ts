@@ -119,6 +119,7 @@ class GCP {
     const { success, score } = data
 
     if (!success) {
+      console.error(new Date(), 'gcp recaptcha no success:', data)
       throw new ActionFailedError(`please try again: ${data['error-codes']}`)
     }
 
