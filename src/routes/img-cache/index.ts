@@ -43,7 +43,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
       }
     }
 
-    key = awsRes.value
+    key = cfsvcRes.value
   } catch (err) {
     res.status(400).end()
     return
@@ -53,7 +53,5 @@ imgCache.get('/*', async (req: Request, res: Response) => {
     return
   }
 
-  const newPath = `${aws.s3Endpoint}/${key}`
-
-  res.redirect(newPath)
+  res.redirect(cfsvc.genUrl(key))
 })
