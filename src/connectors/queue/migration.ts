@@ -1,4 +1,8 @@
 import { makeSummary } from '@matters/ipns-site-generator'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import { v4 } from 'uuid'
 
 import {
@@ -12,7 +16,6 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
-import { sanitize } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -78,7 +81,6 @@ class MigrationQueue extends BaseQueue {
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
-            return
           }
 
           if (!htmls || htmls.length === 0) {
@@ -104,7 +106,9 @@ class MigrationQueue extends BaseQueue {
                   uuid: v4(),
                   title,
                   summary: content && makeSummary(content),
-                  content: content && sanitize(content),
+                  content:
+                    content &&
+                    normalizeArticleHTML(await sanitizeHTML(content)),
                 })
 
                 // add asset and assetmap
