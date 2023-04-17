@@ -28,7 +28,7 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   const expiredAt = new Date(+createdAt + 10 * 60e3) // 10 minutes
 
   // create the message to be sign'ed
-  const signingMessage = `${environment.domain} wants you to sign in with your Ethereum account:
+  const signingMessage = `${environment.siteDomain} wants you to sign in with your Ethereum account:
 ${address}
 
 I accept the Matters Terms of Service: ${environment.siteDomain}/tos
