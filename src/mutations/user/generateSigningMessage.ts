@@ -27,21 +27,21 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   const expiredAt = new Date(+createdAt + 10 * 60e3) // 10 minutes
 
   // create the message to be sign'ed
-  const signingMessage = `matters.news wants you to sign in with your Ethereum account:
+  const signingMessage = `matters.town wants you to sign in with your Ethereum account:
 ${address}
 
-I accept the Matters.News Terms of Service: https://matters.news/tos
+I accept the Matters.Town Terms of Service: https://matters.town/tos
 
-URI: https://matters.news/login
+URI: https://matters.town/login
 Version: 1
 Chain ID: 1
 Nonce: ${nonce}
 Issued At: ${createdAt.toISOString()}
 Expiration Time: ${expiredAt.toISOString()}
 Resources:
-- https://matters.news/about
-- https://matters.news/community
-- https://matters.news/guide`
+- https://matters.town/about
+- https://matters.town/community
+- https://matters.town/guide`
 
   if (!purpose) {
     // and not already in-use by anyone

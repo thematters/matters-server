@@ -267,7 +267,7 @@ export interface GQLMutation {
   setCurrency: GQLUser
 
   /**
-   * Register user, can only be used on matters.news website.
+   * Register user, can only be used on matters.{town,news} website.
    */
   userRegister: GQLAuthResult
 
