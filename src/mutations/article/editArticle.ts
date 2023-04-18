@@ -381,10 +381,10 @@ const resolver: MutationToEditArticleResolver = async (
       newContent || currDraft.content,
       'u-area-disable'
     )
-    const _content = normalizeArticleHTML(await sanitizeHTML(cleanedContent))
+    const _content = normalizeArticleHTML(sanitizeHTML(cleanedContent))
     let contentMd = ''
     try {
-      contentMd = await html2md(_content)
+      contentMd = html2md(_content)
     } catch (e) {
       console.error('failed to convert HTML to Markdown', draft.id)
     }

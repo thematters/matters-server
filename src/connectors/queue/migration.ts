@@ -107,8 +107,7 @@ class MigrationQueue extends BaseQueue {
                   title,
                   summary: content && makeSummary(content),
                   content:
-                    content &&
-                    normalizeArticleHTML(await sanitizeHTML(content)),
+                    content && normalizeArticleHTML(sanitizeHTML(content)),
                 })
 
                 // add asset and assetmap

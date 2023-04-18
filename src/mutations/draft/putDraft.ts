@@ -158,7 +158,7 @@ const resolver: MutationToPutDraftResolver = async (
       title,
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
-      content: content && normalizeArticleHTML(await sanitizeHTML(content)),
+      content: content && normalizeArticleHTML(sanitizeHTML(content)),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
