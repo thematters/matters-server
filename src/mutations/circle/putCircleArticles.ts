@@ -128,7 +128,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       title: currDraft.title,
       summary: currDraft.summary,
       summaryCustomized: currDraft.summaryCustomized,
-      content: normalizeArticleHTML(await sanitizeHTML(currDraft.content)),
+      content: normalizeArticleHTML(sanitizeHTML(currDraft.content)),
       tags: currTagContents,
       cover: currArticle.cover,
       collection: currCollectionIds,

@@ -73,7 +73,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   const data: { [key: string]: any } = {
-    content: normalizeCommentHTML(await sanitizeHTML(content)),
+    content: normalizeCommentHTML(sanitizeHTML(content)),
     authorId: viewer.id,
   }
 

@@ -132,7 +132,7 @@ class PublicationQueue extends BaseQueue {
       // Step 3: update draft and article state
       let contentMd = ''
       try {
-        contentMd = await html2md(draft.content)
+        contentMd = html2md(draft.content)
       } catch (e) {
         console.error('failed to convert HTML to Markdown', draft.id)
       }
