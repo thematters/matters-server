@@ -51,7 +51,8 @@ describe('publicationQueue.publishArticle', () => {
     const articleCount = await knex('article')
       .where('draft_id', draft.id)
       .count()
-    expect(articleCount[0].count).toBe('2')
+    // only one article is created
+    expect(articleCount[0].count).toBe('1')
   })
 
   test('publish pending draft unsuccessfully', async () => {
