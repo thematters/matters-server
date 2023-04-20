@@ -5,7 +5,7 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
-    '^common(.*)$': '<rootDir>/src/common$1',
+    '^common/(.*)$': '<rootDir>/src/common/$1',
     '^connectors(.*)$': '<rootDir>/src/connectors$1',
     '^definitions(.*)$': '<rootDir>/src/definitions$1',
     '^mutations(.*)$': '<rootDir>/src/mutations$1',
