@@ -1,6 +1,6 @@
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import _uniqBy from 'lodash/uniqBy'
 
 import {
   DB_NOTICE_TYPE,
@@ -40,8 +40,11 @@ const triggerNotice = async ({
   const article = await articleService.baseFindById(articleId)
   const editors = (tag.editors || []).filter((id: string) => id !== mattyId)
   const owner = tag.owner ? [`${tag.owner}`] : []
-  const users = [article.authorId, ...(isOwner ? editors : owner)].filter(
-    (id) => id !== viewerId
+  const users = _uniqBy(
+    [article.authorId, ...(isOwner ? editors : owner)].filter(
+      (id) => id !== viewerId
+    ),
+    'id'
   )
 
   users.map((user) => {
