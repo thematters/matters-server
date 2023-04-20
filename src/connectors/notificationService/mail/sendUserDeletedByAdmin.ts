@@ -27,6 +27,7 @@ export const sendUserDeletedByAdmin = async ({
         dynamic_template_data: {
           subject: trans.userDeleted(language, {}),
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           recipient,
         },
       },

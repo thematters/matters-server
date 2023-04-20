@@ -27,6 +27,7 @@ export const sendRegisterSuccess = async ({
         dynamic_template_data: {
           subject: trans.registerSuccess(language, {}),
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           recipient,
         },
       },

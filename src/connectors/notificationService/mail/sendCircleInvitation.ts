@@ -56,6 +56,7 @@ export const sendCircleInvitation = async ({
           registerLink,
           sender,
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           subject: trans.circle.invitation(language, {
             sender: sender.displayName,
             circle: circle.displayName,
