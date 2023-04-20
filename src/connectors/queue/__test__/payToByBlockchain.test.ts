@@ -1,3 +1,5 @@
+import { Knex } from 'knex'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -12,7 +14,7 @@ import {
 import { environment, polygonUSDTContractAddress } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import { CurationContract } from 'connectors/blockchain'
-import { payToByBlockchainQueue } from 'connectors/queue'
+import { PayToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
 
 // setup mock
@@ -51,7 +53,6 @@ const recipientId = '1'
 const senderId = '2'
 const targetId = '1'
 const targetType = TRANSACTION_TARGET_TYPE.article
-const queue = payToByBlockchainQueue
 const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
 
 const invalidTxhash =
@@ -100,7 +101,9 @@ const txReceipt = {
 // tests
 
 describe('payToByBlockchainQueue.payTo', () => {
+  let queue: PayToByBlockchainQueue
   beforeAll(() => {
+    queue = new PayToByBlockchainQueue()
     queue.delay = 1
     mockFetchTxReceipt.mockClear()
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
@@ -266,13 +269,16 @@ describe('payToByBlockchainQueue.payTo', () => {
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const latestBlockNum = 30000128
   const safeBlockNum = 30000000
-  const knex = queue.knex
   const txTable = 'transaction'
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
   const syncRecordTable = 'blockchain_sync_record'
+  let knex: Knex
+  let queue: PayToByBlockchainQueue
 
   beforeAll(() => {
+    queue = new PayToByBlockchainQueue()
+    knex = queue.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
