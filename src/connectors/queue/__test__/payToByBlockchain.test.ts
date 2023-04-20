@@ -64,6 +64,8 @@ const txHash2 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215d'
 const txHash3 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215e'
+const notMinedHash =
+  '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215f'
 
 const invalidTxReceipt = {
   txHash: invalidTxhash,
@@ -167,7 +169,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     const tx =
       await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
         chain,
-        txHash: 'fakeHash',
+        txHash: notMinedHash,
         amount,
         state,
         purpose,
