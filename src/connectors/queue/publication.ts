@@ -46,6 +46,7 @@ class PublicationQueue extends BaseQueue {
       { draftId, iscnPublish },
       {
         priority: QUEUE_PRIORITY.CRITICAL,
+        jobId: `${QUEUE_JOB.publishArticle}:${draftId}`,
       }
     )
 

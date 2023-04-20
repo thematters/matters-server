@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import { knex } from 'connectors'
 import { publicationQueue } from 'connectors/queue'
 
 describe('publicationQueue.publishArticle', () => {
@@ -36,6 +37,22 @@ describe('publicationQueue.publishArticle', () => {
     expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
+  })
+
+  test('publish pending draft concurrently', async () => {
+    const { draft } = await createPendingDraft()
+    const job1 = await publicationQueue.publishArticle({
+      draftId: draft.id,
+    })
+    const job2 = await publicationQueue.publishArticle({
+      draftId: draft.id,
+    })
+    await Promise.all([job1.finished(), job2.finished()])
+    const articleCount = await knex('article')
+      .where('draft_id', draft.id)
+      .count()
+    // only one article is created
+    expect(articleCount[0].count).toBe('1')
   })
 
   test('publish pending draft unsuccessfully', async () => {
