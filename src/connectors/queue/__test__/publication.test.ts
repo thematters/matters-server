@@ -4,7 +4,7 @@ import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
 import { DraftService, knex } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
-describe('queue.publishArticle', () => {
+describe('publicationQueue.publishArticle', () => {
   let queue: PublicationQueue
   beforeAll(() => {
     queue = new PublicationQueue()
@@ -58,8 +58,8 @@ describe('queue.publishArticle', () => {
 
   test('publish pending draft unsuccessfully', async () => {
     // mock
-    queue.userService.baseFindById = async (id) => {
-      console.log('mocked queue.userService.baseFindById is called')
+    queue.userService.baseFindById = async (_) => {
+      console.log('mocked publicationQueue.userService.baseFindById is called')
       throw Error('mock error in queue test')
     }
     const { draft } = await createPendingDraft()
