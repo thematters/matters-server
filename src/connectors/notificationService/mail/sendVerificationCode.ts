@@ -39,6 +39,7 @@ export const sendVerificationCode = async ({
         dynamic_template_data: {
           subject,
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           type: {
             register: type === GQLVerificationCodeType.register,
             emailReset: type === GQLVerificationCodeType.email_reset,

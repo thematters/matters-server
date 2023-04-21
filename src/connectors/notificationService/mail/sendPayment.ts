@@ -65,6 +65,7 @@ export const sendPayment = async ({
         dynamic_template_data: {
           subject,
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           type: {
             passwordSet: type === 'passwordSet',
             passwordChanged: type === 'passwordChanged',
