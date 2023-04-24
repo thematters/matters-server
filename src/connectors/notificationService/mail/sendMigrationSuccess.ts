@@ -28,6 +28,7 @@ export const sendMigrationSuccess = async ({
         dynamic_template_data: {
           subject: trans.migration(language, {}),
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           recipient,
         },
       },

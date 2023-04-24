@@ -28,7 +28,7 @@ import {
 
 import { BaseQueue } from './baseQueue'
 
-class PublicationQueue extends BaseQueue {
+export class PublicationQueue extends BaseQueue {
   constructor() {
     super(QUEUE_NAME.publication)
     this.addConsumers()

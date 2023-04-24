@@ -12,7 +12,6 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { getQueueNameForEnv } from 'common/utils'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
@@ -25,7 +24,7 @@ class PayToByMattersQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
 
   constructor() {
-    super(getQueueNameForEnv(QUEUE_NAME.payTo))
+    super(QUEUE_NAME.payTo)
     this.paymentService = new PaymentService()
     this.addConsumers()
   }
