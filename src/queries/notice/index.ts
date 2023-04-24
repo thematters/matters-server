@@ -197,7 +197,7 @@ const notice: {
         case DB_NOTICE_TYPE.tag_add_editor:
           return GQLTagNoticeType.TagAddEditor
         case DB_NOTICE_TYPE.tag_leave_editor:
-          return GQLTagNoticeType.TagAddEditor
+          return GQLTagNoticeType.TagLeaveEditor
       }
     },
     target: ({ entities }) => entities.target,
