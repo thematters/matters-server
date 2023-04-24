@@ -329,7 +329,7 @@ export interface GQLMutation {
   /**
    * Clear read history for user.
    */
-  clearReadHistory?: boolean
+  clearReadHistory: GQLUser
 
   /**
    * Clear search history for user.
@@ -3998,7 +3998,7 @@ export interface GQLUnbindLikerIdInput {
 }
 
 export interface GQLClearReadHistoryInput {
-  id: string
+  id?: string
 }
 
 export interface GQLMigrationInput {

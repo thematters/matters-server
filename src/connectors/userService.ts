@@ -1590,11 +1590,11 @@ export class UserService extends BaseService {
     articleId,
     userId,
   }: {
-    articleId: string
+    articleId?: string
     userId: string | null
   }) =>
     this.knex('article_read_count')
-      .where({ articleId, userId })
+      .where({ userId, ...(articleId ? { articleId } : {}) })
       .update({ archived: true })
 
   /**
