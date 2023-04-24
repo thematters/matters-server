@@ -36,7 +36,7 @@ export const makeUserName = (email: string): string => {
     return ''
   }
 
-  return matched.join('').substring(0, 12)
+  return matched.join('').substring(0, 12).toLowerCase()
 }
 
 export const extractAssetDataFromHtml = (
