@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToClearReadHistoryResolver } from 'definitions'
 
@@ -7,7 +8,7 @@ const resolver: MutationToClearReadHistoryResolver = async (
   { viewer, dataSources: { userService, atomService } }
 ) => {
   if (!viewer.id) {
-    return viewer
+    throw new AuthenticationError('visitor has no permission')
   }
 
   await userService.clearReadHistory({
