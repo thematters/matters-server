@@ -244,7 +244,7 @@ type Mutation {
   toggleBlockUser(input: ToggleItemInput!): User!
 
   """Clear read history for user."""
-  clearReadHistory(input: ClearReadHistoryInput!): Boolean
+  clearReadHistory(input: ClearReadHistoryInput!): User!
 
   """Clear search history for user."""
   clearSearchHistory: Boolean
@@ -2933,7 +2933,7 @@ input UnbindLikerIdInput {
 }
 
 input ClearReadHistoryInput {
-  id: ID!
+  id: ID
 }
 
 input MigrationInput {
