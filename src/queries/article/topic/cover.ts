@@ -14,7 +14,7 @@ const resolver: TopicToCoverResolver = async (
   const useS3 = ![
     'https://web-develop.matters.town',
     'https://web-next.matters.town',
-  ].includes(req.headers.Origin as string)
+  ].includes(req.headers.origin as string)
   return systemService.findAssetUrl(cover, useS3)
 }
 
