@@ -993,10 +993,7 @@ describe('mutations on User object', () => {
     const { data } = await server.executeOperation({
       query: GET_USER_READ_HISTORY,
     })
-    console.log(
-      'viewer.activity.history.totalCount',
-      _get(data, 'viewer.activity.history.totalCount')
-    )
+    expect(_get(data, 'viewer.activity.history.totalCount')).toBe(1)
 
     // clear read history
     const clearResult = await server.executeOperation({
