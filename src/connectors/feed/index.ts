@@ -42,7 +42,7 @@ export class Feed {
   async loadData() {
     this.userImg =
       this.author.avatar &&
-      (await this.systemService.findAssetUrl(this.author.avatar))
+      (await this.systemService.findAssetUrl(this.author.avatar, true))
 
     const articles = await this.articleService.findByAuthor(this.author.id, {
       columns: [
