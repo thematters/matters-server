@@ -8,7 +8,7 @@ const resolver: ArticleToCoverResolver = async (
   const useS3 = ![
     'https://web-develop.matters.town',
     'https://web-next.matters.town',
-  ].includes(req.headers.Origin as string)
+  ].includes(req.headers.origin as string)
   const article = await articleService.dataloader.load(articleId)
   return article?.cover
     ? systemService.findAssetUrl(article.cover, useS3)
