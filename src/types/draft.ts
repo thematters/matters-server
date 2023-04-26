@@ -31,7 +31,7 @@ export default /* GraphQL */ `
     "This value determines if the summary is customized or not."
     summaryCustomized: Boolean!
 
-    "Content of this draft."
+    "Content (HTML) of this draft."
     content: String
 
     "Time of this draft was created."

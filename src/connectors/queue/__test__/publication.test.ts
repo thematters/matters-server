@@ -1,46 +1,69 @@
 import { v4 } from 'uuid'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
-import { publicationQueue } from 'connectors/queue'
+import { DraftService, knex } from 'connectors'
+import { PublicationQueue } from 'connectors/queue'
 
 describe('publicationQueue.publishArticle', () => {
+  let queue: PublicationQueue
+  beforeAll(() => {
+    queue = new PublicationQueue()
+  })
+
   test('publish not pending draft', async () => {
     const notPendingDraftId = '1'
-    const draft = await publicationQueue.draftService.baseFindById(
-      notPendingDraftId
-    )
+    const draft = await queue.draftService.baseFindById(notPendingDraftId)
     expect(draft.state).not.toBe(PUBLISH_STATE.pending)
 
-    const job = await publicationQueue.publishArticle({
+    const job = await queue.publishArticle({
       draftId: notPendingDraftId,
     })
     await job.finished()
     expect(await job.getState()).toBe('completed')
   })
+
   test('publish pending draft successfully', async () => {
-    const draft = await createPendingDraft()
-    const job = await publicationQueue.publishArticle({
+    const { draft, content, contentHTML } = await createPendingDraft()
+    const job = await queue.publishArticle({
       draftId: draft.id,
     })
     await job.finished()
     expect(await job.getState()).toBe('completed')
-    const updatedDraft = await publicationQueue.draftService.baseFindById(
-      draft.id
-    )
-    const updatedArticle = await publicationQueue.articleService.baseFindById(
+    const updatedDraft = await queue.draftService.baseFindById(draft.id)
+    const updatedArticle = await queue.articleService.baseFindById(
       updatedDraft.articleId
     )
+
+    expect(updatedDraft.content).toBe(contentHTML)
+    expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
   })
+
+  test('publish pending draft concurrently', async () => {
+    const { draft } = await createPendingDraft()
+    const job1 = await queue.publishArticle({
+      draftId: draft.id,
+    })
+    const job2 = await queue.publishArticle({
+      draftId: draft.id,
+    })
+    await Promise.all([job1.finished(), job2.finished()])
+    const articleCount = await knex('article')
+      .where('draft_id', draft.id)
+      .count()
+    // only one article is created
+    expect(articleCount[0].count).toBe('1')
+  })
+
   test('publish pending draft unsuccessfully', async () => {
     // mock
-    publicationQueue.userService.baseFindById = async (id) => {
+    queue.userService.baseFindById = async (_) => {
       console.log('mocked publicationQueue.userService.baseFindById is called')
-      throw Error('mock error in publicationQueue test')
+      throw Error('mock error in queue test')
     }
-    const draft = await createPendingDraft()
-    const job = await publicationQueue.publishArticle({
+    const { draft } = await createPendingDraft()
+    const job = await queue.publishArticle({
       draftId: draft.id,
     })
     try {
@@ -50,10 +73,8 @@ describe('publicationQueue.publishArticle', () => {
     }
     expect(await job.getState()).toBe('failed')
 
-    const updatedDraft = await publicationQueue.draftService.baseFindById(
-      draft.id
-    )
-    const updatedArticle = await publicationQueue.articleService.baseFindById(
+    const updatedDraft = await queue.draftService.baseFindById(draft.id)
+    const updatedArticle = await queue.articleService.baseFindById(
       updatedDraft.articleId
     )
 
@@ -62,12 +83,21 @@ describe('publicationQueue.publishArticle', () => {
   })
 })
 
-const createPendingDraft = async () =>
-  publicationQueue.draftService.baseCreate({
-    authorId: '1',
-    uuid: v4(),
-    title: 'test title',
-    summary: 'test summary',
-    content: 'test content',
-    publishState: PUBLISH_STATE.pending,
-  })
+const createPendingDraft = async () => {
+  const content = Math.random().toString()
+  const contentHTML = `<p>${content} <strong>abc</strong></p>`
+  const draftService = new DraftService()
+
+  return {
+    draft: await draftService.baseCreate({
+      authorId: '1',
+      uuid: v4(),
+      title: 'test title',
+      summary: 'test summary',
+      content: contentHTML,
+      publishState: PUBLISH_STATE.pending,
+    }),
+    content,
+    contentHTML,
+  }
+}

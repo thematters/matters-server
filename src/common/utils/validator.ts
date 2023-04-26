@@ -53,7 +53,7 @@ export const isValidUserName = (name: string): boolean => {
     return false
   }
 
-  return /^[a-zA-Z0-9_]*$/.test(name)
+  return /^[a-zA-Z0-9_]*$/i.test(name)
 }
 
 /**
@@ -112,7 +112,7 @@ export const isValidCircleName = (name: string): boolean => {
     return false
   }
 
-  return /^[a-zA-Z0-9_]*$/.test(name)
+  return /^[a-zA-Z0-9_]*$/i.test(name)
 }
 
 /**

@@ -44,6 +44,7 @@
     "@graphql-tools/utils": "^7.10.0",
     "@matters/apollo-response-cache": "^1.4.0-rc.0",
     "@matters/ipns-site-generator": "^0.1.1",
+    "@matters/matters-editor": "^0.2.0-alpha.28",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^7.4.5",
@@ -109,8 +110,7 @@
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "winston": "^3.3.3",
-    "winston-transport": "^4.4.0",
-    "xss": "^1.0.9"
+    "winston-transport": "^4.4.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -150,6 +150,7 @@
     "nodemon": "^2.0.20",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
+    "redis-memory-server": "^0.6.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.1.0",

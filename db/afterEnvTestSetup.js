@@ -1,12 +1,17 @@
 const Knex = require('knex')
-const knexConfig = require('../knexfile')
 const Redis = require('ioredis')
+const { RedisMemoryServer } = require('redis-memory-server')
+const { sharedQueueOpts } = require('connectors/queue/utils')
+const knexConfig = require('../knexfile')
 
 const knex = Knex(knexConfig.test)
 
+const redisServer = new RedisMemoryServer()
+
 beforeAll(async () => {
+  // reset database between tests
+
   const getTables = async (knex) => {
-    // reset database
     const res = await knex.raw(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"
     )
@@ -17,13 +22,19 @@ beforeAll(async () => {
     return dataTables.map((t) => 'public.' + t)
   }
   const tables = await getTables(knex)
-  await knex.raw(`TRUNCATE ${tables.join(', ')} RESTART IDENTITY CASCADE;`)
+  try {
+    await knex.raw(`TRUNCATE ${tables.join(', ')} RESTART IDENTITY CASCADE;`)
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
   await knex.seed.run()
 
-  // reset queue
-  const queueRedis = new Redis({
-    host: process.env.MATTERS_QUEUE_HOST,
-    port: process.env.MATTERS_QUEUE_PORT,
+  // isolate redis server between tests
+
+  redisPort = await redisServer.getPort()
+  redisHost = await redisServer.getHost()
+  jest.spyOn(sharedQueueOpts, 'createClient').mockImplementation(() => {
+    return new Redis(redisPort, redisHost)
   })
-  await queueRedis.flushall()
 }, 10000)

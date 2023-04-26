@@ -41,6 +41,7 @@ export const sendAssignAsTagEditor = async ({
             content: tag.content,
           }),
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           recipient,
           sender,
           tag,

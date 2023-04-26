@@ -2,6 +2,7 @@ import { v4 } from 'uuid'
 
 import {
   ASSET_TYPE,
+  IMAGE_ASSET_TYPE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
@@ -211,13 +212,20 @@ export class SystemService extends BaseService {
     this.baseFindByUUIDs(uuids, 'asset')
 
   /**
+   * Gen the url of an asset according asset type.
+   */
+  genAssetUrl = (asset: { path: string; type: string }): string => {
+    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(asset.type)
+    return isImageType
+      ? this.cfsvc.genUrl(asset.path)
+      : `${this.aws.s3Endpoint}/${asset.path}`
+  }
+  /**
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
     const result = await this.baseFindById(id, 'asset')
-    return result && result.path
-      ? `${this.aws.s3Endpoint}/${result.path}`
-      : null
+    return result ? this.genAssetUrl(result) : null
   }
 
   /**

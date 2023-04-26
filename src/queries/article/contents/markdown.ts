@@ -1,9 +1,8 @@
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
-import { ArticleToContentResolver } from 'definitions'
+import { ArticleContentsToMarkdownResolver } from 'definitions'
 
-// ACL for article content
-const resolver: ArticleToContentResolver = async (
-  { articleId, authorId, content },
+export const markdown: ArticleContentsToMarkdownResolver = async (
+  { articleId, authorId, contentMd },
   _,
   { viewer, dataSources: { articleService, paymentService }, knex }
 ) => {
@@ -15,7 +14,7 @@ const resolver: ArticleToContentResolver = async (
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return content
+    return contentMd || ''
   }
 
   // check article state
@@ -27,14 +26,14 @@ const resolver: ArticleToContentResolver = async (
 
   // not in circle
   if (!articleCircle) {
-    return content
+    return contentMd || ''
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return content
+    return contentMd || ''
   }
 
   if (!viewer.id) {
@@ -51,7 +50,5 @@ const resolver: ArticleToContentResolver = async (
     return ''
   }
 
-  return content
+  return contentMd || ''
 }
-
-export default resolver
