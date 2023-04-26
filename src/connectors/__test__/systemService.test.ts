@@ -15,8 +15,13 @@ const assetValidation = {
 const service = new SystemService()
 
 test('findAssetUrl', async () => {
-  const url = await service.findAssetUrl('1')
-  expect(url).toEqual(expect.any(String))
+  // image assets return cloudflare url
+  const imageUrl = await service.findAssetUrl('1', false)
+  expect(imageUrl).toContain('https://imagedelivery.net')
+
+  // not-image assets return s3 url
+  const notImageUrl = await service.findAssetUrl('7', false)
+  expect(notImageUrl).toContain(service.aws.s3Endpoint)
 })
 
 test('create and delete asset', async () => {

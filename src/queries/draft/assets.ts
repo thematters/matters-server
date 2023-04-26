@@ -3,7 +3,7 @@ import { DraftToAssetsResolver } from 'definitions'
 const resolver: DraftToAssetsResolver = async (
   { id, authorId },
   _,
-  { viewer, dataSources: { systemService } }
+  { viewer, dataSources: { systemService }, req }
 ) => {
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
@@ -20,10 +20,15 @@ const resolver: DraftToAssetsResolver = async (
     entityId: id,
   })
 
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.origin as string)
+
   return assets.map((asset) => {
     return {
       ...asset,
-      path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
+      path: systemService.genAssetUrl(asset, useS3),
     }
   })
 }

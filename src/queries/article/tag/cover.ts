@@ -6,7 +6,7 @@ import { TagToCoverResolver } from 'definitions'
 const resolver: TagToCoverResolver = async (
   { id, cover },
   _,
-  { dataSources: { articleService, systemService, tagService } }
+  { dataSources: { articleService, systemService, tagService }, req }
 ) => {
   let coverId = cover
 
@@ -18,7 +18,11 @@ const resolver: TagToCoverResolver = async (
     )
     coverId = articleCover?.cover
   }
-  return coverId ? systemService.findAssetUrl(coverId) : null
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.origin as string)
+  return coverId ? systemService.findAssetUrl(coverId, useS3) : null
 }
 
 export default resolver

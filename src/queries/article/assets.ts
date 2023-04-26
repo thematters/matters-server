@@ -3,7 +3,7 @@ import { ArticleToAssetsResolver } from 'definitions'
 const resolver: ArticleToAssetsResolver = async (
   { id, authorId, articleId },
   _,
-  { viewer, dataSources: { systemService } }
+  { viewer, dataSources: { systemService }, req }
 ) => {
   // Check inside resolver instead of `@auth(mode: "${AUTH_MODE.oauth}")`
   // since `@auth` now only supports scope starting with `viewer`.
@@ -33,10 +33,15 @@ const resolver: ArticleToAssetsResolver = async (
     })
   }
 
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.origin as string)
+
   const assets = [...articleAssets, ...draftAssets].map((asset) => {
     return {
       ...asset,
-      path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
+      path: systemService.genAssetUrl(asset, useS3),
     }
   })
 
