@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
-import { html2md } from '@matters/matters-editor/transformers'
+// import { html2md } from '@matters/matters-editor/transformers'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
@@ -131,18 +131,18 @@ export class PublicationQueue extends BaseQueue {
       await job.progress(20)
 
       // Step 3: update draft and article state
-      let contentMd = ''
-      try {
-        contentMd = html2md(draft.content)
-      } catch (e) {
-        console.error('failed to convert HTML to Markdown', draft.id)
-      }
+      // let contentMd = ''
+      // try {
+      //   contentMd = html2md(draft.content)
+      // } catch (e) {
+      //   console.error('failed to convert HTML to Markdown', draft.id)
+      // }
       const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
           articleId: article.id,
           summary,
           wordCount,
-          contentMd,
+          // contentMd,
           // dataHash,
           // mediaHash,
           archived: true,
