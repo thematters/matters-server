@@ -206,7 +206,7 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('level2 mutation', async () => {
-    const content = '<p>test comment content</p>'
+    const content = 'test comment content'
     const server = await testClient({ isAuth: false })
     const { errors } = await server.executeOperation({
       query: CREATE_COMMENT,
@@ -335,7 +335,7 @@ describe('OAuth viewer query and mutation', () => {
 
   test('level2 mutation', async () => {
     // scoped
-    const content = '<p>test comment content</p>'
+    const content = 'test comment content'
     const { server: serverScoped } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
@@ -460,7 +460,7 @@ describe('General viewer query and mutation', () => {
   })
 
   test('level2 mutation', async () => {
-    const content = '<p>test comment content</p>'
+    const content = 'test comment content'
     const { server } = await prepare({
       email: defaultTestUser.email,
     })
@@ -551,7 +551,7 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('level2 mutation', async () => {
-    const content = '<p>test comment content</p>'
+    const content = 'test comment content'
     const { server } = await prepare({
       email: adminUser.email,
     })

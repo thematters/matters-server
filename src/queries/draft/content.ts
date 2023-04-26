@@ -1,3 +1,4 @@
+import { correctHtml } from 'common/utils'
 import { DraftToContentResolver } from 'definitions'
 
 // ACL for article content
@@ -10,7 +11,7 @@ const resolver: DraftToContentResolver = async (
   const isAuthor = authorId === viewer.id
 
   if (isAdmin || isAuthor) {
-    return content
+    return correctHtml(content)
   }
 
   return ''

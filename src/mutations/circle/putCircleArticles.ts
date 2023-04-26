@@ -1,7 +1,7 @@
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
+// import {
+//   normalizeArticleHTML,
+//   sanitizeHTML,
+// } from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -28,7 +28,8 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
+// import { fromGlobalId } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
@@ -121,6 +122,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     )
 
     // create draft linked to this article
+    const pipe = _.flow(sanitize, correctHtml)
     const data: Record<string, any> = {
       uuid: v4(),
       authorId: currDraft.authorId,
@@ -128,7 +130,8 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       title: currDraft.title,
       summary: currDraft.summary,
       summaryCustomized: currDraft.summaryCustomized,
-      content: normalizeArticleHTML(sanitizeHTML(currDraft.content)),
+      content: pipe(currDraft.content),
+      // content: normalizeArticleHTML(sanitizeHTML(currDraft.content)),
       tags: currTagContents,
       cover: currArticle.cover,
       collection: currCollectionIds,
