@@ -145,7 +145,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   const useS3 = ![
     'https://web-develop.matters.town',
     'https://web-next.matters.town',
-  ].includes(req.headers.origin as string)
+  ].includes(req.headers.Origin as string)
 
   return {
     ...newAsset,
