@@ -214,7 +214,13 @@ export class SystemService extends BaseService {
   /**
    * Gen the url of an asset according asset type.
    */
-  genAssetUrl = (asset: { path: string; type: string }): string => {
+  genAssetUrl = (
+    asset: { path: string; type: string },
+    useS3: boolean
+  ): string => {
+    if (useS3) {
+      return `${this.aws.s3Endpoint}/${asset.path}`
+    }
     const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(asset.type)
     return isImageType
       ? this.cfsvc.genUrl(asset.path)
@@ -223,9 +229,9 @@ export class SystemService extends BaseService {
   /**
    * Find the url of an asset by a given id.
    */
-  findAssetUrl = async (id: string): Promise<string | null> => {
+  findAssetUrl = async (id: string, useS3: boolean): Promise<string | null> => {
     const result = await this.baseFindById(id, 'asset')
-    return result ? this.genAssetUrl(result) : null
+    return result ? this.genAssetUrl(result, useS3) : null
   }
 
   /**

@@ -12,7 +12,7 @@ import { MutationToPutAnnouncementResolver } from 'definitions'
 const resolver: MutationToPutAnnouncementResolver = async (
   root,
   { input },
-  { dataSources: { atomService, systemService }, viewer }
+  { dataSources: { atomService, systemService }, viewer, req }
 ) => {
   const {
     id,
@@ -25,8 +25,12 @@ const resolver: MutationToPutAnnouncementResolver = async (
   const toAnnouncementId = (dbId: string) =>
     toGlobalId({ type: NODE_TYPES.Announcement, id: dbId })
 
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.Origin as string)
   const toCoverURL = async (coverId: any) =>
-    coverId ? systemService.findAssetUrl(coverId) : null
+    coverId ? systemService.findAssetUrl(coverId, useS3) : null
 
   // preparation
   let coverDbId
