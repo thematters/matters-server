@@ -33,7 +33,7 @@ const getFileName = (disposition: string, url: string) => {
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file: fileUpload, url, entityType, entityId } },
-  { viewer, dataSources: { systemService } }
+  { viewer, dataSources: { systemService }, req }
 ) => {
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type)
   const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type)
@@ -142,9 +142,14 @@ const resolver: MutationToSingleFileUploadResolver = async (
     relatedEntityId
   )
 
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.Origin as string)
+
   return {
     ...newAsset,
-    path: systemService.genAssetUrl(newAsset),
+    path: systemService.genAssetUrl(newAsset, useS3),
   }
 }
 
