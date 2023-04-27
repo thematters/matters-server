@@ -329,7 +329,7 @@ export interface GQLMutation {
   /**
    * Clear read history for user.
    */
-  clearReadHistory?: boolean
+  clearReadHistory: GQLUser
 
   /**
    * Clear search history for user.
@@ -480,9 +480,14 @@ export interface GQLArticle extends GQLNode {
   mediaHash: string
 
   /**
-   * Content of this article.
+   * Content (HTML) of this article.
    */
   content: string
+
+  /**
+   * Different foramts of content.
+   */
+  contents: GQLArticleContents
 
   /**
    * Original language of content
@@ -867,6 +872,18 @@ export interface GQLTag extends GQLNode {
   oss: GQLTagOSS
   remark?: string
   deleted: boolean
+}
+
+export interface GQLArticleContents {
+  /**
+   * Markdown content of this article.
+   */
+  markdown: string
+
+  /**
+   * HTML content of this article.
+   */
+  html: string
 }
 
 export interface GQLArticleAccess {
@@ -1902,7 +1919,7 @@ export interface GQLDraft extends GQLNode {
   summaryCustomized: boolean
 
   /**
-   * Content of this draft.
+   * Content (HTML) of this draft.
    */
   content?: string
 
@@ -3981,7 +3998,7 @@ export interface GQLUnbindLikerIdInput {
 }
 
 export interface GQLClearReadHistoryInput {
-  id: string
+  id?: string
 }
 
 export interface GQLMigrationInput {
@@ -4560,6 +4577,7 @@ export interface GQLResolver {
   Chapter?: GQLChapterTypeResolver
   Topic?: GQLTopicTypeResolver
   Tag?: GQLTagTypeResolver
+  ArticleContents?: GQLArticleContentsTypeResolver
   ArticleAccess?: GQLArticleAccessTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   ArticleTranslation?: GQLArticleTranslationTypeResolver
@@ -6076,6 +6094,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   dataHash?: ArticleToDataHashResolver<TParent>
   mediaHash?: ArticleToMediaHashResolver<TParent>
   content?: ArticleToContentResolver<TParent>
+  contents?: ArticleToContentsResolver<TParent>
   language?: ArticleToLanguageResolver<TParent>
   collectedBy?: ArticleToCollectedByResolver<TParent>
   collection?: ArticleToCollectionResolver<TParent>
@@ -6264,6 +6283,15 @@ export interface ArticleToMediaHashResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToContentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToContentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7082,6 +7110,32 @@ export interface TagToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToDeletedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleContentsTypeResolver<TParent = any> {
+  markdown?: ArticleContentsToMarkdownResolver<TParent>
+  html?: ArticleContentsToHtmlResolver<TParent>
+}
+
+export interface ArticleContentsToMarkdownResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleContentsToHtmlResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

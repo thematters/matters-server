@@ -90,6 +90,31 @@ const SET_CURRENCY = /* GraphQL */ `
   }
 `
 
+const GET_USER_READ_HISTORY = /* GraphQL */ `
+  query {
+    viewer {
+      id
+      activity {
+        history(input: { first: 0 }) {
+          totalCount
+        }
+      }
+    }
+  }
+`
+const CLEAR_READ_HISTORY = /* GraphQL */ `
+  mutation ClearReadHistory($input: ClearReadHistoryInput!) {
+    clearReadHistory(input: $input) {
+      id
+      activity {
+        history(input: { first: 0 }) {
+          totalCount
+        }
+      }
+    }
+  }
+`
+
 const GET_USER_BY_USERNAME = /* GraphQL */ `
   query ($input: UserInput!) {
     user(input: $input) {
@@ -118,6 +143,7 @@ const GET_VIEWER_INFO = /* GraphQL */ `
 const GET_VIEW_ARTICLES = /* GraphQL */ `
   query ($input: ConnectionArgs!) {
     viewer {
+      id
       articles(input: $input) {
         edges {
           node {
@@ -131,6 +157,7 @@ const GET_VIEW_ARTICLES = /* GraphQL */ `
 const GET_VIEWER_SETTINGS = /* GraphQL */ `
   query {
     viewer {
+      id
       settings {
         language
         currency
@@ -936,6 +963,7 @@ describe('mutations on User object', () => {
     )
     expect(enable).toBe(false)
   })
+
   test('setCurrency', async () => {
     // visitor can not set currency
     const visitorServer = await testClient()
@@ -954,6 +982,27 @@ describe('mutations on User object', () => {
       variables: { input: { currency: 'USD' } },
     })
     expect(data!.setCurrency.settings.currency).toBe('USD')
+  })
+
+  test('read history', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+
+    // check read history
+    const { data } = await server.executeOperation({
+      query: GET_USER_READ_HISTORY,
+    })
+    expect(_get(data, 'viewer.activity.history.totalCount')).toBe(1)
+
+    // clear read history
+    const clearResult = await server.executeOperation({
+      query: CLEAR_READ_HISTORY,
+      variables: { input: {} },
+    })
+    expect(
+      _get(clearResult, 'data.clearReadHistory.activity.history.totalCount')
+    ).toBe(0)
   })
 })
 

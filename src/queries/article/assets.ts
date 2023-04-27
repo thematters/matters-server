@@ -36,7 +36,7 @@ const resolver: ArticleToAssetsResolver = async (
   const assets = [...articleAssets, ...draftAssets].map((asset) => {
     return {
       ...asset,
-      path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
+      path: systemService.genAssetUrl(asset),
     }
   })
 

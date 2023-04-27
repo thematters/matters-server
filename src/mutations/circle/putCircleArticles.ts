@@ -1,3 +1,7 @@
+// import {
+//   normalizeArticleHTML,
+//   sanitizeHTML,
+// } from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -25,6 +29,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
+// import { fromGlobalId } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
@@ -126,6 +131,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       summary: currDraft.summary,
       summaryCustomized: currDraft.summaryCustomized,
       content: pipe(currDraft.content),
+      // content: normalizeArticleHTML(sanitizeHTML(currDraft.content)),
       tags: currTagContents,
       cover: currArticle.cover,
       collection: currCollectionIds,

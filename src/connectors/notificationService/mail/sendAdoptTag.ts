@@ -36,6 +36,7 @@ export const sendAdoptTag = async ({
             content: tag.content,
           }),
           siteDomain: environment.siteDomain,
+          copyrightYear: new Date().getFullYear(),
           recipient,
           tag,
         },

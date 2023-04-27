@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio'
 import _ from 'lodash'
 
 import { BCRYPT_ROUNDS } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 
 export * from './makeContext'
 export * from './getFileName'
@@ -37,7 +37,7 @@ export const makeUserName = (email: string): string => {
     return ''
   }
 
-  return matched.join('').substring(0, 12)
+  return matched.join('').substring(0, 12).toLowerCase()
 }
 
 export const extractAssetDataFromHtml = (
@@ -97,9 +97,6 @@ export const getFileName = (disposition: string, url: string) => {
     }
   }
 }
-
-export const getQueueNameForEnv = (name: string) =>
-  isTest ? 'test-' + name : name
 
 // not yet supports for TLD like .co.jp
 // use https://www.npmjs.com/package/psl if needed

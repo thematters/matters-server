@@ -9,6 +9,7 @@ import { GQLAssetType } from 'definitions'
 const envPrefix = isProd ? 'prod' : 'non-prod'
 
 const CLOUDFLARE_IMAGES_URL = `https://api.cloudflare.com/client/v4/accounts/${environment.cloudflareAccountId}/images/v1`
+const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountHash}/${envPrefix}`
 
 export class CloudflareService {
   // constructor() {}
@@ -22,9 +23,7 @@ export class CloudflareService {
   ): Promise<string | undefined> => {
     // const mimetype = mime.lookup(origUrl)
     // const extension = mime.extension(mimetype as string)
-    const key = `${envPrefix}/${folder}/${uuid}.${path
-      .extname(origUrl)
-      .toLowerCase()}`
+    const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
 
     const formData = new FormData()
     formData.append('url', origUrl)
@@ -67,7 +66,7 @@ export class CloudflareService {
       throw new Error('Invalid file type.')
     }
 
-    const key = `${envPrefix}/${folder}/${uuid}.${extension}`
+    const key = this.genKey(folder, uuid, extension)
 
     const formData = new FormData()
     formData.append('file', stream, filename)
@@ -113,6 +112,16 @@ export class CloudflareService {
     // assert "success": true
     return res.json()
   }
+
+  /**
+   * Gen full url from keys (asset path in db).
+   */
+  genUrl = (key: string): string => `${CLOUDFLARE_IMAGE_ENDPOINT}/${key}/public`
+
+  // internal helpers
+
+  private genKey = (folder: string, uuid: string, extension: string): string =>
+    `${envPrefix}/${folder}/${uuid}.${extension}`
 }
 
 export const cfsvc = new CloudflareService()

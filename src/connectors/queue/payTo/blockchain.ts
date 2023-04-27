@@ -25,11 +25,7 @@ import {
   polygonUSDTContractDecimals,
 } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
-import {
-  fromTokenBaseUnit,
-  getQueueNameForEnv,
-  toTokenBaseUnit,
-} from 'common/utils'
+import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
 import { PaymentService } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
@@ -41,13 +37,13 @@ interface PaymentParams {
   txId: string
 }
 
-class PayToByBlockchainQueue extends BaseQueue {
+export class PayToByBlockchainQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
   slackService: InstanceType<typeof SlackService>
   delay: number
 
   constructor() {
-    super(getQueueNameForEnv(QUEUE_NAME.payToByBlockchain))
+    super(QUEUE_NAME.payToByBlockchain)
     this.paymentService = new PaymentService()
     this.slackService = new SlackService()
     this.addConsumers()

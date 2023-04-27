@@ -60,7 +60,7 @@ export default /* GraphQL */ `
     toggleBlockUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Clear read history for user."
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    clearReadHistory(input: ClearReadHistoryInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Clear search history for user."
     clearSearchHistory: Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
@@ -777,7 +777,7 @@ export default /* GraphQL */ `
   }
 
   input ClearReadHistoryInput {
-    id: ID!
+    id: ID
   }
 
   input MigrationInput {

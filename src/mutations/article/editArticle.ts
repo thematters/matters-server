@@ -1,4 +1,9 @@
 import { stripHtml } from '@matters/ipns-site-generator'
+// import {
+//   html2md,
+//   normalizeArticleHTML,
+//   sanitizeHTML,
+// } from '@matters/matters-editor/transformers'
 import type { Knex } from 'knex'
 import lodash, { difference, flow, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
@@ -39,7 +44,6 @@ import {
   measureDiffs,
   normalizeTagInput,
   sanitize,
-  // stripAllPunct,
   stripClass,
 } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
@@ -380,6 +384,13 @@ const resolver: MutationToEditArticleResolver = async (
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
+    // const _content = normalizeArticleHTML(sanitizeHTML(cleanedContent))
+    // let contentMd = ''
+    // try {
+    //   contentMd = html2md(_content)
+    // } catch (e) {
+    //   console.error('failed to convert HTML to Markdown', draft.id)
+    // }
     const data: Record<string, any> = lodash.omitBy(
       {
         uuid: v4(),
@@ -389,6 +400,8 @@ const resolver: MutationToEditArticleResolver = async (
         summary: currDraft.summary,
         summaryCustomized: currDraft.summaryCustomized,
         content: pipe(cleanedContent),
+        // content: _content,
+        // contentMd,
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,

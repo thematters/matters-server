@@ -45,6 +45,11 @@ const GET_ARTICLE = /* GraphQL */ `
   query ($input: ArticleInput!) {
     article(input: $input) {
       id
+      content
+      contents {
+        html
+        markdown
+      }
       requestForDonation
       replyToDonator
       canComment
