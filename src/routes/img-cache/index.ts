@@ -55,14 +55,11 @@ imgCache.get('/*', async (req: Request, res: Response) => {
     return
   }
 
-  const isTargetSite = ![
+  const useS3 = ![
     'https://web-develop.matters.town',
     'https://web-next.matters.town',
   ].includes(req.header('Origin') as string)
-  const isTargetViewer = viewer.hasRole('admin')
-  const isTarget = isTargetSite && isTargetViewer
-
-  if (!isTarget) {
+  if (useS3) {
     res.redirect(`${aws.s3Endpoint}/${awsKey}`)
   } else {
     res.redirect(cfsvc.genUrl(key))
