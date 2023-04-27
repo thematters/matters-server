@@ -5,7 +5,7 @@ import { OfficialToAnnouncementsResolver } from 'definitions'
 export const announcements: OfficialToAnnouncementsResolver = async (
   root,
   { input: { id, visible } },
-  { dataSources: { atomService, systemService }, viewer, req }
+  { dataSources: { atomService, systemService }, viewer }
 ) => {
   const isAdmin = viewer.hasRole('admin')
   const visibleFilter = !isAdmin
@@ -25,15 +25,11 @@ export const announcements: OfficialToAnnouncementsResolver = async (
     orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
 
-  const useS3 = ![
-    'https://web-develop.matters.town',
-    'https://web-next.matters.town',
-  ].includes(req.headers.origin as string)
   // re-format announcements
   const items = await Promise.all(
     records.map(async (record) => {
       const cover = record?.cover
-        ? systemService.findAssetUrl(record.cover, useS3)
+        ? systemService.findAssetUrl(record.cover)
         : null
       return {
         ...record,

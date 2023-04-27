@@ -301,6 +301,25 @@ export class AtomService extends DataSource {
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 
+  /* Asset */
+
+  /**
+   * Find the url of an asset.
+   */
+  findAssetUrl = async ({
+    where,
+  }: {
+    where: { id: string }
+  }): Promise<string | null> => {
+    const record = await this.findUnique({
+      table: 'asset',
+      where,
+    })
+    return record && record.path
+      ? `${this.aws.s3Endpoint}/${record.path}`
+      : null
+  }
+
   /* Elastic Search */
 
   /**

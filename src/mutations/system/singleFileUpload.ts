@@ -6,8 +6,7 @@ import { v4 } from 'uuid'
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
   ACCEPTED_UPLOAD_IMAGE_TYPES,
-  AUDIO_ASSET_TYPE,
-  IMAGE_ASSET_TYPE,
+  ASSET_TYPE,
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
@@ -33,10 +32,21 @@ const getFileName = (disposition: string, url: string) => {
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file: fileUpload, url, entityType, entityId } },
-  { viewer, dataSources: { systemService }, req }
+  { viewer, dataSources: { systemService } }
 ) => {
-  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type)
-  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type)
+  const isImageType =
+    [
+      ASSET_TYPE.avatar,
+      ASSET_TYPE.cover,
+      ASSET_TYPE.embed,
+      ASSET_TYPE.profileCover,
+      ASSET_TYPE.oauthClientAvatar,
+      ASSET_TYPE.tagCover,
+      ASSET_TYPE.circleAvatar,
+      ASSET_TYPE.circleCover,
+      ASSET_TYPE.topicCover,
+    ].indexOf(type) >= 0
+  const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 
   if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
@@ -142,14 +152,9 @@ const resolver: MutationToSingleFileUploadResolver = async (
     relatedEntityId
   )
 
-  const useS3 = ![
-    'https://web-develop.matters.town',
-    'https://web-next.matters.town',
-  ].includes(req.headers.origin as string)
-
   return {
     ...newAsset,
-    path: systemService.genAssetUrl(newAsset, useS3),
+    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`,
   }
 }
 

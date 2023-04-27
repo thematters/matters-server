@@ -150,7 +150,7 @@ export class ArticleService extends BaseService {
       ipnsKeyRec,
     ] = await Promise.all([
       // avatar && (await systemService.findAssetUrl(avatar)),
-      cover && (await systemService.findAssetUrl(cover, true)),
+      cover && (await systemService.findAssetUrl(cover)),
       atomService.findFirst({
         table: 'user_ipns_keys',
         where: { userId: authorId },

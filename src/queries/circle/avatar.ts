@@ -3,13 +3,9 @@ import { CircleToAvatarResolver } from 'definitions'
 const resolver: CircleToAvatarResolver = async (
   { avatar },
   _,
-  { dataSources: { systemService }, req }
+  { dataSources: { atomService } }
 ) => {
-  const useS3 = ![
-    'https://web-develop.matters.town',
-    'https://web-next.matters.town',
-  ].includes(req.headers.origin as string)
-  return avatar ? systemService.findAssetUrl(avatar, useS3) : null
+  return avatar ? atomService.findAssetUrl({ where: { id: avatar } }) : null
 }
 
 export default resolver
