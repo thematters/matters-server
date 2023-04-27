@@ -1,15 +1,14 @@
+import { isTarget } from 'common/utils'
 import { OAuthClientToAvatarResolver } from 'definitions'
 
 const resolver: OAuthClientToAvatarResolver = async (
   { avatar },
   _,
-  { dataSources: { systemService }, req }
+  { dataSources: { systemService }, req, viewer }
 ) => {
-  const useS3 = ![
-    'https://web-develop.matters.town',
-    'https://web-next.matters.town',
-  ].includes(req.headers.origin as string)
-  return avatar ? systemService.findAssetUrl(avatar, useS3) : null
+  return avatar
+    ? systemService.findAssetUrl(avatar, !isTarget(req, viewer))
+    : null
 }
 
 export default resolver
