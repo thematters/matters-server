@@ -1,14 +1,15 @@
-import { isTarget } from 'common/utils'
 import { UserInfoToProfileCoverResolver } from 'definitions'
 
 const resolver: UserInfoToProfileCoverResolver = async (
   { profileCover },
   _,
-  { dataSources: { systemService }, req, viewer }
+  { dataSources: { systemService }, req }
 ) => {
-  return profileCover
-    ? systemService.findAssetUrl(profileCover, !isTarget(req, viewer))
-    : null
+  const useS3 = ![
+    'https://web-develop.matters.town',
+    'https://web-next.matters.town',
+  ].includes(req.headers.origin as string)
+  return profileCover ? systemService.findAssetUrl(profileCover, useS3) : null
 }
 
 export default resolver
