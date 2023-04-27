@@ -1,14 +1,9 @@
-import { isTarget } from 'common/utils'
 import { UserInfoToProfileCoverResolver } from 'definitions'
 
 const resolver: UserInfoToProfileCoverResolver = async (
   { profileCover },
   _,
-  { dataSources: { systemService }, req, viewer }
-) => {
-  return profileCover
-    ? systemService.findAssetUrl(profileCover, !isTarget(req, viewer))
-    : null
-}
+  { dataSources: { systemService } }
+) => (profileCover ? systemService.findAssetUrl(profileCover) : null)
 
 export default resolver

@@ -6,13 +6,13 @@ import {
   EntityNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, isTarget, toGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToPutAnnouncementResolver } from 'definitions'
 
 const resolver: MutationToPutAnnouncementResolver = async (
   root,
   { input },
-  { dataSources: { atomService, systemService }, req, viewer }
+  { dataSources: { atomService, systemService }, viewer }
 ) => {
   const {
     id,
@@ -26,7 +26,7 @@ const resolver: MutationToPutAnnouncementResolver = async (
     toGlobalId({ type: NODE_TYPES.Announcement, id: dbId })
 
   const toCoverURL = async (coverId: any) =>
-    coverId ? systemService.findAssetUrl(coverId, !isTarget(req, viewer)) : null
+    coverId ? systemService.findAssetUrl(coverId) : null
 
   // preparation
   let coverDbId

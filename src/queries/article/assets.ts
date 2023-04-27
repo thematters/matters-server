@@ -1,10 +1,9 @@
-import { isTarget } from 'common/utils'
 import { ArticleToAssetsResolver } from 'definitions'
 
 const resolver: ArticleToAssetsResolver = async (
   { id, authorId, articleId },
   _,
-  { dataSources: { systemService }, req, viewer }
+  { viewer, dataSources: { systemService } }
 ) => {
   // Check inside resolver instead of `@auth(mode: "${AUTH_MODE.oauth}")`
   // since `@auth` now only supports scope starting with `viewer`.
@@ -37,7 +36,7 @@ const resolver: ArticleToAssetsResolver = async (
   const assets = [...articleAssets, ...draftAssets].map((asset) => {
     return {
       ...asset,
-      path: systemService.genAssetUrl(asset, !isTarget(req, viewer)),
+      path: systemService.genAssetUrl(asset),
     }
   })
 

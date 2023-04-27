@@ -1,14 +1,11 @@
-import { isTarget } from 'common/utils'
 import { CircleToAvatarResolver } from 'definitions'
 
 const resolver: CircleToAvatarResolver = async (
   { avatar },
   _,
-  { dataSources: { systemService }, req, viewer }
+  { dataSources: { systemService } }
 ) => {
-  return avatar
-    ? systemService.findAssetUrl(avatar, !isTarget(req, viewer))
-    : null
+  return avatar ? systemService.findAssetUrl(avatar) : null
 }
 
 export default resolver

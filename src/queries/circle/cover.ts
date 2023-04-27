@@ -1,14 +1,11 @@
-import { isTarget } from 'common/utils'
 import { CircleToCoverResolver } from 'definitions'
 
 const resolver: CircleToCoverResolver = async (
   { cover },
   _,
-  { dataSources: { systemService }, req, viewer }
+  { dataSources: { systemService } }
 ) => {
-  return cover
-    ? systemService.findAssetUrl(cover, !isTarget(req, viewer))
-    : null
+  return cover ? systemService.findAssetUrl(cover) : null
 }
 
 export default resolver

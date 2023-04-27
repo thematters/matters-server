@@ -16,11 +16,11 @@ const service = new SystemService()
 
 test('findAssetUrl', async () => {
   // image assets return cloudflare url
-  const imageUrl = await service.findAssetUrl('1', false)
+  const imageUrl = await service.findAssetUrl('1')
   expect(imageUrl).toContain('https://imagedelivery.net')
 
   // not-image assets return s3 url
-  const notImageUrl = await service.findAssetUrl('7', false)
+  const notImageUrl = await service.findAssetUrl('7')
   expect(notImageUrl).toContain(service.aws.s3Endpoint)
 })
 

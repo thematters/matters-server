@@ -11,7 +11,7 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { fromGlobalId, isTarget } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {
@@ -33,7 +33,7 @@ const getFileName = (disposition: string, url: string) => {
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file: fileUpload, url, entityType, entityId } },
-  { dataSources: { systemService }, req, viewer }
+  { viewer, dataSources: { systemService } }
 ) => {
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type)
   const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type)
@@ -144,7 +144,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
 
   return {
     ...newAsset,
-    path: systemService.genAssetUrl(newAsset, !isTarget(req, viewer)),
+    path: systemService.genAssetUrl(newAsset),
   }
 }
 

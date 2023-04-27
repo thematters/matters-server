@@ -1,10 +1,9 @@
-import { isTarget } from 'common/utils'
 import { DraftToAssetsResolver } from 'definitions'
 
 const resolver: DraftToAssetsResolver = async (
   { id, authorId },
   _,
-  { dataSources: { systemService }, req, viewer }
+  { viewer, dataSources: { systemService } }
 ) => {
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
@@ -24,7 +23,7 @@ const resolver: DraftToAssetsResolver = async (
   return assets.map((asset) => {
     return {
       ...asset,
-      path: systemService.genAssetUrl(asset, !isTarget(req, viewer)),
+      path: systemService.genAssetUrl(asset),
     }
   })
 }

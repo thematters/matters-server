@@ -1,13 +1,12 @@
 import _find from 'lodash/find'
 import _isNil from 'lodash/isNil'
 
-import { isTarget } from 'common/utils'
 import { TagToCoverResolver } from 'definitions'
 
 const resolver: TagToCoverResolver = async (
   { id, cover },
   _,
-  { dataSources: { articleService, systemService, tagService }, req, viewer }
+  { dataSources: { articleService, systemService, tagService } }
 ) => {
   let coverId = cover
 
@@ -19,9 +18,7 @@ const resolver: TagToCoverResolver = async (
     )
     coverId = articleCover?.cover
   }
-  return coverId
-    ? systemService.findAssetUrl(coverId, !isTarget(req, viewer))
-    : null
+  return coverId ? systemService.findAssetUrl(coverId) : null
 }
 
 export default resolver

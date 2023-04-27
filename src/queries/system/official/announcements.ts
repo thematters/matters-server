@@ -1,11 +1,11 @@
 import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId, isTarget, toGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { OfficialToAnnouncementsResolver } from 'definitions'
 
 export const announcements: OfficialToAnnouncementsResolver = async (
   root,
   { input: { id, visible } },
-  { dataSources: { atomService, systemService }, req, viewer }
+  { dataSources: { atomService, systemService }, viewer }
 ) => {
   const isAdmin = viewer.hasRole('admin')
   const visibleFilter = !isAdmin
@@ -29,7 +29,7 @@ export const announcements: OfficialToAnnouncementsResolver = async (
   const items = await Promise.all(
     records.map(async (record) => {
       const cover = record?.cover
-        ? systemService.findAssetUrl(record.cover, !isTarget(req, viewer))
+        ? systemService.findAssetUrl(record.cover)
         : null
       return {
         ...record,

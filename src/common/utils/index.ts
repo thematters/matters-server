@@ -109,12 +109,3 @@ export const extractRootDomain = (url: string) => {
 
   return parts[2].split('.').slice(-2).join('.')
 }
-
-export const isTarget = (req: any, viewer: any) => {
-  return (
-    [
-      'https://web-develop.matters.town',
-      'https://web-next.matters.town',
-    ].includes(req.headers.origin as string) && viewer.hasRole('admin')
-  )
-}
