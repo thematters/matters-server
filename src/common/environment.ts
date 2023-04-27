@@ -59,7 +59,6 @@ export const environment = {
   meiliSearch_apiKey: process.env.MATTERS_MEILISEARCH_APIKEY || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
-  cloudflareAccountHash: process.env.MATTERS_CLOUDFLARE_ACCOUNT_HASH,
   cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,

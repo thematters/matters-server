@@ -22,7 +22,6 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   const origUrl = req.params[0]
 
   let key: string | undefined
-  let awsKey: string | undefined
   try {
     const uuid = v4()
     const [awsRes, cfsvcRes] = await Promise.allSettled([
@@ -44,8 +43,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
       }
     }
 
-    key = cfsvcRes.value
-    awsKey = awsRes.value
+    key = awsRes.value
   } catch (err) {
     res.status(400).end()
     return
@@ -55,13 +53,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
     return
   }
 
-  const useS3 = ![
-    'https://web-develop.matters.town',
-    'https://web-next.matters.town',
-  ].includes(req.header('Origin') as string)
-  if (useS3) {
-    res.redirect(`${aws.s3Endpoint}/${awsKey}`)
-  } else {
-    res.redirect(cfsvc.genUrl(key))
-  }
+  const newPath = `${aws.s3Endpoint}/${key}`
+
+  res.redirect(newPath)
 })
