@@ -78,7 +78,7 @@ export const generateRegisterRedirectUrl = ({
   email: string
   displayName: string
 }) =>
-  `${environment.siteDomain}/signup?email=${encodeURIComponent(
+  `https://${environment.siteDomain}/signup?email=${encodeURIComponent(
     email
   )}&displayName=${encodeURIComponent(displayName)}`
 

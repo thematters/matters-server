@@ -129,8 +129,8 @@ oAuthRouter.get('/:provider/callback', (req, res, next) => {
     }
 
     const qs = querystring.stringify(info)
-    const successRedirect = `${environment.siteDomain}/oauth/${provider}/success`
-    const failureRedirect = `${environment.siteDomain}/oauth/${provider}/failure?${qs}`
+    const successRedirect = `https://${environment.siteDomain}/oauth/${provider}/success`
+    const failureRedirect = `https://${environment.siteDomain}/oauth/${provider}/failure?${qs}`
 
     if (!user) {
       return res.redirect(failureRedirect)

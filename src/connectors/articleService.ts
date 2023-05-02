@@ -170,11 +170,11 @@ export class ArticleService extends BaseService {
         date: publishedAt,
         author: {
           name: `${displayName} (${userName})`,
-          uri: `${environment.siteDomain}/@${userName}`,
+          uri: `https://${environment.siteDomain}/@${userName}`,
         },
         website: {
           name: 'Matters',
-          uri: environment.siteDomain,
+          uri: 'https://' + environment.siteDomain,
         },
       },
       rss: ipnsKey
@@ -628,7 +628,7 @@ export class ArticleService extends BaseService {
       messageBody: {
         articleId: article.id,
         title: article.title,
-        url: `${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
+        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
         dataHash: article.dataHash,
         mediaHash: article.mediaHash,
 
