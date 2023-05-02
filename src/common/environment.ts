@@ -33,7 +33,7 @@ export const isProd = process.env.MATTERS_ENV === 'production'
 
 export const environment = {
   env: process.env.MATTERS_ENV,
-  domain: process.env.MATTERS_DOMAIN || '',
+  domain: process.env.MATTERS_SERVER_DOMAIN || '',
   siteDomain: (process.env.MATTERS_SITE_DOMAIN ||
     'https://matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
