@@ -33,7 +33,7 @@ export const isProd = process.env.MATTERS_ENV === 'production'
 
 export const environment = {
   env: process.env.MATTERS_ENV,
-  domain: process.env.MATTERS_SERVER_DOMAIN || '',
+  serverDomain: process.env.MATTERS_SERVER_DOMAIN || '',
   siteDomain: (process.env.MATTERS_SITE_DOMAIN ||
     'https://matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
@@ -150,6 +150,6 @@ export const polygonUSDTContractAddress = isProd
 export const polygonUSDTContractDecimals = isProd ? 6 : 18
 
 const protocolScheme = isLocal ? 'http://' : 'https://'
-export const imgCacheServicePrefix = `${protocolScheme}${environment.domain}${
+export const imgCacheServicePrefix = `${protocolScheme}${environment.serverDomain}${
   IMG_CACHE_PATH || '/img-cache'
 }`
