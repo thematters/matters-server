@@ -851,7 +851,11 @@ export class UserService extends BaseService {
       )
       .from('search_index.user')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        // this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        this.searchKnex.raw(
+          "ts_rewrite(plainto_tsquery('jiebacfg', ?), plainto_tsquery('jiebacfg', ' '), plainto_tsquery('jiebacfg', '')) query",
+          key
+        )
       )
       .where('state', 'NOT IN', [
         // USER_STATE.active, USER_STATE.onboarding,
