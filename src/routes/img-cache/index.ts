@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express'
 import { v4 } from 'uuid'
 
 import { getViewerFromReq } from 'common/utils'
-import { aws, cfsvc } from 'connectors'
+import { cfsvc } from 'connectors'
 import { GQLAssetType } from 'definitions'
 
 export const imgCache = Router()
@@ -24,27 +24,13 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   let key: string | undefined
   try {
     const uuid = v4()
-    const [awsRes, cfsvcRes] = await Promise.allSettled([
-      aws.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
-      cfsvc.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
-    ])
-    if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
-      if (awsRes.status !== 'fulfilled') {
-        console.error(new Date(), 'aws s3 upload image ERROR:', awsRes.reason)
-        throw awsRes.reason
-      }
-      if (cfsvcRes.status !== 'fulfilled') {
-        console.error(
-          new Date(),
-          'cloudflare upload image ERROR:',
-          cfsvcRes.reason
-        )
-        throw cfsvcRes.reason
-      }
-    }
-
-    key = cfsvcRes.value
+    key = await cfsvc.baseServerSideUploadFile(
+      GQLAssetType.imgCached,
+      origUrl,
+      uuid
+    )
   } catch (err) {
+    console.error(new Date(), 'cloudflare upload image ERROR:', err)
     res.status(400).end()
     return
   }

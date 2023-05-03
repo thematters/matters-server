@@ -21,7 +21,7 @@ import {
   isValidUserName,
   setCookie,
 } from 'common/utils'
-import { aws, cfsvc } from 'connectors'
+import { cfsvc } from 'connectors'
 import {
   GQLAssetType,
   ItemData,
@@ -64,29 +64,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
       let keyPath: string | undefined
       try {
-        const [awsRes, cfsvcRes] = await Promise.allSettled([
-          aws.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
-          cfsvc.baseServerSideUploadFile(GQLAssetType.imgCached, origUrl, uuid),
-        ])
-        if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
-          if (awsRes.status !== 'fulfilled') {
-            console.error(
-              new Date(),
-              'aws s3 upload image ERROR:',
-              awsRes.reason
-            )
-            throw awsRes.reason
-          }
-          if (cfsvcRes.status !== 'fulfilled') {
-            console.error(
-              new Date(),
-              'cloudflare upload image ERROR:',
-              cfsvcRes.reason
-            )
-            throw cfsvcRes.reason
-          }
-        }
-        keyPath = awsRes.value
+        keyPath = await cfsvc.baseServerSideUploadFile(
+          GQLAssetType.imgCached,
+          origUrl,
+          uuid
+        )
       } catch (err) {
         // ...
         console.error(`baseServerSideUploadFile error:`, err)
