@@ -1287,7 +1287,11 @@ export class ArticleService extends BaseService {
               )
               .from('search_index.article')
               .crossJoin(
-                this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
+                // ts_rewrite to remove empty spaces between
+                this.searchKnex.raw(
+                  "ts_rewrite(plainto_tsquery('jiebacfg', ?), plainto_tsquery('jiebacfg', ' '), plainto_tsquery('jiebacfg', '')) query",
+                  key
+                )
               )
               .whereIn('state', [ARTICLE_STATE.active])
               .andWhere('author_state', 'NOT IN', [

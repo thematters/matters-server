@@ -892,7 +892,11 @@ export class TagService extends BaseService {
       )
       .from('search_index.tag')
       .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        // this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
+        this.searchKnex.raw(
+          "ts_rewrite(plainto_tsquery('jiebacfg', ?), plainto_tsquery('jiebacfg', ' '), plainto_tsquery('jiebacfg', '')) query",
+          key
+        )
       )
       .whereNotIn('id', mattyChoiceTagIds)
       .andWhere((builder: Knex.QueryBuilder) => {
