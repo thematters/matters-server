@@ -134,7 +134,7 @@ class AppreciationQueue extends BaseQueue {
         likerIp: senderIP,
         userAgent,
         authorLikerId: author.likerId,
-        url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+        url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
         amount: validAmount,
       })
 

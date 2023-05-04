@@ -82,11 +82,11 @@ export class Feed {
       byline: {
         author: {
           name: `${displayName} (${userName})`,
-          uri: `${environment.siteDomain}/@${userName}`,
+          uri: `https://${environment.siteDomain}/@${userName}`,
         },
         website: {
           name: 'Matters',
-          uri: environment.siteDomain,
+          uri: 'https://' + environment.siteDomain,
         },
       },
       rss: this.ipnsKey
@@ -113,7 +113,7 @@ export class Feed {
               content: draft.content,
               tags: draft.tags || [],
               uri: `./${draft.articleId}-${arti.slug ?? slugify(draft.title)}/`,
-              sourceUri: `${environment.siteDomain}/@${userName}/${
+              sourceUri: `https://${environment.siteDomain}/@${userName}/${
                 arti.id ?? draft.articleId
               }-${arti.slug ?? slugify(draft.title)}/`,
             }

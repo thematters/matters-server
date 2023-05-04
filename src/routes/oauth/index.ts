@@ -74,8 +74,8 @@ oAuthRouter.use(async (req, res, next) => {
  */
 oAuthRouter.use('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query as any)
-  const grantUrl = `${environment.oauthSiteDomain}/oauth/authorize?${qs}`
-  const loginUrl = `${
+  const grantUrl = `https://${environment.oauthSiteDomain}/oauth/authorize?${qs}`
+  const loginUrl = `https://${
     environment.oauthSiteDomain
   }/login?${querystring.stringify({
     target: grantUrl,
@@ -107,7 +107,7 @@ oAuthRouter.use('/:provider', (req, res, next) => {
   const qs = querystring.stringify({
     target: fullUrl,
   })
-  const loginUrl = `${environment.oauthSiteDomain}/login?${qs}`
+  const loginUrl = `https://${environment.oauthSiteDomain}/login?${qs}`
   let redirectUrl = ''
 
   if (!req.app.locals.viewer.id) {
@@ -129,8 +129,8 @@ oAuthRouter.get('/:provider/callback', (req, res, next) => {
     }
 
     const qs = querystring.stringify(info)
-    const successRedirect = `${environment.siteDomain}/oauth/${provider}/success`
-    const failureRedirect = `${environment.siteDomain}/oauth/${provider}/failure?${qs}`
+    const successRedirect = `https://${environment.siteDomain}/oauth/${provider}/success`
+    const failureRedirect = `https://${environment.siteDomain}/oauth/${provider}/failure?${qs}`
 
     if (!user) {
       return res.redirect(failureRedirect)
