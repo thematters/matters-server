@@ -154,6 +154,7 @@ const server = new ProtectedApolloServer({
     }),
   ],
   introspection: true,
+  csrfPrevention: true,
 })
 
 export const graphql = async (app: Express) => {
