@@ -58,6 +58,7 @@ export const testClient = async (
     isOnboarding,
     isFrozen,
     context,
+    dataSources,
   }: {
     isAuth?: boolean
     isAdmin?: boolean
@@ -65,6 +66,7 @@ export const testClient = async (
     isOnboarding?: boolean
     isFrozen?: boolean
     context?: any
+    dataSources?: any
   } = {
     isAuth: false,
     isAdmin: false,
@@ -131,6 +133,7 @@ export const testClient = async (
       notificationService: new NotificationService(),
       oauthService: new OAuthService(),
       paymentService: new PaymentService(),
+      ...dataSources,
     }),
   })
 
