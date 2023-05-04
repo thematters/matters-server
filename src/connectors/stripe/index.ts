@@ -174,7 +174,7 @@ class StripeService {
     user: User
   }) => {
     const isUS = country === 'UnitedStates'
-    const returnUrlPrefix = `${environment.siteDomain}/oauth/stripe-connect`
+    const returnUrlPrefix = `https://${environment.siteDomain}/oauth/stripe-connect`
 
     try {
       const account = await this.stripeAPI.accounts.create({

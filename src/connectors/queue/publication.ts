@@ -304,7 +304,7 @@ export class PublicationQueue extends BaseQueue {
             title: draft.title,
             description: summary,
             datePublished: article.createdAt?.toISOString().substring(0, 10),
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
             tags,
             liker,
           })
@@ -365,7 +365,7 @@ export class PublicationQueue extends BaseQueue {
           MessageBody: {
             articleId: article.id,
             title: article.title,
-            url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
+            url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
             dataHash: article.dataHash,
             mediaHash: article.mediaHash,
 

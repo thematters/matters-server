@@ -274,7 +274,7 @@ class RevisionQueue extends BaseQueue {
               title: draft.title,
               description: summary,
               datePublished: article.created_at?.toISOString().substring(0, 10),
-              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
               tags: draft.tags,
 
               // for liker auth&headers info
@@ -329,7 +329,7 @@ class RevisionQueue extends BaseQueue {
             MessageBody: {
               articleId: article.id,
               title: article.title,
-              url: `${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
+              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
               dataHash: article.dataHash,
               mediaHash: article.mediaHash,
 
