@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import { compact } from 'lodash'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
@@ -10,19 +10,14 @@ import {
   fromGlobalId,
   normalizeQueryInput,
 } from 'common/utils'
-import {
-  GQLNode,
-  GQLSearchAPIVersion,
-  QueryToSearchResolver,
-} from 'definitions'
+import { GQLNode, QueryToSearchResolver } from 'definitions'
 
 // the original ElasticSearch based solution
 
 const resolver: QueryToSearchResolver = async (
-  root,
+  _,
   args, // { input },
-  context, // { dataSources: { systemService, articleService, userService, tagService }, viewer, }
-  info
+  context // { dataSources: { systemService, articleService, userService, tagService }, viewer, }
 ) => {
   const { input } = args
   const {
@@ -61,30 +56,23 @@ const resolver: QueryToSearchResolver = async (
   const keyOriginal = input.key
   input.key = await normalizeQueryInput(keyOriginal)
 
-  const connection = await (input.version === GQLSearchAPIVersion.v20230301
-    ? serviceMap[input.type].searchV2
-    : input.version === GQLSearchAPIVersion.v20221212
-    ? serviceMap[input.type].searchV1
-    : serviceMap[input.type].search)({
-    ...input,
-    keyOriginal,
-    take,
-    skip,
-    viewerId: viewer.id,
-  }).then(({ nodes, totalCount }) => {
-    nodes = _.compact(nodes)
-    return {
-      nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
-      totalCount,
-    }
-  })
+  const connection = await serviceMap[input.type]
+    .search({
+      ...input,
+      keyOriginal,
+      take,
+      skip,
+      viewerId: viewer.id,
+    })
+    .then(({ nodes, totalCount }) => {
+      nodes = compact(nodes)
+      return {
+        nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
+        totalCount,
+      }
+    })
 
   return connectionFromArray(connection.nodes, input, connection.totalCount)
-
-  // let res = resolverV0
-  // switch (input.version) {// case GQLSearchAPIVersion.v20230301: case GQLSearchAPIVersion.v20221212: res = resolverV1 break}
-
-  // return res(root, args, context, info)
 }
 
 export default resolver

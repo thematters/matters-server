@@ -28,9 +28,9 @@ test('create', async () => {
   expect(tag.content).toEqual(content)
 })
 
-describe('searchV1', () => {
+describe('search', () => {
   test('empty result', async () => {
-    const res = await tagService.searchV1({
+    const res = await tagService.search({
       key: 'not-existed-tag',
       skip: 0,
       take: 10,
@@ -38,12 +38,12 @@ describe('searchV1', () => {
     expect(res.totalCount).toBe(0)
   })
   test('prefer exact match', async () => {
-    const res = await tagService.searchV1({ key: 'tag', skip: 0, take: 10 })
+    const res = await tagService.search({ key: 'tag', skip: 0, take: 10 })
     expect(res.totalCount).toBe(4)
     expect(res.nodes[0].content).toBe('tag')
   })
   test('prefer more articles', async () => {
-    const res = await tagService.searchV1({
+    const res = await tagService.search({
       key: 't',
       skip: 0,
       take: 10,
@@ -58,21 +58,21 @@ describe('searchV1', () => {
     )
   })
   test('handle prefix #,＃', async () => {
-    const res1 = await tagService.searchV1({ key: '#tag', skip: 0, take: 10 })
+    const res1 = await tagService.search({ key: '#tag', skip: 0, take: 10 })
     expect(res1.totalCount).toBe(4)
     expect(res1.nodes[0].content).toBe('tag')
-    const res2 = await tagService.searchV1({ key: '＃tag', skip: 0, take: 10 })
+    const res2 = await tagService.search({ key: '＃tag', skip: 0, take: 10 })
     expect(res2.totalCount).toBe(4)
     expect(res2.nodes[0].content).toBe('tag')
   })
   test('handle empty string', async () => {
-    const res1 = await tagService.searchV1({ key: '', skip: 0, take: 10 })
+    const res1 = await tagService.search({ key: '', skip: 0, take: 10 })
     expect(res1.totalCount).toBe(0)
-    const res2 = await tagService.searchV1({ key: '#', skip: 0, take: 10 })
+    const res2 = await tagService.search({ key: '#', skip: 0, take: 10 })
     expect(res2.totalCount).toBe(0)
   })
   test('right totalCount with take and skip', async () => {
-    const res1 = await tagService.searchV1({
+    const res1 = await tagService.search({
       key: 'tag',
       skip: 0,
       take: 10,
@@ -81,7 +81,7 @@ describe('searchV1', () => {
     console.log(new Date(), 'res:', res1)
     expect(res1.nodes.length).toBe(4)
     expect(res1.totalCount).toBe(4)
-    const res2 = await tagService.searchV1({
+    const res2 = await tagService.search({
       key: 'tag',
       skip: 0,
       take: 1,
@@ -89,7 +89,7 @@ describe('searchV1', () => {
     })
     expect(res2.nodes.length).toBe(1)
     expect(res2.totalCount).toBe(4)
-    const res3 = await tagService.searchV1({
+    const res3 = await tagService.search({
       key: 'tag',
       skip: 1,
       take: 10,
