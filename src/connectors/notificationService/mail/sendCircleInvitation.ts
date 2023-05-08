@@ -39,7 +39,7 @@ export const sendCircleInvitation = async ({
     : undefined
   const circleLink = code
     ? undefined
-    : `${environment.siteDomain}/~${circle.name}`
+    : `https://${environment.siteDomain}/~${circle.name}`
 
   await mailService.send({
     from: environment.emailFromAsk as string,

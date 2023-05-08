@@ -47,8 +47,8 @@ const invalidateCache = async ({
 likecoinRouter.use(bodyParser.json() as RequestHandler)
 
 likecoinRouter.get('/', async (req, res) => {
-  const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
-  const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
+  const successRedirect = `https://${environment.siteDomain}/pay/likecoin/success`
+  const failureRedirect = `https://${environment.siteDomain}/pay/likecoin/failure`
 
   const paymentService = new PaymentService()
 

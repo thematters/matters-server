@@ -33,18 +33,18 @@ const resolver: MutationToGenerateSigningMessageResolver = async (
   } wants you to sign in with your Ethereum account:
 ${address}
 
-I accept the Matters Terms of Service: ${environment.siteDomain}/tos
+I accept the Matters Terms of Service: https://${environment.siteDomain}/tos
 
-URI: ${environment.siteDomain}/login
+URI: https://${environment.siteDomain}/login
 Version: 1
 Chain ID: 1
 Nonce: ${nonce}
 Issued At: ${createdAt.toISOString()}
 Expiration Time: ${expiredAt.toISOString()}
 Resources:
-- ${environment.siteDomain}/about
-- ${environment.siteDomain}/community
-- ${environment.siteDomain}/guide`
+- https://${environment.siteDomain}/about
+- https://${environment.siteDomain}/community
+- https://${environment.siteDomain}/guide`
 
   if (!purpose) {
     // and not already in-use by anyone
