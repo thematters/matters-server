@@ -20,14 +20,14 @@ export class CloudflareService {
     folder: GQLAssetType,
     origUrl: string,
     uuid: string
-  ): Promise<string | undefined> => {
+  ): Promise<string | never> => {
     // const mimetype = mime.lookup(origUrl)
     // const extension = mime.extension(mimetype as string)
     const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
 
     const formData = new FormData()
     formData.append('url', origUrl)
-    formData.append('id', key)
+    formData.append('id', envPrefix + '/' + key)
 
     const res = await fetch(CLOUDFLARE_IMAGES_URL, {
       method: 'POST',
@@ -40,9 +40,7 @@ export class CloudflareService {
     try {
       const resData = await res.json()
 
-      // assert "success": true,
-
-      return resData.result.id // the key
+      console.log(new Date(), 'CloudflareService upload image:', resData)
     } catch (err) {
       console.error(
         new Date(),
@@ -53,6 +51,7 @@ export class CloudflareService {
         // await res.text()
       )
     }
+    return key
   }
 
   baseUploadFile = async (folder: GQLAssetType, upload: any, uuid: string) => {
@@ -70,7 +69,7 @@ export class CloudflareService {
 
     const formData = new FormData()
     formData.append('file', stream, filename)
-    formData.append('id', key)
+    formData.append('id', envPrefix + '/' + key)
 
     const res = await fetch(CLOUDFLARE_IMAGES_URL, {
       method: 'POST',
@@ -82,10 +81,7 @@ export class CloudflareService {
 
     try {
       const resData = await res.json()
-
-      // assert "success": true,
-
-      return resData.result.id // the key
+      console.log(new Date(), 'CloudflareService upload image:', resData)
     } catch (err) {
       console.error(
         new Date(),
@@ -96,6 +92,7 @@ export class CloudflareService {
         // await res.text()
       )
     }
+    return key
   }
 
   /**
@@ -121,7 +118,7 @@ export class CloudflareService {
   // internal helpers
 
   private genKey = (folder: string, uuid: string, extension: string): string =>
-    `${envPrefix}/${folder}/${uuid}.${extension}`
+    `${folder}/${uuid}.${extension}`
 }
 
 export const cfsvc = new CloudflareService()
