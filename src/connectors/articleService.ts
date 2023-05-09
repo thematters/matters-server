@@ -28,7 +28,7 @@ import {
   USER_ACTION,
   USER_STATE,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import {
@@ -1060,59 +1060,6 @@ export class ArticleService extends BaseService {
     )
 
     return { nodes, totalCount }
-  }
-
-  /*********************************
-   *                               *
-   *           Recommand           *
-   *                               *
-   *********************************/
-  related = async ({
-    id,
-    size,
-    notIn = [],
-  }: {
-    id: string
-    size: number
-    notIn?: string[]
-  }) => {
-    // skip if in test
-    if (isTest) {
-      return []
-    }
-
-    // get vector score
-    const scoreResult = await this.es.client.get({
-      index: this.table,
-      id,
-    })
-
-    const factors = (scoreResult as any)?._source?.embedding_vector
-
-    // return empty list if we don't have any score
-    if (!factors) {
-      return []
-    }
-
-    const searchBody = {
-      index: this.table,
-      knn: {
-        field: 'embedding_vector',
-        query_vector: factors,
-        k: 10,
-        num_candidates: size,
-      },
-      filter: {
-        bool: {
-          must: { term: { state: ARTICLE_STATE.active } },
-          must_not: { ids: { values: notIn.concat([id]) } },
-        },
-      },
-    }
-
-    const body = await this.es.client.knnSearch(searchBody)
-    // add recommendation
-    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /**
