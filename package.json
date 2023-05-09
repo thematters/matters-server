@@ -56,7 +56,7 @@
     "apollo-server-cache-redis": "^3.0.2",
     "apollo-server-core": "^3.11.1",
     "apollo-server-express": "^3.0.2",
-    "aws-sdk": "^2.954.0",
+    "aws-sdk": "^2.1374.0",
     "axios": "^0.21.2",
     "bcrypt": "^5.0.1",
     "bodybuilder": "^2.5.0",
