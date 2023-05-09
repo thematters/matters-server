@@ -1,17 +1,11 @@
-import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import createDebug from 'debug'
 import { Knex } from 'knex'
-// import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
-  // MATERIALIZED_VIEW,
-  // MAX_TAG_CONTENT_LENGTH,
-  // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
-  TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -20,8 +14,6 @@ import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
 const debugLog = createDebug('tag-service')
-
-// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class TagService extends BaseService {
   constructor() {
@@ -1172,18 +1164,8 @@ export class TagService extends BaseService {
    * top100 at most
    *
    */
-  findRelatedTags = async ({
-    id,
-    content: tagContent,
-  }: // skip, take, exclude,
-  {
-    id: string
-    content?: string
-    // skip?: number
-    // take?: number
-    // exclude?: string[]
-  }) => {
-    const results = await this.knex
+  findRelatedTags = async ({ id }: { id: string; content?: string }) => {
+    return this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
@@ -1191,36 +1173,5 @@ export class TagService extends BaseService {
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .select('x.tag_rel_id AS id')
       .orderByRaw('x.count_rel * x.similarity DESC NULLS LAST')
-
-    if (results?.length < TAGS_RECOMMENDED_LIMIT && tagContent) {
-      const body = bodybuilder()
-        .query('match', 'content', tagContent)
-        .size(TAGS_RECOMMENDED_LIMIT) // at most 100
-        .build()
-
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
-      })
-
-      const { hits } = result
-      if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
-        hits.hits.shift() // remove the exact match at first, if exists
-      }
-
-      // hits.hits.forEach((hit) => fromEsTags.add(hit._source))
-
-      const existingIds = new Set(results.map((item) => item.id))
-      for (const hit of hits.hits) {
-        if (!existingIds.has((hit._source as any).id)) {
-          results.push({ id: (hit._source as any).id })
-          if (results?.length >= TAGS_RECOMMENDED_LIMIT) {
-            break
-          }
-        }
-      }
-    }
-
-    return results
   }
 }
