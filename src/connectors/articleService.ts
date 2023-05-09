@@ -1,9 +1,6 @@
-// import type { SearchTotalHits } from '@elastic/elasticsearch'
-
 import {
   ArticlePageContext,
   makeArticlePage,
-  stripHtml,
 } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
@@ -30,7 +27,6 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
-import logger from 'common/logger'
 import {
   AtomService,
   BaseService,
@@ -663,19 +659,6 @@ export class ArticleService extends BaseService {
         sticky: false,
         updatedAt: new Date(),
       })
-
-      // update search
-      try {
-        await this.es.client.update({
-          index: this.table,
-          id: article.id,
-          body: {
-            doc: { state: ARTICLE_STATE.archived },
-          },
-        })
-      } catch (e) {
-        logger.error(e)
-      }
     }
   }
 
@@ -824,63 +807,6 @@ export class ArticleService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  /**
-   * Dump all data to ES (Currently only used in test)
-   */
-  initSearch = async () => {
-    const articles = await this.knex(this.table)
-      .innerJoin('user', `${this.table}.author_id`, 'user.id')
-      .select(
-        `${this.table}.id as id`,
-        'title',
-        'content',
-        'author_id as authorId',
-        'user.user_name as userName',
-        'user.display_name as displayName'
-      )
-
-    return this.es.indexManyItems({
-      index: this.table,
-      items: articles.map(
-        (article: { content: string; title: string; id: string }) => ({
-          ...article,
-          content: stripHtml(article.content),
-        })
-      ),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    title,
-    content,
-    authorId,
-    userName,
-    displayName,
-    tags,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            title,
-            content: stripHtml(content),
-            state: ARTICLE_STATE.active,
-            authorId,
-            userName,
-            displayName,
-            tags,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
 
   searchByMediaHash = async ({
     key,

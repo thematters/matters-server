@@ -215,17 +215,6 @@ export class PublicationQueue extends BaseQueue {
           article.id
         )
         await job.progress(75)
-
-        // Step 6: add to search; async
-        this.articleService.addToSearch({
-          id: article.id,
-          title: draft.title,
-          content: draft.content,
-          authorId: article.authorId,
-          userName,
-          displayName,
-          tags,
-        })
       } catch (err) {
         // ignore errors caused by these steps
         console.error(new Date(), 'optional step failed:', err, job, draft)

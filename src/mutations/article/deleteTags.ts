@@ -6,9 +6,9 @@ import { CacheService } from 'connectors'
 import { MutationToDeleteTagsResolver } from 'definitions'
 
 const resolver: MutationToDeleteTagsResolver = async (
-  root,
+  _,
   { input: { ids } },
-  { viewer, dataSources: { atomService } }
+  { dataSources: { atomService } }
 ) => {
   const tagIds = ids.map((id) => fromGlobalId(id).id)
 
@@ -27,10 +27,6 @@ const resolver: MutationToDeleteTagsResolver = async (
 
   // delete tags
   await atomService.deleteMany({ table: 'tag', whereIn: ['id', tagIds] })
-
-  await Promise.all(
-    tagIds.map((id: string) => atomService.deleteSearch({ table: 'tag', id }))
-  )
 
   // manually invalidate cache since it returns nothing
   const cacheService = new CacheService()

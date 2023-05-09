@@ -5,9 +5,9 @@ import { fromGlobalId } from 'common/utils'
 import { MutationToMergeTagsResolver } from 'definitions'
 
 const resolver: MutationToMergeTagsResolver = async (
-  root,
+  _,
   { input: { ids, content } },
-  { viewer, dataSources: { atomService, tagService, userService } }
+  { dataSources: { tagService } }
 ) => {
   // assign Matty as tag's editor
   if (!environment.mattyId) {
@@ -21,10 +21,6 @@ const resolver: MutationToMergeTagsResolver = async (
     editors: [environment.mattyId],
     owner: environment.mattyId,
   })
-
-  await Promise.all(
-    tagIds.map((id: string) => atomService.deleteSearch({ table: 'tag', id }))
-  )
 
   // invalidate extra nodes
   newTag[CACHE_KEYWORD] = tagIds.map((id) => ({ id, type: NODE_TYPES.Tag }))

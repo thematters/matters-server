@@ -4,20 +4,10 @@ import { Knex } from 'knex'
 import _ from 'lodash'
 
 import logger from 'common/logger'
-import {
-  aws,
-  cfsvc,
-  es,
-  knex,
-  meiliClient,
-  readonlyKnex,
-  searchKnexDB,
-} from 'connectors'
+import { aws, cfsvc, knex, readonlyKnex, searchKnexDB } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {
-  es: typeof es
-  meili: typeof meiliClient
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
@@ -28,8 +18,6 @@ export class BaseService extends DataSource {
 
   constructor(table: TableName) {
     super()
-    this.es = es
-    this.meili = meiliClient
     this.knex = knex
     this.knexRO = readonlyKnex
     this.searchKnex = searchKnexDB

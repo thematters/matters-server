@@ -12,8 +12,6 @@ import {
 } from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
 
-// the original ElasticSearch based solution
-
 const resolver: QueryToSearchResolver = async (
   _,
   args, // { input },

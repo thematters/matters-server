@@ -9,7 +9,6 @@ import {
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
@@ -256,15 +255,6 @@ export class TagService extends BaseService {
       skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
 
-    // add tag into search engine
-    if (tag) {
-      this.addToSearch({
-        id: tag.id,
-        content: tag.content,
-        description: tag.description,
-      })
-    }
-
     return tag
   }
 
@@ -489,70 +479,6 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  initSearch = async () => {
-    const tags = await this.knex
-      .from(VIEW.tags_lasts_view)
-      .select(
-        'id',
-        'content',
-        'description',
-        'num_articles',
-        'num_authors',
-        'created_at',
-        'span_days',
-        'earliest_use',
-        'latest_use'
-      )
-
-    return this.es.indexManyItems({
-      index: this.table,
-      items: tags, // .map((tag) => ({...tag,})),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    content,
-    description,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            content,
-            description,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
-  updateSearch = async ({
-    id,
-    content,
-    description,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      const result = await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: { content, description },
-        },
-      })
-      return result
-    } catch (error) {
-      logger.error(error)
-    }
-  }
 
   search = async ({
     key,
@@ -1104,13 +1030,6 @@ export class TagService extends BaseService {
   }) => {
     // create new tag
     const newTag = await this.create({ content, creator, editors, owner })
-
-    // add tag into search engine
-    this.addToSearch({
-      id: newTag.id,
-      content: newTag.content,
-      description: newTag.description,
-    })
 
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)

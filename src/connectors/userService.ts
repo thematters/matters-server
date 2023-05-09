@@ -137,8 +137,6 @@ export class UserService extends BaseService {
     )
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    this.addToSearch(user)
-
     return user
   }
 
@@ -398,19 +396,6 @@ export class UserService extends BaseService {
       return user
     })
 
-    // update search
-    try {
-      await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: { state: USER_STATE.archived },
-        },
-      })
-    } catch (e) {
-      logger.error(e)
-    }
-
     return archivedUser
   }
 
@@ -461,49 +446,6 @@ export class UserService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  /**
-   * Dump all data to ES (Currently only used in test)
-   */
-  initSearch = async () => {
-    const users = await this.knex(this.table).select(
-      'id',
-      'description',
-      'display_name',
-      'user_name'
-    )
-
-    return this.es.indexManyItems({
-      index: this.table,
-      items: users.map((user) => ({
-        ...user,
-      })),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    userName,
-    displayName,
-    description,
-  }: {
-    [key: string]: string
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            userName,
-            displayName,
-            description,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
 
   search = async ({
     key,
