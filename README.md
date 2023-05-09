@@ -7,7 +7,7 @@
 ### Local
 
 - Install dependencies: `npm install`
-- Start Postgres, Redis, ElasticSearch, stripe-mock, and IPFS daemon
+- Start Postgres, Redis, stripe-mock, and IPFS daemon
 - Setup Environments: `cp .env.example .env`
 - Run all migrations: `npm run db:migrate`
 - Populate all seeds data if needed: `npm run db:seed`
@@ -51,5 +51,4 @@ AWS resources that we need to put in the same VPC
   - Pub/Sub
   - Cache
   - Queue
-- ElasticSearch EC2 instances
 - IPFS cluster EC2 instances
