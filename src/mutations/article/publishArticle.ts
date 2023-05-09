@@ -4,6 +4,7 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
@@ -37,6 +38,14 @@ const resolver: MutationToPublishArticleResolver = async (
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
     throw new DraftNotFoundError('draft does not exists')
+  }
+
+  if (!draft.title) {
+    throw new UserInputError('title is required')
+  }
+
+  if (!draft.content) {
+    throw new UserInputError('content is required')
   }
 
   if (
