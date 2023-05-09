@@ -43,7 +43,7 @@
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^7.10.0",
     "@matters/apollo-response-cache": "^1.4.0-rc.0",
-    "@matters/ipns-site-generator": "^0.1.1",
+    "@matters/ipns-site-generator": "^0.1.2",
     "@matters/matters-editor": "^0.2.0-alpha.28",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
@@ -65,7 +65,6 @@
     "cids": "^1.1.9",
     "cookie": "^0.4.1",
     "cors": "^2.8.5",
-    "xss": "^1.0.9",
     "dataloader": "^2.0.0",
     "debug": "^4.3.4",
     "dotenv": "^10.0.0",
@@ -111,7 +110,8 @@
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "winston": "^3.3.3",
-    "winston-transport": "^4.4.0"
+    "winston-transport": "^4.4.0",
+    "xss": "^1.0.9"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
