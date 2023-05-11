@@ -105,32 +105,10 @@ export class Medium {
           this.cfsvc.baseUploadFile(...args)
       )
 
-      // make sure both settled
-      const [awsRes, cfsvcRes] = await Promise.allSettled([
-        this.aws.baseUploadFile('embed' as GQLAssetType, upload, uuid),
-        // this.cfsvc.baseUploadFile('embed' as GQLAssetType, upload, uuid)
-        cfThrottledUpload('embed' as GQLAssetType, upload, uuid),
-      ])
+      const key = await cfThrottledUpload('embed' as GQLAssetType, upload, uuid)
 
       // const failure = results.find((r) => r.status !== 'fulfilled')
-      if (awsRes.status !== 'fulfilled' || cfsvcRes.status !== 'fulfilled') {
-        if (awsRes.status !== 'fulfilled') {
-          console.error(new Date(), 'aws s3 upload image ERROR:', awsRes.reason)
-          throw awsRes.reason
-        }
-        if (cfsvcRes.status !== 'fulfilled') {
-          console.error(
-            new Date(),
-            'cloudflare upload image ERROR:',
-            cfsvcRes.reason
-          )
-          throw cfsvcRes.reason
-        }
-      }
-
-      // const key = (settled.find((r) => r.status === 'fulfilled') as PromiseFulfilledResult<string>)?.value
-
-      return { uuid, key: cfsvcRes.value }
+      return { uuid, key }
     } catch (error) {
       throw new Error(`Unable to upload from url: ${error}`)
     }

@@ -64,7 +64,7 @@ const resolver: MutationToReadArticleResolver = async (
     //       likerIp: viewer.ip,
     //       userAgent: viewer.userAgent,
     //       authorLikerId: author.likerId,
-    //       url: `${environment.siteDomain}/@${author.userName}/${article.id}`,
+    //       url: `https://${environment.siteDomain}/@${author.userName}/${article.id}`,
     //     })
     //   } catch (error) {
     //     logger.error(error)
