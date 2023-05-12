@@ -60,7 +60,6 @@ exports.up = async (knex) => {
     .where({ provider: 'stripe' })
     .whereIn('state', ['active', 'trialing'])
   if (!subs || subs.length <= 0) {
-    console.log(`${envLabel} subscriptions not found`)
     return
   }
 

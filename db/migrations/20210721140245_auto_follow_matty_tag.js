@@ -6,7 +6,6 @@ exports.up = async (knex) => {
     .first()
 
   if (!matty) {
-    console.log('matty not found')
     return
   }
 
