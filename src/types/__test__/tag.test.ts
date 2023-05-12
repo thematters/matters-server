@@ -20,6 +20,15 @@ const QUERY_TAG = /* GraphQL */ `
         id
         content
         description
+        recommended(input: {}) {
+          edges {
+            node {
+              ... on Tag {
+                content
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -625,5 +634,16 @@ describe('manage settings of a tag', () => {
     const leaveDataEditors = (leaveData?.editors || []).map(editorFilter)
     expect(_difference(leaveDataEditors, [mattyId]).length).toBe(0)
     expect(leaveData?.editors.length).toBe(1)
+  })
+})
+
+describe('query tag', () => {
+  test('tag recommended', async () => {
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: QUERY_TAG,
+      variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },
+    })
+    expect(data!.node.recommended.edges).toBeDefined()
   })
 })

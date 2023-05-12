@@ -2814,9 +2814,13 @@ export interface GQLSearchInput {
   oss?: boolean
 
   /**
-   * use the api version; omit to use latest version
+   * deprecated, make no effect
    */
   version?: GQLSearchAPIVersion
+
+  /**
+   * deprecated, make no effect
+   */
   coefficients?: string
   quicksearch?: boolean
 }

@@ -1,4 +1,4 @@
-import { has, isEmpty, isNil, omitBy } from 'lodash'
+import { has, isEmpty } from 'lodash'
 import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
@@ -201,25 +201,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         previous: viewer.userName,
       },
     })
-  }
-
-  // update user info to es
-  const { description, displayName, userName } = updateParams
-
-  if (description || displayName || userName) {
-    const searchable = omitBy({ description, displayName, userName }, isNil)
-
-    try {
-      await atomService.es.client.update({
-        index: 'user',
-        id: viewer.id,
-        body: {
-          doc: searchable,
-        },
-      })
-    } catch (err) {
-      logger.error(err)
-    }
   }
 
   // trigger notifications

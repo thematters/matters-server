@@ -177,14 +177,6 @@ class RevisionQueue extends BaseQueue {
             entityTypeId,
           })
 
-          // Step 6: add to search; async
-          this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-
           // Step 7: handle newly added mentions
           await this.handleMentions({
             article: updatedArticle,

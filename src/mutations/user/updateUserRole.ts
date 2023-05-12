@@ -17,19 +17,6 @@ const resolver: MutationToUpdateUserRoleResolver = async (
     data,
   })
 
-  try {
-    await atomService.es.client.update({
-      index: 'user',
-      id: dbId,
-      body: {
-        doc: data,
-      },
-    })
-  } catch (err) {
-    // logger.error(err)
-    console.error(new Date(), 'ERROR:', err)
-  }
-
   return user
 }
 

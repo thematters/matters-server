@@ -9,12 +9,6 @@ const resolver: MutationToRenameTagResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const newTag = await tagService.renameTag({ tagId: dbId, content })
 
-  // update tag for search engine
-  tagService.updateSearch({
-    id: newTag.id,
-    content: newTag.content,
-    description: newTag.description,
-  })
   return newTag
 }
 

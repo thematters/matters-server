@@ -132,18 +132,6 @@ class UserQueue extends BaseQueue {
               data,
             })
 
-            try {
-              await this.atomService.es.client.update({
-                index: 'user',
-                id: record.userId,
-                body: {
-                  doc: data,
-                },
-              })
-            } catch (err) {
-              logger.error(err)
-            }
-
             await this.userService.baseUpdate(
               record.id,
               { archived: true },
