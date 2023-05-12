@@ -4,7 +4,6 @@ import {
 } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -27,6 +26,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   AtomService,
   BaseService,
@@ -39,7 +39,7 @@ import {
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
-const debugLog = createDebug('article-service')
+const logger = getLogger('service-article')
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
@@ -977,8 +977,7 @@ export class ArticleService extends BaseService {
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
       // { countRes, articleIds }

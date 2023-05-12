@@ -1,6 +1,5 @@
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -66,8 +65,6 @@ import { likecoin } from './likecoin'
 import { medium } from './medium'
 
 const logger = getLogger('service-user')
-
-const debugLog = createDebug('user-service')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -593,8 +590,7 @@ export class UserService extends BaseService {
     const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `userService::searchV2 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryUsers: queryUsers.toString() },
       { sample: records?.slice(0, 3) }
