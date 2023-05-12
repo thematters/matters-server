@@ -40,10 +40,11 @@ import {
   TagService,
   UserService,
 } from 'connectors'
-import { sentryMiddleware } from 'middlewares/sentry'
+import { loggerMiddleware } from 'middlewares/logger'
 
 import schema from '../schema'
-const logger = getLogger('default')
+
+const logger = getLogger('graphql-cost-analysis')
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
@@ -75,9 +76,7 @@ class ProtectedApolloServer extends ApolloServer {
             return err
           },
           onComplete: (costs: number) =>
-            logger.info(
-              `[graphql-cost-analysis] costs: ${costs} (max: ${maximumCost})`
-            ),
+            logger.debug('costs: %d (max: %d)', costs, maximumCost),
         }),
       ],
     }
@@ -89,7 +88,7 @@ const cache = new RedisCache({
   port: environment.cachePort,
 })
 
-const composedSchema = applyMiddleware(schema, sentryMiddleware)
+const composedSchema = applyMiddleware(schema, loggerMiddleware)
 
 const exceptVariableNames = [
   'email',
