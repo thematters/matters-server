@@ -10,7 +10,7 @@ import {
 } from 'common/enums'
 import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   getUTCNextMonday,
   getUTCNextMonthDayOne,
@@ -18,6 +18,7 @@ import {
 } from 'common/utils'
 import SlackService from 'connectors/slack'
 import { User } from 'definitions'
+const logger = getLogger('default')
 
 /**
  * Interact with Stripe

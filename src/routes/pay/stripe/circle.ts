@@ -15,7 +15,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { toDBAmount } from 'common/utils'
 import {
   AtomService,
@@ -25,6 +25,7 @@ import {
 } from 'connectors'
 import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
+const logger = getLogger('default')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

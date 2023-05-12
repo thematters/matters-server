@@ -9,10 +9,11 @@ import {
   QUEUE_URL,
   USER_STATE,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { aws } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
+const logger = getLogger('default')
 
 interface ArchiveUserData {
   userId: string

@@ -1,7 +1,8 @@
 import _ from 'lodash'
 
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { LikerToRateUSDResolver } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: LikerToRateUSDResolver = async (
   { id },

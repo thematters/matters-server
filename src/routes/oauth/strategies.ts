@@ -5,8 +5,9 @@ import passport from 'passport'
 
 import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { CacheService, UserService } from 'connectors'
+const logger = getLogger('default')
 
 export default () => {
   passport.use(

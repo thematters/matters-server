@@ -3,9 +3,11 @@ import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { aws, cfsvc, knex, readonlyKnex, searchKnexDB } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
+
+const logger = getLogger('default')
 
 export class BaseService extends DataSource {
   aws: typeof aws

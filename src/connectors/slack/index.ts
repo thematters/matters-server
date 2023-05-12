@@ -2,7 +2,8 @@ import { WebClient } from '@slack/web-api'
 
 import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 class SlackService {
   client: WebClient

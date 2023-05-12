@@ -11,13 +11,14 @@ import {
   //  ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
 // import { gcp } from 'connectors'
 import {
   GQLVerificationCodeType,
   MutationToSendVerificationCodeResolver,
 } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,

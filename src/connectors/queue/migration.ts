@@ -15,7 +15,8 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { isTest } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 import { BaseQueue } from './baseQueue'
 

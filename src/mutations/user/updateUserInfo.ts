@@ -13,7 +13,7 @@ import {
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -27,6 +27,7 @@ import {
   ItemData,
   MutationToUpdateUserInfoResolver,
 } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,

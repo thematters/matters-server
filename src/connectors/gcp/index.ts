@@ -4,7 +4,8 @@ import axios from 'axios'
 import { LANGUAGE } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { ActionFailedError, UserInputError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 const { zh_hans, zh_hant, en } = LANGUAGE
 

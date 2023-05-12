@@ -3,7 +3,7 @@ import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import { DB_NOTICE_TYPE } from 'common/enums'
-// import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   GQLNotificationSettingType,
@@ -18,6 +18,8 @@ import {
   PutNoticeParams,
   User,
 } from 'definitions'
+
+const logger = getLogger('service:notice')
 
 export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
 
@@ -58,7 +60,6 @@ class Notice extends BaseService {
         })
         .into('notice_detail')
         .returning('*')
-      // logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
 
       // create notice
       const [{ id: noticeId }] = await trx
@@ -69,7 +70,6 @@ class Notice extends BaseService {
         })
         .into('notice')
         .returning('*')
-      // logger.info(`Inserted id ${noticeId} to notice`)
 
       // create notice actorId
       if (actorId) {
@@ -81,7 +81,6 @@ class Notice extends BaseService {
           })
           .into('notice_actor')
           .returning('*')
-        // logger.info(`Inserted id ${noticeActorId} to notice_actor`)
       }
 
       // craete notice entities
@@ -98,7 +97,6 @@ class Notice extends BaseService {
                 .from('entity_type')
                 .where({ table: entityTable })
                 .first()
-              // const [{ id: noticeEntityId }] =
               await trx
                 .insert({
                   type: entityType,
@@ -108,7 +106,6 @@ class Notice extends BaseService {
                 })
                 .into('notice_entity')
                 .returning('*')
-              // logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
             }
           )
         )
@@ -137,13 +134,12 @@ class Notice extends BaseService {
         .returning('*')
         .onConflict(['actor_id', 'notice_id'])
         .ignore() // .merge({ updatedAt: this.knex.fn.now(), })
-      // logger.info(`[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`)
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: this.knex.fn.now() })
-      // logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
+      logger.info(`updated id %s in notice`, noticeId)
     })
   }
 

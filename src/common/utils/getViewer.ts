@@ -11,10 +11,11 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
+const logger = getLogger('default')
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const authModes = [

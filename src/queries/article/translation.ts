@@ -2,9 +2,10 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { CacheService, gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: ArticleToTranslationResolver = async (
   {

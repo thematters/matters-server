@@ -3,7 +3,7 @@ import {
   DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { BaseService, UserService } from 'connectors'
 import {
   LANGUAGES,
@@ -15,6 +15,7 @@ import {
 import { mail } from './mail'
 import { notice } from './notice'
 import trans from './translations'
+const logger = getLogger('default')
 
 export class NotificationService extends BaseService {
   mail: typeof mail

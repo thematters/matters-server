@@ -1,4 +1,5 @@
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 export const sentryMiddleware = async (
   resolve: any,

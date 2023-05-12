@@ -1,9 +1,10 @@
 import 'module-alias/register'
 
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { ArticleService, DraftService } from 'connectors'
 
 import { countWords } from './content'
+const logger = getLogger('default')
 
 async function main() {
   const articleIds = process.argv.slice(2)

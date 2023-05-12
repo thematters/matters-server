@@ -7,9 +7,10 @@ import {
   AuthenticationError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToPutOAuthClientResolver } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: MutationToPutOAuthClientResolver = async (
   root,

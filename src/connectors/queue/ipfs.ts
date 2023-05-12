@@ -10,12 +10,13 @@ import {
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { timeout } from 'common/utils'
 import { ipfsServers } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
+const logger = getLogger('default')
 
 class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>

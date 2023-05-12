@@ -19,12 +19,13 @@ import {
 } from 'common/enums'
 import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { AtomService, BaseService, NotificationService } from 'connectors'
 import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
+const logger = getLogger('default')
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe

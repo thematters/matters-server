@@ -1,7 +1,8 @@
 import _ from 'lodash'
 
 import { LANGUAGE } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 // map supported language to header language
 export const langMap = {

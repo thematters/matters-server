@@ -36,7 +36,7 @@ import {
   PasswordNotAvailableError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidUserName,
@@ -64,6 +64,7 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
+const logger = getLogger('default')
 
 const debugLog = createDebug('user-service')
 

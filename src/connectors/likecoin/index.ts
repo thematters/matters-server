@@ -11,9 +11,10 @@ import {
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { aws, CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
+const logger = getLogger('default')
 
 interface LikeData {
   likerId: string

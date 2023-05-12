@@ -3,10 +3,11 @@ import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import SlackService from 'connectors/slack'
 
 import { updateAccount } from './account'
+const logger = getLogger('default')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

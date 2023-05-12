@@ -17,7 +17,7 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   countWords,
   extractAssetDataFromHtml,
@@ -27,6 +27,7 @@ import {
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
+const logger = getLogger('default')
 
 export class PublicationQueue extends BaseQueue {
   constructor() {

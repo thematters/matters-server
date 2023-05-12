@@ -12,13 +12,14 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { LikeCoinWebhookError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   AtomService,
   CacheService,
   PaymentService,
   UserService,
 } from 'connectors'
+const logger = getLogger('default')
 
 const likecoinRouter = Router()
 

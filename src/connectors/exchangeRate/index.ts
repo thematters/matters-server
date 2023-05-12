@@ -3,8 +3,9 @@ import axios from 'axios'
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import { NetworkError, UnknownError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { CacheService } from 'connectors'
+const logger = getLogger('default')
 
 // TYPES
 

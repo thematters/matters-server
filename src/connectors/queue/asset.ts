@@ -2,7 +2,8 @@ import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { isTest } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+const logger = getLogger('default')
 
 import { BaseQueue } from './baseQueue'
 

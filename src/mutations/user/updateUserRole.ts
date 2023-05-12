@@ -1,11 +1,10 @@
-// import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateUserRoleResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserRoleResolver = async (
   _,
   { input: { id, role } },
-  { viewer, dataSources: { atomService } }
+  { dataSources: { atomService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
 

@@ -1,52 +1,7 @@
-import * as Sentry from '@sentry/node'
-import * as fs from 'fs'
 import _get from 'lodash/get'
-import * as path from 'path'
 import { createLogger, format, transports } from 'winston'
-import Transport from 'winston-transport'
 
-import { isProd, isTest } from 'common/environment'
-
-const logPath = 'logs'
-
-// create logs dir if it does not exist
-if (!fs.existsSync(logPath)) {
-  fs.mkdirSync(logPath)
-}
-
-/**
- * Custom winston transport for Sentry.
- *
- */
-class SentryTransport extends Transport {
-  constructor(opts?: Transport.TransportStreamOptions) {
-    super(opts)
-  }
-
-  log(info: any, next: () => void) {
-    if (info.level === 'error') {
-      const code = _get(info, 'extensions.code')
-
-      switch (code) {
-        case 'CODE_EXPIRED':
-        case 'UNAUTHENTICATED':
-        case 'USER_EMAIL_NOT_FOUND':
-        case 'USER_USERNAME_EXISTS':
-        case 'USER_PASSWORD_INVALID': {
-          // Ingore errors
-          break
-        }
-        default: {
-          const sentryError = new Error(info.message)
-          sentryError.stack = info.stack
-          Sentry.captureException(sentryError)
-          break
-        }
-      }
-    }
-    next()
-  }
-}
+// import { isProd } from 'common/environment'
 
 /**
  * Simple format outputs:
@@ -54,34 +9,41 @@ class SentryTransport extends Transport {
  * YYYY-MM-DD HH:mm:ss `${level}: ${message} ${[object]}`
  *
  */
-const logger = createLogger({
-  level: 'info',
-  format: format.combine(
-    format.errors({ stack: true }),
-    format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss',
-    }),
-    format.printf(
-      (info) =>
-        `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
-    )
-  ),
-  transports: [
-    new transports.File({
-      filename: path.join(logPath, 'error.log'),
-      level: 'error',
-    }),
-    new transports.File({ filename: path.join(logPath, 'combined.log') }),
-    new SentryTransport({ level: 'error' }),
-  ],
+
+const getContext = format((info, _) => {
+  info.context = { requestId: 'test-request-id' }
+  return info
 })
 
-if (!isProd) {
-  logger.add(
-    new transports.Console({
-      level: isTest ? 'warn' : 'info',
-    })
-  )
-}
+const createWinstonLogger = (name: string) =>
+  createLogger({
+    level: 'info',
+    format: format.combine(
+      format.splat(),
+      getContext(),
+      format.label({ label: name }),
+      format.errors({ stack: true }),
+      format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss',
+      }),
+      format.printf(
+        (info) =>
+          `${info.timestamp} ${info.label} ${info.context.requestId} ${
+            info.level
+          }: ${JSON.stringify(info.message)}`
+      )
+    ),
+    transports: [new transports.Console({ level: 'info' })],
+  })
 
-export default logger
+const loggers = new Map()
+
+export const getLogger = (name: string) => {
+  const logger = loggers.get(name)
+  if (logger) {
+    return logger
+  }
+  const newLogger = createWinstonLogger(name)
+  loggers.set(name, newLogger)
+  return newLogger
+}

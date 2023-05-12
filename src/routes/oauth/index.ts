@@ -9,12 +9,13 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { OAuthService } from 'connectors'
 
 import OAuthServer from './express-oauth-server'
 import initPassportStrategies from './strategies'
+const logger = getLogger('default')
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()

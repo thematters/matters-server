@@ -1,6 +1,7 @@
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { ArticleToCanSuperLikeResolver } from 'definitions'
+const logger = getLogger('default')
 
 const resolver: ArticleToCanSuperLikeResolver = async (
   { articleId },

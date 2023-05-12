@@ -25,7 +25,7 @@ import {
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { ActionLimitExceededError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
 import {
   ArticleService,
@@ -43,6 +43,7 @@ import {
 import { sentryMiddleware } from 'middlewares/sentry'
 
 import schema from '../schema'
+const logger = getLogger('default')
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
