@@ -33,6 +33,8 @@ export const isProd = process.env.MATTERS_ENV === 'production'
 
 export const environment = {
   env: process.env.MATTERS_ENV,
+  loggingLevel: process.env.MATTERS_LOGGING_LEVEL || 'info',
+  debug: process.env.MATTERS_DEBUG || '',
   serverDomain: process.env.MATTERS_SERVER_DOMAIN || '',
   siteDomain: (process.env.MATTERS_SITE_DOMAIN || 'matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,

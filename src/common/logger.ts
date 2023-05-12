@@ -1,6 +1,8 @@
 import { AsyncLocalStorage } from 'async_hooks'
 import { createLogger, format, transports } from 'winston'
 
+import { environment } from 'common/environment'
+
 export const contextStorage = new AsyncLocalStorage<Map<string, string>>()
 
 const setRequestId = format((info, _) => {
@@ -11,9 +13,11 @@ const setRequestId = format((info, _) => {
   return info
 })
 
-const createWinstonLogger = (name: string) =>
+const console = new transports.Console({ level: 'debug' })
+
+const createWinstonLogger = (name: string, level: string) =>
   createLogger({
-    level: 'info',
+    level,
     format: format.combine(
       format.splat(),
       setRequestId(),
@@ -29,7 +33,7 @@ const createWinstonLogger = (name: string) =>
           }: ${info.message}`
       )
     ),
-    transports: [new transports.Console({ level: 'info' })],
+    transports: [console],
   })
 
 const loggers = new Map()
@@ -39,7 +43,10 @@ export const getLogger = (name: string) => {
   if (logger) {
     return logger
   }
-  const newLogger = createWinstonLogger(name)
+  const level = environment.debug.includes(name)
+    ? 'debug'
+    : environment.loggingLevel
+  const newLogger = createWinstonLogger(name, level)
   loggers.set(name, newLogger)
   return newLogger
 }
