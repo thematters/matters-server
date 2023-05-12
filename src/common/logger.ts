@@ -14,16 +14,16 @@ const setContext = format((info, _) => {
   return info
 })
 
-const console = new transports.Console({ level: 'debug' })
+const consoleTransport = new transports.Console({ level: 'debug' })
 
 const createWinstonLogger = (name: string, level: string) =>
   createLogger({
     level,
     format: format.combine(
+      format.errors({ stack: true }),
       format.splat(),
       setContext(),
       format.label({ label: name }),
-      format.errors({ stack: true }),
       format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss',
       }),
@@ -31,10 +31,10 @@ const createWinstonLogger = (name: string, level: string) =>
         (info) =>
           `${info.timestamp} ${info.requestId ?? '-'} ${info.label} ${
             info.level
-          }: ${info.message}`
+          }: ${info.message} ${info.stack ?? ''}`
       )
     ),
-    transports: [console],
+    transports: [consoleTransport],
   })
 
 const loggers = new Map()
