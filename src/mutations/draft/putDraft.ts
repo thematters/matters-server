@@ -1,7 +1,7 @@
-// import {
-//   normalizeArticleHTML,
-//   sanitizeHTML,
-// } from '@matters/matters-editor/transformers'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -30,8 +30,7 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
-// import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
@@ -159,8 +158,7 @@ const resolver: MutationToPutDraftResolver = async (
       title,
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
-      content: content && sanitize(content),
-      // content: content && normalizeArticleHTML(sanitizeHTML(content)),
+      content: content && normalizeArticleHTML(sanitizeHTML(content)),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
