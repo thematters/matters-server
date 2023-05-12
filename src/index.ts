@@ -4,9 +4,11 @@ import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
 import 'module-alias/register'
 import requestIp from 'request-ip'
+import { v4 } from 'uuid'
 
 import { CORS_OPTIONS, IMG_CACHE_PATH } from 'common/enums'
 import { environment } from 'common/environment'
+import { contextStorage } from 'common/logger'
 
 import * as routes from './routes'
 ;(async () => {
@@ -34,6 +36,14 @@ import * as routes from './routes'
   /**
    * Middlewares
    */
+  // store request-id in AsyncLocalStorage
+  app.use((req, _, next) => {
+    const traceId = req.header('x-trace-id')
+    const context = new Map<string, string>()
+    context.set('requestId', traceId ?? v4())
+    contextStorage.enterWith(context)
+    next()
+  })
   app.use(helmet({ contentSecurityPolicy: false }) as RequestHandler)
   app.use(requestIp.mw())
   app.use(cors(CORS_OPTIONS))

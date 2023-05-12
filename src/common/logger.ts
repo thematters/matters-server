@@ -1,17 +1,13 @@
-import _get from 'lodash/get'
+import { AsyncLocalStorage } from 'async_hooks'
 import { createLogger, format, transports } from 'winston'
 
-// import { isProd } from 'common/environment'
+export const contextStorage = new AsyncLocalStorage<Map<string, string>>()
 
-/**
- * Simple format outputs:
- *
- * YYYY-MM-DD HH:mm:ss `${level}: ${message} ${[object]}`
- *
- */
-
-const getContext = format((info, _) => {
-  info.context = { requestId: 'test-request-id' }
+const setRequestId = format((info, _) => {
+  const context = contextStorage.getStore()
+  if (context) {
+    info.requestId = context!.get('requestId')
+  }
   return info
 })
 
@@ -20,7 +16,7 @@ const createWinstonLogger = (name: string) =>
     level: 'info',
     format: format.combine(
       format.splat(),
-      getContext(),
+      setRequestId(),
       format.label({ label: name }),
       format.errors({ stack: true }),
       format.timestamp({
@@ -28,9 +24,9 @@ const createWinstonLogger = (name: string) =>
       }),
       format.printf(
         (info) =>
-          `${info.timestamp} ${info.label} ${info.context.requestId} ${
+          `${info.timestamp} ${info.requestId ?? '-'} ${info.label} ${
             info.level
-          }: ${JSON.stringify(info.message)}`
+          }: ${info.message}`
       )
     ),
     transports: [new transports.Console({ level: 'info' })],
