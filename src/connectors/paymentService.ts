@@ -25,7 +25,8 @@ import { AtomService, BaseService, NotificationService } from 'connectors'
 import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
-const logger = getLogger('default')
+
+const logger = getLogger('service-payment')
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe

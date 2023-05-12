@@ -16,7 +16,8 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-migration')
 
 import { BaseQueue } from './baseQueue'
 

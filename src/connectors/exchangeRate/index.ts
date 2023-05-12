@@ -5,7 +5,8 @@ import { environment } from 'common/environment'
 import { NetworkError, UnknownError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { CacheService } from 'connectors'
-const logger = getLogger('default')
+
+const logger = getLogger('service-exchange-rate')
 
 // TYPES
 

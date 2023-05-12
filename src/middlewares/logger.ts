@@ -1,6 +1,6 @@
 import { getLogger } from 'common/logger'
 
-const logger = getLogger('resolver')
+const logger = getLogger('middleware-logger')
 
 export const loggerMiddleware = async (
   resolve: any,

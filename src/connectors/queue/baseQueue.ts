@@ -15,7 +15,8 @@ import {
 import { knex } from 'connectors/db'
 
 import { createQueue, CustomQueueOpts } from './utils'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-base')
 
 export class BaseQueue {
   q: InstanceType<typeof Queue>

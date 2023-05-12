@@ -5,7 +5,8 @@ import { LANGUAGE } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
-const logger = getLogger('default')
+
+const logger = getLogger('service-gcp')
 
 const { zh_hans, zh_hant, en } = LANGUAGE
 

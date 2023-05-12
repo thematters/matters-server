@@ -27,7 +27,8 @@ import {
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
   constructor() {

@@ -5,10 +5,11 @@ import { environment } from 'common/environment'
 
 export const contextStorage = new AsyncLocalStorage<Map<string, string>>()
 
-const setRequestId = format((info, _) => {
+const setContext = format((info, _) => {
   const context = contextStorage.getStore()
   if (context) {
     info.requestId = context!.get('requestId')
+    // info.jobId = context!.get('jobId')
   }
   return info
 })
@@ -20,7 +21,7 @@ const createWinstonLogger = (name: string, level: string) =>
     level,
     format: format.combine(
       format.splat(),
-      setRequestId(),
+      setContext(),
       format.label({ label: name }),
       format.errors({ stack: true }),
       format.timestamp({

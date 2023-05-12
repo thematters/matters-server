@@ -16,7 +16,8 @@ import { ipfsServers } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-ipfs')
 
 class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>

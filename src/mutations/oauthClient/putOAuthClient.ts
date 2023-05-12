@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { nanoid } from 'nanoid'
 
 import { ASSET_TYPE } from 'common/enums'
@@ -10,10 +9,11 @@ import {
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToPutOAuthClientResolver } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('mutation-put-oauth-client')
 
 const resolver: MutationToPutOAuthClientResolver = async (
-  root,
+  _,
   {
     input: {
       id,

@@ -16,7 +16,7 @@ import {
 import { updateCustomerCard } from './customer'
 import { createRefundTxs, updateTxState } from './transaction'
 
-const logger = getLogger('route:stripe')
+const logger = getLogger('route-stripe')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

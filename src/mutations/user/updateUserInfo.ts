@@ -27,7 +27,8 @@ import {
   ItemData,
   MutationToUpdateUserInfoResolver,
 } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('mutation-to-update-user-info')
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,

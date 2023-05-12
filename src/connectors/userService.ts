@@ -64,7 +64,8 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
-const logger = getLogger('default')
+
+const logger = getLogger('service-user')
 
 const debugLog = createDebug('user-service')
 

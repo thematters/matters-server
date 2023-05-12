@@ -13,7 +13,8 @@ import { getLogger } from 'common/logger'
 import { aws } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-user')
 
 interface ArchiveUserData {
   userId: string

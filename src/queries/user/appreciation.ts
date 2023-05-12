@@ -5,7 +5,8 @@ import { ArticleNotFoundError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { i18n } from 'common/utils/i18n'
 import { GQLAppreciationTypeResolver } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('query-appreciation')
 
 const trans = {
   appreciateSubsidy: i18n({

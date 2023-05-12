@@ -25,7 +25,8 @@ import {
 } from 'connectors'
 import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('route-stripe-circle')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

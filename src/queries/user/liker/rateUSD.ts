@@ -1,11 +1,10 @@
-import _ from 'lodash'
-
 import { getLogger } from 'common/logger'
 import { LikerToRateUSDResolver } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('query-rate-usd')
 
 const resolver: LikerToRateUSDResolver = async (
-  { id },
+  _,
   __: any,
   { dataSources: { userService } }
 ) => {

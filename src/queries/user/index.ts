@@ -100,7 +100,7 @@ const user: {
   CryptoWallet: GQLCryptoWalletTypeResolver
 } = {
   Query: {
-    viewer: (root, _, { viewer }) => viewer,
+    viewer: (_, __, { viewer }) => viewer,
     user: rootUser,
   },
   User: {

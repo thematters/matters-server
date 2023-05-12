@@ -15,7 +15,8 @@ import { OAuthService } from 'connectors'
 
 import OAuthServer from './express-oauth-server'
 import initPassportStrategies from './strategies'
-const logger = getLogger('default')
+
+const logger = getLogger('route-oauth')
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()

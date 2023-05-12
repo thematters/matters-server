@@ -7,7 +7,8 @@ import { getLogger } from 'common/logger'
 import SlackService from 'connectors/slack'
 
 import { updateAccount } from './account'
-const logger = getLogger('default')
+
+const logger = getLogger('router-stripe-connect')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',

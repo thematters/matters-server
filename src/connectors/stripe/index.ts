@@ -18,7 +18,8 @@ import {
 } from 'common/utils'
 import SlackService from 'connectors/slack'
 import { User } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('service-stripe')
 
 /**
  * Interact with Stripe

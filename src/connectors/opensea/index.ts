@@ -3,7 +3,8 @@ import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-const logger = getLogger('default')
+
+const logger = getLogger('service-opensea')
 
 export class OpenSeaService extends RESTDataSource {
   apiKey?: string | undefined

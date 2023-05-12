@@ -14,7 +14,8 @@ import {
 import { getLogger } from 'common/logger'
 import { aws, CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('service-likecoin')
 
 interface LikeData {
   likerId: string

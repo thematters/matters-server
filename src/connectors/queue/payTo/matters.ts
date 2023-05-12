@@ -15,7 +15,8 @@ import { getLogger } from 'common/logger'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-payto-by-matters')
 
 interface PaymentParams {
   txId: string

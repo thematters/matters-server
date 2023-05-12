@@ -15,7 +15,8 @@ import { AtomService, ExchangeRate, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-payout')
 
 interface PaymentParams {
   txId: string

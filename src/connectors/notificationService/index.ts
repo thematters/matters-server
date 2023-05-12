@@ -15,7 +15,8 @@ import {
 import { mail } from './mail'
 import { notice } from './notice'
 import trans from './translations'
-const logger = getLogger('default')
+
+const logger = getLogger('service-notification')
 
 export class NotificationService extends BaseService {
   mail: typeof mail
@@ -31,7 +32,7 @@ export class NotificationService extends BaseService {
     try {
       await this.__trigger(params)
     } catch (e) {
-      logger.error('[Notification:trigger]', e)
+      logger.error(e)
     }
   }
 

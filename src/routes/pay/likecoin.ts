@@ -19,7 +19,8 @@ import {
   PaymentService,
   UserService,
 } from 'connectors'
-const logger = getLogger('default')
+
+const logger = getLogger('route-likecoin')
 
 const likecoinRouter = Router()
 

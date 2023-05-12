@@ -3,7 +3,8 @@ import { generateTypeScriptTypes } from 'graphql-schema-typescript'
 import 'module-alias/register'
 
 import { getLogger } from 'common/logger'
-const logger = getLogger('default')
+
+const logger = getLogger('utils')
 
 const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 

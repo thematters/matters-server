@@ -5,7 +5,8 @@ import 'module-alias/register'
 
 import { getLogger } from 'common/logger'
 import typeDefs from 'types'
-const logger = getLogger('default')
+
+const logger = getLogger('utils')
 
 const schemaObj = makeExecutableSchema({
   typeDefs,

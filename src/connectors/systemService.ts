@@ -17,7 +17,7 @@ import {
   Viewer,
 } from 'definitions'
 
-const logger = getLogger('systemService')
+const logger = getLogger('service-system')
 
 export class SystemService extends BaseService {
   featureFlagTable: string

@@ -18,7 +18,8 @@ import {
   OAuthToken,
   User,
 } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('service-oauth')
 
 export class OAuthService extends BaseService {
   constructor() {

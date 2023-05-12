@@ -5,7 +5,8 @@ import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { CacheService, gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('query-translations')
 
 const resolver: ArticleToTranslationResolver = async (
   {

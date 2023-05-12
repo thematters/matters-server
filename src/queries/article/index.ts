@@ -71,7 +71,8 @@ import translation from './translation'
 import userArticles from './user/articles'
 // import userTags from './user/tags'
 import userTopics from './user/topics'
-const logger = getLogger('default')
+
+const logger = getLogger('query-article')
 
 export default {
   Query: {

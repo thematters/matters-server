@@ -21,7 +21,8 @@ import { getLogger } from 'common/logger'
 import { likecoin } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
-const logger = getLogger('default')
+
+const logger = getLogger('queue-appreciation')
 
 interface AppreciationParams {
   amount: number

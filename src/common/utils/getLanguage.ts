@@ -2,7 +2,8 @@ import _ from 'lodash'
 
 import { LANGUAGE } from 'common/enums'
 import { getLogger } from 'common/logger'
-const logger = getLogger('default')
+
+const logger = getLogger('utils-language')
 
 // map supported language to header language
 export const langMap = {
@@ -45,8 +46,7 @@ export const getLanguage = (acceptLanguage?: string) => {
       return reverseMap[requestList[supportIndex]]
     }
   } catch (err) {
-    logger.error(err)
-    console.error(new Date(), 'ERROR:', err, { acceptLanguage })
+    logger.error({ acceptLanguage }, err)
   }
 
   return LANGUAGE.zh_hant

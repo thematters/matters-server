@@ -4,7 +4,7 @@ import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToReadArticleResolver } from 'definitions'
 
-const logger = getLogger('mutation:readArticle')
+const logger = getLogger('mutation-read-article')
 
 const resolver: MutationToReadArticleResolver = async (
   _,

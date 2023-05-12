@@ -13,7 +13,8 @@ import { getFileName } from 'common/utils'
 import { aws, cfsvc, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
 import { GQLAssetType } from 'definitions'
-const logger = getLogger('default')
+
+const logger = getLogger('service-medium')
 
 const throttle = pThrottle({
   limit: 2,
