@@ -27,9 +27,9 @@ const createWinstonLogger = (name: string, level: string) =>
       }),
       format.printf(
         (info) =>
-          `${info.timestamp} ${info.requestId ?? '-'} ${info.label} ${
+          `${info.timestamp} ${info.requestId ?? '-'} ${info.label} [${
             info.level
-          }: ${info.message} ${info.stack ?? ''}`
+          }]: ${info.message} ${info.stack ?? ''}`
       )
     ),
     transports: [new transports.Console({ level })],
