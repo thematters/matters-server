@@ -14,8 +14,6 @@ const setContext = format((info, _) => {
   return info
 })
 
-const consoleTransport = new transports.Console({ level: 'debug' })
-
 const createWinstonLogger = (name: string, level: string) =>
   createLogger({
     level,
@@ -34,7 +32,7 @@ const createWinstonLogger = (name: string, level: string) =>
           }: ${info.message} ${info.stack ?? ''}`
       )
     ),
-    transports: [consoleTransport],
+    transports: [new transports.Console({ level })],
   })
 
 const loggers = new Map()
