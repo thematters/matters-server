@@ -121,13 +121,13 @@ class GCP {
     const { success, score } = data
 
     if (!success) {
-      console.error(new Date(), 'gcp recaptcha no success:', data)
+      logger.warn('gcp recaptcha no success:', data)
       throw new ActionFailedError(`please try again: ${data['error-codes']}`)
     }
 
     // fail for less than 0.5
     if (score < 0.5) {
-      console.log('very likely bot traffic:', data)
+      logger.info('very likely bot traffic:', data)
     }
 
     // pass

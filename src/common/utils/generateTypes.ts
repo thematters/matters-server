@@ -17,7 +17,6 @@ generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
     process.exit(0)
   })
   .catch((err) => {
-    console.log(err)
     logger.error(err)
     process.exit(1)
   })

@@ -4,7 +4,10 @@ import fetch from 'node-fetch'
 import path from 'path'
 
 import { environment, isProd } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('service-cloudflare')
 
 const envPrefix = isProd ? 'prod' : 'non-prod'
 
@@ -40,10 +43,9 @@ export class CloudflareService {
     try {
       const resData = await res.json()
 
-      console.log(new Date(), 'CloudflareService upload image:', resData)
+      logger.info('CloudflareService upload image:', resData)
     } catch (err) {
-      console.error(
-        new Date(),
+      logger.error(
         'CloudflareService upload image ERROR:',
         err,
         res.ok,
@@ -81,10 +83,9 @@ export class CloudflareService {
 
     try {
       const resData = await res.json()
-      console.log(new Date(), 'CloudflareService upload image:', resData)
+      logger.info('CloudflareService upload image:', resData)
     } catch (err) {
-      console.error(
-        new Date(),
+      logger.error(
         'CloudflareService upload image ERROR:',
         err,
         res.ok,

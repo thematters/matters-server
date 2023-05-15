@@ -9,8 +9,11 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { getFileName } from 'common/utils'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('service-aws')
 
 export class AWSService {
   s3: AWS.S3
@@ -173,7 +176,7 @@ export class AWSService {
         case 'NotFound':
           break
         default:
-          console.error(new Date(), 'ERROR:', err)
+          logger.error(err)
           throw err
       }
     }

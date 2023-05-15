@@ -79,7 +79,6 @@ class AssetQueue extends BaseQueue {
       done(null, job.data)
     } catch (err) {
       logger.error(err)
-      console.error('delete assets ERROR:', err)
       done(err)
     }
   }

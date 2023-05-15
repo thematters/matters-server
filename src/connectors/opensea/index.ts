@@ -54,7 +54,6 @@ export class OpenSeaService extends RESTDataSource {
       return data.assets
     } catch (err) {
       logger.error(err)
-      // console.error(new Date(), 'ERROR:', err)
 
       return []
     }

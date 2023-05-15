@@ -4,11 +4,13 @@ import { create } from 'ipfs-http-client'
 import fetch from 'node-fetch'
 import { Readable } from 'stream'
 import { promisify } from 'util'
-// import { v4 } from 'uuid'
-
-const generateKeyPairPromisified = promisify(generateKeyPair)
 
 import { environment } from 'common/environment'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('service-ipfs')
+
+const generateKeyPairPromisified = promisify(generateKeyPair)
 
 const ipfsServerUrls = (
   environment.ipfsServers ||
@@ -66,13 +68,11 @@ export class IPFSServer {
       body: formData,
     })
     try {
-      // console.log(new Date(), `POST ${ipfsServerUrls[idx]}/api/v0/key/import with formData:`, formData, 'res:', res.ok, res.headers)
       const imported = await res.json()
 
       return { imported, client: this.clients[idx] }
     } catch (err) {
-      console.error(
-        new Date(),
+      logger.error(
         'importKey ERROR:',
         err,
         res.ok,

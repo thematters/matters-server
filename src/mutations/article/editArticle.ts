@@ -38,6 +38,7 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   fromGlobalId,
   measureDiffs,
@@ -50,6 +51,8 @@ import {
   DataSources,
   MutationToEditArticleResolver,
 } from 'definitions'
+
+const logger = getLogger('mutation-edit-article')
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -386,7 +389,7 @@ const resolver: MutationToEditArticleResolver = async (
     try {
       contentMd = html2md(_content)
     } catch (e) {
-      console.error('failed to convert HTML to Markdown', draft.id)
+      logger.warn('failed to convert HTML to Markdown', draft.id)
     }
     const data: Record<string, any> = lodash.omitBy(
       {

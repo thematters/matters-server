@@ -1064,8 +1064,7 @@ export class TagService extends BaseService {
         .filter(Boolean)
         .map((tag) =>
           this.follow({ targetId: tag.id, userId }).catch((err) =>
-            console.error(
-              new Date(),
+            logger.error(
               `ERROR: follow "${tag.id}-${tag.content}" failed:`,
               err,
               tag

@@ -28,7 +28,7 @@ import {
   MutationToUpdateUserInfoResolver,
 } from 'definitions'
 
-const logger = getLogger('mutation-to-update-user-info')
+const logger = getLogger('mutation-update-user-info')
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -72,8 +72,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
           uuid
         )
       } catch (err) {
-        // ...
-        console.error(`baseServerSideUploadFile error:`, err)
+        logger.error(`baseServerSideUploadFile error:`, err)
         throw err
       }
       if (keyPath) {
