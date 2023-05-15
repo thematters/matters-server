@@ -45,7 +45,7 @@ export const createQueue = (
 
   queue.on('active', (job, _) => {
     // A job has started. You can use `jobPromise.cancel()`` to abort it.
-    logger.debug(`Job#%s has started.`, job.id)
+    logger.info(`Job#%s has started.`, job.id)
   })
 
   queue.on('stalled', (job) => {
@@ -66,7 +66,7 @@ export const createQueue = (
 
   queue.on('completed', (job, result) => {
     // A job successfully completed with a `result`.
-    logger.debug('Job#%s/%s has been completed: %o.', job.id, job.name, result)
+    logger.info('Job#%s/%s has been completed: %o.', job.id, job.name, result)
   })
 
   queue.on('failed', (job, err) => {

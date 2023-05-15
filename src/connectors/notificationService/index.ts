@@ -201,7 +201,7 @@ export class NotificationService extends BaseService {
     )) as User
 
     if (!recipient) {
-      logger.info(`recipient ${params.recipientId} not found, skipped`)
+      logger.warn(`recipient ${params.recipientId} not found, skipped`)
       return
     }
 
@@ -213,7 +213,7 @@ export class NotificationService extends BaseService {
 
     // skip if actor === recipient
     if ('actorId' in params && params.actorId === params.recipientId) {
-      logger.info(
+      logger.warn(
         `Actor ${params.actorId} is same as recipient ${params.recipientId}, skipped`
       )
       return

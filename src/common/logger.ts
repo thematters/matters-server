@@ -18,8 +18,8 @@ const createWinstonLogger = (name: string, level: string) =>
   createLogger({
     level,
     format: format.combine(
-      format.errors({ stack: true }),
       format.splat(),
+      format.errors({ stack: true }),
       setContext(),
       format.label({ label: name }),
       format.timestamp({
@@ -49,3 +49,7 @@ export const getLogger = (name: string) => {
   loggers.set(name, newLogger)
   return newLogger
 }
+
+// print environment
+
+getLogger('env').debug('environment %s', environment)

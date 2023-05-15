@@ -196,13 +196,15 @@ export class AWSService {
   /**
    * Delete file from AWS S3 by a given path key.
    */
-  baseDeleteFile = async (key: string) =>
-    this.s3
+  baseDeleteFile = async (key: string) => {
+    logger.info(`Deleting file from S3: ${key}`)
+    await this.s3
       .deleteObject({
         Bucket: this.s3Bucket,
         Key: key,
       })
       .promise()
+  }
 
   sqsSendMessage = async ({
     messageBody,
@@ -214,15 +216,16 @@ export class AWSService {
     queueUrl: typeof QUEUE_URL[keyof typeof QUEUE_URL]
     messageGroupId?: string
     messageDeduplicationId?: string
-  }) =>
-    this.sqs
-      ?.sendMessage({
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: queueUrl,
-        MessageGroupId: messageGroupId,
-        MessageDeduplicationId: messageDeduplicationId,
-      })
-      .promise()
+  }) => {
+    const payload = {
+      MessageBody: JSON.stringify(messageBody),
+      QueueUrl: queueUrl,
+      MessageGroupId: messageGroupId,
+      MessageDeduplicationId: messageDeduplicationId,
+    }
+    const res = await this.sqs?.sendMessage(payload).promise()
+    logger.info(`Sent message %o to SQS: %o`, payload, res)
+  }
 
   snsPublishMessage = async ({
     // MessageGroupId,
@@ -231,8 +234,8 @@ export class AWSService {
     // MessageGroupId: string
     // Message: any
     MessageBody: any
-  }) =>
-    this.sns
+  }) => {
+    const res = this.sns
       ?.publish({
         Message: JSON.stringify({
           default: JSON.stringify(MessageBody),
@@ -246,6 +249,8 @@ export class AWSService {
         TopicArn: environment.awsArticlesSnsTopic,
       })
       .promise()
+    logger.info(`Sent message %o to SNS: %o`, MessageBody, res)
+  }
 }
 
 export const aws = new AWSService()

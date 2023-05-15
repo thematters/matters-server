@@ -155,6 +155,7 @@ export class LikeCoin {
         }
       }
 
+      logger.info('request %s with %s', endpoint, params)
       return axios({
         url: endpoint,
         baseURL: likecoinApiURL,
@@ -613,7 +614,7 @@ export class LikeCoin {
     }
 
     if (!data.iscnId) {
-      logger.error('iscnPublish failed posted results:', res, 'with:', postData)
+      logger.warn('iscnPublish failed posted results:', res, 'with:', postData)
     }
 
     return data.iscnId
