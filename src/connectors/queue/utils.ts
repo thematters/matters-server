@@ -71,7 +71,7 @@ export const createQueue = (
 
   queue.on('failed', (job, err) => {
     // A job failed with reason `err`!
-    logger.error('Job#%s failed:', job.id, { job, err })
+    logger.error('Job#%s failed: %j', job.id, { job, err })
   })
 
   queue.on('paused', () => {

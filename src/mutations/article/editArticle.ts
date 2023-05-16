@@ -389,7 +389,7 @@ const resolver: MutationToEditArticleResolver = async (
     try {
       contentMd = html2md(_content)
     } catch (e) {
-      logger.warn('failed to convert HTML to Markdown', draft.id)
+      logger.warn('draft %s failed to convert HTML to Markdown', draft.id)
     }
     const data: Record<string, any> = lodash.omitBy(
       {

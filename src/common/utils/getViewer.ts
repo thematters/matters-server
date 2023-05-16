@@ -46,7 +46,7 @@ export const getUserGroup = ({
       num = parseInt(last, 10) || 0
     }
   } catch (error) {
-    logger.warn('ERROR:', error, { id, ip })
+    logger.warn('getUserGroup failed: %j', { id, ip })
   }
   return num % 2 === 0 ? 'a' : 'b'
 }
@@ -170,7 +170,7 @@ export const getViewerFromReq = async ({
     // overwrite request by user settings
     user = { ...user, ...userDB }
   } catch (err) {
-    logger.info(err)
+    logger.warn(err)
 
     if (req && res) {
       clearCookie({ req, res })

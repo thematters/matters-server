@@ -239,7 +239,7 @@ export class AWSService {
     // Message: any
     MessageBody: any
   }) => {
-    const res = this.sns
+    const res = (await this.sns
       ?.publish({
         Message: JSON.stringify({
           default: JSON.stringify(MessageBody),
@@ -252,7 +252,7 @@ export class AWSService {
         // QueueUrl: environment.awsIpfsArticlesQueueUrl,
         TopicArn: environment.awsArticlesSnsTopic,
       })
-      .promise() as any
+      .promise()) as any
     logger.info(
       'SNS sent message %j with request-id %s',
       MessageBody,
