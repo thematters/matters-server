@@ -223,8 +223,12 @@ export class AWSService {
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
     }
-    const res = await this.sqs?.sendMessage(payload).promise()
-    logger.info(`Sent message %o to SQS: %o`, payload, res)
+    const res = (await this.sqs?.sendMessage(payload).promise()) as any
+    logger.info(
+      'SQS sent message %j with request-id %s',
+      payload,
+      res.ResponseMetadata.RequestId
+    )
   }
 
   snsPublishMessage = async ({
@@ -248,8 +252,12 @@ export class AWSService {
         // QueueUrl: environment.awsIpfsArticlesQueueUrl,
         TopicArn: environment.awsArticlesSnsTopic,
       })
-      .promise()
-    logger.info(`Sent message %o to SNS: %o`, MessageBody, res)
+      .promise() as any
+    logger.info(
+      'SNS sent message %j with request-id %s',
+      MessageBody,
+      res.ResponseMetadata.RequestId
+    )
   }
 }
 

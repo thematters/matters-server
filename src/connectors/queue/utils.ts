@@ -45,7 +45,7 @@ export const createQueue = (
 
   queue.on('active', (job, _) => {
     // A job has started. You can use `jobPromise.cancel()`` to abort it.
-    logger.info(`Job#%s has started.`, job.id)
+    logger.info(`Job#%s/%s has started.`, job.id, job.name)
   })
 
   queue.on('stalled', (job) => {
@@ -66,7 +66,7 @@ export const createQueue = (
 
   queue.on('completed', (job, result) => {
     // A job successfully completed with a `result`.
-    logger.info('Job#%s/%s has been completed: %o.', job.id, job.name, result)
+    logger.info('Job#%s/%s has been completed: %j.', job.id, job.name, result)
   })
 
   queue.on('failed', (job, err) => {
@@ -84,7 +84,7 @@ export const createQueue = (
     logger.info('The queue has been resumed.')
   })
 
-  queue.on('cleaned', (jobs, type) => {
+  queue.on('cleaned', (jobs, _) => {
     // Old jobs have been cleaned from the queue. `jobs` is an array of cleaned
     // jobs, and `type` is the type of jobs cleaned.
     logger.info(
@@ -100,7 +100,7 @@ export const createQueue = (
 
   queue.on('removed', (job) => {
     // A job successfully removed.
-    logger.info('Job#%s has been removed.', job.id)
+    logger.info('Job#%s/%s has been removed.', job.id, job.name)
   })
 
   return queue
