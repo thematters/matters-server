@@ -167,7 +167,11 @@ class RevisionQueue extends BaseQueue {
           job.progress(70)
         } catch (err) {
           // ignore errors caused by these steps
-          logger.error('job failed at optional step:', err, job, draft.id)
+          logger.warn('job failed at optional step: %j', {
+            err,
+            job,
+            draftId: draft.id,
+          })
         }
 
         // Step 8: trigger notifications
@@ -270,7 +274,11 @@ class RevisionQueue extends BaseQueue {
             forceReplace: true,
           })
         } catch (err) {
-          logger.warn('job failed at optional step:', err, job, draft.id)
+          logger.warn('job failed at optional step: %j', {
+            err,
+            job,
+            draftId: draft.id,
+          })
         }
 
         job.progress(100)

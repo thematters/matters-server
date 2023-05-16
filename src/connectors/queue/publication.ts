@@ -137,7 +137,7 @@ export class PublicationQueue extends BaseQueue {
       try {
         contentMd = html2md(draft.content)
       } catch (e) {
-        logger.warn('failed to convert HTML to Markdown', draft.id)
+        logger.warn('draft %s failed to convert HTML to Markdown', draft.id)
       }
       const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -219,7 +219,7 @@ export class PublicationQueue extends BaseQueue {
         await job.progress(75)
       } catch (err) {
         // ignore errors caused by these steps
-        logger.warn('optional step failed:', err, job, draft)
+        logger.warn('optional step failed: %j', { err, job, draft })
       }
 
       // Step 7: trigger notifications

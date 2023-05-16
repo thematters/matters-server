@@ -15,7 +15,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   try {
     viewer = await getViewerFromReq({ req })
   } catch (err) {
-    logger.error('ERROR:', err)
+    logger.error(err)
   }
   if (!viewer?.id) {
     res.status(401).end()
@@ -33,7 +33,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
       uuid
     )
   } catch (err) {
-    logger.error('cloudflare upload image ERROR:', err)
+    logger.error(err)
     res.status(400).end()
     return
   }

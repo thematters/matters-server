@@ -609,12 +609,16 @@ export class LikeCoin {
     })
 
     if (!data) {
-      logger.error('iscnPublish with no data:', res)
+      logger.error('iscnPublish with no data: %j', res)
       throw res
     }
 
     if (!data.iscnId) {
-      logger.warn('iscnPublish failed posted results:', res, 'with:', postData)
+      logger.warn(
+        'iscnPublish failed posted results: %j with: %j',
+        res,
+        postData
+      )
     }
 
     return data.iscnId

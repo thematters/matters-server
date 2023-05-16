@@ -43,10 +43,10 @@ export class CloudflareService {
     try {
       const resData = await res.json()
 
-      logger.info('CloudflareService upload image:', resData)
+      logger.info('upload image: %j', resData)
     } catch (err) {
       logger.error(
-        'CloudflareService upload image ERROR:',
+        'error: %j ok: %j headers: %j',
         err,
         res.ok,
         res.headers
@@ -83,10 +83,10 @@ export class CloudflareService {
 
     try {
       const resData = await res.json()
-      logger.info('CloudflareService upload image:', resData)
+      logger.info('upload image: %j', resData)
     } catch (err) {
       logger.error(
-        'CloudflareService upload image ERROR:',
+        'error: %j ok: %j headers: %j',
         err,
         res.ok,
         res.headers

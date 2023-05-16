@@ -280,7 +280,7 @@ export class ArticleService extends BaseService {
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
-      logger.error('create IPNS key ERROR:', ipnsKeyRec)
+      logger.error('create IPNS key ERROR: %j', ipnsKeyRec)
       return
     }
 
@@ -324,7 +324,7 @@ export class ArticleService extends BaseService {
 
     const lastDraft = publishedDrafts[0]
     if (!lastDraft) {
-      logger.error('fetching published drafts ERROR:', {
+      logger.error('fetching published drafts ERROR: %j', {
         authorId: author.id,
         publishedDraftIds,
       })
@@ -356,7 +356,7 @@ export class ArticleService extends BaseService {
           'last_published',
         ],
       })
-      logger.info('start update IPNSRec:', updatedIPNSRec)
+      logger.info('start update IPNSRec: %j', updatedIPNSRec)
 
       // make a bundle of json+xml+html index
       const feed = new Feed(author, ipnsKey, publishedDrafts)
@@ -502,20 +502,22 @@ export class ArticleService extends BaseService {
               // ignore: key with name 'for-...' already exists
             }
             logger.warn(
-              `ipfs.name.publish (for ${userName}) failed; retry ${++retries} time, ERROR:`,
-              err,
+              'ipfs.name.publish (for %s) %j failed; retry %d time',
+              userName,
+              ++retries,
               {
                 cidToPublish: cidToPublish.toString(),
                 kname,
                 ipnsKey,
                 ipfsServerId: await ipfs.id(),
-              }
+              },
+              err
             )
           }
         } while (retries <= this.ipfsServers.size)
       }
 
-      logger.info(`/${directoryName} published:`, published)
+      logger.info('/%s published: %s', directoryName, published)
 
       this.aws
         .sqsSendMessage({
@@ -541,13 +543,17 @@ export class ArticleService extends BaseService {
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
     } catch (err) {
-      logger.error(`publishFeedToIPNS last ERROR:`, err, {
-        ipnsKey,
-        kname,
-        directoryName,
+      logger.error(
+        `publishFeedToIPNS last ERROR: %j`,
+        {
+          ipnsKey,
+          kname,
+          directoryName,
 
-        userName: author.userName,
-      })
+          userName: author.userName,
+        },
+        err
+      )
     } finally {
       let updatedRec
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
@@ -570,7 +576,7 @@ export class ArticleService extends BaseService {
           ],
         })
       } else {
-        logger.error('publishFeedToIPNS: not published, or remained same:', {
+        logger.error('publishFeedToIPNS: not published, or remained same: %j', {
           published,
           cidToPublish: cidToPublish.toString(),
         })
@@ -578,8 +584,7 @@ export class ArticleService extends BaseService {
 
       const end = new Date()
       logger.info(
-        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`,
-        updatedRec
+        `IPNS published: elapsed %s min %j`, ((+end - started) / 60e3).toFixed(1), updatedRec
       )
     }
   }
