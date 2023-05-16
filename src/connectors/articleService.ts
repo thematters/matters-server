@@ -468,10 +468,9 @@ export class ArticleService extends BaseService {
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
       logger.info(
-        `directoryName stat after tried ${
-          incremental ? 'last 1' : publishedDrafts.length
-        }, and actually attached ${attached.length} articles:`,
-        dirStat1.cid.toString(),
+        'directoryName stat after tried %s, and actually attached %s articles: %j',
+        incremental ? 'last 1' : publishedDrafts.length,
+        attached.length,
         { dirStat0, dirStat1, attached }
       )
 
@@ -517,7 +516,7 @@ export class ArticleService extends BaseService {
         } while (retries <= this.ipfsServers.size)
       }
 
-      logger.info('/%s published: %s', directoryName, published)
+      logger.info('/%s published: %j', directoryName, published)
 
       this.aws
         .sqsSendMessage({

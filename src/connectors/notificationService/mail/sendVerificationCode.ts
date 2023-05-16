@@ -29,43 +29,46 @@ export const sendVerificationCode = async ({
   const hasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
   const link = `${redirectUrl}${hasQs ? '&' : '?'}code=${code}&type=${type}`
 
-  await mailService.send({
-    from: environment.emailFromAsk as string,
-    templateId,
-    personalizations: [
-      {
-        to,
-        // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
-        dynamic_template_data: {
-          subject,
-          siteDomain: environment.siteDomain,
-          copyrightYear: new Date().getFullYear(),
-          type: {
-            register: type === GQLVerificationCodeType.register,
-            emailReset: type === GQLVerificationCodeType.email_reset,
-            emailResetConfirm:
-              type === GQLVerificationCodeType.email_reset_confirm,
-            passwordReset: type === GQLVerificationCodeType.password_reset,
-            paymentPasswordReset:
-              type === GQLVerificationCodeType.payment_password_reset,
+  await mailService.send(
+    {
+      from: environment.emailFromAsk as string,
+      templateId,
+      personalizations: [
+        {
+          to,
+          // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
+          dynamic_template_data: {
+            subject,
+            siteDomain: environment.siteDomain,
+            copyrightYear: new Date().getFullYear(),
+            type: {
+              register: type === GQLVerificationCodeType.register,
+              emailReset: type === GQLVerificationCodeType.email_reset,
+              emailResetConfirm:
+                type === GQLVerificationCodeType.email_reset_confirm,
+              passwordReset: type === GQLVerificationCodeType.password_reset,
+              paymentPasswordReset:
+                type === GQLVerificationCodeType.payment_password_reset,
+            },
+            recipient: {
+              ...recipient,
+              email: to,
+            },
+            ...(redirectUrl ? { link } : { code }),
           },
-          recipient: {
-            ...recipient,
-            email: to,
-          },
-          ...(redirectUrl ? { link } : { code }),
+        },
+      ],
+      trackingSettings: {
+        ganalytics: {
+          enable: true,
+          utmSource: 'matters',
+          utmMedium: 'email',
+          // utmTerm?: string;
+          utmContent: type,
+          // utmCampaign?: string;
         },
       },
-    ],
-    trackingSettings: {
-      ganalytics: {
-        enable: true,
-        utmSource: 'matters',
-        utmMedium: 'email',
-        // utmTerm?: string;
-        utmContent: type,
-        // utmCampaign?: string;
-      },
     },
-  })
+    true
+  )
 }

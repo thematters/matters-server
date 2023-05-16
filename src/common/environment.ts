@@ -46,6 +46,7 @@ export const environment = {
   awsIpfsArticlesQueueUrl:
     process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
+  awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
