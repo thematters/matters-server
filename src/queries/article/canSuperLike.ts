@@ -1,6 +1,8 @@
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { ArticleToCanSuperLikeResolver } from 'definitions'
+
+const logger = getLogger('mutation-superlike')
 
 const resolver: ArticleToCanSuperLikeResolver = async (
   { articleId },

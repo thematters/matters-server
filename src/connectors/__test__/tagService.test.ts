@@ -49,7 +49,6 @@ describe('search', () => {
       take: 10,
       quicksearch: true,
     })
-    console.log(new Date(), 'res:', res)
     expect(res.nodes?.[0]?.numArticles).toBeGreaterThanOrEqual(
       res.nodes?.[1]?.numArticles
     )
@@ -78,7 +77,6 @@ describe('search', () => {
       take: 10,
       quicksearch: true,
     })
-    console.log(new Date(), 'res:', res1)
     expect(res1.nodes.length).toBe(4)
     expect(res1.totalCount).toBe(4)
     const res2 = await tagService.search({

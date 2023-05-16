@@ -4,7 +4,6 @@ import {
 } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -27,6 +26,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   AtomService,
   BaseService,
@@ -39,7 +39,7 @@ import {
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
-const debugLog = createDebug('article-service')
+const logger = getLogger('service-article')
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
@@ -241,8 +241,7 @@ export class ArticleService extends BaseService {
         return { contentHash, mediaHash, key }
       } catch (err) {
         // if the active IPFS client throws exception, try a few more times on Secondary
-        console.error(
-          new Date(),
+        logger.error(
           `publishToIPFS failed, retries ${++retries} time, ERROR:`,
           err
         )
@@ -251,7 +250,7 @@ export class ArticleService extends BaseService {
     } while (ipfs && retries <= this.ipfsServers.size) // break the retry if there's no backup
 
     // re-fill dataHash & mediaHash later in IPNS-listener
-    console.error(new Date(), `failed publishToIPFS after ${retries} retries.`)
+    logger.error(`failed publishToIPFS after ${retries} retries.`)
   }
 
   // DEPRECATED, To Be Deleted
@@ -281,7 +280,7 @@ export class ArticleService extends BaseService {
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
-      console.error(new Date(), 'create IPNS key ERROR:', ipnsKeyRec)
+      logger.error('create IPNS key ERROR:', ipnsKeyRec)
       return
     }
 
@@ -300,11 +299,7 @@ export class ArticleService extends BaseService {
     } catch (err) {
       // ignore: key with name 'for-...' already exists
       if (!ipnsKey && err) {
-        console.error(
-          new Date(),
-          `ERROR: no ipnsKey for user: ${author.userName}`,
-          err
-        )
+        logger.error(`ERROR: no ipnsKey for user: ${author.userName}`, err)
       }
     }
 
@@ -329,7 +324,7 @@ export class ArticleService extends BaseService {
 
     const lastDraft = publishedDrafts[0]
     if (!lastDraft) {
-      console.error(new Date(), 'fetching published drafts ERROR:', {
+      logger.error('fetching published drafts ERROR:', {
         authorId: author.id,
         publishedDraftIds,
       })
@@ -361,7 +356,7 @@ export class ArticleService extends BaseService {
           'last_published',
         ],
       })
-      console.log(new Date(), 'start update IPNSRec:', updatedIPNSRec)
+      logger.info('start update IPNSRec:', updatedIPNSRec)
 
       // make a bundle of json+xml+html index
       const feed = new Feed(author, ipnsKey, publishedDrafts)
@@ -387,7 +382,6 @@ export class ArticleService extends BaseService {
         results.push(result)
       }
       // const entriesMap = new Map(results.map((e: any) => [e.path, e]))
-      // console.log(new Date(), 'contents feed.json ::', results, entriesMap)
 
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
@@ -455,8 +449,7 @@ export class ArticleService extends BaseService {
             break
           } catch (err) {
             // ignore HTTPError: GATEWAY_TIMEOUT
-            console.error(
-              new Date(),
+            logger.warn(
               `publishFeedToIPNS ipfs.files.cp attach'ing failed; delete target and retry ${retries} time, ERROR:`,
               err
             )
@@ -474,8 +467,7 @@ export class ArticleService extends BaseService {
         withLocal: true,
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
-      console.log(
-        new Date(),
+      logger.info(
         `directoryName stat after tried ${
           incremental ? 'last 1' : publishedDrafts.length
         }, and actually attached ${attached.length} articles:`,
@@ -509,8 +501,7 @@ export class ArticleService extends BaseService {
             } catch (err) {
               // ignore: key with name 'for-...' already exists
             }
-            console.error(
-              new Date(),
+            logger.warn(
               `ipfs.name.publish (for ${userName}) failed; retry ${++retries} time, ERROR:`,
               err,
               {
@@ -524,7 +515,7 @@ export class ArticleService extends BaseService {
         } while (retries <= this.ipfsServers.size)
       }
 
-      console.log(new Date(), `/${directoryName} published:`, published)
+      logger.info(`/${directoryName} published:`, published)
 
       this.aws
         .sqsSendMessage({
@@ -546,13 +537,11 @@ export class ArticleService extends BaseService {
           queueUrl: QUEUE_URL.ipfsArticles,
         })
         // .then(res => {})
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
     } catch (err) {
-      console.error(new Date(), `publishFeedToIPNS last ERROR:`, err, {
+      logger.error(`publishFeedToIPNS last ERROR:`, err, {
         ipnsKey,
         kname,
         directoryName,
@@ -581,16 +570,14 @@ export class ArticleService extends BaseService {
           ],
         })
       } else {
-        console.error(
-          new Date(),
-          'publishFeedToIPNS: not published, or remained same:',
-          { published, cidToPublish: cidToPublish.toString() }
-        )
+        logger.error('publishFeedToIPNS: not published, or remained same:', {
+          published,
+          cidToPublish: cidToPublish.toString(),
+        })
       }
 
       const end = new Date()
-      console.log(
-        end,
+      logger.info(
         `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`,
         updatedRec
       )
@@ -977,8 +964,7 @@ export class ArticleService extends BaseService {
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
       // { countRes, articleIds }

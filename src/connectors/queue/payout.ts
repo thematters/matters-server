@@ -9,12 +9,14 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { numMinus, numRound, numTimes } from 'common/utils'
 import { AtomService, ExchangeRate, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-payout')
 
 interface PaymentParams {
   txId: string

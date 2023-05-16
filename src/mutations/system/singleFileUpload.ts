@@ -11,8 +11,11 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
+import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
+
+const logger = getLogger('mutation-upload')
 
 const getFileName = (disposition: string, url: string) => {
   if (disposition) {
@@ -114,7 +117,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
       ? await systemService.cfsvc.baseUploadFile(type, upload, uuid)
       : await systemService.aws.baseUploadFile(type, upload, uuid)
   } catch (err) {
-    console.error(new Date(), 'cloudflare upload image ERROR:')
+    logger.error('cloudflare upload image ERROR:', err)
     throw err
   }
 

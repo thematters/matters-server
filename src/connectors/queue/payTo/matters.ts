@@ -11,10 +11,12 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
+
+const logger = getLogger('queue-payto-by-matters')
 
 interface PaymentParams {
   txId: string

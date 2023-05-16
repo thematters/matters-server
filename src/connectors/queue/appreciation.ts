@@ -17,10 +17,12 @@ import {
   ForbiddenError,
   UserNotFoundError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { likecoin } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-appreciation')
 
 interface AppreciationParams {
   amount: number

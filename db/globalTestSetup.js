@@ -16,7 +16,7 @@ const user = process.env['MATTERS_PG_USER']
 const password = process.env['MATTERS_PG_PASSWORD']
 
 // https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
-const isCI = !!process.env['CI']
+const debug = process.env['MATTERS_LOGGING_LEVEL'] === 'debug'
 
 global.knex = knex
 
@@ -79,11 +79,11 @@ async function runShellDBRollup() {
     const sh = spawn('sh', ['-xc', cmd], { cwd, env })
 
     sh.stdout.on('data', (data) => {
-      if (isCI) console.log(`stdout: ${data}`)
+      if (debug) console.log(`stdout: ${data}`)
     })
 
     sh.stderr.on('data', (data) => {
-      if (isCI) console.log(`stderr: ${data}`)
+      if (debug) console.log(`stderr: ${data}`)
     })
 
     sh.on('error', (error) => {
@@ -92,7 +92,7 @@ async function runShellDBRollup() {
     })
 
     sh.on('close', (code) => {
-      if (isCI) console.log(`child process exited with code ${code}`)
+      if (debug) console.log(`child process exited with code ${code}`)
       fulfilled()
     })
   })

@@ -47,7 +47,7 @@
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^7.4.5",
-    "@sentry/node": "^6.16.1",
+    "@sentry/node": "^7.51.2",
     "@slack/web-api": "^6.5.1",
     "apollo-cache-control": "^0.11.1",
     "apollo-datasource": "^3.0.2",
@@ -65,7 +65,6 @@
     "cookie": "^0.4.1",
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",
-    "debug": "^4.3.4",
     "dotenv": "^10.0.0",
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.6.1",
@@ -109,7 +108,6 @@
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "winston": "^3.3.3",
-    "winston-transport": "^4.4.0",
     "xss": "^1.0.9"
   },
   "devDependencies": {

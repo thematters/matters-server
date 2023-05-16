@@ -13,7 +13,7 @@ import {
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -27,6 +27,8 @@ import {
   ItemData,
   MutationToUpdateUserInfoResolver,
 } from 'definitions'
+
+const logger = getLogger('mutation-update-user-info')
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -70,8 +72,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
           uuid
         )
       } catch (err) {
-        // ...
-        console.error(`baseServerSideUploadFile error:`, err)
+        logger.error(`baseServerSideUploadFile error:`, err)
         throw err
       }
       if (keyPath) {

@@ -11,9 +11,11 @@ import {
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { aws, CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
+
+const logger = getLogger('service-likecoin')
 
 interface LikeData {
   likerId: string
@@ -153,6 +155,7 @@ export class LikeCoin {
         }
       }
 
+      logger.info('request %s with %s', endpoint, params)
       return axios({
         url: endpoint,
         baseURL: likecoinApiURL,
@@ -606,17 +609,12 @@ export class LikeCoin {
     })
 
     if (!data) {
-      console.error('iscnPublish with no data:', res)
+      logger.error('iscnPublish with no data:', res)
       throw res
     }
 
     if (!data.iscnId) {
-      console.error(
-        'iscnPublish failed posted results:',
-        res,
-        'with:',
-        postData
-      )
+      logger.warn('iscnPublish failed posted results:', res, 'with:', postData)
     }
 
     return data.iscnId

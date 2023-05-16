@@ -7,7 +7,7 @@ import {
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
 } from 'common/enums'
-// import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   GQLFeatureFlag,
@@ -16,6 +16,8 @@ import {
   SkippedListItemType,
   Viewer,
 } from 'definitions'
+
+const logger = getLogger('service-system')
 
 export class SystemService extends BaseService {
   featureFlagTable: string
@@ -305,8 +307,7 @@ export class SystemService extends BaseService {
     })
 
     const logError = (err: Error) => {
-      // logger.error(err)
-      console.error('delete assets ERROR:', err)
+      logger.error(err)
     }
 
     await Promise.allSettled(

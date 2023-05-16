@@ -1,5 +1,4 @@
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import { Knex } from 'knex'
 
 import {
@@ -9,10 +8,11 @@ import {
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
-const debugLog = createDebug('tag-service')
+const logger = getLogger('service-tag')
 
 export class TagService extends BaseService {
   constructor() {
@@ -512,8 +512,6 @@ export class TagService extends BaseService {
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
 
-    // debugLog(new Date(), `searchV2 tag got search key:`, {key, keyOriginal,})
-
     const strip0 = key.startsWith('#') || key.startsWith('＃')
     const _key = strip0 ? key.slice(1) : key
 
@@ -591,8 +589,7 @@ export class TagService extends BaseService {
     const nodes = (await queryTags) as Item[]
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `tagService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
       { sample: nodes?.slice(0, 3) }
@@ -1067,8 +1064,7 @@ export class TagService extends BaseService {
         .filter(Boolean)
         .map((tag) =>
           this.follow({ targetId: tag.id, userId }).catch((err) =>
-            console.error(
-              new Date(),
+            logger.error(
               `ERROR: follow "${tag.id}-${tag.content}" failed:`,
               err,
               tag

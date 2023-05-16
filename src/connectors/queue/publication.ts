@@ -17,7 +17,7 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   countWords,
   extractAssetDataFromHtml,
@@ -27,6 +27,8 @@ import {
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
   constructor() {
@@ -135,7 +137,7 @@ export class PublicationQueue extends BaseQueue {
       try {
         contentMd = html2md(draft.content)
       } catch (e) {
-        console.error('failed to convert HTML to Markdown', draft.id)
+        logger.warn('failed to convert HTML to Markdown', draft.id)
       }
       const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
@@ -217,7 +219,7 @@ export class PublicationQueue extends BaseQueue {
         await job.progress(75)
       } catch (err) {
         // ignore errors caused by these steps
-        console.error(new Date(), 'optional step failed:', err, job, draft)
+        logger.warn('optional step failed:', err, job, draft)
       }
 
       // Step 7: trigger notifications
@@ -321,10 +323,7 @@ export class PublicationQueue extends BaseQueue {
         await job.progress(95)
       } catch (err) {
         // ignore errors caused by these steps
-        logger.error(err)
-
-        console.error(
-          new Date(),
+        logger.warn(
           'job IPFS optional step failed (will retry async later in listener):',
           err,
           job,
@@ -343,9 +342,7 @@ export class PublicationQueue extends BaseQueue {
       // no await to notify async
       this.articleService
         .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       // no await to notify async
       this.atomService.aws
@@ -368,9 +365,7 @@ export class PublicationQueue extends BaseQueue {
           },
         })
         // .then(res => {})
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sns notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sns notify:', err))
 
       done(null, {
         articleId: article.id,

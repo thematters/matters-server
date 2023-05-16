@@ -1,7 +1,7 @@
 import Queue from 'bull'
 import { Knex } from 'knex'
 
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   ArticleService,
   AtomService,
@@ -15,6 +15,8 @@ import {
 import { knex } from 'connectors/db'
 
 import { createQueue, CustomQueueOpts } from './utils'
+
+const logger = getLogger('queue-base')
 
 export class BaseQueue {
   q: InstanceType<typeof Queue>

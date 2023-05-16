@@ -27,6 +27,7 @@ export * from './article'
 export * from './language'
 export * from './schema'
 export * from './notification'
+export * from './generic'
 
 export type User = {
   id: string

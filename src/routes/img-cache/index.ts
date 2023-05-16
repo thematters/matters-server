@@ -1,9 +1,12 @@
 import { Request, Response, Router } from 'express'
 import { v4 } from 'uuid'
 
+import { getLogger } from 'common/logger'
 import { getViewerFromReq } from 'common/utils'
 import { cfsvc } from 'connectors'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('route-img-cache')
 
 export const imgCache = Router()
 
@@ -12,7 +15,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   try {
     viewer = await getViewerFromReq({ req })
   } catch (err) {
-    console.error(new Date(), 'ERROR:', err)
+    logger.error('ERROR:', err)
   }
   if (!viewer?.id) {
     res.status(401).end()
@@ -30,7 +33,7 @@ imgCache.get('/*', async (req: Request, res: Response) => {
       uuid
     )
   } catch (err) {
-    console.error(new Date(), 'cloudflare upload image ERROR:', err)
+    logger.error('cloudflare upload image ERROR:', err)
     res.status(400).end()
     return
   }

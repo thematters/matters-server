@@ -8,20 +8,20 @@ import {
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
-  //  ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
-// import { gcp } from 'connectors'
 import {
   GQLVerificationCodeType,
   MutationToSendVerificationCodeResolver,
 } from 'definitions'
 
+const logger = getLogger('mutation-send-verificaiton-code')
+
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl } },
+  { input: { email: rawEmail, type, redirectUrl } },
   {
     viewer,
     dataSources: {
@@ -49,12 +49,6 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
-
-    //  // check token for Turing test
-    //  const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
-    //  if (!isHuman) {
-    //    throw new ForbiddenError('registration via scripting is not allowed')
-    //  }
   }
 
   if (

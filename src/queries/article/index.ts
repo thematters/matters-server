@@ -5,7 +5,7 @@ import {
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { toGlobalId } from 'common/utils'
 import { GQLArticleLicenseType } from 'definitions'
 
@@ -71,6 +71,8 @@ import translation from './translation'
 import userArticles from './user/articles'
 // import userTags from './user/tags'
 import userTopics from './user/topics'
+
+const logger = getLogger('query-article')
 
 export default {
   Query: {
