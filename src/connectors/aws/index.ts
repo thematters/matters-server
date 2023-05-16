@@ -217,6 +217,9 @@ export class AWSService {
     messageGroupId?: string
     messageDeduplicationId?: string
   }) => {
+    if (isTest) {
+      return
+    }
     const payload = {
       MessageBody: JSON.stringify(messageBody),
       QueueUrl: queueUrl,
@@ -239,6 +242,9 @@ export class AWSService {
     // Message: any
     MessageBody: any
   }) => {
+    if (isTest) {
+      return
+    }
     const res = (await this.sns
       ?.publish({
         Message: JSON.stringify({
