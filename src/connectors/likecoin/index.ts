@@ -155,7 +155,7 @@ export class LikeCoin {
         }
       }
 
-      logger.info('request %s with %s', endpoint, params)
+      logger.info('request %s with %j', endpoint, axiosOptions.data)
       return axios({
         url: endpoint,
         baseURL: likecoinApiURL,
