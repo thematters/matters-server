@@ -584,7 +584,9 @@ export class ArticleService extends BaseService {
 
       const end = new Date()
       logger.info(
-        `IPNS published: elapsed %s min %j`, ((+end - started) / 60e3).toFixed(1), updatedRec
+        'IPNS published: elapsed %s min %j',
+        ((+end - started) / 60e3).toFixed(1),
+        updatedRec
       )
     }
   }
