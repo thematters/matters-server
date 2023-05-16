@@ -1,9 +1,16 @@
 import { AsyncLocalStorage } from 'async_hooks'
 import { createLogger, format, transports } from 'winston'
 
+import { LOGGING_CONTEXT_KEY, LOGGING_LEVEL } from 'common/enums'
 import { environment } from 'common/environment'
+import type { ValueOf } from 'definitions'
 
-export const contextStorage = new AsyncLocalStorage<Map<string, string>>()
+export type LoggingLevel = ValueOf<typeof LOGGING_LEVEL>
+export type LoggingContextKey = ValueOf<typeof LOGGING_CONTEXT_KEY>
+
+export const contextStorage = new AsyncLocalStorage<
+  Map<LoggingContextKey, string>
+>()
 
 const setContext = format((info, _) => {
   const context = contextStorage.getStore()
@@ -14,7 +21,7 @@ const setContext = format((info, _) => {
   return info
 })
 
-const createWinstonLogger = (name: string, level: string) =>
+const createWinstonLogger = (name: string, level: LoggingLevel) =>
   createLogger({
     level,
     format: format.combine(
@@ -43,8 +50,8 @@ export const getLogger = (name: string) => {
     return logger
   }
   const level = environment.debug.includes(name)
-    ? 'debug'
-    : environment.loggingLevel
+    ? LOGGING_LEVEL.debug
+    : (environment.loggingLevel as LoggingLevel)
   const newLogger = createWinstonLogger(name, level)
   loggers.set(name, newLogger)
   return newLogger

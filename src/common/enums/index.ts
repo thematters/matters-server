@@ -25,6 +25,7 @@ export * from './hardcode'
 export * from './cors'
 export * from './routes'
 export * from './sqs'
+export * from './logging'
 
 export const GRAPHQL_COST_LIMIT = 500
 
