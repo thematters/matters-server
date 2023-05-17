@@ -92,7 +92,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         value: agentHash,
       })
     }
-    logger.info(new Error(`email ${email} is in blocklist`))
+    logger.warn(`email ${email} is in blocklist`)
 
     if (isFingerprintEnabled) {
       return true
@@ -103,7 +103,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   const domain = email.split('@')[1]
   const banDomain = await systemService.findSkippedItem(TYPE_DOMAIN, domain)
   if (banDomain && banDomain.archived === false) {
-    logger.info(new Error(`domain ${domain} is in blocklist`))
+    logger.warn(`domain ${domain} is in blocklist`)
     return true
   }
 
@@ -119,7 +119,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         uuid: banAgentHash.uuid,
         value: email,
       })
-      logger.info(new Error(`agent hash ${agentHash} is in blocklist`))
+      logger.warn(`agent hash ${agentHash} is in blocklist`)
 
       if (isFingerprintEnabled) {
         return true
