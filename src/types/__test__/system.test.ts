@@ -636,7 +636,7 @@ describe('manage user restrictions', () => {
     })
     expect(data2!.oss.restrictedUsers.totalCount).toBe(2)
     expect(
-      data2!.oss.restrictedUsers.edges[0].oss!.restrictions.map(
+      data2!.oss.restrictedUsers.edges[0].node.oss!.restrictions.map(
         ({ type }: { type: GQLUserRestrictionType }) => type
       )
     ).toEqual(['articleHottest'])
