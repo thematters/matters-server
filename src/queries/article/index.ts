@@ -84,10 +84,16 @@ export default {
     topics: userTopics,
   },
   Article: {
-    id: ({ articleId, id }: { articleId: string; id: string }) => {
+    id: (
+      { articleId, id }: { articleId: string; id: string },
+      _: any,
+      __: any,
+      info: any
+    ) => {
       if (!articleId) {
         logger.warn(
-          "Article's fields should derive from Draft instead of Article itself. There are some resolvers needed to be fixed"
+          "Article's fields should derive from Draft instead of Article: %j",
+          info.path
         )
         return toGlobalId({ type: NODE_TYPES.Article, id })
       }
