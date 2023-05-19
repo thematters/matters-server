@@ -540,7 +540,7 @@ describe('manage user restrictions', () => {
   const userId1 = toGlobalId({ type: NODE_TYPES.User, id: '2' })
   const userId2 = toGlobalId({ type: NODE_TYPES.User, id: '3' })
   const userName1 = 'test2'
-  test.only('no restrictions by default', async () => {
+  test('no restrictions by default', async () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
