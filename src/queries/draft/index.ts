@@ -35,7 +35,7 @@ export default {
     cover: draftCover,
     collection,
     assets,
-    article: (root: any) => root,
+    article: (root: any) => (root.articleId ? root : null),
     access: (root: any) => root,
     license: ({ license }: { license: any }) =>
       license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,

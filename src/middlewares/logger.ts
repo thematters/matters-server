@@ -13,7 +13,7 @@ export const loggerMiddleware = async (
     const result = await resolve(root, args, context, info)
     return result
   } catch (error) {
-    logger.info('args: %j', args)
+    logger.info('field:%s root:%j args:%j', info.fieldName, root, args)
     if (error.extensions) {
       // expected errors
       logger.warn('%s: %s', error.name, error.message)
