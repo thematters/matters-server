@@ -375,7 +375,7 @@ export class PublicationQueue extends BaseQueue {
         iscnPublish: iscnPublish || draft.iscnPublish,
         iscnId: article.iscnId,
       })
-    } catch (e) {
+    } catch (err: any) {
       await Promise.all([
         this.articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.error,
@@ -384,7 +384,7 @@ export class PublicationQueue extends BaseQueue {
           publishState: PUBLISH_STATE.error,
         }),
       ])
-      done(e)
+      done(err)
     }
   }
 

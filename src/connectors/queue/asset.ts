@@ -77,7 +77,7 @@ class AssetQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (err) {
+    } catch (err: any) {
       logger.error(err)
       done(err)
     }

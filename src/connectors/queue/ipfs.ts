@@ -120,14 +120,14 @@ class IPFSQueue extends BaseQueue {
         })
       }
       done(null, { succeedIds, failedIds })
-    } catch (error) {
-      logger.error(error)
+    } catch (err: any) {
+      logger.error(err)
       this.slackService.sendQueueMessage({
         title: `${QUEUE_NAME.ipfs}:verifyIPFSPinHashes`,
         message: `Failed to process cron job`,
         state: SLACK_MESSAGE_STATE.failed,
       })
-      done(error)
+      done(err)
     }
   }
 

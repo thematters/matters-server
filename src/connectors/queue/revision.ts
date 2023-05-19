@@ -318,7 +318,7 @@ class RevisionQueue extends BaseQueue {
           iscnPublish, // : iscnPublish || draft.iscnPublish,
           iscnId: draft.iscnId,
         })
-      } catch (e) {
+      } catch (err: any) {
         await this.draftService.baseUpdate(draft.id, {
           publishState: PUBLISH_STATE.error,
         })
@@ -331,7 +331,7 @@ class RevisionQueue extends BaseQueue {
           ],
         })
 
-        done(e)
+        done(err)
       }
     }
 

@@ -145,9 +145,9 @@ class MigrationQueue extends BaseQueue {
 
           job.progress(100)
           done(null, 'Migration has finished.')
-        } catch (error) {
-          logger.error(error)
-          done(error)
+        } catch (err: any) {
+          logger.error(err)
+          done(err)
         }
       }
     )

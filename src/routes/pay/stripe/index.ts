@@ -45,7 +45,7 @@ stripeRouter.post('/', async (req, res) => {
       sig,
       environment.stripeWebhookSecret
     )
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err)
     slack.sendStripeAlert({
       data: {
@@ -121,13 +121,13 @@ stripeRouter.post('/', async (req, res) => {
         })
         break
     }
-  } catch (error) {
-    logger.error(error)
+  } catch (err: any) {
+    logger.error(err)
     slack.sendStripeAlert({
       data: slackEventData,
-      message: `Server error: ${error.message}`,
+      message: `Server error: ${err.message}`,
     })
-    throw error
+    throw err
   }
 
   // Return a 200 res to acknowledge receipt of the event

@@ -171,7 +171,7 @@ export class AWSService {
       ) {
         return key
       }
-    } catch (err) {
+    } catch (err: any) {
       switch (err.code) {
         case 'NotFound':
           break

@@ -78,7 +78,7 @@ class StripeService {
         email: user.email,
         metadata: { [METADATA_KEY.USER_ID]: user.id },
       })
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -97,7 +97,7 @@ class StripeService {
           default_payment_method: paymentMethod,
         },
       })
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -105,7 +105,7 @@ class StripeService {
   getPaymentMethod = async (id: string) => {
     try {
       return await this.stripeAPI.paymentMethods.retrieve(id)
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -134,7 +134,7 @@ class StripeService {
         amount: toProviderAmount({ amount }),
         currency,
       })
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -162,7 +162,7 @@ class StripeService {
         usage: 'off_session',
         metadata,
       })
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -204,7 +204,7 @@ class StripeService {
         currency: account.default_currency,
         onboardingUrl: url,
       }
-    } catch (err) {
+    } catch (err: any) {
       this.handleError(err)
     }
   }
@@ -244,8 +244,8 @@ class StripeService {
         destination: recipientStripeConnectedId,
         metadata: { [METADATA_KEY.TX_ID]: txId },
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -259,8 +259,8 @@ class StripeService {
         name,
         metadata: { [METADATA_KEY.USER_ID]: owner },
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -268,8 +268,8 @@ class StripeService {
     logger.info('update product %s to %s', id, name)
     try {
       return await this.stripeAPI.products.update(id, { name })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -298,8 +298,8 @@ class StripeService {
         recurring: { interval },
         unit_amount: toProviderAmount({ amount }),
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -328,8 +328,8 @@ class StripeService {
         items: [{ price }],
         proration_behavior: 'none',
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -337,8 +337,8 @@ class StripeService {
     logger.info('cancel subscription %s', id)
     try {
       return await this.stripeAPI.subscriptions.del(id, { prorate: false })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -361,8 +361,8 @@ class StripeService {
         quantity: 1,
         subscription,
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -372,8 +372,8 @@ class StripeService {
       return await this.stripeAPI.subscriptionItems.del(id, {
         proration_behavior: 'none',
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -383,8 +383,8 @@ class StripeService {
         subscription: id,
         limit: 100,
       })
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 
@@ -397,8 +397,8 @@ class StripeService {
         customer: customerId,
       })
       return session.url
-    } catch (error) {
-      this.handleError(error)
+    } catch (err: any) {
+      this.handleError(err)
     }
   }
 }
