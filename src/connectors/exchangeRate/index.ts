@@ -88,7 +88,7 @@ export class ExchangeRate {
   }
 
   private fetchRate = async ({ from, to }: Pair): Promise<Rate | never> => {
-    logger.warn(
+    logger.info(
       'exchangeRate requested APIs to get rates instead of from cache'
     )
 
