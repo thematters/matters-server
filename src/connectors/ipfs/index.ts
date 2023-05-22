@@ -68,7 +68,7 @@ export class IPFSServer {
       body: formData,
     })
     try {
-      const imported = await res.json()
+      const imported = (await res.json()) as { Id: string }
 
       return { imported, client: this.clients[idx] }
     } catch (err) {
