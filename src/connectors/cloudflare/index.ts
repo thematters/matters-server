@@ -119,7 +119,7 @@ export class CloudflareService {
   // internal helpers
 
   private genKey = (folder: string, uuid: string, extension: string): string =>
-    `${folder}/${uuid}.${extension}`
+    `${folder}/${uuid}${extension ? '.' + extension : extension}`
 }
 
 export const cfsvc = new CloudflareService()
