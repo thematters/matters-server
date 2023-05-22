@@ -15,6 +15,8 @@ import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_CONTENT_LENGTH,
+  MAX_ARTICLE_CONTENT_REVISION_LENGTH,
   MAX_ARTICLE_REVISION_COUNT,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
@@ -39,12 +41,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import {
-  fromGlobalId,
-  measureDiffs,
-  normalizeTagInput,
-  stripClass,
-} from 'common/utils'
+import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
 import {
   Article,
@@ -293,7 +290,6 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Revision Count
    */
-  const isUpdatingContent = !!content
   const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
   const checkRevisionCount = () => {
@@ -380,11 +376,9 @@ const resolver: MutationToEditArticleResolver = async (
     )
 
     // create draft linked to this article
-    const cleanedContent = stripClass(
-      newContent || currDraft.content,
-      'u-area-disable'
+    const _content = normalizeArticleHTML(
+      sanitizeHTML(newContent || currDraft.content)
     )
-    const _content = normalizeArticleHTML(sanitizeHTML(cleanedContent))
     let contentMd = ''
     try {
       contentMd = html2md(_content)
@@ -425,14 +419,18 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (isUpdatingContent) {
+  if (!!content) {
+    // check for content length limit
+    if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
+      throw new UserInputError('content reach length limit')
+    }
+
     // check diff distances reaches limit or not
-    const cleanedContent = stripClass(content || '', 'u-area-disable')
     const diffs = measureDiffs(
       stripHtml(draft.content, ''),
-      stripHtml(cleanedContent, '')
+      stripHtml(content, '')
     )
-    if (diffs > 50) {
+    if (diffs > MAX_ARTICLE_CONTENT_REVISION_LENGTH) {
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
