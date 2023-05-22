@@ -138,7 +138,7 @@
     "@types/winston": "^2.4.4",
     "@types/ws": "^8.5.4",
     "chokidar": "^3.5.3",
-    "chokidar-cli": "^2.1.0",
+    "chokidar-cli": "^3.0.0",
     "codecov": "^3.8.3",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
