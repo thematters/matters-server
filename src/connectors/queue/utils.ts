@@ -17,6 +17,8 @@ export const sharedQueueOpts = {
     return new Redis({
       host: environment.queueHost,
       port: environment.queuePort,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
     })
   },
   defaultJobOptions: {

@@ -35,6 +35,9 @@ beforeAll(async () => {
   redisPort = await redisServer.getPort()
   redisHost = await redisServer.getHost()
   jest.spyOn(sharedQueueOpts, 'createClient').mockImplementation(() => {
-    return new Redis(redisPort, redisHost)
+    return new Redis(redisPort, redisHost, {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+    })
   })
 }, 10000)

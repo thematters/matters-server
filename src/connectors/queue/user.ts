@@ -94,15 +94,15 @@ class UserQueue extends BaseQueue {
               })
               activatedUsers.push(user.id)
               job.progress(((index + 1) / activatableUsers.length) * 100)
-            } catch (e) {
-              logger.error(e)
+            } catch (err: any) {
+              logger.error(err)
             }
           })
         )
 
         done(null, activatedUsers)
-      } catch (e) {
-        done(e)
+      } catch (err: any) {
+        done(err)
       }
     }
 
@@ -145,15 +145,15 @@ class UserQueue extends BaseQueue {
             })
             users.push(record.userId)
             job.progress(((index + 1) / records.length) * 100)
-          } catch (e) {
-            logger.error(e)
+          } catch (err: any) {
+            logger.error(err)
           }
         })
       )
 
       done(null, users)
-    } catch (e) {
-      done(e)
+    } catch (err: any) {
+      done(err)
     }
   }
 }

@@ -1,5 +1,5 @@
 import { RedisCache } from 'apollo-server-cache-redis'
-import Redis from 'ioredis'
+import type Redis from 'ioredis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'
@@ -99,7 +99,7 @@ export class CacheService {
 
     const key = this.genKey(keys)
 
-    let data = await (this.redis.client as Redis.Redis).get(key)
+    let data = await (this.redis.client as Redis).get(key)
     data = JSON.parse(data as string)
 
     // get the data if there is none
@@ -127,6 +127,6 @@ export class CacheService {
     keys: KeyInfo
   }) => {
     const key = this.genKey(keys)
-    await (this.redis.client as Redis.Redis).del(key)
+    await (this.redis.client as Redis).del(key)
   }
 }

@@ -38,7 +38,7 @@ interface UpdateCivicLikerCacheData {
   likerId: string
   userId: string
   key: string
-  expire: typeof CACHE_TTL[keyof typeof CACHE_TTL]
+  expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
 }
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
@@ -170,10 +170,10 @@ export class LikeCoin {
       // call makeRequest at most twice
       try {
         return await makeRequest()
-      } catch (e) {
-        const err = _.get(e, 'response.data')
+      } catch (err: any) {
+        const data = _.get(err, 'response.data')
 
-        switch (err) {
+        switch (data) {
           case ERROR_CODES.TOKEN_EXPIRED:
           case ERROR_CODES.LOGIN_NEEDED:
             if (liker && retries++ < 1) {
@@ -195,8 +195,8 @@ export class LikeCoin {
             )
         }
 
-        logger.error(e)
-        throw e
+        logger.error(err)
+        throw err
       }
     }
   }

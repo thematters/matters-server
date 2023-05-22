@@ -162,9 +162,9 @@ class AppreciationQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (error) {
-      logger.error(error)
-      done(error)
+    } catch (err: any) {
+      logger.error(err)
+      done(err)
     }
   }
 }

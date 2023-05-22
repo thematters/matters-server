@@ -141,12 +141,12 @@ class PayoutQueue extends BaseQueue {
       const exchangeRate = new ExchangeRate()
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
-      } catch (error) {
+      } catch (err: any) {
         slack.sendStripeAlert({
           data,
-          message: error?.message || 'failed to get currency rate.',
+          message: err?.message || 'failed to get currency rate.',
         })
-        throw error
+        throw err
       }
 
       const amount = numRound(tx.amount)
@@ -220,22 +220,22 @@ class PayoutQueue extends BaseQueue {
 
       job.progress(100)
       done(null, { txId, stripeTxId: transfer.id })
-    } catch (error) {
+    } catch (err: any) {
       slack.sendStripeAlert({
         data,
         message: `failed to payout: ${data.txId}.`,
       })
 
-      if (txId && error.name !== 'PaymentQueueJobDataError') {
+      if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
-        } catch (error) {
-          logger.error(error)
+        } catch (err) {
+          logger.error(err)
         }
       }
 
-      logger.error(error)
-      done(error)
+      logger.error(err)
+      done(err)
     }
   }
 }

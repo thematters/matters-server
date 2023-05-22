@@ -353,12 +353,12 @@ export const completeCircleInvoice = async ({
     } else {
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
     }
-  } catch (error) {
-    logger.error(error)
+  } catch (err: any) {
+    logger.error(err)
     slack.sendStripeAlert({
       data: slackEventData,
-      message: error,
+      message: err.message,
     })
-    throw error
+    throw err
   }
 }

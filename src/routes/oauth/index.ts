@@ -125,7 +125,7 @@ oAuthRouter.get('/:provider', (req, res, next) => {
 oAuthRouter.get('/:provider/callback', (req, res, next) => {
   const provider = req.params.provider
 
-  passport.authenticate(provider, (err, user, info) => {
+  passport.authenticate(provider, (err: any, user: any, info: any) => {
     if (err) {
       return next(err)
     }

@@ -172,7 +172,7 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error) {
+    } catch (error: any) {
       const path = error.request.path
       const msg = error.response.data
         ? JSON.stringify(error.response.data)
@@ -203,7 +203,7 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error) {
+    } catch (error: any) {
       const path = error.request.path
       const msg = error.response.data
         ? JSON.stringify(error.response.data)
