@@ -1,5 +1,4 @@
 import { stripHtml } from '@matters/ipns-site-generator'
-import * as cheerio from 'cheerio'
 
 export const countWords = (html: string) => {
   // Chinese(\u4e00-\u9fcc); Korean(\uac00-\ud7af); Japanese(\u3040-\u309f\u30a0-\u30ff); Russian([\u0401\u0451\u0410-\u044f]+)
@@ -19,15 +18,4 @@ export const countWords = (html: string) => {
   } else {
     return 0
   }
-}
-
-/**
- * Strip specific class from html string
- */
-export const stripClass = (html: string, name: string) => {
-  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true })
-
-  $(`.${name}`).removeClass(name)
-
-  return $.html()
 }

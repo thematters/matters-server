@@ -10,6 +10,9 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  MAX_ARTICE_SUMMARY_LENGTH,
+  MAX_ARTICE_TITLE_LENGTH,
+  MAX_ARTICLE_CONTENT_LENGTH,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
@@ -173,6 +176,17 @@ const resolver: MutationToPutDraftResolver = async (
     _.isUndefined // to drop only undefined // _.isNil
   )
 
+  // check for title, summary and content length limit
+  if (data?.title?.length > MAX_ARTICE_TITLE_LENGTH) {
+    throw new UserInputError('title reach length limit')
+  }
+  if (data?.summary?.length > MAX_ARTICE_SUMMARY_LENGTH) {
+    throw new UserInputError('summary reach length limit')
+  }
+  if (data?.content?.length > MAX_ARTICLE_CONTENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
@@ -198,11 +212,6 @@ const resolver: MutationToPutDraftResolver = async (
       )
     }
 
-    // check for summary length limit
-    if (data?.summary?.length > 200) {
-      throw new UserInputError('summary reach length limit')
-    }
-
     // check for tags limit
     if (tags) {
       const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
@@ -217,7 +226,6 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for collection limit
-
     if (collection) {
       const oldCollectionLength =
         draft.collection == null ? 0 : draft.collection.length
@@ -283,6 +291,7 @@ const resolver: MutationToPutDraftResolver = async (
         `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
       )
     }
+
     const draft = await draftService.baseCreate({ uuid: v4(), ...data })
     draft[CACHE_KEYWORD] = [
       {
