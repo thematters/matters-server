@@ -1,4 +1,4 @@
-import Redis from 'ioredis'
+import type Redis from 'ioredis'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { CacheService, UserService } from 'connectors'
@@ -250,9 +250,7 @@ describe('updateLastSeen', () => {
   test('caching', async () => {
     const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
     const redisGet = async (_id: string) =>
-      (cacheService.redis.client as Redis.Redis).get(
-        cacheService.genKey({ id: _id })
-      )
+      (cacheService.redis.client as Redis).get(cacheService.genKey({ id: _id }))
     const id = '3'
 
     await userService.updateLastSeen(id, 1000)
