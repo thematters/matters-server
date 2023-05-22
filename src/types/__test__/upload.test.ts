@@ -23,7 +23,7 @@ const SINGLE_FILE_UPLOAD = /* GraphQL */ `
 const createUpload = (mimetype: string) => {
   const file = createReadStream(__dirname)
   const fileUpload: FileUpload = {
-    createReadStream: () => file,
+    createReadStream: () => file as any,
     filename: 'some-filename',
     mimetype,
     encoding: 'some-encoding',

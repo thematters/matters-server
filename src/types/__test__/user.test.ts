@@ -470,7 +470,7 @@ describe('register and login functionarlities', () => {
       query: GET_VIEWER_INFO,
     })
     const displayName = _get(newUserResult, 'data.viewer.displayName')
-    const info = _get(newUserResult, 'data.viewer.info')
+    const info = newUserResult!.data!.viewer.info
     expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
