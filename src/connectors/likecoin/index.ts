@@ -38,7 +38,7 @@ interface UpdateCivicLikerCacheData {
   likerId: string
   userId: string
   key: string
-  expire: typeof CACHE_TTL[keyof typeof CACHE_TTL]
+  expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
 }
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment

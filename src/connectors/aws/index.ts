@@ -213,7 +213,7 @@ export class AWSService {
     messageDeduplicationId,
   }: {
     messageBody: any
-    queueUrl: typeof QUEUE_URL[keyof typeof QUEUE_URL]
+    queueUrl: (typeof QUEUE_URL)[keyof typeof QUEUE_URL]
     messageGroupId?: string
     messageDeduplicationId?: string
   }) => {
