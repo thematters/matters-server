@@ -59,6 +59,7 @@ import {
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
+  VerficationCode,
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -1328,6 +1329,34 @@ export class UserService extends BaseService {
     )
   }
 
+  confirmVerificationCode = async (code: VerficationCode) => {
+    if (code.status !== VERIFICATION_CODE_STATUS.active) {
+      throw new Error('cannot verfiy a not-active code')
+    }
+    const codes = await this.findVerificationCodes({
+      where: {
+        type: code.type,
+        email: code.email,
+        status: VERIFICATION_CODE_STATUS.active,
+      },
+    })
+    const trx = await this.knex.transaction()
+    for (const c of codes) {
+      if (c.code === code.code) {
+        await this.markVerificationCodeAs(
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
+          trx
+        )
+      } else {
+        await this.markVerificationCodeAs(
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+          trx
+        )
+      }
+    }
+    await trx.commit()
+  }
+
   findVerificationCodes = async ({
     where,
   }: {
@@ -1349,13 +1378,16 @@ export class UserService extends BaseService {
     return query
   }
 
-  markVerificationCodeAs = ({
-    codeId,
-    status,
-  }: {
-    codeId: string
-    status: VERIFICATION_CODE_STATUS
-  }) => {
+  markVerificationCodeAs = (
+    {
+      codeId,
+      status,
+    }: {
+      codeId: string
+      status: VERIFICATION_CODE_STATUS
+    },
+    trx?: Knex.Transaction
+  ) => {
     let data: any = { status }
 
     if (status === VERIFICATION_CODE_STATUS.used) {
@@ -1367,7 +1399,8 @@ export class UserService extends BaseService {
     return this.baseUpdate(
       codeId,
       { updatedAt: new Date(), ...data },
-      'verification_code'
+      'verification_code',
+      trx
     )
   }
 

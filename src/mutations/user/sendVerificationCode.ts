@@ -1,7 +1,6 @@
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
-  VERIFICATION_CODE_STATUS,
   VERIFICATION_DOMAIN_WHITELIST,
 } from 'common/enums'
 import {
@@ -22,15 +21,7 @@ const logger = getLogger('mutation-send-verificaiton-code')
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email: rawEmail, type, redirectUrl } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      userService,
-      notificationService,
-      systemService,
-    },
-  }
+  { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
 
@@ -126,13 +117,6 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       }
     }
   }
-
-  // retire old active codes
-  await atomService.updateMany({
-    table: 'verification_code',
-    where: { type, email, status: VERIFICATION_CODE_STATUS.active },
-    data: { status: VERIFICATION_CODE_STATUS.inactive, updatedAt: new Date() },
-  })
 
   // insert record
   const { code } = await userService.createVerificationCode({
