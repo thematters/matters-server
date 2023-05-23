@@ -1,7 +1,6 @@
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
-  VERIFICATION_CODE_STATUS,
   VERIFICATION_DOMAIN_WHITELIST,
 } from 'common/enums'
 import {
@@ -22,15 +21,7 @@ const logger = getLogger('mutation-send-verificaiton-code')
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email: rawEmail, type, redirectUrl } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      userService,
-      notificationService,
-      systemService,
-    },
-  }
+  { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
 
@@ -92,7 +83,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         value: agentHash,
       })
     }
-    logger.info(new Error(`email ${email} is in blocklist`))
+    logger.warn(`email ${email} is in blocklist`)
 
     if (isFingerprintEnabled) {
       return true
@@ -103,7 +94,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   const domain = email.split('@')[1]
   const banDomain = await systemService.findSkippedItem(TYPE_DOMAIN, domain)
   if (banDomain && banDomain.archived === false) {
-    logger.info(new Error(`domain ${domain} is in blocklist`))
+    logger.warn(`domain ${domain} is in blocklist`)
     return true
   }
 
@@ -119,20 +110,13 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         uuid: banAgentHash.uuid,
         value: email,
       })
-      logger.info(new Error(`agent hash ${agentHash} is in blocklist`))
+      logger.warn(`agent hash ${agentHash} is in blocklist`)
 
       if (isFingerprintEnabled) {
         return true
       }
     }
   }
-
-  // retire old active codes
-  await atomService.updateMany({
-    table: 'verification_code',
-    where: { type, email, status: VERIFICATION_CODE_STATUS.active },
-    data: { status: VERIFICATION_CODE_STATUS.inactive, updatedAt: new Date() },
-  })
 
   // insert record
   const { code } = await userService.createVerificationCode({
