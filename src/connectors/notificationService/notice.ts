@@ -83,7 +83,7 @@ class Notice extends BaseService {
           .returning('*')
       }
 
-      // craete notice entities
+      // create notice entities
       if (entities) {
         await Promise.all(
           entities.map(
