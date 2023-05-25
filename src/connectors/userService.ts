@@ -273,9 +273,7 @@ export class UserService extends BaseService {
     this.knex
       .select()
       .from(this.table)
-      .where({
-        ethAddress: ethAddress.toLowerCase(), // ethAddress case insensitive
-      })
+      .where('ethAddress', 'ILIKE', `%${ethAddress}%`) // ethAddress case insensitive
       .first()
 
   /**

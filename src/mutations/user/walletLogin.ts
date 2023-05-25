@@ -144,7 +144,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
     await userService.baseUpdate(viewer.id, {
       updatedAt: knex.fn.now(),
-      ethAddress, // save the lower case ones
+      ethAddress: ethAddress.toLowerCase(), // save the lower case ones
     })
 
     // archive crypto_wallet entry
