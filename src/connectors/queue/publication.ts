@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
-// import { html2md } from '@matters/matters-editor/transformers'
+import { html2md } from '@matters/matters-editor/transformers'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
@@ -17,7 +17,7 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   countWords,
   extractAssetDataFromHtml,
@@ -27,6 +27,8 @@ import {
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
   constructor() {
@@ -131,18 +133,18 @@ export class PublicationQueue extends BaseQueue {
       await job.progress(20)
 
       // Step 3: update draft and article state
-      // let contentMd = ''
-      // try {
-      //   contentMd = html2md(draft.content)
-      // } catch (e) {
-      //   console.error('failed to convert HTML to Markdown', draft.id)
-      // }
+      let contentMd = ''
+      try {
+        contentMd = html2md(draft.content)
+      } catch (e) {
+        logger.warn('draft %s failed to convert HTML to Markdown', draft.id)
+      }
       const [publishedDraft, _] = await Promise.all([
         this.draftService.baseUpdate(draft.id, {
           articleId: article.id,
           summary,
           wordCount,
-          // contentMd,
+          contentMd,
           // dataHash,
           // mediaHash,
           archived: true,
@@ -215,20 +217,9 @@ export class PublicationQueue extends BaseQueue {
           article.id
         )
         await job.progress(75)
-
-        // Step 6: add to search; async
-        this.articleService.addToSearch({
-          id: article.id,
-          title: draft.title,
-          content: draft.content,
-          authorId: article.authorId,
-          userName,
-          displayName,
-          tags,
-        })
       } catch (err) {
         // ignore errors caused by these steps
-        console.error(new Date(), 'optional step failed:', err, job, draft)
+        logger.warn('optional step failed: %j', { err, job, draft })
       }
 
       // Step 7: trigger notifications
@@ -332,10 +323,7 @@ export class PublicationQueue extends BaseQueue {
         await job.progress(95)
       } catch (err) {
         // ignore errors caused by these steps
-        logger.error(err)
-
-        console.error(
-          new Date(),
+        logger.warn(
           'job IPFS optional step failed (will retry async later in listener):',
           err,
           job,
@@ -354,9 +342,7 @@ export class PublicationQueue extends BaseQueue {
       // no await to notify async
       this.articleService
         .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       // no await to notify async
       this.atomService.aws
@@ -379,9 +365,7 @@ export class PublicationQueue extends BaseQueue {
           },
         })
         // .then(res => {})
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sns notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sns notify:', err))
 
       done(null, {
         articleId: article.id,
@@ -391,7 +375,7 @@ export class PublicationQueue extends BaseQueue {
         iscnPublish: iscnPublish || draft.iscnPublish,
         iscnId: article.iscnId,
       })
-    } catch (e) {
+    } catch (err: any) {
       await Promise.all([
         this.articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.error,
@@ -400,7 +384,7 @@ export class PublicationQueue extends BaseQueue {
           publishState: PUBLISH_STATE.error,
         }),
       ])
-      done(e)
+      done(err)
     }
   }
 

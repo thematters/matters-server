@@ -234,8 +234,9 @@ export default /* GraphQL */ `
     record: Boolean
     oss: Boolean
 
-    "use the api version; omit to use latest version"
+    "deprecated, make no effect"
     version: SearchAPIVersion
+    "deprecated, make no effect"
     coefficients: String
     quicksearch: Boolean
   }

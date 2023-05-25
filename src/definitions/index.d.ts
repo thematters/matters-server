@@ -7,6 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
+  VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import {
   Alchemy,
@@ -27,6 +28,7 @@ export * from './article'
 export * from './language'
 export * from './schema'
 export * from './notification'
+export * from './generic'
 
 export type User = {
   id: string
@@ -281,6 +283,16 @@ export interface OAuthRefreshToken {
   client: OAuthClient
   user: User
   [key: string]: any
+}
+
+export interface VerficationCode {
+  id: string
+  uuid: string
+  expiredAt: Date
+  code: string
+  type: GQLVerificationCodeType
+  status: VERIFICATION_CODE_STATUS
+  email: string
 }
 
 export type Falsey = '' | 0 | false | null | undefined

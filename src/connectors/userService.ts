@@ -1,7 +1,5 @@
 import { compare } from 'bcrypt'
-import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -35,10 +33,9 @@ import {
   NameInvalidError,
   PasswordInvalidError,
   PasswordNotAvailableError,
-  ServerError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidUserName,
@@ -62,12 +59,13 @@ import {
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
+  VerficationCode,
 } from 'definitions'
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
 
-const debugLog = createDebug('user-service')
+const logger = getLogger('service-user')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
@@ -138,8 +136,6 @@ export class UserService extends BaseService {
       )
     )
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
-
-    this.addToSearch(user)
 
     return user
   }
@@ -277,9 +273,7 @@ export class UserService extends BaseService {
     this.knex
       .select()
       .from(this.table)
-      .where({
-        ethAddress: ethAddress.toLowerCase(), // ethAddress case insensitive
-      })
+      .where('ethAddress', 'ILIKE', `%${ethAddress}%`) // ethAddress case insensitive
       .first()
 
   /**
@@ -400,19 +394,6 @@ export class UserService extends BaseService {
       return user
     })
 
-    // update search
-    try {
-      await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: { state: USER_STATE.archived },
-        },
-      })
-    } catch (e) {
-      logger.error(e)
-    }
-
     return archivedUser
   }
 
@@ -463,150 +444,12 @@ export class UserService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  /**
-   * Dump all data to ES (Currently only used in test)
-   */
-  initSearch = async () => {
-    const users = await this.knex(this.table).select(
-      'id',
-      'description',
-      'display_name',
-      'user_name'
-    )
 
-    return this.es.indexManyItems({
-      index: this.table,
-      items: users.map((user) => ({
-        ...user,
-      })),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    userName,
-    displayName,
-    description,
-  }: {
-    [key: string]: string
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            userName,
-            displayName,
-            description,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
-  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     keyOriginal,
     take,
     skip,
-    oss = false,
-    filter,
-    exclude,
-    viewerId,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    oss?: boolean
-    filter?: Record<string, any>
-    viewerId?: string | null
-    exclude?: GQLSearchExclude
-  }) => {
-    const body = bodybuilder()
-      .from(skip)
-      .size(take)
-      .query('match', 'displayName.raw', keyOriginal)
-      .filter('term', 'state', USER_STATE.active)
-      .build() as { [key: string]: any }
-
-    body.suggest = {
-      userName: {
-        prefix: keyOriginal,
-        completion: {
-          field: 'userName',
-          fuzzy: {
-            fuzziness: 0,
-          },
-          size: take,
-        },
-      },
-      displayName: {
-        prefix: keyOriginal,
-        completion: {
-          field: 'displayName',
-          fuzzy: {
-            fuzziness: 0,
-          },
-          size: take,
-        },
-      },
-    }
-
-    try {
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
-      })
-
-      const { hits, suggest } = result as typeof result & {
-        hits: { hits: any[] }
-        suggest: { userName: any[]; displayName: any[] }
-      }
-
-      const matchIds = hits.hits.map(({ _id }: { _id: any }) => _id)
-
-      const userNameIds = suggest.userName[0].options.map(
-        ({ _id }: { _id: any }) => _id
-      )
-      const displayNameIds = suggest.displayName[0].options.map(
-        ({ _id }: { _id: any }) => _id
-      )
-
-      // merge two ID arrays and remove duplicates
-      let ids = [...new Set([...userNameIds, ...displayNameIds, ...matchIds])]
-
-      // filter out users who blocked viewer
-      if (exclude === GQLSearchExclude.blocked && viewerId) {
-        const blockedIds = (
-          await this.knex('action_user')
-            .select('user_id')
-            .where({ action: USER_ACTION.block, targetId: viewerId })
-        ).map(({ userId }) => userId)
-
-        ids = _.difference(ids, blockedIds)
-      }
-      const nodes = await this.baseFindByIds(ids)
-      return { nodes, totalCount: nodes.length }
-    } catch (err) {
-      logger.error(err)
-      console.error(new Date(), 'user searchV0 ERROR:', err)
-      throw new ServerError('user search failed')
-    }
-  }
-
-  searchV1 = async ({
-    key,
-    keyOriginal,
-    take,
-    skip,
-    oss = false,
-    filter,
     exclude,
     viewerId,
     coefficients,
@@ -617,170 +460,6 @@ export class UserService extends BaseService {
     author?: string
     take: number
     skip: number
-    oss?: boolean
-    filter?: Record<string, any>
-    viewerId?: string | null
-    exclude?: GQLSearchExclude
-    coefficients?: string
-    quicksearch?: boolean
-  }) => {
-    let coeffs = [1, 1, 1, 1]
-    try {
-      coeffs = JSON.parse(coefficients || '[]')
-    } catch (err) {
-      // do nothing
-    }
-
-    const c0 = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
-    const c1 = +(coeffs?.[1] || environment.searchPgUserCoefficients?.[1] || 1)
-    const c2 = +(coeffs?.[2] || environment.searchPgUserCoefficients?.[2] || 1)
-    const c3 = +(coeffs?.[3] || environment.searchPgUserCoefficients?.[3] || 1)
-    const c4 = +(coeffs?.[4] || environment.searchPgUserCoefficients?.[4] || 1)
-    const c5 = +(coeffs?.[5] || environment.searchPgUserCoefficients?.[5] || 1)
-    const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
-
-    const searchUserName = key.startsWith('@') || key.startsWith('＠')
-    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
-
-    if (!strippedName) {
-      return { nodes: [], totalCount: 0 }
-    }
-
-    // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
-    let blockedIds: string[] = []
-    if (excludeBlocked) {
-      blockedIds = (
-        await this.knex('action_user')
-          .select('user_id')
-          .where({ action: USER_ACTION.block, targetId: viewerId })
-      ).map(({ userId }) => userId)
-    }
-
-    const baseQuery = this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          'percent_rank() OVER (ORDER BY num_followers NULLS FIRST) AS followers_rank'
-        ),
-
-        this.searchKnex.raw(
-          '(CASE WHEN user_name = ? THEN 1 ELSE 0 END) ::float AS user_name_equal_rank',
-          [strippedName]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN display_name = ? THEN 1 ELSE 0 END) ::float AS display_name_equal_rank',
-          [strippedName]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN user_name LIKE ? THEN 1 ELSE 0 END) ::float AS user_name_like_rank',
-          [`%${strippedName}%`]
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN display_name LIKE ? THEN 1 ELSE 0 END) ::float AS display_name_like_rank',
-          [`%${strippedName}%`]
-        ),
-        this.searchKnex.raw(
-          'ts_rank(display_name_ts, query) AS display_name_ts_rank'
-        ),
-        this.searchKnex.raw(
-          'ts_rank(description_ts, query) AS description_ts_rank'
-        )
-      )
-      .from('search_index.user')
-      .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
-      )
-      .where('state', 'NOT IN ', [
-        // USER_STATE.active, USER_STATE.onboarding,
-        USER_STATE.archived,
-        USER_STATE.banned,
-      ])
-      .andWhere('id', 'NOT IN', blockedIds)
-      .andWhere((builder: Knex.QueryBuilder) => {
-        builder
-          .whereLike('user_name', `%${strippedName}%`)
-          .orWhereLike('display_name', `%${strippedName}%`)
-
-        if (!quicksearch) {
-          builder
-            .orWhereRaw('display_name_ts @@ query')
-            .orWhereRaw('description_ts @@ query')
-        }
-      })
-
-    const queryUsers = this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          '(? * followers_rank + ? * user_name_equal_rank + ? * display_name_equal_rank + ? * user_name_like_rank + ? * display_name_like_rank + ? * display_name_ts_rank + ? * description_ts_rank) AS score',
-          [c0, c1, c2, c3, c4, c5, c6]
-        ),
-        this.searchKnex.raw('COUNT(result.id) OVER() AS total_count')
-      )
-      .from(baseQuery.as('result'))
-      .modify((builder: Knex.QueryBuilder) => {
-        if (quicksearch) {
-          if (searchUserName) {
-            builder
-              .orderByRaw('user_name = ? DESC', [strippedName])
-              .orderByRaw('display_name = ? DESC', [strippedName])
-          } else {
-            builder
-              .orderByRaw('display_name = ? DESC', [strippedName])
-              .orderByRaw('user_name = ? DESC', [strippedName])
-          }
-        } else {
-          builder.orderByRaw('score DESC NULLS LAST')
-        }
-      })
-      .orderByRaw('num_followers DESC NULLS LAST')
-      .orderByRaw('id') // fallback to earlier first
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
-
-    const records = (await queryUsers) as Item[]
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-
-    debugLog(
-      // new Date(),
-      `userService::searchV1 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
-      { key, keyOriginal, queryUsers: queryUsers.toString() },
-      { sample: records?.slice(0, 3) }
-    )
-
-    const nodes = (await this.dataloader.loadMany(
-      records.map(({ id }) => id)
-    )) as Item[]
-
-    return { nodes, totalCount }
-  }
-
-  searchV2 = async ({
-    key,
-    keyOriginal,
-    take,
-    skip,
-    oss = false,
-    filter,
-    exclude,
-    viewerId,
-    coefficients,
-    quicksearch,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    oss?: boolean
-    filter?: Record<string, any>
     viewerId?: string | null
     exclude?: GQLSearchExclude
     coefficients?: string
@@ -910,8 +589,7 @@ export class UserService extends BaseService {
     const records = (await queryUsers) as Item[]
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `userService::searchV2 searchKnex instance got ${records.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryUsers: queryUsers.toString() },
       { sample: records?.slice(0, 3) }
@@ -1649,6 +1327,34 @@ export class UserService extends BaseService {
     )
   }
 
+  confirmVerificationCode = async (code: VerficationCode) => {
+    if (code.status !== VERIFICATION_CODE_STATUS.active) {
+      throw new Error('cannot verfiy a not-active code')
+    }
+    const codes = await this.findVerificationCodes({
+      where: {
+        type: code.type,
+        email: code.email,
+        status: VERIFICATION_CODE_STATUS.active,
+      },
+    })
+    const trx = await this.knex.transaction()
+    for (const c of codes) {
+      if (c.code === code.code) {
+        await this.markVerificationCodeAs(
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
+          trx
+        )
+      } else {
+        await this.markVerificationCodeAs(
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+          trx
+        )
+      }
+    }
+    await trx.commit()
+  }
+
   findVerificationCodes = async ({
     where,
   }: {
@@ -1670,13 +1376,16 @@ export class UserService extends BaseService {
     return query
   }
 
-  markVerificationCodeAs = ({
-    codeId,
-    status,
-  }: {
-    codeId: string
-    status: VERIFICATION_CODE_STATUS
-  }) => {
+  markVerificationCodeAs = (
+    {
+      codeId,
+      status,
+    }: {
+      codeId: string
+      status: VERIFICATION_CODE_STATUS
+    },
+    trx?: Knex.Transaction
+  ) => {
     let data: any = { status }
 
     if (status === VERIFICATION_CODE_STATUS.used) {
@@ -1688,7 +1397,8 @@ export class UserService extends BaseService {
     return this.baseUpdate(
       codeId,
       { updatedAt: new Date(), ...data },
-      'verification_code'
+      'verification_code',
+      trx
     )
   }
 

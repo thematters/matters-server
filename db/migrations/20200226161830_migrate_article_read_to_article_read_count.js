@@ -9,7 +9,6 @@ exports.up = async (knex) => {
 
   const temp = await knex(source).from(querySource.as('source')).count().first()
   const count = parseInt(temp ? temp.count : '0', 10)
-  console.log('source count', count)
 
   // migrate
   await knex.raw(`
@@ -32,7 +31,6 @@ exports.up = async (knex) => {
   // get total count of migrated records
   const result = await knex(target).count().first()
   const check = parseInt(result ? result.count : '0', 10)
-  console.log('migrated count', check)
 }
 
 exports.down = async (knex) => {

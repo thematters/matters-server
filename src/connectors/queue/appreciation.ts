@@ -17,10 +17,12 @@ import {
   ForbiddenError,
   UserNotFoundError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { likecoin } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-appreciation')
 
 interface AppreciationParams {
   amount: number
@@ -160,9 +162,9 @@ class AppreciationQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (error) {
-      logger.error(error)
-      done(error)
+    } catch (err: any) {
+      logger.error(err)
+      done(err)
     }
   }
 }

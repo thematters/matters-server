@@ -39,10 +39,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   }
 
   // mark code status as verified
-  await userService.markVerificationCodeAs({
-    codeId: code.id,
-    status: VERIFICATION_CODE_STATUS.verified,
-  })
+  await userService.confirmVerificationCode(code)
 
   return code.uuid
 }

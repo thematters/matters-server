@@ -116,7 +116,7 @@ describe('query comment list on article', () => {
         commentsInput: { filter: { author: authorId } },
       },
     })
-    const comments = _get(result, 'data.node.comments.edges')
+    const comments = result!.data!.node.comments.edges
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
     }

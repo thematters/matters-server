@@ -1,7 +1,7 @@
-// import {
-//   normalizeArticleHTML,
-//   sanitizeHTML,
-// } from '@matters/matters-editor/transformers'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -10,6 +10,9 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  MAX_ARTICE_SUMMARY_LENGTH,
+  MAX_ARTICE_TITLE_LENGTH,
+  MAX_ARTICLE_CONTENT_LENGTH,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
@@ -30,8 +33,7 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
-// import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
@@ -159,8 +161,7 @@ const resolver: MutationToPutDraftResolver = async (
       title,
       summary,
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
-      content: content && sanitize(content),
-      // content: content && normalizeArticleHTML(sanitizeHTML(content)),
+      content: content && normalizeArticleHTML(sanitizeHTML(content)),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
@@ -174,6 +175,17 @@ const resolver: MutationToPutDraftResolver = async (
     },
     _.isUndefined // to drop only undefined // _.isNil
   )
+
+  // check for title, summary and content length limit
+  if (data?.title?.length > MAX_ARTICE_TITLE_LENGTH) {
+    throw new UserInputError('title reach length limit')
+  }
+  if (data?.summary?.length > MAX_ARTICE_SUMMARY_LENGTH) {
+    throw new UserInputError('summary reach length limit')
+  }
+  if (data?.content?.length > MAX_ARTICLE_CONTENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
 
   // Update
   if (id) {
@@ -200,11 +212,6 @@ const resolver: MutationToPutDraftResolver = async (
       )
     }
 
-    // check for summary length limit
-    if (data?.summary?.length > 200) {
-      throw new UserInputError('summary reach length limit')
-    }
-
     // check for tags limit
     if (tags) {
       const oldTagsLength = draft.tags == null ? 0 : draft.tags.length
@@ -219,7 +226,6 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for collection limit
-
     if (collection) {
       const oldCollectionLength =
         draft.collection == null ? 0 : draft.collection.length
@@ -285,6 +291,7 @@ const resolver: MutationToPutDraftResolver = async (
         `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
       )
     }
+
     const draft = await draftService.baseCreate({ uuid: v4(), ...data })
     draft[CACHE_KEYWORD] = [
       {

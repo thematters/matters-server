@@ -20,7 +20,6 @@ exports.up = async (knex) => {
     capabilities_transfers: true,
   })
   if (!accounts || accounts.length <= 0) {
-    console.log('Payout accounts not found')
     return
   }
 

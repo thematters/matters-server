@@ -1,87 +1,62 @@
-import * as Sentry from '@sentry/node'
-import * as fs from 'fs'
-import _get from 'lodash/get'
-import * as path from 'path'
+import { AsyncLocalStorage } from 'async_hooks'
 import { createLogger, format, transports } from 'winston'
-import Transport from 'winston-transport'
 
-import { isProd, isTest } from 'common/environment'
+import { LOGGING_CONTEXT_KEY, LOGGING_LEVEL } from 'common/enums'
+import { environment } from 'common/environment'
+import type { ValueOf } from 'definitions'
 
-const logPath = 'logs'
+export type LoggingLevel = ValueOf<typeof LOGGING_LEVEL>
+export type LoggingContextKey = ValueOf<typeof LOGGING_CONTEXT_KEY>
 
-// create logs dir if it does not exist
-if (!fs.existsSync(logPath)) {
-  fs.mkdirSync(logPath)
-}
+export const contextStorage = new AsyncLocalStorage<
+  Map<LoggingContextKey, string>
+>()
 
-/**
- * Custom winston transport for Sentry.
- *
- */
-class SentryTransport extends Transport {
-  constructor(opts?: Transport.TransportStreamOptions) {
-    super(opts)
+const setContext = format((info, _) => {
+  const context = contextStorage.getStore()
+  if (context) {
+    info.requestId = context!.get('requestId')
+    // info.jobId = context!.get('jobId')
   }
-
-  log(info: any, next: () => void) {
-    if (info.level === 'error') {
-      const code = _get(info, 'extensions.code')
-
-      switch (code) {
-        case 'CODE_EXPIRED':
-        case 'UNAUTHENTICATED':
-        case 'USER_EMAIL_NOT_FOUND':
-        case 'USER_USERNAME_EXISTS':
-        case 'USER_PASSWORD_INVALID': {
-          // Ingore errors
-          break
-        }
-        default: {
-          const sentryError = new Error(info.message)
-          sentryError.stack = info.stack
-          Sentry.captureException(sentryError)
-          break
-        }
-      }
-    }
-    next()
-  }
-}
-
-/**
- * Simple format outputs:
- *
- * YYYY-MM-DD HH:mm:ss `${level}: ${message} ${[object]}`
- *
- */
-const logger = createLogger({
-  level: 'info',
-  format: format.combine(
-    format.errors({ stack: true }),
-    format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss',
-    }),
-    format.printf(
-      (info) =>
-        `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
-    )
-  ),
-  transports: [
-    new transports.File({
-      filename: path.join(logPath, 'error.log'),
-      level: 'error',
-    }),
-    new transports.File({ filename: path.join(logPath, 'combined.log') }),
-    new SentryTransport({ level: 'error' }),
-  ],
+  return info
 })
 
-if (!isProd) {
-  logger.add(
-    new transports.Console({
-      level: isTest ? 'warn' : 'info',
-    })
-  )
+const createWinstonLogger = (name: string, level: LoggingLevel) =>
+  createLogger({
+    level,
+    format: format.combine(
+      format.splat(),
+      format.errors({ stack: true }),
+      setContext(),
+      format.label({ label: name }),
+      format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss',
+      }),
+      format.printf(
+        (info) =>
+          `${info.timestamp} ${info.requestId ?? '-'} ${info.label} [${
+            info.level
+          }]: ${info.message} ${info.stack ?? ''}`
+      )
+    ),
+    transports: [new transports.Console({ level })],
+  })
+
+const loggers = new Map()
+
+export const getLogger = (name: string) => {
+  const logger = loggers.get(name)
+  if (logger) {
+    return logger
+  }
+  const level = environment.debug.includes(name)
+    ? LOGGING_LEVEL.debug
+    : (environment.loggingLevel as LoggingLevel)
+  const newLogger = createWinstonLogger(name, level)
+  loggers.set(name, newLogger)
+  return newLogger
 }
 
-export default logger
+// print environment
+
+getLogger('env').debug('environment %s', environment)

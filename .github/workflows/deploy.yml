@@ -26,13 +26,6 @@ jobs:
         image: redis
         ports:
           - 6379:6379
-      elasticsearch:
-        image: elasticsearch:8.2.3
-        ports:
-          - 9200:9200
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
       ipfs:
         image: ipfs/go-ipfs:v0.14.0
         ports:

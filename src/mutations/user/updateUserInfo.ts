@@ -1,4 +1,4 @@
-import { has, isEmpty, isNil, omitBy } from 'lodash'
+import { has, isEmpty } from 'lodash'
 import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
@@ -13,7 +13,7 @@ import {
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -27,6 +27,8 @@ import {
   ItemData,
   MutationToUpdateUserInfoResolver,
 } from 'definitions'
+
+const logger = getLogger('mutation-update-user-info')
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -70,8 +72,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
           uuid
         )
       } catch (err) {
-        // ...
-        console.error(`baseServerSideUploadFile error:`, err)
+        logger.error(`baseServerSideUploadFile error:`, err)
         throw err
       }
       if (keyPath) {
@@ -201,25 +202,6 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         previous: viewer.userName,
       },
     })
-  }
-
-  // update user info to es
-  const { description, displayName, userName } = updateParams
-
-  if (description || displayName || userName) {
-    const searchable = omitBy({ description, displayName, userName }, isNil)
-
-    try {
-      await atomService.es.client.update({
-        index: 'user',
-        id: viewer.id,
-        body: {
-          doc: searchable,
-        },
-      })
-    } catch (err) {
-      logger.error(err)
-    }
   }
 
   // trigger notifications

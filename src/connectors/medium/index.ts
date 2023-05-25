@@ -8,11 +8,13 @@ import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { getFileName } from 'common/utils'
 import { aws, cfsvc, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('service-medium')
 
 const throttle = pThrottle({
   limit: 2,

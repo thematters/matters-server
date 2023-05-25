@@ -25,6 +25,7 @@ export * from './hardcode'
 export * from './cors'
 export * from './routes'
 export * from './sqs'
+export * from './logging'
 
 export const GRAPHQL_COST_LIMIT = 500
 
@@ -244,7 +245,11 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
+export const MAX_ARTICE_TITLE_LENGTH = 100
+export const MAX_ARTICE_SUMMARY_LENGTH = 200
+export const MAX_ARTICLE_CONTENT_LENGTH = 50e3
 export const MAX_ARTICLES_PER_COLLECTION_LIMIT = 7
+export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 3
 export const TAGS_RECOMMENDED_LIMIT = 100

@@ -17,13 +17,6 @@ jobs:
         image: redis
         ports:
           - 6379:6379
-      elasticsearch:
-        image: elasticsearch:8.2.3
-        ports:
-          - 9200:9200
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
       ipfs:
         image: ipfs/go-ipfs:v0.14.0
         ports:
@@ -72,6 +65,7 @@ jobs:
         env:
           CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
           MATTERS_ENV: test
+          MATTERS_LOGGING_LEVEL: warn
           MATTERS_PG_HOST: localhost
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres

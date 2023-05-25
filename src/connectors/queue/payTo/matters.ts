@@ -11,10 +11,12 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
+
+const logger = getLogger('queue-payto-by-matters')
 
 interface PaymentParams {
   txId: string
@@ -164,16 +166,16 @@ class PayToByMattersQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (error) {
-      if (txId && error.name !== 'PaymentQueueJobDataError') {
+    } catch (err: any) {
+      if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
-        } catch (error) {
-          logger.error(error)
+        } catch (err) {
+          logger.error(err)
         }
       }
-      logger.error(error)
-      done(error)
+      logger.error(err)
+      done(err)
     }
   }
 }

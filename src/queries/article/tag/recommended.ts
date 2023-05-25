@@ -10,9 +10,9 @@ import {
 import { Item, TagToRecommendedResolver } from 'definitions'
 
 const resolver: TagToRecommendedResolver = async (
-  { id, content: inputContent, owner },
+  { id },
   { input },
-  { dataSources: { tagService, userService } }
+  { dataSources: { tagService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input, {
     allowTakeAll: true,
@@ -24,10 +24,7 @@ const resolver: TagToRecommendedResolver = async (
     return connectionFromArray([], input)
   }
 
-  const relatedIds = await tagService.findRelatedTags({
-    id,
-    content: inputContent,
-  })
+  const relatedIds = await tagService.findRelatedTags({ id })
 
   const tags = (
     (await tagService.dataloader.loadMany(

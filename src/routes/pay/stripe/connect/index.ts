@@ -3,10 +3,12 @@ import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import SlackService from 'connectors/slack'
 
 import { updateAccount } from './account'
+
+const logger = getLogger('router-stripe-connect')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',
@@ -34,7 +36,7 @@ stripeRouter.post('/', async (req, res) => {
       sig,
       environment.stripeConnectWebhookSecret
     )
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err)
     slack.sendStripeAlert({
       data: {
@@ -71,13 +73,13 @@ stripeRouter.post('/', async (req, res) => {
         })
         break
     }
-  } catch (error) {
-    logger.error(error)
+  } catch (err: any) {
+    logger.error(err)
     slack.sendStripeAlert({
       data: slackEventData,
-      message: `Server error: ${error.message}`,
+      message: `Server error: ${err.message}`,
     })
-    throw error
+    throw err
   }
 
   // Return a 200 res to acknowledge receipt of the event

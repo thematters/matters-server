@@ -1,6 +1,5 @@
 import 'module-alias/register'
 
-import logger from 'common/logger'
 import { ArticleService, DraftService } from 'connectors'
 
 import { countWords } from './content'
@@ -33,7 +32,7 @@ async function main() {
     })
   )
 
-  logger.info('done.')
+  console.info('done.')
   process.exit()
 }
 

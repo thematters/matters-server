@@ -7,7 +7,7 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { isScopeAllowed, toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
 import {
@@ -18,6 +18,8 @@ import {
   OAuthToken,
   User,
 } from 'definitions'
+
+const logger = getLogger('service-oauth')
 
 export class OAuthService extends BaseService {
   constructor() {
