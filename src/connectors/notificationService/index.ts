@@ -53,8 +53,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
       case DB_NOTICE_TYPE.circle_new_article: // deprecated
-      case DB_NOTICE_TYPE.crypto_wallet_airdrop:
-      case DB_NOTICE_TYPE.crypto_wallet_connected:
         return {
           type: params.event,
           recipientId: params.recipientId,

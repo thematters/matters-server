@@ -1767,34 +1767,6 @@ enum CircleNoticeType {
   CircleNewDiscussionComments
 }
 
-"""
-################################
-                               #
-            Crypto             #
-                               #
-################################
-"""
-type CryptoNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CryptoNoticeType!
-  target: CryptoWallet!
-}
-
-enum CryptoNoticeType {
-  CryptoWalletAirdrop
-  CryptoWalletConnected
-}
-
 """The notice type contains info about official announcement."""
 type OfficialAnnouncementNotice implements Notice {
   """Unique ID of this notice."""
