@@ -96,6 +96,34 @@ export class CloudflareService {
     return key
   }
 
+  getFileKeyByUrl = async (
+    folder: GQLAssetType,
+    origUrl: string,
+    uuid: string
+  ): Promise<string | never> => {
+    const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
+    const url = `${CLOUDFLARE_IMAGES_URL}/${key}`
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${environment.cloudflareApiToken}`,
+      },
+    })
+
+    try {
+      const resData = await res.json()
+
+      if (resData.result.id) {
+        return key
+      }
+
+      return ''
+    } catch (err) {
+      return ''
+    }
+  }
+
   /**
    * Delete file from Cloudflare Images by a given path key.
    */

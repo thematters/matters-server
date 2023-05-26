@@ -46,10 +46,6 @@ export enum DB_NOTICE_TYPE {
   circle_new_broadcast_comments = 'circle_new_broadcast_comments',
   circle_new_discussion_comments = 'circle_new_discussion_comments',
 
-  // crypto
-  crypto_wallet_airdrop = 'crypto_wallet_airdrop',
-  crypto_wallet_connected = 'crypto_wallet_connected',
-
   // misc
   official_announcement = 'official_announcement',
 }

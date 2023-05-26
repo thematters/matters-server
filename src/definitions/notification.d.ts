@@ -373,19 +373,6 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
-export interface NoticeCryptoAirdropParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.crypto_wallet_airdrop
-  entities: [NotificationEntity<'target', 'crypto_wallet'>]
-  recipientId: string
-}
-
-export interface NoticeCryptoConnectedParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.crypto_wallet_connected
-  entities: [NotificationEntity<'target', 'crypto_wallet'>]
-  recipientId: string
-}
-
 export type NotificationPrarms =
   // User
   | NoticeUserNewFollowerParams

@@ -518,10 +518,6 @@ class Notice extends BaseService {
       in_circle_new_discussion: setting.inCircleNewDiscussion,
       in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 
-      // crypto
-      crypto_wallet_airdrop: true,
-      crypto_wallet_connected: true,
-
       // system
       official_announcement: true,
       user_activated: true,
