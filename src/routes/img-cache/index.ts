@@ -25,8 +25,8 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   const origUrl = req.params[0]
   const uuid = createHash('md5').update(origUrl).digest('hex')
 
-  // check if exists and get the key
-  let key = await cfsvc.exists(GQLAssetType.imgCached, origUrl, uuid)
+  // get image key by url
+  let key = await cfsvc.getFileKeyByUrl(GQLAssetType.imgCached, origUrl, uuid)
 
   // upload to Cloudflare Images if not exists
   if (!key) {

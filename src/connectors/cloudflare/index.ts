@@ -96,7 +96,7 @@ export class CloudflareService {
     return key
   }
 
-  exists = async (
+  getFileKeyByUrl = async (
     folder: GQLAssetType,
     origUrl: string,
     uuid: string
