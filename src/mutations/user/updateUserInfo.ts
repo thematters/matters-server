@@ -2,7 +2,6 @@ import { has, isEmpty } from 'lodash'
 import { v4 } from 'uuid'
 
 import { ASSET_TYPE } from 'common/enums'
-import { imgCacheServicePrefix } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -54,26 +53,32 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     ...(has(input, 'language') ? { language: input.language } : {}),
   }
 
-  // check avatar
   if (input.avatar) {
     const avatarAssetUUID = input.avatar
     let asset
 
-    if (input.avatar?.startsWith(imgCacheServicePrefix)) {
-      const origUrl = input.avatar.substring(imgCacheServicePrefix.length + 1)
-
+    // upload image first if it's a valid URL
+    let isAvatarUrl = false
+    try {
+      /* tslint:disable */
+      new URL(input.avatar)
+      isAvatarUrl = true
+    } catch (err) {
+      isAvatarUrl = false
+    }
+    if (isAvatarUrl) {
       const uuid = v4()
 
       let keyPath: string | undefined
       try {
-        keyPath = await cfsvc.baseServerSideUploadFile(
-          GQLAssetType.imgCached,
-          origUrl,
+        keyPath = await cfsvc.baseUploadFileByUrl(
+          GQLAssetType.avatar,
+          input.avatar,
           uuid
         )
       } catch (err) {
         logger.error(`baseServerSideUploadFile error:`, err)
-        throw err
+        throw new UserInputError('Invalid avatar URL.')
       }
       if (keyPath) {
         const { id: entityTypeId } = await systemService.baseFindEntityTypeId(

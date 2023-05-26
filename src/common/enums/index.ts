@@ -23,7 +23,6 @@ export * from './verification'
 export * from './file'
 export * from './hardcode'
 export * from './cors'
-export * from './routes'
 export * from './sqs'
 export * from './logging'
 

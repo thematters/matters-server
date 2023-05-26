@@ -1,5 +1,5 @@
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
-import { environment, imgCacheServicePrefix } from 'common/environment'
+import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
@@ -65,8 +65,8 @@ export const nfts: CryptoWalletToNftsResolver = async (
       }),
       description,
       name: title,
-      imageUrl: `${imgCacheServicePrefix}/${media[0].gateway}`,
-      imagePreviewUrl: `${imgCacheServicePrefix}/${media[0].gateway}`,
+      imageUrl: media[0].gateway,
+      imagePreviewUrl: media[0].gateway,
       contractAddress: contract,
       collectionName: contractMetadata.name,
     })

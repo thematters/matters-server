@@ -2158,9 +2158,6 @@ enum AssetType {
   circleCover
   announcementCover
   topicCover
-
-  """img-cached"""
-  imgCached
 }
 
 enum EntityType {
