@@ -1,5 +1,5 @@
+import { createHash } from 'crypto'
 import { Request, Response, Router } from 'express'
-import { v4 } from 'uuid'
 
 import { getLogger } from 'common/logger'
 import { getViewerFromReq } from 'common/utils'
@@ -23,24 +23,25 @@ imgCache.get('/*', async (req: Request, res: Response) => {
   }
 
   const origUrl = req.params[0]
+  const uuid = createHash('md5').update(origUrl).digest('hex')
 
-  let key: string | undefined
-  try {
-    const uuid = v4()
-    key = await cfsvc.baseServerSideUploadFile(
-      GQLAssetType.imgCached,
-      origUrl,
-      uuid
-    )
-  } catch (err) {
-    logger.error(err)
-    res.status(400).end()
-    return
-  }
+  // check if exists and get the key
+  let key = await cfsvc.exists(GQLAssetType.imgCached, origUrl, uuid)
+
+  // upload to Cloudflare Images if not exists
   if (!key) {
-    res.status(403).end()
-    return
+    try {
+      key = await cfsvc.baseServerSideUploadFile(
+        GQLAssetType.imgCached,
+        origUrl,
+        uuid
+      )
+    } catch (err) {
+      logger.error(err)
+      res.status(400).end()
+      return
+    }
   }
 
-  res.redirect(cfsvc.genUrl(key))
+  return res.redirect(cfsvc.genUrl(key))
 })
