@@ -287,7 +287,7 @@ class Notice extends BaseService {
     skip?: number
     take?: number
   }): Promise<NoticeDetail[]> => {
-    const query = this.knex
+    const query = this.knexRO
       .select([
         'notice.id',
         'notice.unread',
