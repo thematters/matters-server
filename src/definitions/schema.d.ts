@@ -2085,7 +2085,6 @@ export type GQLPossibleNoticeTypeNames =
   | 'TagNotice'
   | 'TransactionNotice'
   | 'CircleNotice'
-  | 'CryptoNotice'
   | 'OfficialAnnouncementNotice'
 
 export interface GQLNoticeNameMap {
@@ -2099,7 +2098,6 @@ export interface GQLNoticeNameMap {
   TagNotice: GQLTagNotice
   TransactionNotice: GQLTransactionNotice
   CircleNotice: GQLCircleNotice
-  CryptoNotice: GQLCryptoNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
 }
 
@@ -2449,42 +2447,6 @@ export const enum GQLCircleNoticeType {
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
   CircleNewBroadcastComments = 'CircleNewBroadcastComments',
   CircleNewDiscussionComments = 'CircleNewDiscussionComments',
-}
-
-/**
- * ################################
- *                                #
- *             Crypto             #
- *                                #
- * ################################
- */
-export interface GQLCryptoNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * List of notice actors.
-   */
-  actors?: Array<GQLUser>
-  type: GQLCryptoNoticeType
-  target: GQLCryptoWallet
-}
-
-export const enum GQLCryptoNoticeType {
-  CryptoWalletAirdrop = 'CryptoWalletAirdrop',
-  CryptoWalletConnected = 'CryptoWalletConnected',
 }
 
 /**
@@ -4638,7 +4600,6 @@ export interface GQLResolver {
   TagNotice?: GQLTagNoticeTypeResolver
   TransactionNotice?: GQLTransactionNoticeTypeResolver
   CircleNotice?: GQLCircleNoticeTypeResolver
-  CryptoNotice?: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
   Upload?: GraphQLScalarType
@@ -9077,7 +9038,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'CircleNotice'
-    | 'CryptoNotice'
     | 'OfficialAnnouncementNotice'
     | Promise<
         | 'UserNotice'
@@ -9089,7 +9049,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
         | 'TagNotice'
         | 'TransactionNotice'
         | 'CircleNotice'
-        | 'CryptoNotice'
         | 'OfficialAnnouncementNotice'
       >
 }
@@ -9846,69 +9805,6 @@ export interface CircleNoticeToRepliesResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleNoticeToMentionsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCryptoNoticeTypeResolver<TParent = any> {
-  id?: CryptoNoticeToIdResolver<TParent>
-  unread?: CryptoNoticeToUnreadResolver<TParent>
-  createdAt?: CryptoNoticeToCreatedAtResolver<TParent>
-  actors?: CryptoNoticeToActorsResolver<TParent>
-  type?: CryptoNoticeToTypeResolver<TParent>
-  target?: CryptoNoticeToTargetResolver<TParent>
-}
-
-export interface CryptoNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToUnreadResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToActorsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToTypeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

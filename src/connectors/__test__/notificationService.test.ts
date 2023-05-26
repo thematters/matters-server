@@ -76,10 +76,6 @@ describe('user notify setting', () => {
     in_circle_new_discussion: true,
     in_circle_new_discussion_reply: false,
 
-    // crypto
-    crypto_wallet_airdrop: true,
-    crypto_wallet_connected: true,
-
     // misc
     official_announcement: true,
     user_activated: true,
