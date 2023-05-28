@@ -2,7 +2,7 @@ import DataLoader from 'dataloader'
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
-import { DB_NOTICE_TYPE } from 'common/enums'
+import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import {
@@ -418,15 +418,22 @@ class Notice extends BaseService {
    *********************************/
   findByUser = async ({
     userId,
+    onlyRecent,
     take,
     skip,
   }: {
     userId: string
+    onlyRecent?: boolean
     take?: number
     skip?: number
   }): Promise<NoticeItem[]> => {
+    const where = [[{ recipientId: userId, deleted: false }]] as any[][]
+    if (onlyRecent) {
+      where.push(['notice.updated_at', '>', new Date(Date.now() - 6 * MONTH)])
+    }
+
     const notices = await this.findDetail({
-      where: [[{ recipientId: userId, deleted: false }]],
+      where,
       skip,
       take,
     })
@@ -541,9 +548,11 @@ class Notice extends BaseService {
   countNotice = async ({
     userId,
     unread,
+    onlyRecent,
   }: {
     userId: string
     unread?: boolean
+    onlyRecent?: boolean
   }) => {
     const query = this.knex('notice')
       .where({ recipientId: userId, deleted: false })
@@ -552,6 +561,10 @@ class Notice extends BaseService {
 
     if (unread) {
       query.where({ unread: true })
+    }
+
+    if (onlyRecent) {
+      query.whereRaw(`updated_at > now() - interval '6 months'`)
     }
 
     const result = await query
