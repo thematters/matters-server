@@ -272,7 +272,10 @@
       "error",
       "always",
       {
-        "markers": ["/"]
+        "markers": ["/"],
+        "block": {
+          "exceptions": ["*"]
+        }
       }
     ],
     "unicorn/prefer-ternary": "error",

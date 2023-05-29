@@ -83,7 +83,7 @@ export class UserService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Account            *
    *                               *
@@ -439,7 +439,7 @@ export class UserService extends BaseService {
         )
       )
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Search              *
    *                               *
@@ -620,7 +620,7 @@ export class UserService extends BaseService {
       .where({ userId, archived: false })
       .update({ archived: true })
 
-  /** *******************************
+  /*********************************
    *                               *
    *        Appreciation           *
    *                               *
@@ -729,7 +729,7 @@ export class UserService extends BaseService {
     return query
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Follow            *
    *                               *
@@ -872,7 +872,7 @@ export class UserService extends BaseService {
     return !!result
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Block             *
    *                               *
@@ -949,7 +949,7 @@ export class UserService extends BaseService {
     return query
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Recommand           *
    *                               *
@@ -1167,7 +1167,7 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Notify Setting        *
    *                               *
@@ -1185,7 +1185,7 @@ export class UserService extends BaseService {
       'user_notify_setting'
     )
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Subscription          *
    *                               *
@@ -1223,7 +1223,7 @@ export class UserService extends BaseService {
     return query
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Read History          *
    *                               *
@@ -1286,7 +1286,7 @@ export class UserService extends BaseService {
     return result[0]
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Verification          *
    *                               *
@@ -1400,7 +1400,7 @@ export class UserService extends BaseService {
     )
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Donation            *
    *                               *
@@ -1505,7 +1505,7 @@ export class UserService extends BaseService {
     }))
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         OAuth:LikeCoin        *
    *                               *
@@ -1728,7 +1728,7 @@ export class UserService extends BaseService {
     })
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Punish            *
    *                               *
@@ -1800,7 +1800,7 @@ export class UserService extends BaseService {
     })
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *        Restrictions           *
    *                               *
@@ -1860,7 +1860,7 @@ export class UserService extends BaseService {
     return [users, users[0]?.totalCount || 0]
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Misc               *
    *                               *

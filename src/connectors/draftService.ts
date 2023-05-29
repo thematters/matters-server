@@ -9,7 +9,7 @@ export class DraftService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Draft             *
    *                               *

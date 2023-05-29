@@ -350,7 +350,7 @@ export class TagService extends BaseService {
     return query
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Follow            *
    *                               *
@@ -472,7 +472,7 @@ export class TagService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Search              *
    *                               *
@@ -596,7 +596,7 @@ export class TagService extends BaseService {
     return { nodes, totalCount }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Recommand           *
    *                               *
@@ -727,7 +727,7 @@ export class TagService extends BaseService {
   removeTagRecommendation = (tagId: string) =>
     this.knex('matters_choice_tag').where({ tagId }).del()
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Article            *
    *                               *
@@ -1002,7 +1002,7 @@ export class TagService extends BaseService {
       .limit(DEFAULT_TAKE_PER_PAGE)
       .orderBy('article_tag.id', 'asc')
 
-  /** *******************************
+  /*********************************
    *                               *
    *              OSS              *
    *                               *

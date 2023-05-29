@@ -796,7 +796,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Search              *
    *                               *
@@ -991,7 +991,7 @@ export class ArticleService extends BaseService {
       table: 'article_boost',
     })
 
-  /** *******************************
+  /*********************************
    *                               *
    *          Appreciaton          *
    *                               *
@@ -1145,7 +1145,7 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *              Tag              *
    *                               *
@@ -1167,7 +1167,7 @@ export class ArticleService extends BaseService {
     return result.map(({ tagId }: { tagId: string }) => tagId)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *          Subscription         *
    *                               *
@@ -1198,7 +1198,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Read History          *
    *                               *
@@ -1337,7 +1337,7 @@ export class ArticleService extends BaseService {
     return { newRead: false }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *          Collection           *
    *                               *
@@ -1384,7 +1384,7 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Response            *
    *                               *
@@ -1544,7 +1544,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *          Transaction          *
    *                               *
@@ -1754,7 +1754,7 @@ export class ArticleService extends BaseService {
     return query.orderBy('score')
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Access             *
    *                               *

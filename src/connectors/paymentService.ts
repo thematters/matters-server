@@ -39,7 +39,7 @@ export class PaymentService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Wallet            *
    *                               *
@@ -422,7 +422,7 @@ export class PaymentService extends BaseService {
     return Math.max(parseInt(result.amount || 0, 10), 0)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Customer           *
    *                               *
@@ -478,7 +478,7 @@ export class PaymentService extends BaseService {
     return query.del()
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Payment            *
    *                               *
@@ -532,7 +532,7 @@ export class PaymentService extends BaseService {
     }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Payout            *
    *                               *
@@ -578,7 +578,7 @@ export class PaymentService extends BaseService {
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Invoice           *
    *                               *
@@ -736,7 +736,7 @@ export class PaymentService extends BaseService {
     return Math.floor(amount) === splitTotal
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Subscription          *
    *                               *
@@ -970,7 +970,7 @@ export class PaymentService extends BaseService {
       .returning('*')
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Invitation          *
    *                               *
@@ -1017,7 +1017,7 @@ export class PaymentService extends BaseService {
       .returning('*')
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           notification        *
    *                               *

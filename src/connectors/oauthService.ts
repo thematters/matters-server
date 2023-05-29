@@ -26,7 +26,7 @@ export class OAuthService extends BaseService {
     super('oauth_client')
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Client            *
    *                               *
@@ -95,7 +95,7 @@ export class OAuthService extends BaseService {
     return this.toOAuthClient(client)
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *          Access Token         *
    *                               *
@@ -184,7 +184,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *       Authorization Code      *
    *                               *
@@ -258,7 +258,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *         Refresh Token         *
    *                               *
@@ -306,7 +306,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *             Scope             *
    *                               *
@@ -353,7 +353,7 @@ export class OAuthService extends BaseService {
     // TODO: Maybe we don't have to implement this?
     true
 
-  /** *******************************
+  /*********************************
    *                               *
    *           LikeCoin            *
    *                               *

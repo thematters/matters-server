@@ -28,7 +28,7 @@ export class SystemService extends BaseService {
     this.featureFlagTable = 'feature_flag'
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Search              *
    *                               *
@@ -69,7 +69,7 @@ export class SystemService extends BaseService {
     )
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Features           *
    *                               *
@@ -133,7 +133,7 @@ export class SystemService extends BaseService {
     return false
   }
 
-  /** *******************************
+  /*********************************
    *                               *
    *              Asset            *
    *                               *
@@ -326,7 +326,7 @@ export class SystemService extends BaseService {
   findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
     this.knex('asset').whereIn('type', types).andWhere({ authorId })
 
-  /** *******************************
+  /*********************************
    *                               *
    *            Log Record         *
    *                               *
@@ -341,7 +341,7 @@ export class SystemService extends BaseService {
       table: 'log_record',
     })
 
-  /** *******************************
+  /*********************************
    *                               *
    *           Skipped             *
    *                               *

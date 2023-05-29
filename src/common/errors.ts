@@ -3,7 +3,7 @@ import { ApolloError } from 'apollo-server-express'
 // Error design document see https://paper.dropbox.com/doc/Error-Codes-for-GraphQL-API--B0_SdxSw3WrYTkjmzu7bKxLwAg-cUucb1Cllkj9O0lZhnnmj
 // Note that the document is not longer maintained, but still provides useful infomation for error usage
 
-/** *******************************
+/*********************************
  *                               *
  *             Common            *
  *                               *
@@ -88,7 +88,7 @@ export class DisplayNameInvalidError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *             Auth              *
  *                               *
@@ -135,7 +135,7 @@ export class TokenInvalidError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *           Entity              *
  *                               *
@@ -212,7 +212,7 @@ export class CircleNotFoundError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *           Article             *
  *                               *
@@ -255,7 +255,7 @@ export class ArticleCollectionReachLimitError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *              Tag              *
  *                               *
@@ -294,7 +294,7 @@ export class NotAllowAddOfficialTagError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *             User              *
  *                               *
@@ -364,7 +364,7 @@ export class CryptoWalletExistsError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *      Verification Code        *
  *                               *
@@ -393,7 +393,7 @@ export class CodeExpiredError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *            LikeCoin           *
  *                               *
@@ -445,7 +445,7 @@ export class LikeCoinWebhookError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *             OAuth             *
  *                               *
@@ -458,7 +458,7 @@ export class OAuthTokenInvalidError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *            Migration          *
  *                               *
@@ -471,7 +471,7 @@ export class MigrationReachLimitError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *             Payment           *
  *                               *
@@ -542,7 +542,7 @@ export class PaymentQueueJobDataError extends ApolloError {
   }
 }
 
-/** *******************************
+/*********************************
  *                               *
  *            Circle             *
  *                               *
