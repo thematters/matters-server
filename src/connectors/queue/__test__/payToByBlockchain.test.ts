@@ -22,20 +22,16 @@ import { GQLChain } from 'definitions'
 const mockFetchLogs = jest.fn()
 const mockFetchTxReceipt = jest.fn()
 const mockFetchBlockNumber = jest.fn()
-jest.mock('connectors/blockchain', () => {
-  return {
-    __esModule: true,
-    CurationContract: jest.fn().mockImplementation(() => {
-      return {
-        fetchTxReceipt: mockFetchTxReceipt,
-        fetchLogs: mockFetchLogs,
-        fetchBlockNumber: mockFetchBlockNumber,
-        chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
-        address: environment.polygonCurationContractAddress.toLowerCase(),
-      }
-    }),
-  }
-})
+jest.mock('connectors/blockchain', () => ({
+  __esModule: true,
+  CurationContract: jest.fn().mockImplementation(() => ({
+    fetchTxReceipt: mockFetchTxReceipt,
+    fetchLogs: mockFetchLogs,
+    fetchBlockNumber: mockFetchBlockNumber,
+    chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
+    address: environment.polygonCurationContractAddress.toLowerCase(),
+  })),
+}))
 
 // test data
 
@@ -291,9 +287,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
       }
     })
     mockFetchLogs.mockImplementation(
-      async (fromBlock: number, toBlock: number) => {
-        return []
-      }
+      async (fromBlock: number, toBlock: number) => []
     )
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })

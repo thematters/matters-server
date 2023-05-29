@@ -281,17 +281,15 @@ const resolver: MutationToPutCommentResolver = async (
       | NoticeCircleNewDiscussionCommentsParams
   ) => {
     const key = `${noticeType}:${notice.actorId}:${notice.recipientId}`
-    if (bundledNotices[key]) {
-      bundledNotices[key] = {
-        ...bundledNotices[key],
-        data: {
-          ...bundledNotices[key].data,
-          ...notice.data,
-        },
-      }
-    } else {
-      bundledNotices[key] = notice
-    }
+    bundledNotices[key] = bundledNotices[key]
+      ? {
+          ...bundledNotices[key],
+          data: {
+            ...bundledNotices[key].data,
+            ...notice.data,
+          },
+        }
+      : notice
   }
 
   /**

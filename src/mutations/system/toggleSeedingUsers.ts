@@ -17,13 +17,11 @@ const resolver: MutationToToggleSeedingUsersResolver = async (
   const table = 'seeding_user'
   const userIds = ids.map((id) => fromGlobalId(id).id)
 
-  if (enabled) {
-    await Promise.all(
-      userIds.map((id) => atomService.create({ table, data: { userId: id } }))
-    )
-  } else {
-    await atomService.deleteMany({ table, whereIn: ['user_id', userIds] })
-  }
+  await (enabled
+    ? Promise.all(
+        userIds.map((id) => atomService.create({ table, data: { userId: id } }))
+      )
+    : atomService.deleteMany({ table, whereIn: ['user_id', userIds] }))
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

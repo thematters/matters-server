@@ -29,17 +29,13 @@ const user = {
 }
 
 beforeAll(async () => {
-  try {
-    const { id } = await putDraft({ draft })
-    await publishArticle({ id })
-    await registerUser(user)
-    await updateUserDescription({
-      email: user.email,
-      description: userDescription,
-    })
-  } catch (err) {
-    throw err
-  }
+  const { id } = await putDraft({ draft })
+  await publishArticle({ id })
+  await registerUser(user)
+  await updateUserDescription({
+    email: user.email,
+    description: userDescription,
+  })
 })
 
 const GET_USER = /* GraphQL */ `

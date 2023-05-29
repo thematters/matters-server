@@ -20,12 +20,10 @@ const resolver: DraftToAssetsResolver = async (
     entityId: id,
   })
 
-  return assets.map((asset) => {
-    return {
-      ...asset,
-      path: systemService.genAssetUrl(asset),
-    }
-  })
+  return assets.map((asset) => ({
+    ...asset,
+    path: systemService.genAssetUrl(asset),
+  }))
 }
 
 export default resolver

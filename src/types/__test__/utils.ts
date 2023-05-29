@@ -119,9 +119,7 @@ export const testClient = async (
 
   const server = new ApolloServer({
     schema,
-    context: ({ req }: { req: Request }) => {
-      return { req, ..._context, knex }
-    },
+    context: ({ req }: { req: Request }) => ({ req, ..._context, knex }),
     dataSources: () => ({
       atomService: new AtomService(),
       userService: new UserService(),

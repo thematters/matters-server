@@ -1,6 +1,5 @@
 import { hash } from 'bcrypt'
 import * as cheerio from 'cheerio'
-import _ from 'lodash'
 
 import { BCRYPT_ROUNDS } from 'common/enums'
 import { environment } from 'common/environment'
@@ -100,6 +99,7 @@ export const getFileName = (disposition: string, url: string) => {
 // not yet supports for TLD like .co.jp
 // use https://www.npmjs.com/package/psl if needed
 export const extractRootDomain = (url: string) => {
+  // eslint-disable-next-line no-useless-escape
   const parts = url.match(/^(https?\:\/\/)?([^\/?#]+)(?:[\/?#]|$)/i)
 
   if (!parts) {

@@ -28,9 +28,10 @@ export const stripAllPunct = (content: string) => {
       return ''
     case 1:
       return words[0]
-    default:
+    default: {
       const [first, ...rest] = words
       return `${first} ${rest.join('')}`
+    }
   }
 }
 

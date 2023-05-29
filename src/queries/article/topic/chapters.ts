@@ -4,12 +4,11 @@ const resolver: TopicToChaptersResolver = async (
   { id: topicId },
   _,
   { dataSources: { atomService } }
-) => {
-  return atomService.findMany({
+) =>
+  atomService.findMany({
     table: 'chapter',
     where: { topicId },
     orderBy: [{ column: 'order', order: 'asc' }],
   })
-}
 
 export default resolver

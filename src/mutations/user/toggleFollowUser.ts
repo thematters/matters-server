@@ -46,7 +46,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
       userId: viewer.id,
       targetId: user.id,
     })
-    action = !!isFollowing ? 'unfollow' : 'follow'
+    action = isFollowing ? 'unfollow' : 'follow'
   } else {
     action = enabled ? 'follow' : 'unfollow'
   }

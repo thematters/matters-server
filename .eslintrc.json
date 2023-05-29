@@ -1,0 +1,167 @@
+{
+  "env": {
+    "node": true,
+    "jest": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "tsconfig.json",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "eslint-plugin-import",
+    "eslint-plugin-jsdoc",
+    "eslint-plugin-prefer-arrow",
+    "eslint-plugin-unicorn",
+    "eslint-plugin-react",
+    "@typescript-eslint"
+  ],
+  "root": true,
+  "settings": {
+    "import/internal-regex": "^(common|connectors|definitions|middlewares|mutations|queries|routes|types)"
+  },
+  "rules": {
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "no-case-declarations": "warn",
+    "@typescript-eslint/array-type": [
+      "error",
+      {
+        "default": "array-simple"
+      }
+    ],
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "types": {
+          "Object": {
+            "message": "Avoid using the `Object` type. Did you mean `object`?"
+          },
+          "Function": {
+            "message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
+          },
+          "Boolean": {
+            "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+          },
+          "Number": {
+            "message": "Avoid using the `Number` type. Did you mean `number`?"
+          },
+          "String": {
+            "message": "Avoid using the `String` type. Did you mean `string`?"
+          },
+          "Symbol": {
+            "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
+          }
+        }
+      }
+    ],
+    "@typescript-eslint/dot-notation": [
+      "error",
+      { "allowPattern": "^[A-Z_]+$" }
+    ],
+    "@typescript-eslint/explicit-member-accessibility": [
+      "warn",
+      {
+        "accessibility": "explicit"
+      }
+    ],
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "variable",
+        "format": ["camelCase", "snake_case", "PascalCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "forbid"
+      }
+    ],
+    "@typescript-eslint/no-shadow": [
+      "error",
+      {
+        "hoist": "all"
+      }
+    ],
+    "@typescript-eslint/semi": ["off", null],
+    "eqeqeq": ["error", "smart"],
+    "import/order": [
+      "error",
+      {
+        "alphabetize": {
+          "caseInsensitive": true,
+          "order": "asc"
+        },
+        "newlines-between": "always",
+        "groups": [
+          "type",
+          ["builtin", "external", "unknown"],
+          "internal",
+          "parent",
+          ["sibling", "index"],
+          "object"
+        ],
+        "distinctGroup": false,
+        "pathGroupsExcludedImportTypes": [],
+        "pathGroups": [
+          {
+            "pattern": "./",
+            "patternOptions": {
+              "nocomment": true,
+              "dot": true
+            },
+            "group": "sibling",
+            "position": "before"
+          },
+          {
+            "pattern": ".",
+            "patternOptions": {
+              "nocomment": true,
+              "dot": true
+            },
+            "group": "sibling",
+            "position": "before"
+          },
+          {
+            "pattern": "..",
+            "patternOptions": {
+              "nocomment": true,
+              "dot": true
+            },
+            "group": "parent",
+            "position": "before"
+          },
+          {
+            "pattern": "../",
+            "patternOptions": {
+              "nocomment": true,
+              "dot": true
+            },
+            "group": "parent",
+            "position": "before"
+          }
+        ]
+      }
+    ],
+    "semi": "off",
+    "spaced-comment": [
+      "error",
+      "always",
+      {
+        "markers": ["/"],
+        "block": {
+          "exceptions": ["*"]
+        }
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["db/migrations/*.js"],
+      "rules": {
+        "prefer-arrow/prefer-arrow-functions": "off"
+      }
+    }
+  ]
+}

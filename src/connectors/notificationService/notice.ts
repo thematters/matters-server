@@ -29,9 +29,8 @@ const mergeDataCustomizer = (objValue: any, srcValue: any) => {
   }
 }
 
-const mergeDataWith = (objValue: any, srcValue: any) => {
-  return mergeWith(objValue, srcValue, mergeDataCustomizer)
-}
+const mergeDataWith = (objValue: any, srcValue: any) =>
+  mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 class Notice extends BaseService {
   constructor() {
@@ -335,7 +334,7 @@ class Notice extends BaseService {
    */
   findEntities = async (
     noticeId: string,
-    expand: boolean = true
+    expand = true
   ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
     const entities = await this.knex
       .select([

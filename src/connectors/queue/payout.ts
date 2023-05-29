@@ -36,8 +36,8 @@ class PayoutQueue extends BaseQueue {
    * Producer for payout.
    *
    */
-  payout = ({ txId }: PaymentParams) => {
-    return this.q.add(
+  payout = ({ txId }: PaymentParams) =>
+    this.q.add(
       QUEUE_JOB.payout,
       { txId },
       {
@@ -45,7 +45,6 @@ class PayoutQueue extends BaseQueue {
         removeOnComplete: false,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.
@@ -229,8 +228,8 @@ class PayoutQueue extends BaseQueue {
       if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
-        } catch (err) {
-          logger.error(err)
+        } catch (error) {
+          logger.error(error)
         }
       }
 

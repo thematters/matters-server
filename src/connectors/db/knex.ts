@@ -35,7 +35,7 @@ export const searchKnexDB = knexInstantiator({
 })
 
 export const refreshView = async (view: MaterializedView) =>
-  knex.raw(/*sql*/ `
+  knex.raw(/* sql*/ `
     create unique index if not exists ${view}_id on public.${view} (id);
     refresh materialized view concurrently ${view}
   `)
