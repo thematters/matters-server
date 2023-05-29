@@ -44,7 +44,12 @@ import * as routes from './routes'
     contextStorage.enterWith(context)
     next()
   })
-  app.use(helmet({ contentSecurityPolicy: false }) as RequestHandler)
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginOpenerPolicy: false,
+    }) as RequestHandler
+  )
   app.use(requestIp.mw())
   app.use(cors(CORS_OPTIONS))
 
