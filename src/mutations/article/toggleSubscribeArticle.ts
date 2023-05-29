@@ -61,7 +61,7 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
         action: USER_ACTION.subscribe,
       },
     })
-    action = !!userSubscribe ? 'unsubscribe' : 'subscribe'
+    action = userSubscribe ? 'unsubscribe' : 'subscribe'
   } else {
     action = enabled ? 'subscribe' : 'unsubscribe'
   }

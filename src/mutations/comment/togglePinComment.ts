@@ -60,7 +60,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
         pinned: true,
       },
     })
-    action = !!pinned ? 'unpin' : 'pin'
+    action = pinned ? 'unpin' : 'pin'
   } else {
     action = enabled ? 'pin' : 'unpin'
   }

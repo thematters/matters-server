@@ -35,7 +35,7 @@ const resolver: MutationToToggleBlockUserResolver = async (
       userId: viewer.id,
       targetId: user.id,
     })
-    action = !!blocked ? 'unblock' : 'block'
+    action = blocked ? 'unblock' : 'block'
   } else {
     action = enabled ? 'block' : 'unblock'
   }

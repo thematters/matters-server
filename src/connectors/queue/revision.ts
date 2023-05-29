@@ -80,7 +80,7 @@ class RevisionQueue extends BaseQueue {
       }
       if (draft.publishState !== PUBLISH_STATE.pending) {
         job.progress(100)
-        done(null, `Revision draft ${draftId} isn\'t in pending state.`)
+        done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
       let article = await this.articleService.baseFindById(draft.articleId)

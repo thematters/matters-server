@@ -20,7 +20,7 @@ export const isValidScope = (scope: string) => {
 export const isScopeAllowed = (
   scopes: string[],
   requireScope: string,
-  strict: boolean = false
+  strict = false
 ) =>
   scopes.some((scope) => {
     if (!isValidScope(scope)) {

@@ -4,8 +4,7 @@ import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 
 NP.enableBoundaryChecking(false)
 
-export const numRound = (num: number, decPlaces: number = 2) =>
-  NP.round(num, decPlaces)
+export const numRound = (num: number, decPlaces = 2) => NP.round(num, decPlaces)
 
 export const numDivide = (num1: number, num2: number) => NP.divide(num1, num2)
 

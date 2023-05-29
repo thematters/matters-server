@@ -420,7 +420,7 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (!!content) {
+  if (content) {
     // check for content length limit
     if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
       throw new UserInputError('content reach length limit')
@@ -577,7 +577,7 @@ const handleCollection = async ({
     return
   }
   // only validate new-added articles
-  if (!!newIdsToAdd.length) {
+  if (newIdsToAdd.length) {
     if (
       newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
       newIds.length >= oldIds.length

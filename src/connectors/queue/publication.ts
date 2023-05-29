@@ -102,7 +102,7 @@ export class PublicationQueue extends BaseQueue {
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       await job.progress(100)
-      done(null, `Draft ${draftId} isn\'t in pending state.`)
+      done(null, `Draft ${draftId} isn't in pending state.`)
       return
     }
     await job.progress(5)

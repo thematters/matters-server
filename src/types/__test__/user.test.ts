@@ -1,6 +1,4 @@
 import _get from 'lodash/get'
-import _set from 'lodash/set'
-import _values from 'lodash/values'
 
 import {
   MATERIALIZED_VIEW,

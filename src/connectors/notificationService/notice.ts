@@ -334,7 +334,7 @@ class Notice extends BaseService {
    */
   findEntities = async (
     noticeId: string,
-    expand: boolean = true
+    expand = true
   ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
     const entities = await this.knex
       .select([
