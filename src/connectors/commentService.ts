@@ -151,7 +151,7 @@ export class CommentService extends BaseService {
     }
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *              Vote             *
    *                               *
@@ -259,7 +259,7 @@ export class CommentService extends BaseService {
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
       .del()
 
-  /*********************************
+  /** *******************************
    *                               *
    *              Pin              *
    *                               *

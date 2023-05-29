@@ -6,6 +6,7 @@ import { toGlobalId } from 'common/utils'
 import { putDraft } from './utils'
 
 declare global {
+  // eslint-disable-next-line no-var
   var mockEnums: any
 }
 

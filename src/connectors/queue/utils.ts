@@ -13,6 +13,7 @@ export interface CustomQueueOpts {
 
 export const sharedQueueOpts = {
   // Reusing Redis Connections
+  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
   createClient() {
     return new Redis({
       host: environment.queueHost,

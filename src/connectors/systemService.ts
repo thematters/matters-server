@@ -28,7 +28,7 @@ export class SystemService extends BaseService {
     this.featureFlagTable = 'feature_flag'
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *           Search              *
    *                               *
@@ -69,7 +69,7 @@ export class SystemService extends BaseService {
     )
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *            Features           *
    *                               *
@@ -133,7 +133,7 @@ export class SystemService extends BaseService {
     return false
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *              Asset            *
    *                               *
@@ -326,7 +326,7 @@ export class SystemService extends BaseService {
   findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
     this.knex('asset').whereIn('type', types).andWhere({ authorId })
 
-  /*********************************
+  /** *******************************
    *                               *
    *            Log Record         *
    *                               *
@@ -334,15 +334,14 @@ export class SystemService extends BaseService {
   findLogRecord = async (where: { [key: string]: string | boolean }) =>
     this.knex.select().from('log_record').where(where).first()
 
-  logRecord = async (data: { userId: string; type: string }) => {
-    return this.baseUpdateOrCreate({
+  logRecord = async (data: { userId: string; type: string }) =>
+    this.baseUpdateOrCreate({
       where: data,
       data: { readAt: new Date(), ...data },
       table: 'log_record',
     })
-  }
 
-  /*********************************
+  /** *******************************
    *                               *
    *           Skipped             *
    *                               *
@@ -370,9 +369,8 @@ export class SystemService extends BaseService {
     return query
   }
 
-  findSkippedItem = async (type: SkippedListItemType, value: string) => {
-    return this.knex('blocklist').where({ type, value }).first()
-  }
+  findSkippedItem = async (type: SkippedListItemType, value: string) =>
+    this.knex('blocklist').where({ type, value }).first()
 
   countSkippedItems = async ({ types }: { types: string[] }) => {
     const result = await this.knex('blocklist')

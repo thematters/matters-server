@@ -398,6 +398,7 @@ export class ArticleService extends BaseService {
       // add files (via MFS FILES API)
       const lastDataHash = ipnsKeyRec.lastDataHash
       try {
+        // eslint-disable-next-line unicorn/prefer-ternary
         if (lastDataHash) {
           await ipfs.files.cp(`/ipfs/${lastDataHash}`, `/${directoryName}`, {
             timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
@@ -497,7 +498,7 @@ export class ArticleService extends BaseService {
                 pem: ipnsKeyRec.privKeyPem,
                 useActive: false,
               }))!)
-            } catch (err) {
+            } catch (error) {
               // ignore: key with name 'for-...' already exists
             }
             logger.warn(
@@ -795,7 +796,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /*********************************
+  /** *******************************
    *                               *
    *           Search              *
    *                               *
@@ -990,7 +991,7 @@ export class ArticleService extends BaseService {
       table: 'article_boost',
     })
 
-  /*********************************
+  /** *******************************
    *                               *
    *          Appreciaton          *
    *                               *
@@ -1144,7 +1145,7 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *              Tag              *
    *                               *
@@ -1166,7 +1167,7 @@ export class ArticleService extends BaseService {
     return result.map(({ tagId }: { tagId: string }) => tagId)
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *          Subscription         *
    *                               *
@@ -1197,7 +1198,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /*********************************
+  /** *******************************
    *                               *
    *         Read History          *
    *                               *
@@ -1216,7 +1217,7 @@ export class ArticleService extends BaseService {
   }) => {
     const table = 'article_read_count'
 
-    /***
+    /** *
      * recording parameters:
      * updatedAt: last heart beat update
      * lastRead: last new read start timestamp
@@ -1336,7 +1337,7 @@ export class ArticleService extends BaseService {
     return { newRead: false }
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *          Collection           *
    *                               *
@@ -1383,7 +1384,7 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *           Response            *
    *                               *
@@ -1543,7 +1544,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *          Transaction          *
    *                               *
@@ -1753,13 +1754,13 @@ export class ArticleService extends BaseService {
     return query.orderBy('score')
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *            Access             *
    *                               *
    *********************************/
-  findArticleCircle = async (articleId: string) => {
-    return this.knex
+  findArticleCircle = async (articleId: string) =>
+    this.knex
       .select('article_circle.*')
       .from('article_circle')
       .join('circle', 'article_circle.circle_id', 'circle.id')
@@ -1768,5 +1769,4 @@ export class ArticleService extends BaseService {
         'circle.state': CIRCLE_STATE.active,
       })
       .first()
-  }
 }

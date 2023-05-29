@@ -15,6 +15,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 
 import { createDonationTx, createTx } from '../../connectors/__test__/utils'
+
 import {
   defaultTestUser,
   getUserContext,

@@ -25,6 +25,7 @@ import {
 } from './utils'
 
 declare global {
+  // eslint-disable-next-line no-var
   var mockEnums: any
 }
 

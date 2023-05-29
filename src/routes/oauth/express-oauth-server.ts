@@ -22,8 +22,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-7)
    */
-  authenticate = (options?: OAuth2Server.AuthenticateOptions) => {
-    return async (
+  authenticate =
+    (options?: OAuth2Server.AuthenticateOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -39,7 +40,6 @@ class ExpressOAuthServer {
         return handleError.call(this, err, req, res, null, next)
       }
     }
-  }
 
   /**
    * Authorization Middleware.
@@ -48,8 +48,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-3.1)
    */
-  authorize = (options?: OAuth2Server.AuthorizeOptions) => {
-    return async (
+  authorize =
+    (options?: OAuth2Server.AuthorizeOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -65,7 +66,6 @@ class ExpressOAuthServer {
         return handleError.call(this, err, req, res, response, next)
       }
     }
-  }
 
   /**
    * Grant Middleware.
@@ -74,8 +74,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
    */
-  token = (options?: OAuth2Server.TokenOptions) => {
-    return async (
+  token =
+    (options?: OAuth2Server.TokenOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -91,7 +92,6 @@ class ExpressOAuthServer {
         return handleError.call(this, err, req, res, response, next)
       }
     }
-  }
 }
 
 /**

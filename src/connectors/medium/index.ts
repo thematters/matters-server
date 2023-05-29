@@ -139,9 +139,7 @@ export class Medium {
    * Get post title.
    *
    */
-  getTitle = ($: cheerio.CheerioAPI) => {
-    return $('header > h1').text()
-  }
+  getTitle = ($: cheerio.CheerioAPI) => $('header > h1').text()
 
   /**
    * Replace `\n` due to Medium does not change it to HTML tag.

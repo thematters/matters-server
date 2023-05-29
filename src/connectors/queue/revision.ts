@@ -42,11 +42,10 @@ class RevisionQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: RevisedArticleData) => {
-    return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
+  publishRevisedArticle = (data: RevisedArticleData) =>
+    this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
-  }
 
   /**
    * Cusumers

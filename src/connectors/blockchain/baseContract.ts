@@ -16,7 +16,5 @@ export class BaseContract {
     this.contract = new Contract(address, abi, this.provider)
   }
 
-  fetchBlockNumber = async (): Promise<number> => {
-    return this.provider.getBlockNumber()
-  }
+  fetchBlockNumber = async (): Promise<number> => this.provider.getBlockNumber()
 }

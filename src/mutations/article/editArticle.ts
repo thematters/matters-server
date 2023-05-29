@@ -1,10 +1,11 @@
+import type { Knex } from 'knex'
+
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
   html2md,
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import type { Knex } from 'knex'
 import lodash, { difference, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 
 import { QUEUE_URL } from 'common/enums'
@@ -9,12 +10,11 @@ class MailService {
     this.aws = aws
   }
 
-  send = async (params: MailDataRequired, express: boolean = false) => {
-    return this.aws.sqsSendMessage({
+  send = async (params: MailDataRequired, express: boolean = false) =>
+    this.aws.sqsSendMessage({
       messageBody: params,
       queueUrl: express ? QUEUE_URL.expressMail : QUEUE_URL.mail,
     })
-  }
 }
 
 export const mailService = new MailService()

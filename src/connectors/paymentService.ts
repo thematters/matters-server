@@ -39,7 +39,7 @@ export class PaymentService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *             Wallet            *
    *                               *
@@ -238,9 +238,8 @@ export class PaymentService extends BaseService {
     )
   }
 
-  findBlockchainTransactionById = async (id: string) => {
-    return this.baseFindById(id, 'blockchain_transaction')
-  }
+  findBlockchainTransactionById = async (id: string) =>
+    this.baseFindById(id, 'blockchain_transaction')
 
   findOrCreateBlockchainTransaction = async (
     { chain, txHash }: { chain: GQLChain; txHash: string },
@@ -361,14 +360,13 @@ export class PaymentService extends BaseService {
       state: BLOCKCHAIN_TRANSACTION_STATE
     },
     trx?: Knex.Transaction
-  ) => {
-    return this.baseUpdate(
+  ) =>
+    this.baseUpdate(
       id,
       { updatedAt: new Date(), state },
       'blockchain_transaction',
       trx
     )
-  }
 
   // Update transaction's state by given id
   markTransactionStateAs = async (
@@ -424,7 +422,7 @@ export class PaymentService extends BaseService {
     return Math.max(parseInt(result.amount || 0, 10), 0)
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *            Customer           *
    *                               *
@@ -480,7 +478,7 @@ export class PaymentService extends BaseService {
     return query.del()
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *            Payment            *
    *                               *
@@ -534,7 +532,7 @@ export class PaymentService extends BaseService {
     }
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *             Payout            *
    *                               *
@@ -580,7 +578,7 @@ export class PaymentService extends BaseService {
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *             Invoice           *
    *                               *
@@ -738,7 +736,7 @@ export class PaymentService extends BaseService {
     return Math.floor(amount) === splitTotal
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *         Subscription          *
    *                               *
@@ -812,14 +810,10 @@ export class PaymentService extends BaseService {
       (sub) => sub.provider === PAYMENT_PROVIDER.stripe
     )
 
-    if (
-      (targetMattersSub && !hasMattersSub) ||
-      (targetStripeSub && !hasStripeSub)
-    ) {
-      await this.createSubscription({ ...data, invitation })
-    } else {
-      await this.createSubscriptionItem({ ...data, invitation })
-    }
+    await ((targetMattersSub && !hasMattersSub) ||
+    (targetStripeSub && !hasStripeSub)
+      ? this.createSubscription({ ...data, invitation })
+      : this.createSubscriptionItem({ ...data, invitation }))
   }
 
   /**
@@ -976,7 +970,7 @@ export class PaymentService extends BaseService {
       .returning('*')
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *           Invitation          *
    *                               *
@@ -1023,7 +1017,7 @@ export class PaymentService extends BaseService {
       .returning('*')
   }
 
-  /*********************************
+  /** *******************************
    *                               *
    *           notification        *
    *                               *

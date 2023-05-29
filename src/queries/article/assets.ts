@@ -33,12 +33,10 @@ const resolver: ArticleToAssetsResolver = async (
     })
   }
 
-  const assets = [...articleAssets, ...draftAssets].map((asset) => {
-    return {
-      ...asset,
-      path: systemService.genAssetUrl(asset),
-    }
-  })
+  const assets = [...articleAssets, ...draftAssets].map((asset) => ({
+    ...asset,
+    path: systemService.genAssetUrl(asset),
+  }))
 
   return assets
 }

@@ -1,5 +1,6 @@
-import { RedisCache } from 'apollo-server-cache-redis'
 import type Redis from 'ioredis'
+
+import { RedisCache } from 'apollo-server-cache-redis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'

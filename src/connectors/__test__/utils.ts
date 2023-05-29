@@ -13,15 +13,14 @@ export const createDonationTx = async ({
 }: {
   senderId: string
   recipientId: string
-}) => {
-  return createTx({
+}) =>
+  createTx({
     senderId,
     recipientId,
     purpose: TRANSACTION_PURPOSE.donation,
     currency: PAYMENT_CURRENCY.HKD,
     state: TRANSACTION_STATE.succeeded,
   })
-}
 
 export const createTx = async ({
   senderId,

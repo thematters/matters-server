@@ -4,11 +4,10 @@ const resolver: ChapterToArticleCountResolver = async (
   { id: chapterId },
   _,
   { dataSources: { atomService } }
-) => {
-  return atomService.count({
+) =>
+  atomService.count({
     table: 'article_chapter',
     where: { chapterId },
   })
-}
 
 export default resolver

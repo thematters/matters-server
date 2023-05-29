@@ -21,8 +21,8 @@ export const isScopeAllowed = (
   scopes: string[],
   requireScope: string,
   strict: boolean = false
-) => {
-  return scopes.some((scope) => {
+) =>
+  scopes.some((scope) => {
     if (!isValidScope(scope)) {
       return false
     }
@@ -34,4 +34,3 @@ export const isScopeAllowed = (
     const regexp = new RegExp(`^${scope}`)
     return regexp.test(requireScope)
   })
-}

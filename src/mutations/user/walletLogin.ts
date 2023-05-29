@@ -214,7 +214,9 @@ const resolver: MutationToWalletLoginResolver = async (
   /**
    * SignUp
    */
-  if (!email || !codeId) return
+  if (!email || !codeId) {
+    return
+  }
 
   // check verification code
   const codes = await userService.findVerificationCodes({
