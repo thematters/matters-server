@@ -391,7 +391,7 @@ export class LikeCoin {
         })
         return false
       },
-      expire: CACHE_TTL.SHORT,
+      expire: CACHE_TTL.MEDIUM,
     })
     return isCivicLiker
   }
