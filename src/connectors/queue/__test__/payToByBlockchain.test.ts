@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/ban-ts-comment: 0 */
 import { Knex } from 'knex'
 
 import {
@@ -114,6 +115,9 @@ describe('payToByBlockchainQueue.payTo', () => {
       }
     })
   })
+  // afterAll(() => {
+  //  queue.clearDelayedJobs()
+  // })
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
@@ -286,11 +290,12 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
         return null
       }
     })
-    mockFetchLogs.mockImplementation(
-      async (fromBlock: number, toBlock: number) => []
-    )
+    mockFetchLogs.mockImplementation(async () => [])
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
+  // afterAll(() => {
+  //  queue.clearDelayedJobs()
+  // })
   test('_handleSyncCurationEvents update sync record', async () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record
@@ -349,6 +354,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     }
     // @ts-ignore
     await queue.syncCurationEvents([nativeTokenLog])
+    console.log(await knex(eventTable).where({ tokenAddress: null }))
     expect(
       await knex(eventTable).where({ tokenAddress: null }).count()
     ).toEqual([{ count: '1' }])
