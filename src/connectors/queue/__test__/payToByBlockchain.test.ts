@@ -354,7 +354,6 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     }
     // @ts-ignore
     await queue.syncCurationEvents([nativeTokenLog])
-    console.log(await knex(eventTable).where({ tokenAddress: null }))
     expect(
       await knex(eventTable).where({ tokenAddress: null }).count()
     ).toEqual([{ count: '1' }])
