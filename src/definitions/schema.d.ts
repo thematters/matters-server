@@ -607,12 +607,12 @@ export interface GQLArticle extends GQLNode {
   access: GQLArticleAccess
 
   /**
-   * whether content is marked as sensetive by author
+   * whether content is marked as sensitive by author
    */
   sensitiveByAuthor: boolean
 
   /**
-   * whether content is marked as sensetive by admin
+   * whether content is marked as sensitive by admin
    */
   sensitiveByAdmin: boolean
 

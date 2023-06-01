@@ -205,10 +205,10 @@ export default /* GraphQL */ `
     "Access related fields on circle"
     access: ArticleAccess!
 
-    "whether content is marked as sensetive by author"
+    "whether content is marked as sensitive by author"
     sensitiveByAuthor: Boolean!
 
-    "whether content is marked as sensetive by admin"
+    "whether content is marked as sensitive by admin"
     sensitiveByAdmin: Boolean!
 
     "License Type"
