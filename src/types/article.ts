@@ -69,6 +69,7 @@ export default /* GraphQL */ `
     ##############
     toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     toggleTagRecommend(input: ToggleRecommendInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
     deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
@@ -204,6 +205,12 @@ export default /* GraphQL */ `
     "Access related fields on circle"
     access: ArticleAccess!
 
+    "whether content is marked as sensitive by author"
+    sensitiveByAuthor: Boolean!
+
+    "whether content is marked as sensitive by admin"
+    sensitiveByAdmin: Boolean!
+
     "License Type"
     license: ArticleLicenseType!
 
@@ -212,7 +219,6 @@ export default /* GraphQL */ `
 
     "creator message after support"
     replyToDonator: String
-
 
     "the iscnId if published to ISCN"
     iscnId: String
@@ -439,6 +445,7 @@ export default /* GraphQL */ `
     collection: [ID!]
     circle: ID
     accessType: ArticleAccessType
+    sensitive: Boolean
     license: ArticleLicenseType
 
     requestForDonation: String  @constraint(maxLength: 140)
@@ -497,6 +504,11 @@ export default /* GraphQL */ `
   input UpdateArticleStateInput {
     id: ID!
     state: ArticleState!
+  }
+
+  input UpdateArticleSensitiveInput {
+    id: ID!
+    sensitive: Boolean!
   }
 
   input DeleteTagsInput {

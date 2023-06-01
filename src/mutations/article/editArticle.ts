@@ -66,6 +66,7 @@ const resolver: MutationToEditArticleResolver = async (
       collection,
       circle: circleGlobalId,
       accessType,
+      sensitive,
       license,
       requestForDonation,
       replyToDonator,
@@ -349,6 +350,20 @@ const resolver: MutationToEditArticleResolver = async (
     } else {
       throw new ForbiddenError(`canComment can not be turned off`)
     }
+  }
+
+  /**
+   * Sensitive settings
+   */
+  if (sensitive !== undefined && sensitive !== draft.sensitive) {
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        sensitiveByAuthor: sensitive,
+        updatedAt: knex.fn.now(),
+      },
+    })
   }
 
   /**
