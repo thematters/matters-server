@@ -1,10 +1,6 @@
 import slugify from '@matters/slugify'
 
-import {
-  ARTICLE_APPRECIATE_LIMIT,
-  ARTICLE_LICENSE_TYPE,
-  NODE_TYPES,
-} from 'common/enums'
+import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { toGlobalId } from 'common/utils'
 import { GQLArticleLicenseType } from 'definitions'
@@ -137,8 +133,7 @@ export default {
     revisedAt,
     access: (root: any) => root,
     revisionCount,
-    license: ({ license }: { license?: GQLArticleLicenseType }) =>
-      license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+    license: ({ license }: { license: GQLArticleLicenseType }) => license,
     requestForDonation,
     replyToDonator,
   },

@@ -2,7 +2,7 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import _ from 'lodash'
+import { uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -33,7 +33,7 @@ import { revisionQueue } from 'connectors/queue'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
-  root,
+  _,
   { input: { id, articles, type: actionType, accessType, license } },
   {
     viewer,
@@ -136,7 +136,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
-      license: currDraft?.license,
+      license: currDraft.license,
       iscnPublish: currDraft.iscnPublish,
       // createdAt: new Date(),
       // updatedAt: new Date(),
@@ -184,7 +184,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       select: ['user_id'],
       where: { targetId: circleId, action: CIRCLE_ACTION.follow },
     })
-    const recipients = _.uniq([
+    const recipients = uniq([
       ...members.map((m) => m.userId),
       ...followers.map((f) => f.userId),
     ])
