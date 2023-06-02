@@ -287,6 +287,7 @@ describe('put draft', () => {
       ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
     )
   })
+
   test('edit draft support settings', async () => {
     const { id } = await putDraft({
       draft: {
@@ -320,6 +321,7 @@ describe('put draft', () => {
     expect(_get(result4, 'requestForDonation')).toBe(text)
     expect(_get(result4, 'replyToDonator')).toBe(text)
   })
+
   test('edit draft comment setting', async () => {
     const { id, canComment } = await putDraft({
       draft: {
@@ -340,5 +342,26 @@ describe('put draft', () => {
     const result2 = await putDraft({ draft: { id: draftId, canComment: true } })
 
     expect(_get(result2, 'canComment')).toBeTruthy()
+  })
+
+  test('edit draft sensitive settings', async () => {
+    const { id, sensitiveByAuthor } = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+    })
+
+    // default
+    expect(sensitiveByAuthor).toBeFalsy()
+
+    // turn on by author
+    draftId = id
+    const result = await putDraft({ draft: { id: draftId, sensitive: true } })
+    expect(_get(result, 'sensitiveByAuthor')).toBeTruthy()
+
+    // turn off by author
+    const result2 = await putDraft({ draft: { id: draftId, sensitive: false } })
+    expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
   })
 })

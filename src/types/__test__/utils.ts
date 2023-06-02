@@ -195,6 +195,7 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         summaryCustomized
         content
         createdAt
+        sensitiveByAuthor
         license
         requestForDonation
         replyToDonator

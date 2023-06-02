@@ -904,6 +904,7 @@ describe('edit article', () => {
     // should be still 0, after whatever how many times changing license
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
+
   test('edit support settings', async () => {
     const requestForDonation = 'test support request'
     const replyToDonator = 'test support reply'
