@@ -1438,6 +1438,9 @@ type Draft implements Node {
   """Access related fields on circle"""
   access: DraftAccess!
 
+  """whether content is marked as sensitive by author"""
+  sensitiveByAuthor: Boolean!
+
   """License Type"""
   license: ArticleLicenseType!
 
@@ -1480,6 +1483,7 @@ input PutDraftInput {
   collection: [ID]
   circle: ID
   accessType: ArticleAccessType
+  sensitive: Boolean
   license: ArticleLicenseType
   requestForDonation: String
   replyToDonator: String

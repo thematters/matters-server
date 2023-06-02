@@ -1991,6 +1991,11 @@ export interface GQLDraft extends GQLNode {
   access: GQLDraftAccess
 
   /**
+   * whether content is marked as sensitive by author
+   */
+  sensitiveByAuthor: boolean
+
+  /**
    * License Type
    */
   license: GQLArticleLicenseType
@@ -2042,6 +2047,7 @@ export interface GQLPutDraftInput {
   collection?: Array<string | null>
   circle?: string
   accessType?: GQLArticleAccessType
+  sensitive?: boolean
   license?: GQLArticleLicenseType
   requestForDonation?: string
   replyToDonator?: string
@@ -8787,6 +8793,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
+  sensitiveByAuthor?: DraftToSensitiveByAuthorResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
   requestForDonation?: DraftToRequestForDonationResolver<TParent>
   replyToDonator?: DraftToReplyToDonatorResolver<TParent>
@@ -8945,6 +8952,18 @@ export interface DraftToCollectionResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSensitiveByAuthorResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
