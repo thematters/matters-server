@@ -256,7 +256,7 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id: draftId } })
 
     // default license
-    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2)
+    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
 
     // set to CC0
     const result2 = await putDraft({
@@ -280,11 +280,11 @@ describe('put draft', () => {
     const resetResult1 = await putDraft({
       draft: {
         id: draftId,
-        license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
+        license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 as any,
       },
     })
     expect(_get(resetResult1, 'license')).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
     )
   })
 

@@ -615,6 +615,7 @@ export default /* GraphQL */ `
   enum ArticleLicenseType {
     cc_0 # CC0
     cc_by_nc_nd_2 # CC BY-NC-ND 2.0
+    cc_by_nc_nd_4 # CC BY-NC-ND 4.0
     arr # All Right Reserved
   }
 

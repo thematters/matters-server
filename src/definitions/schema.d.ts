@@ -1162,6 +1162,7 @@ export const enum GQLArticleAccessType {
 export const enum GQLArticleLicenseType {
   cc_0 = 'cc_0',
   cc_by_nc_nd_2 = 'cc_by_nc_nd_2',
+  cc_by_nc_nd_4 = 'cc_by_nc_nd_4',
   arr = 'arr',
 }
 

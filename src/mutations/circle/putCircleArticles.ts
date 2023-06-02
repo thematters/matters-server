@@ -154,7 +154,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       table: 'draft',
       where: { id: draftId },
       data: {
-        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4,
         updatedAt: knex.fn.now(), // new Date(),
       },
     })
