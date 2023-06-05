@@ -14,7 +14,7 @@ const resolver: MutationToUpdateArticleSensitiveResolver = async (
     throw new ArticleNotFoundError('article does not exist')
   }
 
-  const draft = await draftService.baseUpdate(dbId, {
+  const draft = await draftService.baseUpdate(article.draftId, {
     sensitiveByAdmin: sensitive,
     updatedAt: new Date(),
   })
