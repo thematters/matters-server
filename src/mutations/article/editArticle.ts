@@ -355,7 +355,7 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Sensitive settings
    */
-  if (sensitive !== undefined && sensitive !== draft.sensitive) {
+  if (sensitive !== undefined && sensitive !== draft.sensitiveByAuthor) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
@@ -418,6 +418,7 @@ const resolver: MutationToEditArticleResolver = async (
         publishState: PUBLISH_STATE.pending,
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
+        sensitiveByAuthor: currDraft?.sensitiveByAuthor,
         license: currDraft?.license,
         requestForDonation: currDraft?.requestForDonation,
         replyToDonator: currDraft?.replyToDonator,
