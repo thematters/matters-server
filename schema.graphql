@@ -856,6 +856,7 @@ enum ArticleAccessType {
 enum ArticleLicenseType {
   cc_0
   cc_by_nc_nd_2
+  cc_by_nc_nd_4
   arr
 }
 

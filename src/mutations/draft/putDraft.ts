@@ -169,7 +169,7 @@ const resolver: MutationToPutDraftResolver = async (
       circleId,
       access: accessType,
       sensitiveByAuthor: sensitive,
-      license, // : license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      license,
       requestForDonation,
       replyToDonator,
       iscnPublish,
