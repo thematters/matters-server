@@ -355,7 +355,7 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Sensitive settings
    */
-  if (sensitive !== undefined && sensitive !== draft.sensitive) {
+  if (sensitive !== undefined && sensitive !== draft.sensitiveByAuthor) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
