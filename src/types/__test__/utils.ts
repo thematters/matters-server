@@ -1,5 +1,4 @@
-import { ApolloServer } from 'apollo-server-express'
-import { Request } from 'express'
+import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
 
 import { authModes, roleAccess } from 'common/utils'
 import {
@@ -119,8 +118,12 @@ export const testClient = async (
 
   const server = new ApolloServer({
     schema,
-    context: ({ req }: { req: Request }) => ({ req, ..._context, knex }),
-    dataSources: () => ({
+  })
+
+  const contextValue = {
+    ..._context,
+    knex,
+    dataSources: {
       atomService: new AtomService(),
       userService: new UserService(),
       articleService: new ArticleService(),
@@ -132,12 +135,25 @@ export const testClient = async (
       oauthService: new OAuthService(),
       paymentService: new PaymentService(),
       ...dataSources,
-    }),
-  })
+    },
+  }
 
   await server.start()
 
-  return server
+  // mock v3 apollo server behavior
+  return {
+    executeOperation: async (req: GraphQLRequest) =>
+      v4ToV3Result(await server.executeOperation(req, { contextValue })),
+  }
+}
+
+const v4ToV3Result = (res: GraphQLResponse): any => {
+  const { body } = res
+  if (body.kind === 'single') {
+    return body.singleResult as any
+  } else {
+    return body.initialResult as any
+  }
 }
 
 export const publishArticle = async (input: GQLPublishArticleInput) => {
@@ -159,12 +175,12 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     isAuth: true,
   })
 
-  const result = await server.executeOperation({
+  const { data } = await server.executeOperation({
     query: PUBLISH_ARTICLE,
     variables: { input },
   })
 
-  const draft = result && result.data && result.data.publishArticle
+  const draft = data && data.publishArticle
   return draft
 }
 

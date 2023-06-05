@@ -1,22 +1,4 @@
-directive @constraint(
-  """String constraints"""
-  minLength: Int
-  maxLength: Int
-  startsWith: String
-  endsWith: String
-  contains: String
-  notContains: String
-  pattern: String
-  format: String
-
-  """Number constraints"""
-  min: Int
-  max: Int
-  exclusiveMin: Int
-  exclusiveMax: Int
-  multipleOf: Int
-  uniqueTypeName: String
-) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+directive @constraint(minLength: Int, maxLength: Int, startsWith: String, endsWith: String, contains: String, notContains: String, pattern: String, format: String, min: Int, max: Int, exclusiveMin: Int, exclusiveMax: Int, multipleOf: Int, uniqueTypeName: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
 directive @cacheControl(maxAge: Int, scope: CacheControlScope, inheritMaxAge: Boolean) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
@@ -102,12 +84,6 @@ type Mutation {
 
   """Delete one tag from articles"""
   deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
@@ -178,12 +154,6 @@ type Mutation {
 
   """Delete blocked search keywords from search_history db"""
   deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
@@ -438,12 +408,6 @@ type Article implements Node {
 
   """whether readers can comment"""
   canComment: Boolean!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   oss: ArticleOSS!
   remark: String
 
@@ -586,12 +550,6 @@ type Tag implements Node {
   """Counts of this tag."""
   numArticles: Int!
   numAuthors: Int!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   oss: TagOSS!
   remark: String
   deleted: Boolean!
@@ -1286,8 +1244,6 @@ type CommentEdge {
 
 input PutCommentInput {
   comment: CommentInput!
-
-  """edit comment if id is provided"""
   id: ID
 }
 
@@ -1297,8 +1253,6 @@ input CommentInput {
   parentId: ID
   mentions: [ID!]
   type: CommentType!
-
-  """one of the following ids is required"""
   articleId: ID
   circleId: ID
 }
@@ -1531,13 +1485,6 @@ type NoticeEdge {
   node: Notice!
 }
 
-"""
-################################
-                               #
-             User              #
-                               #
-################################
-"""
 type UserNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1558,13 +1505,6 @@ enum UserNoticeType {
   UserNewFollower
 }
 
-"""
-################################
-                               #
-           Article             #
-                               #
-################################
-"""
 type ArticleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1612,13 +1552,6 @@ enum ArticleArticleNoticeType {
   ArticleNewCollected
 }
 
-"""
-################################
-                               #
-           Comment             #
-                               #
-################################
-"""
 type CommentNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1664,13 +1597,6 @@ enum CommentCommentNoticeType {
   CommentNewReply
 }
 
-"""
-################################
-                               #
-             Tag               #
-                               #
-################################
-"""
 type ArticleTagNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1717,13 +1643,6 @@ enum TagNoticeType {
   TagLeaveEditor
 }
 
-"""
-################################
-                               #
-         Transaction           #
-                               #
-################################
-"""
 type TransactionNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1744,13 +1663,6 @@ enum TransactionNoticeType {
   PaymentReceivedDonation
 }
 
-"""
-################################
-                               #
-            Circle             #
-                               #
-################################
-"""
 type CircleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -2209,11 +2121,6 @@ enum UserRestrictionType {
   articleNewest
 }
 
-"""
-###################
-    Directives    #
-###################
-"""
 enum CacheControlScope {
   PUBLIC
   PRIVATE
@@ -2305,12 +2212,6 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   oss: UserOSS!
   remark: String
 
@@ -2952,10 +2853,7 @@ input FeaturedTagsInput {
 }
 
 type ClaimLogbooksResult {
-  """claimed token ids"""
   ids: [ID!]
-
-  """transaction hash"""
   txHash: String!
 }
 
@@ -3240,7 +3138,6 @@ type PayToResult {
   redirectUrl: String
 }
 
-"""Add Credit"""
 input AddCreditInput {
   amount: Float!
 }
@@ -3265,7 +3162,6 @@ input PayoutInput {
   password: String!
 }
 
-"""Stripe Account"""
 input ConnectStripeAccountInput {
   country: StripeAccountCountry!
 }

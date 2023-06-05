@@ -1,14 +1,14 @@
-import { responseCachePlugin } from '@matters/apollo-response-cache'
+// import { responseCachePlugin } from '@matters/apollo-response-cache'
+import { ApolloServer } from '@apollo/server'
+import { expressMiddleware } from '@apollo/server/express4'
+import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
+import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting'
 import { RedisCache } from 'apollo-server-cache-redis'
-import {
-  ApolloServerPluginCacheControl,
-  ApolloServerPluginLandingPageDisabled,
-  ApolloServerPluginUsageReporting,
-} from 'apollo-server-core'
-import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 import { Express, RequestHandler } from 'express'
-import costAnalysis from 'graphql-cost-analysis'
+// import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
@@ -19,69 +19,57 @@ import 'module-alias/register'
 import {
   CACHE_TTL,
   CORS_OPTIONS,
-  GRAPHQL_COST_LIMIT,
+  //  GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
-import { ActionLimitExceededError } from 'common/errors'
+// import { ActionLimitExceededError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
-import {
-  ArticleService,
-  AtomService,
-  CommentService,
-  DraftService,
-  NotificationService,
-  OAuthService,
-  OpenSeaService,
-  PaymentService,
-  SystemService,
-  TagService,
-  UserService,
-} from 'connectors'
+import { RequestContext } from 'definitions'
 import { loggerMiddleware } from 'middlewares/logger'
 
 import schema from '../schema'
 
-const logger = getLogger('graphql-cost-analysis')
+const logger = getLogger('graphql-server')
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
 
-class ProtectedApolloServer extends ApolloServer {
-  async createGraphQLServerOptions(
-    req: any,
-    res: any
-  ): Promise<GraphQLOptions> {
-    const options = await super.createGraphQLServerOptions(
-      req as any,
-      res as any
-    )
-    const maximumCost = GRAPHQL_COST_LIMIT
-
-    return {
-      ...options,
-      validationRules: [
-        ...(options.validationRules || []),
-        costAnalysis({
-          variables: req.body.variables,
-          maximumCost,
-          defaultCost: 1,
-          createError: (max: number, actual: number) => {
-            const err = new ActionLimitExceededError(
-              `GraphQL query exceeds maximum complexity,` +
-                `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
-            )
-            return err
-          },
-          onComplete: (costs: number) =>
-            logger.debug('costs: %d (max: %d)', costs, maximumCost),
-        }),
-      ],
-    }
-  }
-}
+// class ProtectedApolloServer extends ApolloServer {
+//   async createGraphQLServerOptions(
+//     req: any,
+//     res: any
+//   ): Promise<GraphQLOptions> {
+//     const options = await super.createGraphQLServerOptions(
+//       req as any,
+//       res as any
+//     )
+//     const maximumCost = GRAPHQL_COST_LIMIT
+//
+//     return {
+//       ...options,
+//       validationRules: [
+//         ...(options.validationRules || []),
+//         costAnalysis({
+//           variables: req.body.variables,
+//           maximumCost,
+//           defaultCost: 1,
+//           createError: (max: number, actual: number) => {
+//             const err = new ActionLimitExceededError(
+//               `GraphQL query exceeds maximum complexity,` +
+//                 `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
+//             )
+//             return err
+//           },
+//           onComplete: (costs: number) =>
+//             logger.debug('costs: %d (max: %d)', costs, maximumCost),
+//         }),
+//       ],
+//     }
+//   }
+// }
 
 const cache = new RedisCache({
   host: environment.cacheHost,
@@ -101,25 +89,9 @@ const exceptVariableNames = [
   'content',
 ]
 
-const server = new ProtectedApolloServer({
+const server = new ApolloServer<RequestContext>({
   schema: composedSchema,
-  context: makeContext,
-  dataSources: () => ({
-    atomService: new AtomService(),
-
-    // below services will be deprecated
-    userService: new UserService(),
-    articleService: new ArticleService(),
-    commentService: new CommentService(),
-    draftService: new DraftService(),
-    systemService: new SystemService(),
-    tagService: new TagService(),
-    notificationService: new NotificationService(),
-    oauthService: new OAuthService(),
-    paymentService: new PaymentService(),
-    openseaService: new OpenSeaService(),
-  }),
-  debug: !isProd,
+  includeStacktraceInErrorResponses: !isProd,
   validationRules: [depthLimit(15)],
   cache,
   persistedQueries: {
@@ -144,17 +116,18 @@ const server = new ProtectedApolloServer({
       calculateHttpHeaders: false,
       defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
     }),
-    responseCachePlugin({
-      sessionId: ({ context }) => {
-        const viewerId = _.get(context, 'viewer.id', '')
-        const viewerGroup = _.get(context, 'viewer.group', '')
-        return JSON.stringify({ id: viewerId, group: viewerGroup })
-      },
-      nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
-    }),
+    // responseCachePlugin({
+    //   sessionId: ({ context }) => {
+    //     const viewerId = _.get(context, 'viewer.id', '')
+    //     const viewerGroup = _.get(context, 'viewer.group', '')
+    //     return JSON.stringify({ id: viewerId, group: viewerGroup })
+    //   },
+    //   nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
+    // }),
   ],
   introspection: true,
   csrfPrevention: true,
+  logger,
 })
 
 export const graphql = async (app: Express) => {
@@ -170,11 +143,12 @@ export const graphql = async (app: Express) => {
   )
 
   // API
-  server.applyMiddleware({
-    app,
-    path: API_ENDPOINT,
-    cors: CORS_OPTIONS,
-  })
+  app.use(
+    API_ENDPOINT,
+    cors<cors.CorsRequest>(CORS_OPTIONS),
+    bodyParser.json(),
+    expressMiddleware<RequestContext>(server, { context: makeContext })
+  )
 
   // Playground
   app.get(

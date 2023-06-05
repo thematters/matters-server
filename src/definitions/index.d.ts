@@ -84,6 +84,7 @@ export interface RequestContext {
   req: Request
   res: Response
   knex: Knex
+  dataSources: DataSources
 }
 
 export interface DataSources {
@@ -97,7 +98,6 @@ export interface DataSources {
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
   paymentService: InstanceType<typeof PaymentService>
-  alchemyService: InstanceType<typeof Alchemy>
   openseaService: InstanceType<typeof OpenSeaService>
 }
 

@@ -54,7 +54,7 @@ export class ObjectCacheDirective extends SchemaDirectiveVisitor {
               field: field.name,
               args: args[1],
             },
-            getter: () => resolve.apply(this, args),
+            getter: () => resolve.apply(this, args) as Promise<any>,
             expire: maxAge,
           })
         }

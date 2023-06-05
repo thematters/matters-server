@@ -13,7 +13,6 @@ import queries from './queries'
 import typeDefs from './types'
 import {
   AuthDirective,
-  DeprecatedDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
   RateLimitDirective,
@@ -52,8 +51,6 @@ const schema = makeExecutableSchema({
   typeDefs,
   schemaTransforms: [constraintDirective()],
   schemaDirectives: {
-    deprecated: DeprecatedDirective,
-
     // limitation
     auth: AuthDirective,
     rateLimit: RateLimitDirective,
