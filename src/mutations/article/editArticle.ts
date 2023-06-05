@@ -418,6 +418,7 @@ const resolver: MutationToEditArticleResolver = async (
         publishState: PUBLISH_STATE.pending,
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
+        sensitiveByAuthor: currDraft?.sensitiveByAuthor,
         license: currDraft?.license,
         requestForDonation: currDraft?.requestForDonation,
         replyToDonator: currDraft?.replyToDonator,
