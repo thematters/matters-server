@@ -4,8 +4,6 @@ const resolver: ArticleToReplyToDonatorResolver = async (
   { requestForDonation },
   _,
   { dataSources: { draftService } }
-) => {
-  return requestForDonation
-}
+) => requestForDonation
 
 export default resolver

@@ -115,6 +115,7 @@ export interface GQLMutation {
    */
   toggleArticleRecommend: GQLArticle
   updateArticleState: GQLArticle
+  updateArticleSensitive: GQLArticle
   toggleTagRecommend: GQLTag
   deleteTags?: boolean
   renameTag: GQLTag
@@ -606,6 +607,16 @@ export interface GQLArticle extends GQLNode {
   access: GQLArticleAccess
 
   /**
+   * whether content is marked as sensitive by author
+   */
+  sensitiveByAuthor: boolean
+
+  /**
+   * whether content is marked as sensitive by admin
+   */
+  sensitiveByAdmin: boolean
+
+  /**
    * License Type
    */
   license: GQLArticleLicenseType
@@ -970,6 +981,7 @@ export interface GQLEditArticleInput {
   collection?: Array<string>
   circle?: string
   accessType?: GQLArticleAccessType
+  sensitive?: boolean
   license?: GQLArticleLicenseType
   requestForDonation?: string
   replyToDonator?: string
@@ -1031,6 +1043,11 @@ export interface GQLToggleRecommendInput {
 export interface GQLUpdateArticleStateInput {
   id: string
   state: GQLArticleState
+}
+
+export interface GQLUpdateArticleSensitiveInput {
+  id: string
+  sensitive: boolean
 }
 
 export interface GQLDeleteTagsInput {
@@ -1145,6 +1162,7 @@ export const enum GQLArticleAccessType {
 export const enum GQLArticleLicenseType {
   cc_0 = 'cc_0',
   cc_by_nc_nd_2 = 'cc_by_nc_nd_2',
+  cc_by_nc_nd_4 = 'cc_by_nc_nd_4',
   arr = 'arr',
 }
 
@@ -1974,6 +1992,11 @@ export interface GQLDraft extends GQLNode {
   access: GQLDraftAccess
 
   /**
+   * whether content is marked as sensitive by author
+   */
+  sensitiveByAuthor: boolean
+
+  /**
    * License Type
    */
   license: GQLArticleLicenseType
@@ -2025,6 +2048,7 @@ export interface GQLPutDraftInput {
   collection?: Array<string | null>
   circle?: string
   accessType?: GQLArticleAccessType
+  sensitive?: boolean
   license?: GQLArticleLicenseType
   requestForDonation?: string
   replyToDonator?: string
@@ -4861,6 +4885,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
   updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
+  updateArticleSensitive?: MutationToUpdateArticleSensitiveResolver<TParent>
   toggleTagRecommend?: MutationToToggleTagRecommendResolver<TParent>
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
@@ -5169,6 +5194,21 @@ export interface MutationToUpdateArticleStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateArticleStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleSensitiveArgs {
+  input: GQLUpdateArticleSensitiveInput
+}
+export interface MutationToUpdateArticleSensitiveResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleSensitiveArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6083,6 +6123,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   newestPublishedDraft?: ArticleToNewestPublishedDraftResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
+  sensitiveByAuthor?: ArticleToSensitiveByAuthorResolver<TParent>
+  sensitiveByAdmin?: ArticleToSensitiveByAdminResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
   requestForDonation?: ArticleToRequestForDonationResolver<TParent>
   replyToDonator?: ArticleToReplyToDonatorResolver<TParent>
@@ -6515,6 +6557,30 @@ export interface ArticleToRevisionCountResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSensitiveByAuthorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSensitiveByAdminResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -8728,6 +8794,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
+  sensitiveByAuthor?: DraftToSensitiveByAuthorResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
   requestForDonation?: DraftToRequestForDonationResolver<TParent>
   replyToDonator?: DraftToReplyToDonatorResolver<TParent>
@@ -8886,6 +8953,18 @@ export interface DraftToCollectionResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSensitiveByAuthorResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

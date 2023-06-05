@@ -23,8 +23,8 @@ type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>
 
 export const filterMissingFieldNoticeEdges = (
   edges: NoticeEdges
-): NoticeEdges => {
-  return edges.filter(({ node: notice }) => {
+): NoticeEdges =>
+  edges.filter(({ node: notice }) => {
     const noticeType = notice.type
 
     // check actors
@@ -44,4 +44,3 @@ export const filterMissingFieldNoticeEdges = (
 
     return true
   })
-}

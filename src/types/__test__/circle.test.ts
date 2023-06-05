@@ -547,7 +547,7 @@ describe('circle CRUD', () => {
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
     expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
     )
 
     // turns to paywall access

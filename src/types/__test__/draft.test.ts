@@ -6,6 +6,7 @@ import { toGlobalId } from 'common/utils'
 import { putDraft } from './utils'
 
 declare global {
+  // eslint-disable-next-line no-var
   var mockEnums: any
 }
 
@@ -255,7 +256,7 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id: draftId } })
 
     // default license
-    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2)
+    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4)
 
     // set to CC0
     const result2 = await putDraft({
@@ -279,13 +280,14 @@ describe('put draft', () => {
     const resetResult1 = await putDraft({
       draft: {
         id: draftId,
-        license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
+        license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 as any,
       },
     })
     expect(_get(resetResult1, 'license')).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
     )
   })
+
   test('edit draft support settings', async () => {
     const { id } = await putDraft({
       draft: {
@@ -319,6 +321,7 @@ describe('put draft', () => {
     expect(_get(result4, 'requestForDonation')).toBe(text)
     expect(_get(result4, 'replyToDonator')).toBe(text)
   })
+
   test('edit draft comment setting', async () => {
     const { id, canComment } = await putDraft({
       draft: {
@@ -339,5 +342,26 @@ describe('put draft', () => {
     const result2 = await putDraft({ draft: { id: draftId, canComment: true } })
 
     expect(_get(result2, 'canComment')).toBeTruthy()
+  })
+
+  test('edit draft sensitive settings', async () => {
+    const { id, sensitiveByAuthor } = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+    })
+
+    // default
+    expect(sensitiveByAuthor).toBeFalsy()
+
+    // turn on by author
+    draftId = id
+    const result = await putDraft({ draft: { id: draftId, sensitive: true } })
+    expect(_get(result, 'sensitiveByAuthor')).toBeTruthy()
+
+    // turn off by author
+    const result2 = await putDraft({ draft: { id: draftId, sensitive: false } })
+    expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
   })
 })

@@ -1,10 +1,11 @@
+import type { Knex } from 'knex'
+
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
   html2md,
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import type { Knex } from 'knex'
 import lodash, { difference, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -65,6 +66,7 @@ const resolver: MutationToEditArticleResolver = async (
       collection,
       circle: circleGlobalId,
       accessType,
+      sensitive,
       license,
       requestForDonation,
       replyToDonator,
@@ -351,6 +353,20 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
+   * Sensitive settings
+   */
+  if (sensitive !== undefined && sensitive !== draft.sensitive) {
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        sensitiveByAuthor: sensitive,
+        updatedAt: knex.fn.now(),
+      },
+    })
+  }
+
+  /**
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
@@ -419,7 +435,7 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (!!content) {
+  if (content) {
     // check for content length limit
     if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
       throw new UserInputError('content reach length limit')
@@ -576,7 +592,7 @@ const handleCollection = async ({
     return
   }
   // only validate new-added articles
-  if (!!newIdsToAdd.length) {
+  if (newIdsToAdd.length) {
     if (
       newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
       newIds.length >= oldIds.length

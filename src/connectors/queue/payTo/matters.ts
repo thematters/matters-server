@@ -35,8 +35,8 @@ class PayToByMattersQueue extends BaseQueue {
    * Producer for payTo.
    *
    */
-  payTo = ({ txId }: PaymentParams) => {
-    return this.q.add(
+  payTo = ({ txId }: PaymentParams) =>
+    this.q.add(
       QUEUE_JOB.payTo,
       { txId },
       {
@@ -44,7 +44,6 @@ class PayToByMattersQueue extends BaseQueue {
         removeOnComplete: false,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.
@@ -170,8 +169,8 @@ class PayToByMattersQueue extends BaseQueue {
       if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
-        } catch (err) {
-          logger.error(err)
+        } catch (error) {
+          logger.error(error)
         }
       }
       logger.error(err)

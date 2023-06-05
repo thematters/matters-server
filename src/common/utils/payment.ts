@@ -4,21 +4,13 @@ import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 
 NP.enableBoundaryChecking(false)
 
-export const numRound = (num: number, decPlaces: number = 2) => {
-  return NP.round(num, decPlaces)
-}
+export const numRound = (num: number, decPlaces = 2) => NP.round(num, decPlaces)
 
-export const numDivide = (num1: number, num2: number) => {
-  return NP.divide(num1, num2)
-}
+export const numDivide = (num1: number, num2: number) => NP.divide(num1, num2)
 
-export const numTimes = (num1: number, num2: number) => {
-  return NP.times(num1, num2)
-}
+export const numTimes = (num1: number, num2: number) => NP.times(num1, num2)
 
-export const numMinus = (num1: number, num2: number) => {
-  return NP.minus(num1, num2)
-}
+export const numMinus = (num1: number, num2: number) => NP.minus(num1, num2)
 
 /**
  * Convert DB amount to provider amount
@@ -81,6 +73,4 @@ export const calcStripeFee = (amount: number) => {
 }
 
 const FEE_MATTERS = 0.2
-export const calcMattersFee = (amount: number) => {
-  return numRound(amount * FEE_MATTERS)
-}
+export const calcMattersFee = (amount: number) => numRound(amount * FEE_MATTERS)

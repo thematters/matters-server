@@ -23,7 +23,7 @@ module.exports = {
     ...baseConfig,
     connection: {
       ...baseConfig.connection,
-      database: 'test_' + process.env['MATTERS_PG_DATABASE'], // always prefix test db with 'test_'
+      database: 'test_' + process.env.MATTERS_PG_DATABASE, // always prefix test db with 'test_'
     },
   },
 

@@ -71,11 +71,9 @@ const resolver: WalletToTransactionsResolver = async (
       const text = TransactionRemarkText[viewer.language]
 
       // known error code or unknown error code
-      if (Object.keys(text).includes(tx.remark)) {
-        return text[tx.remark as keyof typeof text]
-      } else {
-        return text.unknow_error
-      }
+      return Object.keys(text).includes(tx.remark)
+        ? text[tx.remark as keyof typeof text]
+        : text.unknow_error
     }
   }
 

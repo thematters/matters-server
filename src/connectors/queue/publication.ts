@@ -102,7 +102,7 @@ export class PublicationQueue extends BaseQueue {
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       await job.progress(100)
-      done(null, `Draft ${draftId} isn\'t in pending state.`)
+      done(null, `Draft ${draftId} isn't in pending state.`)
       return
     }
     await job.progress(5)
@@ -121,14 +121,9 @@ export class PublicationQueue extends BaseQueue {
         wordCount,
         slug: slugify(draft.title),
       }
-      if (draft.articleId) {
-        article = await this.articleService.baseUpdate(
-          draft.articleId,
-          articleData
-        )
-      } else {
-        article = await this.articleService.createArticle(articleData)
-      }
+      article = await (draft.articleId
+        ? this.articleService.baseUpdate(draft.articleId, articleData)
+        : this.articleService.createArticle(articleData))
 
       await job.progress(20)
 

@@ -61,11 +61,11 @@ const resolver: MutationToMigrationResolver = async (
 
       htmls.push($('article').html() || '')
     } catch (err: any) {
-      if (err.name === 'MaxBufferError') {
-        throw new MigrationReachLimitError('migration file size reaches limit.')
-      } else {
-        throw err
-      }
+      const error =
+        err.name === 'MaxBufferError'
+          ? new MigrationReachLimitError('migration file size reaches limit.')
+          : err
+      throw error
       break
     }
   }

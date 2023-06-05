@@ -18,10 +18,12 @@ const reverseList = _(langMap)
   .values()
   .map((list, i) => list.map((lang) => ({ [lang]: langList[i] })))
   .flatten()
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   .merge()
   .value()
 
+// eslint-disable-next-line prefer-spread
 export const reverseMap = _.assign.apply(_, reverseList)
 
 // list of languages that we support

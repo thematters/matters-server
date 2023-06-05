@@ -16,11 +16,7 @@ const resolver: ArticleToReplyToDonatorResolver = async (
 
   const isAuthor = viewer.id === authorId
   const isDonator = await _isDonator(viewer.id, articleId, dataSources)
-  if (isAuthor || isDonator) {
-    return replyToDonator
-  } else {
-    return null
-  }
+  return isAuthor || isDonator ? replyToDonator : null
 }
 
 const _isDonator = async (

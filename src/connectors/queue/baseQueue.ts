@@ -1,6 +1,7 @@
 import Queue from 'bull'
 import { Knex } from 'knex'
 
+import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import {
   ArticleService,
@@ -53,7 +54,9 @@ export class BaseQueue {
    */
   startScheduledJobs = async () => {
     await this.clearDelayedJobs()
-    await this.addRepeatJobs()
+    if (!isTest) {
+      await this.addRepeatJobs()
+    }
   }
 
   /**

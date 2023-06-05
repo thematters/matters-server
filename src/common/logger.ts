@@ -1,9 +1,10 @@
+import type { ValueOf } from 'definitions'
+
 import { AsyncLocalStorage } from 'async_hooks'
 import { createLogger, format, transports } from 'winston'
 
 import { LOGGING_CONTEXT_KEY, LOGGING_LEVEL } from 'common/enums'
 import { environment } from 'common/environment'
-import type { ValueOf } from 'definitions'
 
 export type LoggingLevel = ValueOf<typeof LOGGING_LEVEL>
 export type LoggingContextKey = ValueOf<typeof LOGGING_CONTEXT_KEY>
