@@ -120,7 +120,7 @@ export const testClient = async (
     schema,
   })
 
-  const contextValue = {
+  const genContext = () => ({
     ..._context,
     knex,
     dataSources: {
@@ -136,14 +136,16 @@ export const testClient = async (
       paymentService: new PaymentService(),
       ...dataSources,
     },
-  }
+  })
 
   await server.start()
 
   // mock v3 apollo server behavior
   return {
     executeOperation: async (req: GraphQLRequest) =>
-      v4ToV3Result(await server.executeOperation(req, { contextValue })),
+      v4ToV3Result(
+        await server.executeOperation(req, { contextValue: genContext() })
+      ),
   }
 }
 

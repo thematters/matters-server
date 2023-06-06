@@ -1,10 +1,6 @@
+import { generateTypeScriptTypes } from '@jlowcs/graphql-schema-typescript'
 import fs from 'fs'
-import { generateTypeScriptTypes } from 'graphql-schema-typescript'
 import 'module-alias/register'
-
-import { getLogger } from 'common/logger'
-
-const logger = getLogger('utils')
 
 const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 
@@ -13,10 +9,10 @@ generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
   importStatements: ["import { Context } from './index'"],
 })
   .then(() => {
-    logger.info('DONE')
+    console.info('DONE')
     process.exit(0)
   })
   .catch((err) => {
-    logger.error(err)
+    console.error(err)
     process.exit(1)
   })
