@@ -1,5 +1,3 @@
-import type Redis from 'ioredis'
-
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { CacheService, UserService } from 'connectors'
 import { GQLSearchExclude, GQLUserRestrictionType } from 'definitions'
@@ -249,16 +247,17 @@ describe('updateLastSeen', () => {
   })
   test('caching', async () => {
     const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
-    const redisGet = async (_id: string) =>
-      (cacheService.redis.client as Redis).get(cacheService.genKey({ id: _id }))
+    const cacheGet = async (_id: string) =>
+      // @ts-ignore
+      cacheService.redis.get(cacheService.genKey({ id: _id }))
     const id = '3'
 
     await userService.updateLastSeen(id, 1000)
-    const data1 = await redisGet(id)
+    const data1 = await cacheGet(id)
     expect(data1).toBeNull()
 
     await userService.updateLastSeen(id, 1000)
-    const data2 = await redisGet(id)
+    const data2 = await cacheGet(id)
     expect(data2).not.toBeNull()
   })
 })

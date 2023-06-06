@@ -19,7 +19,7 @@ import { getLogger } from 'common/logger'
 import { toDBAmount } from 'common/utils'
 import {
   AtomService,
-  CacheService,
+  redis,
   NotificationService,
   PaymentService,
 } from 'connectors'
@@ -134,14 +134,13 @@ export const completeCircleSubscription = async ({
   }
 
   // invalidate user & circle
-  const cacheService = new CacheService()
   invalidateFQC({
     node: { type: NODE_TYPES.Circle, id: circle.id },
-    redis: cacheService.redis,
+    redis: { client: redis },
   })
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
-    redis: cacheService.redis,
+    redis: { client: redis },
   })
 }
 
@@ -158,7 +157,6 @@ export const updateSubscription = async ({
   event: Stripe.Event
 }) => {
   const atomService = new AtomService()
-  const cacheService = new CacheService()
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -236,7 +234,7 @@ export const updateSubscription = async ({
   // invalidate user
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: dbSub.userId },
-    redis: cacheService.redis,
+    redis: { client: redis },
   })
 
   // invalidatecircle
@@ -249,7 +247,7 @@ export const updateSubscription = async ({
       dbDiffPrices.map((price) => {
         invalidateFQC({
           node: { type: NODE_TYPES.Circle, id: price.circleId },
-          redis: cacheService.redis,
+          redis: { client: redis },
         })
       })
     } catch (error) {

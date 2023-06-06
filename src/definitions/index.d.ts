@@ -1,6 +1,6 @@
-import { RedisCache } from 'apollo-server-cache-redis'
-import { Request, Response } from 'express'
-import { Knex } from 'knex'
+import type { Request, Response } from 'express'
+import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
 
 import {
   PAYMENT_CURRENCY,
@@ -61,7 +61,7 @@ export type UserState = 'active' | 'banned' | 'archived'
 export type Context = RequestContext & {
   dataSources: DataSources
   cacheKey: string
-  redis: RedisCache
+  redis: { client: Redis }
 }
 
 export type Viewer = (User | { id: null }) & {

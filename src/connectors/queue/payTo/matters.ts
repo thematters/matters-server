@@ -12,7 +12,7 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { PaymentService } from 'connectors'
+import { PaymentService, redis } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -158,7 +158,7 @@ class PayToByMattersQueue extends BaseQueue {
         if (entityType && this.cacheService) {
           invalidateFQC({
             node: { type: entityType, id: tx.targetId },
-            redis: this.cacheService.redis,
+            redis: { client: redis },
           })
         }
       }

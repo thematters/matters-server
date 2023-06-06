@@ -4,7 +4,7 @@ import _uniq from 'lodash/uniq'
 import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { MutationToDeleteTopicsResolver } from 'definitions'
 
 const resolver: MutationToDeleteTopicsResolver = async (
@@ -53,12 +53,11 @@ const resolver: MutationToDeleteTopicsResolver = async (
   })
 
   // manually invalidate cache since it returns nothing
-  const cacheService = new CacheService()
   await Promise.all(
     topicIds.map((id) =>
       invalidateFQC({
         node: { type: NODE_TYPES.Topic, id },
-        redis: cacheService.redis,
+        redis: { client: redis },
       })
     )
   )

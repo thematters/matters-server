@@ -4,7 +4,12 @@ import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
 import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting'
-import { RedisCache } from 'apollo-server-cache-redis'
+import { KeyvAdapter } from '@apollo/utils.keyvadapter'
+import {
+  ErrorsAreMissesCache,
+  type KeyValueCache,
+} from '@apollo/utils.keyvaluecache'
+import KeyvRedis from '@keyv/redis'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { Express, RequestHandler } from 'express'
@@ -13,6 +18,7 @@ import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
 import { graphqlUploadExpress } from 'graphql-upload'
+import Keyv from 'keyv'
 import _ from 'lodash'
 import 'module-alias/register'
 
@@ -23,10 +29,11 @@ import {
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { isProd } from 'common/environment'
 // import { ActionLimitExceededError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
+import { redis } from 'connectors'
 import { RequestContext } from 'definitions'
 import { loggerMiddleware } from 'middlewares/logger'
 
@@ -36,6 +43,10 @@ const logger = getLogger('graphql-server')
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
+
+const cacheBackend = new ErrorsAreMissesCache(
+  new KeyvAdapter(new Keyv({ store: new KeyvRedis(redis) }))
+) as KeyValueCache<string>
 
 // class ProtectedApolloServer extends ApolloServer {
 //   async createGraphQLServerOptions(
@@ -71,11 +82,6 @@ const PLAYGROUND_ENDPOINT = '/playground'
 //   }
 // }
 
-const cache = new RedisCache({
-  host: environment.cacheHost,
-  port: environment.cachePort,
-})
-
 const composedSchema = applyMiddleware(schema, loggerMiddleware)
 
 const exceptVariableNames = [
@@ -93,9 +99,9 @@ const server = new ApolloServer<RequestContext>({
   schema: composedSchema,
   includeStacktraceInErrorResponses: !isProd,
   validationRules: [depthLimit(15)],
-  cache,
+  cache: cacheBackend,
   persistedQueries: {
-    cache,
+    cache: cacheBackend,
   },
   plugins: [
     ApolloServerPluginUsageReporting({

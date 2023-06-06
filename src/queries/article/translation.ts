@@ -3,7 +3,7 @@ import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { CacheService, gcp } from 'connectors'
+import { redis, gcp } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const logger = getLogger('query-translations')
@@ -127,10 +127,9 @@ const resolver: ArticleToTranslationResolver = async (
       }
     }
 
-    const cacheService = new CacheService()
     await invalidateFQC({
       node: { type: NODE_TYPES.Article, id: articleId },
-      redis: cacheService.redis,
+      redis: { client: redis },
     })
 
     return {

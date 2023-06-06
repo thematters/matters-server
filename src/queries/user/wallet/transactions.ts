@@ -1,4 +1,4 @@
-import { CacheScope } from 'apollo-cache-control'
+import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
 import {
   CACHE_TTL,
@@ -18,7 +18,7 @@ const resolver: WalletToTransactionsResolver = async (
   { id: userId },
   { input },
   { dataSources: { paymentService }, viewer },
-  { cacheControl }
+  info
 ) => {
   const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -42,9 +42,9 @@ const resolver: WalletToTransactionsResolver = async (
 
   // no-cache for single transaction query, used by client polling
   if (txId) {
-    cacheControl.setCacheHint({
+    cacheControlFromInfo(info).setCacheHint({
       maxAge: CACHE_TTL.INSTANT,
-      scope: CacheScope.Private,
+      scope: 'PRIVATE',
     })
   }
 

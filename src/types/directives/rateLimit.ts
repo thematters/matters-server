@@ -1,11 +1,9 @@
-import type Redis from 'ioredis'
-
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'
-import { CacheService } from 'connectors'
+import { CacheService, redis } from 'connectors'
 
 const checkOperationLimit = async ({
   user,
@@ -25,9 +23,7 @@ const checkOperationLimit = async ({
     field: operation,
   })
 
-  const redisClient = cacheService.redis.client as Redis
-
-  const operationLog = await redisClient.lrange(cacheKey, 0, -1)
+  const operationLog = await redis.lrange(cacheKey, 0, -1)
 
   // timestamp in seconds
   const current = Math.floor(Date.now() / 1000)
@@ -35,8 +31,8 @@ const checkOperationLimit = async ({
   // no record
   if (!operationLog) {
     // create
-    redisClient.lpush(cacheKey, current).then(() => {
-      redisClient.expire(cacheKey, period)
+    redis.lpush(cacheKey, current).then(() => {
+      redis.expire(cacheKey, period)
     })
 
     // pass
@@ -60,9 +56,9 @@ const checkOperationLimit = async ({
   }
 
   // add, trim, update expiration
-  redisClient.lpush(cacheKey, current)
-  redisClient.ltrim(cacheKey, 0, times)
-  redisClient.expire(cacheKey, period)
+  redis.lpush(cacheKey, current)
+  redis.ltrim(cacheKey, 0, times)
+  redis.expire(cacheKey, period)
 
   // pass
   return true

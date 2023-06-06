@@ -13,12 +13,7 @@ import {
 import { environment } from 'common/environment'
 import { LikeCoinWebhookError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import {
-  AtomService,
-  CacheService,
-  PaymentService,
-  UserService,
-} from 'connectors'
+import { AtomService, PaymentService, UserService, redis } from 'connectors'
 
 const logger = getLogger('route-likecoin')
 
@@ -34,13 +29,12 @@ const invalidateCache = async ({
   userService: InstanceType<typeof UserService>
 }) => {
   if (typeId) {
-    const cache = new CacheService()
     const result = await userService.baseFindEntityTypeTable(typeId)
     const type = NODE_TYPES[(result?.table as keyof typeof NODE_TYPES) || '']
     if (type) {
       await invalidateFQC({
         node: { type, id },
-        redis: cache.redis,
+        redis: { client: redis },
       })
     }
   }

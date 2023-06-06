@@ -25,6 +25,7 @@ import {
   normalizeTagInput,
   // stripAllPunct,
 } from 'common/utils'
+import { redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -227,7 +228,7 @@ export class PublicationQueue extends BaseQueue {
       // Step 8: invalidate user cache
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: article.authorId },
-        redis: this.cacheService.redis,
+        redis: { client: redis },
       })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
@@ -329,7 +330,7 @@ export class PublicationQueue extends BaseQueue {
       // invalidate article cache
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: article.id },
-        redis: this.cacheService.redis,
+        redis: { client: redis },
       })
 
       await job.progress(100)
@@ -469,7 +470,7 @@ export class PublicationQueue extends BaseQueue {
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: draft.circleId },
-      redis: this.cacheService.redis,
+      redis: { client: redis },
     })
   }
 

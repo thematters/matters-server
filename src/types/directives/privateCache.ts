@@ -1,5 +1,7 @@
+import type { CacheScope } from '@apollo/cache-control-types'
+
+import { cacheControlFromInfo } from '@apollo/cache-control-types'
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
-import { CacheScope } from 'apollo-cache-control'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 
 import { CACHE_TTL } from 'common/enums'
@@ -10,7 +12,7 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (...args) => {
       const { strict } = this.args
-      const [, , { viewer }, { cacheControl }] = args
+      const [, , { viewer }, info] = args
       const logged = viewer.id && viewer.hasRole('user')
       const grouped = !!viewer.group
 
@@ -19,17 +21,18 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
         maxAge = CACHE_TTL.INSTANT
       }
 
-      let scope = CacheScope.Public
+      let scope = 'PUBLIC' as CacheScope
       if (logged) {
-        scope = CacheScope.Private
+        scope = 'PRIVATE'
         maxAge = Math.min(
           CACHE_TTL.PRIVATE_QUERY,
-          cacheControl.cacheHint.maxAge || 0
+          info.cacheControl.cacheHint.maxAge || 0
         )
       } else if (grouped) {
-        scope = CacheScope.Private
+        scope = 'PRIVATE'
       }
 
+      const cacheControl = cacheControlFromInfo(info)
       if (typeof maxAge === 'number') {
         cacheControl.setCacheHint({ maxAge, scope })
       } else {
