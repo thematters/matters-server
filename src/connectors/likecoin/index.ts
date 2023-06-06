@@ -83,7 +83,7 @@ const ENDPOINTS = {
   rate: '/misc/price',
   superlike: '/like/share',
   iscnPublish: '/iscn/new?claim=1',
-  cosmosTx: '/cosmos/lcd/txs',
+  cosmosTx: '/cosmos/lcd/cosmos/tx/v1beta1/txs',
 }
 
 /**
@@ -635,9 +635,13 @@ export class LikeCoin {
     if (!data) {
       throw result
     }
-    const msg = _.get(data, 'tx.value.msg')
-    const msgSend = _.find(msg, { type: 'cosmos-sdk/MsgSend' })
-    const amount = _.get(msgSend, 'value.amount[0].amount')
+    const code = _.get(data, 'tx_response.code')
+    if (code) {
+      throw code
+    }
+    const msg = _.get(data, 'tx.body.messages')
+    const msgSend = _.find(msg, { '@type': '/cosmos.bank.v1beta1.MsgSend' })
+    const amount = _.get(msgSend, 'amount[0].amount')
     return { amount }
   }
 
