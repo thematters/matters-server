@@ -23,11 +23,7 @@ describe('publicationQueue.publishArticle', () => {
   })
 
   test('publish pending draft successfully', async () => {
-    const {
-      draft,
-      // content,
-      contentHTML,
-    } = await createPendingDraft()
+    const { draft, content, contentHTML } = await createPendingDraft()
     const job = await queue.publishArticle({
       draftId: draft.id,
     })
@@ -39,7 +35,7 @@ describe('publicationQueue.publishArticle', () => {
     )
 
     expect(updatedDraft.content).toBe(contentHTML)
-    // expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
+    expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
   })
@@ -63,7 +59,6 @@ describe('publicationQueue.publishArticle', () => {
   test('publish pending draft unsuccessfully', async () => {
     // mock
     queue.userService.baseFindById = async (_) => {
-      console.log('mocked publicationQueue.userService.baseFindById is called')
       throw Error('mock error in queue test')
     }
     const { draft } = await createPendingDraft()

@@ -3,21 +3,13 @@ import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
-import logger from 'common/logger'
-import {
-  aws,
-  cfsvc,
-  es,
-  knex,
-  meiliClient,
-  readonlyKnex,
-  searchKnexDB,
-} from 'connectors'
+import { getLogger } from 'common/logger'
+import { aws, cfsvc, knex, readonlyKnex, searchKnexDB } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
+const logger = getLogger('service-base')
+
 export class BaseService extends DataSource {
-  es: typeof es
-  meili: typeof meiliClient
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
@@ -28,8 +20,6 @@ export class BaseService extends DataSource {
 
   constructor(table: TableName) {
     super()
-    this.es = es
-    this.meili = meiliClient
     this.knex = knex
     this.knexRO = readonlyKnex
     this.searchKnex = searchKnexDB
@@ -169,7 +159,6 @@ export class BaseService extends DataSource {
         query.transacting(trx)
       }
       const [result] = await query
-      // logger.info(`Inserted id ${result.id} to ${table || this.table}`)
 
       return result
     } catch (err) {
@@ -233,8 +222,7 @@ export class BaseService extends DataSource {
         ...(updateUpdatedAt ? { updatedAt: knex.fn.now() } : null),
       })
       .returning('*')
-    // logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
-    //
+
     if (trx) {
       query.transacting(trx)
     }
@@ -296,7 +284,7 @@ export class BaseService extends DataSource {
     }
     const [updatedItem] = await query
 
-    // logger.info(`Updated id ${id} in ${table || this.table}`)
+    logger.debug('Updated id %s in %s', id, table ?? this.table)
     return updatedItem
   }
   /**

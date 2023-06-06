@@ -11,9 +11,11 @@ import {
   LikerUserIdExistsError,
   OAuthTokenInvalidError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { aws, CacheService, knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
+
+const logger = getLogger('service-likecoin')
 
 interface LikeData {
   likerId: string
@@ -36,7 +38,7 @@ interface UpdateCivicLikerCacheData {
   likerId: string
   userId: string
   key: string
-  expire: typeof CACHE_TTL[keyof typeof CACHE_TTL]
+  expire: (typeof CACHE_TTL)[keyof typeof CACHE_TTL]
 }
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
@@ -153,6 +155,7 @@ export class LikeCoin {
         }
       }
 
+      logger.info('request %s with %j', endpoint, axiosOptions.data)
       return axios({
         url: endpoint,
         baseURL: likecoinApiURL,
@@ -167,10 +170,10 @@ export class LikeCoin {
       // call makeRequest at most twice
       try {
         return await makeRequest()
-      } catch (e) {
-        const err = _.get(e, 'response.data')
+      } catch (err: any) {
+        const data = _.get(err, 'response.data')
 
-        switch (err) {
+        switch (data) {
           case ERROR_CODES.TOKEN_EXPIRED:
           case ERROR_CODES.LOGIN_NEEDED:
             if (liker && retries++ < 1) {
@@ -192,8 +195,8 @@ export class LikeCoin {
             )
         }
 
-        logger.error(e)
-        throw e
+        logger.error(err)
+        throw err
       }
     }
   }
@@ -388,7 +391,7 @@ export class LikeCoin {
         })
         return false
       },
-      expire: CACHE_TTL.SHORT,
+      expire: CACHE_TTL.MEDIUM,
     })
     return isCivicLiker
   }
@@ -443,31 +446,27 @@ export class LikeCoin {
     likerIp?: string
     userAgent: string
   }) => {
-    try {
-      const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
-      const result = await this.request({
-        ip: likerIp,
-        userAgent,
-        endpoint,
-        withClientCredential: true,
-        method: 'POST',
-        liker,
-        data: _.omitBy(
-          {
-            iscn_id,
-            referrer: url, // encodeURI(url),
-          },
-          _.isNil
-        ),
-      })
-      const data = _.get(result, 'data')
-      if (data) {
-        return data
-      } else {
-        throw result
-      }
-    } catch (error) {
-      throw error
+    const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
+    const result = await this.request({
+      ip: likerIp,
+      userAgent,
+      endpoint,
+      withClientCredential: true,
+      method: 'POST',
+      liker,
+      data: _.omitBy(
+        {
+          iscn_id,
+          referrer: url, // encodeURI(url),
+        },
+        _.isNil
+      ),
+    })
+    const data = _.get(result, 'data')
+    if (data) {
+      return data
+    } else {
+      throw result
     }
   }
 
@@ -606,15 +605,14 @@ export class LikeCoin {
     })
 
     if (!data) {
-      console.error('iscnPublish with no data:', res)
+      logger.error('iscnPublish with no data: %j', res)
       throw res
     }
 
     if (!data.iscnId) {
-      console.error(
-        'iscnPublish failed posted results:',
+      logger.warn(
+        'iscnPublish failed posted results: %j with: %j',
         res,
-        'with:',
         postData
       )
     }

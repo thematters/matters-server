@@ -9,8 +9,11 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { getFileName } from 'common/utils'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('service-aws')
 
 export class AWSService {
   s3: AWS.S3
@@ -33,38 +36,29 @@ export class AWSService {
   /**
    * Get AWS config.
    */
-  getAWSConfig = () => {
-    return {
-      region: environment.awsRegion,
-      accessKeyId: environment.awsAccessId,
-      secretAccessKey: environment.awsAccessKey,
-      ...(isLocal
-        ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
-        : {}),
-    }
-  }
+  getAWSConfig = () => ({
+    region: environment.awsRegion,
+    accessKeyId: environment.awsAccessId,
+    secretAccessKey: environment.awsAccessKey,
+    ...(isLocal ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT } : {}),
+  })
 
   /**
    * Get S3 endpoint. If AWS Cloud Front is enabled, the default S3 endpoint
    * will be replaced.
    */
-  getS3Endpoint = (): string => {
-    if (isTest) {
-      return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
-    } else {
-      return `https://${
-        environment.awsCloudFrontEndpoint ||
-        `${this.s3Bucket}.${environment.awsS3Endpoint}`
-      }`
-    }
-  }
+  getS3Endpoint = (): string =>
+    isTest
+      ? `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
+      : `https://${
+          environment.awsCloudFrontEndpoint ||
+          `${this.s3Bucket}.${environment.awsS3Endpoint}`
+        }`
 
   /**
    * Get S3 bucket.
    */
-  getS3Bucket = (): string => {
-    return environment.awsS3Bucket
-  }
+  getS3Bucket = (): string => environment.awsS3Bucket
 
   // check existence
   baseHeadFile = async (
@@ -168,12 +162,12 @@ export class AWSService {
       ) {
         return key
       }
-    } catch (err) {
+    } catch (err: any) {
       switch (err.code) {
         case 'NotFound':
           break
         default:
-          console.error(new Date(), 'ERROR:', err)
+          logger.error(err)
           throw err
       }
     }
@@ -193,13 +187,15 @@ export class AWSService {
   /**
    * Delete file from AWS S3 by a given path key.
    */
-  baseDeleteFile = async (key: string) =>
-    this.s3
+  baseDeleteFile = async (key: string) => {
+    logger.info(`Deleting file from S3: ${key}`)
+    await this.s3
       .deleteObject({
         Bucket: this.s3Bucket,
         Key: key,
       })
       .promise()
+  }
 
   sqsSendMessage = async ({
     messageBody,
@@ -208,18 +204,26 @@ export class AWSService {
     messageDeduplicationId,
   }: {
     messageBody: any
-    queueUrl: typeof QUEUE_URL[keyof typeof QUEUE_URL]
+    queueUrl: (typeof QUEUE_URL)[keyof typeof QUEUE_URL]
     messageGroupId?: string
     messageDeduplicationId?: string
-  }) =>
-    this.sqs
-      ?.sendMessage({
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: queueUrl,
-        MessageGroupId: messageGroupId,
-        MessageDeduplicationId: messageDeduplicationId,
-      })
-      .promise()
+  }) => {
+    if (isTest) {
+      return
+    }
+    const payload = {
+      MessageBody: JSON.stringify(messageBody),
+      QueueUrl: queueUrl,
+      MessageGroupId: messageGroupId,
+      MessageDeduplicationId: messageDeduplicationId,
+    }
+    const res = (await this.sqs?.sendMessage(payload).promise()) as any
+    logger.info(
+      'SQS sent message %j with request-id %s',
+      payload,
+      res.ResponseMetadata.RequestId
+    )
+  }
 
   snsPublishMessage = async ({
     // MessageGroupId,
@@ -228,8 +232,11 @@ export class AWSService {
     // MessageGroupId: string
     // Message: any
     MessageBody: any
-  }) =>
-    this.sns
+  }) => {
+    if (isTest) {
+      return
+    }
+    const res = (await this.sns
       ?.publish({
         Message: JSON.stringify({
           default: JSON.stringify(MessageBody),
@@ -242,7 +249,13 @@ export class AWSService {
         // QueueUrl: environment.awsIpfsArticlesQueueUrl,
         TopicArn: environment.awsArticlesSnsTopic,
       })
-      .promise()
+      .promise()) as any
+    logger.info(
+      'SNS sent message %j with request-id %s',
+      MessageBody,
+      res.ResponseMetadata.RequestId
+    )
+  }
 }
 
 export const aws = new AWSService()

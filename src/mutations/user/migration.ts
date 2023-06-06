@@ -60,12 +60,12 @@ const resolver: MutationToMigrationResolver = async (
       $('section.p-summary, footer').remove()
 
       htmls.push($('article').html() || '')
-    } catch (error) {
-      if (error.name === 'MaxBufferError') {
-        throw new MigrationReachLimitError('migration file size reaches limit.')
-      } else {
-        throw error
-      }
+    } catch (err: any) {
+      const error =
+        err.name === 'MaxBufferError'
+          ? new MigrationReachLimitError('migration file size reaches limit.')
+          : err
+      throw error
       break
     }
   }

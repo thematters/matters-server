@@ -1,12 +1,14 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
-import _ from 'lodash'
+import { get } from 'lodash'
 import passport from 'passport'
 
 import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { CacheService, UserService } from 'connectors'
+
+const logger = getLogger('route-auth')
 
 export default () => {
   passport.use(
@@ -19,12 +21,12 @@ export default () => {
         callbackURL: environment.likecoinCallbackURL,
         passReqToCallback: true,
       },
-      async (req, accessToken, refreshToken, params, profile, done) => {
+      async (req, accessToken, refreshToken, params, _, done) => {
         const userService = new UserService()
         const cacheService = new CacheService()
         const viewer = req.app.locals.viewer
-        const userId = _.get(viewer, 'id')
-        const likerId = _.get(params, 'user')
+        const userId = get(viewer, 'id')
+        const likerId = get(params, 'user')
 
         if (!userId) {
           return done(null, undefined, {

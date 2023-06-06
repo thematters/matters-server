@@ -4,7 +4,9 @@ import axios from 'axios'
 import { LANGUAGE } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { ActionFailedError, UserInputError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('service-gcp')
 
 const { zh_hans, zh_hant, en } = LANGUAGE
 
@@ -119,13 +121,13 @@ class GCP {
     const { success, score } = data
 
     if (!success) {
-      console.error(new Date(), 'gcp recaptcha no success:', data)
+      logger.warn('gcp recaptcha no success: %j', data)
       throw new ActionFailedError(`please try again: ${data['error-codes']}`)
     }
 
     // fail for less than 0.5
     if (score < 0.5) {
-      console.log('very likely bot traffic:', data)
+      logger.info('very likely bot traffic: %j', data)
     }
 
     // pass

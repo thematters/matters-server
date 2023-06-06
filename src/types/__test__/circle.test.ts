@@ -434,14 +434,18 @@ describe('circle CRUD', () => {
       query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: true } },
     })
-    expect(_get(updatedData1, `${path}.followers.edges`).length).toBe(1)
+    expect((_get(updatedData1, `${path}.followers.edges`) as any).length).toBe(
+      1
+    )
 
     // test unfollow circle
     const updatedData2 = await serverAdmin.executeOperation({
       query: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: false } },
     })
-    expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
+    expect((_get(updatedData2, `${path}.followers.edges`) as any).length).toBe(
+      0
+    )
   })
 
   test('add article to circle with public access, then removes from circle', async () => {
@@ -543,7 +547,7 @@ describe('circle CRUD', () => {
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
     expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
-      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4
     )
 
     // turns to paywall access
@@ -594,11 +598,6 @@ describe('circle CRUD', () => {
 
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[1].node')
-
-    console.log(
-      'GET_VIEWER_OWN_CIRCLES::',
-      JSON.stringify({ data, circle, article }, null, 2)
-    )
 
     // add to circle with paywall access
     const paywallInput: Record<string, any> = {
@@ -799,7 +798,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData1, 'data.invite').length).toBe(2)
+    expect(inviteData1!.data!.invite.length).toBe(2)
     expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
       ADMIN_USER_GLOBAL_ID
@@ -820,7 +819,7 @@ describe('circle invitation management', () => {
         },
       },
     })
-    expect(_get(inviteData2, 'data.invite').length).toBe(3)
+    expect(inviteData2!.data!.invite.length).toBe(3)
     expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
     expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
     expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)

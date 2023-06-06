@@ -7,7 +7,7 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { isScopeAllowed, toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
 import {
@@ -19,6 +19,8 @@ import {
   User,
 } from 'definitions'
 
+const logger = getLogger('service-oauth')
+
 export class OAuthService extends BaseService {
   constructor() {
     super('oauth_client')
@@ -29,13 +31,11 @@ export class OAuthService extends BaseService {
    *             Client            *
    *                               *
    *********************************/
-  findClient = async ({ clientId }: { clientId: string }) => {
-    return this.knex('oauth_client').select().where({ clientId }).first()
-  }
+  findClient = async ({ clientId }: { clientId: string }) =>
+    this.knex('oauth_client').select().where({ clientId }).first()
 
-  findClientByName = async ({ name }: { name: string }) => {
-    return this.knex('oauth_client').select().where({ name }).first()
-  }
+  findClientByName = async ({ name }: { name: string }) =>
+    this.knex('oauth_client').select().where({ name }).first()
 
   updateOrCreateClient = async (params: {
     clientId: string
@@ -48,8 +48,8 @@ export class OAuthService extends BaseService {
     redirectURIs?: string[]
     grantTypes?: string[]
     userId: string
-  }) => {
-    return this.baseUpdateOrCreate({
+  }) =>
+    this.baseUpdateOrCreate({
       where: { clientId: params.clientId },
       data: {
         ...params,
@@ -57,7 +57,6 @@ export class OAuthService extends BaseService {
       },
       table: 'oauth_client',
     })
-  }
 
   getClient = async (
     clientId: string,
@@ -105,9 +104,7 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     user: User,
     scope: string | string[]
-  ): Promise<string> => {
-    return nanoid(40)
-  }
+  ): Promise<string> => nanoid(40)
 
   getAccessToken = async (
     accessToken: string
@@ -270,9 +267,7 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     user: User,
     scope: string | string[]
-  ): Promise<string> => {
-    return nanoid(40)
-  }
+  ): Promise<string> => nanoid(40)
 
   getRefreshToken = async (
     refreshToken: string
@@ -316,10 +311,9 @@ export class OAuthService extends BaseService {
    *             Scope             *
    *                               *
    *********************************/
-  scopeStr2Arr = (scope: string): string[] => {
+  scopeStr2Arr = (scope: string): string[] =>
     // split by a space or a comma
-    return scope.split(/[,\s]/).filter((s) => !!s)
-  }
+    scope.split(/[,\s]/).filter((s) => !!s)
 
   validateScope = async (
     user: User,
@@ -355,10 +349,9 @@ export class OAuthService extends BaseService {
     return scopes
   }
 
-  verifyScope = async (accessToken: OAuthToken, scope: string | string[]) => {
+  verifyScope = async (accessToken: OAuthToken, scope: string | string[]) =>
     // TODO: Maybe we don't have to implement this?
-    return true
-  }
+    true
 
   /*********************************
    *                               *

@@ -19,12 +19,14 @@ import {
 } from 'common/enums'
 import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { AtomService, BaseService, NotificationService } from 'connectors'
 import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
+
+const logger = getLogger('service-payment')
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe
@@ -236,9 +238,8 @@ export class PaymentService extends BaseService {
     )
   }
 
-  findBlockchainTransactionById = async (id: string) => {
-    return this.baseFindById(id, 'blockchain_transaction')
-  }
+  findBlockchainTransactionById = async (id: string) =>
+    this.baseFindById(id, 'blockchain_transaction')
 
   findOrCreateBlockchainTransaction = async (
     { chain, txHash }: { chain: GQLChain; txHash: string },
@@ -359,14 +360,13 @@ export class PaymentService extends BaseService {
       state: BLOCKCHAIN_TRANSACTION_STATE
     },
     trx?: Knex.Transaction
-  ) => {
-    return this.baseUpdate(
+  ) =>
+    this.baseUpdate(
       id,
       { updatedAt: new Date(), state },
       'blockchain_transaction',
       trx
     )
-  }
 
   // Update transaction's state by given id
   markTransactionStateAs = async (
@@ -810,14 +810,10 @@ export class PaymentService extends BaseService {
       (sub) => sub.provider === PAYMENT_PROVIDER.stripe
     )
 
-    if (
-      (targetMattersSub && !hasMattersSub) ||
-      (targetStripeSub && !hasStripeSub)
-    ) {
-      await this.createSubscription({ ...data, invitation })
-    } else {
-      await this.createSubscriptionItem({ ...data, invitation })
-    }
+    await ((targetMattersSub && !hasMattersSub) ||
+    (targetStripeSub && !hasStripeSub)
+      ? this.createSubscription({ ...data, invitation })
+      : this.createSubscriptionItem({ ...data, invitation }))
   }
 
   /**

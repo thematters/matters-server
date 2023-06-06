@@ -15,8 +15,6 @@ import {
   GQLCommentCommentNoticeTypeResolver,
   GQLCommentNoticeType,
   GQLCommentNoticeTypeResolver,
-  GQLCryptoNoticeType,
-  GQLCryptoNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
   GQLTagNoticeType,
   GQLTagNoticeTypeResolver,
@@ -41,7 +39,6 @@ enum NOTICE_TYPE {
   CircleNotice = 'CircleNotice',
   CircleArticleNotice = 'CircleArticleNotice',
   CircleCommentNotice = 'CircleCommentNotice',
-  CryptoNotice = 'CryptoNotice',
   OfficialAnnouncementNotice = 'OfficialAnnouncementNotice',
 }
 
@@ -57,7 +54,6 @@ const notice: {
   CommentCommentNotice: GQLCommentCommentNoticeTypeResolver
   TransactionNotice: GQLTransactionNoticeTypeResolver
   CircleNotice: GQLCircleNoticeTypeResolver
-  CryptoNotice: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
 } = {
   User: { notices },
@@ -110,10 +106,6 @@ const notice: {
         circle_new_follower: NOTICE_TYPE.CircleNotice,
         circle_new_broadcast_comments: NOTICE_TYPE.CircleNotice,
         circle_new_discussion_comments: NOTICE_TYPE.CircleNotice,
-
-        // crypto
-        crypto_wallet_airdrop: NOTICE_TYPE.CryptoNotice,
-        crypto_wallet_connected: NOTICE_TYPE.CryptoNotice,
 
         // official
         official_announcement: NOTICE_TYPE.OfficialAnnouncementNotice,
@@ -319,17 +311,6 @@ const notice: {
         __typename: NODE_TYPES.Comment,
       }))
     },
-  },
-  CryptoNotice: {
-    type: ({ type }) => {
-      switch (type) {
-        case DB_NOTICE_TYPE.crypto_wallet_airdrop:
-          return GQLCryptoNoticeType.CryptoWalletAirdrop
-        case DB_NOTICE_TYPE.crypto_wallet_connected:
-          return GQLCryptoNoticeType.CryptoWalletConnected
-      }
-    },
-    target: ({ entities }) => entities.target,
   },
   OfficialAnnouncementNotice: {
     link: ({ data }: { data: any }) => data && data.link,

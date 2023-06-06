@@ -1,7 +1,7 @@
 import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums'
 import { countWords, toGlobalId } from 'common/utils'
 
 import * as draftAccess from './access'
@@ -35,10 +35,9 @@ export default {
     cover: draftCover,
     collection,
     assets,
-    article: (root: any) => root,
+    article: (root: any) => (root.articleId ? root : null),
     access: (root: any) => root,
-    license: ({ license }: { license: any }) =>
-      license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+    license: ({ license }: { license: any }) => license,
   },
   DraftAccess: {
     type: ({ access }: { access: string }) => access,

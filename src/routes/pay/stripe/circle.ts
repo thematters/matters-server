@@ -15,7 +15,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { toDBAmount } from 'common/utils'
 import {
   AtomService,
@@ -25,6 +25,8 @@ import {
 } from 'connectors'
 import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
+
+const logger = getLogger('route-stripe-circle')
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-08-27',
@@ -351,12 +353,12 @@ export const completeCircleInvoice = async ({
     } else {
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
     }
-  } catch (error) {
-    logger.error(error)
+  } catch (err: any) {
+    logger.error(err)
     slack.sendStripeAlert({
       data: slackEventData,
-      message: error,
+      message: err.message,
     })
-    throw error
+    throw err
   }
 }

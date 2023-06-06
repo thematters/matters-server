@@ -35,17 +35,15 @@ const resolver: MutationToToggleBlockUserResolver = async (
       userId: viewer.id,
       targetId: user.id,
     })
-    action = !!blocked ? 'unblock' : 'block'
+    action = blocked ? 'unblock' : 'block'
   } else {
     action = enabled ? 'block' : 'unblock'
   }
 
   // run action
-  if (action === 'block') {
-    await userService.block(viewer.id, user.id)
-  } else {
-    await userService.unblock(viewer.id, user.id)
-  }
+  await (action === 'block'
+    ? userService.block(viewer.id, user.id)
+    : userService.unblock(viewer.id, user.id))
 
   // invalidate extra nodes
   user[CACHE_KEYWORD] = [

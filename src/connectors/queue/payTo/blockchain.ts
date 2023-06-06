@@ -54,8 +54,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * Producers
    *
    */
-  payTo = ({ txId }: PaymentParams) => {
-    return this.q.add(
+  payTo = ({ txId }: PaymentParams) =>
+    this.q.add(
       QUEUE_JOB.payTo,
       { txId },
       {
@@ -68,7 +68,6 @@ export class PayToByBlockchainQueue extends BaseQueue {
         priority: QUEUE_PRIORITY.NORMAL,
       }
     )
-  }
 
   addRepeatJobs = async () => {
     this.q.add(

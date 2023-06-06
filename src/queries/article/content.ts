@@ -1,5 +1,4 @@
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
-import { correctHtml } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
@@ -16,7 +15,7 @@ const resolver: ArticleToContentResolver = async (
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return correctHtml(content)
+    return content
   }
 
   // check article state
@@ -28,14 +27,14 @@ const resolver: ArticleToContentResolver = async (
 
   // not in circle
   if (!articleCircle) {
-    return correctHtml(content)
+    return content
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return correctHtml(content)
+    return content
   }
 
   if (!viewer.id) {
@@ -52,7 +51,7 @@ const resolver: ArticleToContentResolver = async (
     return ''
   }
 
-  return correctHtml(content)
+  return content
 }
 
 export default resolver

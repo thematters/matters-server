@@ -1,6 +1,4 @@
 import _get from 'lodash/get'
-import _set from 'lodash/set'
-import _values from 'lodash/values'
 
 import {
   MATERIALIZED_VIEW,
@@ -15,6 +13,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 
 import { createDonationTx, createTx } from '../../connectors/__test__/utils'
+
 import {
   defaultTestUser,
   getUserContext,
@@ -470,7 +469,7 @@ describe('register and login functionarlities', () => {
       query: GET_VIEWER_INFO,
     })
     const displayName = _get(newUserResult, 'data.viewer.displayName')
-    const info = _get(newUserResult, 'data.viewer.info')
+    const info = newUserResult!.data!.viewer.info
     expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
@@ -1155,31 +1154,41 @@ describe('verification code', () => {
   const type = 'register'
 
   test('verified code', async () => {
-    // send
+    // get multi active codes
     const server = await testClient()
-    const result = await server.executeOperation({
+    const { data: data1 } = await server.executeOperation({
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
     })
-    expect(result && result.data && result.data.sendVerificationCode).toBe(true)
+    const { data: data2 } = await server.executeOperation({
+      query: SEND_VERIFICATION_CODE,
+      variables: { input: { type, email, token: 'some-test-token' } },
+    })
+    expect(data1!.sendVerificationCode).toBe(true)
+    expect(data2!.sendVerificationCode).toBe(true)
 
-    const codes = await userService.findVerificationCodes({ email })
-    const code = codes?.length > 0 ? codes[0] : {}
-    expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+    const codes = await userService.findVerificationCodes({ where: { email } })
+    expect(codes?.length).toBe(2)
+    for (const code of codes) {
+      expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+    }
+    expect(codes[0].code !== codes[1].code).toBeTruthy()
 
     // confirm
     const serverMutate = await testClient()
     const confirmedResult = await serverMutate.executeOperation({
       query: CONFIRM_VERIFICATION_CODE,
-      variables: { input: { type, email, code: code.code } },
+      variables: { input: { type, email, code: codes[0].code } },
     })
     expect(
       confirmedResult &&
         confirmedResult.data &&
         confirmedResult.data.confirmVerificationCode
-    ).toBe(code.uuid)
-    const [confirmedCode] = await userService.findVerificationCodes({ email })
+    ).toBe(codes[0].uuid)
+    const [confirmedCode, inactiveCode] =
+      await userService.findVerificationCodes({ where: { email } })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
+    expect(inactiveCode.status).toBe(VERIFICATION_CODE_STATUS.inactive)
   })
 
   test('inactive code', async () => {
@@ -1191,7 +1200,7 @@ describe('verification code', () => {
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
-    const codes = await userService.findVerificationCodes({ email })
+    const codes = await userService.findVerificationCodes({ where: { email } })
     const code = codes?.length > 0 ? codes[0] : {}
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
@@ -1221,7 +1230,7 @@ describe('verification code', () => {
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
-    const codes = await userService.findVerificationCodes({ email })
+    const codes = await userService.findVerificationCodes({ where: { email } })
     const code = codes?.length > 0 ? codes[0] : {}
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 

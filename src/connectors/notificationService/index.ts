@@ -3,7 +3,7 @@ import {
   DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { BaseService, UserService } from 'connectors'
 import {
   LANGUAGES,
@@ -15,6 +15,8 @@ import {
 import { mail } from './mail'
 import { notice } from './notice'
 import trans from './translations'
+
+const logger = getLogger('service-notification')
 
 export class NotificationService extends BaseService {
   mail: typeof mail
@@ -30,7 +32,7 @@ export class NotificationService extends BaseService {
     try {
       await this.__trigger(params)
     } catch (e) {
-      logger.error('[Notification:trigger]', e)
+      logger.error(e)
     }
   }
 
@@ -51,8 +53,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
       case DB_NOTICE_TYPE.circle_new_article: // deprecated
-      case DB_NOTICE_TYPE.crypto_wallet_airdrop:
-      case DB_NOTICE_TYPE.crypto_wallet_connected:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -199,7 +199,7 @@ export class NotificationService extends BaseService {
     )) as User
 
     if (!recipient) {
-      logger.info(`recipient ${params.recipientId} not found, skipped`)
+      logger.warn(`recipient ${params.recipientId} not found, skipped`)
       return
     }
 
@@ -211,7 +211,7 @@ export class NotificationService extends BaseService {
 
     // skip if actor === recipient
     if ('actorId' in params && params.actorId === params.recipientId) {
-      logger.info(
+      logger.warn(
         `Actor ${params.actorId} is same as recipient ${params.recipientId}, skipped`
       )
       return

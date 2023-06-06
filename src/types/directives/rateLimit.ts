@@ -1,6 +1,7 @@
+import type Redis from 'ioredis'
+
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
-import Redis from 'ioredis'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'
@@ -24,7 +25,7 @@ const checkOperationLimit = async ({
     field: operation,
   })
 
-  const redisClient = cacheService.redis.client as Redis.Redis
+  const redisClient = cacheService.redis.client as Redis
 
   const operationLog = await redisClient.lrange(cacheKey, 0, -1)
 

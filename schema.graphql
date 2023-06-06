@@ -110,6 +110,7 @@ type Mutation {
   """
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
+  updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
   toggleTagRecommend(input: ToggleRecommendInput!): Tag!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
@@ -417,6 +418,12 @@ type Article implements Node {
   """Access related fields on circle"""
   access: ArticleAccess!
 
+  """whether content is marked as sensitive by author"""
+  sensitiveByAuthor: Boolean!
+
+  """whether content is marked as sensitive by admin"""
+  sensitiveByAdmin: Boolean!
+
   """License Type"""
   license: ArticleLicenseType!
 
@@ -680,6 +687,7 @@ input EditArticleInput {
   collection: [ID!]
   circle: ID
   accessType: ArticleAccessType
+  sensitive: Boolean
   license: ArticleLicenseType
   requestForDonation: String
   replyToDonator: String
@@ -737,6 +745,11 @@ input ToggleRecommendInput {
 input UpdateArticleStateInput {
   id: ID!
   state: ArticleState!
+}
+
+input UpdateArticleSensitiveInput {
+  id: ID!
+  sensitive: Boolean!
 }
 
 input DeleteTagsInput {
@@ -843,6 +856,7 @@ enum ArticleAccessType {
 enum ArticleLicenseType {
   cc_0
   cc_by_nc_nd_2
+  cc_by_nc_nd_4
   arr
 }
 
@@ -1425,6 +1439,9 @@ type Draft implements Node {
   """Access related fields on circle"""
   access: DraftAccess!
 
+  """whether content is marked as sensitive by author"""
+  sensitiveByAuthor: Boolean!
+
   """License Type"""
   license: ArticleLicenseType!
 
@@ -1467,6 +1484,7 @@ input PutDraftInput {
   collection: [ID]
   circle: ID
   accessType: ArticleAccessType
+  sensitive: Boolean
   license: ArticleLicenseType
   requestForDonation: String
   replyToDonator: String
@@ -1767,34 +1785,6 @@ enum CircleNoticeType {
   CircleNewDiscussionComments
 }
 
-"""
-################################
-                               #
-            Crypto             #
-                               #
-################################
-"""
-type CryptoNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: CryptoNoticeType!
-  target: CryptoWallet!
-}
-
-enum CryptoNoticeType {
-  CryptoWalletAirdrop
-  CryptoWalletConnected
-}
-
 """The notice type contains info about official announcement."""
 type OfficialAnnouncementNotice implements Notice {
   """Unique ID of this notice."""
@@ -2005,8 +1995,10 @@ input SearchInput {
   record: Boolean
   oss: Boolean
 
-  """use the api version; omit to use latest version"""
+  """deprecated, make no effect"""
   version: SearchAPIVersion
+
+  """deprecated, make no effect"""
   coefficients: String
   quicksearch: Boolean
 }

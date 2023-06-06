@@ -9,12 +9,14 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { numMinus, numRound, numTimes } from 'common/utils'
 import { AtomService, ExchangeRate, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-payout')
 
 interface PaymentParams {
   txId: string
@@ -34,8 +36,8 @@ class PayoutQueue extends BaseQueue {
    * Producer for payout.
    *
    */
-  payout = ({ txId }: PaymentParams) => {
-    return this.q.add(
+  payout = ({ txId }: PaymentParams) =>
+    this.q.add(
       QUEUE_JOB.payout,
       { txId },
       {
@@ -43,7 +45,6 @@ class PayoutQueue extends BaseQueue {
         removeOnComplete: false,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.
@@ -139,12 +140,12 @@ class PayoutQueue extends BaseQueue {
       const exchangeRate = new ExchangeRate()
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
-      } catch (error) {
+      } catch (err: any) {
         slack.sendStripeAlert({
           data,
-          message: error?.message || 'failed to get currency rate.',
+          message: err?.message || 'failed to get currency rate.',
         })
-        throw error
+        throw err
       }
 
       const amount = numRound(tx.amount)
@@ -218,13 +219,13 @@ class PayoutQueue extends BaseQueue {
 
       job.progress(100)
       done(null, { txId, stripeTxId: transfer.id })
-    } catch (error) {
+    } catch (err: any) {
       slack.sendStripeAlert({
         data,
         message: `failed to payout: ${data.txId}.`,
       })
 
-      if (txId && error.name !== 'PaymentQueueJobDataError') {
+      if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
         } catch (error) {
@@ -232,8 +233,8 @@ class PayoutQueue extends BaseQueue {
         }
       }
 
-      logger.error(error)
-      done(error)
+      logger.error(err)
+      done(err)
     }
   }
 }

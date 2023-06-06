@@ -15,7 +15,9 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { isTest } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('queue-migration')
 
 import { BaseQueue } from './baseQueue'
 
@@ -38,8 +40,8 @@ class MigrationQueue extends BaseQueue {
     userId: string
     htmls: string[]
     delay?: number
-  }) => {
-    return this.q.add(
+  }) =>
+    this.q.add(
       QUEUE_JOB.migration,
       { type, userId, htmls },
       {
@@ -48,7 +50,6 @@ class MigrationQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Cusumers
@@ -143,9 +144,9 @@ class MigrationQueue extends BaseQueue {
 
           job.progress(100)
           done(null, 'Migration has finished.')
-        } catch (error) {
-          logger.error(error)
-          done(error)
+        } catch (err: any) {
+          logger.error(err)
+          done(err)
         }
       }
     )

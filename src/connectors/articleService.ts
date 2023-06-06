@@ -1,14 +1,9 @@
-// import type { SearchTotalHits } from '@elastic/elasticsearch'
-
 import {
   ArticlePageContext,
   makeArticlePage,
-  stripHtml,
 } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
-import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -29,9 +24,9 @@ import {
   USER_ACTION,
   USER_STATE,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import {
   AtomService,
   BaseService,
@@ -44,7 +39,7 @@ import {
 } from 'connectors'
 import { GQLSearchExclude, Item } from 'definitions'
 
-const debugLog = createDebug('article-service')
+const logger = getLogger('service-article')
 
 const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
@@ -246,8 +241,7 @@ export class ArticleService extends BaseService {
         return { contentHash, mediaHash, key }
       } catch (err) {
         // if the active IPFS client throws exception, try a few more times on Secondary
-        console.error(
-          new Date(),
+        logger.error(
           `publishToIPFS failed, retries ${++retries} time, ERROR:`,
           err
         )
@@ -256,7 +250,7 @@ export class ArticleService extends BaseService {
     } while (ipfs && retries <= this.ipfsServers.size) // break the retry if there's no backup
 
     // re-fill dataHash & mediaHash later in IPNS-listener
-    console.error(new Date(), `failed publishToIPFS after ${retries} retries.`)
+    logger.error(`failed publishToIPFS after ${retries} retries.`)
   }
 
   // DEPRECATED, To Be Deleted
@@ -286,7 +280,7 @@ export class ArticleService extends BaseService {
     const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
-      console.error(new Date(), 'create IPNS key ERROR:', ipnsKeyRec)
+      logger.error('create IPNS key ERROR: %j', ipnsKeyRec)
       return
     }
 
@@ -305,11 +299,7 @@ export class ArticleService extends BaseService {
     } catch (err) {
       // ignore: key with name 'for-...' already exists
       if (!ipnsKey && err) {
-        console.error(
-          new Date(),
-          `ERROR: no ipnsKey for user: ${author.userName}`,
-          err
-        )
+        logger.error(`ERROR: no ipnsKey for user: ${author.userName}`, err)
       }
     }
 
@@ -334,7 +324,7 @@ export class ArticleService extends BaseService {
 
     const lastDraft = publishedDrafts[0]
     if (!lastDraft) {
-      console.error(new Date(), 'fetching published drafts ERROR:', {
+      logger.error('fetching published drafts ERROR: %j', {
         authorId: author.id,
         publishedDraftIds,
       })
@@ -366,7 +356,7 @@ export class ArticleService extends BaseService {
           'last_published',
         ],
       })
-      console.log(new Date(), 'start update IPNSRec:', updatedIPNSRec)
+      logger.info('start update IPNSRec: %j', updatedIPNSRec)
 
       // make a bundle of json+xml+html index
       const feed = new Feed(author, ipnsKey, publishedDrafts)
@@ -392,7 +382,6 @@ export class ArticleService extends BaseService {
         results.push(result)
       }
       // const entriesMap = new Map(results.map((e: any) => [e.path, e]))
-      // console.log(new Date(), 'contents feed.json ::', results, entriesMap)
 
       let entry = results.filter(
         ({ path }: { path: string }) => path === directoryName
@@ -409,6 +398,7 @@ export class ArticleService extends BaseService {
       // add files (via MFS FILES API)
       const lastDataHash = ipnsKeyRec.lastDataHash
       try {
+        // eslint-disable-next-line unicorn/prefer-ternary
         if (lastDataHash) {
           await ipfs.files.cp(`/ipfs/${lastDataHash}`, `/${directoryName}`, {
             timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
@@ -460,8 +450,7 @@ export class ArticleService extends BaseService {
             break
           } catch (err) {
             // ignore HTTPError: GATEWAY_TIMEOUT
-            console.error(
-              new Date(),
+            logger.warn(
               `publishFeedToIPNS ipfs.files.cp attach'ing failed; delete target and retry ${retries} time, ERROR:`,
               err
             )
@@ -479,12 +468,10 @@ export class ArticleService extends BaseService {
         withLocal: true,
         timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
       })
-      console.log(
-        new Date(),
-        `directoryName stat after tried ${
-          incremental ? 'last 1' : publishedDrafts.length
-        }, and actually attached ${attached.length} articles:`,
-        dirStat1.cid.toString(),
+      logger.info(
+        'directoryName stat after tried %s, and actually attached %s articles: %j',
+        incremental ? 'last 1' : publishedDrafts.length,
+        attached.length,
         { dirStat0, dirStat1, attached }
       )
 
@@ -511,25 +498,26 @@ export class ArticleService extends BaseService {
                 pem: ipnsKeyRec.privKeyPem,
                 useActive: false,
               }))!)
-            } catch (err) {
+            } catch (error) {
               // ignore: key with name 'for-...' already exists
             }
-            console.error(
-              new Date(),
-              `ipfs.name.publish (for ${userName}) failed; retry ${++retries} time, ERROR:`,
-              err,
+            logger.warn(
+              'ipfs.name.publish (for %s) %j failed; retry %d time',
+              userName,
+              ++retries,
               {
                 cidToPublish: cidToPublish.toString(),
                 kname,
                 ipnsKey,
                 ipfsServerId: await ipfs.id(),
-              }
+              },
+              err
             )
           }
         } while (retries <= this.ipfsServers.size)
       }
 
-      console.log(new Date(), `/${directoryName} published:`, published)
+      logger.info('/%s published: %j', directoryName, published)
 
       this.aws
         .sqsSendMessage({
@@ -551,19 +539,21 @@ export class ArticleService extends BaseService {
           queueUrl: QUEUE_URL.ipfsArticles,
         })
         // .then(res => {})
-        .catch((err: Error) =>
-          console.error(new Date(), 'failed sqs notify:', err)
-        )
+        .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       return { ipnsKey, lastDataHash: cidToPublish.toString() }
     } catch (err) {
-      console.error(new Date(), `publishFeedToIPNS last ERROR:`, err, {
-        ipnsKey,
-        kname,
-        directoryName,
+      logger.error(
+        `publishFeedToIPNS last ERROR: %j`,
+        {
+          ipnsKey,
+          kname,
+          directoryName,
 
-        userName: author.userName,
-      })
+          userName: author.userName,
+        },
+        err
+      )
     } finally {
       let updatedRec
       if (published && cidToPublish.toString() !== ipnsKeyRec.lastDataHash) {
@@ -586,17 +576,16 @@ export class ArticleService extends BaseService {
           ],
         })
       } else {
-        console.error(
-          new Date(),
-          'publishFeedToIPNS: not published, or remained same:',
-          { published, cidToPublish: cidToPublish.toString() }
-        )
+        logger.error('publishFeedToIPNS: not published, or remained same: %j', {
+          published,
+          cidToPublish: cidToPublish.toString(),
+        })
       }
 
       const end = new Date()
-      console.log(
-        end,
-        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(1)}min`,
+      logger.info(
+        'IPNS published: elapsed %s min %j',
+        ((+end - started) / 60e3).toFixed(1),
         updatedRec
       )
     }
@@ -664,19 +653,6 @@ export class ArticleService extends BaseService {
         sticky: false,
         updatedAt: new Date(),
       })
-
-      // update search
-      try {
-        await this.es.client.update({
-          index: this.table,
-          id: article.id,
-          body: {
-            doc: { state: ARTICLE_STATE.archived },
-          },
-        })
-      } catch (e) {
-        logger.error(e)
-      }
     }
   }
 
@@ -825,63 +801,6 @@ export class ArticleService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  /**
-   * Dump all data to ES (Currently only used in test)
-   */
-  initSearch = async () => {
-    const articles = await this.knex(this.table)
-      .innerJoin('user', `${this.table}.author_id`, 'user.id')
-      .select(
-        `${this.table}.id as id`,
-        'title',
-        'content',
-        'author_id as authorId',
-        'user.user_name as userName',
-        'user.display_name as displayName'
-      )
-
-    return this.es.indexManyItems({
-      index: this.table,
-      items: articles.map(
-        (article: { content: string; title: string; id: string }) => ({
-          ...article,
-          content: stripHtml(article.content),
-        })
-      ),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    title,
-    content,
-    authorId,
-    userName,
-    displayName,
-    tags,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            title,
-            content: stripHtml(content),
-            state: ARTICLE_STATE.active,
-            authorId,
-            userName,
-            displayName,
-            tags,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
 
   searchByMediaHash = async ({
     key,
@@ -913,136 +832,11 @@ export class ArticleService extends BaseService {
     }
   }
 
-  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
-    take,
-    skip,
-    oss = false,
-    filter,
-    exclude,
-    viewerId,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    oss?: boolean
-    filter?: Record<string, any>
-    viewerId?: string | null
-    exclude?: GQLSearchExclude
-  }) => {
-    const searchBody = bodybuilder()
-      .query('multi_match', {
-        query: key,
-        fuzziness: 'AUTO',
-        fields: [
-          'displayName^15',
-          'title^10',
-          'title.synonyms^5',
-          'content^2',
-          'content.synonyms',
-        ],
-        type: 'most_fields',
-      })
-      .from(skip)
-      .size(take)
-
-    // only return active if not in oss
-    if (!oss) {
-      searchBody.filter('term', { state: ARTICLE_STATE.active })
-    }
-
-    // add filter
-    if (filter && Object.keys(filter).length > 0) {
-      searchBody.filter('term', filter)
-    }
-
-    // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
-    let blockedIds: string[] = []
-    if (excludeBlocked) {
-      blockedIds = (
-        await this.knex('action_user')
-          .select('user_id')
-          .where({ action: USER_ACTION.block, targetId: viewerId })
-      ).map(({ userId }) => userId)
-    }
-
-    try {
-      // check if media hash in search key
-      const re = /^([0-9a-zA-Z]{49,59})$/gi
-      const match = re.exec(key)
-      if (match) {
-        const matched = await this.searchByMediaHash({
-          key: match[1],
-          oss,
-          filter,
-        })
-        let items = (await this.draftLoader.loadMany(
-          matched.nodes.map((item) => item.id)
-        )) as Item[]
-
-        if (excludeBlocked) {
-          items = items.filter((item) => !blockedIds.includes(item.authorId))
-        }
-
-        // TODO: check totalCount
-        return { nodes: items, totalCount: items.length }
-      }
-
-      // take the condition that searching for exact article title into consideration
-      const idsByTitle = []
-      if (key.length >= 5 && skip === 0) {
-        const articles = await this.findByTitle({ title: key, oss, filter })
-        for (const article of articles) {
-          idsByTitle.push(article.id)
-        }
-      }
-      searchBody.notFilter('ids', { values: idsByTitle })
-
-      const {
-        hits, // ...rest
-      } = await this.es.client.search({
-        index: this.table,
-        body: searchBody.build(),
-      })
-      const ids = idsByTitle.concat(
-        hits.hits.map(({ _id }: { _id: any }) => _id)
-      )
-
-      let nodes = (await this.draftLoader.loadMany(ids)) as Item[]
-
-      if (excludeBlocked) {
-        nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
-      }
-
-      // console.log(new Date(), 'searchBody:', JSON.stringify(searchBody.build()), `elasticsearch got ${hits?.hits?.length} from res:`, JSON.stringify(hits?.total), JSON.stringify(rest))
-
-      // TODO: check totalCount
-      // error TS2339: Property 'value' does not exist on type 'number | SearchTotalHits'.
-      return { nodes, totalCount: (hits?.total as any)?.value ?? nodes.length }
-    } catch (err) {
-      console.error(
-        new Date(),
-        `es.client.search failed with ERROR:`,
-        err,
-        'searchBody:',
-        searchBody
-      )
-      logger.error(err)
-      throw new ServerError('article search failed')
-    }
-  }
-
-  searchV1 = async ({
-    key,
     keyOriginal,
     take = 10,
     skip = 0,
-    oss = false,
-    filter,
     exclude,
     viewerId,
     coefficients,
@@ -1052,164 +846,6 @@ export class ArticleService extends BaseService {
     author?: string
     take: number
     skip: number
-    oss?: boolean
-    filter?: Record<string, any>
-    viewerId?: string | null
-    exclude?: GQLSearchExclude
-    coefficients?: string
-  }) => {
-    let coeffs = [1, 1, 1, 1]
-    try {
-      coeffs = JSON.parse(coefficients || '[]')
-    } catch (err) {
-      // do nothing
-    }
-
-    const c0 = +(
-      coeffs?.[0] ||
-      environment.searchPgArticleCoefficients?.[0] ||
-      1
-    )
-    const c1 = +(
-      coeffs?.[1] ||
-      environment.searchPgArticleCoefficients?.[1] ||
-      1
-    )
-    const c2 = +(
-      coeffs?.[2] ||
-      environment.searchPgArticleCoefficients?.[2] ||
-      1
-    )
-    const c3 = +(
-      coeffs?.[3] ||
-      environment.searchPgArticleCoefficients?.[3] ||
-      1
-    )
-    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
-
-    // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
-    let blockedIds: string[] = []
-    if (excludeBlocked) {
-      blockedIds = (
-        await this.knex('action_user')
-          .select('user_id')
-          .where({ action: USER_ACTION.block, targetId: viewerId })
-      ).map(({ userId }) => userId)
-    }
-
-    const baseQuery = this.searchKnex
-      .from(
-        this.searchKnex
-          .select(
-            '*',
-            this.searchKnex.raw(
-              '(_text_cd_rank/(_text_cd_rank + 1)) AS text_cd_rank'
-            )
-          )
-          .from(
-            this.searchKnex
-              .select(
-                'id',
-                'num_views',
-                'title_orig', // 'title',
-                'created_at',
-                'last_read_at', // -- title, slug,
-                this.searchKnex.raw(
-                  `percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank`
-                ),
-                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
-                this.searchKnex.raw(
-                  'ts_rank(title_ts, query) AS title_ts_rank'
-                ),
-                this.searchKnex.raw(
-                  'COALESCE(ts_rank(summary_ts, query, 1), 0) ::float AS summary_ts_rank'
-                ),
-                this.searchKnex.raw(
-                  'ts_rank_cd(text_ts, query, 4) AS _text_cd_rank'
-                )
-              )
-              .from('search_index.article')
-              .crossJoin(
-                this.searchKnex.raw("plainto_tsquery('chinese_zh', ?) query", [
-                  key,
-                ])
-              )
-              .whereIn('state', [ARTICLE_STATE.active])
-              .andWhere('author_state', 'NOT IN', [
-                // USER_STATE.active, USER_STATE.onboarding,
-                USER_STATE.archived,
-                USER_STATE.banned,
-              ])
-              .andWhere('author_id', 'NOT IN', blockedIds)
-              .andWhereRaw(
-                `(query @@ title_ts OR query @@ summary_ts OR query @@ text_ts)`
-              )
-              .as('t0')
-          )
-          .as('t1')
-      )
-      .where('title_ts_rank', '>=', SEARCH_TITLE_RANK_THRESHOLD)
-      .orWhere('text_cd_rank', '>=', SEARCH_DEFAULT_TEXT_RANK_THRESHOLD)
-
-    const records = await this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          '(? * views_rank + ? * title_ts_rank + ? * summary_ts_rank + ? * text_cd_rank) AS score',
-          [c0, c1, c2, c3]
-        ),
-        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
-      )
-      .from(baseQuery.as('base'))
-      .orderByRaw('score DESC NULLS LAST')
-      .orderByRaw('num_views DESC NULLS LAST')
-      .orderByRaw('id DESC')
-      .modify((builder: Knex.QueryBuilder) => {
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-      })
-
-    const nodes = (await this.draftLoader.loadMany(
-      records.map((item: any) => item.id).filter(Boolean)
-    )) as Item[]
-
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
-
-    debugLog(
-      // new Date(),
-      `articleService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
-      { key, keyOriginal, baseQuery: baseQuery.toString() },
-      // { countRes, articleIds }
-      { sample: records?.slice(0, 3) }
-    )
-
-    return { nodes, totalCount }
-  }
-
-  // the jieba based schema
-  searchV2 = async ({
-    key,
-    keyOriginal,
-    take = 10,
-    skip = 0,
-    oss = false,
-    filter,
-    exclude,
-    viewerId,
-    coefficients,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    oss?: boolean
-    filter?: Record<string, any>
     viewerId?: string | null
     exclude?: GQLSearchExclude
     coefficients?: string
@@ -1335,8 +971,7 @@ export class ArticleService extends BaseService {
     // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
       // { countRes, articleIds }
@@ -1344,59 +979,6 @@ export class ArticleService extends BaseService {
     )
 
     return { nodes, totalCount }
-  }
-
-  /*********************************
-   *                               *
-   *           Recommand           *
-   *                               *
-   *********************************/
-  related = async ({
-    id,
-    size,
-    notIn = [],
-  }: {
-    id: string
-    size: number
-    notIn?: string[]
-  }) => {
-    // skip if in test
-    if (isTest) {
-      return []
-    }
-
-    // get vector score
-    const scoreResult = await this.es.client.get({
-      index: this.table,
-      id,
-    })
-
-    const factors = (scoreResult as any)?._source?.embedding_vector
-
-    // return empty list if we don't have any score
-    if (!factors) {
-      return []
-    }
-
-    const searchBody = {
-      index: this.table,
-      knn: {
-        field: 'embedding_vector',
-        query_vector: factors,
-        k: 10,
-        num_candidates: size,
-      },
-      filter: {
-        bool: {
-          must: { term: { state: ARTICLE_STATE.active } },
-          must_not: { ids: { values: notIn.concat([id]) } },
-        },
-      },
-    }
-
-    const body = await this.es.client.knnSearch(searchBody)
-    // add recommendation
-    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /**
@@ -1635,7 +1217,7 @@ export class ArticleService extends BaseService {
   }) => {
     const table = 'article_read_count'
 
-    /***
+    /** *
      * recording parameters:
      * updatedAt: last heart beat update
      * lastRead: last new read start timestamp
@@ -2177,8 +1759,8 @@ export class ArticleService extends BaseService {
    *            Access             *
    *                               *
    *********************************/
-  findArticleCircle = async (articleId: string) => {
-    return this.knex
+  findArticleCircle = async (articleId: string) =>
+    this.knex
       .select('article_circle.*')
       .from('article_circle')
       .join('circle', 'article_circle.circle_id', 'circle.id')
@@ -2187,5 +1769,4 @@ export class ArticleService extends BaseService {
         'circle.state': CIRCLE_STATE.active,
       })
       .first()
-  }
 }

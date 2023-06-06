@@ -19,6 +19,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   getAlchemyProvider,
   getViewerFromUser,
@@ -32,6 +33,8 @@ import {
   GQLVerificationCodeType,
   MutationToWalletLoginResolver,
 } from 'definitions'
+
+const logger = getLogger('mutation-wallet-login')
 
 const resolver: MutationToWalletLoginResolver = async (
   _,
@@ -141,7 +144,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
     await userService.baseUpdate(viewer.id, {
       updatedAt: knex.fn.now(),
-      ethAddress, // save the lower case ones
+      ethAddress: ethAddress.toLowerCase(), // save the lower case ones
     })
 
     // archive crypto_wallet entry
@@ -211,7 +214,9 @@ const resolver: MutationToWalletLoginResolver = async (
   /**
    * SignUp
    */
-  if (!email || !codeId) return
+  if (!email || !codeId) {
+    return
+  }
 
   // check verification code
   const codes = await userService.findVerificationCodes({
@@ -251,7 +256,7 @@ const resolver: MutationToWalletLoginResolver = async (
   // auto follow matty
   await userService
     .follow(newUser.id, environment.mattyId)
-    .then((err) => console.error(new Date(), 'follow matty failed:', err))
+    .then((err) => logger.warn('follow matty failed:', err))
 
   // auto follow tags
   await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)

@@ -71,7 +71,6 @@ exports.up = async (knex) => {
     GROUP BY
       article.id
   `)
-  console.log('created drafts.')
 
   // Update `draft_id` of articles
   await knex.raw(`
@@ -94,7 +93,6 @@ exports.up = async (knex) => {
     WHERE
       article.id = draft_article.article_id
   `)
-  console.log('updated articles.')
 }
 
 exports.down = async (knex) => {}

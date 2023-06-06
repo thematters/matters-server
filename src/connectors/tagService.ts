@@ -1,28 +1,18 @@
-import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import createDebug from 'debug'
 import { Knex } from 'knex'
-// import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
   DEFAULT_TAKE_PER_PAGE,
-  // MATERIALIZED_VIEW,
-  // MAX_TAG_CONTENT_LENGTH,
-  // MAX_TAG_DESCRIPTION_LENGTH,
   TAG_ACTION,
-  TAGS_RECOMMENDED_LIMIT,
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import { ServerError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import { Item, ItemData } from 'definitions'
 
-const debugLog = createDebug('tag-service')
-
-// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
+const logger = getLogger('service-tag')
 
 export class TagService extends BaseService {
   constructor() {
@@ -265,15 +255,6 @@ export class TagService extends BaseService {
       skipCreate, // : content.length > MAX_TAG_CONTENT_LENGTH, // || (description && description.length > MAX_TAG_DESCRIPTION_LENGTH),
     })
 
-    // add tag into search engine
-    if (tag) {
-      this.addToSearch({
-        id: tag.id,
-        content: tag.content,
-        description: tag.description,
-      })
-    }
-
     return tag
   }
 
@@ -473,16 +454,14 @@ export class TagService extends BaseService {
       action,
       targetId,
     }
-    if (enabled) {
-      return this.baseUpdateOrCreate({
-        where: data,
-        data,
-        table: 'action_tag',
-        updateUpdatedAt: true,
-      })
-    } else {
-      return this.knex.from('action_tag').where(data).del()
-    }
+    return enabled
+      ? this.baseUpdateOrCreate({
+          where: data,
+          data,
+          table: 'action_tag',
+          updateUpdatedAt: true,
+        })
+      : this.knex.from('action_tag').where(data).del()
   }
 
   countFollowers = async (targetId: string) => {
@@ -498,72 +477,7 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  initSearch = async () => {
-    const tags = await this.knex
-      .from(VIEW.tags_lasts_view)
-      .select(
-        'id',
-        'content',
-        'description',
-        'num_articles',
-        'num_authors',
-        'created_at',
-        'span_days',
-        'earliest_use',
-        'latest_use'
-      )
 
-    return this.es.indexManyItems({
-      index: this.table,
-      items: tags, // .map((tag) => ({...tag,})),
-    })
-  }
-
-  addToSearch = async ({
-    id,
-    content,
-    description,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      return await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            content,
-            description,
-          },
-        ],
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
-  updateSearch = async ({
-    id,
-    content,
-    description,
-  }: {
-    [key: string]: any
-  }) => {
-    try {
-      const result = await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: { content, description },
-        },
-      })
-      return result
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
-  // the searchV0: TBDeprecated in next release
   search = async ({
     key,
     keyOriginal,
@@ -571,145 +485,6 @@ export class TagService extends BaseService {
     skip,
     includeAuthorTags,
     viewerId,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    includeAuthorTags?: boolean
-    viewerId?: string | null
-  }) => {
-    const _key = keyOriginal || key
-    const body = bodybuilder()
-      .query('match', 'content', _key)
-      .sort([
-        { _score: 'desc' },
-        { numArticles: 'desc' },
-        { numAuthors: 'desc' },
-        { createdAt: 'asc' }, // prefer earlier created one if same number of articles
-      ])
-      .from(skip)
-      .size(take)
-      .build()
-
-    try {
-      const ids = new Set<number>()
-      let totalCount: number = 0
-      if (includeAuthorTags && viewerId) {
-        const [res, res2] = await Promise.all([
-          this.knex
-            .from(this.knex.ref(VIEW.authors_lasts_view).as('a'))
-            .joinRaw(
-              'CROSS JOIN jsonb_to_recordset(top_tags) AS x(id int, num_articles int, last_use timestamptz)'
-            )
-            .where('a.id', viewerId)
-            .select('x.id'),
-          // also get the tags use from last articles in recent days
-          this.knex
-            .from('article_tag AS at')
-            .join('article AS a', 'at.article_id', 'a.id')
-            .where('a.author_id', viewerId)
-            .andWhere(
-              'at.created_at',
-              '>=',
-              this.knex.raw(`CURRENT_DATE - '7 days' ::interval`)
-            )
-            .select(this.knex.raw('DISTINCT at.tag_id ::int')),
-        ])
-        res.forEach(({ id }) => ids.add(+id))
-        res2.forEach(({ tagId }) => ids.add(+tagId))
-      }
-
-      if (_key) {
-        try {
-          const result = await this.es.client.search({
-            index: this.table,
-            body,
-          })
-
-          const { hits } = result
-
-          hits.hits.forEach((hit) => ids.add((hit._source as any)?.id))
-          if (typeof hits.total === 'number') {
-            totalCount = hits.total
-          } else if (hits.total) {
-            totalCount = hits.total.value // es version upgrade changed internal scheme
-          }
-        } catch (err) {
-          console.error(new Date(), 'es client search ERROR:', err)
-        }
-      }
-
-      const queryTags = this.knex
-        .select(
-          'id',
-          'content',
-          'description',
-          'num_articles',
-          'num_authors',
-          'created_at',
-          this.knex.raw('(content = ?) AS content_equal_rank', [_key]),
-          this.knex.raw('(content ILIKE ?) AS content_ilike_rank', [
-            `%${_key}%`,
-          ]),
-          this.knex.raw('COUNT(id) OVER() ::int AS total_count')
-        )
-        .from(VIEW.tags_lasts_view)
-        .where((builder: Knex.QueryBuilder) => {
-          // if either author's freq-use tags have something, or es client told a number
-          if (ids.size > 0) {
-            builder.whereIn('id', Array.from(ids))
-          }
-
-          if (totalCount === 0) {
-            // otherwise if es client got nothing, try some slower ilike match, better than nothing
-            builder.whereILike('content', [`%${_key}%`])
-          }
-        })
-        .andWhere((builder: Knex.QueryBuilder) => {
-          builder.whereNotIn('id', [environment.mattyChoiceTagId])
-        })
-        .orderByRaw('content_equal_rank DESC') // always show exact match at first
-        .orderByRaw('content_ilike_rank DESC') // then show inclusive match, by case insensitive
-        .orderByRaw('num_authors DESC NULLS LAST')
-        .orderByRaw('num_articles DESC NULLS LAST')
-        .orderByRaw('id') // fallback earlier ones
-        .modify((builder: Knex.QueryBuilder) => {
-          if (skip !== undefined && Number.isFinite(skip)) {
-            builder.offset(skip)
-          }
-          if (take !== undefined && Number.isFinite(take)) {
-            builder.limit(take)
-          }
-        })
-
-      const nodes = await queryTags
-
-      totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
-
-      debugLog(
-        // new Date(),
-        `tagService::searchV0 got ${nodes.length} nodes from: ${totalCount} total:`,
-        { key, keyOriginal, queryTags: queryTags.toString() },
-        { sample: nodes?.slice(0, 3) }
-      )
-
-      return { nodes, totalCount }
-    } catch (err) {
-      logger.error(err)
-      console.error(new Date(), 'tag searchV0 ERROR:', err)
-      throw new ServerError('tag search failed')
-    }
-  }
-
-  searchV1 = async ({
-    key,
-    keyOriginal,
-    take,
-    skip,
-    includeAuthorTags,
-    viewerId,
     coefficients,
     quicksearch,
   }: {
@@ -734,130 +509,6 @@ export class TagService extends BaseService {
     const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
     const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
     const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
-
-    // debugLog(new Date(), `searchV1 tag got search key:`, {key, keyOriginal,})
-
-    const strip0 = key.startsWith('#') || key.startsWith('＃')
-    const _key = strip0 ? key.slice(1) : key
-
-    if (!_key) {
-      return { nodes: [], totalCount: 0 }
-    }
-
-    const mattyChoiceTagIds = environment.mattyChoiceTagId
-      ? [environment.mattyChoiceTagId]
-      : []
-
-    const baseQuery = this.searchKnex
-      .select(
-        'id',
-        'content_orig AS content',
-        'description',
-        // 'num_articles', // 'num_followers',
-        this.searchKnex.raw(
-          'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
-        ),
-        this.searchKnex.raw(
-          '(CASE WHEN content LIKE ? THEN 1 ELSE 0 END) ::float AS content_like_rank',
-          [`%${_key}%`]
-        ),
-        this.searchKnex.raw('ts_rank(content_ts, query) AS content_rank'),
-        this.searchKnex.raw(
-          'ts_rank(description_ts, query) AS description_rank'
-        ),
-        this.searchKnex.raw('COALESCE(num_articles, 0) AS num_articles'),
-        this.searchKnex.raw('COALESCE(num_authors, 0) AS num_authors')
-        // this.searchKnex.raw('COALESCE(num_followers, 0) AS num_followers'),
-      )
-      .from('search_index.tag')
-      .crossJoin(
-        this.searchKnex.raw(`plainto_tsquery('chinese_zh', ?) query`, key)
-      )
-      .whereNotIn('id', mattyChoiceTagIds)
-      .andWhere((builder: Knex.QueryBuilder) => {
-        builder.whereLike('content', `%${_key}%`)
-
-        if (!quicksearch) {
-          builder
-            .orWhereRaw('content_ts @@ query')
-            .orWhereRaw('description_ts @@ query')
-        }
-      })
-
-    const queryTags = this.searchKnex
-      .select(
-        '*',
-        this.searchKnex.raw(
-          '(? * followers_rank + ? * content_like_rank + ? * content_rank + ? * description_rank) AS score',
-          [a, b, c, d]
-        ),
-        this.searchKnex.raw('COUNT(id) OVER() ::int AS total_count')
-      )
-      .from(baseQuery.as('base'))
-      .modify((builder: Knex.QueryBuilder) => {
-        if (quicksearch) {
-          builder.orderByRaw('content = ? DESC', [_key]) // always show exact match at first
-        } else {
-          builder.orderByRaw('score DESC NULLS LAST')
-        }
-      })
-      .orderByRaw('num_articles DESC NULLS LAST')
-      .orderByRaw('id') // fallback to earlier first
-      .modify((builder: Knex.QueryBuilder) => {
-        if (skip !== undefined && Number.isFinite(skip)) {
-          builder.offset(skip)
-        }
-        if (take !== undefined && Number.isFinite(take)) {
-          builder.limit(take)
-        }
-      })
-
-    const nodes = (await queryTags) as Item[]
-    const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
-
-    debugLog(
-      // new Date(),
-      `tagService::searchV1 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
-      { key, keyOriginal, queryTags: queryTags.toString() },
-      { sample: nodes?.slice(0, 3) }
-    )
-
-    return { nodes, totalCount }
-  }
-
-  searchV2 = async ({
-    key,
-    keyOriginal,
-    take,
-    skip,
-    includeAuthorTags,
-    viewerId,
-    coefficients,
-    quicksearch,
-  }: {
-    key: string
-    keyOriginal?: string
-    author?: string
-    take: number
-    skip: number
-    includeAuthorTags?: boolean
-    viewerId?: string | null
-    coefficients?: string
-    quicksearch?: boolean
-  }) => {
-    let coeffs = [1, 1, 1, 1]
-    try {
-      coeffs = JSON.parse(coefficients || '[]')
-    } catch (err) {
-      // do nothing
-    }
-
-    const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
-    const b = +(coeffs?.[1] || environment.searchPgTagCoefficients?.[1] || 1)
-    const c = +(coeffs?.[2] || environment.searchPgTagCoefficients?.[2] || 1)
-    const d = +(coeffs?.[3] || environment.searchPgTagCoefficients?.[3] || 1)
-
-    // debugLog(new Date(), `searchV2 tag got search key:`, {key, keyOriginal,})
 
     const strip0 = key.startsWith('#') || key.startsWith('＃')
     const _key = strip0 ? key.slice(1) : key
@@ -936,8 +587,7 @@ export class TagService extends BaseService {
     const nodes = (await queryTags) as Item[]
     const totalCount = nodes.length === 0 ? 0 : +nodes[0].totalCount
 
-    debugLog(
-      // new Date(),
+    logger.debug(
       `tagService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, queryTags: queryTags.toString() },
       { sample: nodes?.slice(0, 3) }
@@ -1097,14 +747,14 @@ export class TagService extends BaseService {
     tagIds = Array.from(new Set(tagIds))
 
     const items = articleIds
-      .map((articleId) => {
-        return tagIds.map((tagId) => ({
+      .map((articleId) =>
+        tagIds.map((tagId) => ({
           articleId,
           creator,
           tagId,
           ...(selected === true ? { selected } : {}),
         }))
-      })
+      )
       .flat(1)
     return this.baseBatchCreate(items, 'article_tag')
   }
@@ -1376,13 +1026,6 @@ export class TagService extends BaseService {
     // create new tag
     const newTag = await this.create({ content, creator, editors, owner })
 
-    // add tag into search engine
-    this.addToSearch({
-      id: newTag.id,
-      content: newTag.content,
-      description: newTag.description,
-    })
-
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
     await this.createArticleTags({ articleIds, creator, tagIds: [newTag.id] })
@@ -1419,8 +1062,7 @@ export class TagService extends BaseService {
         .filter(Boolean)
         .map((tag) =>
           this.follow({ targetId: tag.id, userId }).catch((err) =>
-            console.error(
-              new Date(),
+            logger.error(
               `ERROR: follow "${tag.id}-${tag.content}" failed:`,
               err,
               tag
@@ -1435,18 +1077,8 @@ export class TagService extends BaseService {
    * top100 at most
    *
    */
-  findRelatedTags = async ({
-    id,
-    content: tagContent,
-  }: // skip, take, exclude,
-  {
-    id: string
-    content?: string
-    // skip?: number
-    // take?: number
-    // exclude?: string[]
-  }) => {
-    const results = await this.knex
+  findRelatedTags = async ({ id }: { id: string; content?: string }) =>
+    this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
@@ -1454,36 +1086,4 @@ export class TagService extends BaseService {
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .select('x.tag_rel_id AS id')
       .orderByRaw('x.count_rel * x.similarity DESC NULLS LAST')
-
-    if (results?.length < TAGS_RECOMMENDED_LIMIT && tagContent) {
-      const body = bodybuilder()
-        .query('match', 'content', tagContent)
-        .size(TAGS_RECOMMENDED_LIMIT) // at most 100
-        .build()
-
-      const result = await this.es.client.search({
-        index: this.table,
-        body,
-      })
-
-      const { hits } = result
-      if ((hits.hits?.[0]?._source as any)?.content === tagContent) {
-        hits.hits.shift() // remove the exact match at first, if exists
-      }
-
-      // hits.hits.forEach((hit) => fromEsTags.add(hit._source))
-
-      const existingIds = new Set(results.map((item) => item.id))
-      for (const hit of hits.hits) {
-        if (!existingIds.has((hit._source as any).id)) {
-          results.push({ id: (hit._source as any).id })
-          if (results?.length >= TAGS_RECOMMENDED_LIMIT) {
-            break
-          }
-        }
-      }
-    }
-
-    return results
-  }
 }

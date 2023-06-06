@@ -115,6 +115,7 @@ export interface GQLMutation {
    */
   toggleArticleRecommend: GQLArticle
   updateArticleState: GQLArticle
+  updateArticleSensitive: GQLArticle
   toggleTagRecommend: GQLTag
   deleteTags?: boolean
   renameTag: GQLTag
@@ -606,6 +607,16 @@ export interface GQLArticle extends GQLNode {
   access: GQLArticleAccess
 
   /**
+   * whether content is marked as sensitive by author
+   */
+  sensitiveByAuthor: boolean
+
+  /**
+   * whether content is marked as sensitive by admin
+   */
+  sensitiveByAdmin: boolean
+
+  /**
    * License Type
    */
   license: GQLArticleLicenseType
@@ -970,6 +981,7 @@ export interface GQLEditArticleInput {
   collection?: Array<string>
   circle?: string
   accessType?: GQLArticleAccessType
+  sensitive?: boolean
   license?: GQLArticleLicenseType
   requestForDonation?: string
   replyToDonator?: string
@@ -1031,6 +1043,11 @@ export interface GQLToggleRecommendInput {
 export interface GQLUpdateArticleStateInput {
   id: string
   state: GQLArticleState
+}
+
+export interface GQLUpdateArticleSensitiveInput {
+  id: string
+  sensitive: boolean
 }
 
 export interface GQLDeleteTagsInput {
@@ -1145,6 +1162,7 @@ export const enum GQLArticleAccessType {
 export const enum GQLArticleLicenseType {
   cc_0 = 'cc_0',
   cc_by_nc_nd_2 = 'cc_by_nc_nd_2',
+  cc_by_nc_nd_4 = 'cc_by_nc_nd_4',
   arr = 'arr',
 }
 
@@ -1974,6 +1992,11 @@ export interface GQLDraft extends GQLNode {
   access: GQLDraftAccess
 
   /**
+   * whether content is marked as sensitive by author
+   */
+  sensitiveByAuthor: boolean
+
+  /**
    * License Type
    */
   license: GQLArticleLicenseType
@@ -2025,6 +2048,7 @@ export interface GQLPutDraftInput {
   collection?: Array<string | null>
   circle?: string
   accessType?: GQLArticleAccessType
+  sensitive?: boolean
   license?: GQLArticleLicenseType
   requestForDonation?: string
   replyToDonator?: string
@@ -2085,7 +2109,6 @@ export type GQLPossibleNoticeTypeNames =
   | 'TagNotice'
   | 'TransactionNotice'
   | 'CircleNotice'
-  | 'CryptoNotice'
   | 'OfficialAnnouncementNotice'
 
 export interface GQLNoticeNameMap {
@@ -2099,7 +2122,6 @@ export interface GQLNoticeNameMap {
   TagNotice: GQLTagNotice
   TransactionNotice: GQLTransactionNotice
   CircleNotice: GQLCircleNotice
-  CryptoNotice: GQLCryptoNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
 }
 
@@ -2452,42 +2474,6 @@ export const enum GQLCircleNoticeType {
 }
 
 /**
- * ################################
- *                                #
- *             Crypto             #
- *                                #
- * ################################
- */
-export interface GQLCryptoNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * List of notice actors.
-   */
-  actors?: Array<GQLUser>
-  type: GQLCryptoNoticeType
-  target: GQLCryptoWallet
-}
-
-export const enum GQLCryptoNoticeType {
-  CryptoWalletAirdrop = 'CryptoWalletAirdrop',
-  CryptoWalletConnected = 'CryptoWalletConnected',
-}
-
-/**
  * The notice type contains info about official announcement.
  */
 export interface GQLOfficialAnnouncementNotice extends GQLNotice {
@@ -2814,9 +2800,13 @@ export interface GQLSearchInput {
   oss?: boolean
 
   /**
-   * use the api version; omit to use latest version
+   * deprecated, make no effect
    */
   version?: GQLSearchAPIVersion
+
+  /**
+   * deprecated, make no effect
+   */
   coefficients?: string
   quicksearch?: boolean
 }
@@ -4634,7 +4624,6 @@ export interface GQLResolver {
   TagNotice?: GQLTagNoticeTypeResolver
   TransactionNotice?: GQLTransactionNoticeTypeResolver
   CircleNotice?: GQLCircleNoticeTypeResolver
-  CryptoNotice?: GQLCryptoNoticeTypeResolver
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   DateTime?: GraphQLScalarType
   Upload?: GraphQLScalarType
@@ -4896,6 +4885,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
   updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
+  updateArticleSensitive?: MutationToUpdateArticleSensitiveResolver<TParent>
   toggleTagRecommend?: MutationToToggleTagRecommendResolver<TParent>
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
@@ -5204,6 +5194,21 @@ export interface MutationToUpdateArticleStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateArticleStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleSensitiveArgs {
+  input: GQLUpdateArticleSensitiveInput
+}
+export interface MutationToUpdateArticleSensitiveResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleSensitiveArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6118,6 +6123,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   newestPublishedDraft?: ArticleToNewestPublishedDraftResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
+  sensitiveByAuthor?: ArticleToSensitiveByAuthorResolver<TParent>
+  sensitiveByAdmin?: ArticleToSensitiveByAdminResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
   requestForDonation?: ArticleToRequestForDonationResolver<TParent>
   replyToDonator?: ArticleToReplyToDonatorResolver<TParent>
@@ -6550,6 +6557,30 @@ export interface ArticleToRevisionCountResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSensitiveByAuthorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSensitiveByAdminResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -8763,6 +8794,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
   access?: DraftToAccessResolver<TParent>
+  sensitiveByAuthor?: DraftToSensitiveByAuthorResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
   requestForDonation?: DraftToRequestForDonationResolver<TParent>
   replyToDonator?: DraftToReplyToDonatorResolver<TParent>
@@ -8929,6 +8961,18 @@ export interface DraftToAccessResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface DraftToSensitiveByAuthorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface DraftToLicenseResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -9073,7 +9117,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'CircleNotice'
-    | 'CryptoNotice'
     | 'OfficialAnnouncementNotice'
     | Promise<
         | 'UserNotice'
@@ -9085,7 +9128,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
         | 'TagNotice'
         | 'TransactionNotice'
         | 'CircleNotice'
-        | 'CryptoNotice'
         | 'OfficialAnnouncementNotice'
       >
 }
@@ -9842,69 +9884,6 @@ export interface CircleNoticeToRepliesResolver<TParent = any, TResult = any> {
 }
 
 export interface CircleNoticeToMentionsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCryptoNoticeTypeResolver<TParent = any> {
-  id?: CryptoNoticeToIdResolver<TParent>
-  unread?: CryptoNoticeToUnreadResolver<TParent>
-  createdAt?: CryptoNoticeToCreatedAtResolver<TParent>
-  actors?: CryptoNoticeToActorsResolver<TParent>
-  type?: CryptoNoticeToTypeResolver<TParent>
-  target?: CryptoNoticeToTargetResolver<TParent>
-}
-
-export interface CryptoNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToUnreadResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToActorsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToTypeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CryptoNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

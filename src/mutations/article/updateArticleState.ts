@@ -8,9 +8,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
   _,
   { input: { id, state } },
   {
-    viewer,
     dataSources: {
-      atomService,
       userService,
       articleService,
       draftService,

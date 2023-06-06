@@ -8,8 +8,6 @@ const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   revised_article_published: true,
   revised_article_not_published: true,
   circle_new_article: true,
-  crypto_wallet_airdrop: true,
-  crypto_wallet_connected: true,
 }
 
 const entitiesOptional: Partial<Record<DBNoticeType, boolean>> = {
@@ -25,8 +23,8 @@ type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>
 
 export const filterMissingFieldNoticeEdges = (
   edges: NoticeEdges
-): NoticeEdges => {
-  return edges.filter(({ node: notice }) => {
+): NoticeEdges =>
+  edges.filter(({ node: notice }) => {
     const noticeType = notice.type
 
     // check actors
@@ -46,4 +44,3 @@ export const filterMissingFieldNoticeEdges = (
 
     return true
   })
-}

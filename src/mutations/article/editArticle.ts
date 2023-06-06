@@ -1,11 +1,12 @@
-import { stripHtml } from '@matters/ipns-site-generator'
-// import {
-//   html2md,
-//   normalizeArticleHTML,
-//   sanitizeHTML,
-// } from '@matters/matters-editor/transformers'
 import type { Knex } from 'knex'
-import lodash, { difference, flow, isEqual, uniq } from 'lodash'
+
+import { stripHtml } from '@matters/ipns-site-generator'
+import {
+  html2md,
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
+import lodash, { difference, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -15,6 +16,8 @@ import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_CONTENT_LENGTH,
+  MAX_ARTICLE_CONTENT_REVISION_LENGTH,
   MAX_ARTICLE_REVISION_COUNT,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
@@ -38,20 +41,16 @@ import {
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
-import {
-  correctHtml,
-  fromGlobalId,
-  measureDiffs,
-  normalizeTagInput,
-  sanitize,
-  stripClass,
-} from 'common/utils'
+import { getLogger } from 'common/logger'
+import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
 import {
   Article,
   DataSources,
   MutationToEditArticleResolver,
 } from 'definitions'
+
+const logger = getLogger('mutation-edit-article')
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -67,6 +66,7 @@ const resolver: MutationToEditArticleResolver = async (
       collection,
       circle: circleGlobalId,
       accessType,
+      sensitive,
       license,
       requestForDonation,
       replyToDonator,
@@ -284,7 +284,6 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Revision Count
    */
-  const isUpdatingContent = !!content
   const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
@@ -345,6 +344,20 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
+   * Sensitive settings
+   */
+  if (sensitive !== undefined && sensitive !== draft.sensitiveByAuthor) {
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        sensitiveByAuthor: sensitive,
+        updatedAt: knex.fn.now(),
+      },
+    })
+  }
+
+  /**
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
@@ -370,18 +383,15 @@ const resolver: MutationToEditArticleResolver = async (
     )
 
     // create draft linked to this article
-    const cleanedContent = stripClass(
-      newContent || currDraft.content,
-      'u-area-disable'
+    const _content = normalizeArticleHTML(
+      sanitizeHTML(newContent || currDraft.content)
     )
-    const pipe = flow(sanitize, correctHtml)
-    // const _content = normalizeArticleHTML(sanitizeHTML(cleanedContent))
-    // let contentMd = ''
-    // try {
-    //   contentMd = html2md(_content)
-    // } catch (e) {
-    //   console.error('failed to convert HTML to Markdown', draft.id)
-    // }
+    let contentMd = ''
+    try {
+      contentMd = html2md(_content)
+    } catch (e) {
+      logger.warn('draft %s failed to convert HTML to Markdown', draft.id)
+    }
     const data: Record<string, any> = lodash.omitBy(
       {
         uuid: v4(),
@@ -390,9 +400,8 @@ const resolver: MutationToEditArticleResolver = async (
         title: currDraft.title,
         summary: currDraft.summary,
         summaryCustomized: currDraft.summaryCustomized,
-        content: pipe(cleanedContent),
-        // content: _content,
-        // contentMd,
+        content: _content,
+        contentMd,
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,
@@ -400,6 +409,7 @@ const resolver: MutationToEditArticleResolver = async (
         publishState: PUBLISH_STATE.pending,
         circleId: currArticleCircle?.circleId,
         access: currArticleCircle?.access,
+        sensitiveByAuthor: currDraft?.sensitiveByAuthor,
         license: currDraft?.license,
         requestForDonation: currDraft?.requestForDonation,
         replyToDonator: currDraft?.replyToDonator,
@@ -418,14 +428,18 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (isUpdatingContent) {
+  if (content) {
+    // check for content length limit
+    if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
+      throw new UserInputError('content reach length limit')
+    }
+
     // check diff distances reaches limit or not
-    const cleanedContent = stripClass(content || '', 'u-area-disable')
     const diffs = measureDiffs(
       stripHtml(draft.content, ''),
-      stripHtml(cleanedContent, '')
+      stripHtml(content, '')
     )
-    if (diffs > 50) {
+    if (diffs > MAX_ARTICLE_CONTENT_REVISION_LENGTH) {
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
@@ -571,7 +585,7 @@ const handleCollection = async ({
     return
   }
   // only validate new-added articles
-  if (!!newIdsToAdd.length) {
+  if (newIdsToAdd.length) {
     if (
       newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
       newIds.length >= oldIds.length

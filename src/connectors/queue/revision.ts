@@ -18,10 +18,13 @@ import {
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-revision')
 
 interface RevisedArticleData {
   draftId: string
@@ -40,11 +43,10 @@ class RevisionQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: RevisedArticleData) => {
-    return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
+  publishRevisedArticle = (data: RevisedArticleData) =>
+    this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
-  }
 
   /**
    * Cusumers
@@ -53,29 +55,6 @@ class RevisionQueue extends BaseQueue {
     if (isTest) {
       return
     }
-
-    this.q
-      .on('error', (err) => {
-        // An error occured.
-        console.error('RevisionQueue: job error unhandled:', err)
-      })
-      .on('waiting', (jobId) => {
-        // A Job is waiting to be processed as soon as a worker is idling.
-      })
-      .on('progress', (job, progress) => {
-        // A job's progress was updated!
-        console.log(
-          `RevisionQueue: Job#${job.id}/${job.name} progress progress`
-        )
-      })
-      .on('failed', (job, err) => {
-        // A job failed with reason `err`!
-        console.error('RevisionQueue: job failed:', err, job)
-      })
-      .on('completed', (job, result) => {
-        // A job successfully completed with a `result`.
-        console.log(`RevisionQueue: Job#${job.id}/${job.name} completed`)
-      })
 
     // publish revised article
     this.q.process(
@@ -103,7 +82,7 @@ class RevisionQueue extends BaseQueue {
       }
       if (draft.publishState !== PUBLISH_STATE.pending) {
         job.progress(100)
-        done(null, `Revision draft ${draftId} isn\'t in pending state.`)
+        done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
       let article = await this.articleService.baseFindById(draft.articleId)
@@ -179,14 +158,6 @@ class RevisionQueue extends BaseQueue {
             entityTypeId,
           })
 
-          // Step 6: add to search; async
-          this.articleService.addToSearch({
-            ...article,
-            content: draft.content,
-            userName,
-            displayName,
-          })
-
           // Step 7: handle newly added mentions
           await this.handleMentions({
             article: updatedArticle,
@@ -197,13 +168,11 @@ class RevisionQueue extends BaseQueue {
           job.progress(70)
         } catch (err) {
           // ignore errors caused by these steps
-          console.error(
-            new Date(),
-            'job failed at optional step:',
+          logger.warn('job failed at optional step: %j', {
             err,
             job,
-            draft.id
-          )
+            draftId: draft.id,
+          })
         }
 
         // Step 8: trigger notifications
@@ -306,13 +275,11 @@ class RevisionQueue extends BaseQueue {
             forceReplace: true,
           })
         } catch (err) {
-          console.error(
-            new Date(),
-            'job failed at optional step:',
+          logger.warn('job failed at optional step: %j', {
             err,
             job,
-            draft.id
-          )
+            draftId: draft.id,
+          })
         }
 
         job.progress(100)
@@ -320,9 +287,7 @@ class RevisionQueue extends BaseQueue {
         // no await to notify async
         this.articleService
           .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
-          .catch((err: Error) =>
-            console.error(new Date(), 'failed sqs notify:', err)
-          )
+          .catch((err: Error) => logger.error('failed sqs notify:', err))
 
         // no await to notify async
         this.atomService.aws
@@ -344,9 +309,7 @@ class RevisionQueue extends BaseQueue {
               displayName,
             },
           })
-          .catch((err: Error) =>
-            console.error(new Date(), 'failed sns notify:', err)
-          )
+          .catch((err: Error) => logger.error('failed sns notify:', err))
 
         done(null, {
           articleId: article.id,
@@ -356,7 +319,7 @@ class RevisionQueue extends BaseQueue {
           iscnPublish, // : iscnPublish || draft.iscnPublish,
           iscnId: draft.iscnId,
         })
-      } catch (e) {
+      } catch (err: any) {
         await this.draftService.baseUpdate(draft.id, {
           publishState: PUBLISH_STATE.error,
         })
@@ -369,7 +332,7 @@ class RevisionQueue extends BaseQueue {
           ],
         })
 
-        done(e)
+        done(err)
       }
     }
 
@@ -387,7 +350,7 @@ class RevisionQueue extends BaseQueue {
       where: { articleId: article.id, circleId },
       data: {
         secret,
-        updatedAt: this.knex.fn.now(), // new Date()
+        updatedAt: this.knex.fn.now(),
       },
     })
   }

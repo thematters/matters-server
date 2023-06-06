@@ -2,7 +2,9 @@ import fs from 'fs'
 import { generateTypeScriptTypes } from 'graphql-schema-typescript'
 import 'module-alias/register'
 
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('utils')
 
 const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 
@@ -15,7 +17,6 @@ generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
     process.exit(0)
   })
   .catch((err) => {
-    console.log(err)
     logger.error(err)
     process.exit(1)
   })

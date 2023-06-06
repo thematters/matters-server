@@ -1,7 +1,7 @@
-// import {
-//   normalizeCommentHTML,
-//   sanitizeHTML,
-// } from '@matters/matters-editor/transformers'
+import {
+  normalizeCommentHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -24,8 +24,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
-// import { fromGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import {
   GQLCommentType,
   MutationToPutCommentResolver,
@@ -74,8 +73,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   const data: { [key: string]: any } = {
-    content: sanitize(content),
-    // content: normalizeCommentHTML(sanitizeHTML(content)),
+    content: normalizeCommentHTML(sanitizeHTML(content)),
     authorId: viewer.id,
   }
 
@@ -283,17 +281,15 @@ const resolver: MutationToPutCommentResolver = async (
       | NoticeCircleNewDiscussionCommentsParams
   ) => {
     const key = `${noticeType}:${notice.actorId}:${notice.recipientId}`
-    if (bundledNotices[key]) {
-      bundledNotices[key] = {
-        ...bundledNotices[key],
-        data: {
-          ...bundledNotices[key].data,
-          ...notice.data,
-        },
-      }
-    } else {
-      bundledNotices[key] = notice
-    }
+    bundledNotices[key] = bundledNotices[key]
+      ? {
+          ...bundledNotices[key],
+          data: {
+            ...bundledNotices[key].data,
+            ...notice.data,
+          },
+        }
+      : notice
   }
 
   /**

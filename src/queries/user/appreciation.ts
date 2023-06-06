@@ -2,9 +2,11 @@ import { camelCase } from 'lodash'
 
 import { APPRECIATION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { i18n } from 'common/utils/i18n'
 import { GQLAppreciationTypeResolver } from 'definitions'
+
+const logger = getLogger('query-appreciation')
 
 const trans = {
   appreciateSubsidy: i18n({
@@ -77,11 +79,8 @@ export const Appreciation: GQLAppreciationTypeResolver = {
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
-  target: (trx, _, { dataSources: { articleService } }) => {
-    if (trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId) {
-      return articleService.draftLoader.load(trx.referenceId)
-    } else {
-      return null
-    }
-  },
+  target: (trx, _, { dataSources: { articleService } }) =>
+    trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId
+      ? articleService.draftLoader.load(trx.referenceId)
+      : null,
 }

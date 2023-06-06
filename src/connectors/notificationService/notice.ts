@@ -2,8 +2,8 @@ import DataLoader from 'dataloader'
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
-import { DB_NOTICE_TYPE } from 'common/enums'
-// import logger from 'common/logger'
+import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
+import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   GQLNotificationSettingType,
@@ -19,6 +19,8 @@ import {
   User,
 } from 'definitions'
 
+const logger = getLogger('service:notice')
+
 export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
 
 const mergeDataCustomizer = (objValue: any, srcValue: any) => {
@@ -27,9 +29,8 @@ const mergeDataCustomizer = (objValue: any, srcValue: any) => {
   }
 }
 
-const mergeDataWith = (objValue: any, srcValue: any) => {
-  return mergeWith(objValue, srcValue, mergeDataCustomizer)
-}
+const mergeDataWith = (objValue: any, srcValue: any) =>
+  mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 class Notice extends BaseService {
   constructor() {
@@ -58,7 +59,6 @@ class Notice extends BaseService {
         })
         .into('notice_detail')
         .returning('*')
-      // logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
 
       // create notice
       const [{ id: noticeId }] = await trx
@@ -69,7 +69,6 @@ class Notice extends BaseService {
         })
         .into('notice')
         .returning('*')
-      // logger.info(`Inserted id ${noticeId} to notice`)
 
       // create notice actorId
       if (actorId) {
@@ -81,10 +80,9 @@ class Notice extends BaseService {
           })
           .into('notice_actor')
           .returning('*')
-        // logger.info(`Inserted id ${noticeActorId} to notice_actor`)
       }
 
-      // craete notice entities
+      // create notice entities
       if (entities) {
         await Promise.all(
           entities.map(
@@ -98,7 +96,6 @@ class Notice extends BaseService {
                 .from('entity_type')
                 .where({ table: entityTable })
                 .first()
-              // const [{ id: noticeEntityId }] =
               await trx
                 .insert({
                   type: entityType,
@@ -108,7 +105,6 @@ class Notice extends BaseService {
                 })
                 .into('notice_entity')
                 .returning('*')
-              // logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
             }
           )
         )
@@ -137,13 +133,12 @@ class Notice extends BaseService {
         .returning('*')
         .onConflict(['actor_id', 'notice_id'])
         .ignore() // .merge({ updatedAt: this.knex.fn.now(), })
-      // logger.info(`[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`)
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: this.knex.fn.now() })
-      // logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
+      logger.info(`updated id %s in notice`, noticeId)
     })
   }
 
@@ -291,7 +286,7 @@ class Notice extends BaseService {
     skip?: number
     take?: number
   }): Promise<NoticeDetail[]> => {
-    const query = this.knex
+    const query = this.knexRO
       .select([
         'notice.id',
         'notice.unread',
@@ -339,7 +334,7 @@ class Notice extends BaseService {
    */
   findEntities = async (
     noticeId: string,
-    expand: boolean = true
+    expand = true
   ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
     const entities = await this.knex
       .select([
@@ -422,15 +417,22 @@ class Notice extends BaseService {
    *********************************/
   findByUser = async ({
     userId,
+    onlyRecent,
     take,
     skip,
   }: {
     userId: string
+    onlyRecent?: boolean
     take?: number
     skip?: number
   }): Promise<NoticeItem[]> => {
+    const where = [[{ recipientId: userId, deleted: false }]] as any[][]
+    if (onlyRecent) {
+      where.push(['notice.updated_at', '>', new Date(Date.now() - 6 * MONTH)])
+    }
+
     const notices = await this.findDetail({
-      where: [[{ recipientId: userId, deleted: false }]],
+      where,
       skip,
       take,
     })
@@ -522,10 +524,6 @@ class Notice extends BaseService {
       in_circle_new_discussion: setting.inCircleNewDiscussion,
       in_circle_new_discussion_reply: setting.inCircleNewDiscussionReply,
 
-      // crypto
-      crypto_wallet_airdrop: true,
-      crypto_wallet_connected: true,
-
       // system
       official_announcement: true,
       user_activated: true,
@@ -549,9 +547,11 @@ class Notice extends BaseService {
   countNotice = async ({
     userId,
     unread,
+    onlyRecent,
   }: {
     userId: string
     unread?: boolean
+    onlyRecent?: boolean
   }) => {
     const query = this.knex('notice')
       .where({ recipientId: userId, deleted: false })
@@ -560,6 +560,10 @@ class Notice extends BaseService {
 
     if (unread) {
       query.where({ unread: true })
+    }
+
+    if (onlyRecent) {
+      query.whereRaw(`updated_at > now() - interval '6 months'`)
     }
 
     const result = await query

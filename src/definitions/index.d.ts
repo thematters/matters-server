@@ -7,6 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
+  VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import {
   Alchemy,
@@ -27,8 +28,9 @@ export * from './article'
 export * from './language'
 export * from './schema'
 export * from './notification'
+export * from './generic'
 
-export type User = {
+export interface User {
   id: string
   uuid: string
   userName: string
@@ -77,14 +79,14 @@ export type Viewer = (User | { id: null }) & {
   group: 'a' | 'b'
 }
 
-export type RequestContext = {
+export interface RequestContext {
   viewer: Viewer
   req: Request
   res: Response
   knex: Knex
 }
 
-export type DataSources = {
+export interface DataSources {
   atomService: InstanceType<typeof AtomService>
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
@@ -208,7 +210,7 @@ export type MaterializedView =
 
 export type TableName = BasicTableName | View | MaterializedView
 
-export type ThirdPartyAccount = {
+export interface ThirdPartyAccount {
   accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string
   token: string
@@ -225,9 +227,14 @@ export type S3Bucket =
   | 'matters-server-stage'
   | 'matters-server-production'
 
-export type Item = { id: string; [key: string]: any }
+export interface Item {
+  [key: string]: any
+  id: string
+}
 
-export type ItemData = { [key: string]: any }
+export interface ItemData {
+  [key: string]: any
+}
 
 export type ResponseType = 'Article' | 'Comment'
 
@@ -245,25 +252,26 @@ export interface UserOAuthLikeCoin {
 }
 
 export interface OAuthClient {
+  [key: string]: any
   id: string
   redirectUris?: string | string[]
   grants: string | string[]
   accessTokenLifetime?: number
   refreshTokenLifetime?: number
-  [key: string]: any
 }
 
 export interface OAuthAuthorizationCode {
+  [key: string]: any
   authorizationCode: string
   expiresAt: Date
   redirectUri: string
   scope?: string | string[]
   client: OAuthClient
   user: User
-  [key: string]: any
 }
 
 export interface OAuthToken {
+  [key: string]: any
   accessToken: string
   accessTokenExpiresAt?: Date
   refreshToken?: string
@@ -271,16 +279,25 @@ export interface OAuthToken {
   scope?: string | string[]
   client: OAuthClient
   user: User
-  [key: string]: any
 }
 
 export interface OAuthRefreshToken {
+  [key: string]: any
   refreshToken: string
   refreshTokenExpiresAt?: Date
   scope?: string | string[]
   client: OAuthClient
   user: User
-  [key: string]: any
+}
+
+export interface VerficationCode {
+  id: string
+  uuid: string
+  expiredAt: Date
+  code: string
+  type: GQLVerificationCodeType
+  status: VERIFICATION_CODE_STATUS
+  email: string
 }
 
 export type Falsey = '' | 0 | false | null | undefined
@@ -292,7 +309,7 @@ export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 /**
  * Payment
  */
-export type Customer = {
+export interface Customer {
   id: string
   userId: string
   provider: string
@@ -300,7 +317,7 @@ export type Customer = {
   cardLast4: string
 }
 
-export type CircleSubscription = {
+export interface CircleSubscription {
   id: string
   state: string
   userId: string
@@ -308,7 +325,7 @@ export type CircleSubscription = {
   providerSubscriptionId: string
 }
 
-export type CirclePrice = {
+export interface CirclePrice {
   id: string
   amount: number
   currency: PAYMENT_CURRENCY
@@ -317,7 +334,7 @@ export type CirclePrice = {
   providerPriceId: string
 }
 
-export type Transaction = {
+export interface Transaction {
   id: string
   amount: string
   currency: PAYMENT_CURRENCY

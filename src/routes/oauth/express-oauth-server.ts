@@ -22,8 +22,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-7)
    */
-  authenticate = (options?: OAuth2Server.AuthenticateOptions) => {
-    return async (
+  authenticate =
+    (options?: OAuth2Server.AuthenticateOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -35,11 +36,10 @@ class ExpressOAuthServer {
         const token = await this.server.authenticate(request, response, options)
         res.locals.oauth = { token }
         next()
-      } catch (e) {
-        return handleError.call(this, e, req, res, null, next)
+      } catch (err: any) {
+        return handleError.call(this, err, req, res, null, next)
       }
     }
-  }
 
   /**
    * Authorization Middleware.
@@ -48,8 +48,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-3.1)
    */
-  authorize = (options?: OAuth2Server.AuthorizeOptions) => {
-    return async (
+  authorize =
+    (options?: OAuth2Server.AuthorizeOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -61,11 +62,10 @@ class ExpressOAuthServer {
         const code = await this.server.authorize(request, response, options)
         res.locals.oauth = { code }
         return handleResponse.call(this, req, res, response)
-      } catch (e) {
-        return handleError.call(this, e, req, res, response, next)
+      } catch (err: any) {
+        return handleError.call(this, err, req, res, response, next)
       }
     }
-  }
 
   /**
    * Grant Middleware.
@@ -74,8 +74,9 @@ class ExpressOAuthServer {
    *
    * (See: https://tools.ietf.org/html/rfc6749#section-3.2)
    */
-  token = (options?: OAuth2Server.TokenOptions) => {
-    return async (
+  token =
+    (options?: OAuth2Server.TokenOptions) =>
+    async (
       req: express.Request,
       res: express.Response,
       next: express.NextFunction
@@ -87,11 +88,10 @@ class ExpressOAuthServer {
         const token = await this.server.token(request, response, options)
         res.locals.oauth = { token }
         return handleResponse.call(this, req, res, response)
-      } catch (e) {
-        return handleError.call(this, e, req, res, response, next)
+      } catch (err: any) {
+        return handleError.call(this, err, req, res, response, next)
       }
     }
-  }
 }
 
 /**

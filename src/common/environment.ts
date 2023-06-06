@@ -33,6 +33,8 @@ export const isProd = process.env.MATTERS_ENV === 'production'
 
 export const environment = {
   env: process.env.MATTERS_ENV,
+  loggingLevel: process.env.MATTERS_LOGGING_LEVEL || 'info',
+  debug: process.env.MATTERS_DEBUG || '',
   serverDomain: process.env.MATTERS_SERVER_DOMAIN || '',
   siteDomain: (process.env.MATTERS_SITE_DOMAIN || 'matters.town') as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
@@ -44,6 +46,7 @@ export const environment = {
   awsIpfsArticlesQueueUrl:
     process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
+  awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
   awsLikecoinLikeUrl: process.env.MATTERS_AWS_LIKECOIN_LIKE_QUEUE_URL || '',
   awsLikecoinSendPVUrl:
@@ -51,11 +54,6 @@ export const environment = {
   awsLikecoinUpdateCivicLikerCache:
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
   awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
-  esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
-  esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
-  meiliSearch_Server:
-    process.env.MATTERS_MEILISEARCH_SERVER || 'http://meili.dev.vpc:7700',
-  meiliSearch_apiKey: process.env.MATTERS_MEILISEARCH_APIKEY || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
   cloudflareAccountHash: process.env.MATTERS_CLOUDFLARE_ACCOUNT_HASH,

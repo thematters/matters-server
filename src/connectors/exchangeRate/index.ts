@@ -3,8 +3,10 @@ import axios from 'axios'
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import { NetworkError, UnknownError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { CacheService } from 'connectors'
+
+const logger = getLogger('service-exchange-rate')
 
 // TYPES
 
@@ -86,7 +88,7 @@ export class ExchangeRate {
   }
 
   private fetchRate = async ({ from, to }: Pair): Promise<Rate | never> => {
-    logger.warn(
+    logger.info(
       'exchangeRate requested APIs to get rates instead of from cache'
     )
 
@@ -170,7 +172,7 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error) {
+    } catch (error: any) {
       const path = error.request.path
       const msg = error.response.data
         ? JSON.stringify(error.response.data)
@@ -201,7 +203,7 @@ export class ExchangeRate {
         )
       }
       return reps.data
-    } catch (error) {
+    } catch (error: any) {
       const path = error.request.path
       const msg = error.response.data
         ? JSON.stringify(error.response.data)

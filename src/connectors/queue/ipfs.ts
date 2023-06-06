@@ -10,12 +10,14 @@ import {
   QUEUE_PRIORITY,
   SLACK_MESSAGE_STATE,
 } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { timeout } from 'common/utils'
 import { ipfsServers } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-ipfs')
 
 class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>
@@ -118,14 +120,14 @@ class IPFSQueue extends BaseQueue {
         })
       }
       done(null, { succeedIds, failedIds })
-    } catch (error) {
-      logger.error(error)
+    } catch (err: any) {
+      logger.error(err)
       this.slackService.sendQueueMessage({
         title: `${QUEUE_NAME.ipfs}:verifyIPFSPinHashes`,
         message: `Failed to process cron job`,
         state: SLACK_MESSAGE_STATE.failed,
       })
-      done(error)
+      done(err)
     }
   }
 

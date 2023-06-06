@@ -4,7 +4,10 @@ import fetch from 'node-fetch'
 import path from 'path'
 
 import { environment, isProd } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { GQLAssetType } from 'definitions'
+
+const logger = getLogger('service-cloudflare')
 
 const envPrefix = isProd ? 'prod' : 'non-prod'
 
@@ -40,11 +43,10 @@ export class CloudflareService {
     try {
       const resData = await res.json()
 
-      console.log(new Date(), 'CloudflareService upload image:', resData)
+      logger.info('upload image: %j', resData)
     } catch (err) {
-      console.error(
-        new Date(),
-        'CloudflareService upload image ERROR:',
+      logger.error(
+        'error: %j ok: %j headers: %j',
         err,
         res.ok,
         res.headers
@@ -81,11 +83,10 @@ export class CloudflareService {
 
     try {
       const resData = await res.json()
-      console.log(new Date(), 'CloudflareService upload image:', resData)
+      logger.info('upload image: %j', resData)
     } catch (err) {
-      console.error(
-        new Date(),
-        'CloudflareService upload image ERROR:',
+      logger.error(
+        'error: %j ok: %j headers: %j',
         err,
         res.ok,
         res.headers
@@ -93,6 +94,34 @@ export class CloudflareService {
       )
     }
     return key
+  }
+
+  getFileKeyByUrl = async (
+    folder: GQLAssetType,
+    origUrl: string,
+    uuid: string
+  ): Promise<string | never> => {
+    const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
+    const url = `${CLOUDFLARE_IMAGES_URL}/${key}`
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${environment.cloudflareApiToken}`,
+      },
+    })
+
+    try {
+      const resData = await res.json()
+
+      if (resData.result.id) {
+        return key
+      }
+
+      return ''
+    } catch (err) {
+      return ''
+    }
   }
 
   /**
@@ -118,7 +147,7 @@ export class CloudflareService {
   // internal helpers
 
   private genKey = (folder: string, uuid: string, extension: string): string =>
-    `${folder}/${uuid}.${extension}`
+    `${folder}/${uuid}${extension ? '.' + extension : extension}`
 }
 
 export const cfsvc = new CloudflareService()

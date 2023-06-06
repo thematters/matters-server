@@ -17,10 +17,12 @@ import {
   ForbiddenError,
   UserNotFoundError,
 } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { likecoin } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-appreciation')
 
 interface AppreciationParams {
   amount: number
@@ -47,8 +49,8 @@ class AppreciationQueue extends BaseQueue {
     senderId,
     senderIP,
     userAgent,
-  }: AppreciationParams) => {
-    return this.q.add(
+  }: AppreciationParams) =>
+    this.q.add(
       QUEUE_JOB.appreciation,
       { amount, articleId, senderId, senderIP, userAgent },
       {
@@ -56,7 +58,6 @@ class AppreciationQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.
@@ -160,9 +161,9 @@ class AppreciationQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (error) {
-      logger.error(error)
-      done(error)
+    } catch (err: any) {
+      logger.error(err)
+      done(err)
     }
   }
 }

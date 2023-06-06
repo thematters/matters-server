@@ -2,9 +2,11 @@ import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { isTest } from 'common/environment'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 
 import { BaseQueue } from './baseQueue'
+
+const logger = getLogger('queue-asset')
 
 interface AssetParams {
   ids: string[]
@@ -19,8 +21,8 @@ class AssetQueue extends BaseQueue {
   /**
    * Producers
    */
-  remove = ({ ids }: { ids: string[] }) => {
-    return this.q.add(
+  remove = ({ ids }: { ids: string[] }) =>
+    this.q.add(
       QUEUE_JOB.deleteAsset,
       { ids },
       {
@@ -28,7 +30,6 @@ class AssetQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Consumer
@@ -75,9 +76,8 @@ class AssetQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-    } catch (err) {
+    } catch (err: any) {
       logger.error(err)
-      console.error('delete assets ERROR:', err)
       done(err)
     }
   }

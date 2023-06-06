@@ -11,10 +11,12 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
 import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
+
+const logger = getLogger('utils-auth')
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const authModes = [
@@ -44,7 +46,7 @@ export const getUserGroup = ({
       num = parseInt(last, 10) || 0
     }
   } catch (error) {
-    // logger.error('ERROR:', error, { id, ip })
+    logger.warn('getUserGroup failed: %j', { id, ip })
   }
   return num % 2 === 0 ? 'a' : 'b'
 }
@@ -168,7 +170,7 @@ export const getViewerFromReq = async ({
     // overwrite request by user settings
     user = { ...user, ...userDB }
   } catch (err) {
-    logger.info(err)
+    logger.warn(err)
 
     if (req && res) {
       clearCookie({ req, res })

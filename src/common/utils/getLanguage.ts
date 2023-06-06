@@ -1,7 +1,9 @@
 import _ from 'lodash'
 
 import { LANGUAGE } from 'common/enums'
-import logger from 'common/logger'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('utils-language')
 
 // map supported language to header language
 export const langMap = {
@@ -16,10 +18,12 @@ const reverseList = _(langMap)
   .values()
   .map((list, i) => list.map((lang) => ({ [lang]: langList[i] })))
   .flatten()
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   .merge()
   .value()
 
+// eslint-disable-next-line prefer-spread
 export const reverseMap = _.assign.apply(_, reverseList)
 
 // list of languages that we support
@@ -44,8 +48,7 @@ export const getLanguage = (acceptLanguage?: string) => {
       return reverseMap[requestList[supportIndex]]
     }
   } catch (err) {
-    logger.error(err)
-    console.error(new Date(), 'ERROR:', err, { acceptLanguage })
+    logger.error({ acceptLanguage }, err)
   }
 
   return LANGUAGE.zh_hant

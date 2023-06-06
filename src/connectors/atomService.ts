@@ -3,8 +3,7 @@ import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
 import { EntityNotFoundError } from 'common/errors'
-import logger from 'common/logger'
-import { aws, cfsvc, es, knex } from 'connectors'
+import { aws, cfsvc, knex } from 'connectors'
 import { Item, TableName } from 'definitions'
 
 interface InitLoaderInput {
@@ -77,7 +76,6 @@ interface MaxInput {
  * This object is a container for data loaders or system wide services.
  */
 export class AtomService extends DataSource {
-  es: typeof es
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
@@ -90,7 +88,6 @@ export class AtomService extends DataSource {
 
   constructor() {
     super()
-    this.es = es
     this.aws = aws
     this.cfsvc = cfsvc
     this.knex = knex
@@ -299,19 +296,5 @@ export class AtomService extends DataSource {
       .where(where as Record<string, any>)
       .first()
     return parseInt(record ? (record.count as string) : '0', 10)
-  }
-
-  /* Elastic Search */
-
-  /**
-   * Delete data stored in elastic search.
-   */
-  deleteSearch = async ({ table, id }: { table: TableName; id: any }) => {
-    try {
-      const result = await this.es.client.delete({ index: table, id })
-      return result
-    } catch (error) {
-      logger.error(error)
-    }
   }
 }
