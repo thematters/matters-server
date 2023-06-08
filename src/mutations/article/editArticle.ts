@@ -292,7 +292,6 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Revision Count
    */
-  const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
@@ -455,7 +454,7 @@ const resolver: MutationToEditArticleResolver = async (
       // only republish when have changes
       await republish(content)
     }
-  } else if (isUpdatingCircleOrAccess || isUpdatingISCNPublish) {
+  } else if (isUpdatingCircleOrAccess) {
     await republish()
   }
 

@@ -136,10 +136,12 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      sensitiveByAuthor: currDraft?.sensitiveByAuthor,
       license: currDraft.license,
+      requestForDonation: currDraft?.requestForDonation,
+      replyToDonator: currDraft?.replyToDonator,
+      canComment: currDraft?.canComment,
       iscnPublish: currDraft.iscnPublish,
-      // createdAt: new Date(),
-      // updatedAt: new Date(),
     }
     const revisedDraft = await draftService.baseCreate(data)
 
