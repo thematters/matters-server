@@ -1340,17 +1340,15 @@ export class UserService extends BaseService {
     })
     const trx = await this.knex.transaction()
     for (const c of codes) {
-      if (c.code === code.code) {
-        await this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
-          trx
-        )
-      } else {
-        await this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
-          trx
-        )
-      }
+      await (c.code === code.code
+        ? this.markVerificationCodeAs(
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
+            trx
+          )
+        : this.markVerificationCodeAs(
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+            trx
+          ))
     }
     await trx.commit()
   }
@@ -1359,9 +1357,9 @@ export class UserService extends BaseService {
     where,
   }: {
     where?: {
+      [key: string]: any
       type?: GQLVerificationCodeType
       status?: VERIFICATION_CODE_STATUS
-      [key: string]: any
     }
   }) => {
     const query = this.knex
@@ -1587,15 +1585,14 @@ export class UserService extends BaseService {
     likerId,
     ...data
   }: {
-    likerId: string
     [key: string]: any
-  }) => {
-    return this.knex
+    likerId: string
+  }) =>
+    this.knex
       .select()
       .from('user_oauth_likecoin')
       .where({ likerId })
       .update(data)
-  }
 
   // register a new LikerId by a given userName
   registerLikerId = async ({
@@ -1661,15 +1658,14 @@ export class UserService extends BaseService {
   }: {
     fromLiker: UserOAuthLikeCoin
     toLiker: Pick<UserOAuthLikeCoin, 'likerId' | 'accessToken'>
-  }) => {
-    return this.likecoin.edit({
+  }) =>
+    this.likecoin.edit({
       action: 'transfer',
       payload: {
         fromUserToken: fromLiker.accessToken,
         toUserToken: toLiker.accessToken,
       },
     })
-  }
 
   // Update the platform ID <-> LikerID binding
   bindLikerId = async ({

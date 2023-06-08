@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/ban-ts-comment: 0 */
 import { Knex } from 'knex'
 
 import {
@@ -22,20 +23,16 @@ import { GQLChain } from 'definitions'
 const mockFetchLogs = jest.fn()
 const mockFetchTxReceipt = jest.fn()
 const mockFetchBlockNumber = jest.fn()
-jest.mock('connectors/blockchain', () => {
-  return {
-    __esModule: true,
-    CurationContract: jest.fn().mockImplementation(() => {
-      return {
-        fetchTxReceipt: mockFetchTxReceipt,
-        fetchLogs: mockFetchLogs,
-        fetchBlockNumber: mockFetchBlockNumber,
-        chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
-        address: environment.polygonCurationContractAddress.toLowerCase(),
-      }
-    }),
-  }
-})
+jest.mock('connectors/blockchain', () => ({
+  __esModule: true,
+  CurationContract: jest.fn().mockImplementation(() => ({
+    fetchTxReceipt: mockFetchTxReceipt,
+    fetchLogs: mockFetchLogs,
+    fetchBlockNumber: mockFetchBlockNumber,
+    chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
+    address: environment.polygonCurationContractAddress.toLowerCase(),
+  })),
+}))
 
 // test data
 
@@ -118,6 +115,9 @@ describe('payToByBlockchainQueue.payTo', () => {
       }
     })
   })
+  // afterAll(() => {
+  //  queue.clearDelayedJobs()
+  // })
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
@@ -290,13 +290,12 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
         return null
       }
     })
-    mockFetchLogs.mockImplementation(
-      async (fromBlock: number, toBlock: number) => {
-        return []
-      }
-    )
+    mockFetchLogs.mockImplementation(async () => [])
     mockFetchBlockNumber.mockReturnValue(Promise.resolve(latestBlockNum))
   })
+  // afterAll(() => {
+  //  queue.clearDelayedJobs()
+  // })
   test('_handleSyncCurationEvents update sync record', async () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record

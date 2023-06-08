@@ -391,7 +391,7 @@ export class LikeCoin {
         })
         return false
       },
-      expire: CACHE_TTL.SHORT,
+      expire: CACHE_TTL.MEDIUM,
     })
     return isCivicLiker
   }
@@ -446,31 +446,27 @@ export class LikeCoin {
     likerIp?: string
     userAgent: string
   }) => {
-    try {
-      const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
-      const result = await this.request({
-        ip: likerIp,
-        userAgent,
-        endpoint,
-        withClientCredential: true,
-        method: 'POST',
-        liker,
-        data: _.omitBy(
-          {
-            iscn_id,
-            referrer: url, // encodeURI(url),
-          },
-          _.isNil
-        ),
-      })
-      const data = _.get(result, 'data')
-      if (data) {
-        return data
-      } else {
-        throw result
-      }
-    } catch (error) {
-      throw error
+    const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
+    const result = await this.request({
+      ip: likerIp,
+      userAgent,
+      endpoint,
+      withClientCredential: true,
+      method: 'POST',
+      liker,
+      data: _.omitBy(
+        {
+          iscn_id,
+          referrer: url, // encodeURI(url),
+        },
+        _.isNil
+      ),
+    })
+    const data = _.get(result, 'data')
+    if (data) {
+      return data
+    } else {
+      throw result
     }
   }
 

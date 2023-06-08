@@ -36,38 +36,29 @@ export class AWSService {
   /**
    * Get AWS config.
    */
-  getAWSConfig = () => {
-    return {
-      region: environment.awsRegion,
-      accessKeyId: environment.awsAccessId,
-      secretAccessKey: environment.awsAccessKey,
-      ...(isLocal
-        ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
-        : {}),
-    }
-  }
+  getAWSConfig = () => ({
+    region: environment.awsRegion,
+    accessKeyId: environment.awsAccessId,
+    secretAccessKey: environment.awsAccessKey,
+    ...(isLocal ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT } : {}),
+  })
 
   /**
    * Get S3 endpoint. If AWS Cloud Front is enabled, the default S3 endpoint
    * will be replaced.
    */
-  getS3Endpoint = (): string => {
-    if (isTest) {
-      return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
-    } else {
-      return `https://${
-        environment.awsCloudFrontEndpoint ||
-        `${this.s3Bucket}.${environment.awsS3Endpoint}`
-      }`
-    }
-  }
+  getS3Endpoint = (): string =>
+    isTest
+      ? `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
+      : `https://${
+          environment.awsCloudFrontEndpoint ||
+          `${this.s3Bucket}.${environment.awsS3Endpoint}`
+        }`
 
   /**
    * Get S3 bucket.
    */
-  getS3Bucket = (): string => {
-    return environment.awsS3Bucket
-  }
+  getS3Bucket = (): string => environment.awsS3Bucket
 
   // check existence
   baseHeadFile = async (

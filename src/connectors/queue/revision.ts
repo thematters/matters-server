@@ -42,11 +42,10 @@ class RevisionQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: RevisedArticleData) => {
-    return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
+  publishRevisedArticle = (data: RevisedArticleData) =>
+    this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
-  }
 
   /**
    * Cusumers
@@ -81,7 +80,7 @@ class RevisionQueue extends BaseQueue {
       }
       if (draft.publishState !== PUBLISH_STATE.pending) {
         job.progress(100)
-        done(null, `Revision draft ${draftId} isn\'t in pending state.`)
+        done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
       let article = await this.articleService.baseFindById(draft.articleId)

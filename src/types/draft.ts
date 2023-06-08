@@ -64,6 +64,9 @@ export default /* GraphQL */ `
     "Access related fields on circle"
     access: DraftAccess!
 
+    "whether content is marked as sensitive by author"
+    sensitiveByAuthor: Boolean!
+
     "License Type"
     license: ArticleLicenseType!
 
@@ -106,6 +109,7 @@ export default /* GraphQL */ `
     collection: [ID]
     circle: ID
     accessType: ArticleAccessType
+    sensitive: Boolean
     license: ArticleLicenseType
 
     requestForDonation: String  @constraint(maxLength: 140)

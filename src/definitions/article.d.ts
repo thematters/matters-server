@@ -2,7 +2,7 @@ import { ARTICLE_STATE } from 'common/enums'
 
 import { LANGUAGES } from './language'
 
-export type Article = {
+export interface Article {
   id: string
   uuid: string
   authorId: string

@@ -63,7 +63,7 @@ const resolver: ArticleToResponsesResolver = async (
 
   // re-process edges
   const edges = items.map((item: { [key: string]: any }) => {
-    const type = !!item.title ? NODE_TYPES.Article : NODE_TYPES.Comment
+    const type = item.title ? NODE_TYPES.Article : NODE_TYPES.Comment
     const id = type === 'Article' ? item.articleId : item.id
 
     return {

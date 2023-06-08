@@ -40,8 +40,8 @@ class MigrationQueue extends BaseQueue {
     userId: string
     htmls: string[]
     delay?: number
-  }) => {
-    return this.q.add(
+  }) =>
+    this.q.add(
       QUEUE_JOB.migration,
       { type, userId, htmls },
       {
@@ -50,7 +50,6 @@ class MigrationQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Cusumers

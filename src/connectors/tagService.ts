@@ -454,16 +454,14 @@ export class TagService extends BaseService {
       action,
       targetId,
     }
-    if (enabled) {
-      return this.baseUpdateOrCreate({
-        where: data,
-        data,
-        table: 'action_tag',
-        updateUpdatedAt: true,
-      })
-    } else {
-      return this.knex.from('action_tag').where(data).del()
-    }
+    return enabled
+      ? this.baseUpdateOrCreate({
+          where: data,
+          data,
+          table: 'action_tag',
+          updateUpdatedAt: true,
+        })
+      : this.knex.from('action_tag').where(data).del()
   }
 
   countFollowers = async (targetId: string) => {
@@ -749,14 +747,14 @@ export class TagService extends BaseService {
     tagIds = Array.from(new Set(tagIds))
 
     const items = articleIds
-      .map((articleId) => {
-        return tagIds.map((tagId) => ({
+      .map((articleId) =>
+        tagIds.map((tagId) => ({
           articleId,
           creator,
           tagId,
           ...(selected === true ? { selected } : {}),
         }))
-      })
+      )
       .flat(1)
     return this.baseBatchCreate(items, 'article_tag')
   }
@@ -1079,8 +1077,8 @@ export class TagService extends BaseService {
    * top100 at most
    *
    */
-  findRelatedTags = async ({ id }: { id: string; content?: string }) => {
-    return this.knex
+  findRelatedTags = async ({ id }: { id: string; content?: string }) =>
+    this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
@@ -1088,5 +1086,4 @@ export class TagService extends BaseService {
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .select('x.tag_rel_id AS id')
       .orderByRaw('x.count_rel * x.similarity DESC NULLS LAST')
-  }
 }

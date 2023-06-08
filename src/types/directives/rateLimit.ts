@@ -1,6 +1,7 @@
+import type Redis from 'ioredis'
+
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
-import type Redis from 'ioredis'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'

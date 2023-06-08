@@ -32,10 +32,10 @@ export interface NotificationRequiredParams {
   recipientId: string
 }
 
-export type NotificationEntity<
+export interface NotificationEntity<
   T extends NoticeEntityType = NoticeEntityType,
   K extends TableName = TableName
-> = {
+> {
   type: T
   entityTable: K
   entity: any
@@ -425,7 +425,7 @@ export type NotificationPrarms =
 
 export type NoticeUserId = string
 
-export type NoticeEntity = {
+export interface NoticeEntity {
   type: NoticeEntityType
   table: TableName
   entityId: string
@@ -433,7 +433,7 @@ export type NoticeEntity = {
 
 export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
-export type NoticeData = {
+export interface NoticeData {
   // used by official annoncement notices
   url?: string
   // reason for banned/frozen users, not in used
@@ -445,7 +445,7 @@ export type NoticeData = {
   mentions?: string[]
 }
 
-export type NoticeDetail = {
+export interface NoticeDetail {
   id: string
   unread: boolean
   deleted: boolean
@@ -462,7 +462,7 @@ export type NoticeItem = NoticeDetail & {
   entities?: NoticeEntitiesMap
 }
 
-export type PutNoticeParams = {
+export interface PutNoticeParams {
   type: DBNoticeType
   actorId?: NoticeUserId
   recipientId: NoticeUserId

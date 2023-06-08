@@ -22,15 +22,14 @@ const getCookieOption = ({
   httpOnly?: boolean
   sameSite?: boolean | 'strict' | 'lax' | 'none'
   domain?: string
-}) => {
-  return {
+}) =>
+  ({
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly,
     secure: true,
     domain,
     sameSite,
-  } as CookieOptions
-}
+  } as CookieOptions)
 
 export const setCookie = ({
   req,

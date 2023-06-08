@@ -90,9 +90,10 @@ export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
 }
 
 export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
-  cc_0: GQLArticleLicenseType.cc_0, //  'cc_0',
-  cc_by_nc_nd_2: GQLArticleLicenseType.cc_by_nc_nd_2, // 'cc_by_nc_nd_2',
-  arr: GQLArticleLicenseType.arr, // 'arr',
+  cc_0: GQLArticleLicenseType.cc_0,
+  cc_by_nc_nd_2: GQLArticleLicenseType.cc_by_nc_nd_2,
+  cc_by_nc_nd_4: GQLArticleLicenseType.cc_by_nc_nd_4,
+  arr: GQLArticleLicenseType.arr,
 }
 
 export const PUBLISH_STATE = {

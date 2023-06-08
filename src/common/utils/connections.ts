@@ -38,25 +38,20 @@ export interface PageInfo {
 
 const PREFIX = 'arrayconnection'
 
-export const cursorToOffset = (
-  cursor: ConnectionCursor | undefined
-): number => {
-  return cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
-}
+export const cursorToOffset = (cursor: ConnectionCursor | undefined): number =>
+  cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 
-export const cursorToIndex = (cursor: ConnectionCursor | undefined): number => {
-  return cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
-}
+export const cursorToIndex = (cursor: ConnectionCursor | undefined): number =>
+  cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 
-export const indexToCursor = (index: number | string): ConnectionCursor => {
-  return Base64.encodeURI(`${PREFIX}:${index}`)
-}
+export const indexToCursor = (index: number | string): ConnectionCursor =>
+  Base64.encodeURI(`${PREFIX}:${index}`)
 
-export function connectionFromArray<T>(
+export const connectionFromArray = <T>(
   data: T[],
   args: ConnectionArguments,
   totalCount?: number
-): Connection<T> {
+): Connection<T> => {
   if (totalCount) {
     const { after } = args
     const offset = cursorToIndex(after) + 1
@@ -94,25 +89,23 @@ export function connectionFromArray<T>(
   }
 }
 
-export function connectionFromPromisedArray<T>(
+export const connectionFromPromisedArray = <T>(
   dataPromise: Promise<T[]> | T[],
   args: ConnectionArguments,
   totalCount?: number
-): Promise<Connection<T>> {
-  return Promise.resolve(dataPromise).then((data) =>
+): Promise<Connection<T>> =>
+  Promise.resolve(dataPromise).then((data) =>
     connectionFromArray(data, args, totalCount)
   )
-}
 
-export const loadManyFilterError = (items: Array<Item | Error>) => {
-  return items.filter((item: Item | Error) => {
+export const loadManyFilterError = (items: Array<Item | Error>) =>
+  items.filter((item: Item | Error) => {
     if (item instanceof Error) {
       return false
     }
 
     return true
   }) as Item[]
-}
 
 /**
  * Convert GQL curosr to query keys. For example, the GQL cursor
@@ -137,9 +130,7 @@ export const cursorToKeys = (
 export const keysToCursor = (
   offset: number,
   idCursor: number
-): ConnectionCursor => {
-  return Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
-}
+): ConnectionCursor => Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
 
 /**
  * Construct a GQL connection using qeury keys mechanism. Query keys are
@@ -147,11 +138,11 @@ export const keysToCursor = (
  * like `merge`, and `idCursor` is for SQL querying.
  *
  */
-export function connectionFromArrayWithKeys(
+export const connectionFromArrayWithKeys = (
   data: Array<Record<string, any>>,
   args: ConnectionArguments,
   totalCount?: number
-): Connection<Record<string, any>> {
+): Connection<Record<string, any>> => {
   if (totalCount) {
     const { after } = args
     const keys = cursorToKeys(after)

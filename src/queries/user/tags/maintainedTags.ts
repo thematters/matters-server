@@ -5,8 +5,6 @@ const resolver: UserToTagsResolver = async (
   { id },
   { input },
   { dataSources: { tagService } }
-) => {
-  return connectionFromPromisedArray(tagService.findByMaintainer(id), input)
-}
+) => connectionFromPromisedArray(tagService.findByMaintainer(id), input)
 
 export default resolver

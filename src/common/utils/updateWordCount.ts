@@ -4,7 +4,7 @@ import { ArticleService, DraftService } from 'connectors'
 
 import { countWords } from './content'
 
-async function main() {
+const main = async () => {
   const articleIds = process.argv.slice(2)
   console.log('going to update wordCount for artcies:', articleIds)
 

@@ -23,8 +23,9 @@ type TransFn<V> = (lang: LANGUAGES, vars: V) => string
  * ```
  *
  */
-export const i18n = <V>(translations: Translations<V>): TransFn<V> => {
-  return (lang, vars) => {
+export const i18n =
+  <V>(translations: Translations<V>): TransFn<V> =>
+  (lang, vars) => {
     // fallback to `zh_hant`
     const trans = translations[lang] || translations.zh_hant
 
@@ -34,4 +35,3 @@ export const i18n = <V>(translations: Translations<V>): TransFn<V> => {
 
     return trans(vars)
   }
-}

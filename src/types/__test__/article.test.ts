@@ -25,6 +25,7 @@ import {
 } from './utils'
 
 declare global {
+  // eslint-disable-next-line no-var
   var mockEnums: any
 }
 
@@ -53,6 +54,8 @@ const GET_ARTICLE = /* GraphQL */ `
       requestForDonation
       replyToDonator
       canComment
+      sensitiveByAuthor
+      sensitiveByAdmin
     }
   }
 `
@@ -183,6 +186,8 @@ const EDIT_ARTICLE = /* GraphQL */ `
       replyToDonator
       revisionCount
       canComment
+      sensitiveByAuthor
+      sensitiveByAdmin
     }
   }
 `
@@ -899,6 +904,7 @@ describe('edit article', () => {
     // should be still 0, after whatever how many times changing license
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
   })
+
   test('edit support settings', async () => {
     const requestForDonation = 'test support request'
     const replyToDonator = 'test support reply'
@@ -995,6 +1001,7 @@ describe('edit article', () => {
     )
     expect(_get(result5, 'data.article.replyToDonator')).toBe(replyToDonator)
   })
+
   test('edit comment settings', async () => {
     const server = await testClient({
       isAuth: true,
@@ -1039,6 +1046,61 @@ describe('edit article', () => {
       },
     })
     expect(_get(result3, 'data.editArticle.canComment')).toBeTruthy()
+  })
+
+  test('edit sensitive settings', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: false,
+    })
+    const result = await server.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash,
+        },
+      },
+    })
+    expect(_get(result, 'data.article.sensitiveByAuthor')).toBeFalsy()
+    expect(_get(result, 'data.article.sensitiveByAdmin')).toBeFalsy()
+
+    // turn on by author
+    const result1 = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          sensitive: true,
+        },
+      },
+    })
+    expect(_get(result1, 'data.editArticle.sensitiveByAuthor')).toBeTruthy()
+
+    // turn on by admin
+    const adminServer = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
+    const UPDATE_ARTICLE_SENSITIVE = `
+      mutation UpdateArticleSensitive($input: UpdateArticleSensitiveInput!) {
+        updateArticleSensitive(input: $input) {
+          id
+          sensitiveByAdmin
+        }
+      }
+    `
+    const result2 = await adminServer.executeOperation({
+      query: UPDATE_ARTICLE_SENSITIVE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          sensitive: true,
+        },
+      },
+    })
+    expect(
+      _get(result2, 'data.updateArticleSensitive.sensitiveByAdmin')
+    ).toBeTruthy()
   })
 
   test('archive article', async () => {

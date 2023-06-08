@@ -49,8 +49,8 @@ class AppreciationQueue extends BaseQueue {
     senderId,
     senderIP,
     userAgent,
-  }: AppreciationParams) => {
-    return this.q.add(
+  }: AppreciationParams) =>
+    this.q.add(
       QUEUE_JOB.appreciation,
       { amount, articleId, senderId, senderIP, userAgent },
       {
@@ -58,7 +58,6 @@ class AppreciationQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.

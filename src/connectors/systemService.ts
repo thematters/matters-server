@@ -334,13 +334,12 @@ export class SystemService extends BaseService {
   findLogRecord = async (where: { [key: string]: string | boolean }) =>
     this.knex.select().from('log_record').where(where).first()
 
-  logRecord = async (data: { userId: string; type: string }) => {
-    return this.baseUpdateOrCreate({
+  logRecord = async (data: { userId: string; type: string }) =>
+    this.baseUpdateOrCreate({
       where: data,
       data: { readAt: new Date(), ...data },
       table: 'log_record',
     })
-  }
 
   /*********************************
    *                               *
@@ -370,9 +369,8 @@ export class SystemService extends BaseService {
     return query
   }
 
-  findSkippedItem = async (type: SkippedListItemType, value: string) => {
-    return this.knex('blocklist').where({ type, value }).first()
-  }
+  findSkippedItem = async (type: SkippedListItemType, value: string) =>
+    this.knex('blocklist').where({ type, value }).first()
 
   countSkippedItems = async ({ types }: { types: string[] }) => {
     const result = await this.knex('blocklist')
