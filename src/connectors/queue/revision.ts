@@ -29,7 +29,6 @@ const logger = getLogger('queue-revision')
 interface RevisedArticleData {
   draftId: string
   iscnPublish?: boolean
-  increaseRevisionCount: boolean
 }
 
 class RevisionQueue extends BaseQueue {
@@ -69,8 +68,7 @@ class RevisionQueue extends BaseQueue {
    */
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
     async (job, done) => {
-      const { draftId, iscnPublish, increaseRevisionCount } =
-        job.data as RevisedArticleData
+      const { draftId, iscnPublish } = job.data as RevisedArticleData
 
       let draft = await this.draftService.baseFindById(draftId)
 
@@ -125,7 +123,7 @@ class RevisionQueue extends BaseQueue {
 
         // Step 4: update back to article
         const revisionCount =
-          (article.revisionCount || 0) + (increaseRevisionCount ? 1 : 0)
+          (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await this.articleService.baseUpdate(
           article.id,
           {
