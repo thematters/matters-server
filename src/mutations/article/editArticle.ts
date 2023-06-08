@@ -284,7 +284,6 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Revision Count
    */
-  const isUpdatingISCNPublish = iscnPublish != null // both null or omit (undefined)
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
@@ -423,7 +422,7 @@ const resolver: MutationToEditArticleResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
-      iscnPublish: isUpdatingISCNPublish,
+      iscnPublish,
       increaseRevisionCount: !!newContent,
     })
   }
@@ -447,8 +446,6 @@ const resolver: MutationToEditArticleResolver = async (
       // only republish when have changes
       await republish(content)
     }
-  } else if (isUpdatingISCNPublish) {
-    await republish()
   }
 
   /**
