@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled'
+import { ApolloServerPluginUsageReportingDisabled } from '@apollo/server/plugin/disabled'
 import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting'
 import { KeyvAdapter } from '@apollo/utils.keyvadapter'
 import {
@@ -29,7 +30,7 @@ import {
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
-import { isProd } from 'common/environment'
+import { isProd, isLocal, isTest } from 'common/environment'
 // import { ActionLimitExceededError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
@@ -95,6 +96,8 @@ const exceptVariableNames = [
   'content',
 ]
 
+const disableUsageReporting = isLocal || isTest
+
 const server = new ApolloServer<Context>({
   schema: composedSchema,
   includeStacktraceInErrorResponses: !isProd,
@@ -103,19 +106,21 @@ const server = new ApolloServer<Context>({
     cache: cacheBackend,
   },
   plugins: [
-    ApolloServerPluginUsageReporting({
-      sendVariableValues: {
-        transform: ({ variables }) => {
-          variables = {
-            ..._.omit(variables, exceptVariableNames),
-            ...(variables.input
-              ? { input: _.omit(variables.input, exceptVariableNames) }
-              : {}),
-          }
-          return variables
-        },
-      },
-    }),
+    disableUsageReporting
+      ? ApolloServerPluginUsageReportingDisabled()
+      : ApolloServerPluginUsageReporting({
+          sendVariableValues: {
+            transform: ({ variables }) => {
+              variables = {
+                ..._.omit(variables, exceptVariableNames),
+                ...(variables.input
+                  ? { input: _.omit(variables.input, exceptVariableNames) }
+                  : {}),
+              }
+              return variables
+            },
+          },
+        }),
     ApolloServerPluginLandingPageDisabled(),
     ApolloServerPluginCacheControl({
       calculateHttpHeaders: false,
