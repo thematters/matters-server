@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
     nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
-    search(input: SearchInput!): SearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
+    search(input: SearchInput!): SearchResultConnection! @complexity(multipliers: ["input.first"], value: 1) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
     oss: OSS! @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }
@@ -446,14 +446,10 @@ export default /* GraphQL */ `
   ####################
   #    Directives    #
   ####################
+
   enum CacheControlScope {
     PUBLIC
     PRIVATE
-  }
-
-  input CostComplexity {
-    min: Int = 1
-    max: Int
   }
 
   directive @cacheControl(
@@ -462,14 +458,12 @@ export default /* GraphQL */ `
     inheritMaxAge: Boolean
   ) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
-  directive @cost(
-    multipliers: [String]
-    useMultipliers: Boolean
-    complexity: CostComplexity
-  ) on OBJECT | FIELD_DEFINITION
-
-
   directive @deprecated(
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
+
+  directive @complexity(
+    value: Int!
+    multipliers: [String!]
+  ) on FIELD_DEFINITION
 `

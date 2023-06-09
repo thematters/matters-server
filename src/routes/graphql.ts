@@ -11,6 +11,7 @@ import {
 } from '@apollo/utils.keyvaluecache'
 import KeyvRedis from '@keyv/redis'
 import { responseCachePlugin } from '@matters/apollo-response-cache'
+import ApolloServerPluginQueryComplexity from 'apollo-server-plugin-query-complexity'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { Express, RequestHandler } from 'express'
@@ -18,6 +19,7 @@ import { Express, RequestHandler } from 'express'
 // import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
+import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
 import { graphqlUploadExpress } from 'graphql-upload'
 import Keyv from 'keyv'
 import _ from 'lodash'
@@ -26,7 +28,7 @@ import 'module-alias/register'
 import {
   CACHE_TTL,
   CORS_OPTIONS,
-  //  GRAPHQL_COST_LIMIT,
+  GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
@@ -106,6 +108,10 @@ const server = new ApolloServer<Context>({
     cache: cacheBackend,
   },
   plugins: [
+    ApolloServerPluginQueryComplexity({
+      estimators: [directiveEstimator(), simpleEstimator()],
+      maximumComplexity: GRAPHQL_COST_LIMIT,
+    }),
     disableUsageReporting
       ? ApolloServerPluginUsageReportingDisabled()
       : ApolloServerPluginUsageReporting({

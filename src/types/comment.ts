@@ -68,7 +68,7 @@ export default /* GraphQL */ `
     myVote: Vote
 
     "Descendant comments of this comment."
-    comments(input: CommentCommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    comments(input: CommentCommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Parent comment of this comment."
     parentComment: Comment @logCache(type: "${NODE_TYPES.Comment}")
@@ -96,21 +96,21 @@ export default /* GraphQL */ `
     pinnedComments: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "List of featured comments of this article."
-    featuredComments(input: FeaturedCommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    featuredComments(input: FeaturedCommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "List of comments of this article."
-    comments(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    comments(input: CommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
   }
 
   extend type Circle {
     "Comments broadcasted by Circle owner."
-    broadcast(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    broadcast(input: CommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Pinned comments broadcasted by Circle owner."
     pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "Comments made by Circle member."
-    discussion(input: CommentsInput!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    discussion(input: CommentsInput!): CommentConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Discussion (exclude replies) count of this circle."
     discussionThreadCount: Int!
