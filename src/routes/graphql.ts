@@ -15,8 +15,6 @@ import ApolloServerPluginQueryComplexity from 'apollo-server-plugin-query-comple
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { Express, RequestHandler } from 'express'
-// import costAnalysis from 'graphql-cost-analysis'
-// import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
 import { directiveEstimator, simpleEstimator } from 'graphql-query-complexity'
@@ -33,7 +31,6 @@ import {
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
 import { isProd, isLocal, isTest } from 'common/environment'
-// import { ActionLimitExceededError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
 import { redis } from 'connectors'
@@ -50,40 +47,6 @@ const PLAYGROUND_ENDPOINT = '/playground'
 const cacheBackend = new ErrorsAreMissesCache(
   new KeyvAdapter(new Keyv({ store: new KeyvRedis(redis) }))
 ) as KeyValueCache<string>
-
-// class ProtectedApolloServer extends ApolloServer {
-//   async createGraphQLServerOptions(
-//     req: any,
-//     res: any
-//   ): Promise<GraphQLOptions> {
-//     const options = await super.createGraphQLServerOptions(
-//       req as any,
-//       res as any
-//     )
-//     const maximumCost = GRAPHQL_COST_LIMIT
-//
-//     return {
-//       ...options,
-//       validationRules: [
-//         ...(options.validationRules || []),
-//         costAnalysis({
-//           variables: req.body.variables,
-//           maximumCost,
-//           defaultCost: 1,
-//           createError: (max: number, actual: number) => {
-//             const err = new ActionLimitExceededError(
-//               `GraphQL query exceeds maximum complexity,` +
-//                 `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
-//             )
-//             return err
-//           },
-//           onComplete: (costs: number) =>
-//             logger.debug('costs: %d (max: %d)', costs, maximumCost),
-//         }),
-//       ],
-//     }
-//   }
-// }
 
 const composedSchema = applyMiddleware(schema, loggerMiddleware)
 
@@ -172,7 +135,6 @@ export const graphql = async (app: Express) => {
     PLAYGROUND_ENDPOINT,
     expressPlayground({
       endpoint: API_ENDPOINT,
-      // @ts-ignore
       settings: {
         'schema.polling.enable': false,
       },
