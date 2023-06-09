@@ -1,4 +1,3 @@
-// import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
@@ -10,11 +9,12 @@ import {
   type KeyValueCache,
 } from '@apollo/utils.keyvaluecache'
 import KeyvRedis from '@keyv/redis'
+import { responseCachePlugin } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { Express, RequestHandler } from 'express'
 // import costAnalysis from 'graphql-cost-analysis'
-import depthLimit from 'graphql-depth-limit'
+// import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import expressPlayground from 'graphql-playground-middleware-express'
 import { graphqlUploadExpress } from 'graphql-upload'
@@ -34,7 +34,7 @@ import { isProd } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { makeContext } from 'common/utils'
 import { redis } from 'connectors'
-import { RequestContext } from 'definitions'
+import { Context } from 'definitions'
 import { loggerMiddleware } from 'middlewares/logger'
 
 import schema from '../schema'
@@ -95,10 +95,9 @@ const exceptVariableNames = [
   'content',
 ]
 
-const server = new ApolloServer<RequestContext>({
+const server = new ApolloServer<Context>({
   schema: composedSchema,
   includeStacktraceInErrorResponses: !isProd,
-  validationRules: [depthLimit(15)],
   cache: cacheBackend,
   persistedQueries: {
     cache: cacheBackend,
@@ -122,14 +121,15 @@ const server = new ApolloServer<RequestContext>({
       calculateHttpHeaders: false,
       defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
     }),
-    // responseCachePlugin({
-    //   sessionId: ({ context }) => {
-    //     const viewerId = _.get(context, 'viewer.id', '')
-    //     const viewerGroup = _.get(context, 'viewer.group', '')
-    //     return JSON.stringify({ id: viewerId, group: viewerGroup })
-    //   },
-    //   nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
-    // }),
+    responseCachePlugin({
+      redis,
+      sessionId: async ({ contextValue }) => {
+        const viewerId = contextValue.viewer.id ?? ''
+        const viewerGroup = contextValue.viewer.group ?? ''
+        return JSON.stringify({ id: viewerId, group: viewerGroup })
+      },
+      nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
+    }),
   ],
   introspection: true,
   csrfPrevention: true,
@@ -153,7 +153,7 @@ export const graphql = async (app: Express) => {
     API_ENDPOINT,
     cors<cors.CorsRequest>(CORS_OPTIONS),
     bodyParser.json(),
-    expressMiddleware<RequestContext>(server, { context: makeContext })
+    expressMiddleware<Context>(server, { context: makeContext })
   )
 
   // Playground

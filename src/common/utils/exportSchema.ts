@@ -4,18 +4,13 @@ import { printSchema } from 'graphql'
 import 'module-alias/register'
 
 import { getLogger } from 'common/logger'
-import typeDefs from 'types'
+
+import { typeDefs } from '../../schema'
 
 const logger = getLogger('utils')
 
-const schemaObj = makeExecutableSchema({
-  typeDefs,
-  // resolverValidationOptions: {
-  // requireResolversForResolveType: false,
-  // },
-})
-
-const schemaString = printSchema(schemaObj)
+const schema = makeExecutableSchema({ typeDefs })
+const schemaString = printSchema(schema)
 
 fs.writeFile('schema.graphql', schemaString, (err) => {
   if (err) {
@@ -23,4 +18,5 @@ fs.writeFile('schema.graphql', schemaString, (err) => {
   } else {
     logger.info('Successfully printed schema.')
   }
+  process.exit()
 })

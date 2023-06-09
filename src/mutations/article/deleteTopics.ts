@@ -57,7 +57,7 @@ const resolver: MutationToDeleteTopicsResolver = async (
     topicIds.map((id) =>
       invalidateFQC({
         node: { type: NODE_TYPES.Topic, id },
-        redis: { client: redis },
+        redis,
       })
     )
   )

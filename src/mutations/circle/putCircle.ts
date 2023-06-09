@@ -178,7 +178,7 @@ const resolver: MutationToPutCircleResolver = async (
       // invalidate user
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: viewer.id },
-        redis: { client: redis },
+        redis,
       })
 
       return circle

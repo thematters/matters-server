@@ -155,7 +155,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
     await invalidateFQC({
       node: { type: NODE_TYPES.User, id: viewer.id },
-      redis: { client: redis },
+      redis,
     })
 
     return {

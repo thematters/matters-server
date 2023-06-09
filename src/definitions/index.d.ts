@@ -1,3 +1,4 @@
+import type { BasedContext } from '@apollo/server'
 import type { Request, Response } from 'express'
 import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'
@@ -58,12 +59,6 @@ export type UserRole = 'admin' | 'user'
 
 export type UserState = 'active' | 'banned' | 'archived'
 
-export type Context = RequestContext & {
-  dataSources: DataSources
-  cacheKey: string
-  redis: { client: Redis }
-}
-
 export type Viewer = (User | { id: null }) & {
   hasRole: (role: UserRole) => boolean
   hasAuthMode: (mode: string) => boolean
@@ -79,7 +74,7 @@ export type Viewer = (User | { id: null }) & {
   group: 'a' | 'b'
 }
 
-export interface RequestContext {
+export interface Context extends BasedContext {
   viewer: Viewer
   req: Request
   res: Response

@@ -136,11 +136,11 @@ export const completeCircleSubscription = async ({
   // invalidate user & circle
   invalidateFQC({
     node: { type: NODE_TYPES.Circle, id: circle.id },
-    redis: { client: redis },
+    redis,
   })
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
-    redis: { client: redis },
+    redis,
   })
 }
 
@@ -234,7 +234,7 @@ export const updateSubscription = async ({
   // invalidate user
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: dbSub.userId },
-    redis: { client: redis },
+    redis,
   })
 
   // invalidatecircle
@@ -247,7 +247,7 @@ export const updateSubscription = async ({
       dbDiffPrices.map((price) => {
         invalidateFQC({
           node: { type: NODE_TYPES.Circle, id: price.circleId },
-          redis: { client: redis },
+          redis,
         })
       })
     } catch (error) {

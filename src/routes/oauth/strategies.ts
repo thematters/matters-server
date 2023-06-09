@@ -105,7 +105,7 @@ export default () => {
           // invalidate user cache
           await invalidateFQC({
             node: { type: NODE_TYPES.User, id: userId },
-            redis: { client: redis },
+            redis,
           })
 
           return done(null, user)

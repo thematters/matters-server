@@ -158,7 +158,7 @@ class PayToByMattersQueue extends BaseQueue {
         if (entityType && this.cacheService) {
           invalidateFQC({
             node: { type: entityType, id: tx.targetId },
-            redis: { client: redis },
+            redis,
           })
         }
       }

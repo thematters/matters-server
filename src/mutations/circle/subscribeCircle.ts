@@ -202,11 +202,11 @@ const resolver: MutationToSubscribeCircleResolver = async (
     // invalidate user & circle
     invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: circle.id },
-      redis: { client: redis },
+      redis,
     })
     invalidateFQC({
       node: { type: NODE_TYPES.User, id: viewer.id },
-      redis: { client: redis },
+      redis,
     })
 
     return { circle }

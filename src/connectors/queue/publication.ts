@@ -228,7 +228,7 @@ export class PublicationQueue extends BaseQueue {
       // Step 8: invalidate user cache
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: article.authorId },
-        redis: { client: redis },
+        redis,
       })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
@@ -330,7 +330,7 @@ export class PublicationQueue extends BaseQueue {
       // invalidate article cache
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: article.id },
-        redis: { client: redis },
+        redis,
       })
 
       await job.progress(100)
@@ -470,7 +470,7 @@ export class PublicationQueue extends BaseQueue {
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: draft.circleId },
-      redis: { client: redis },
+      redis,
     })
   }
 

@@ -547,7 +547,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       if (entityType) {
         invalidateFQC({
           node: { type: entityType, id: targetId },
-          redis: { client: redis },
+          redis,
         })
       }
     }

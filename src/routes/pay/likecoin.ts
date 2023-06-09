@@ -34,7 +34,7 @@ const invalidateCache = async ({
     if (type) {
       await invalidateFQC({
         node: { type, id },
-        redis: { client: redis },
+        redis,
       })
     }
   }

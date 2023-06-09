@@ -18,7 +18,7 @@ import {
   TagService,
   UserService,
 } from 'connectors'
-import { RequestContext } from 'definitions'
+import { Context } from 'definitions'
 
 const purgeSentryData = (req?: Request): any => {
   const omit = (source: any, target: any) => {
@@ -47,7 +47,7 @@ export const makeContext = async ({
   req: Request
   res: Response
   connection?: any
-}): Promise<RequestContext> => {
+}): Promise<Context> => {
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
     const headers = req ? req.headers : {}

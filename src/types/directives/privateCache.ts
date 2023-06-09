@@ -1,44 +1,51 @@
-import type { CacheScope } from '@apollo/cache-control-types'
-
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
-import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
-import { defaultFieldResolver, GraphQLField } from 'graphql'
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
+import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 
 import { CACHE_TTL } from 'common/enums'
 
-export class PrivateCacheDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field: GraphQLField<any, any>) {
-    const { resolve = defaultFieldResolver } = field
+export const privateCacheDirective = (directiveName = 'privateCache') => ({
+  typeDef: `directive @${directiveName}(strict: Boolean! = false) on FIELD_DEFINITION`,
 
-    field.resolve = async (...args) => {
-      const { strict } = this.args
-      const [, , { viewer }, info] = args
-      const logged = viewer.id && viewer.hasRole('user')
-      const grouped = !!viewer.group
+  transformer: (schema: GraphQLSchema) => {
+    return mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+        const directive = getDirective(schema, fieldConfig, directiveName)?.[0]
+        if (directive) {
+          const { resolve = defaultFieldResolver } = fieldConfig
+          const { strict } = directive
+          fieldConfig.resolve = async (root, args, context, info) => {
+            const { viewer } = context
+            const logged = viewer.id && viewer.hasRole('user')
+            const grouped = !!viewer.group
+            let maxAge: number | undefined
+            if (strict && logged) {
+              maxAge = CACHE_TTL.INSTANT
+            }
 
-      let maxAge: number | undefined
-      if (strict && logged) {
-        maxAge = CACHE_TTL.INSTANT
-      }
+            const cacheControl = cacheControlFromInfo(info)
 
-      let scope = 'PUBLIC' as CacheScope
-      if (logged) {
-        scope = 'PRIVATE'
-        maxAge = Math.min(
-          CACHE_TTL.PRIVATE_QUERY,
-          info.cacheControl.cacheHint.maxAge || 0
-        )
-      } else if (grouped) {
-        scope = 'PRIVATE'
-      }
+            let scope = 'PUBLIC' as 'PUBLIC' | 'PRIVATE'
+            if (logged) {
+              scope = 'PRIVATE'
+              maxAge = Math.min(
+                CACHE_TTL.PRIVATE_QUERY,
+                cacheControl.cacheHint.maxAge || 0
+              )
+            } else if (grouped) {
+              scope = 'PRIVATE'
+            }
 
-      const cacheControl = cacheControlFromInfo(info)
-      if (typeof maxAge === 'number') {
-        cacheControl.setCacheHint({ maxAge, scope })
-      } else {
-        cacheControl.setCacheHint({ scope })
-      }
-      return resolve.apply(this, args)
-    }
-  }
-}
+            if (typeof maxAge === 'number') {
+              cacheControl.setCacheHint({ maxAge, scope })
+            } else {
+              cacheControl.setCacheHint({ scope })
+            }
+            return await resolve(root, args, context, info)
+          }
+          return fieldConfig
+        }
+      },
+    })
+  },
+})

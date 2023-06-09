@@ -129,7 +129,7 @@ const resolver: ArticleToTranslationResolver = async (
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Article, id: articleId },
-      redis: { client: redis },
+      redis,
     })
 
     return {

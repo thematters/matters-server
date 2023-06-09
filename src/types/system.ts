@@ -456,25 +456,6 @@ export default /* GraphQL */ `
     max: Int
   }
 
-  directive @constraint(
-    # String constraints
-    minLength: Int
-    maxLength: Int
-    startsWith: String
-    endsWith: String
-    contains: String
-    notContains: String
-    pattern: String
-    format: String
-    # Number constraints
-    min: Int
-    max: Int
-    exclusiveMin: Int
-    exclusiveMax: Int
-    multipleOf: Int
-    uniqueTypeName: String
-  ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
-
   directive @cacheControl(
     maxAge: Int
     scope: CacheControlScope
@@ -487,20 +468,8 @@ export default /* GraphQL */ `
     complexity: CostComplexity
   ) on OBJECT | FIELD_DEFINITION
 
-  "Rate limit within a given period of time, in seconds"
-  directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 
   directive @deprecated(
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
-
-  directive @auth(mode: String!, group: String) on FIELD_DEFINITION
-
-  directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
-
-  directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
-
-  directive @logCache(type: String!) on FIELD_DEFINITION
-
-  directive @purgeCache(type: String!) on FIELD_DEFINITION
 `

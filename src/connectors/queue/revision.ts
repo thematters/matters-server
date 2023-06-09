@@ -186,11 +186,11 @@ class RevisionQueue extends BaseQueue {
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: { client: redis },
+            redis,
           }),
           invalidateFQC({
             node: { type: NODE_TYPES.Article, id: article.id },
-            redis: { client: redis },
+            redis,
           }),
         ])
 

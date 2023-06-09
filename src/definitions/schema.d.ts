@@ -1293,6 +1293,166 @@ export interface GQLCircle extends GQLNode {
   discussionCount: number
 }
 
+export interface GQLUser extends GQLNode {
+  /**
+   * Circles belong to current user.
+   */
+  ownCircles?: Array<GQLCircle>
+
+  /**
+   * Circles whiches user has subscribed.
+   */
+  subscribedCircles: GQLCircleConnection
+  notices: GQLNoticeConnection
+
+  /**
+   * Global id of an user.
+   */
+  id: string
+
+  /**
+   * Global unique user name of a user.
+   */
+  userName?: string
+
+  /**
+   * Display name on user profile, can be duplicated.
+   */
+  displayName?: string
+
+  /**
+   * LikerID of LikeCoin, being used by LikeCoin OAuth
+   */
+  likerId?: string
+
+  /**
+   * Liker info of current user
+   */
+  liker: GQLLiker
+
+  /**
+   * URL for user avatar.
+   */
+  avatar?: string
+
+  /**
+   * User information.
+   */
+  info: GQLUserInfo
+
+  /**
+   * User settings.
+   */
+  settings: GQLUserSettings
+
+  /**
+   * Article recommendations for current user.
+   */
+  recommendation: GQLRecommendation
+
+  /**
+   * Articles authored by current user.
+   */
+  articles: GQLArticleConnection
+
+  /**
+   * Topics created by current user.
+   */
+  topics: GQLTopicConnection
+
+  /**
+   * Tags by by usage order of current user.
+   */
+  tags: GQLTagConnection
+
+  /**
+   * Tags owned and maintained by current user.
+   */
+  maintainedTags: GQLTagConnection
+
+  /**
+   * Tags pinned by current user.
+   */
+  pinnedTags: GQLTagConnection
+
+  /**
+   * Drafts authored by current user.
+   */
+  drafts: GQLDraftConnection
+
+  /**
+   * Articles current user commented on
+   */
+  commentedArticles: GQLArticleConnection
+
+  /**
+   * Artilces current user subscribed to.
+   */
+  subscriptions: GQLArticleConnection
+
+  /**
+   * Record of user activity, only accessable by current user.
+   */
+  activity: GQLUserActivity
+
+  /**
+   * Followers of this user.
+   */
+  followers: GQLUserConnection
+
+  /**
+   * Following contents of this user.
+   */
+  following: GQLFollowing
+
+  /**
+   * Whether current user is following viewer.
+   */
+  isFollower: boolean
+
+  /**
+   * Whether viewer is following current user.
+   */
+  isFollowee: boolean
+
+  /**
+   * Users that blocked by current user.
+   */
+  blockList: GQLUserConnection
+
+  /**
+   * Whether current user is blocking viewer.
+   */
+  isBlocking: boolean
+
+  /**
+   * Whether current user is blocked by viewer.
+   */
+  isBlocked: boolean
+
+  /**
+   * user data analytics, only accessable by current user.
+   */
+  analytics: GQLUserAnalytics
+
+  /**
+   * Status of current user.
+   */
+  status?: GQLUserStatus
+  oss: GQLUserOSS
+  remark?: string
+
+  /**
+   * User Wallet
+   */
+  wallet: GQLWallet
+
+  /**
+   * Payment pointer that resolves to Open Payments endpoints
+   */
+  paymentPointer?: string
+}
+
 export interface GQLMember {
   /**
    * User who join to a Circle.
@@ -2452,9 +2612,9 @@ export type GQLPossibleNodeTypeNames =
   | 'Topic'
   | 'Tag'
   | 'Circle'
+  | 'User'
   | 'Comment'
   | 'Draft'
-  | 'User'
 
 export interface GQLNodeNameMap {
   Node: GQLNode
@@ -2463,9 +2623,9 @@ export interface GQLNodeNameMap {
   Topic: GQLTopic
   Tag: GQLTag
   Circle: GQLCircle
+  User: GQLUser
   Comment: GQLComment
   Draft: GQLDraft
-  User: GQLUser
 }
 
 export interface GQLPageInfo {
@@ -2961,166 +3121,6 @@ export const enum GQLCacheControlScope {
 export interface GQLCostComplexity {
   min?: number
   max?: number
-}
-
-export interface GQLUser extends GQLNode {
-  /**
-   * Global id of an user.
-   */
-  id: string
-
-  /**
-   * Global unique user name of a user.
-   */
-  userName?: string
-
-  /**
-   * Display name on user profile, can be duplicated.
-   */
-  displayName?: string
-
-  /**
-   * LikerID of LikeCoin, being used by LikeCoin OAuth
-   */
-  likerId?: string
-
-  /**
-   * Liker info of current user
-   */
-  liker: GQLLiker
-
-  /**
-   * URL for user avatar.
-   */
-  avatar?: string
-
-  /**
-   * User information.
-   */
-  info: GQLUserInfo
-
-  /**
-   * User settings.
-   */
-  settings: GQLUserSettings
-
-  /**
-   * Article recommendations for current user.
-   */
-  recommendation: GQLRecommendation
-
-  /**
-   * Articles authored by current user.
-   */
-  articles: GQLArticleConnection
-
-  /**
-   * Topics created by current user.
-   */
-  topics: GQLTopicConnection
-
-  /**
-   * Tags by by usage order of current user.
-   */
-  tags: GQLTagConnection
-
-  /**
-   * Tags owned and maintained by current user.
-   */
-  maintainedTags: GQLTagConnection
-
-  /**
-   * Tags pinned by current user.
-   */
-  pinnedTags: GQLTagConnection
-
-  /**
-   * Drafts authored by current user.
-   */
-  drafts: GQLDraftConnection
-
-  /**
-   * Articles current user commented on
-   */
-  commentedArticles: GQLArticleConnection
-
-  /**
-   * Artilces current user subscribed to.
-   */
-  subscriptions: GQLArticleConnection
-
-  /**
-   * Record of user activity, only accessable by current user.
-   */
-  activity: GQLUserActivity
-
-  /**
-   * Followers of this user.
-   */
-  followers: GQLUserConnection
-
-  /**
-   * Following contents of this user.
-   */
-  following: GQLFollowing
-
-  /**
-   * Whether current user is following viewer.
-   */
-  isFollower: boolean
-
-  /**
-   * Whether viewer is following current user.
-   */
-  isFollowee: boolean
-
-  /**
-   * Users that blocked by current user.
-   */
-  blockList: GQLUserConnection
-
-  /**
-   * Whether current user is blocking viewer.
-   */
-  isBlocking: boolean
-
-  /**
-   * Whether current user is blocked by viewer.
-   */
-  isBlocked: boolean
-
-  /**
-   * user data analytics, only accessable by current user.
-   */
-  analytics: GQLUserAnalytics
-
-  /**
-   * Status of current user.
-   */
-  status?: GQLUserStatus
-  oss: GQLUserOSS
-  remark?: string
-
-  /**
-   * Circles belong to current user.
-   */
-  ownCircles?: Array<GQLCircle>
-
-  /**
-   * Circles whiches user has subscribed.
-   */
-  subscribedCircles: GQLCircleConnection
-  notices: GQLNoticeConnection
-
-  /**
-   * User Wallet
-   */
-  wallet: GQLWallet
-
-  /**
-   * Payment pointer that resolves to Open Payments endpoints
-   */
-  paymentPointer?: string
 }
 
 export interface GQLRecommendation {
@@ -4481,6 +4481,7 @@ export interface GQLResolver {
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Circle?: GQLCircleTypeResolver
+  User?: GQLUserTypeResolver
   Member?: GQLMemberTypeResolver
   Price?: GQLPriceTypeResolver
   CircleConnection?: GQLCircleConnectionTypeResolver
@@ -4551,7 +4552,6 @@ export interface GQLResolver {
   SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
   SkippedListItem?: GQLSkippedListItemTypeResolver
   UserRestriction?: GQLUserRestrictionTypeResolver
-  User?: GQLUserTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   UserInfo?: GQLUserInfoTypeResolver
   UserSettings?: GQLUserSettingsTypeResolver
@@ -7707,6 +7707,385 @@ export interface CircleToDiscussionCountResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLUserTypeResolver<TParent = any> {
+  ownCircles?: UserToOwnCirclesResolver<TParent>
+  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
+  notices?: UserToNoticesResolver<TParent>
+  id?: UserToIdResolver<TParent>
+  userName?: UserToUserNameResolver<TParent>
+  displayName?: UserToDisplayNameResolver<TParent>
+  likerId?: UserToLikerIdResolver<TParent>
+  liker?: UserToLikerResolver<TParent>
+  avatar?: UserToAvatarResolver<TParent>
+  info?: UserToInfoResolver<TParent>
+  settings?: UserToSettingsResolver<TParent>
+  recommendation?: UserToRecommendationResolver<TParent>
+  articles?: UserToArticlesResolver<TParent>
+  topics?: UserToTopicsResolver<TParent>
+  tags?: UserToTagsResolver<TParent>
+  maintainedTags?: UserToMaintainedTagsResolver<TParent>
+  pinnedTags?: UserToPinnedTagsResolver<TParent>
+  drafts?: UserToDraftsResolver<TParent>
+  commentedArticles?: UserToCommentedArticlesResolver<TParent>
+  subscriptions?: UserToSubscriptionsResolver<TParent>
+  activity?: UserToActivityResolver<TParent>
+  followers?: UserToFollowersResolver<TParent>
+  following?: UserToFollowingResolver<TParent>
+  isFollower?: UserToIsFollowerResolver<TParent>
+  isFollowee?: UserToIsFolloweeResolver<TParent>
+  blockList?: UserToBlockListResolver<TParent>
+  isBlocking?: UserToIsBlockingResolver<TParent>
+  isBlocked?: UserToIsBlockedResolver<TParent>
+  analytics?: UserToAnalyticsResolver<TParent>
+  status?: UserToStatusResolver<TParent>
+  oss?: UserToOssResolver<TParent>
+  remark?: UserToRemarkResolver<TParent>
+  wallet?: UserToWalletResolver<TParent>
+  paymentPointer?: UserToPaymentPointerResolver<TParent>
+}
+
+export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToSubscribedCirclesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToSubscribedCirclesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToSubscribedCirclesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToNoticesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToNoticesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToNoticesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToUserNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToAvatarResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToInfoResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToSettingsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToRecommendationResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToTopicsArgs {
+  input: GQLTopicInput
+}
+export interface UserToTopicsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToTopicsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToMaintainedTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToMaintainedTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToMaintainedTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPinnedTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToPinnedTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToPinnedTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToDraftsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToDraftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToDraftsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToCommentedArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToCommentedArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToSubscriptionsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToSubscriptionsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToSubscriptionsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToActivityResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToFollowersArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToFollowersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToFollowingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsFollowerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToBlockListArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToBlockListResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToBlockListArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsBlockingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToAnalyticsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToStatusResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMemberTypeResolver<TParent = any> {
   user?: MemberToUserResolver<TParent>
   price?: MemberToPriceResolver<TParent>
@@ -9869,18 +10248,18 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Topic'
     | 'Tag'
     | 'Circle'
+    | 'User'
     | 'Comment'
     | 'Draft'
-    | 'User'
     | Promise<
         | 'Article'
         | 'Chapter'
         | 'Topic'
         | 'Tag'
         | 'Circle'
+        | 'User'
         | 'Comment'
         | 'Draft'
-        | 'User'
       >
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
@@ -10651,385 +11030,6 @@ export interface UserRestrictionToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLUserTypeResolver<TParent = any> {
-  id?: UserToIdResolver<TParent>
-  userName?: UserToUserNameResolver<TParent>
-  displayName?: UserToDisplayNameResolver<TParent>
-  likerId?: UserToLikerIdResolver<TParent>
-  liker?: UserToLikerResolver<TParent>
-  avatar?: UserToAvatarResolver<TParent>
-  info?: UserToInfoResolver<TParent>
-  settings?: UserToSettingsResolver<TParent>
-  recommendation?: UserToRecommendationResolver<TParent>
-  articles?: UserToArticlesResolver<TParent>
-  topics?: UserToTopicsResolver<TParent>
-  tags?: UserToTagsResolver<TParent>
-  maintainedTags?: UserToMaintainedTagsResolver<TParent>
-  pinnedTags?: UserToPinnedTagsResolver<TParent>
-  drafts?: UserToDraftsResolver<TParent>
-  commentedArticles?: UserToCommentedArticlesResolver<TParent>
-  subscriptions?: UserToSubscriptionsResolver<TParent>
-  activity?: UserToActivityResolver<TParent>
-  followers?: UserToFollowersResolver<TParent>
-  following?: UserToFollowingResolver<TParent>
-  isFollower?: UserToIsFollowerResolver<TParent>
-  isFollowee?: UserToIsFolloweeResolver<TParent>
-  blockList?: UserToBlockListResolver<TParent>
-  isBlocking?: UserToIsBlockingResolver<TParent>
-  isBlocked?: UserToIsBlockedResolver<TParent>
-  analytics?: UserToAnalyticsResolver<TParent>
-  status?: UserToStatusResolver<TParent>
-  oss?: UserToOssResolver<TParent>
-  remark?: UserToRemarkResolver<TParent>
-  ownCircles?: UserToOwnCirclesResolver<TParent>
-  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
-  notices?: UserToNoticesResolver<TParent>
-  wallet?: UserToWalletResolver<TParent>
-  paymentPointer?: UserToPaymentPointerResolver<TParent>
-}
-
-export interface UserToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToUserNameResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToLikerIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToLikerResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToAvatarResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToInfoResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToSettingsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToRecommendationResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToArticlesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToTopicsArgs {
-  input: GQLTopicInput
-}
-export interface UserToTopicsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToTopicsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToTagsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToTagsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToMaintainedTagsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToMaintainedTagsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToMaintainedTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToPinnedTagsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToPinnedTagsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToPinnedTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToDraftsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToDraftsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToDraftsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToCommentedArticlesArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToCommentedArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToSubscriptionsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToSubscriptionsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToSubscriptionsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToActivityResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToFollowersArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToFollowersResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToFollowersArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToFollowingResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToIsFollowerResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToBlockListArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToBlockListResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToBlockListArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToIsBlockingResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToAnalyticsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToStatusResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToOssResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToRemarkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToSubscribedCirclesArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToSubscribedCirclesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToSubscribedCirclesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToNoticesArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToNoticesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToNoticesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToWalletResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

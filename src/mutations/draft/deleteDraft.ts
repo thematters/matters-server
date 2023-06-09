@@ -40,7 +40,7 @@ const resolver: MutationToDeleteDraftResolver = async (
 
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: viewer.id },
-    redis: { client: redis },
+    redis,
   })
 
   return true

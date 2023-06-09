@@ -228,7 +228,7 @@ const resolver: MutationToInviteResolver = async (
   if (invitations && invitations.length > 0) {
     invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: circle.id },
-      redis: { client: redis },
+      redis,
     })
   }
 
