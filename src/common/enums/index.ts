@@ -27,7 +27,7 @@ export * from './routes'
 export * from './sqs'
 export * from './logging'
 
-export const GRAPHQL_COST_LIMIT = 500
+export const GRAPHQL_COST_LIMIT = 5000
 
 export const BCRYPT_ROUNDS = 12
 
