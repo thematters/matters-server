@@ -7,7 +7,7 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { MutationToDeleteDraftResolver } from 'definitions'
 
 const resolver: MutationToDeleteDraftResolver = async (
@@ -38,10 +38,9 @@ const resolver: MutationToDeleteDraftResolver = async (
     data: { archived: true, updatedAt: new Date() },
   })
 
-  const cacheService = new CacheService()
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: viewer.id },
-    redis: cacheService.redis,
+    redis,
   })
 
   return true

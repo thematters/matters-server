@@ -13,7 +13,7 @@ import {
   PaymentPayoutAccountExistsError,
   ServerError,
 } from 'common/errors'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { MutationToConnectStripeAccountResolver } from 'definitions'
 
 const resolver: MutationToConnectStripeAccountResolver = async (
@@ -70,10 +70,9 @@ const resolver: MutationToConnectStripeAccountResolver = async (
   })
 
   // invalidate user cache
-  const cacheService = new CacheService()
   await invalidateFQC({
     node: { type: NODE_TYPES.User, id: viewer.id },
-    redis: cacheService.redis,
+    redis,
   })
 
   return {

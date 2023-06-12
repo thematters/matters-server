@@ -31,7 +31,7 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { assetQueue } from 'connectors/queue'
 import { MutationToPutCircleResolver } from 'definitions'
 
@@ -176,10 +176,9 @@ const resolver: MutationToPutCircleResolver = async (
       })
 
       // invalidate user
-      const cacheService = new CacheService()
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: viewer.id },
-        redis: cacheService.redis,
+        redis,
       })
 
       return circle

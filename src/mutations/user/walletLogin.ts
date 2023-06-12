@@ -26,7 +26,7 @@ import {
   IERC1271,
   setCookie,
 } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import {
   AuthMode,
   GQLAuthResultType,
@@ -41,7 +41,6 @@ const resolver: MutationToWalletLoginResolver = async (
   { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
   context
 ) => {
-  const cacheService = new CacheService()
   const {
     viewer,
     req,
@@ -156,7 +155,7 @@ const resolver: MutationToWalletLoginResolver = async (
 
     await invalidateFQC({
       node: { type: NODE_TYPES.User, id: viewer.id },
-      redis: cacheService.redis,
+      redis,
     })
 
     return {

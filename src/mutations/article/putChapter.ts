@@ -1,9 +1,9 @@
-import { UserInputError } from 'apollo-server-core'
 import _difference from 'lodash/difference'
 import _inter from 'lodash/intersection'
 import _uniq from 'lodash/uniq'
 
 import { USER_STATE } from 'common/enums'
+import { UserInputError } from 'common/errors'
 import {
   AuthenticationError,
   ForbiddenByStateError,

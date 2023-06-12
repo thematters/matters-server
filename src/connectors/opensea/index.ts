@@ -1,4 +1,4 @@
-import { RequestOptions, RESTDataSource } from 'apollo-datasource-rest'
+import { RESTDataSource, AugmentedRequest } from '@apollo/datasource-rest'
 
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
@@ -18,9 +18,9 @@ export class OpenSeaService extends RESTDataSource {
     this.apiKey = environment.openseaAPIKey
   }
 
-  willSendRequest(request: RequestOptions) {
+  override willSendRequest(_: string, request: AugmentedRequest) {
     if (this.apiKey) {
-      request.headers.set('X-API-KEY', this.apiKey)
+      request.headers['X-API-KEY'] = this.apiKey
     }
   }
 
@@ -32,22 +32,19 @@ export class OpenSeaService extends RESTDataSource {
     asset_contract_address?: string
   }) {
     try {
-      const data = await this.get(
-        'assets',
-        {
+      const data = await this.get('assets', {
+        params: {
           owner,
           asset_contract_address,
           order_direction: 'desc',
-          offset: 0,
-          limit: 20,
+          offset: '0',
+          limit: '20',
         },
-        {
-          cacheOptions: {
-            // use 1 hour caching, override server-side provided cache-control: max-age=300
-            ttl: CACHE_TTL.MEDIUM,
-          },
-        }
-      )
+        cacheOptions: {
+          // use 1 hour caching, override server-side provided cache-control: max-age=300
+          ttl: CACHE_TTL.MEDIUM,
+        },
+      })
 
       // logger.info(`fetched ${data.assets?.length} assets for owner: "${owner}".`)
 

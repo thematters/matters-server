@@ -4,8 +4,21 @@ import { cloneDeep } from 'lodash'
 
 import { NODE_TYPES } from 'common/enums'
 import { getViewerFromReq, toGlobalId } from 'common/utils'
-import { knex, UserService } from 'connectors'
-import { RequestContext } from 'definitions'
+import { knex } from 'connectors'
+import {
+  ArticleService,
+  AtomService,
+  CommentService,
+  DraftService,
+  NotificationService,
+  OAuthService,
+  OpenSeaService,
+  PaymentService,
+  SystemService,
+  TagService,
+  UserService,
+} from 'connectors'
+import { Context } from 'definitions'
 
 const purgeSentryData = (req?: Request): any => {
   const omit = (source: any, target: any) => {
@@ -34,7 +47,7 @@ export const makeContext = async ({
   req: Request
   res: Response
   connection?: any
-}): Promise<RequestContext> => {
+}): Promise<Context> => {
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
     const headers = req ? req.headers : {}
@@ -71,5 +84,18 @@ export const makeContext = async ({
     req,
     res,
     knex,
+    dataSources: {
+      atomService: new AtomService(),
+      userService: new UserService(),
+      articleService: new ArticleService(),
+      commentService: new CommentService(),
+      draftService: new DraftService(),
+      systemService: new SystemService(),
+      tagService: new TagService(),
+      notificationService: new NotificationService(),
+      oauthService: new OAuthService(),
+      paymentService: new PaymentService(),
+      openseaService: new OpenSeaService(),
+    },
   }
 }

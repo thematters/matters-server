@@ -58,7 +58,7 @@ import * as routes from './routes'
    *
    */
   // GraphQL
-  const server = await routes.graphql(app)
+  await routes.graphql(app)
 
   // OAuth
   app.use('/oauth', routes.oauth)
@@ -72,7 +72,5 @@ import * as routes from './routes'
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
   )
-  console.log(
-    `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-  )
+  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`)
 })()

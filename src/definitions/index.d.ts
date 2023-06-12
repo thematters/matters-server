@@ -1,6 +1,7 @@
-import { RedisCache } from 'apollo-server-cache-redis'
-import { Request, Response } from 'express'
-import { Knex } from 'knex'
+import type { BasedContext } from '@apollo/server'
+import type { Request, Response } from 'express'
+import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
 
 import {
   PAYMENT_CURRENCY,
@@ -58,12 +59,6 @@ export type UserRole = 'admin' | 'user'
 
 export type UserState = 'active' | 'banned' | 'archived'
 
-export type Context = RequestContext & {
-  dataSources: DataSources
-  cacheKey: string
-  redis: RedisCache
-}
-
 export type Viewer = (User | { id: null }) & {
   hasRole: (role: UserRole) => boolean
   hasAuthMode: (mode: string) => boolean
@@ -79,11 +74,12 @@ export type Viewer = (User | { id: null }) & {
   group: 'a' | 'b'
 }
 
-export interface RequestContext {
+export interface Context extends BasedContext {
   viewer: Viewer
   req: Request
   res: Response
   knex: Knex
+  dataSources: DataSources
 }
 
 export interface DataSources {
@@ -97,7 +93,6 @@ export interface DataSources {
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
   paymentService: InstanceType<typeof PaymentService>
-  alchemyService: InstanceType<typeof Alchemy>
   openseaService: InstanceType<typeof OpenSeaService>
 }
 

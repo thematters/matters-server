@@ -6,7 +6,7 @@ import passport from 'passport'
 import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { CacheService, UserService } from 'connectors'
+import { redis, UserService } from 'connectors'
 
 const logger = getLogger('route-auth')
 
@@ -23,7 +23,6 @@ export default () => {
       },
       async (req, accessToken, refreshToken, params, _, done) => {
         const userService = new UserService()
-        const cacheService = new CacheService()
         const viewer = req.app.locals.viewer
         const userId = get(viewer, 'id')
         const likerId = get(params, 'user')
@@ -106,7 +105,7 @@ export default () => {
           // invalidate user cache
           await invalidateFQC({
             node: { type: NODE_TYPES.User, id: userId },
-            redis: cacheService.redis,
+            redis,
           })
 
           return done(null, user)

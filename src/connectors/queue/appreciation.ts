@@ -18,7 +18,7 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { likecoin } from 'connectors'
+import { likecoin, redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -148,16 +148,14 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // invalidate cache
-      if (this.cacheService) {
-        invalidateFQC({
-          node: { type: NODE_TYPES.Article, id: article.id },
-          redis: this.cacheService.redis,
-        })
-        invalidateFQC({
-          node: { type: NODE_TYPES.User, id: article.authorId },
-          redis: this.cacheService.redis,
-        })
-      }
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: article.id },
+        redis,
+      })
+      invalidateFQC({
+        node: { type: NODE_TYPES.User, id: article.authorId },
+        redis,
+      })
 
       job.progress(100)
       done(null, job.data)
