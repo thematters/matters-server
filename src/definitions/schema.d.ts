@@ -3118,11 +3118,6 @@ export const enum GQLCacheControlScope {
   PRIVATE = 'PRIVATE',
 }
 
-export interface GQLCostComplexity {
-  min?: number
-  max?: number
-}
-
 export interface GQLRecommendation {
   /**
    * Activities based on user's following, sort by creation time.

@@ -15,7 +15,7 @@ directive @purgeCache(type: String!, identifier: String = "id") on FIELD_DEFINIT
 
 directive @cacheControl(maxAge: Int, scope: CacheControlScope, inheritMaxAge: Boolean) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
-directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
+directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
 type Query {
   article(input: ArticleInput!): Article
@@ -2222,11 +2222,6 @@ enum UserRestrictionType {
 enum CacheControlScope {
   PUBLIC
   PRIVATE
-}
-
-input CostComplexity {
-  min: Int = 1
-  max: Int
 }
 
 type Recommendation {
