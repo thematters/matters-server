@@ -1,5 +1,6 @@
 import type { Knex } from 'knex'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import {
   html2md,
   normalizeArticleHTML,
@@ -442,8 +443,8 @@ const resolver: MutationToEditArticleResolver = async (
 
     // check diff distances reaches limit or not
     const diffs = measureDiffs(
-      normalizeArticleHTML(draft.content),
-      normalizeArticleHTML(content)
+      stripHtml(normalizeArticleHTML(draft.content)),
+      stripHtml(normalizeArticleHTML(content))
     )
     if (diffs > MAX_ARTICLE_CONTENT_REVISION_LENGTH) {
       throw new ArticleRevisionContentInvalidError('revised content invalid')
