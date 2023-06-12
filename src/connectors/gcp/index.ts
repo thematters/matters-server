@@ -10,22 +10,18 @@ const logger = getLogger('service-gcp')
 
 const { zh_hans, zh_hant, en } = LANGUAGE
 
-class GCP {
-  translateAPI: TranslateAPI.TranslationServiceClient
+export class GCP {
+  private translateAPI: TranslateAPI.TranslationServiceClient
 
   constructor() {
-    try {
-      this.translateAPI = new TranslateAPI.TranslationServiceClient({
-        projectId: environment.gcpProjectId,
-        keyFilename: environment.translateCertPath,
-      })
-    } catch (err) {
-      logger.error(err)
-    }
+    this.translateAPI = new TranslateAPI.TranslationServiceClient({
+      projectId: environment.gcpProjectId,
+      keyFilename: environment.translateCertPath,
+    })
   }
 
   // map to internal language
-  toInternalLanguage = (externalLang: string) => {
+  private toInternalLanguage = (externalLang: string) => {
     const langMap: { [key: string]: string } = {
       'zh-CN': zh_hans,
       'zh-TW': zh_hant,
@@ -35,7 +31,7 @@ class GCP {
     return langMap[externalLang] || externalLang
   }
 
-  fromInteralLanguage = (internalLang: string) => {
+  private fromInteralLanguage = (internalLang: string) => {
     const langMap: { [key: string]: string } = {
       [zh_hans]: 'zh-CN',
       [zh_hant]: 'zh-TW',
@@ -45,7 +41,7 @@ class GCP {
     return langMap[internalLang] || 'zh-TW'
   }
 
-  detectLanguage = async (content: string) => {
+  public detectLanguage = async (content: string) => {
     try {
       const [response] = await this.translateAPI.detectLanguage({
         parent: `projects/${environment.gcpProjectId}/locations/global`,
@@ -65,7 +61,7 @@ class GCP {
     }
   }
 
-  translate = async ({
+  public translate = async ({
     content,
     target,
     mimeType = 'text/html',
@@ -95,7 +91,7 @@ class GCP {
     }
   }
 
-  recaptcha = async ({ token, ip }: { token?: string; ip?: string }) => {
+  public recaptcha = async ({ token, ip }: { token?: string; ip?: string }) => {
     // skip test
     if (isTest) {
       return true
@@ -134,5 +130,3 @@ class GCP {
     return score > 0.0
   }
 }
-
-export const gcp = new GCP()

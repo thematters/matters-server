@@ -3,7 +3,7 @@ import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { redis, gcp } from 'connectors'
+import { redis, GCP } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const logger = getLogger('query-translations')
@@ -71,6 +71,8 @@ const resolver: ArticleToTranslationResolver = async (
       content: isPaywalledContent ? '' : translation.content,
     }
   }
+
+  const gcp = new GCP()
 
   // or translate and store to db
   const [title, content, summary] = await Promise.all(
