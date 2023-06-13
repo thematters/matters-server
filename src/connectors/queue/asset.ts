@@ -21,8 +21,8 @@ class AssetQueue extends BaseQueue {
   /**
    * Producers
    */
-  remove = ({ ids }: { ids: string[] }) => {
-    return this.q.add(
+  remove = ({ ids }: { ids: string[] }) =>
+    this.q.add(
       QUEUE_JOB.deleteAsset,
       { ids },
       {
@@ -30,7 +30,6 @@ class AssetQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Consumer

@@ -20,7 +20,7 @@ import {
 import { environment, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+import { AtomService, NotificationService, redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -42,11 +42,10 @@ class RevisionQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: RevisedArticleData) => {
-    return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
+  publishRevisedArticle = (data: RevisedArticleData) =>
+    this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
-  }
 
   /**
    * Cusumers
@@ -81,7 +80,7 @@ class RevisionQueue extends BaseQueue {
       }
       if (draft.publishState !== PUBLISH_STATE.pending) {
         job.progress(100)
-        done(null, `Revision draft ${draftId} isn\'t in pending state.`)
+        done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
       let article = await this.articleService.baseFindById(draft.articleId)
@@ -187,11 +186,11 @@ class RevisionQueue extends BaseQueue {
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: this.cacheService.redis,
+            redis,
           }),
           invalidateFQC({
             node: { type: NODE_TYPES.Article, id: article.id },
-            redis: this.cacheService.redis,
+            redis,
           }),
         ])
 

@@ -17,19 +17,17 @@ const resolver: MutationToToggleUsersBadgeResolver = async (
   const table = 'user_badge'
   const userIds = ids.map((id) => fromGlobalId(id).id)
 
-  if (enabled) {
-    await Promise.all(
-      userIds.map((id) =>
-        atomService.create({ table, data: { userId: id, type } })
+  await (enabled
+    ? Promise.all(
+        userIds.map((id) =>
+          atomService.create({ table, data: { userId: id, type } })
+        )
       )
-    )
-  } else {
-    await atomService.deleteMany({
-      table,
-      where: { type },
-      whereIn: ['user_id', userIds],
-    })
-  }
+    : atomService.deleteMany({
+        table,
+        where: { type },
+        whereIn: ['user_id', userIds],
+      }))
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

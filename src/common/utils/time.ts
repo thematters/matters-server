@@ -1,13 +1,12 @@
 import { HOUR } from 'common/enums'
 
-export const timeout = (ms: number, promise: any) => {
-  return new Promise((resolve, reject) => {
+export const timeout = (ms: number, promise: any) =>
+  new Promise((resolve, reject) => {
     setTimeout(() => {
       reject(new Error('timeout'))
     }, ms)
     promise.then(resolve, reject)
   })
-}
 
 // Get punish date exipired date (1 + n days).
 export const getPunishExpiredDate = (days: number, _date?: Date) => {

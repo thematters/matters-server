@@ -129,7 +129,5 @@ export class CurationContract extends BaseContract {
     fromBlock: number,
     toBlock: number,
     filter: any
-  ) => {
-    return this.contract.queryFilter(filter, fromBlock, toBlock)
-  }
+  ) => this.contract.queryFilter(filter, fromBlock, toBlock)
 }

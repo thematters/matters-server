@@ -1,4 +1,3 @@
-import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
@@ -75,7 +74,7 @@ interface MaxInput {
 /**
  * This object is a container for data loaders or system wide services.
  */
-export class AtomService extends DataSource {
+export class AtomService {
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
@@ -87,7 +86,6 @@ export class AtomService extends DataSource {
   chapterIdLoader: DataLoader<string, Item>
 
   constructor() {
-    super()
     this.aws = aws
     this.cfsvc = cfsvc
     this.knex = knex

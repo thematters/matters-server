@@ -25,6 +25,7 @@ import {
   normalizeTagInput,
   // stripAllPunct,
 } from 'common/utils'
+import { redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -102,7 +103,7 @@ export class PublicationQueue extends BaseQueue {
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
       await job.progress(100)
-      done(null, `Draft ${draftId} isn\'t in pending state.`)
+      done(null, `Draft ${draftId} isn't in pending state.`)
       return
     }
     await job.progress(5)
@@ -121,14 +122,9 @@ export class PublicationQueue extends BaseQueue {
         wordCount,
         slug: slugify(draft.title),
       }
-      if (draft.articleId) {
-        article = await this.articleService.baseUpdate(
-          draft.articleId,
-          articleData
-        )
-      } else {
-        article = await this.articleService.createArticle(articleData)
-      }
+      article = await (draft.articleId
+        ? this.articleService.baseUpdate(draft.articleId, articleData)
+        : this.articleService.createArticle(articleData))
 
       await job.progress(20)
 
@@ -232,7 +228,7 @@ export class PublicationQueue extends BaseQueue {
       // Step 8: invalidate user cache
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: article.authorId },
-        redis: this.cacheService.redis,
+        redis,
       })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
@@ -334,7 +330,7 @@ export class PublicationQueue extends BaseQueue {
       // invalidate article cache
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: article.id },
-        redis: this.cacheService.redis,
+        redis,
       })
 
       await job.progress(100)
@@ -474,7 +470,7 @@ export class PublicationQueue extends BaseQueue {
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: draft.circleId },
-      redis: this.cacheService.redis,
+      redis,
     })
   }
 

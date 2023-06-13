@@ -59,10 +59,13 @@ export default /* GraphQL */ `
     article: Article @logCache(type: "${NODE_TYPES.Article}")
 
     "Collection list of this draft."
-    collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Access related fields on circle"
     access: DraftAccess!
+
+    "whether content is marked as sensitive by author"
+    sensitiveByAuthor: Boolean!
 
     "License Type"
     license: ArticleLicenseType!
@@ -106,6 +109,7 @@ export default /* GraphQL */ `
     collection: [ID]
     circle: ID
     accessType: ArticleAccessType
+    sensitive: Boolean
     license: ArticleLicenseType
 
     requestForDonation: String  @constraint(maxLength: 140)

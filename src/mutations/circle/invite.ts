@@ -20,7 +20,7 @@ import {
   generateRegisterRedirectUrl,
   makeUserName,
 } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { GQLVerificationCodeType, MutationToInviteResolver } from 'definitions'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
@@ -226,10 +226,9 @@ const resolver: MutationToInviteResolver = async (
 
   // invalidate cache
   if (invitations && invitations.length > 0) {
-    const cacheService = new CacheService()
     invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: circle.id },
-      redis: cacheService.redis,
+      redis,
     })
   }
 

@@ -7,7 +7,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    notices(input: ConnectionArgs!): NoticeConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   """
@@ -303,33 +303,6 @@ export default /* GraphQL */ `
     CircleNewDiscussionComments
   }
 
-  #################################
-  #                               #
-  #            Crypto             #
-  #                               #
-  #################################
-  type CryptoNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
-
-    type: CryptoNoticeType!
-
-    target: CryptoWallet!
-  }
-
-  enum CryptoNoticeType {
-    CryptoWalletAirdrop
-    CryptoWalletConnected
-  }
 
   #################################
   #                               #

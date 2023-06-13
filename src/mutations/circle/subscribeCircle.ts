@@ -22,11 +22,11 @@ import {
   ServerError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
+import { redis } from 'connectors'
 import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
-  root,
+  _,
   { input: { id, password } },
   {
     viewer,
@@ -200,14 +200,13 @@ const resolver: MutationToSubscribeCircleResolver = async (
     }
 
     // invalidate user & circle
-    const cacheService = new CacheService()
     invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: circle.id },
-      redis: cacheService.redis,
+      redis,
     })
     invalidateFQC({
       node: { type: NODE_TYPES.User, id: viewer.id },
-      redis: cacheService.redis,
+      redis,
     })
 
     return { circle }

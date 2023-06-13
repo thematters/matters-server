@@ -81,6 +81,7 @@ export const isValidPassword = (password: string): boolean => {
   if (!password || password.length < 8) {
     return false
   }
+  // eslint-disable-next-line no-control-regex
   return /^[\x00-\x7F]*$/.test(password)
 }
 

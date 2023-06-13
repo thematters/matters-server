@@ -1,4 +1,4 @@
-import { NOTIFICATION_TYPES } from 'common/enums'
+import { MONTH, NOTIFICATION_TYPES } from 'common/enums'
 import { knex, NotificationService, UserService } from 'connectors'
 import { sharedQueueOpts } from 'connectors/queue/utils'
 import { NotificationType } from 'definitions'
@@ -75,10 +75,6 @@ describe('user notify setting', () => {
     circle_member_new_discussion_reply: true,
     in_circle_new_discussion: true,
     in_circle_new_discussion_reply: false,
-
-    // crypto
-    crypto_wallet_airdrop: true,
-    crypto_wallet_connected: true,
 
     // misc
     official_announcement: true,
@@ -232,5 +228,44 @@ describe('update notices', () => {
       .where({ recipientId, unread: true })
       .from('notice')
     expect(readNotices.length).toBe(0)
+  })
+})
+
+describe('query notices with onlyRecent flag', () => {
+  beforeAll(async () => {
+    const notices = await notificationService.notice.findByUser({
+      userId: recipientId,
+    })
+    const oldNoticeId = notices[0].id
+    const recentNoticeId = notices[1].id
+    await notificationService.notice.knex
+      .update({ createdAt: '2019-01-01', updatedAt: '2019-01-01' })
+      .where({ id: oldNoticeId })
+      .from('notice')
+    const fiveMonthAgo = new Date(Date.now() - MONTH * 5)
+    await notificationService.notice.knex
+      .update({ createdAt: fiveMonthAgo, updatedAt: fiveMonthAgo })
+      .where({ id: recentNoticeId })
+      .from('notice')
+  })
+  test('countNotice', async () => {
+    const count1 = await notificationService.notice.countNotice({
+      userId: recipientId,
+    })
+    const count2 = await notificationService.notice.countNotice({
+      userId: recipientId,
+      onlyRecent: true,
+    })
+    expect(count1 - count2).toBe(1)
+  })
+  test('findByUser', async () => {
+    const notices1 = await notificationService.notice.findByUser({
+      userId: recipientId,
+    })
+    const notices2 = await notificationService.notice.findByUser({
+      userId: recipientId,
+      onlyRecent: true,
+    })
+    expect(notices1.length - notices2.length).toBe(1)
   })
 })

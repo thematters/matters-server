@@ -69,6 +69,7 @@ export default /* GraphQL */ `
     ##############
     toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
     updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     toggleTagRecommend(input: ToggleRecommendInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
     deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
@@ -139,25 +140,25 @@ export default /* GraphQL */ `
     language: String
 
     "List of articles which added this article into their collections."
-    collectedBy(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    collectedBy(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "List of articles added into this article' collection."
-    collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    collection(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Related articles to this article."
-    relatedArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    relatedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Donation-related articles to this article."
-    relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Appreciations history of this article."
-    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
     "Subscribers of this article."
-    subscribers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    subscribers(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
@@ -184,7 +185,7 @@ export default /* GraphQL */ `
     availableTranslations: [UserLanguage!]
 
     "Transactions history of this article."
-    transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Cumulative reading time in seconds"
     readTime: Float!
@@ -204,6 +205,12 @@ export default /* GraphQL */ `
     "Access related fields on circle"
     access: ArticleAccess!
 
+    "whether content is marked as sensitive by author"
+    sensitiveByAuthor: Boolean!
+
+    "whether content is marked as sensitive by admin"
+    sensitiveByAdmin: Boolean!
+
     "License Type"
     license: ArticleLicenseType!
 
@@ -212,7 +219,6 @@ export default /* GraphQL */ `
 
     "creator message after support"
     replyToDonator: String
-
 
     "the iscnId if published to ISCN"
     iscnId: String
@@ -293,7 +299,7 @@ export default /* GraphQL */ `
     content: String!
 
     "List of how many articles were attached with this tag."
-    articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    articles(input: TagArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "This value determines if this article is selected by this tag or not."
     selected(input: TagSelectedInput!): Boolean!
@@ -323,13 +329,13 @@ export default /* GraphQL */ `
     isPinned: Boolean
 
     "Followers of this tag."
-    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followers(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Participants of this tag."
-    participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    participants(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Tags recommended based on relations to current tag."
-    recommended(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    recommended(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "This value determines if it is official."
     isOfficial: Boolean
@@ -439,6 +445,7 @@ export default /* GraphQL */ `
     collection: [ID!]
     circle: ID
     accessType: ArticleAccessType
+    sensitive: Boolean
     license: ArticleLicenseType
 
     requestForDonation: String  @constraint(maxLength: 140)
@@ -497,6 +504,11 @@ export default /* GraphQL */ `
   input UpdateArticleStateInput {
     id: ID!
     state: ArticleState!
+  }
+
+  input UpdateArticleSensitiveInput {
+    id: ID!
+    sensitive: Boolean!
   }
 
   input DeleteTagsInput {
@@ -603,6 +615,7 @@ export default /* GraphQL */ `
   enum ArticleLicenseType {
     cc_0 # CC0
     cc_by_nc_nd_2 # CC BY-NC-ND 2.0
+    cc_by_nc_nd_4 # CC BY-NC-ND 4.0
     arr # All Right Reserved
   }
 

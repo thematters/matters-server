@@ -26,7 +26,7 @@ import {
 } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
-import { PaymentService } from 'connectors'
+import { PaymentService, redis } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
 import { GQLChain } from 'definitions'
@@ -54,8 +54,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * Producers
    *
    */
-  payTo = ({ txId }: PaymentParams) => {
-    return this.q.add(
+  payTo = ({ txId }: PaymentParams) =>
+    this.q.add(
       QUEUE_JOB.payTo,
       { txId },
       {
@@ -68,7 +68,6 @@ export class PayToByBlockchainQueue extends BaseQueue {
         priority: QUEUE_PRIORITY.NORMAL,
       }
     )
-  }
 
   addRepeatJobs = async () => {
     this.q.add(
@@ -545,10 +544,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
         NODE_TYPES[
           (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
         ]
-      if (entityType && this.cacheService) {
+      if (entityType) {
         invalidateFQC({
           node: { type: entityType, id: targetId },
-          redis: this.cacheService.redis,
+          redis,
         })
       }
     }

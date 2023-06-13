@@ -1,4 +1,3 @@
-import { DataSource } from 'apollo-datasource'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
@@ -9,7 +8,7 @@ import { Item, ItemData, TableName } from 'definitions'
 
 const logger = getLogger('service-base')
 
-export class BaseService extends DataSource {
+export class BaseService {
   aws: typeof aws
   cfsvc: typeof cfsvc
   knex: Knex
@@ -19,7 +18,6 @@ export class BaseService extends DataSource {
   table: TableName
 
   constructor(table: TableName) {
-    super()
     this.knex = knex
     this.knexRO = readonlyKnex
     this.searchKnex = searchKnexDB

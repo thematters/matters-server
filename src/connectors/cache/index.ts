@@ -1,5 +1,4 @@
-import { RedisCache } from 'apollo-server-cache-redis'
-import type Redis from 'ioredis'
+import Redis from 'ioredis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'
@@ -19,18 +18,15 @@ interface KeyInfo {
   field?: string
 }
 
-const redisCache = new RedisCache({
-  host: environment.cacheHost,
-  port: environment.cachePort,
-})
+export const redis = new Redis(environment.cachePort, environment.cacheHost)
 
 export class CacheService {
-  prefix: string
-  redis: RedisCache
+  private prefix: string
+  private redis: Redis
 
   constructor(prefix = '') {
     this.prefix = prefix
-    this.redis = redisCache
+    this.redis = redis
   }
 
   /**
@@ -38,7 +34,7 @@ export class CacheService {
    *
    * e.g. cache-objects:Article:1510
    */
-  genKey = ({ type, id, field, args }: KeyInfo): string => {
+  public genKey = ({ type, id, field, args }: KeyInfo): string => {
     const keys = [type, id, field, JSON.stringify(args)].filter((el) => el)
     if (keys.length === 0) {
       throw new UnknownError('cache key not specified')
@@ -49,7 +45,7 @@ export class CacheService {
   /**
    * Store gql returned object in cache.
    */
-  storeObject = ({
+  public storeObject = ({
     keys,
     data,
     expire = CACHE_TTL.SHORT,
@@ -58,20 +54,20 @@ export class CacheService {
     data: any
     expire?: number
   }) => {
-    if (!this.redis || !this.redis.client) {
-      throw new Error('redis init failed')
+    if (!this.redis) {
+      throw new Error('cache backend init failed')
     }
 
     const key = this.genKey(keys)
     const serializedData = JSON.stringify(data)
 
-    return this.redis.client.set(key, serializedData, 'EX', expire)
+    return this.redis.set(key, serializedData, 'EX', expire)
   }
 
   /**
    * Get object from cache, or get object then cache.
    */
-  getObject = async ({
+  public getObject = async ({
     keys,
     getter,
     expire = CACHE_TTL.SHORT,
@@ -99,7 +95,7 @@ export class CacheService {
 
     const key = this.genKey(keys)
 
-    let data = await (this.redis.client as Redis).get(key)
+    let data = await this.redis.get(key)
     data = JSON.parse(data as string)
 
     // get the data if there is none
@@ -121,12 +117,12 @@ export class CacheService {
   /**
    * Remvoe object from cache
    */
-  removeObject = async ({
+  public removeObject = async ({
     keys,
   }: KeyInfo & {
     keys: KeyInfo
   }) => {
     const key = this.genKey(keys)
-    await (this.redis.client as Redis).del(key)
+    await this.redis.del(key)
   }
 }

@@ -1,22 +1,24 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import {
-  LogCacheDirective,
-  PurgeCacheDirective,
+  logCacheDirective,
+  purgeCacheDirective,
 } from '@matters/apollo-response-cache'
-import { constraintDirective } from 'graphql-constraint-directive'
+import {
+  constraintDirective,
+  constraintDirectiveTypeDefs,
+} from 'graphql-constraint-directive'
 import { merge } from 'lodash'
 
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 
 import mutations from './mutations'
 import queries from './queries'
-import typeDefs from './types'
+import baseTypeDefs from './types'
 import {
-  AuthDirective,
-  DeprecatedDirective,
-  ObjectCacheDirective,
-  PrivateCacheDirective,
-  RateLimitDirective,
+  objectCacheDirective,
+  privateCacheDirective,
+  rateLimitDirective,
+  authDirective,
 } from './types/directives'
 
 const typeResolver = (type: string, result: any) => {
@@ -48,27 +50,57 @@ const idResolver = (type: string, result: any) => {
   return result?.id
 }
 
-const schema = makeExecutableSchema({
+// add directives
+
+const { typeDef: authDirectiveTypeDef, transformer: authDirectiveTransformer } =
+  authDirective()
+const {
+  typeDef: rateLimitDirectiveTypeDef,
+  transformer: rateLimitDirectiveTransformer,
+} = rateLimitDirective()
+const {
+  typeDef: privateCacheDirectiveTypeDef,
+  transformer: privateCacheDirectiveTransformer,
+} = privateCacheDirective()
+const {
+  typeDef: objectCacheDirectiveTypeDef,
+  transformer: objectCacheDirectiveTransformer,
+} = objectCacheDirective()
+const {
+  typeDef: logCacheDirectiveTypeDef,
+  transformer: logCacheDirectiveTransformer,
+} = logCacheDirective()
+const {
+  typeDef: purgeCacheDirectiveTypeDef,
+  transformer: purgeCacheDirectiveTransformer,
+} = purgeCacheDirective()
+
+export const typeDefs = [
+  constraintDirectiveTypeDefs,
+  authDirectiveTypeDef,
+  rateLimitDirectiveTypeDef,
+  privateCacheDirectiveTypeDef,
+  objectCacheDirectiveTypeDef,
+  logCacheDirectiveTypeDef,
+  purgeCacheDirectiveTypeDef,
+  ...baseTypeDefs,
+]
+
+let schema = makeExecutableSchema({
   typeDefs,
-  schemaTransforms: [constraintDirective()],
-  schemaDirectives: {
-    deprecated: DeprecatedDirective,
-
-    // limitation
-    auth: AuthDirective,
-    rateLimit: RateLimitDirective,
-
-    // caching
-    privateCache: PrivateCacheDirective,
-    objectCache: ObjectCacheDirective,
-    logCache: LogCacheDirective({ typeResolver, idResolver }),
-    purgeCache: PurgeCacheDirective({
-      typeResolver,
-      idResolver,
-      extraNodesPath: CACHE_KEYWORD,
-    }),
-  },
   resolvers: merge(queries, mutations),
+})
+
+schema = constraintDirective()(schema)
+schema = authDirectiveTransformer(schema)
+schema = rateLimitDirectiveTransformer(schema)
+schema = privateCacheDirectiveTransformer(schema)
+schema = objectCacheDirectiveTransformer(schema)
+schema = logCacheDirectiveTransformer(schema, { typeResolver, idResolver })
+schema = purgeCacheDirectiveTransformer(schema, {
+  typeResolver,
+  idResolver,
+  extraNodesPath: CACHE_KEYWORD,
 })
 
 export default schema

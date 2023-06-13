@@ -18,7 +18,7 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { likecoin } from 'connectors'
+import { likecoin, redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -49,8 +49,8 @@ class AppreciationQueue extends BaseQueue {
     senderId,
     senderIP,
     userAgent,
-  }: AppreciationParams) => {
-    return this.q.add(
+  }: AppreciationParams) =>
+    this.q.add(
       QUEUE_JOB.appreciation,
       { amount, articleId, senderId, senderIP, userAgent },
       {
@@ -58,7 +58,6 @@ class AppreciationQueue extends BaseQueue {
         removeOnComplete: true,
       }
     )
-  }
 
   /**
    * Consumers. Process a job at a time, so concurrency set as 1.
@@ -149,16 +148,14 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // invalidate cache
-      if (this.cacheService) {
-        invalidateFQC({
-          node: { type: NODE_TYPES.Article, id: article.id },
-          redis: this.cacheService.redis,
-        })
-        invalidateFQC({
-          node: { type: NODE_TYPES.User, id: article.authorId },
-          redis: this.cacheService.redis,
-        })
-      }
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: article.id },
+        redis,
+      })
+      invalidateFQC({
+        node: { type: NODE_TYPES.User, id: article.authorId },
+        redis,
+      })
 
       job.progress(100)
       done(null, job.data)

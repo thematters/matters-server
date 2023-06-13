@@ -3,7 +3,7 @@ import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { CacheService, gcp } from 'connectors'
+import { redis, GCP } from 'connectors'
 import { ArticleToTranslationResolver } from 'definitions'
 
 const logger = getLogger('query-translations')
@@ -72,6 +72,8 @@ const resolver: ArticleToTranslationResolver = async (
     }
   }
 
+  const gcp = new GCP()
+
   // or translate and store to db
   const [title, content, summary] = await Promise.all(
     [
@@ -127,10 +129,9 @@ const resolver: ArticleToTranslationResolver = async (
       }
     }
 
-    const cacheService = new CacheService()
     await invalidateFQC({
       node: { type: NODE_TYPES.Article, id: articleId },
-      redis: cacheService.redis,
+      redis,
     })
 
     return {

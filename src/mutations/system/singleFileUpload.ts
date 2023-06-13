@@ -50,7 +50,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   }
 
   if (url && !isImageType) {
-    throw new UserInputError(`type:${type} doesn\'t support specifying a url.`)
+    throw new UserInputError(`type:${type} doesn't support specifying a url.`)
   }
 
   if (!entityType) {

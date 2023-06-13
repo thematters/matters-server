@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
     nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
-    search(input: SearchInput!): SearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
+    search(input: SearchInput!): SearchResultConnection! @complexity(multipliers: ["input.first"], value: 1) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
     oss: OSS! @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }
@@ -443,34 +443,11 @@ export default /* GraphQL */ `
   ####################
   #    Directives    #
   ####################
+
   enum CacheControlScope {
     PUBLIC
     PRIVATE
   }
-
-  input CostComplexity {
-    min: Int = 1
-    max: Int
-  }
-
-  directive @constraint(
-    # String constraints
-    minLength: Int
-    maxLength: Int
-    startsWith: String
-    endsWith: String
-    contains: String
-    notContains: String
-    pattern: String
-    format: String
-    # Number constraints
-    min: Int
-    max: Int
-    exclusiveMin: Int
-    exclusiveMax: Int
-    multipleOf: Int
-    uniqueTypeName: String
-  ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
   directive @cacheControl(
     maxAge: Int
@@ -478,26 +455,12 @@ export default /* GraphQL */ `
     inheritMaxAge: Boolean
   ) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
-  directive @cost(
-    multipliers: [String]
-    useMultipliers: Boolean
-    complexity: CostComplexity
-  ) on OBJECT | FIELD_DEFINITION
-
-  "Rate limit within a given period of time, in seconds"
-  directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
-
   directive @deprecated(
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @auth(mode: String!, group: String) on FIELD_DEFINITION
-
-  directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
-
-  directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
-
-  directive @logCache(type: String!) on FIELD_DEFINITION
-
-  directive @purgeCache(type: String!) on FIELD_DEFINITION
+  directive @complexity(
+    value: Int!
+    multipliers: [String!]
+  ) on FIELD_DEFINITION
 `

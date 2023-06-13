@@ -19,6 +19,7 @@ export const Transaction: GQLTransactionTypeResolver = {
       )
       const getChain = (chainId: string) => {
         for (const chain in BLOCKCHAIN_CHAINID) {
+          // eslint-disable-next-line no-prototype-builtins
           if (BLOCKCHAIN_CHAINID.hasOwnProperty(chain)) {
             if (
               Object.values(

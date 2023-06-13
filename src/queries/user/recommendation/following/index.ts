@@ -80,15 +80,13 @@ const resolver: RecommendationToFollowingResolver = async (
     targetId,
     targetType,
     createdAt,
-  }: any) => {
-    return {
-      __type: type,
-      actor: await userService.dataloader.load(actorId),
-      node: await nodeLoader({ id: nodeId, type: nodeType }),
-      target: await nodeLoader({ id: targetId, type: targetType }),
-      createdAt,
-    }
-  }
+  }: any) => ({
+    __type: type,
+    actor: await userService.dataloader.load(actorId),
+    node: await nodeLoader({ id: nodeId, type: nodeType }),
+    target: await nodeLoader({ id: targetId, type: targetType }),
+    createdAt,
+  })
   const recommenders = [
     {
       source: RecommendationSource.ReadArticlesTags,
