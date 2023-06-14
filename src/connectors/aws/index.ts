@@ -1,16 +1,10 @@
 import * as AWS from 'aws-sdk'
-import axios from 'axios'
 import getStream from 'get-stream'
 import mime from 'mime-types'
 
-import {
-  LOCAL_S3_ENDPOINT,
-  QUEUE_URL,
-  UPLOAD_IMAGE_SIZE_LIMIT,
-} from 'common/enums'
+import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { getFileName } from 'common/utils'
 import { GQLAssetType } from 'definitions'
 
 const logger = getLogger('service-aws')
@@ -59,73 +53,6 @@ export class AWSService {
    * Get S3 bucket.
    */
   getS3Bucket = (): string => environment.awsS3Bucket
-
-  // check existence
-  baseHeadFile = async (
-    folder: GQLAssetType,
-    upload: any,
-    uuid: string
-  ): Promise<string> => {
-    // the upload stream is read-only once
-    // ...
-    const key = `${folder}/${uuid}...`
-    return key
-  }
-
-  // server side fetch and cache an image url
-  // throws any axios error
-  baseServerSideUploadFile = async (
-    folder: GQLAssetType,
-    origUrl: string,
-    filename?: string
-  ): Promise<string | undefined> => {
-    // so far, supports OpenSea's caching layer only: https://lh3.googleusercontent...
-    const isGoogleContent = origUrl?.match(
-      /^https:\/\/([a-z0-9-]+)\.googleusercontent\.com\//
-    )
-    const isIPFS = origUrl.match(/^https:\/\/ipfs.io\/ipfs\/(?:.*)?$/)
-    const isCloudinary = origUrl.match(
-      /^https:\/\/res.cloudinary.com\/alchemyapi\/image\/(?:.*)?$/
-    )
-
-    // e.g. https://nft-cdn.alchemy.com/eth-mainnet/56896c641e448eed954cac71048051b2
-    const isAlchemyCDN = origUrl.match(
-      /^https:\/\/nft-cdn.alchemy.com\/(?:.*)?$/
-    )
-
-    if (!isGoogleContent && !isIPFS && !isCloudinary && !isAlchemyCDN) {
-      return
-    }
-    const origRes = await axios.get(origUrl, {
-      responseType: 'stream',
-      maxContentLength: UPLOAD_IMAGE_SIZE_LIMIT,
-    })
-
-    const disposition = origRes.headers['content-disposition']
-    if (!filename) {
-      filename = getFileName(disposition, origUrl)
-    }
-
-    const upload = {
-      createReadStream: () => origRes.data,
-      mimetype: origRes.headers['content-type'],
-      encoding: 'utf8',
-      filename,
-    }
-
-    // const uuid = v4()
-    const pathname = origUrl.substring(origUrl.lastIndexOf('/') + 1)
-    const key = await this.baseUploadFile(
-      GQLAssetType.imgCached,
-      upload,
-      pathname
-    )
-
-    return key
-    const newPath = `${aws.s3Endpoint}/${key}`
-
-    return newPath
-  }
 
   /**
    * Upload file to AWS S3.

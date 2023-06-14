@@ -9,7 +9,6 @@ export const IMAGE_ASSET_TYPE = {
   circleCover: 'circleCover',
   announcementCover: 'announcementCover',
   topicCover: 'topicCover',
-  imgCached: 'img-cached',
 }
 
 export const AUDIO_ASSET_TYPE = {

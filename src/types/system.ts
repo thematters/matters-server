@@ -382,9 +382,6 @@ export default /* GraphQL */ `
     circleCover
     announcementCover
     topicCover
-
-    "img-cached"
-    imgCached
   }
 
   enum EntityType {

@@ -15,21 +15,15 @@ const CLOUDFLARE_IMAGES_URL = `https://api.cloudflare.com/client/v4/accounts/${e
 const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountHash}/${envPrefix}`
 
 export class CloudflareService {
-  // constructor() {}
-
-  // server side fetch and cache an image url
-  // throws any axios error
-  baseServerSideUploadFile = async (
+  baseUploadFileByUrl = async (
     folder: GQLAssetType,
-    origUrl: string,
+    url: string,
     uuid: string
   ): Promise<string | never> => {
-    // const mimetype = mime.lookup(origUrl)
-    // const extension = mime.extension(mimetype as string)
-    const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
+    const key = this.genKey(folder, uuid, path.extname(url).toLowerCase())
 
     const formData = new FormData()
-    formData.append('url', origUrl)
+    formData.append('url', url)
     formData.append('id', envPrefix + '/' + key)
 
     const res = await fetch(CLOUDFLARE_IMAGES_URL, {
@@ -94,34 +88,6 @@ export class CloudflareService {
       )
     }
     return key
-  }
-
-  getFileKeyByUrl = async (
-    folder: GQLAssetType,
-    origUrl: string,
-    uuid: string
-  ): Promise<string | never> => {
-    const key = this.genKey(folder, uuid, path.extname(origUrl).toLowerCase())
-    const url = `${CLOUDFLARE_IMAGES_URL}/${key}`
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${environment.cloudflareApiToken}`,
-      },
-    })
-
-    try {
-      const resData = await res.json()
-
-      if (resData.result.id) {
-        return key
-      }
-
-      return ''
-    } catch (err) {
-      return ''
-    }
   }
 
   /**

@@ -2,8 +2,6 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 
-import { IMG_CACHE_PATH } from 'common/enums'
-
 dotenv.config()
 
 let OICDPrivateKey = ''
@@ -145,8 +143,3 @@ export const polygonUSDTContractAddress = isProd
   ? '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
   : '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
 export const polygonUSDTContractDecimals = isProd ? 6 : 18
-
-const protocolScheme = isLocal ? 'http://' : 'https://'
-export const imgCacheServicePrefix = `${protocolScheme}${
-  environment.serverDomain
-}${IMG_CACHE_PATH || '/img-cache'}`
