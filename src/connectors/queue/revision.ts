@@ -20,7 +20,7 @@ import {
 import { environment, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+import { AtomService, NotificationService, redis } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -186,11 +186,11 @@ class RevisionQueue extends BaseQueue {
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: this.cacheService.redis,
+            redis,
           }),
           invalidateFQC({
             node: { type: NODE_TYPES.Article, id: article.id },
-            redis: this.cacheService.redis,
+            redis,
           }),
         ])
 

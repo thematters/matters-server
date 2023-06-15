@@ -6,7 +6,7 @@ import 'module-alias/register'
 import requestIp from 'request-ip'
 import { v4 } from 'uuid'
 
-import { CORS_OPTIONS, IMG_CACHE_PATH, LOGGING_CONTEXT_KEY } from 'common/enums'
+import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums'
 import { environment } from 'common/environment'
 import { contextStorage, LoggingContextKey } from 'common/logger'
 
@@ -58,7 +58,7 @@ import * as routes from './routes'
    *
    */
   // GraphQL
-  const server = await routes.graphql(app)
+  await routes.graphql(app)
 
   // OAuth
   app.use('/oauth', routes.oauth)
@@ -66,13 +66,8 @@ import * as routes from './routes'
   // Pay
   app.use('/pay', routes.pay)
 
-  // Image Cache Service for server side caching image, e.g. NFT images & others
-  app.use(IMG_CACHE_PATH, routes.imgCache)
-
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
   )
-  console.log(
-    `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-  )
+  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`)
 })()

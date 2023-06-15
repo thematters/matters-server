@@ -8,8 +8,7 @@ import { UserAnalyticsToTopDonatorsResolver } from 'definitions'
 const resolver: UserAnalyticsToTopDonatorsResolver = async (
   { id },
   { input },
-  { dataSources: { userService } },
-  { cacheControl }
+  { dataSources: { userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -28,7 +27,7 @@ const resolver: UserAnalyticsToTopDonatorsResolver = async (
   )
   return {
     ...connection,
-    edges: await connection.edges.map(async (edge) => ({
+    edges: connection.edges.map(async (edge) => ({
       cursor: edge.cursor,
       node: await userService.dataloader.load(edge.node.senderId),
       donationCount: edge.node.count,

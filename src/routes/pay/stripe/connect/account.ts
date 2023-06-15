@@ -3,7 +3,7 @@ import _ from 'lodash'
 import Stripe from 'stripe'
 
 import { METADATA_KEY, NODE_TYPES } from 'common/enums'
-import { AtomService, CacheService } from 'connectors'
+import { AtomService, redis } from 'connectors'
 import SlackService from 'connectors/slack'
 
 export const updateAccount = async ({
@@ -58,9 +58,8 @@ export const updateAccount = async ({
   })
 
   // invalidate user cache
-  const cacheService = new CacheService()
   await invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
-    redis: cacheService.redis,
+    redis,
   })
 }

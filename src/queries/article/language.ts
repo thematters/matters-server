@@ -1,6 +1,6 @@
 import { stripHtml } from '@matters/ipns-site-generator'
 
-import { gcp } from 'connectors'
+import { GCP } from 'connectors'
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = async (
@@ -11,6 +11,8 @@ const resolver: ArticleToLanguageResolver = async (
   if (storedLanguage) {
     return storedLanguage
   }
+
+  const gcp = new GCP()
 
   gcp
     .detectLanguage(stripHtml(content.slice(0, 300)))

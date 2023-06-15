@@ -1,39 +1,21 @@
-directive @constraint(
-  """String constraints"""
-  minLength: Int
-  maxLength: Int
-  startsWith: String
-  endsWith: String
-  contains: String
-  notContains: String
-  pattern: String
-  format: String
+directive @constraint(minLength: Int, maxLength: Int, startsWith: String, endsWith: String, contains: String, notContains: String, pattern: String, format: String, min: Float, max: Float, exclusiveMin: Float, exclusiveMax: Float, multipleOf: Float, minItems: Int, maxItems: Int, uniqueTypeName: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION | ARGUMENT_DEFINITION
 
-  """Number constraints"""
-  min: Int
-  max: Int
-  exclusiveMin: Int
-  exclusiveMax: Int
-  multipleOf: Int
-  uniqueTypeName: String
-) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
-
-directive @cacheControl(maxAge: Int, scope: CacheControlScope, inheritMaxAge: Boolean) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
-
-directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
+directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
 """Rate limit within a given period of time, in seconds"""
 directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 
-directive @auth(mode: String!, group: String) on FIELD_DEFINITION
-
 directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
-directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
+directive @objectCache(maxAge: Int = 1000) on FIELD_DEFINITION
 
-directive @logCache(type: String!) on FIELD_DEFINITION
+directive @logCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
 
-directive @purgeCache(type: String!) on FIELD_DEFINITION
+directive @purgeCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+
+directive @cacheControl(maxAge: Int, scope: CacheControlScope, inheritMaxAge: Boolean) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
+
+directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
 type Query {
   article(input: ArticleInput!): Article
@@ -102,12 +84,6 @@ type Mutation {
 
   """Delete one tag from articles"""
   deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article!
@@ -178,12 +154,6 @@ type Mutation {
 
   """Delete blocked search keywords from search_history db"""
   deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
@@ -438,12 +408,6 @@ type Article implements Node {
 
   """whether readers can comment"""
   canComment: Boolean!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   oss: ArticleOSS!
   remark: String
 
@@ -586,12 +550,6 @@ type Tag implements Node {
   """Counts of this tag."""
   numArticles: Int!
   numAuthors: Int!
-
-  """
-  #############
-       OSS    #
-  #############
-  """
   oss: TagOSS!
   remark: String
   deleted: Boolean!
@@ -949,6 +907,104 @@ type Circle implements Node {
   discussionCount: Int!
 }
 
+type User implements Node {
+  """Circles belong to current user."""
+  ownCircles: [Circle!]
+
+  """Circles whiches user has subscribed."""
+  subscribedCircles(input: ConnectionArgs!): CircleConnection!
+  notices(input: ConnectionArgs!): NoticeConnection!
+
+  """Global id of an user."""
+  id: ID!
+
+  """Global unique user name of a user."""
+  userName: String
+
+  """Display name on user profile, can be duplicated."""
+  displayName: String
+
+  """LikerID of LikeCoin, being used by LikeCoin OAuth"""
+  likerId: String
+
+  """Liker info of current user"""
+  liker: Liker!
+
+  """URL for user avatar."""
+  avatar: String
+
+  """User information."""
+  info: UserInfo!
+
+  """User settings."""
+  settings: UserSettings!
+
+  """Article recommendations for current user."""
+  recommendation: Recommendation!
+
+  """Articles authored by current user."""
+  articles(input: ConnectionArgs!): ArticleConnection!
+
+  """Topics created by current user."""
+  topics(input: TopicInput!): TopicConnection!
+
+  """Tags by by usage order of current user."""
+  tags(input: ConnectionArgs!): TagConnection!
+
+  """Tags owned and maintained by current user."""
+  maintainedTags(input: ConnectionArgs!): TagConnection!
+
+  """Tags pinned by current user."""
+  pinnedTags(input: ConnectionArgs!): TagConnection!
+
+  """Drafts authored by current user."""
+  drafts(input: ConnectionArgs!): DraftConnection!
+
+  """Articles current user commented on"""
+  commentedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Artilces current user subscribed to."""
+  subscriptions(input: ConnectionArgs!): ArticleConnection!
+
+  """Record of user activity, only accessable by current user."""
+  activity: UserActivity!
+
+  """Followers of this user."""
+  followers(input: ConnectionArgs!): UserConnection!
+
+  """Following contents of this user."""
+  following: Following!
+
+  """Whether current user is following viewer."""
+  isFollower: Boolean!
+
+  """Whether viewer is following current user."""
+  isFollowee: Boolean!
+
+  """Users that blocked by current user."""
+  blockList(input: ConnectionArgs!): UserConnection!
+
+  """Whether current user is blocking viewer."""
+  isBlocking: Boolean!
+
+  """Whether current user is blocked by viewer."""
+  isBlocked: Boolean!
+
+  """user data analytics, only accessable by current user."""
+  analytics: UserAnalytics!
+
+  """Status of current user."""
+  status: UserStatus
+  oss: UserOSS!
+  remark: String
+
+  """User Wallet"""
+  wallet: Wallet!
+
+  """Payment pointer that resolves to Open Payments endpoints"""
+  paymentPointer: String
+}
+
 type Member {
   """User who join to a Circle."""
   user: User!
@@ -1286,8 +1342,6 @@ type CommentEdge {
 
 input PutCommentInput {
   comment: CommentInput!
-
-  """edit comment if id is provided"""
   id: ID
 }
 
@@ -1297,8 +1351,6 @@ input CommentInput {
   parentId: ID
   mentions: [ID!]
   type: CommentType!
-
-  """one of the following ids is required"""
   articleId: ID
   circleId: ID
 }
@@ -1531,13 +1583,6 @@ type NoticeEdge {
   node: Notice!
 }
 
-"""
-################################
-                               #
-             User              #
-                               #
-################################
-"""
 type UserNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1558,13 +1603,6 @@ enum UserNoticeType {
   UserNewFollower
 }
 
-"""
-################################
-                               #
-           Article             #
-                               #
-################################
-"""
 type ArticleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1612,13 +1650,6 @@ enum ArticleArticleNoticeType {
   ArticleNewCollected
 }
 
-"""
-################################
-                               #
-           Comment             #
-                               #
-################################
-"""
 type CommentNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1664,13 +1695,6 @@ enum CommentCommentNoticeType {
   CommentNewReply
 }
 
-"""
-################################
-                               #
-             Tag               #
-                               #
-################################
-"""
 type ArticleTagNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1717,13 +1741,6 @@ enum TagNoticeType {
   TagLeaveEditor
 }
 
-"""
-################################
-                               #
-         Transaction           #
-                               #
-################################
-"""
 type TransactionNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1744,13 +1761,6 @@ enum TransactionNoticeType {
   PaymentReceivedDonation
 }
 
-"""
-################################
-                               #
-            Circle             #
-                               #
-################################
-"""
 type CircleNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -2148,9 +2158,6 @@ enum AssetType {
   circleCover
   announcementCover
   topicCover
-
-  """img-cached"""
-  imgCached
 }
 
 enum EntityType {
@@ -2209,123 +2216,9 @@ enum UserRestrictionType {
   articleNewest
 }
 
-"""
-###################
-    Directives    #
-###################
-"""
 enum CacheControlScope {
   PUBLIC
   PRIVATE
-}
-
-input CostComplexity {
-  min: Int = 1
-  max: Int
-}
-
-type User implements Node {
-  """Global id of an user."""
-  id: ID!
-
-  """Global unique user name of a user."""
-  userName: String
-
-  """Display name on user profile, can be duplicated."""
-  displayName: String
-
-  """LikerID of LikeCoin, being used by LikeCoin OAuth"""
-  likerId: String
-
-  """Liker info of current user"""
-  liker: Liker!
-
-  """URL for user avatar."""
-  avatar: String
-
-  """User information."""
-  info: UserInfo!
-
-  """User settings."""
-  settings: UserSettings!
-
-  """Article recommendations for current user."""
-  recommendation: Recommendation!
-
-  """Articles authored by current user."""
-  articles(input: ConnectionArgs!): ArticleConnection!
-
-  """Topics created by current user."""
-  topics(input: TopicInput!): TopicConnection!
-
-  """Tags by by usage order of current user."""
-  tags(input: ConnectionArgs!): TagConnection!
-
-  """Tags owned and maintained by current user."""
-  maintainedTags(input: ConnectionArgs!): TagConnection!
-
-  """Tags pinned by current user."""
-  pinnedTags(input: ConnectionArgs!): TagConnection!
-
-  """Drafts authored by current user."""
-  drafts(input: ConnectionArgs!): DraftConnection!
-
-  """Articles current user commented on"""
-  commentedArticles(input: ConnectionArgs!): ArticleConnection!
-
-  """Artilces current user subscribed to."""
-  subscriptions(input: ConnectionArgs!): ArticleConnection!
-
-  """Record of user activity, only accessable by current user."""
-  activity: UserActivity!
-
-  """Followers of this user."""
-  followers(input: ConnectionArgs!): UserConnection!
-
-  """Following contents of this user."""
-  following: Following!
-
-  """Whether current user is following viewer."""
-  isFollower: Boolean!
-
-  """Whether viewer is following current user."""
-  isFollowee: Boolean!
-
-  """Users that blocked by current user."""
-  blockList(input: ConnectionArgs!): UserConnection!
-
-  """Whether current user is blocking viewer."""
-  isBlocking: Boolean!
-
-  """Whether current user is blocked by viewer."""
-  isBlocked: Boolean!
-
-  """user data analytics, only accessable by current user."""
-  analytics: UserAnalytics!
-
-  """Status of current user."""
-  status: UserStatus
-
-  """
-  #############
-       OSS    #
-  #############
-  """
-  oss: UserOSS!
-  remark: String
-
-  """Circles belong to current user."""
-  ownCircles: [Circle!]
-
-  """Circles whiches user has subscribed."""
-  subscribedCircles(input: ConnectionArgs!): CircleConnection!
-  notices(input: ConnectionArgs!): NoticeConnection!
-
-  """User Wallet"""
-  wallet: Wallet!
-
-  """Payment pointer that resolves to Open Payments endpoints"""
-  paymentPointer: String
 }
 
 type Recommendation {
@@ -2952,10 +2845,7 @@ input FeaturedTagsInput {
 }
 
 type ClaimLogbooksResult {
-  """claimed token ids"""
   ids: [ID!]
-
-  """transaction hash"""
   txHash: String!
 }
 
@@ -3240,7 +3130,6 @@ type PayToResult {
   redirectUrl: String
 }
 
-"""Add Credit"""
 input AddCreditInput {
   amount: Float!
 }
@@ -3265,7 +3154,6 @@ input PayoutInput {
   password: String!
 }
 
-"""Stripe Account"""
 input ConnectStripeAccountInput {
   country: StripeAccountCountry!
 }

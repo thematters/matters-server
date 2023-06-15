@@ -1,11 +1,9 @@
-import type Redis from 'ioredis'
-
-import { SchemaDirectiveVisitor } from '@graphql-tools/utils'
-import { defaultFieldResolver, GraphQLField } from 'graphql'
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
+import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'
-import { CacheService } from 'connectors'
+import { CacheService, redis } from 'connectors'
 
 const checkOperationLimit = async ({
   user,
@@ -25,9 +23,7 @@ const checkOperationLimit = async ({
     field: operation,
   })
 
-  const redisClient = cacheService.redis.client as Redis
-
-  const operationLog = await redisClient.lrange(cacheKey, 0, -1)
+  const operationLog = await redis.lrange(cacheKey, 0, -1)
 
   // timestamp in seconds
   const current = Math.floor(Date.now() / 1000)
@@ -35,8 +31,8 @@ const checkOperationLimit = async ({
   // no record
   if (!operationLog) {
     // create
-    redisClient.lpush(cacheKey, current).then(() => {
-      redisClient.expire(cacheKey, period)
+    redis.lpush(cacheKey, current).then(() => {
+      redis.expire(cacheKey, period)
     })
 
     // pass
@@ -60,36 +56,47 @@ const checkOperationLimit = async ({
   }
 
   // add, trim, update expiration
-  redisClient.lpush(cacheKey, current)
-  redisClient.ltrim(cacheKey, 0, times)
-  redisClient.expire(cacheKey, period)
+  redis.lpush(cacheKey, current)
+  redis.ltrim(cacheKey, 0, times)
+  redis.expire(cacheKey, period)
 
   // pass
   return true
 }
 
-export class RateLimitDirective extends SchemaDirectiveVisitor {
-  public visitFieldDefinition(field: GraphQLField<any, any>) {
-    const { resolve = defaultFieldResolver, name } = field
-    const { limit, period } = this.args
+export const rateLimitDirective = (directiveName = 'rateLimit') => ({
+  typeDef: `"Rate limit within a given period of time, in seconds"
+directive @${directiveName}(period: Int!, limit: Int!) on FIELD_DEFINITION`,
 
-    field.resolve = async function (...args) {
-      const [, , { viewer }] = args
+  transformer: (schema: GraphQLSchema) => {
+    return mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName) => {
+        const directive = getDirective(schema, fieldConfig, directiveName)?.[0]
 
-      const pass = await checkOperationLimit({
-        user: viewer.id || viewer.ip,
-        operation: name,
-        limit,
-        period,
-      })
+        if (directive) {
+          const { resolve = defaultFieldResolver } = fieldConfig
+          const { limit, period } = directive
+          fieldConfig.resolve = async (source, args, context, info) => {
+            const { viewer } = context
 
-      if (!pass) {
-        throw new ActionLimitExceededError(
-          `rate exceeded for operation ${name}`
-        )
-      }
+            const pass = await checkOperationLimit({
+              user: viewer.id || viewer.ip,
+              operation: fieldName,
+              limit,
+              period,
+            })
 
-      return resolve.apply(this, args)
-    }
-  }
-}
+            if (!pass) {
+              throw new ActionLimitExceededError(
+                `rate exceeded for operation ${fieldName}`
+              )
+            }
+
+            return await resolve(source, args, context, info)
+          }
+          return fieldConfig
+        }
+      },
+    })
+  },
+})

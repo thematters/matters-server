@@ -1,4 +1,3 @@
-export * from './deprecated'
 export * from './auth'
 export * from './privateCache'
 export * from './rateLimit'

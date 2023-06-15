@@ -19,12 +19,12 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { gcp } from 'connectors'
+import { GCP } from 'connectors'
 import { appreciationQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
-  root,
+  _,
   { input: { id, amount, token, superLike } },
   {
     viewer,
@@ -179,6 +179,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
   if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
+    const gcp = new GCP()
     const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')

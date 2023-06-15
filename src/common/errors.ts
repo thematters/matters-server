@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
 
 // Error design document see https://paper.dropbox.com/doc/Error-Codes-for-GraphQL-API--B0_SdxSw3WrYTkjmzu7bKxLwAg-cUucb1Cllkj9O0lZhnnmj
 // Note that the document is not longer maintained, but still provides useful infomation for error usage
@@ -8,83 +8,63 @@ import { ApolloError } from 'apollo-server-express'
  *             Common            *
  *                               *
  *********************************/
-export class UnknownError extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'UNKNOWN_ERROR', properties)
-
-    Object.defineProperty(this, 'name', { value: 'UnknownError' })
-  }
-}
-
-export class NetworkError extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'NETWORK_ERROR', properties)
-
-    Object.defineProperty(this, 'name', { value: 'NetworkError' })
-  }
-}
-
-export class ServerError extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'INTERNAL_SERVER_ERROR', properties)
-
-    Object.defineProperty(this, 'name', { value: 'ServerError' })
-  }
-}
-
-export class UserInputError extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'BAD_USER_INPUT', properties)
-
-    Object.defineProperty(this, 'name', { value: 'UserInputError' })
-  }
-}
-
-export class ActionLimitExceededError extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'ACTION_LIMIT_EXCEEDED', properties)
-
-    Object.defineProperty(this, 'name', { value: 'ActionLimitExceededError' })
-  }
-}
-
-export class ActionFailedError extends ApolloError {
+export class UnknownError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ACTION_FAILED')
-
-    Object.defineProperty(this, 'name', { value: 'ActionFailed' })
+    super(message, { extensions: { code: 'UNKNOWN_ERROR' } })
   }
 }
 
-export class UnableToUploadFromUrl extends ApolloError {
-  constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'UNABLE_TO_UPLOAD_FROM_URL', properties)
-
-    Object.defineProperty(this, 'name', { value: 'UnableToUploadFromUrl' })
-  }
-}
-
-export class NameInvalidError extends ApolloError {
+export class NetworkError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'NAME_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'NameInvalidError' })
+    super(message, { extensions: { code: 'NETWORK_ERROR' } })
   }
 }
 
-export class NameExistsError extends ApolloError {
+export class ServerError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'NAME_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'NameExistsError' })
+    super(message, { extensions: { code: 'INTERNAL_SERVER_ERROR' } })
   }
 }
 
-export class DisplayNameInvalidError extends ApolloError {
+export class UserInputError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'DISPLAYNAME_INVALID')
+    super(message, { extensions: { code: 'BAD_USER_INPUT' } })
+  }
+}
 
-    Object.defineProperty(this, 'name', { value: 'DisplayNameInvalidError' })
+export class ActionLimitExceededError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'ACTION_LIMIT_EXCEEDED' } })
+  }
+}
+
+export class ActionFailedError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'ACTION_FAILED' } })
+  }
+}
+
+export class UnableToUploadFromUrl extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'UNABLE_TO_UPLOAD_FROM_URL' } })
+  }
+}
+
+export class NameInvalidError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'NAME_INVALID' } })
+  }
+}
+
+export class NameExistsError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'NAME_EXISTS' } })
+  }
+}
+
+export class DisplayNameInvalidError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'DISPLAYNAME_INVALID' } })
   }
 }
 
@@ -93,45 +73,33 @@ export class DisplayNameInvalidError extends ApolloError {
  *             Auth              *
  *                               *
  *********************************/
-export class AuthenticationError extends ApolloError {
+export class AuthenticationError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'UNAUTHENTICATED')
-
-    Object.defineProperty(this, 'name', { value: 'AuthenticationError' })
+    super(message, { extensions: { code: 'UNAUTHENTICATED' } })
   }
 }
 
-export class ForbiddenError extends ApolloError {
+export class ForbiddenError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'FORBIDDEN')
-
-    Object.defineProperty(this, 'name', { value: 'ForbiddenError' })
+    super(message, { extensions: { code: 'FORBIDDEN' } })
   }
 }
 
-export class ForbiddenByStateError extends ApolloError {
+export class ForbiddenByStateError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'FORBIDDEN_BY_STATE')
-
-    Object.defineProperty(this, 'name', { value: 'ForbiddenByStateError' })
+    super(message, { extensions: { code: 'FORBIDDEN_BY_STATE' } })
   }
 }
 
-export class ForbiddenByTargetStateError extends ApolloError {
+export class ForbiddenByTargetStateError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'FORBIDDEN_BY_TARGET_STATE')
-
-    Object.defineProperty(this, 'name', {
-      value: 'ForbiddenByTargetStateError',
-    })
+    super(message, { extensions: { code: 'FORBIDDEN_BY_TARGET_STATE' } })
   }
 }
 
-export class TokenInvalidError extends ApolloError {
+export class TokenInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'TOKEN_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'TokenInvalidError' })
+    super(message, { extensions: { code: 'TOKEN_INVALID' } })
   }
 }
 
@@ -140,75 +108,57 @@ export class TokenInvalidError extends ApolloError {
  *           Entity              *
  *                               *
  *********************************/
-export class EntityNotFoundError extends ApolloError {
+export class EntityNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ENTITY_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'EntityNotFoundError' })
+    super(message, { extensions: { code: 'ENTITY_NOT_FOUND' } })
   }
 }
 
-export class UserNotFoundError extends ApolloError {
+export class UserNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'UserNotFoundError' })
+    super(message, { extensions: { code: 'USER_NOT_FOUND' } })
   }
 }
 
-export class CommentNotFoundError extends ApolloError {
+export class CommentNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'COMMENT_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'CommentNotFoundError' })
+    super(message, { extensions: { code: 'COMMENT_NOT_FOUND' } })
   }
 }
 
-export class ArticleNotFoundError extends ApolloError {
+export class ArticleNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ARTICLE_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'ArticleNotFoundError' })
+    super(message, { extensions: { code: 'ARTICLE_NOT_FOUND' } })
   }
 }
 
-export class AssetNotFoundError extends ApolloError {
+export class AssetNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ASSET_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'AssetNotFoundError' })
+    super(message, { extensions: { code: 'ASSET_NOT_FOUND' } })
   }
 }
 
-export class DraftNotFoundError extends ApolloError {
+export class DraftNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'DRAFT_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'DraftNotFoundError' })
+    super(message, { extensions: { code: 'DRAFT_NOT_FOUND' } })
   }
 }
 
-export class TagNotFoundError extends ApolloError {
+export class TagNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'TAG_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'TagNotFoundError' })
+    super(message, { extensions: { code: 'TAG_NOT_FOUND' } })
   }
 }
 
-export class NoticeNotFoundError extends ApolloError {
+export class NoticeNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'NOTICE_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'NoticeNotFoundError' })
+    super(message, { extensions: { code: 'NOTICE_NOT_FOUND' } })
   }
 }
 
-export class CircleNotFoundError extends ApolloError {
+export class CircleNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CIRCLE_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'CircleNotFoundError' })
+    super(message, { extensions: { code: 'CIRCLE_NOT_FOUND' } })
   }
 }
 
@@ -217,41 +167,27 @@ export class CircleNotFoundError extends ApolloError {
  *           Article             *
  *                               *
  *********************************/
-export class NotEnoughMatError extends ApolloError {
+export class NotEnoughMatError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'NOT_ENOUGH_MAT')
-
-    Object.defineProperty(this, 'name', { value: 'NotEnoughMatError' })
+    super(message, { extensions: { code: 'NOT_ENOUGH_MAT' } })
   }
 }
 
-export class ArticleRevisionContentInvalidError extends ApolloError {
+export class ArticleRevisionContentInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ARTICLE_REVISION_CONTENT_INVALID')
-
-    Object.defineProperty(this, 'name', {
-      value: 'ArticleRevisionContentInvalidError',
-    })
+    super(message, { extensions: { code: 'ARTICLE_REVISION_CONTENT_INVALID' } })
   }
 }
 
-export class ArticleRevisionReachLimitError extends ApolloError {
+export class ArticleRevisionReachLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ARTICLE_REVISION_REACH_LIMIT')
-
-    Object.defineProperty(this, 'name', {
-      value: 'ArticleRevisionReachLimitError',
-    })
+    super(message, { extensions: { code: 'ARTICLE_REVISION_REACH_LIMIT' } })
   }
 }
 
-export class ArticleCollectionReachLimitError extends ApolloError {
+export class ArticleCollectionReachLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'ARTICLE_COLLECTION_REACH_LIMIT')
-
-    Object.defineProperty(this, 'name', {
-      value: 'ArticleCollectionReachLimitError',
-    })
+    super(message, { extensions: { code: 'ARTICLE_COLLECTION_REACH_LIMIT' } })
   }
 }
 
@@ -260,37 +196,27 @@ export class ArticleCollectionReachLimitError extends ApolloError {
  *              Tag              *
  *                               *
  *********************************/
-export class DuplicateTagError extends ApolloError {
+export class DuplicateTagError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'DUPLICATE_TAG')
-
-    Object.defineProperty(this, 'name', { value: 'DuplicateTagError' })
+    super(message, { extensions: { code: 'DUPLICATE_TAG' } })
   }
 }
 
-export class TooManyTagsForArticleError extends ApolloError {
+export class TooManyTagsForArticleError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'TOO_MANY_TAGS_FOR_ARTICLE')
-
-    Object.defineProperty(this, 'name', { value: 'TooManyTagsForArticleError' })
+    super(message, { extensions: { code: 'TOO_MANY_TAGS_FOR_ARTICLE' } })
   }
 }
 
-export class TagEditorsReachLimitError extends ApolloError {
+export class TagEditorsReachLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'TAG_EDITORS_REACH_LIMIT')
-
-    Object.defineProperty(this, 'name', { value: 'TagEditorsReachLimitError' })
+    super(message, { extensions: { code: 'TAG_EDITORS_REACH_LIMIT' } })
   }
 }
 
-export class NotAllowAddOfficialTagError extends ApolloError {
+export class NotAllowAddOfficialTagError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'NOT_ALLOW_ADD_OFFICIAL_TAG')
-
-    Object.defineProperty(this, 'name', {
-      value: 'NotAllowAddOfficialTagError',
-    })
+    super(message, { extensions: { code: 'NOT_ALLOW_ADD_OFFICIAL_TAG' } })
   }
 }
 
@@ -299,68 +225,51 @@ export class NotAllowAddOfficialTagError extends ApolloError {
  *             User              *
  *                               *
  *********************************/
-export class EmailInvalidError extends ApolloError {
+export class EmailInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_EMAIL_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'EmailInvalidError' })
+    super(message, { extensions: { code: 'USER_EMAIL_INVALID' } })
   }
 }
 
-export class EmailExistsError extends ApolloError {
+export class EmailExistsError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_EMAIL_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'EmailExistsError' })
+    super(message, { extensions: { code: 'USER_EMAIL_EXISTS' } })
   }
 }
 
-export class EmailNotFoundError extends ApolloError {
+export class EmailNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_EMAIL_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'EmailNotFoundError' })
+    super(message, { extensions: { code: 'USER_EMAIL_NOT_FOUND' } })
   }
 }
 
-export class EthAddressNotFoundError extends ApolloError {
+export class EthAddressNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_ETH_ADDRESS_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'EthAddressNotFoundError' })
+    super(message, { extensions: { code: 'USER_ETH_ADDRESS_NOT_FOUND' } })
   }
 }
 
-export class PasswordInvalidError extends ApolloError {
+export class PasswordInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_PASSWORD_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'PasswordInvalidError' })
+    super(message, { extensions: { code: 'USER_PASSWORD_INVALID' } })
   }
 }
 
-export class PasswordNotAvailableError extends ApolloError {
+export class PasswordNotAvailableError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_PASSWORD_NOT_AVAILABLE')
-
-    // For wallet login users
-    Object.defineProperty(this, 'name', { value: 'PasswordNotAvailableError' })
+    super(message, { extensions: { code: 'USER_PASSWORD_NOT_AVAILABLE' } })
   }
 }
 
-export class UserFollowFailedError extends ApolloError {
+export class UserFollowFailedError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'USER_FOLLOW_FAILED')
-
-    Object.defineProperty(this, 'name', { value: 'UserFollowFailedError' })
+    super(message, { extensions: { code: 'USER_FOLLOW_FAILED' } })
   }
 }
 
-export class CryptoWalletExistsError extends ApolloError {
+export class CryptoWalletExistsError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CRYPTO_WALLET_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'CryptoWalletExistsError' })
+    super(message, { extensions: { code: 'CRYPTO_WALLET_EXISTS' } })
   }
 }
 
@@ -369,27 +278,21 @@ export class CryptoWalletExistsError extends ApolloError {
  *      Verification Code        *
  *                               *
  *********************************/
-export class CodeInvalidError extends ApolloError {
+export class CodeInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CODE_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'CodeInvalidError' })
+    super(message, { extensions: { code: 'CODE_INVALID' } })
   }
 }
 
-export class CodeInactiveError extends ApolloError {
+export class CodeInactiveError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CODE_INACTIVE')
-
-    Object.defineProperty(this, 'name', { value: 'CodeInactiveError' })
+    super(message, { extensions: { code: 'CODE_INACTIVE' } })
   }
 }
 
-export class CodeExpiredError extends ApolloError {
+export class CodeExpiredError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CODE_EXPIRED')
-
-    Object.defineProperty(this, 'name', { value: 'CodeExpiredError' })
+    super(message, { extensions: { code: 'CODE_EXPIRED' } })
   }
 }
 
@@ -398,50 +301,39 @@ export class CodeExpiredError extends ApolloError {
  *            LikeCoin           *
  *                               *
  *********************************/
-export class LikerNotFoundError extends ApolloError {
+export class LikerNotFoundError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKER_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'LikerNotFoundError' })
+    super(message, { extensions: { code: 'LIKER_NOT_FOUND' } })
   }
 }
 
-export class LikerEmailExistsError extends ApolloError {
+export class LikerEmailExistsError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKER_EMAIL_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'LikerEmailExistsError' })
+    super(message, { extensions: { code: 'LIKER_EMAIL_EXISTS' } })
   }
 }
 
-export class LikerUserIdExistsError extends ApolloError {
+export class LikerUserIdExistsError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKER_USER_ID_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'LikerUserIdExistsError' })
+    super(message, { extensions: { code: 'LIKER_USER_ID_EXISTS' } })
   }
 }
 
-export class LikerISCNPublishWithoutWalletError extends ApolloError {
+export class LikerISCNPublishWithoutWalletError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKER_WALLET_NOT_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'likerWalletNotExistsError' })
+    super(message, { extensions: { code: 'LIKER_WALLET_NOT_EXISTS' } })
   }
 }
 
-export class LikerISCNPublishFailureError extends ApolloError {
+export class LikerISCNPublishFailureError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKER_ISCN_PUBLISH_FAILURE')
-
-    Object.defineProperty(this, 'name', { value: 'iscnPublishFailureError' })
+    super(message, { extensions: { code: 'LIKER_ISCN_PUBLISH_FAILURE' } })
   }
 }
 
-export class LikeCoinWebhookError extends ApolloError {
+export class LikeCoinWebhookError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'LIKECOIN_WEBHOOK_ERROR')
-    Object.defineProperty(this, 'name', { value: 'LikeCoinWebhookError' })
+    super(message, { extensions: { code: 'LIKECOIN_WEBHOOK_ERROR' } })
   }
 }
 
@@ -450,11 +342,9 @@ export class LikeCoinWebhookError extends ApolloError {
  *             OAuth             *
  *                               *
  *********************************/
-export class OAuthTokenInvalidError extends ApolloError {
+export class OAuthTokenInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'OAUTH_TOKEN_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'OAuthTokenInvalidError' })
+    super(message, { extensions: { code: 'OAUTH_TOKEN_INVALID' } })
   }
 }
 
@@ -463,11 +353,9 @@ export class OAuthTokenInvalidError extends ApolloError {
  *            Migration          *
  *                               *
  *********************************/
-export class MigrationReachLimitError extends ApolloError {
+export class MigrationReachLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'MIGRATION_REACH_LIMIT')
-
-    Object.defineProperty(this, 'name', { value: 'MigrationReachLimit' })
+    super(message, { extensions: { code: 'MIGRATION_REACH_LIMIT' } })
   }
 }
 
@@ -476,69 +364,53 @@ export class MigrationReachLimitError extends ApolloError {
  *             Payment           *
  *                               *
  *********************************/
-export class PaymentAmountTooSmallError extends ApolloError {
+export class PaymentAmountTooSmallError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_AMOUNT_TOO_SMALL')
-    Object.defineProperty(this, 'name', { value: 'PaymentAmountTooSmall' })
+    super(message, { extensions: { code: 'PAYMENT_AMOUNT_TOO_SMALL' } })
   }
 }
 
-export class PaymentAmountInvalidError extends ApolloError {
+export class PaymentAmountInvalidError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_AMOUNT_INVALID')
-    Object.defineProperty(this, 'name', { value: 'PaymentAmountInvalid' })
+    super(message, { extensions: { code: 'PAYMENT_AMOUNT_INVALID' } })
   }
 }
 
-export class PaymentBalanceInsufficientError extends ApolloError {
+export class PaymentBalanceInsufficientError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_BALANCE_INSUFFICIENT')
-    Object.defineProperty(this, 'name', { value: 'PaymentBalanceInsufficient' })
+    super(message, { extensions: { code: 'PAYMENT_BALANCE_INSUFFICIENT' } })
   }
 }
 
-export class PaymentReachMaximumLimitError extends ApolloError {
+export class PaymentReachMaximumLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_REACH_MAXIMUM_LIMIT')
-    Object.defineProperty(this, 'name', {
-      value: 'PaymentReachMaximumLimitError',
+    super(message, { extensions: { code: 'PAYMENT_REACH_MAXIMUM_LIMIT' } })
+  }
+}
+
+export class PaymentPayoutAccountExistsError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'PAYMENT_PAYOUT_ACCOUNT_EXISTS' } })
+  }
+}
+
+export class PaymentPayoutTransactionExistsError extends GraphQLError {
+  constructor(message: string) {
+    super(message, {
+      extensions: { code: 'PAYMENT_PAYOUT_TRANSACTION_EXISTS' },
     })
   }
 }
 
-export class PaymentPayoutAccountExistsError extends ApolloError {
+export class PaymentPasswordNotSetError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_PAYOUT_ACCOUNT_EXISTS')
-    Object.defineProperty(this, 'name', {
-      value: 'PaymentPayoutAccountExistsError',
-    })
+    super(message, { extensions: { code: 'PAYMENT_PASSWORD_NOT_SET' } })
   }
 }
 
-export class PaymentPayoutTransactionExistsError extends ApolloError {
+export class PaymentQueueJobDataError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'PAYMENT_PAYOUT_TRANSACTION_EXISTS')
-    Object.defineProperty(this, 'name', {
-      value: 'PaymentPayoutTransactionExistsError',
-    })
-  }
-}
-
-export class PaymentPasswordNotSetError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'PAYMENT_PASSWORD_NOT_SET')
-    Object.defineProperty(this, 'name', {
-      value: 'PaymentPasswordNotSetError',
-    })
-  }
-}
-
-export class PaymentQueueJobDataError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'PAYMENT_QUEUE_JOB_DATA_ERROR')
-    Object.defineProperty(this, 'name', {
-      value: 'PaymentQueueJobDataError',
-    })
+    super(message, { extensions: { code: 'PAYMENT_QUEUE_JOB_DATA_ERROR' } })
   }
 }
 
@@ -547,30 +419,20 @@ export class PaymentQueueJobDataError extends ApolloError {
  *            Circle             *
  *                               *
  *********************************/
-export class DuplicateCircleError extends ApolloError {
+export class DuplicateCircleError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'DUPLICATE_CIRCLE')
-
-    Object.defineProperty(this, 'name', { value: 'DuplicateCircleError' })
+    super(message, { extensions: { code: 'DUPLICATE_CIRCLE' } })
   }
 }
 
-export class DuplicateCircleSubscriptionError extends ApolloError {
+export class DuplicateCircleSubscriptionError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'DUPLICATE_CIRCLE_SUBSCRIPTION')
-
-    Object.defineProperty(this, 'name', {
-      value: 'DuplicateCircleSubscriptionError',
-    })
+    super(message, { extensions: { code: 'DUPLICATE_CIRCLE_SUBSCRIPTION' } })
   }
 }
 
-export class CircleCreationReachLimitError extends ApolloError {
+export class CircleCreationReachLimitError extends GraphQLError {
   constructor(message: string) {
-    super(message, 'CIRCLE_CREATION_REACH_LIMIT')
-
-    Object.defineProperty(this, 'name', {
-      value: 'CircleCreationReachLimitError',
-    })
+    super(message, { extensions: { code: 'CIRCLE_CREATION_REACH_LIMIT' } })
   }
 }
