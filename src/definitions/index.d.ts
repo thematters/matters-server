@@ -112,7 +112,7 @@ export type BasicTableName =
   | 'article_tag'
   | 'audio_draft'
   | 'comment'
-  | 'collection'
+  | 'article_connection'
   | 'draft'
   | 'noop'
   | 'user'

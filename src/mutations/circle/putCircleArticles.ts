@@ -111,7 +111,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(article.id), // fetch latest article
-      articleService.findCollections({ entranceId: article.id }),
+      articleService.findConnections({ entranceId: article.id }),
       tagService.findByArticleId({ articleId: article.id }),
       articleService.findArticleCircle(article.id),
     ])

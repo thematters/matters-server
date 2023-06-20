@@ -13,7 +13,7 @@ import {
   MAX_ARTICE_SUMMARY_LENGTH,
   MAX_ARTICE_TITLE_LENGTH,
   MAX_ARTICLE_CONTENT_LENGTH,
-  MAX_ARTICLES_PER_COLLECTION_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -232,11 +232,11 @@ const resolver: MutationToPutDraftResolver = async (
       const oldCollectionLength =
         draft.collection == null ? 0 : draft.collection.length
       if (
-        collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+        collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
         collection.length > oldCollectionLength
       ) {
         throw new ArticleCollectionReachLimitError(
-          `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+          `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
         )
       }
     }
@@ -288,9 +288,9 @@ const resolver: MutationToPutDraftResolver = async (
         `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
     }
-    if (collection && collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+    if (collection && collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
       throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+        `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
       )
     }
 

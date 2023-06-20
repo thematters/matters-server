@@ -1339,13 +1339,13 @@ export class ArticleService extends BaseService {
 
   /*********************************
    *                               *
-   *          Collection           *
+   *          Connection           *
    *                               *
    *********************************/
   /**
-   * Find an article's collections by a given article id.
+   * Find an article's connections by a given article id.
    */
-  findCollections = async ({
+  findConnections = async ({
     entranceId,
     take,
     skip,
@@ -1354,7 +1354,7 @@ export class ArticleService extends BaseService {
     take?: number
     skip?: number
   }) =>
-    this.knex('collection')
+    this.knex('article_connection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
@@ -1369,13 +1369,13 @@ export class ArticleService extends BaseService {
       })
 
   /**
-   * Count an article is collected by how many active articles.
+   * Count an article is connected by how many active articles.
    */
-  countActiveCollectedBy = async (id: string) => {
-    const query = this.knexRO('collection')
-      .rightJoin('article', 'collection.entrance_id', 'article.id')
+  countActiveConnectedBy = async (id: string) => {
+    const query = this.knexRO('article_connection')
+      .rightJoin('article', 'article_connection.entrance_id', 'article.id')
       .where({
-        'collection.article_id': id,
+        'article_connection.article_id': id,
         'article.state': ARTICLE_STATE.active,
       })
       .countDistinct('entrance_id')
@@ -1412,12 +1412,19 @@ export class ArticleService extends BaseService {
             operator
               .select(
                 this.knex.raw(
-                  "'Article' as type, entrance_id as entity_id, collection.created_at"
+                  "'Article' as type, entrance_id as entity_id, article_connection.created_at"
                 )
               )
-              .from('collection')
-              .rightJoin('article', 'collection.entrance_id', 'article.id')
-              .where({ 'collection.article_id': id, 'article.state': state })
+              .from('article_connection')
+              .rightJoin(
+                'article',
+                'article_connection.entrance_id',
+                'article.id'
+              )
+              .where({
+                'article_connection.article_id': id,
+                'article.state': state,
+              })
           })
 
           if (articleOnly !== true) {

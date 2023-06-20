@@ -19,7 +19,7 @@ import {
   MAX_ARTICLE_CONTENT_LENGTH,
   MAX_ARTICLE_CONTENT_REVISION_LENGTH,
   MAX_ARTICLE_REVISION_COUNT,
-  MAX_ARTICLES_PER_COLLECTION_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -202,10 +202,10 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
-   * Collection
+   * Connection
    */
   if (collection !== undefined) {
-    await handleCollection({
+    await handleConnection({
       viewerId: viewer.id,
       collection,
       article,
@@ -381,7 +381,7 @@ const resolver: MutationToEditArticleResolver = async (
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(dbId), // fetch latest article
-      articleService.findCollections({ entranceId: article.id }),
+      articleService.findConnections({ entranceId: article.id }),
       tagService.findByArticleId({ articleId: article.id }),
       articleService.findArticleCircle(article.id),
     ])
@@ -552,7 +552,7 @@ const handleTags = async ({
   })
 }
 
-const handleCollection = async ({
+const handleConnection = async ({
   viewerId,
   collection,
   article,
@@ -574,7 +574,7 @@ const handleCollection = async ({
   knex: Knex
 }) => {
   const oldIds = (
-    await articleService.findCollections({
+    await articleService.findConnections({
       entranceId: article.id,
     })
   ).map(({ articleId }: { articleId: string }) => articleId)
@@ -594,11 +594,11 @@ const handleCollection = async ({
   // only validate new-added articles
   if (newIdsToAdd.length) {
     if (
-      newIds.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+      newIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
       newIds.length >= oldIds.length
     ) {
       throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+        `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in connection`
       )
     }
     await Promise.all(
@@ -650,7 +650,7 @@ const handleCollection = async ({
   await Promise.all([
     ...addItems.map((item) =>
       atomService.create({
-        table: 'collection',
+        table: 'article_connection',
         data: {
           ...item,
         },
@@ -658,7 +658,7 @@ const handleCollection = async ({
     ),
     ...updateItems.map((item) =>
       atomService.update({
-        table: 'collection',
+        table: 'article_connection',
         where: { entranceId: item.entranceId, articleId: item.articleId },
         data: { order: item.order, updatedAt: knex.fn.now() },
       })
@@ -667,7 +667,7 @@ const handleCollection = async ({
 
   // delete unwanted
   await atomService.deleteMany({
-    table: 'collection',
+    table: 'article_connection',
     where: { entranceId: article.id },
     whereIn: ['article_id', oldIdsToDelete],
   })
