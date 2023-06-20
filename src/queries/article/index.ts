@@ -25,6 +25,7 @@ import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
 import * as articleOSS from './oss'
+import pinned from './pinned'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
@@ -120,6 +121,7 @@ export default {
     mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
     state,
     sticky,
+    pinned,
     subscribed,
     subscribers,
     tags,

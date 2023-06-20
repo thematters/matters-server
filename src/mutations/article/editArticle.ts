@@ -59,6 +59,7 @@ const resolver: MutationToEditArticleResolver = async (
       id,
       state,
       sticky,
+      pinned,
       tags,
       content,
       summary,
@@ -138,25 +139,27 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
-   * Sticky
+   * Pinned or Sticky
    */
-  if (typeof sticky === 'boolean') {
+  const isPinned = sticky
+  // const isPinned = pinned ?? sticky
+  if (typeof isPinned === 'boolean') {
     // reset if there are some sticky articles.
-    if (sticky === true) {
-      const stickyIds = (
+    if (isPinned === true) {
+      const pinnedIds = (
         await atomService.findMany({
           table: 'article',
-          where: { authorId: viewer.id, sticky: true },
+          where: { authorId: viewer.id, pinned: true },
         })
       ).map(({ id: articleId }: { id: string }) => articleId)
-      await articleService.baseBatchUpdate(stickyIds, {
-        sticky: false,
+      await articleService.baseBatchUpdate(pinnedIds, {
+        pinned: false,
         updatedAt: knex.fn.now(),
       })
     }
 
     await articleService.baseUpdate(dbId, {
-      sticky,
+      pinned: isPinned,
       updatedAt: knex.fn.now(),
     })
   }

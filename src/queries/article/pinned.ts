@@ -1,6 +1,6 @@
-import { ArticleToStickyResolver } from 'definitions'
+import { ArticleToPinnedResolver } from 'definitions'
 
-const resolver: ArticleToStickyResolver = async (
+const resolver: ArticleToPinnedResolver = async (
   { articleId },
   _,
   { dataSources: { articleService } }

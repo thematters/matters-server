@@ -545,8 +545,10 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * This value determines if this article is an author selected article or not.
+   * @deprecated Use pinned instead
    */
   sticky: boolean
+  pinned: boolean
 
   /**
    * Translation of article title and content.
@@ -949,7 +951,7 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
-  sticky?: boolean
+  pinned?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -6006,6 +6008,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   canSuperLike?: ArticleToCanSuperLikeResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
+  pinned?: ArticleToPinnedResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
   availableTranslations?: ArticleToAvailableTranslationsResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
@@ -6350,6 +6353,15 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToStickyResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToPinnedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -650,7 +650,7 @@ export class ArticleService extends BaseService {
     for (const article of articles) {
       await this.baseUpdate(article.id, {
         state: ARTICLE_STATE.archived,
-        sticky: false,
+        pinned: false,
         updatedAt: new Date(),
       })
     }
@@ -726,7 +726,7 @@ export class ArticleService extends BaseService {
         }
 
         if (stickyFirst === true) {
-          builder.orderBy('article.sticky', 'desc')
+          builder.orderBy('article.pinned', 'desc')
         }
         // always as last orderBy
         builder.orderBy('article.id', 'desc')
