@@ -39,7 +39,7 @@
   "dependencies": {
     "@apollo/cache-control-types": "^1.0.2",
     "@apollo/datasource-rest": "^6.0.0",
-    "@apollo/server": "^4.7.3",
+    "@apollo/server": "^4.7.4",
     "@apollo/utils.keyvadapter": "^3.0.0",
     "@apollo/utils.keyvaluecache": "^3.0.0",
     "@ethersproject/abstract-provider": "^5.7.0",
