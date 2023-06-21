@@ -602,6 +602,55 @@ export class UserService extends BaseService {
     return { nodes, totalCount }
   }
 
+  searchV3 = async ({
+    key,
+    // keyOriginal,
+    take,
+    skip,
+    exclude,
+    viewerId,
+    coefficients,
+    quicksearch,
+  }: {
+    key: string
+    // keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+    coefficients?: string
+    quicksearch?: boolean
+  }) => {
+    try {
+      const u = new URL(`${environment.tsQiServerUrl}/api/users/search`)
+      u.searchParams.set('q', key?.trim())
+      if (quicksearch) {
+        u.searchParams.set('quicksearch', '1')
+      }
+      if (take) {
+        u.searchParams.set('limit', `${take}`)
+      }
+      if (skip) {
+        u.searchParams.set('offset', `${skip}`)
+      }
+      logger.debug(`searchV3 fetching from:`, u.toString())
+      const { nodes: records, total: totalCount } = await fetch(u).then((res) =>
+        res.json()
+      )
+
+      const nodes = (await this.dataloader.loadMany(
+        // records.map(({ id }) => id)
+        records.map((item: any) => item.id).filter(Boolean)
+      )) as Item[]
+
+      return { nodes, totalCount }
+    } catch (err) {
+      logger.error(`searchV3 ERROR:`, err)
+      return { nodes: [], totalCount: 0 }
+    }
+  }
+
   findRecentSearches = async (userId: string) => {
     const result = await this.knex('search_history')
       .select('search_key')
