@@ -10,7 +10,11 @@ import {
   fromGlobalId,
   normalizeQueryInput,
 } from 'common/utils'
-import { GQLNode, QueryToSearchResolver } from 'definitions'
+import {
+  GQLNode,
+  GQLSearchAPIVersion,
+  QueryToSearchResolver,
+} from 'definitions'
 
 const resolver: QueryToSearchResolver = async (
   _,
@@ -54,21 +58,21 @@ const resolver: QueryToSearchResolver = async (
   const keyOriginal = input.key
   input.key = await normalizeQueryInput(keyOriginal)
 
-  const connection = await serviceMap[input.type]
-    .search({
-      ...input,
-      keyOriginal,
-      take,
-      skip,
-      viewerId: viewer.id,
-    })
-    .then(({ nodes, totalCount }) => {
-      nodes = compact(nodes)
-      return {
-        nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
-        totalCount,
-      }
-    })
+  const connection = await (input.version === GQLSearchAPIVersion.v20230601
+    ? serviceMap[input.type].searchV3
+    : serviceMap[input.type].search)({
+    ...input,
+    keyOriginal,
+    take,
+    skip,
+    viewerId: viewer.id,
+  }).then(({ nodes, totalCount }) => {
+    nodes = compact(nodes)
+    return {
+      nodes: nodes.map((node: GQLNode) => ({ __type: input.type, ...node })),
+      totalCount,
+    }
+  })
 
   return connectionFromArray(connection.nodes, input, connection.totalCount)
 }

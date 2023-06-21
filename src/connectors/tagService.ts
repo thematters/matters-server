@@ -596,6 +596,60 @@ export class TagService extends BaseService {
     return { nodes, totalCount }
   }
 
+  searchV3 = async ({
+    key,
+    // keyOriginal,
+    take,
+    skip,
+    // includeAuthorTags,
+    viewerId,
+    coefficients,
+    quicksearch,
+  }: {
+    key: string
+    // keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    // includeAuthorTags?: boolean
+    viewerId?: string | null
+    coefficients?: string
+    quicksearch?: boolean
+  }) => {
+    try {
+      const u = new URL(`${environment.tsQiServerUrl}/api/tags/search`)
+      u.searchParams.set('q', key?.trim())
+      if (quicksearch) {
+        u.searchParams.set('quicksearch', '1')
+      }
+      if (take) {
+        u.searchParams.set('limit', `${take}`)
+      }
+      if (skip) {
+        u.searchParams.set('offset', `${skip}`)
+      }
+      logger.debug(`searchV3 fetching from:`, u.toString())
+      const {
+        nodes: records,
+        total: totalCount,
+        query,
+      } = await fetch(u).then((res) => res.json())
+      logger.debug(
+        `searchV3 found ${records?.length}/${totalCount} results from tsquery: '${query}'`
+      )
+
+      const nodes = (await this.dataloader.loadMany(
+        // records.map(({ id }) => id)
+        records.map((item: any) => item.id).filter(Boolean)
+      )) as Item[]
+
+      return { nodes, totalCount }
+    } catch (err) {
+      logger.error(`searchV3 ERROR:`, err)
+      return { nodes: [], totalCount: 0 }
+    }
+  }
+
   /*********************************
    *                               *
    *           Recommand           *
