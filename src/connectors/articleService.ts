@@ -981,6 +981,49 @@ export class ArticleService extends BaseService {
     return { nodes, totalCount }
   }
 
+  searchV3 = async ({
+    key,
+    // keyOriginal,
+    take = 10,
+    skip = 0,
+    exclude,
+    viewerId,
+    coefficients,
+  }: {
+    key: string
+    // keyOriginal?: string
+    author?: string
+    take: number
+    skip: number
+    viewerId?: string | null
+    exclude?: GQLSearchExclude
+    coefficients?: string
+  }) => {
+    try {
+      const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
+      u.searchParams.set('q', key?.trim())
+      u.searchParams.set('fields', 'id,title,summary')
+      if (take) {
+        u.searchParams.set('limit', `${take}`)
+      }
+      if (skip) {
+        u.searchParams.set('offset', `${skip}`)
+      }
+      const { nodes: records, total: totalCount } = await fetch(u).then((res) =>
+        res.json()
+      )
+
+      const nodes = (await this.draftLoader.loadMany(
+        records.map((item: any) => item.id).filter(Boolean)
+      )) as Item[]
+
+      return { nodes, totalCount }
+    } catch (err) {
+      logger.error(`searchV3 ERROR:`, err)
+      return { nodes: [], totalCount: 0 }
+    }
+  }
+
   /**
    * Boost & Score
    */

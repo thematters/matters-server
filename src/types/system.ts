@@ -234,8 +234,8 @@ export default /* GraphQL */ `
     record: Boolean
     oss: Boolean
 
-    "deprecated, make no effect"
-    version: SearchAPIVersion
+    """use the api version; default to use latest stable version is v20230301"""
+    version: SearchAPIVersion = v20230301
     "deprecated, make no effect"
     coefficients: String
     quicksearch: Boolean
@@ -336,6 +336,7 @@ export default /* GraphQL */ `
   }
 
   enum SearchAPIVersion {
+    v20230601
     v20230301
     v20221212
     v20221212prior ## the original ElasticSearch based solution; to be deprecated
