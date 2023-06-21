@@ -2886,7 +2886,7 @@ export interface GQLSearchInput {
   oss?: boolean
 
   /**
-   * deprecated, make no effect
+   * use the api version; default to use latest stable version is v20230301
    */
   version?: GQLSearchAPIVersion
 
@@ -2998,6 +2998,7 @@ export const enum GQLSearchTypes {
 }
 
 export const enum GQLSearchAPIVersion {
+  v20230601 = 'v20230601',
   v20230301 = 'v20230301',
   v20221212 = 'v20221212',
   v20221212prior = 'v20221212prior',
