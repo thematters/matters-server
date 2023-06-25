@@ -17,6 +17,7 @@ import {
   SystemService,
   TagService,
   UserService,
+  CollectionService,
 } from 'connectors'
 import { Context } from 'definitions'
 
@@ -96,6 +97,7 @@ export const makeContext = async ({
       oauthService: new OAuthService(),
       paymentService: new PaymentService(),
       openseaService: new OpenSeaService(),
+      collectionService: new CollectionService(),
     },
   }
 }

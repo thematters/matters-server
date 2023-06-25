@@ -81,7 +81,7 @@ export default /* GraphQL */ `
   This type contains metadata, content, hash and related data of an article. If you
   want information about article's comments. Please check Comment type.
   """
-  type Article implements Node {
+  type Article implements Node & PinnableWork {
     "Unique ID of this article"
     id: ID!
 

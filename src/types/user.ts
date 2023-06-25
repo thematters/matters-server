@@ -74,6 +74,9 @@ export default /* GraphQL */ `
     "update tags for showing on profile page"
     putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
 
+    collections(input: ConnectionArgs!): CollectionConnection!
+    pinnedWorks: [PinnableWork!]!
+
     ##############
     #     OSS    #
     ##############

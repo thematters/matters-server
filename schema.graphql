@@ -228,6 +228,8 @@ type Mutation {
 
   """update tags for showing on profile page"""
   putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
+  collections(input: ConnectionArgs!): CollectionConnection!
+  pinnedWorks: [PinnableWork!]!
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
@@ -254,13 +256,27 @@ type Mutation {
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
+  putCollection(input: PutCollectionInput!): Collection!
+  deleteCollections(input: DeleteCollectionsInput!): Boolean!
+
+  """Add articles to the begining of the collections."""
+  addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]!
+
+  """Remove articles from the collection."""
+  deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection!
+
+  """Reorder articles in the collection."""
+  reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
+
+  """Toggle pin status of the work."""
+  togglePinWork(input: ToggleItemInput!): PinnableWork!
 }
 
 """
 This type contains metadata, content, hash and related data of an article. If you
 want information about article's comments. Please check Comment type.
 """
-type Article implements Node {
+type Article implements Node & PinnableWork {
   """Unique ID of this article"""
   id: ID!
 
@@ -1831,6 +1847,13 @@ interface Node {
   id: ID!
 }
 
+interface PinnableWork {
+  id: ID!
+  pinned: Boolean!
+  title: String!
+  cover: String
+}
+
 type PageInfo {
   startCursor: String
   endCursor: String
@@ -3279,4 +3302,66 @@ input PutOAuthClientInput {
 enum GrantType {
   authorization_code
   refresh_token
+}
+
+type Collection implements Node & PinnableWork {
+  id: ID!
+  title: String!
+  cover: String
+  description: String
+  articles(input: CollectionArticlesInput!): ArticleConnection!
+  pinned: Boolean!
+  updatedAt: DateTime!
+}
+
+type CollectionEdge {
+  cursor: String!
+  node: Collection!
+}
+
+type CollectionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TagEdge!]
+}
+
+input CollectionArticlesInput {
+  after: Int
+  first: String
+  reversed: Boolean = false
+}
+
+input PutCollectionInput {
+  id: ID
+  title: String
+  cover: ID
+  description: String
+}
+
+input DeleteCollectionsInput {
+  ids: [ID!]!
+}
+
+input AddCollectionsArticlesInput {
+  collections: [ID!]
+  articles: [ID!]
+}
+
+input DeleteCollectionArticlesInput {
+  collection: ID!
+  articles: [ID!]
+}
+
+input ReorderMoveInput {
+  item: ID!
+
+  """
+  The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list.
+  """
+  newPosition: Int!
+}
+
+input ReorderCollectionArticlesInput {
+  collection: ID!
+  moves: [ReorderMoveInput!]!
 }

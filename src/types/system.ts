@@ -57,6 +57,13 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  interface PinnableWork {
+    id: ID!
+    pinned: Boolean!
+    title: String!
+    cover: String
+  }
+
   type PageInfo {
     startCursor: String
     endCursor: String

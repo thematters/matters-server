@@ -23,6 +23,7 @@ import {
   SystemService,
   TagService,
   UserService,
+  CollectionService,
 } from 'connectors'
 
 export * from './article'
@@ -94,6 +95,7 @@ export interface DataSources {
   oauthService: InstanceType<typeof OAuthService>
   paymentService: InstanceType<typeof PaymentService>
   openseaService: InstanceType<typeof OpenSeaService>
+  collectionService: InstanceType<typeof CollectionService>
 }
 
 export type BasicTableName =
@@ -177,6 +179,7 @@ export type BasicTableName =
   | 'blockchain_transaction'
   | 'blockchain_curation_event'
   | 'blockchain_sync_record'
+  | 'collection'
 
 export type View =
   | 'tag_count_view'
