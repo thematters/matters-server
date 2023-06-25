@@ -26,3 +26,32 @@ test('updateCollection', async () => {
     'new description'
   )
 })
+
+test('findAndCountCollectionsByUser', async () => {
+  const [records0, count0] =
+    await collectionService.findAndCountCollectionsByUser('2', {
+      skip: 0,
+      take: 10,
+    })
+
+  expect(records0.length).toBe(0)
+  expect(count0).toBe(0)
+
+  await collectionService.createCollection({
+    authorId: '2',
+    title: 'test',
+  })
+  await collectionService.createCollection({
+    authorId: '2',
+    title: 'test',
+  })
+
+  const [records1, count1] =
+    await collectionService.findAndCountCollectionsByUser('2', {
+      skip: 0,
+      take: 1,
+    })
+
+  expect(records1.length).toBe(1)
+  expect(count1).toBe(2)
+})

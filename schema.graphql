@@ -228,8 +228,6 @@ type Mutation {
 
   """update tags for showing on profile page"""
   putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
-  collections(input: ConnectionArgs!): CollectionConnection!
-  pinnedWorks: [PinnableWork!]!
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
@@ -965,6 +963,10 @@ type User implements Node {
 
   """Topics created by current user."""
   topics(input: TopicInput!): TopicConnection!
+
+  """collections authored by current user."""
+  collections(input: ConnectionArgs!): CollectionConnection!
+  pinnedWorks: [PinnableWork!]!
 
   """Tags by by usage order of current user."""
   tags(input: ConnectionArgs!): TagConnection!

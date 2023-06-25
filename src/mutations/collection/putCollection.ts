@@ -11,10 +11,10 @@ const resolver: MutationToPutCollectionResolver = async (
     throw new ForbiddenError('visitor has no permission')
   }
 
-  if (title && title.length > 100) {
+  if (title && title.length > 20) {
     throw new UserInputError('title is too long')
   }
-  if (description && description.length > 100) {
+  if (description && description.length > 140) {
     throw new UserInputError('description is too long')
   }
 

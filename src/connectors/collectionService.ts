@@ -4,9 +4,17 @@ import { BaseService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
 // const logger = getLogger('service-collection')
+//
+interface Collection {
+  id: string
+  title: string
+  authorId: string
+  description?: string
+  cover?: string
+}
 
 export class CollectionService extends BaseService {
-  constructor() {
+  public constructor() {
     super('collection')
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
@@ -41,4 +49,18 @@ export class CollectionService extends BaseService {
       description?: string
     }
   ) => this.baseUpdate(id, { title, cover, description })
+
+  public findAndCountCollectionsByUser = async (
+    id: string,
+    { skip, take }: { skip?: number; take?: number }
+  ): Promise<[Collection[], number]> => {
+    const records = await this.baseFind({
+      where: { authorId: id },
+      skip,
+      take,
+      returnTotalCount: true,
+    })
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    return [records, totalCount]
+  }
 }

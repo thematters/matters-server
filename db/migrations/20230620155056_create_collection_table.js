@@ -9,7 +9,7 @@ exports.up = async (knex) => {
     t.bigInteger('author_id').unsigned().notNullable()
     t.string('title').notNullable()
     t.bigInteger('cover').unsigned()
-    t.string('description').notNullable()
+    t.string('description')
     t.boolean('pinned').defaultTo(false).notNullable()
     t.timestamp('pinned_at')
     t.timestamp('created_at').defaultTo(knex.fn.now())

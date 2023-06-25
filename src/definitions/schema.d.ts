@@ -339,8 +339,6 @@ export interface GQLMutation {
    * update tags for showing on profile page
    */
   putFeaturedTags?: Array<GQLTag>
-  collections: GQLCollectionConnection
-  pinnedWorks: Array<GQLPinnableWork>
 
   /**
    * Update state of a user, used in OSS.
@@ -976,6 +974,7 @@ export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
   pinned?: boolean
+  sticky?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -1385,6 +1384,12 @@ export interface GQLUser extends GQLNode {
    * Topics created by current user.
    */
   topics: GQLTopicConnection
+
+  /**
+   * collections authored by current user.
+   */
+  collections: GQLCollectionConnection
+  pinnedWorks: Array<GQLPinnableWork>
 
   /**
    * Tags by by usage order of current user.
@@ -4948,8 +4953,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   migration?: MutationToMigrationResolver<TParent>
   claimLogbooks?: MutationToClaimLogbooksResolver<TParent>
   putFeaturedTags?: MutationToPutFeaturedTagsResolver<TParent>
-  collections?: MutationToCollectionsResolver<TParent>
-  pinnedWorks?: MutationToPinnedWorksResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   refreshIPNSFeed?: MutationToRefreshIPNSFeedResolver<TParent>
@@ -5953,27 +5956,6 @@ export interface MutationToPutFeaturedTagsResolver<
   (
     parent: TParent,
     args: MutationToPutFeaturedTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToCollectionsArgs {
-  input: GQLConnectionArgs
-}
-export interface MutationToCollectionsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToCollectionsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToPinnedWorksResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7950,6 +7932,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
   topics?: UserToTopicsResolver<TParent>
+  collections?: UserToCollectionsResolver<TParent>
+  pinnedWorks?: UserToPinnedWorksResolver<TParent>
   tags?: UserToTagsResolver<TParent>
   maintainedTags?: UserToMaintainedTagsResolver<TParent>
   pinnedTags?: UserToPinnedTagsResolver<TParent>
@@ -8105,6 +8089,27 @@ export interface UserToTopicsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToTopicsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToCollectionsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToCollectionsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToCollectionsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPinnedWorksResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
