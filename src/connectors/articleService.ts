@@ -47,10 +47,10 @@ const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService {
-  ipfsServers: typeof ipfsServers
+  private ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
 
-  constructor() {
+  public constructor() {
     super('article')
     this.ipfsServers = ipfsServers
 
@@ -84,7 +84,7 @@ export class ArticleService extends BaseService {
   /**
    * Create a pending article with linked draft
    */
-  createArticle = async ({
+  public createArticle = async ({
     draftId,
     authorId,
     title,
@@ -114,7 +114,7 @@ export class ArticleService extends BaseService {
   /**
    * Publish draft data to IPFS
    */
-  publishToIPFS = async (draft: any) => {
+  public publishToIPFS = async (draft: any) => {
     const userService = new UserService()
     const systemService = new SystemService()
     const atomService = new AtomService()
@@ -255,7 +255,7 @@ export class ArticleService extends BaseService {
 
   // DEPRECATED, To Be Deleted
   //  moved to IPNS-Listener
-  publishFeedToIPNS = async ({
+  public publishFeedToIPNS = async ({
     userName,
     numArticles = 50,
     incremental = false,
@@ -591,7 +591,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  sendArticleFeedMsgToSQS = async ({
+  public sendArticleFeedMsgToSQS = async ({
     article,
     author,
     ipnsData,
@@ -635,7 +635,7 @@ export class ArticleService extends BaseService {
   /**
    * Archive article
    */
-  archive = async (id: string) => {
+  public archive = async (id: string) => {
     const atomService = new AtomService()
     const targetArticle = await atomService.findFirst({
       table: 'article',
@@ -659,7 +659,7 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user).
    */
-  findByAuthor = async (
+  public findByAuthor = async (
     authorId: string,
     // filter = {},
     {
@@ -742,7 +742,7 @@ export class ArticleService extends BaseService {
   /**
    * Find article by title
    */
-  findByTitle = async ({
+  public findByTitle = async ({
     title,
     oss = false,
     filter,
@@ -767,7 +767,7 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by which commented by author.
    */
-  findByCommentedAuthor = async ({
+  public findByCommentedAuthor = async ({
     id,
     skip,
     take,
@@ -802,7 +802,7 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
 
-  searchByMediaHash = async ({
+  public searchByMediaHash = async ({
     key,
     oss = false,
     filter,
@@ -832,7 +832,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  search = async ({
+  public search = async ({
     key,
     keyOriginal,
     take = 10,
@@ -984,7 +984,7 @@ export class ArticleService extends BaseService {
   /**
    * Boost & Score
    */
-  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+  public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { articleId: id },
       data: { articleId: id, boost, updatedAt: new Date() },
@@ -999,7 +999,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  sumAppreciation = async (articleId: string) => {
+  public sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
       .from('appreciation')
@@ -1018,7 +1018,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's appreciations by a given articleId.
    */
-  countAppreciations = async (articleId: string) => {
+  public countAppreciations = async (articleId: string) => {
     const result = await this.knexRO('appreciation')
       .countDistinct(this.knexRO.raw('(sender_id, reference_id)'))
       .where({
@@ -1032,7 +1032,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async ({
+  public findAppreciations = async ({
     referenceId,
     take,
     skip,
@@ -1064,7 +1064,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  appreciateLeftByUser = async ({
+  public appreciateLeftByUser = async ({
     articleId,
     userId,
   }: {
@@ -1088,7 +1088,7 @@ export class ArticleService extends BaseService {
   /**
    * User appreciate an article
    */
-  appreciate = async ({
+  public appreciate = async ({
     articleId,
     senderId,
     recipientId,
@@ -1153,7 +1153,7 @@ export class ArticleService extends BaseService {
   /**
    * Find tags by a given article id.
    */
-  findTagIds = async ({
+  public findTagIds = async ({
     id: articleId,
   }: {
     id: string
@@ -1175,7 +1175,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async ({
+  public findSubscriptions = async ({
     id: targetId,
     take,
     skip,
@@ -1206,7 +1206,7 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async ({
+  public read = async ({
     userId,
     articleId,
     ip,
@@ -1345,7 +1345,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's connections by a given article id.
    */
-  findConnections = async ({
+  public findConnections = async ({
     entranceId,
     take,
     skip,
@@ -1389,7 +1389,7 @@ export class ArticleService extends BaseService {
    *           Response            *
    *                               *
    *********************************/
-  makeResponseQuery = ({
+  private makeResponseQuery = ({
     id,
     order,
     state,
@@ -1451,7 +1451,7 @@ export class ArticleService extends BaseService {
         .as('sources')
     })
 
-  makeResponseFilterQuery = ({
+  private makeResponseFilterQuery = ({
     id,
     entityId,
     order,
@@ -1474,7 +1474,7 @@ export class ArticleService extends BaseService {
     return query.where({ entityId }).first()
   }
 
-  findResponses = ({
+  public findResponses = ({
     id,
     order = 'desc',
     state = ARTICLE_STATE.active,
@@ -1529,7 +1529,7 @@ export class ArticleService extends BaseService {
     return query
   }
 
-  responseRange = async ({
+  public responseRange = async ({
     id,
     order,
     state,
@@ -1559,7 +1559,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's transactions by a given articleId.
    */
-  countTransactions = async ({
+  public countTransactions = async ({
     purpose = TRANSACTION_PURPOSE.donation,
     state = TRANSACTION_STATE.succeeded,
     targetId,
@@ -1602,7 +1602,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's transactions by a given articleId.
    */
-  findTransactions = async ({
+  public findTransactions = async ({
     take,
     skip,
     purpose = TRANSACTION_PURPOSE.donation,
@@ -1648,7 +1648,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles which also donated by the donator of a given article
    */
-  makeRelatedDonationsQuery = ({
+  private makeRelatedDonationsQuery = ({
     articleId,
     targetTypeId,
     notIn,
@@ -1705,7 +1705,7 @@ export class ArticleService extends BaseService {
       .where({ state: ARTICLE_STATE.active })
   }
 
-  countRelatedDonations = async ({
+  public countRelatedDonations = async ({
     articleId,
     notIn,
   }: {
@@ -1730,7 +1730,7 @@ export class ArticleService extends BaseService {
   /**
    * Find articles which also donated by the donator of a given article
    */
-  findRelatedDonations = async ({
+  public findRelatedDonations = async ({
     articleId,
     notIn,
     take,
@@ -1766,7 +1766,7 @@ export class ArticleService extends BaseService {
    *            Access             *
    *                               *
    *********************************/
-  findArticleCircle = async (articleId: string) =>
+  public findArticleCircle = async (articleId: string) =>
     this.knex
       .select('article_circle.*')
       .from('article_circle')
