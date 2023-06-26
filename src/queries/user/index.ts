@@ -30,7 +30,6 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
-import collections from './collections'
 import commentCount from './commentCount'
 import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
@@ -131,7 +130,6 @@ const user: {
     subscribedCircles,
     maintainedTags,
     pinnedTags,
-    collections,
     tags: tagsUsageRecommendation,
   },
   UserInfo: {

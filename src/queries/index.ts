@@ -2,6 +2,7 @@ import { merge } from 'lodash'
 
 import article from './article'
 import circle from './circle'
+import collection from './collection'
 import comment from './comment'
 import draft from './draft'
 import exchangeRates from './exchangeRates'
@@ -23,5 +24,6 @@ export default merge(
   system,
   response,
   oauthClient,
-  exchangeRates
+  exchangeRates,
+  collection
 )

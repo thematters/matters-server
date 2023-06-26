@@ -2,7 +2,7 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import _ from 'lodash'
+import { isUndefined, omitBy, isString, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -37,7 +37,7 @@ import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
-  root,
+  _,
   { input },
   {
     viewer,
@@ -111,9 +111,9 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check collection
   const collection = collectionGlobalId
-    ? _.uniq(
+    ? uniq(
         collectionGlobalId
-          .filter(_.isString)
+          .filter(isString)
           .map((articleId: string) => fromGlobalId(articleId).id)
       ).filter((articleId) => !!articleId)
     : collectionGlobalId // do not convert null or undefined
@@ -156,7 +156,7 @@ const resolver: MutationToPutDraftResolver = async (
   const resetCover = cover === null
   const resetCircle = circleGlobalId === null
 
-  const data: ItemData = _.omitBy(
+  const data: ItemData = omitBy(
     {
       authorId: id ? undefined : viewer.id,
       title,
@@ -175,7 +175,7 @@ const resolver: MutationToPutDraftResolver = async (
       iscnPublish,
       canComment,
     },
-    _.isUndefined // to drop only undefined // _.isNil
+    isUndefined // to drop only undefined // .isNil
   )
 
   // check for title, summary and content length limit
