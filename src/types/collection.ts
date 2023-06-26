@@ -39,7 +39,7 @@ export default /* GraphQL */ `
   type CollectionConnection implements Connection {
      totalCount: Int!
      pageInfo: PageInfo!
-     edges: [TagEdge!]
+     edges: [CollectionEdge!]
   }
 
   input CollectionArticlesInput {

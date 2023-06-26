@@ -974,7 +974,6 @@ export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
   pinned?: boolean
-  sticky?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -4511,7 +4510,7 @@ export interface GQLCollectionEdge {
 export interface GQLCollectionConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
-  edges?: Array<GQLTagEdge>
+  edges?: Array<GQLCollectionEdge>
 }
 
 export interface GQLCollectionArticlesInput {
