@@ -327,7 +327,7 @@ export class BaseService {
   /**
    * Delete a batch of items by  given ids.
    */
-  public baseBatchDelete = async (ids: string[], table?: TableName) =>
+  protected baseBatchDelete = async (ids: string[], table?: TableName) =>
     this.knex(table || this.table)
       .whereIn('id', ids)
       .del()

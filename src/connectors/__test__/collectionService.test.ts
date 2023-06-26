@@ -55,3 +55,19 @@ test('findAndCountCollectionsByUser', async () => {
   expect(records1.length).toBe(1)
   expect(count1).toBe(2)
 })
+
+test('deleteCollections', async () => {
+  const authorId = '3'
+  const { id } = await collectionService.createCollection({
+    authorId,
+    title: 'test',
+  })
+  const result = await collectionService.deleteCollections([id], '1')
+  expect(result).toBe(false)
+
+  const result2 = await collectionService.deleteCollections([], authorId)
+  expect(result2).toBe(false)
+
+  const result3 = await collectionService.deleteCollections([id], authorId)
+  expect(result3).toBe(true)
+})

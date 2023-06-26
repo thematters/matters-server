@@ -1,3 +1,6 @@
+import { NODE_TYPES } from 'common/enums'
+import { toGlobalId } from 'common/utils'
+
 import { testClient } from './utils'
 
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
@@ -25,6 +28,12 @@ const PUT_COLLECTIONS = /* GraphQL */ `
       description
       cover
     }
+  }
+`
+
+const DEL_COLLECTIONS = /* GraphQL */ `
+  mutation ($input: DeleteCollectionsInput!) {
+    deleteCollections(input: $input)
   }
 `
 
@@ -138,5 +147,58 @@ describe('collections CURD', () => {
       })
       expect(data?.putCollection?.cover).toMatch(/.jpg/)
     })
+  })
+})
+
+describe('delete collections', () => {
+  let id: string
+  beforeAll(async () => {
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'test' } },
+    })
+    id = data?.putCollection?.id
+  })
+  test('not logged in users can not mutate collections', async () => {
+    const server = await testClient()
+    const { errors } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: { input: { ids: [id] } },
+    })
+    expect(errors?.[0]?.message).toBe(
+      '"visitor" isn\'t authorized for "deleteCollections"'
+    )
+  })
+  test('ids is checked', async () => {
+    const server = await testClient({ isAuth: true })
+    const { errors } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: {
+        input: { ids: [toGlobalId({ type: NODE_TYPES.Circle, id: '1' })] },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Invalid collection ids')
+  })
+  test('success', async () => {
+    const server = await testClient({ isAuth: true })
+
+    const { data } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: { input: { ids: [] } },
+    })
+    expect(data?.deleteCollections).toBe(false)
+
+    const { data: data1 } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: { input: { ids: [id] } },
+    })
+    expect(data1?.deleteCollections).toBe(true)
+
+    const { data: data2 } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: { input: { ids: [id] } },
+    })
+    expect(data2?.deleteCollections).toBe(false)
   })
 })

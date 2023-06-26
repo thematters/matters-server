@@ -63,4 +63,18 @@ export class CollectionService extends BaseService {
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     return [records, totalCount]
   }
+
+  public deleteCollections = async (
+    ids: readonly string[],
+    authorId: string
+  ): Promise<boolean> => {
+    if (ids.length === 0) {
+      return false
+    }
+    const result = await this.knex('collection')
+      .whereIn('id', ids)
+      .andWhere('author_id', authorId)
+      .del()
+    return result > 0
+  }
 }

@@ -974,6 +974,7 @@ export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
   pinned?: boolean
+  sticky?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
