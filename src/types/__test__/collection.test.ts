@@ -148,6 +148,73 @@ describe('collections CURD', () => {
       expect(data?.putCollection?.cover).toMatch(/.jpg/)
     })
   })
+  describe('update collection', () => {
+    test('id is checked', async () => {
+      const server = await testClient({ isAuth: true })
+      const { errors } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: { input: { id: 'invalid id', title: 'test' } },
+      })
+      expect(errors?.[0]?.message).toBe('invalid globalId')
+
+      const { errors: errors2 } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
+            title: 'test',
+          },
+        },
+      })
+      expect(errors2?.[0]?.message).toBe('Invalid Collection id')
+
+      const { errors: errors3 } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: {
+          input: {
+            id: toGlobalId({ type: NODE_TYPES.Collection, id: '999' }),
+            title: 'test',
+          },
+        },
+      })
+      expect(errors3?.[0]?.message).toBe('Collection not found')
+
+      // can not update others users' collections
+      const server2 = await testClient({ isAuth: true, isMatty: true })
+      const {
+        data: {
+          putCollection: { id },
+        },
+      } = await server2.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: { input: { title: 'test' } },
+      })
+      const { errors: errors4 } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: { input: { title: 'new title', id } },
+      })
+      expect(errors4?.[0]?.message).toBe('Viewer has no permission')
+    })
+    test('success', async () => {
+      const server = await testClient({ isAuth: true })
+      const {
+        data: {
+          putCollection: { id },
+        },
+      } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: { input: { title: 'test' } },
+      })
+
+      const newTitle = 'new title'
+
+      const { data } = await server.executeOperation({
+        query: PUT_COLLECTIONS,
+        variables: { input: { title: newTitle, id } },
+      })
+      expect(data.putCollection.title).toBe(newTitle)
+    })
+  })
 })
 
 describe('delete collections', () => {

@@ -31,6 +31,10 @@ const resolver: MutationToPutCollectionResolver = async (
     throw new AssetNotFoundError('Asset does not exists')
   }
 
+  if (id && fromGlobalId(id).type !== 'Collection') {
+    throw new UserInputError('Invalid Collection id')
+  }
+
   let coverId
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
@@ -51,6 +55,13 @@ const resolver: MutationToPutCollectionResolver = async (
 
   if (id) {
     const { id: dbId } = fromGlobalId(id)
+    const collection = await collectionService.baseFindById(dbId)
+    if (!collection) {
+      throw new ServerError('Collection not found')
+    }
+    if (collection.authorId !== viewer.id) {
+      throw new ForbiddenError('Viewer has no permission')
+    }
     return await collectionService.updateCollection(dbId, {
       title: trimedTitle,
       description: trimedDescription,
@@ -58,7 +69,7 @@ const resolver: MutationToPutCollectionResolver = async (
     })
   } else {
     if (!trimedTitle) {
-      throw new ServerError('title is required')
+      throw new UserInputError('title is required')
     }
     return await collectionService.createCollection({
       authorId: viewer.id,
