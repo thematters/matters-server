@@ -3328,9 +3328,9 @@ type CollectionConnection implements Connection {
 }
 
 input CollectionArticlesInput {
-  after: Int
-  first: String
-  reversed: Boolean = false
+  after: String
+  first: Int
+  reversed: Boolean
 }
 
 input PutCollectionInput {

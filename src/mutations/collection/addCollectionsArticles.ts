@@ -17,7 +17,7 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
     throw new ForbiddenError('Viewer has no permission')
   }
   if (rawCollections.length + rawArticles.length > 101) {
-    throw new ActionLimitExceededError('Exceed action limit')
+    throw new ActionLimitExceededError('Action limit exceeded')
   }
 
   const collections = [...new Set(rawCollections)]
@@ -43,9 +43,10 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
     }
   }
 
-  // TODO check article if already in collection
+  // TODO check article if already in collection to provide more friendly error message
 
   const articleIds = articles.map((id) => fromGlobalId(id).id)
+
   for (const articleId of articleIds) {
     const article = await articleService.baseFindById(articleId)
     if (!article) {

@@ -71,14 +71,19 @@ export class CollectionService extends BaseService {
     return [records, totalCount]
   }
 
-  public findAndCountArticleInCollection = async (
+  public findAndCountArticlesInCollection = async (
     collectionId: string,
-    { skip, take }: { skip?: number; take?: number }
+    {
+      skip,
+      take,
+      reversed = true,
+    }: { skip?: number; take?: number; reversed?: boolean }
   ): Promise<[CollectionAricle[], number]> => {
+    // filter by article status
     const records = await this.baseFind({
       table: 'collection_article',
       where: { collectionId },
-      orderBy: [{ column: 'order', order: 'desc' }],
+      orderBy: [{ column: 'order', order: reversed ? 'desc' : 'asc' }],
       skip,
       take,
       returnTotalCount: true,

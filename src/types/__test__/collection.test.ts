@@ -36,6 +36,22 @@ const DEL_COLLECTIONS = /* GraphQL */ `
     deleteCollections(input: $input)
   }
 `
+const ADD_COLLECTIONS_ARTICLES = /* GraphQL */ `
+  mutation ($input: AddCollectionsArticlesInput!) {
+    addCollectionsArticles(input: $input) {
+      id
+      title
+      articles(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`
 
 describe('get viewer collections', () => {
   test('not logged in user', async () => {
@@ -267,5 +283,166 @@ describe('delete collections', () => {
       variables: { input: { ids: [id] } },
     })
     expect(data2?.deleteCollections).toBe(false)
+  })
+})
+
+describe('add articles to collections', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
+  let collectionId1: string
+  let collectionId2: string
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'collection 1' } },
+    })
+    collectionId1 = data?.putCollection?.id
+    const { data: data2 } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'collection 2' } },
+    })
+    collectionId2 = data2?.putCollection?.id
+  })
+  test('not logged in users can not mutate collections', async () => {
+    const visitorServer = await testClient()
+    const { errors } = await visitorServer.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe(
+      '"visitor" isn\'t authorized for "addCollectionsArticles"'
+    )
+  })
+  test('collections is checked', async () => {
+    const { errors } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [toGlobalId({ type: NODE_TYPES.Circle, id: '1' })],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Invalid Collection ids')
+  })
+  test('articles is checked', async () => {
+    const { errors } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1],
+          articles: [toGlobalId({ type: NODE_TYPES.Circle, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Invalid Article ids')
+  })
+  test('action limit', async () => {
+    const { errors } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: Array(200).fill(collectionId1),
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Action limit exceeded')
+  })
+  test('can not add others articles', async () => {
+    const { errors } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '2' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Viewer has no permission')
+  })
+  test('can not add to others collections', async () => {
+    // get others collection
+    const server2 = await testClient({ isAuth: true, isMatty: true })
+    const {
+      data: {
+        putCollection: { id: othersCollectionId },
+      },
+    } = await server2.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'test' } },
+    })
+
+    const { errors } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [othersCollectionId],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Viewer has no permission')
+  })
+  test('collections can be empty', async () => {
+    const { data } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(data?.addCollectionsArticles).toEqual([])
+  })
+  test('articles can be empty', async () => {
+    const { data } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1, collectionId2],
+          articles: [],
+        },
+      },
+    })
+    expect(data?.addCollectionsArticles[0].id).toBe(collectionId1)
+    expect(data?.addCollectionsArticles[1].id).toBe(collectionId2)
+    expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(0)
+  })
+  test.only('success', async () => {
+    const { data } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(1)
+    expect(data?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: '1' })
+    )
+
+    const { data: data2 } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId1],
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '4' })],
+        },
+      },
+    })
+    expect(data2?.addCollectionsArticles[0].articles.totalCount).toBe(2)
+    expect(data2?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: '4' })
+    )
   })
 })

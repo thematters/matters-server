@@ -86,7 +86,9 @@ test('findByIds', async () => {
   })
   const res2 = await collectionService.findByIds([id1, id2])
   expect(res2.length).toBe(2)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expect((res2[0] as any).id).toBe(id1)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expect((res2[1] as any).id).toBe(id2)
 })
 
@@ -106,7 +108,7 @@ test('addArticles', async () => {
   // insert different articles
   await collectionService.addArticles(collectionId, ['3', '4'])
 
-  const res = await collectionService.findAndCountArticleInCollection(
+  const res = await collectionService.findAndCountArticlesInCollection(
     collectionId,
     { skip: 0, take: 4 }
   )

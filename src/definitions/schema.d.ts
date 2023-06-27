@@ -973,8 +973,8 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
-  sticky?: boolean
   pinned?: boolean
+  sticky?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -4515,8 +4515,8 @@ export interface GQLCollectionConnection extends GQLConnection {
 }
 
 export interface GQLCollectionArticlesInput {
-  after?: number
-  first?: string
+  after?: string
+  first?: number
   reversed?: boolean
 }
 
