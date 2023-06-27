@@ -23,7 +23,17 @@ const resolver: MutationToDeleteCollectionsResolver = async (
 
   const collectionIds = unpacked.map((d) => d.id)
 
-  return await collectionService.deleteCollections(collectionIds, viewer.id)
+  try {
+    return await collectionService.deleteCollections(collectionIds, viewer.id)
+  } catch (e: any) {
+    if (e.message === 'Collection not found') {
+      throw new UserInputError('Collection not found')
+    }
+    if (e.message === 'Author id not match') {
+      throw new ForbiddenError('Viewer has no permission')
+    }
+    throw e
+  }
 }
 
 export default resolver

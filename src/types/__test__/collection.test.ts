@@ -52,6 +52,22 @@ const ADD_COLLECTIONS_ARTICLES = /* GraphQL */ `
     }
   }
 `
+const DEL_COLLECTION_ARTICLES = /* GraphQL */ `
+  mutation ($input: DeleteCollectionArticlesInput!) {
+    deleteCollectionArticles(input: $input) {
+      id
+      title
+      articles(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`
 
 describe('get viewer collections', () => {
   test('not logged in user', async () => {
@@ -234,18 +250,27 @@ describe('collections CURD', () => {
 })
 
 describe('delete collections', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
   let id: string
+  let othersId: string
   beforeAll(async () => {
-    const server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTIONS,
       variables: { input: { title: 'test' } },
     })
     id = data?.putCollection?.id
+    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const { data: data2 } = await othersServer.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'test' } },
+    })
+    othersId = data2?.putCollection?.id
   })
   test('not logged in users can not mutate collections', async () => {
-    const server = await testClient()
-    const { errors } = await server.executeOperation({
+    const server2 = await testClient()
+    const { errors } = await server2.executeOperation({
       query: DEL_COLLECTIONS,
       variables: { input: { ids: [id] } },
     })
@@ -254,7 +279,6 @@ describe('delete collections', () => {
     )
   })
   test('ids is checked', async () => {
-    const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({
       query: DEL_COLLECTIONS,
       variables: {
@@ -263,9 +287,14 @@ describe('delete collections', () => {
     })
     expect(errors?.[0]?.message).toBe('Invalid collection ids')
   })
+  test('can not delete others users collections', async () => {
+    const { errors } = await server.executeOperation({
+      query: DEL_COLLECTIONS,
+      variables: { input: { ids: [othersId] } },
+    })
+    expect(errors?.[0]?.message).toBe('Viewer has no permission')
+  })
   test('success', async () => {
-    const server = await testClient({ isAuth: true })
-
     const { data } = await server.executeOperation({
       query: DEL_COLLECTIONS,
       variables: { input: { ids: [] } },
@@ -278,11 +307,11 @@ describe('delete collections', () => {
     })
     expect(data1?.deleteCollections).toBe(true)
 
-    const { data: data2 } = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: DEL_COLLECTIONS,
       variables: { input: { ids: [id] } },
     })
-    expect(data2?.deleteCollections).toBe(false)
+    expect(errors?.[0]?.message).toBe('Collection not found')
   })
 })
 
@@ -442,6 +471,93 @@ describe('add articles to collections', () => {
     })
     expect(data2?.addCollectionsArticles[0].articles.totalCount).toBe(2)
     expect(data2?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: '4' })
+    )
+  })
+})
+
+describe('delete articles in collections', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
+  let collectionId: string
+  let othersCollectionId: string
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'my collection' } },
+    })
+    collectionId = data?.putCollection?.id
+    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const { data: data2 } = await othersServer.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'others collection' } },
+    })
+    othersCollectionId = data2?.putCollection?.id
+  })
+  test('not logged in users can not mutate collections', async () => {
+    const visitorServer = await testClient()
+    const { errors } = await visitorServer.executeOperation({
+      query: DEL_COLLECTION_ARTICLES,
+      variables: {
+        input: {
+          collection: collectionId,
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe(
+      '"visitor" isn\'t authorized for "deleteCollectionArticles"'
+    )
+  })
+  test('collections is checked', async () => {
+    const { errors } = await server.executeOperation({
+      query: DEL_COLLECTION_ARTICLES,
+      variables: {
+        input: {
+          collection: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Invalid Collection id')
+    const { errors: errors2 } = await server.executeOperation({
+      query: DEL_COLLECTION_ARTICLES,
+      variables: {
+        input: {
+          collection: othersCollectionId,
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(errors2?.[0]?.message).toBe('Viewer has no permission')
+  })
+  test('success', async () => {
+    const { data } = await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [
+            toGlobalId({ type: NODE_TYPES.Article, id: '1' }),
+            toGlobalId({ type: NODE_TYPES.Article, id: '4' }),
+          ],
+        },
+      },
+    })
+    expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(2)
+
+    const { data: delData } = await server.executeOperation({
+      query: DEL_COLLECTION_ARTICLES,
+      variables: {
+        input: {
+          collection: collectionId,
+          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+        },
+      },
+    })
+    expect(delData?.deleteCollectionArticles.articles.totalCount).toBe(1)
+    expect(delData?.deleteCollectionArticles.articles.edges[0].node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: '4' })
     )
   })

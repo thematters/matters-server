@@ -107,6 +107,20 @@ export class CollectionService extends BaseService {
     if (ids.length === 0) {
       return false
     }
+    const collections = await this.findByIds(ids)
+
+    for (const collection of collections) {
+      if (!collection) {
+        throw new Error('Collection not found')
+      }
+      if (collection instanceof Error) {
+        throw new Error('Load collection error')
+      }
+      if (collection.authorId !== authorId) {
+        throw new Error('Author id not match')
+      }
+    }
+
     await this.knex('collection_article').whereIn('collection_id', ids).del()
     const result = await this.knex('collection')
       .whereIn('id', ids)
@@ -114,6 +128,17 @@ export class CollectionService extends BaseService {
       .del()
     return result > 0
   }
+
+  public deleteCollectionArticles = async (
+    collectionId: string,
+    articleIds: readonly string[]
+  ) =>
+    await this.knex('collection_article')
+      .where('collection_id', collectionId)
+      .whereIn('article_id', articleIds)
+      .del()
+
+  public findById = async (id: string) => await this.dataloader.load(id)
 
   public findByIds = async (ids: readonly string[]) =>
     await this.dataloader.loadMany(ids)

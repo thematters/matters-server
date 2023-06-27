@@ -62,14 +62,15 @@ test('deleteCollections', async () => {
     authorId,
     title: 'test',
   })
-  const result = await collectionService.deleteCollections([id], '1')
+  expect(collectionService.deleteCollections([id], '1')).rejects.toThrow(
+    'Author id not match'
+  )
+
+  const result = await collectionService.deleteCollections([], authorId)
   expect(result).toBe(false)
 
-  const result2 = await collectionService.deleteCollections([], authorId)
-  expect(result2).toBe(false)
-
-  const result3 = await collectionService.deleteCollections([id], authorId)
-  expect(result3).toBe(true)
+  const result2 = await collectionService.deleteCollections([id], authorId)
+  expect(result2).toBe(true)
 
   // delete collection with articles
   const { id: id1 } = await collectionService.createCollection({
@@ -77,8 +78,23 @@ test('deleteCollections', async () => {
     title: 'test',
   })
   await collectionService.addArticles(id1, ['1', '2'])
-  const result4 = await collectionService.deleteCollections([id1], authorId)
-  expect(result4).toBe(true)
+  const result3 = await collectionService.deleteCollections([id1], authorId)
+  expect(result3).toBe(true)
+})
+
+test('deleteCollectionArticles', async () => {
+  const { id: collectionId } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  await collectionService.addArticles(collectionId, ['1', '2'])
+  await collectionService.deleteCollectionArticles(collectionId, ['1'])
+  const res = await collectionService.findAndCountArticlesInCollection(
+    collectionId,
+    { skip: 0, take: 10 }
+  )
+  expect(res[1]).toBe(1)
+  expect(res[0][0].articleId).toBe('2')
 })
 
 test('findByIds', async () => {
