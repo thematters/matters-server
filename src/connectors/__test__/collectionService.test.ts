@@ -62,7 +62,7 @@ test('deleteCollections', async () => {
     authorId,
     title: 'test',
   })
-  expect(collectionService.deleteCollections([id], '1')).rejects.toThrow(
+  await expect(collectionService.deleteCollections([id], '1')).rejects.toThrow(
     'Author id not match'
   )
 
@@ -140,7 +140,7 @@ test('addArticles', async () => {
   await collectionService.addArticles(collectionId, ['1', '2'])
 
   // insert same articles again
-  expect(async () =>
+  await expect(
     collectionService.addArticles(collectionId, ['1', '2'])
   ).rejects.toThrow(/violates unique constraint/)
 
@@ -158,4 +158,108 @@ test('addArticles', async () => {
   expect(res[0][1].articleId).toBe('3')
   expect(res[0][2].articleId).toBe('2')
   expect(res[0][3].articleId).toBe('1')
+})
+
+describe('reorderArticles', () => {
+  let collectionId: string
+  beforeEach(async () => {
+    const { id } = await collectionService.createCollection({
+      authorId: '1',
+      title: 'test',
+    })
+    collectionId = id
+    await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
+  })
+  test('invalid article ids will throw', async () => {
+    await expect(
+      collectionService.reorderArticles(collectionId, [
+        { articleId: '5', newPosition: 2 },
+      ])
+    ).rejects.toThrow(/Invalid articleId/)
+  })
+  test('invalid newPosition will throw', async () => {
+    await expect(
+      collectionService.reorderArticles(collectionId, [
+        { articleId: '1', newPosition: -1 },
+      ])
+    ).rejects.toThrow(/Invalid newPosition/)
+    await expect(
+      collectionService.reorderArticles(collectionId, [
+        { articleId: '2', newPosition: 4 },
+      ])
+    ).rejects.toThrow(/Invalid newPosition/)
+  })
+  test('do nothing when move to same position', async () => {
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '4', newPosition: 0 },
+    ])
+    const [records, _] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip: 0,
+        take: 4,
+      })
+    expect(records[0].articleId).toBe('4')
+    expect(records[1].articleId).toBe('3')
+    expect(records[2].articleId).toBe('2')
+    expect(records[3].articleId).toBe('1')
+  })
+  test('move to first position', async () => {
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '2', newPosition: 0 },
+    ])
+    const [records, _] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip: 0,
+        take: 4,
+      })
+    expect(records[0].articleId).toBe('2')
+    expect(records[1].articleId).toBe('4')
+    expect(records[2].articleId).toBe('3')
+    expect(records[3].articleId).toBe('1')
+  })
+  test('move to last position', async () => {
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '3', newPosition: 3 },
+    ])
+    const [records, _] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip: 0,
+        take: 4,
+      })
+    expect(records[0].articleId).toBe('4')
+    expect(records[1].articleId).toBe('2')
+    expect(records[2].articleId).toBe('1')
+    expect(records[3].articleId).toBe('3')
+  })
+  test('move to middle position', async () => {
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '3', newPosition: 2 },
+    ])
+    const [records, _] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip: 0,
+        take: 4,
+      })
+    expect(records[0].articleId).toBe('4')
+    expect(records[1].articleId).toBe('2')
+    expect(records[2].articleId).toBe('3')
+    expect(records[3].articleId).toBe('1')
+  })
+  test.only('move multiple articles', async () => {
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '1', newPosition: 0 },
+      { articleId: '4', newPosition: 3 - 1 },
+      { articleId: '2', newPosition: 4 - 1 },
+      { articleId: '1', newPosition: 3 - 1 },
+    ])
+    const [records, _] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip: 0,
+        take: 4,
+      })
+    expect(records[0].articleId).toBe('3')
+    expect(records[1].articleId).toBe('4')
+    expect(records[2].articleId).toBe('1')
+    expect(records[3].articleId).toBe('2')
+  })
 })

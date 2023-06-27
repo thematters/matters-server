@@ -8,7 +8,7 @@ import { MutationToDeleteCollectionArticlesResolver } from 'definitions'
 
 const resolver: MutationToDeleteCollectionArticlesResolver = async (
   _,
-  { input: { collection, articles } },
+  { input: { collection: globalId, articles } },
   { dataSources: { collectionService }, viewer }
 ) => {
   if (!viewer.id) {
@@ -18,7 +18,7 @@ const resolver: MutationToDeleteCollectionArticlesResolver = async (
   if (articles.length > 100) {
     throw new ActionLimitExceededError('Action limit exceeded')
   }
-  const { id: collectionId, type: collectionType } = fromGlobalId(collection)
+  const { id: collectionId, type: collectionType } = fromGlobalId(globalId)
   if (collectionType !== 'Collection') {
     throw new UserInputError('Invalid Collection id')
   }
@@ -27,24 +27,24 @@ const resolver: MutationToDeleteCollectionArticlesResolver = async (
     throw new UserInputError('Invalid Article ids')
   }
 
-  const collectionInDB = await collectionService.findById(collectionId)
+  const collection = await collectionService.findById(collectionId)
 
-  if (!collectionInDB) {
+  if (!collection) {
     throw new UserInputError('Collection not found')
   }
-  if (collectionInDB.authorId !== viewer.id) {
+  if (collection.authorId !== viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
   }
 
   if (articles.length === 0) {
-    return collectionInDB
+    return collection
   }
 
   await collectionService.deleteCollectionArticles(
     collectionId,
     articles.map((id) => fromGlobalId(id).id)
   )
-  return collectionInDB
+  return collection
 }
 
 export default resolver

@@ -18,6 +18,7 @@ interface Collection {
 interface CollectionArticle {
   articleId: string
   draftId: string
+  order: string
 }
 
 export class CollectionService extends BaseService {
@@ -83,6 +84,7 @@ export class CollectionService extends BaseService {
       .select(
         'article_id',
         'draft_id',
+        'order',
         this.knex.raw('count(1) OVER() AS total_count')
       )
       .innerJoin('article', 'article.id', 'article_id')
@@ -158,5 +160,69 @@ export class CollectionService extends BaseService {
         order: initOrder + index,
       }))
     )
+  }
+
+  public reorderArticles = async (
+    collectionId: string,
+    moves: Array<{ articleId: string; newPosition: number }>
+  ) => {
+    const [collectionArticles, count] =
+      await this.findAndCountArticlesInCollection(collectionId, {})
+
+    if (
+      moves.some(({ newPosition }) => newPosition < 0 || newPosition >= count)
+    ) {
+      throw new Error('Invalid newPosition')
+    }
+
+    const articleIds = collectionArticles.map(({ articleId }) => articleId)
+    if (moves.some(({ articleId }) => !articleIds.includes(articleId))) {
+      throw new Error('Invalid articleId')
+    }
+
+    for (const { articleId, newPosition } of moves) {
+      if (
+        newPosition ===
+        collectionArticles.findIndex(({ articleId: id }) => id === articleId)
+      ) {
+        continue
+      } else if (newPosition === 0) {
+        const order = parseFloat(collectionArticles[0].order) + 1
+        await this.knex('collection_article')
+          .update({ order })
+          .where({ articleId, collectionId })
+        const [article] = collectionArticles.splice(
+          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          1
+        )
+        collectionArticles.unshift({ ...article, order: order.toString() })
+      } else if (newPosition === count - 1) {
+        const lastOrder = parseFloat(collectionArticles[count - 1].order)
+        const order = lastOrder / 2
+        await this.knex('collection_article')
+          .update({ order })
+          .where({ articleId, collectionId })
+        const [article] = collectionArticles.splice(
+          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          1
+        )
+        collectionArticles.push({ ...article, order: order.toString() })
+      } else {
+        const prevOrder = parseFloat(collectionArticles[newPosition].order)
+        const nextOrder = parseFloat(collectionArticles[newPosition + 1].order)
+        const order = (prevOrder + nextOrder) / 2
+        await this.knex('collection_article')
+          .update({ order })
+          .where({ articleId, collectionId })
+        const [article] = collectionArticles.splice(
+          collectionArticles.findIndex(({ articleId: id }) => id === articleId),
+          1
+        )
+        collectionArticles.splice(newPosition, 0, {
+          ...article,
+          order: order.toString(),
+        })
+      }
+    }
   }
 }

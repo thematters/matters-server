@@ -70,7 +70,7 @@ export default /* GraphQL */ `
 
   input ReorderMoveInput {
     item: ID!
-    "The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list."
+    "The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list - 1."
     newPosition: Int!
   }
 
