@@ -1,3 +1,4 @@
+import { ARTICLE_STATE } from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
@@ -49,7 +50,7 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
 
   for (const articleId of articleIds) {
     const article = await articleService.baseFindById(articleId)
-    if (!article) {
+    if (!article || article.state !== ARTICLE_STATE.active) {
       throw new ArticleNotFoundError('Article not found')
     }
     if (article.authorId !== viewer.id) {

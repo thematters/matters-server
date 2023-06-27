@@ -1,5 +1,7 @@
 import DataLoader from 'dataloader'
+import { Knex } from 'knex'
 
+import { ARTICLE_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
@@ -13,11 +15,9 @@ interface Collection {
   cover?: string
 }
 
-interface CollectionAricle {
-  id: string
-  collectionId: string
+interface CollectionArticle {
   articleId: string
-  order: string
+  draftId: string
 }
 
 export class CollectionService extends BaseService {
@@ -78,16 +78,24 @@ export class CollectionService extends BaseService {
       take,
       reversed = true,
     }: { skip?: number; take?: number; reversed?: boolean }
-  ): Promise<[CollectionAricle[], number]> => {
-    // filter by article status
-    const records = await this.baseFind({
-      table: 'collection_article',
-      where: { collectionId },
-      orderBy: [{ column: 'order', order: reversed ? 'desc' : 'asc' }],
-      skip,
-      take,
-      returnTotalCount: true,
-    })
+  ): Promise<[CollectionArticle[], number]> => {
+    const records = await this.knex('collection_article')
+      .select(
+        'article_id',
+        'draft_id',
+        this.knex.raw('count(1) OVER() AS total_count')
+      )
+      .innerJoin('article', 'article.id', 'article_id')
+      .where({ collectionId, state: ARTICLE_STATE.active })
+      .orderBy('order', reversed ? 'desc' : 'asc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     return [records, totalCount]
   }

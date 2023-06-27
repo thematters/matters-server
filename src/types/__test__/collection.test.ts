@@ -416,7 +416,7 @@ describe('add articles to collections', () => {
     expect(data?.addCollectionsArticles[1].id).toBe(collectionId2)
     expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(0)
   })
-  test.only('success', async () => {
+  test('success', async () => {
     const { data } = await server.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
