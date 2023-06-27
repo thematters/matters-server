@@ -95,6 +95,20 @@ test('deleteCollectionArticles', async () => {
   )
   expect(res[1]).toBe(1)
   expect(res[0][0].articleId).toBe('2')
+
+  // will not delete other collection's articles
+  const { id: collectionId2 } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'other collection',
+  })
+  await collectionService.addArticles(collectionId2, ['3'])
+  await collectionService.deleteCollectionArticles(collectionId, ['3'])
+  const res2 = await collectionService.findAndCountArticlesInCollection(
+    collectionId2,
+    { skip: 0, take: 10 }
+  )
+  expect(res2[1]).toBe(1)
+  expect(res2[0][0].articleId).toBe('3')
 })
 
 test('findByIds', async () => {
