@@ -60,12 +60,12 @@ export default /* GraphQL */ `
   }
 
   input AddCollectionsArticlesInput {
-    collections: [ID!]
-    articles: [ID!]
+    collections: [ID!]!
+    articles: [ID!]!
   }
   input  DeleteCollectionArticlesInput {
     collection: ID!
-    articles: [ID!]
+    articles: [ID!]!
   }
 
   input ReorderMoveInput {

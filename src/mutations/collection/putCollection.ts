@@ -4,7 +4,7 @@ import { validate as validateUUID } from 'uuid'
 import { ASSET_TYPE } from 'common/enums'
 import {
   ForbiddenError,
-  ServerError,
+  EntityNotFoundError,
   UserInputError,
   AssetNotFoundError,
 } from 'common/errors'
@@ -57,7 +57,7 @@ const resolver: MutationToPutCollectionResolver = async (
     const { id: dbId } = fromGlobalId(id)
     const collection = await collectionService.baseFindById(dbId)
     if (!collection) {
-      throw new ServerError('Collection not found')
+      throw new EntityNotFoundError('Collection not found')
     }
     if (collection.authorId !== viewer.id) {
       throw new ForbiddenError('Viewer has no permission')

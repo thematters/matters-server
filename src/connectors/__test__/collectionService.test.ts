@@ -71,3 +71,50 @@ test('deleteCollections', async () => {
   const result3 = await collectionService.deleteCollections([id], authorId)
   expect(result3).toBe(true)
 })
+
+test('findByIds', async () => {
+  const res = await collectionService.findByIds([])
+  expect(res.length).toBe(0)
+
+  const { id: id1 } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  const { id: id2 } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  const res2 = await collectionService.findByIds([id1, id2])
+  expect(res2.length).toBe(2)
+  expect((res2[0] as any).id).toBe(id1)
+  expect((res2[1] as any).id).toBe(id2)
+})
+
+test('addArticles', async () => {
+  const { id: collectionId } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  // insert articles first time
+  await collectionService.addArticles(collectionId, ['1', '2'])
+
+  // insert same articles again
+  expect(async () =>
+    collectionService.addArticles(collectionId, ['1', '2'])
+  ).rejects.toThrow(/violates unique constraint/)
+
+  // insert different articles
+  await collectionService.addArticles(collectionId, ['3', '4'])
+
+  const res = await collectionService.findAndCountArticleInCollection(
+    collectionId,
+    { skip: 0, take: 4 }
+  )
+
+  expect(res[1]).toBe(4)
+  // order by insert time desc
+  expect(res[0][0].articleId).toBe('4')
+  expect(res[0][1].articleId).toBe('3')
+  expect(res[0][2].articleId).toBe('2')
+  expect(res[0][3].articleId).toBe('1')
+})

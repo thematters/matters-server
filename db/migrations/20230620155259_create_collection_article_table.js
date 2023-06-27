@@ -8,7 +8,7 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('collection_id').unsigned().notNullable()
     t.bigInteger('article_id').unsigned().notNullable()
-    t.decimal('order').notNullable()
+    t.decimal('order', 50, 45).notNullable()
 
     t.unique(['collection_id', 'article_id'])
 

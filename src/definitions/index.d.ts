@@ -180,6 +180,7 @@ export type BasicTableName =
   | 'blockchain_curation_event'
   | 'blockchain_sync_record'
   | 'collection'
+  | 'collection_article'
 
 export type View =
   | 'tag_count_view'

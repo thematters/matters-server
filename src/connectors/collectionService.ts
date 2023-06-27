@@ -13,6 +13,13 @@ interface Collection {
   cover?: string
 }
 
+interface CollectionAricle {
+  id: string
+  collectionId: string
+  articleId: string
+  order: string
+}
+
 export class CollectionService extends BaseService {
   public constructor() {
     super('collection')
@@ -64,6 +71,22 @@ export class CollectionService extends BaseService {
     return [records, totalCount]
   }
 
+  public findAndCountArticleInCollection = async (
+    collectionId: string,
+    { skip, take }: { skip?: number; take?: number }
+  ): Promise<[CollectionAricle[], number]> => {
+    const records = await this.baseFind({
+      table: 'collection_article',
+      where: { collectionId },
+      orderBy: [{ column: 'order', order: 'desc' }],
+      skip,
+      take,
+      returnTotalCount: true,
+    })
+    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    return [records, totalCount]
+  }
+
   public deleteCollections = async (
     ids: readonly string[],
     authorId: string
@@ -76,5 +99,25 @@ export class CollectionService extends BaseService {
       .andWhere('author_id', authorId)
       .del()
     return result > 0
+  }
+
+  public findByIds = async (ids: readonly string[]) =>
+    await this.dataloader.loadMany(ids)
+
+  public addArticles = async (
+    collectionId: string,
+    articleIds: readonly string[]
+  ) => {
+    const res = await this.knex('collection_article')
+      .where('collection_id', collectionId)
+      .max('order')
+    const initOrder = res[0].max ? parseFloat(res[0].max) + 1 : 1
+    await this.knex('collection_article').insert(
+      articleIds.map((articleId, index) => ({
+        articleId,
+        collectionId,
+        order: initOrder + index,
+      }))
+    )
   }
 }

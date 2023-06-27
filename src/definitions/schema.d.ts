@@ -973,8 +973,8 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
-  pinned?: boolean
   sticky?: boolean
+  pinned?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -4532,13 +4532,13 @@ export interface GQLDeleteCollectionsInput {
 }
 
 export interface GQLAddCollectionsArticlesInput {
-  collections?: Array<string>
-  articles?: Array<string>
+  collections: Array<string>
+  articles: Array<string>
 }
 
 export interface GQLDeleteCollectionArticlesInput {
   collection: string
-  articles?: Array<string>
+  articles: Array<string>
 }
 
 export interface GQLReorderMoveInput {
