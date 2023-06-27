@@ -107,6 +107,7 @@ export class CollectionService extends BaseService {
     if (ids.length === 0) {
       return false
     }
+    await this.knex('collection_article').whereIn('collection_id', ids).del()
     const result = await this.knex('collection')
       .whereIn('id', ids)
       .andWhere('author_id', authorId)

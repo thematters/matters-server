@@ -70,6 +70,15 @@ test('deleteCollections', async () => {
 
   const result3 = await collectionService.deleteCollections([id], authorId)
   expect(result3).toBe(true)
+
+  // delete collection with articles
+  const { id: id1 } = await collectionService.createCollection({
+    authorId,
+    title: 'test',
+  })
+  await collectionService.addArticles(id1, ['1', '2'])
+  const result4 = await collectionService.deleteCollections([id1], authorId)
+  expect(result4).toBe(true)
 })
 
 test('findByIds', async () => {
