@@ -245,7 +245,7 @@ describe('reorderArticles', () => {
     expect(records[2].articleId).toBe('3')
     expect(records[3].articleId).toBe('1')
   })
-  test.only('move multiple articles', async () => {
+  test('move multiple articles', async () => {
     await collectionService.reorderArticles(collectionId, [
       { articleId: '1', newPosition: 0 },
       { articleId: '4', newPosition: 3 - 1 },

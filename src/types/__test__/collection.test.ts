@@ -3,6 +3,9 @@ import { toGlobalId } from 'common/utils'
 
 import { testClient } from './utils'
 
+const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   query {
     viewer {
@@ -55,6 +58,23 @@ const ADD_COLLECTIONS_ARTICLES = /* GraphQL */ `
 const DEL_COLLECTION_ARTICLES = /* GraphQL */ `
   mutation ($input: DeleteCollectionArticlesInput!) {
     deleteCollectionArticles(input: $input) {
+      id
+      title
+      articles(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`
+
+const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
+  mutation ($input: ReorderCollectionArticlesInput!) {
+    reorderCollectionArticles(input: $input) {
       id
       title
       articles(input: { first: null }) {
@@ -340,7 +360,7 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [collectionId1],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -354,7 +374,7 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [toGlobalId({ type: NODE_TYPES.Circle, id: '1' })],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -378,7 +398,7 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: Array(200).fill(collectionId1),
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -413,7 +433,7 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [othersCollectionId],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -425,7 +445,7 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -451,13 +471,13 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [collectionId1],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
     expect(data?.addCollectionsArticles[0].articles.totalCount).toBe(1)
     expect(data?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: '1' })
+      articleGlobalId1
     )
 
     const { data: data2 } = await server.executeOperation({
@@ -465,13 +485,13 @@ describe('add articles to collections', () => {
       variables: {
         input: {
           collections: [collectionId1],
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '4' })],
+          articles: [articleGlobalId4],
         },
       },
     })
     expect(data2?.addCollectionsArticles[0].articles.totalCount).toBe(2)
     expect(data2?.addCollectionsArticles[0].articles.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: '4' })
+      articleGlobalId4
     )
   })
 })
@@ -502,7 +522,7 @@ describe('delete articles in collections', () => {
       variables: {
         input: {
           collection: collectionId,
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -516,7 +536,7 @@ describe('delete articles in collections', () => {
       variables: {
         input: {
           collection: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -526,7 +546,7 @@ describe('delete articles in collections', () => {
       variables: {
         input: {
           collection: othersCollectionId,
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
@@ -538,10 +558,7 @@ describe('delete articles in collections', () => {
       variables: {
         input: {
           collections: [collectionId],
-          articles: [
-            toGlobalId({ type: NODE_TYPES.Article, id: '1' }),
-            toGlobalId({ type: NODE_TYPES.Article, id: '4' }),
-          ],
+          articles: [articleGlobalId1, articleGlobalId4],
         },
       },
     })
@@ -552,13 +569,50 @@ describe('delete articles in collections', () => {
       variables: {
         input: {
           collection: collectionId,
-          articles: [toGlobalId({ type: NODE_TYPES.Article, id: '1' })],
+          articles: [articleGlobalId1],
         },
       },
     })
     expect(delData?.deleteCollectionArticles.articles.totalCount).toBe(1)
     expect(delData?.deleteCollectionArticles.articles.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: '4' })
+      articleGlobalId4
+    )
+  })
+})
+
+describe('reorder articles in collections', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
+  let collectionId: string
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title: 'my collection' } },
+    })
+    collectionId = data?.putCollection?.id
+    await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [articleGlobalId1, articleGlobalId4],
+        },
+      },
+    })
+  })
+  test('success', async () => {
+    const { data } = await server.executeOperation({
+      query: REORDER_COLLECTION_ARTICLES,
+      variables: {
+        input: {
+          collection: collectionId,
+          moves: { item: articleGlobalId1, newPosition: 0 },
+        },
+      },
+    })
+    expect(data?.reorderCollectionArticles.articles.edges[0].node.id).toBe(
+      articleGlobalId1
     )
   })
 })
