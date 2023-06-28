@@ -17,7 +17,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/db/afterEnvTestSetup.js'],
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  workerIdleMemoryLimit: '1GB',
+  workerIdleMemoryLimit: '2GB',
   globals: {
     'ts-jest': {
       diagnostics: false,
