@@ -22,6 +22,7 @@ import {
   GQLUserStatusTypeResolver,
   GQLUserTypeResolver,
   GQLWalletTypeResolver,
+  GQLCollectionTypeResolver,
 } from 'definitions'
 
 import UserAnalytics from './analytics'
@@ -30,6 +31,8 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import Collection from './collection'
+import collections from './collections'
 import commentCount from './commentCount'
 import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
@@ -98,6 +101,7 @@ const user: {
   StripeAccount: GQLStripeAccountTypeResolver
 
   CryptoWallet: GQLCryptoWalletTypeResolver
+  Collection: GQLCollectionTypeResolver
 } = {
   Query: {
     viewer: (_, __, { viewer }) => viewer,
@@ -120,6 +124,7 @@ const user: {
     oss: (root) => root,
     // hasFollowed,
     subscriptions,
+    collections,
     followers,
     isFollower,
     isFollowee,
@@ -198,6 +203,8 @@ const user: {
     hasNFTs,
     nfts,
   },
+
+  Collection,
 }
 
 export default user
