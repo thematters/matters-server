@@ -554,8 +554,6 @@ describe('manage user restrictions', () => {
       query: QUERY_RESTRICTED_USERS,
       variables: { input: {} },
     })
-    console.log('debugdata2')
-    console.dir(data2.oss.restrictedUsers.edges, { depth: null })
     expect(data2!.oss.restrictedUsers.totalCount).toBe(0)
   })
   test('only admin can update restrictions', async () => {

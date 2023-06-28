@@ -54,14 +54,6 @@ exports.seed = function (knex, Promise) {
           content: '<div>some html string</div>',
           publish_state: 'published',
         },
-        {
-          uuid: '00000000-0000-0000-0000-000000000007',
-          author_id: 1,
-          title: 'test draft 7',
-          summary: 'Some text of sumamry',
-          content: '<div>some html string</div>',
-          publish_state: 'published',
-        },
       ])
     })
 }

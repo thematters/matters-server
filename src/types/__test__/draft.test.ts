@@ -123,8 +123,8 @@ describe('put draft', () => {
       toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 5 }),
-      toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 6 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
     ]
 
     // create draft setting collection out of limit
