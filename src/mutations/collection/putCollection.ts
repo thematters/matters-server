@@ -1,4 +1,3 @@
-import trim from 'lodash/trim'
 import { validate as validateUUID } from 'uuid'
 
 import {
@@ -55,8 +54,8 @@ const resolver: MutationToPutCollectionResolver = async (
     coverId = asset.id
   }
 
-  const trimedTitle = title ? trim(title) : title
-  const trimedDescription = description ? trim(description) : description
+  const trimedTitle = title ? title.trim() : title
+  const trimedDescription = description ? description.trim() : description
 
   if (id) {
     const { id: dbId } = fromGlobalId(id)
