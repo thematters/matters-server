@@ -1,24 +1,24 @@
-import { AUTH_MODE } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
 
   extend type Mutation {
 
-    putCollection(input: PutCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}")
+    putCollection(input: PutCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
-    deleteCollections(input: DeleteCollectionsInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+    deleteCollections(input: DeleteCollectionsInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Add articles to the begining of the collections."
-    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @auth(mode: "${AUTH_MODE.oauth}")
+    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Remove articles from the collection."
-    deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}")
+    deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Reorder articles in the collection."
-    reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}")
+    reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Toggle pin status of the work."
-    togglePinWork(input: ToggleItemInput!): PinnableWork! @auth(mode: "${AUTH_MODE.oauth}")
+    togglePinWork(input: ToggleItemInput!): PinnableWork! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.PinnableWork}")
   }
 
   type Collection implements Node & PinnableWork  {
