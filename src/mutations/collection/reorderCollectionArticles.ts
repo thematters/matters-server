@@ -1,11 +1,12 @@
-import { NODE_TYPES } from 'common/enums'
+import type { MutationToReorderCollectionArticlesResolver } from 'definitions'
+
+import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
   ActionLimitExceededError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToReorderCollectionArticlesResolver } from 'definitions'
 
 const resolver: MutationToReorderCollectionArticlesResolver = async (
   _,
@@ -16,7 +17,7 @@ const resolver: MutationToReorderCollectionArticlesResolver = async (
     throw new ForbiddenError('Viewer has no permission')
   }
 
-  if (rawMoves.length > 50) {
+  if (rawMoves.length > GRAPHQL_INPUT_LENGTH_LIMIT) {
     throw new ActionLimitExceededError('Action limit exceeded')
   }
 

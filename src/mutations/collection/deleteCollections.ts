@@ -1,7 +1,8 @@
+import type { MutationToDeleteCollectionsResolver } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteCollectionsResolver } from 'definitions'
 
 const resolver: MutationToDeleteCollectionsResolver = async (
   _,

@@ -1,7 +1,10 @@
+import type { MutationToAddCollectionsArticlesResolver } from 'definitions'
+
 import {
   ARTICLE_STATE,
   NODE_TYPES,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
+  GRAPHQL_INPUT_LENGTH_LIMIT,
 } from 'common/enums'
 import {
   ForbiddenError,
@@ -11,7 +14,6 @@ import {
   ActionLimitExceededError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToAddCollectionsArticlesResolver } from 'definitions'
 
 const resolver: MutationToAddCollectionsArticlesResolver = async (
   _,
@@ -21,7 +23,7 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
   }
-  if (rawCollections.length + rawArticles.length > 101) {
+  if (rawCollections.length + rawArticles.length > GRAPHQL_INPUT_LENGTH_LIMIT) {
     throw new ActionLimitExceededError('Action limit exceeded')
   }
 

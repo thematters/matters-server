@@ -1,3 +1,5 @@
+import type { MutationToPutCollectionResolver } from 'definitions'
+
 import { validate as validateUUID } from 'uuid'
 
 import {
@@ -13,7 +15,6 @@ import {
   AssetNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutCollectionResolver } from 'definitions'
 
 const resolver: MutationToPutCollectionResolver = async (
   _,

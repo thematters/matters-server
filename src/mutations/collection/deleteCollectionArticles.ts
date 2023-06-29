@@ -1,11 +1,12 @@
-import { NODE_TYPES } from 'common/enums'
+import type { MutationToDeleteCollectionArticlesResolver } from 'definitions'
+
+import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
   ActionLimitExceededError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteCollectionArticlesResolver } from 'definitions'
 
 const resolver: MutationToDeleteCollectionArticlesResolver = async (
   _,
@@ -16,7 +17,7 @@ const resolver: MutationToDeleteCollectionArticlesResolver = async (
     throw new ForbiddenError('Viewer has no permission')
   }
 
-  if (articles.length > 100) {
+  if (articles.length > GRAPHQL_INPUT_LENGTH_LIMIT) {
     throw new ActionLimitExceededError('Action limit exceeded')
   }
   const { id: collectionId, type: collectionType } = fromGlobalId(globalId)
