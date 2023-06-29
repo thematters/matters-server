@@ -1,8 +1,11 @@
 import type { MutationToDeleteCollectionsResolver } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
 import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { redis } from 'connectors'
 
 const resolver: MutationToDeleteCollectionsResolver = async (
   _,
@@ -26,7 +29,14 @@ const resolver: MutationToDeleteCollectionsResolver = async (
   const collectionIds = unpacked.map((d) => d.id)
 
   try {
-    return await collectionService.deleteCollections(collectionIds, viewer.id)
+    const result = await collectionService.deleteCollections(
+      collectionIds,
+      viewer.id
+    )
+    for (const id of collectionIds) {
+      invalidateFQC({ node: { type: NODE_TYPES.Collection, id }, redis })
+    }
+    return result
   } catch (e: any) {
     if (e.message === 'Collection not found') {
       throw new UserInputError('Collection not found')
