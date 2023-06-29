@@ -3312,6 +3312,7 @@ type Collection implements Node & PinnableWork {
   title: String!
   cover: String
   description: String
+  author: User!
   articles(input: CollectionArticlesInput!): ArticleConnection!
   pinned: Boolean!
   updatedAt: DateTime!

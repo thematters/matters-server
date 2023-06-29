@@ -6,9 +6,26 @@ import { testClient } from './utils'
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
 
+const GET_COLLECTION = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on Collection {
+        id
+        title
+        author {
+          id
+        }
+        description
+        cover
+      }
+    }
+  }
+`
+
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   query {
     viewer {
+      id
       collections(input: { first: null }) {
         totalCount
         edges {
@@ -90,7 +107,7 @@ const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
 `
 
 describe('get viewer collections', () => {
-  test('not logged in user', async () => {
+  test('not logged-in user', async () => {
     const server = await testClient()
     const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_COLLECTIONS,
@@ -99,7 +116,7 @@ describe('get viewer collections', () => {
     expect(errors).toBeUndefined()
   })
 
-  test('logged in user', async () => {
+  test('logged-in user', async () => {
     const server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_COLLECTIONS,
@@ -120,11 +137,21 @@ describe('get viewer collections', () => {
     expect(data1?.viewer?.collections?.edges[0]?.node?.title).toBe(title)
     expect(data1?.viewer?.collections?.edges[0]?.node?.description).toBe(null)
     expect(data1?.viewer?.collections?.edges[0]?.node?.cover).toBe(null)
+
+    // get collection from `node` query works
+    const { data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION,
+      variables: {
+        input: { id: data1?.viewer?.collections?.edges[0]?.node?.id },
+      },
+    })
+    expect(data2?.node?.title).toBe(title)
+    expect(data2?.node?.author?.id).toBe(data1?.viewer?.id)
   })
 })
 
 describe('collections CURD', () => {
-  test('not logged in users can not mutate collections', async () => {
+  test('not logged-in users can not mutate collections', async () => {
     const server = await testClient()
     const { errors } = await server.executeOperation({
       query: PUT_COLLECTIONS,
@@ -288,7 +315,7 @@ describe('delete collections', () => {
     })
     othersId = data2?.putCollection?.id
   })
-  test('not logged in users can not mutate collections', async () => {
+  test('not logged-in users can not mutate collections', async () => {
     const server2 = await testClient()
     const { errors } = await server2.executeOperation({
       query: DEL_COLLECTIONS,
@@ -353,7 +380,7 @@ describe('add articles to collections', () => {
     })
     collectionId2 = data2?.putCollection?.id
   })
-  test('not logged in users can not mutate collections', async () => {
+  test('not logged-in users can not mutate collections', async () => {
     const visitorServer = await testClient()
     const { errors } = await visitorServer.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
@@ -515,7 +542,7 @@ describe('delete articles in collections', () => {
     })
     othersCollectionId = data2?.putCollection?.id
   })
-  test('not logged in users can not mutate collections', async () => {
+  test('not logged-in users can not mutate collections', async () => {
     const visitorServer = await testClient()
     const { errors } = await visitorServer.executeOperation({
       query: DEL_COLLECTION_ARTICLES,

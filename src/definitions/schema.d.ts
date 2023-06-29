@@ -4499,6 +4499,7 @@ export interface GQLCollection extends GQLNode, GQLPinnableWork {
   title: string
   cover?: string
   description?: string
+  author: GQLUser
   articles: GQLArticleConnection
   pinned: boolean
   updatedAt: GQLDateTime
@@ -14030,6 +14031,7 @@ export interface GQLCollectionTypeResolver<TParent = any> {
   title?: CollectionToTitleResolver<TParent>
   cover?: CollectionToCoverResolver<TParent>
   description?: CollectionToDescriptionResolver<TParent>
+  author?: CollectionToAuthorResolver<TParent>
   articles?: CollectionToArticlesResolver<TParent>
   pinned?: CollectionToPinnedResolver<TParent>
   updatedAt?: CollectionToUpdatedAtResolver<TParent>
@@ -14063,6 +14065,15 @@ export interface CollectionToCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface CollectionToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToAuthorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

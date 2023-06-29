@@ -1,4 +1,4 @@
-import { CollectionToCoverResolver } from 'definitions'
+import type { CollectionToCoverResolver } from 'definitions'
 
 const resolver: CollectionToCoverResolver = async (
   { cover },

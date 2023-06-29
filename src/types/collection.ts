@@ -26,6 +26,7 @@ export default /* GraphQL */ `
      title: String!
      cover: String
      description: String
+     author: User!
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!

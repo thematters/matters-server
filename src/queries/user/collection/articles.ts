@@ -1,9 +1,10 @@
+import type { CollectionToArticlesResolver } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { CollectionToArticlesResolver } from 'definitions'
 
 const resolver: CollectionToArticlesResolver = async (
   { id: collectionId },
