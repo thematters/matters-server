@@ -387,6 +387,7 @@ export default /* GraphQL */ `
     tagCover
     circleAvatar
     circleCover
+    collectionCover
     announcementCover
     topicCover
   }

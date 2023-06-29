@@ -45,7 +45,7 @@ const resolver: MutationToPutCollectionResolver = async (
 
     if (
       !asset ||
-      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+      asset.type !== ASSET_TYPE.collectionCover ||
       asset.authorId !== viewer.id
     ) {
       throw new AssetNotFoundError('Asset does not exists')

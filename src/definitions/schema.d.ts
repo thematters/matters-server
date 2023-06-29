@@ -3097,6 +3097,7 @@ export const enum GQLAssetType {
   tagCover = 'tagCover',
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
+  collectionCover = 'collectionCover',
   announcementCover = 'announcementCover',
   topicCover = 'topicCover',
 }
@@ -4545,7 +4546,7 @@ export interface GQLReorderMoveInput {
   item: string
 
   /**
-   * The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list.
+   * The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list - 1.
    */
   newPosition: number
 }
