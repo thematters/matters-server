@@ -1,3 +1,4 @@
+import { NODE_TYPES } from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
@@ -19,11 +20,11 @@ const resolver: MutationToDeleteCollectionArticlesResolver = async (
     throw new ActionLimitExceededError('Action limit exceeded')
   }
   const { id: collectionId, type: collectionType } = fromGlobalId(globalId)
-  if (collectionType !== 'Collection') {
+  if (collectionType !== NODE_TYPES.Collection) {
     throw new UserInputError('Invalid Collection id')
   }
   const articleTypes = articles.map((id) => fromGlobalId(id).type)
-  if (articleTypes.some((type) => type !== 'Article')) {
+  if (articleTypes.some((type) => type !== NODE_TYPES.Article)) {
     throw new UserInputError('Invalid Article ids')
   }
 

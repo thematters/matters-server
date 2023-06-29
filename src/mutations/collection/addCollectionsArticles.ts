@@ -1,4 +1,8 @@
-import { ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  NODE_TYPES,
+  MAX_ARTICLES_PER_COLLECTION_LIMIT,
+} from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
@@ -25,11 +29,11 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
   const articles = [...new Set(rawArticles)]
 
   const collectionTypes = collections.map((id) => fromGlobalId(id).type)
-  if (collectionTypes.some((type) => type !== 'Collection')) {
+  if (collectionTypes.some((type) => type !== NODE_TYPES.Collection)) {
     throw new UserInputError('Invalid Collection ids')
   }
   const articleTypes = articles.map((id) => fromGlobalId(id).type)
-  if (articleTypes.some((type) => type !== 'Article')) {
+  if (articleTypes.some((type) => type !== NODE_TYPES.Article)) {
     throw new UserInputError('Invalid Article ids')
   }
 
@@ -43,8 +47,6 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
       throw new ForbiddenError('Viewer has no permission')
     }
   }
-
-  // TODO check article if already in collection to provide more friendly error message
 
   const articleIds = articles.map((id) => fromGlobalId(id).id)
 
@@ -60,6 +62,28 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
 
   if (collections.length === 0) {
     return []
+  }
+
+  // check if collection has reached max articles limit and if there are duplicated articles
+  for (const collectionId of collectionIds) {
+    if (articles.length > 0) {
+      const [originalArticles, count] =
+        await collectionService.findAndCountArticlesInCollection(collectionId, {
+          take: MAX_ARTICLES_PER_COLLECTION_LIMIT,
+        })
+      if (count + articles.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+        throw new ActionLimitExceededError('Action limit exceeded')
+      }
+      if (originalArticles.length > 0) {
+        const originalArticleIds = originalArticles.map((a) => a.articleId)
+        const duplicatedArticleIds = originalArticleIds.filter((id) =>
+          articleIds.includes(id)
+        )
+        if (duplicatedArticleIds.length > 0) {
+          throw new UserInputError('Duplicated Article ids')
+        }
+      }
+    }
   }
 
   // add articles to collection

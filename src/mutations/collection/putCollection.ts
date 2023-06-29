@@ -1,7 +1,12 @@
 import trim from 'lodash/trim'
 import { validate as validateUUID } from 'uuid'
 
-import { ASSET_TYPE } from 'common/enums'
+import {
+  ASSET_TYPE,
+  MAX_COLLECTION_TITLE_LENGTH,
+  MAX_COLLECTION_DESCRIPTION_LENGTH,
+  NODE_TYPES,
+} from 'common/enums'
 import {
   ForbiddenError,
   EntityNotFoundError,
@@ -20,10 +25,10 @@ const resolver: MutationToPutCollectionResolver = async (
     throw new ForbiddenError('Viewer has no permission')
   }
 
-  if (title && title.length > 20) {
+  if (title && title.length > MAX_COLLECTION_TITLE_LENGTH) {
     throw new UserInputError('Title too long')
   }
-  if (description && description.length > 140) {
+  if (description && description.length > MAX_COLLECTION_DESCRIPTION_LENGTH) {
     throw new UserInputError('Description too long')
   }
 
@@ -31,7 +36,7 @@ const resolver: MutationToPutCollectionResolver = async (
     throw new AssetNotFoundError('Asset does not exists')
   }
 
-  if (id && fromGlobalId(id).type !== 'Collection') {
+  if (id && fromGlobalId(id).type !== NODE_TYPES.Collection) {
     throw new UserInputError('Invalid Collection id')
   }
 

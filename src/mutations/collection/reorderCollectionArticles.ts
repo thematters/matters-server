@@ -1,3 +1,4 @@
+import { NODE_TYPES } from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
@@ -20,7 +21,7 @@ const resolver: MutationToReorderCollectionArticlesResolver = async (
   }
 
   const { id: collectionId, type: collectionType } = fromGlobalId(globalId)
-  if (collectionType !== 'Collection') {
+  if (collectionType !== NODE_TYPES.Collection) {
     throw new UserInputError('Invalid Collection id')
   }
 
@@ -35,7 +36,7 @@ const resolver: MutationToReorderCollectionArticlesResolver = async (
 
   const moves = rawMoves.map(({ item: articleGlobalId, newPosition }) => {
     const { id: articleId, type: articleType } = fromGlobalId(articleGlobalId)
-    if (articleType !== 'Article') {
+    if (articleType !== NODE_TYPES.Article) {
       throw new UserInputError('Invalid Article id')
     }
     return { articleId, newPosition }

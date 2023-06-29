@@ -1,3 +1,4 @@
+import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteCollectionsResolver } from 'definitions'
@@ -17,7 +18,7 @@ const resolver: MutationToDeleteCollectionsResolver = async (
   const unpacked = ids.map((id) => fromGlobalId(id))
   const types = unpacked.map((d) => d.type)
 
-  if (types.some((type) => type !== 'Collection')) {
+  if (types.some((type) => type !== NODE_TYPES.Collection)) {
     throw new UserInputError('Invalid collection ids')
   }
 
