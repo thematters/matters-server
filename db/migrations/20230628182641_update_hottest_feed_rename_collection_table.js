@@ -34,7 +34,7 @@ exports.up = async (knex) => {
   )
 
 
-  select article.id, article.title, article.created_at, 'https://matters.news/@-/-' || article.media_hash as link, coalesce(t.score, 0) as score
+  select article.id, article.title, article.created_at, 'https://matters.town/@-/-' || article.media_hash as link, coalesce(t.score, 0) as score
   from article
   left join
   (
@@ -58,7 +58,7 @@ exports.up = async (knex) => {
           a.title,
           a.created_at,
           u.display_name,
-          'https://matters.news/@-/-' || a.media_hash as link,
+          'https://matters.town/@-/-' || a.media_hash as link,
           sum(arc.read_time) as read_seconds_in_time_window,
           (sum(arc.read_time)::decimal/least(extract(epoch from now()-a.created_at)::decimal + 1, ${time_window}*24*3600))^0.5 as read_time_efficiency,
           case when extract(epoch from now()-a.created_at) <= ${boost_window}*3600 then ${boost}*(sum(arc.read_time)::decimal/least(extract(epoch from now()-a.created_at)::decimal + 1, ${time_window}*24*3600))^0.5
