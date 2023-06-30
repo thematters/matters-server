@@ -57,6 +57,13 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  interface PinnableWork {
+    id: ID!
+    pinned: Boolean!
+    title: String!
+    cover: String
+  }
+
   type PageInfo {
     startCursor: String
     endCursor: String
@@ -379,6 +386,7 @@ export default /* GraphQL */ `
     tagCover
     circleAvatar
     circleCover
+    collectionCover
     announcementCover
     topicCover
   }
@@ -456,7 +464,7 @@ export default /* GraphQL */ `
 
   directive @deprecated(
     reason: String = "No longer supported"
-  ) on FIELD_DEFINITION | ENUM_VALUE
+  ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
 
   directive @complexity(
     value: Int!

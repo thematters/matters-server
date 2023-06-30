@@ -2,11 +2,6 @@ import { ArticleService } from 'connectors'
 
 const articleService = new ArticleService()
 
-// beforeAll(async () => {
-//   await articleService.es.clear()
-//   await articleService.initSearch()
-// })
-
 test('publish', async () => {
   // publish article to IPFS
   const publishedDraft = await articleService.draftLoader.load('1')

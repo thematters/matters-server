@@ -118,7 +118,7 @@ describe('put draft', () => {
 
   test('edit draft collection', async () => {
     const limit = 4
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const collection = [
       toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
@@ -197,7 +197,7 @@ describe('put draft', () => {
 
     // out of limit collection can remain
     const smallerlimit = limit - 1
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = smallerlimit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = smallerlimit
     const remainRes = await putDraft({
       draft: {
         id: draftId,

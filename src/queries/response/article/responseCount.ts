@@ -6,7 +6,7 @@ const resolver: ArticleToResponseCountResolver = async (
   { dataSources: { articleService, commentService } }
 ) => {
   const [articleCount, commentCount] = await Promise.all([
-    articleService.countActiveCollectedBy(articleId),
+    articleService.countActiveConnectedBy(articleId),
     commentService.countByArticle(articleId),
   ])
   return articleCount + commentCount

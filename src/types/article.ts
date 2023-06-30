@@ -81,7 +81,7 @@ export default /* GraphQL */ `
   This type contains metadata, content, hash and related data of an article. If you
   want information about article's comments. Please check Comment type.
   """
-  type Article implements Node {
+  type Article implements Node & PinnableWork {
     "Unique ID of this article"
     id: ID!
 
@@ -176,7 +176,8 @@ export default /* GraphQL */ `
     subscribed: Boolean!
 
     "This value determines if this article is an author selected article or not."
-    sticky: Boolean!
+    sticky: Boolean! @deprecated(reason: "Use pinned instead")
+    pinned: Boolean!
 
     "Translation of article title and content."
     translation(input: TranslationArgs): ArticleTranslation
@@ -437,7 +438,8 @@ export default /* GraphQL */ `
   input EditArticleInput {
     id: ID!
     state: ArticleState
-    sticky: Boolean
+    sticky: Boolean @deprecated(reason: "Use pinned instead")
+    pinned: Boolean
     summary: String
     tags: [String!]
     content: String

@@ -381,13 +381,35 @@ export interface GQLMutation {
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
+  putCollection: GQLCollection
+  deleteCollections: boolean
+
+  /**
+   * Add articles to the begining of the collections.
+   */
+  addCollectionsArticles: Array<GQLCollection>
+
+  /**
+   * Remove articles from the collection.
+   */
+  deleteCollectionArticles: GQLCollection
+
+  /**
+   * Reorder articles in the collection.
+   */
+  reorderCollectionArticles: GQLCollection
+
+  /**
+   * Toggle pin status of the work.
+   */
+  togglePinWork: GQLPinnableWork
 }
 
 /**
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export interface GQLArticle extends GQLNode {
+export interface GQLArticle extends GQLNode, GQLPinnableWork {
   /**
    * Unique ID of this article
    */
@@ -545,8 +567,10 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * This value determines if this article is an author selected article or not.
+   * @deprecated Use pinned instead
    */
   sticky: boolean
+  pinned: boolean
 
   /**
    * Translation of article title and content.
@@ -949,6 +973,7 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
+  pinned?: boolean
   sticky?: boolean
   summary?: string
   tags?: Array<string>
@@ -1359,6 +1384,12 @@ export interface GQLUser extends GQLNode {
    * Topics created by current user.
    */
   topics: GQLTopicConnection
+
+  /**
+   * collections authored by current user.
+   */
+  collections: GQLCollectionConnection
+  pinnedWorks: Array<GQLPinnableWork>
 
   /**
    * Tags by by usage order of current user.
@@ -2615,6 +2646,7 @@ export type GQLPossibleNodeTypeNames =
   | 'User'
   | 'Comment'
   | 'Draft'
+  | 'Collection'
 
 export interface GQLNodeNameMap {
   Node: GQLNode
@@ -2626,6 +2658,23 @@ export interface GQLNodeNameMap {
   User: GQLUser
   Comment: GQLComment
   Draft: GQLDraft
+  Collection: GQLCollection
+}
+
+export interface GQLPinnableWork {
+  id: string
+  pinned: boolean
+  title: string
+  cover?: string
+}
+
+/** Use this to resolve interface type PinnableWork */
+export type GQLPossiblePinnableWorkTypeNames = 'Article' | 'Collection'
+
+export interface GQLPinnableWorkNameMap {
+  PinnableWork: GQLPinnableWork
+  Article: GQLArticle
+  Collection: GQLCollection
 }
 
 export interface GQLPageInfo {
@@ -2662,6 +2711,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ResponseConnection'
   | 'TransactionConnection'
   | 'OAuthClientConnection'
+  | 'CollectionConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -2685,6 +2735,7 @@ export interface GQLConnectionNameMap {
   ResponseConnection: GQLResponseConnection
   TransactionConnection: GQLTransactionConnection
   OAuthClientConnection: GQLOAuthClientConnection
+  CollectionConnection: GQLCollectionConnection
 }
 
 export interface GQLBlockedSearchKeyword {
@@ -3047,6 +3098,7 @@ export const enum GQLAssetType {
   tagCover = 'tagCover',
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
+  collectionCover = 'collectionCover',
   announcementCover = 'announcementCover',
   topicCover = 'topicCover',
 }
@@ -4443,6 +4495,69 @@ export const enum GQLGrantType {
   refresh_token = 'refresh_token',
 }
 
+export interface GQLCollection extends GQLNode, GQLPinnableWork {
+  id: string
+  title: string
+  cover?: string
+  description?: string
+  author: GQLUser
+  articles: GQLArticleConnection
+  pinned: boolean
+  updatedAt: GQLDateTime
+}
+
+export interface GQLCollectionEdge {
+  cursor: string
+  node: GQLCollection
+}
+
+export interface GQLCollectionConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLCollectionEdge>
+}
+
+export interface GQLCollectionArticlesInput {
+  after?: string
+  first?: number
+  reversed?: boolean
+}
+
+export interface GQLPutCollectionInput {
+  id?: string
+  title?: string
+  cover?: string
+  description?: string
+}
+
+export interface GQLDeleteCollectionsInput {
+  ids: Array<string>
+}
+
+export interface GQLAddCollectionsArticlesInput {
+  collections: Array<string>
+  articles: Array<string>
+}
+
+export interface GQLDeleteCollectionArticlesInput {
+  collection: string
+  articles: Array<string>
+}
+
+export interface GQLReorderMoveInput {
+  item: string
+
+  /**
+   * The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list - 1.
+   */
+  newPosition: number
+}
+
+export interface GQLReorderCollectionArticlesInput {
+  collection: string
+  moves: Array<GQLReorderMoveInput>
+}
+
 /*********************************
  *                               *
  *         TYPE RESOLVERS        *
@@ -4523,6 +4638,10 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   Node?: {
     __resolveType: GQLNodeTypeResolver
+  }
+
+  PinnableWork?: {
+    __resolveType: GQLPinnableWorkTypeResolver
   }
 
   PageInfo?: GQLPageInfoTypeResolver
@@ -4608,6 +4727,9 @@ export interface GQLResolver {
   OAuthClient?: GQLOAuthClientTypeResolver
   OAuthClientConnection?: GQLOAuthClientConnectionTypeResolver
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
+  Collection?: GQLCollectionTypeResolver
+  CollectionEdge?: GQLCollectionEdgeTypeResolver
+  CollectionConnection?: GQLCollectionConnectionTypeResolver
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   article?: QueryToArticleResolver<TParent>
@@ -4844,6 +4966,12 @@ export interface GQLMutationTypeResolver<TParent = any> {
   payout?: MutationToPayoutResolver<TParent>
   connectStripeAccount?: MutationToConnectStripeAccountResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
+  putCollection?: MutationToPutCollectionResolver<TParent>
+  deleteCollections?: MutationToDeleteCollectionsResolver<TParent>
+  addCollectionsArticles?: MutationToAddCollectionsArticlesResolver<TParent>
+  deleteCollectionArticles?: MutationToDeleteCollectionArticlesResolver<TParent>
+  reorderCollectionArticles?: MutationToReorderCollectionArticlesResolver<TParent>
+  togglePinWork?: MutationToTogglePinWorkResolver<TParent>
 }
 
 export interface MutationToPublishArticleArgs {
@@ -5974,6 +6102,90 @@ export interface MutationToPutOAuthClientResolver<
   ): TResult
 }
 
+export interface MutationToPutCollectionArgs {
+  input: GQLPutCollectionInput
+}
+export interface MutationToPutCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteCollectionsArgs {
+  input: GQLDeleteCollectionsInput
+}
+export interface MutationToDeleteCollectionsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteCollectionsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToAddCollectionsArticlesArgs {
+  input: GQLAddCollectionsArticlesInput
+}
+export interface MutationToAddCollectionsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToAddCollectionsArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteCollectionArticlesArgs {
+  input: GQLDeleteCollectionArticlesInput
+}
+export interface MutationToDeleteCollectionArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteCollectionArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToReorderCollectionArticlesArgs {
+  input: GQLReorderCollectionArticlesInput
+}
+export interface MutationToReorderCollectionArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToReorderCollectionArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToTogglePinWorkArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToTogglePinWorkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToTogglePinWorkArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>
   topicScore?: ArticleToTopicScoreResolver<TParent>
@@ -6007,6 +6219,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   canSuperLike?: ArticleToCanSuperLikeResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
+  pinned?: ArticleToPinnedResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
   availableTranslations?: ArticleToAvailableTranslationsResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
@@ -6351,6 +6564,15 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToStickyResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToPinnedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7713,6 +7935,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
   topics?: UserToTopicsResolver<TParent>
+  collections?: UserToCollectionsResolver<TParent>
+  pinnedWorks?: UserToPinnedWorksResolver<TParent>
   tags?: UserToTagsResolver<TParent>
   maintainedTags?: UserToMaintainedTagsResolver<TParent>
   pinnedTags?: UserToPinnedTagsResolver<TParent>
@@ -7868,6 +8092,27 @@ export interface UserToTopicsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToTopicsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToCollectionsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToCollectionsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToCollectionsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPinnedWorksResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -10242,6 +10487,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'User'
     | 'Comment'
     | 'Draft'
+    | 'Collection'
     | Promise<
         | 'Article'
         | 'Chapter'
@@ -10251,7 +10497,14 @@ export interface GQLNodeTypeResolver<TParent = any> {
         | 'User'
         | 'Comment'
         | 'Draft'
+        | 'Collection'
       >
+}
+export interface GQLPinnableWorkTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'Article'
+    | 'Collection'
+    | Promise<'Article' | 'Collection'>
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -10321,6 +10574,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ResponseConnection'
     | 'TransactionConnection'
     | 'OAuthClientConnection'
+    | 'CollectionConnection'
     | Promise<
         | 'ArticleConnection'
         | 'TopicConnection'
@@ -10342,6 +10596,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
         | 'ResponseConnection'
         | 'TransactionConnection'
         | 'OAuthClientConnection'
+        | 'CollectionConnection'
       >
 }
 export interface GQLBlockedSearchKeywordTypeResolver<TParent = any> {
@@ -13764,6 +14019,157 @@ export interface OAuthClientEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface OAuthClientEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCollectionTypeResolver<TParent = any> {
+  id?: CollectionToIdResolver<TParent>
+  title?: CollectionToTitleResolver<TParent>
+  cover?: CollectionToCoverResolver<TParent>
+  description?: CollectionToDescriptionResolver<TParent>
+  author?: CollectionToAuthorResolver<TParent>
+  articles?: CollectionToArticlesResolver<TParent>
+  pinned?: CollectionToPinnedResolver<TParent>
+  updatedAt?: CollectionToUpdatedAtResolver<TParent>
+}
+
+export interface CollectionToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToAuthorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToArticlesArgs {
+  input: GQLCollectionArticlesInput
+}
+export interface CollectionToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CollectionToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToPinnedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToUpdatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCollectionEdgeTypeResolver<TParent = any> {
+  cursor?: CollectionEdgeToCursorResolver<TParent>
+  node?: CollectionEdgeToNodeResolver<TParent>
+}
+
+export interface CollectionEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCollectionConnectionTypeResolver<TParent = any> {
+  totalCount?: CollectionConnectionToTotalCountResolver<TParent>
+  pageInfo?: CollectionConnectionToPageInfoResolver<TParent>
+  edges?: CollectionConnectionToEdgesResolver<TParent>
+}
+
+export interface CollectionConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

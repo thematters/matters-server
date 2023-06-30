@@ -13,13 +13,13 @@ const resolver: ArticleToCollectionResolver = async (
 ) => {
   const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
-  const [countRecord, collections] = await Promise.all([
-    knex('collection')
+  const [countRecord, connections] = await Promise.all([
+    knex('article_connection')
       .countDistinct('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId: articleId, state: ARTICLE_STATE.active })
       .first(),
-    articleService.findCollections({
+    articleService.findConnections({
       entranceId: articleId,
       take,
       skip,
@@ -33,7 +33,7 @@ const resolver: ArticleToCollectionResolver = async (
 
   return connectionFromPromisedArray(
     articleService.draftLoader
-      .loadMany(collections.map((collection: Item) => collection.articleId))
+      .loadMany(connections.map((connection: Item) => connection.articleId))
       .then(loadManyFilterError),
     input,
     totalCount

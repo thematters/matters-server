@@ -107,7 +107,7 @@ export interface NoticeCircleNewArticleParams
 }
 
 // Article-Article
-export interface NoticeArticleNewCollectedParams
+export interface NoticeArticleNewConnectedParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.article_new_collected
   recipientId: string
@@ -378,7 +378,7 @@ export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   // Article
   | NoticeArticlePublishedParams
-  | NoticeArticleNewCollectedParams
+  | NoticeArticleNewConnectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams

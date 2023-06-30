@@ -663,7 +663,7 @@ describe('edit article', () => {
     ]).toEqual(collection.slice(0, limit))
 
     // set collection out of limit
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const failedRes = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
@@ -674,7 +674,7 @@ describe('edit article', () => {
       },
     })
     expect(_get(failedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+      `Not allow more than ${limit} articles in connection`
     )
 
     // do not change collection when not in input
@@ -755,7 +755,7 @@ describe('edit article', () => {
     expect(_get(resetResult2, 'data.editArticle.collection.totalCount')).toBe(0)
 
     // out of limit collection can remain
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = 10
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = 10
 
     const res1 = await server.executeOperation({
       query: EDIT_ARTICLE,
@@ -768,7 +768,7 @@ describe('edit article', () => {
     })
     expect(_get(res1, 'data.editArticle.collection.totalCount')).toBe(limit + 2)
 
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const remainRes = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
@@ -793,7 +793,7 @@ describe('edit article', () => {
       },
     })
     expect(_get(failedRes2, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+      `Not allow more than ${limit} articles in connection`
     )
 
     // out of limit collection can decrease,  even to a amount still out of limit

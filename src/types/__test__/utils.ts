@@ -13,6 +13,7 @@ import {
   SystemService,
   TagService,
   UserService,
+  CollectionService,
 } from 'connectors'
 import {
   GQLPublishArticleInput,
@@ -134,6 +135,7 @@ export const testClient = async (
       notificationService: new NotificationService(),
       oauthService: new OAuthService(),
       paymentService: new PaymentService(),
+      collectionService: new CollectionService(),
       ...dataSources,
     },
   })
