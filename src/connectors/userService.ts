@@ -1627,7 +1627,7 @@ export class UserService extends BaseService {
       .update(data)
 
   // register a new LikerId by a given userName
-  registerLikerId = async ({
+  public registerLikerId = async ({
     userId,
     userName,
     ip,
@@ -1716,47 +1716,6 @@ export class UserService extends BaseService {
         platformToken: tokens.accessToken,
         userToken,
       },
-    })
-  }
-
-  public findOAuthToken = async ({
-    userId,
-    provider,
-  }: {
-    userId: string
-    provider: string
-  }) =>
-    this.knex.select('*').from('user_oauth').where({ userId, provider }).first()
-
-  public saveOAuth = async ({
-    userId,
-    provider,
-    accessToken,
-    refreshToken,
-    expires,
-    scope,
-    createdAt,
-  }: {
-    userId: string
-    provider: string
-    accessToken: string
-    refreshToken: string
-    expires: number
-    scope: string
-    createdAt?: Date
-  }) => {
-    await this.baseUpdateOrCreate({
-      where: { userId, provider },
-      data: {
-        userId,
-        provider,
-        accessToken,
-        refreshToken,
-        expires,
-        scope,
-        ...(createdAt ? { createdAt } : { updatedAt: new Date() }),
-      },
-      table: 'user_oauth',
     })
   }
 
