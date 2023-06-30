@@ -28,24 +28,14 @@ const resolver: MutationToDeleteCollectionsResolver = async (
 
   const collectionIds = unpacked.map((d) => d.id)
 
-  try {
-    const result = await collectionService.deleteCollections(
-      collectionIds,
-      viewer.id
-    )
-    for (const id of collectionIds) {
-      invalidateFQC({ node: { type: NODE_TYPES.Collection, id }, redis })
-    }
-    return result
-  } catch (e: any) {
-    if (e.message === 'Collection not found') {
-      throw new UserInputError('Collection not found')
-    }
-    if (e.message === 'Author id not match') {
-      throw new ForbiddenError('Viewer has no permission')
-    }
-    throw e
+  const result = await collectionService.deleteCollections(
+    collectionIds,
+    viewer.id
+  )
+  for (const id of collectionIds) {
+    invalidateFQC({ node: { type: NODE_TYPES.Collection, id }, redis })
   }
+  return result
 }
 
 export default resolver

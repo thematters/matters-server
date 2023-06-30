@@ -2,6 +2,12 @@ import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
 import { ARTICLE_STATE } from 'common/enums'
+import {
+  ForbiddenError,
+  EntityNotFoundError,
+  ServerError,
+  UserInputError,
+} from 'common/errors'
 import { BaseService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
@@ -113,13 +119,13 @@ export class CollectionService extends BaseService {
 
     for (const collection of collections) {
       if (!collection) {
-        throw new Error('Collection not found')
+        throw new EntityNotFoundError('Collection not found')
       }
       if (collection instanceof Error) {
-        throw new Error('Load collection error')
+        throw new ServerError('Load collection error')
       }
       if (collection.authorId !== authorId) {
-        throw new Error('Author id not match')
+        throw new ForbiddenError('Author id not match')
       }
     }
 
@@ -172,12 +178,12 @@ export class CollectionService extends BaseService {
     if (
       moves.some(({ newPosition }) => newPosition < 0 || newPosition >= count)
     ) {
-      throw new Error('Invalid newPosition')
+      throw new UserInputError('Invalid newPosition')
     }
 
     const articleIds = collectionArticles.map(({ articleId }) => articleId)
     if (moves.some(({ articleId }) => !articleIds.includes(articleId))) {
-      throw new Error('Invalid articleId')
+      throw new UserInputError('Invalid articleId')
     }
 
     for (const { articleId, newPosition } of moves) {

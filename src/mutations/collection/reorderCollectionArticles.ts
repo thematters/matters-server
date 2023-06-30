@@ -43,17 +43,7 @@ const resolver: MutationToReorderCollectionArticlesResolver = async (
     return { articleId, newPosition }
   })
 
-  try {
-    await collectionService.reorderArticles(collectionId, moves)
-  } catch (e: any) {
-    if (e.message === 'Invalid newPosition') {
-      throw new UserInputError('Invalid newPosition')
-    }
-    if (e.message === 'Invalid Article id') {
-      throw new UserInputError('Invalid Article id')
-    }
-    throw e
-  }
+  await collectionService.reorderArticles(collectionId, moves)
 
   return collection
 }

@@ -339,7 +339,7 @@ describe('delete collections', () => {
       query: DEL_COLLECTIONS,
       variables: { input: { ids: [othersId] } },
     })
-    expect(errors?.[0]?.message).toBe('Viewer has no permission')
+    expect(errors?.[0]?.message).toBe('Author id not match')
   })
   test('success', async () => {
     const { data } = await server.executeOperation({
