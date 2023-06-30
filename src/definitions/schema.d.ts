@@ -566,10 +566,13 @@ export interface GQLArticle extends GQLNode, GQLPinnableWork {
   subscribed: boolean
 
   /**
-   * This value determines if this article is an author selected article or not.
-   * @deprecated Use pinned instead
+   * This value determines if this article is an author selected article or not. Deprecated, user pinned instead
    */
   sticky: boolean
+
+  /**
+   * This value determines if this article is an author selected article or not.
+   */
   pinned: boolean
 
   /**
@@ -3051,8 +3054,6 @@ export const enum GQLSearchTypes {
 export const enum GQLSearchAPIVersion {
   v20230601 = 'v20230601',
   v20230301 = 'v20230301',
-  v20221212 = 'v20221212',
-  v20221212prior = 'v20221212prior',
 }
 
 export const enum GQLBoostTypes {

@@ -175,8 +175,9 @@ export default /* GraphQL */ `
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
 
+    "This value determines if this article is an author selected article or not. Deprecated, user pinned instead"
+    sticky: Boolean!
     "This value determines if this article is an author selected article or not."
-    sticky: Boolean! @deprecated(reason: "Use pinned instead")
     pinned: Boolean!
 
     "Translation of article title and content."
