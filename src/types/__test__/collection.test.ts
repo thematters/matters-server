@@ -112,6 +112,17 @@ const TOGGLE_PIN_WORK = /* GraphQL */ `
   }
 `
 
+const GET_PINNED_WORKS = /* GraphQL */ `
+  query {
+    viewer {
+      pinnedWorks {
+        id
+        title
+      }
+    }
+  }
+`
+
 describe('get viewer collections', () => {
   test('not logged-in user', async () => {
     const server = await testClient()
@@ -682,8 +693,13 @@ describe('togglePinWork', () => {
       },
     })
     expect(errors?.[0]?.message).toBe('Invalid id')
+
+    const { data } = await server.executeOperation({
+      query: GET_PINNED_WORKS,
+    })
+    expect(data?.viewer.pinnedWorks).toEqual([])
   })
-  test('success', async () => {
+  test('pin collection success', async () => {
     const { data } = await server.executeOperation({
       query: TOGGLE_PIN_WORK,
       variables: {
@@ -696,6 +712,13 @@ describe('togglePinWork', () => {
     expect(data?.togglePinWork?.title).toBe(title)
 
     const { data: data2 } = await server.executeOperation({
+      query: GET_PINNED_WORKS,
+    })
+    expect(data2?.viewer.pinnedWorks.length).toEqual(1)
+  })
+
+  test('pin article success', async () => {
+    const { data } = await server.executeOperation({
       query: TOGGLE_PIN_WORK,
       variables: {
         input: {
@@ -703,6 +726,15 @@ describe('togglePinWork', () => {
         },
       },
     })
-    expect(data2?.togglePinWork?.pinned).toBe(true)
+    expect(data?.togglePinWork?.pinned).toBe(true)
+
+    const { data: data2, errors } = await server.executeOperation({
+      query: GET_PINNED_WORKS,
+    })
+    console.log(errors)
+    expect(data2?.viewer.pinnedWorks.length).toEqual(2)
+    // order by pinned_at desc
+    expect(data2?.viewer.pinnedWorks[0].id).toEqual(articleGlobalId1)
+    expect(data2?.viewer.pinnedWorks[1].id).toEqual(collectionId)
   })
 })

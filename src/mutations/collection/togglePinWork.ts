@@ -19,9 +19,7 @@ const resolver: MutationToTogglePinWorkResolver = async (
 
   if (type === NODE_TYPES.Article) {
     const article = await articleService.togglePin(id, viewer.id, enabled)
-    console.log(article)
     const draft = await draftService.loadById(article.draftId)
-    console.log(draft)
     return { ...draft, pinned: article.pinned, __type: NODE_TYPES.Article }
   } else {
     const collection = await collectionService.togglePin(id, viewer.id, enabled)

@@ -146,6 +146,11 @@ export class ArticleService extends BaseService {
     return { ...article, pinned }
   }
 
+  public findPinnedByAuthor = async (authorId: string) =>
+    this.baseFind({
+      where: { authorId, pinned: true, state: ARTICLE_STATE.active },
+    })
+
   /**
    * Publish draft data to IPFS
    */
