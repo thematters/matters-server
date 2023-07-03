@@ -33,7 +33,7 @@ export default /* GraphQL */ `
 
   type CollectionEdge {
      cursor: String!
-     node: Collection!
+     node: Collection! @logCache(type: "${NODE_TYPES.Collection}")
   }
 
   type CollectionConnection implements Connection {
