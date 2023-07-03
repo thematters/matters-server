@@ -23,6 +23,8 @@ import {
   GQLUserTypeResolver,
   GQLWalletTypeResolver,
   GQLCollectionTypeResolver,
+  GQLPinnableWorkTypeResolver,
+  GQLPossiblePinnableWorkTypeNames,
 } from 'definitions'
 
 import UserAnalytics from './analytics'
@@ -97,6 +99,9 @@ const user: {
   Transaction: GQLTransactionTypeResolver
   TransactionTarget: {
     __resolveType: GQLTransactionTargetTypeResolver
+  }
+  PinnableWork: {
+    __resolveType: GQLPinnableWorkTypeResolver
   }
   StripeAccount: GQLStripeAccountTypeResolver
 
@@ -192,6 +197,10 @@ const user: {
   Wallet,
   Transaction,
   TransactionTarget,
+  PinnableWork: {
+    __resolveType: ({ __type }: { __type: GQLPossiblePinnableWorkTypeNames }) =>
+      __type,
+  },
   StripeAccount,
 
   CryptoWallet: {

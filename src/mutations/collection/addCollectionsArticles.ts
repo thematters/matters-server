@@ -95,7 +95,7 @@ const resolver: MutationToAddCollectionsArticlesResolver = async (
     }
   }
 
-  return await collectionService.findByIds(collectionIds)
+  return await collectionService.loadByIds(collectionIds)
 }
 
 export default resolver

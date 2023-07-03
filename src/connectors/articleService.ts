@@ -21,11 +21,17 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
+  MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import { ArticleNotFoundError, ServerError } from 'common/errors'
+import {
+  ArticleNotFoundError,
+  ServerError,
+  ForbiddenError,
+  ActionLimitExceededError,
+} from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
   AtomService,
@@ -110,6 +116,35 @@ export class ArticleService extends BaseService {
       dataHash,
       mediaHash,
     })
+
+  /**
+   * Update article's pin status and return article
+   * Throw error if there already has 3 pinned articles/collections
+   * or user is not the author of the article.
+   */
+  public togglePin = async (
+    articleId: string,
+    userId: string,
+    forcePinned?: boolean
+  ) => {
+    const article = await this.dataloader.load(articleId)
+    if (article.authorId !== userId) {
+      throw new ForbiddenError('Only author can pin article')
+    }
+    const userService = new UserService()
+    const totalPinned = await userService.totalPinnedWorks(userId)
+    const pinned = forcePinned ?? !article.pinned
+    if (pinned === article.pinned) {
+      return article
+    }
+    if (pinned && totalPinned >= MAX_PINNED_WORKS_LIMIT) {
+      throw new ActionLimitExceededError(
+        `Can only pin up to ${MAX_PINNED_WORKS_LIMIT} articles/collections`
+      )
+    }
+    await this.baseUpdate(articleId, { pinned, pinnedAt: this.knex.fn.now() })
+    return { ...article, pinned }
+  }
 
   /**
    * Publish draft data to IPFS
@@ -656,15 +691,12 @@ export class ArticleService extends BaseService {
     }
   }
 
-  /**
-   *  Find articles by a given author id (user).
-   */
+  public loadById = async (id: string) => this.dataloader.load(id)
+
   public findByAuthor = async (
     authorId: string,
-    // filter = {},
     {
       columns = ['draft_id'],
-      // filter = {},
       showAll = false,
       stickyFirst = false,
       tagIds,
@@ -674,7 +706,6 @@ export class ArticleService extends BaseService {
       take,
     }: {
       columns?: string[]
-      // filter?: object
       showAll?: boolean
       stickyFirst?: boolean
       tagIds?: string[]
@@ -739,9 +770,6 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /**
-   * Find article by title
-   */
   public findByTitle = async ({
     title,
     oss = false,
@@ -764,9 +792,6 @@ export class ArticleService extends BaseService {
     return query.orderBy('id', 'desc')
   }
 
-  /**
-   * Find articles by which commented by author.
-   */
   public findByCommentedAuthor = async ({
     id,
     skip,

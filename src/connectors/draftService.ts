@@ -4,20 +4,14 @@ import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
-  constructor() {
+  public constructor() {
     super('draft')
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  /*********************************
-   *                               *
-   *             Draft             *
-   *                               *
-   *********************************/
-  /**
-   * Count user's drafts by a given author id (user).
-   */
-  countByAuthor = async (authorId: string) => {
+  public loadById = async (id: string) => this.dataloader.load(id)
+
+  public countByAuthor = async (authorId: string) => {
     const result = await this.knex(this.table)
       .where({ authorId, archived: false })
       .count()
@@ -25,10 +19,7 @@ export class DraftService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  /**
-   * Find drafts by publish state
-   */
-  findByPublishState = async ({
+  public findByPublishState = async ({
     articleIdIsNull,
     publishState,
   }: {
@@ -46,10 +37,7 @@ export class DraftService extends BaseService {
     return query
   }
 
-  /**
-   * Find unpublished drafts by a given author id (user).
-   */
-  findUnpublishedByAuthor = (authorId: string) =>
+  public findUnpublishedByAuthor = (authorId: string) =>
     this.knex
       .select()
       .from(this.table)
@@ -57,9 +45,6 @@ export class DraftService extends BaseService {
       .andWhereNot({ publishState: PUBLISH_STATE.published })
       .orderBy('updated_at', 'desc')
 
-  /**
-   * Find draft by media hash.
-   */
-  findByMediaHash = async (mediaHash: string) =>
+  public findByMediaHash = async (mediaHash: string) =>
     this.knex.select().from(this.table).where({ mediaHash }).first()
 }
