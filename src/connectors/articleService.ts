@@ -127,7 +127,7 @@ export class ArticleService extends BaseService {
     userId: string,
     forcePinned?: boolean
   ) => {
-    const article = await this.dataloader.load(articleId)
+    const article = await this.baseFindById(articleId)
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
