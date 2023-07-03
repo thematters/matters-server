@@ -29,7 +29,7 @@ const resolver: MutationToDeleteCollectionArticlesResolver = async (
     throw new UserInputError('Invalid Article ids')
   }
 
-  const collection = await collectionService.findById(collectionId)
+  const collection = await collectionService.loadById(collectionId)
 
   if (!collection) {
     throw new UserInputError('Collection not found')

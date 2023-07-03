@@ -111,8 +111,8 @@ test('deleteCollectionArticles', async () => {
   expect(res2[0][0].articleId).toBe('3')
 })
 
-test('findByIds', async () => {
-  const res = await collectionService.findByIds([])
+test('loadByIds', async () => {
+  const res = await collectionService.loadByIds([])
   expect(res.length).toBe(0)
 
   const { id: id1 } = await collectionService.createCollection({
@@ -123,7 +123,7 @@ test('findByIds', async () => {
     authorId: '1',
     title: 'test',
   })
-  const res2 = await collectionService.findByIds([id1, id2])
+  const res2 = await collectionService.loadByIds([id1, id2])
   expect(res2.length).toBe(2)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expect((res2[0] as any).id).toBe(id1)
@@ -262,4 +262,15 @@ describe('reorderArticles', () => {
     expect(records[2].articleId).toBe('1')
     expect(records[3].articleId).toBe('2')
   })
+})
+
+test('togglePin', async () => {
+  const { id } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  expect((await collectionService.baseFindById(id)).pinned).toBe(false)
+  const collection = await collectionService.togglePin(id, '1')
+  expect(collection.pinned).toBe(true)
+  expect((await collectionService.baseFindById(id)).pinned).toBe(true)
 })

@@ -260,3 +260,5 @@ export const TAGS_RECOMMENDED_LIMIT = 100
 
 export const MAX_TAG_CONTENT_LENGTH = 50
 export const MAX_TAG_DESCRIPTION_LENGTH = 200
+
+export const MAX_PINNED_WORKS_LIMIT = 3

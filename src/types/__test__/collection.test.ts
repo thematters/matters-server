@@ -21,7 +21,6 @@ const GET_COLLECTION = /* GraphQL */ `
     }
   }
 `
-
 const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   query {
     viewer {
@@ -50,7 +49,6 @@ const PUT_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
-
 const DEL_COLLECTIONS = /* GraphQL */ `
   mutation ($input: DeleteCollectionsInput!) {
     deleteCollections(input: $input)
@@ -88,7 +86,6 @@ const DEL_COLLECTION_ARTICLES = /* GraphQL */ `
     }
   }
 `
-
 const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
   mutation ($input: ReorderCollectionArticlesInput!) {
     reorderCollectionArticles(input: $input) {
@@ -102,6 +99,15 @@ const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
           }
         }
       }
+    }
+  }
+`
+const TOGGLE_PIN_WORK = /* GraphQL */ `
+  mutation ($input: ToggleItemInput!) {
+    togglePinWork(input: $input) {
+      id
+      pinned
+      title
     }
   }
 `
@@ -641,5 +647,62 @@ describe('reorder articles in collections', () => {
     expect(data?.reorderCollectionArticles.articles.edges[0].node.id).toBe(
       articleGlobalId1
     )
+  })
+})
+
+describe('togglePinWork', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
+  let collectionId: string
+  const title = 'my collection'
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTIONS,
+      variables: { input: { title } },
+    })
+    collectionId = data?.putCollection?.id
+    await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [articleGlobalId1, articleGlobalId4],
+        },
+      },
+    })
+  })
+  test('invalid id', async () => {
+    const { errors } = await server.executeOperation({
+      query: TOGGLE_PIN_WORK,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
+        },
+      },
+    })
+    expect(errors?.[0]?.message).toBe('Invalid id')
+  })
+  test('success', async () => {
+    const { data } = await server.executeOperation({
+      query: TOGGLE_PIN_WORK,
+      variables: {
+        input: {
+          id: collectionId,
+        },
+      },
+    })
+    expect(data?.togglePinWork?.pinned).toBe(true)
+    expect(data?.togglePinWork?.title).toBe(title)
+
+    const { data: data2 } = await server.executeOperation({
+      query: TOGGLE_PIN_WORK,
+      variables: {
+        input: {
+          id: articleGlobalId1,
+        },
+      },
+    })
+    expect(data2?.togglePinWork?.pinned).toBe(true)
   })
 })

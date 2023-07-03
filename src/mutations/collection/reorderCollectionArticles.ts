@@ -26,7 +26,7 @@ const resolver: MutationToReorderCollectionArticlesResolver = async (
     throw new UserInputError('Invalid Collection id')
   }
 
-  const collection = await collectionService.findById(collectionId)
+  const collection = await collectionService.loadById(collectionId)
 
   if (!collection) {
     throw new UserInputError('Collection not found')

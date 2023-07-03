@@ -1,14 +1,15 @@
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, MAX_PINNED_WORKS_LIMIT } from 'common/enums'
 import {
   ForbiddenError,
   EntityNotFoundError,
   ServerError,
   UserInputError,
+  ActionLimitExceededError,
 } from 'common/errors'
-import { BaseService } from 'connectors'
+import { BaseService, UserService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
 // const logger = getLogger('service-collection')
@@ -31,6 +32,28 @@ export class CollectionService extends BaseService {
   public constructor() {
     super('collection')
     this.dataloader = new DataLoader(this.baseFindByIds)
+  }
+
+  public loadById = async (id: string) => await this.dataloader.load(id)
+
+  public loadByIds = async (ids: readonly string[]) =>
+    await this.dataloader.loadMany(ids)
+
+  public addArticles = async (
+    collectionId: string,
+    articleIds: readonly string[]
+  ) => {
+    const res = await this.knex('collection_article')
+      .where('collection_id', collectionId)
+      .max('order')
+    const initOrder = res[0].max ? parseFloat(res[0].max) + 1 : 1
+    await this.knex('collection_article').insert(
+      articleIds.map((articleId, index) => ({
+        articleId,
+        collectionId,
+        order: initOrder + index,
+      }))
+    )
   }
 
   public createCollection = async ({
@@ -108,6 +131,9 @@ export class CollectionService extends BaseService {
     return [records, totalCount]
   }
 
+  /**
+   * Delete collections and articles in those collections
+   */
   public deleteCollections = async (
     ids: readonly string[],
     authorId: string
@@ -115,7 +141,7 @@ export class CollectionService extends BaseService {
     if (ids.length === 0) {
       return false
     }
-    const collections = await this.findByIds(ids)
+    const collections = await this.loadByIds(ids)
 
     for (const collection of collections) {
       if (!collection) {
@@ -145,28 +171,6 @@ export class CollectionService extends BaseService {
       .where('collection_id', collectionId)
       .whereIn('article_id', articleIds)
       .del()
-
-  public findById = async (id: string) => await this.dataloader.load(id)
-
-  public findByIds = async (ids: readonly string[]) =>
-    await this.dataloader.loadMany(ids)
-
-  public addArticles = async (
-    collectionId: string,
-    articleIds: readonly string[]
-  ) => {
-    const res = await this.knex('collection_article')
-      .where('collection_id', collectionId)
-      .max('order')
-    const initOrder = res[0].max ? parseFloat(res[0].max) + 1 : 1
-    await this.knex('collection_article').insert(
-      articleIds.map((articleId, index) => ({
-        articleId,
-        collectionId,
-        order: initOrder + index,
-      }))
-    )
-  }
 
   public reorderArticles = async (
     collectionId: string,
@@ -230,5 +234,40 @@ export class CollectionService extends BaseService {
         })
       }
     }
+  }
+
+  /**
+   * Update collection's pin status and return collection
+   * Throw error if there already has 3 pinned articles/collections
+   * or user is not the author of the article.
+   */
+  public togglePin = async (
+    collectionId: string,
+    userId: string,
+    forcePinned?: boolean
+  ) => {
+    const collection = await this.loadById(collectionId)
+    if (!collection) {
+      throw new EntityNotFoundError('Collection not found')
+    }
+    if (collection.authorId !== userId) {
+      throw new ForbiddenError('Only author can pin the article')
+    }
+    const userService = new UserService()
+    const totalPinned = await userService.totalPinnedWorks(userId)
+    const pinned = forcePinned ?? !collection.pinned
+    if (pinned === collection.pinned) {
+      return collection
+    }
+    if (pinned && totalPinned >= MAX_PINNED_WORKS_LIMIT) {
+      throw new ActionLimitExceededError(
+        `You can only pin up to ${MAX_PINNED_WORKS_LIMIT} articles/collections`
+      )
+    }
+    await this.baseUpdate(collectionId, {
+      pinned,
+      pinnedAt: this.knex.fn.now(),
+    })
+    return { ...collection, pinned }
   }
 }
