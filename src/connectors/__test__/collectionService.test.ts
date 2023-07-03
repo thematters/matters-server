@@ -297,6 +297,22 @@ describe('reorderArticles', () => {
   })
 })
 
+describe('findPinnedByAuthor', () => {
+  test('empty', async () => {
+    const records = await collectionService.findPinnedByAuthor('1')
+    expect(records.length).toBe(0)
+  })
+  test('success', async () => {
+    const { id } = await collectionService.createCollection({
+      authorId: '1',
+      title: 'test',
+    })
+    await collectionService.togglePin(id, '1')
+    const records = await collectionService.findPinnedByAuthor('1')
+    expect(records.length).toBe(1)
+  })
+})
+
 test('togglePin', async () => {
   const { id } = await collectionService.createCollection({
     authorId: '1',

@@ -1888,7 +1888,7 @@ export class UserService extends BaseService {
   public totalPinnedWorks = async (id: string): Promise<number> => {
     const res1 = await this.knex('article')
       .count()
-      .where({ authorId: id, pinned: true, state: 'active' })
+      .where({ authorId: id, pinned: true, state: ARTICLE_STATE.active })
       .first()
     const res2 = await this.knex('collection')
       .count()

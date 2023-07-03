@@ -55,6 +55,7 @@ import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
 import { boost, restrictions, score } from './oss'
 import ownCircles from './ownCircles'
+import pinnedWorks from './pinnedWorks'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
@@ -130,6 +131,7 @@ const user: {
     // hasFollowed,
     subscriptions,
     collections,
+    pinnedWorks,
     followers,
     isFollower,
     isFollowee,
