@@ -20,7 +20,7 @@ const resolver: UserToPinnedWorksResolver = async (
     pinnedWorks.map(async (work) => {
       if (work.__type === NODE_TYPES.Article) {
         const draft = await draftService.loadById(work.draftId)
-        return { ...draft, pinned: true, __type: NODE_TYPES.Article }
+        return { ...draft, __type: NODE_TYPES.Article }
       } else {
         return work
       }
