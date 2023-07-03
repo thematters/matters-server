@@ -274,19 +274,19 @@ describe('findPinnedByAuthor', () => {
       authorId: '1',
       title: 'test',
     })
-    await collectionService.togglePin(id, '1')
+    await collectionService.updatePinned(id, '1', true)
     const records = await collectionService.findPinnedByAuthor('1')
     expect(records.length).toBe(1)
   })
 })
 
-test('togglePin', async () => {
+test('updatePinned', async () => {
   const { id } = await collectionService.createCollection({
     authorId: '1',
     title: 'test',
   })
   expect((await collectionService.baseFindById(id)).pinned).toBe(false)
-  const collection = await collectionService.togglePin(id, '1')
+  const collection = await collectionService.updatePinned(id, '1', true)
   expect(collection.pinned).toBe(true)
   expect((await collectionService.baseFindById(id)).pinned).toBe(true)
 })

@@ -73,44 +73,36 @@ test('findSubscriptions', async () => {
   expect(subs.length).toEqual(2)
 })
 
-describe('togglePin', () => {
+describe('updatePinned', () => {
   const getArticleFromDb = async (id: string) => articleService.baseFindById(id)
   test('invaild article id will throw error', async () => {
-    await expect(articleService.togglePin('999', '1', true)).rejects.toThrow(
+    await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(
       'Cannot find article'
     )
   })
   test('not author user id will throw error', async () => {
-    await expect(articleService.togglePin('1', '999', true)).rejects.toThrow(
+    await expect(articleService.updatePinned('1', '999', true)).rejects.toThrow(
       'Only author can pin article'
     )
   })
   test('success', async () => {
-    // toggle w/o forcePinned
-    expect((await getArticleFromDb('1')).pinned).toBe(false)
-    let article = await new ArticleService().togglePin('1', '1')
+    let article = await new ArticleService().updatePinned('1', '1', true)
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
-    article = await new ArticleService().togglePin('1', '1')
-    expect(article.pinned).toBe(false)
-    expect((await getArticleFromDb('1')).pinned).toBe(false)
-
-    // toggle w forcePinned
-    article = await new ArticleService().togglePin('1', '1', true)
-    expect(article.pinned).toBe(true)
-    expect((await getArticleFromDb('1')).pinned).toBe(true)
-    article = await new ArticleService().togglePin('1', '1', true)
+    article = await new ArticleService().updatePinned('1', '1', true)
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
   })
   test('cannot toggle more than 3 works', async () => {
-    await articleService.togglePin('4', '1')
-    await articleService.togglePin('6', '1')
+    await articleService.updatePinned('4', '1', true)
+    await articleService.updatePinned('6', '1', true)
 
     const userService = new UserService()
     const total = await userService.totalPinnedWorks('1')
     expect(total).toBe(3)
-    await expect(articleService.togglePin(articleId, '1')).rejects.toThrow()
+    await expect(
+      articleService.updatePinned(articleId, '1', true)
+    ).rejects.toThrow()
   })
 })
 

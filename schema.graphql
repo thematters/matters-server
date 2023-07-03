@@ -265,9 +265,6 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
-
-  """Toggle pin status of the work."""
-  togglePinWork(input: ToggleItemInput!): PinnableWork!
 }
 
 """
@@ -652,6 +649,8 @@ input PublishArticleInput {
 input EditArticleInput {
   id: ID!
   state: ArticleState
+
+  """deprecated, use pinned instead"""
   sticky: Boolean
   pinned: Boolean
   summary: String
@@ -3339,6 +3338,7 @@ input PutCollectionInput {
   title: String
   cover: ID
   description: String
+  pinned: Boolean
 }
 
 input DeleteCollectionsInput {

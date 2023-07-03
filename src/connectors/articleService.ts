@@ -122,10 +122,10 @@ export class ArticleService extends BaseService {
    * Throw error if there already has 3 pinned articles/collections
    * or user is not the author of the article.
    */
-  public togglePin = async (
+  public updatePinned = async (
     articleId: string,
     userId: string,
-    forcePinned?: boolean
+    pinned: boolean
   ) => {
     const article = await this.baseFindById(articleId)
     if (!article) {
@@ -136,7 +136,6 @@ export class ArticleService extends BaseService {
     }
     const userService = new UserService()
     const totalPinned = await userService.totalPinnedWorks(userId)
-    const pinned = forcePinned ?? !article.pinned
     if (pinned === article.pinned) {
       return article
     }

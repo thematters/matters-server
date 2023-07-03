@@ -398,11 +398,6 @@ export interface GQLMutation {
    * Reorder articles in the collection.
    */
   reorderCollectionArticles: GQLCollection
-
-  /**
-   * Toggle pin status of the work.
-   */
-  togglePinWork: GQLPinnableWork
 }
 
 /**
@@ -973,6 +968,10 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
+
+  /**
+   * deprecated, use pinned instead
+   */
   sticky?: boolean
   pinned?: boolean
   summary?: string
@@ -4526,6 +4525,7 @@ export interface GQLPutCollectionInput {
   title?: string
   cover?: string
   description?: string
+  pinned?: boolean
 }
 
 export interface GQLDeleteCollectionsInput {
@@ -4969,7 +4969,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   addCollectionsArticles?: MutationToAddCollectionsArticlesResolver<TParent>
   deleteCollectionArticles?: MutationToDeleteCollectionArticlesResolver<TParent>
   reorderCollectionArticles?: MutationToReorderCollectionArticlesResolver<TParent>
-  togglePinWork?: MutationToTogglePinWorkResolver<TParent>
 }
 
 export interface MutationToPublishArticleArgs {
@@ -6167,18 +6166,6 @@ export interface MutationToReorderCollectionArticlesResolver<
   (
     parent: TParent,
     args: MutationToReorderCollectionArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToTogglePinWorkArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToTogglePinWorkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToTogglePinWorkArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

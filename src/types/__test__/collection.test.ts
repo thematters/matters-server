@@ -39,13 +39,14 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
-const PUT_COLLECTIONS = /* GraphQL */ `
+const PUT_COLLECTION = /* GraphQL */ `
   mutation ($input: PutCollectionInput!) {
     putCollection(input: $input) {
       id
       title
       description
       cover
+      pinned
     }
   }
 `
@@ -102,15 +103,6 @@ const REORDER_COLLECTION_ARTICLES = /* GraphQL */ `
     }
   }
 `
-const TOGGLE_PIN_WORK = /* GraphQL */ `
-  mutation ($input: ToggleItemInput!) {
-    togglePinWork(input: $input) {
-      id
-      pinned
-      title
-    }
-  }
-`
 
 const GET_PINNED_WORKS = /* GraphQL */ `
   query {
@@ -143,7 +135,7 @@ describe('get viewer collections', () => {
     // create a collection
     const title = 'test title'
     await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title } },
     })
 
@@ -171,7 +163,7 @@ describe('collections CURD', () => {
   test('not logged-in users can not mutate collections', async () => {
     const server = await testClient()
     const { errors } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
     })
     expect(errors?.[0]?.message).toBe(
@@ -181,13 +173,13 @@ describe('collections CURD', () => {
   test('long title/description is not allowed', async () => {
     const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'a'.repeat(21) } },
     })
     expect(errors?.[0]?.message).toBe('Title too long')
 
     const { errors: errors2 } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'test', description: 'a'.repeat(141) } },
     })
     expect(errors2?.[0]?.message).toBe('Description too long')
@@ -196,7 +188,7 @@ describe('collections CURD', () => {
     test('invalid cover input', async () => {
       const server = await testClient({ isAuth: true })
       const { errors } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { title: 'test', cover: 'invalid cover' } },
       })
       expect(errors?.[0]?.message).toBe('Asset does not exists')
@@ -205,7 +197,7 @@ describe('collections CURD', () => {
     test('assset not exists in db', async () => {
       const server = await testClient({ isAuth: true })
       const { errors } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: {
           input: {
             title: 'test',
@@ -219,7 +211,7 @@ describe('collections CURD', () => {
     test('asset not cover type', async () => {
       const server = await testClient({ isAuth: true })
       const { errors } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: {
           input: {
             title: 'test',
@@ -233,7 +225,7 @@ describe('collections CURD', () => {
     test('success', async () => {
       const server = await testClient({ isAuth: true })
       const { data } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: {
           input: {
             title: 'test',
@@ -248,13 +240,13 @@ describe('collections CURD', () => {
     test('id is checked', async () => {
       const server = await testClient({ isAuth: true })
       const { errors } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { id: 'invalid id', title: 'test' } },
       })
       expect(errors?.[0]?.message).toBe('invalid globalId')
 
       const { errors: errors2 } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: {
           input: {
             id: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
@@ -265,7 +257,7 @@ describe('collections CURD', () => {
       expect(errors2?.[0]?.message).toBe('Invalid Collection id')
 
       const { errors: errors3 } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: {
           input: {
             id: toGlobalId({ type: NODE_TYPES.Collection, id: '999' }),
@@ -282,11 +274,11 @@ describe('collections CURD', () => {
           putCollection: { id },
         },
       } = await server2.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { title: 'test' } },
       })
       const { errors: errors4 } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { title: 'new title', id } },
       })
       expect(errors4?.[0]?.message).toBe('Viewer has no permission')
@@ -298,14 +290,14 @@ describe('collections CURD', () => {
           putCollection: { id },
         },
       } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { title: 'test' } },
       })
 
       const newTitle = 'new title'
 
       const { data } = await server.executeOperation({
-        query: PUT_COLLECTIONS,
+        query: PUT_COLLECTION,
         variables: { input: { title: newTitle, id } },
       })
       expect(data.putCollection.title).toBe(newTitle)
@@ -321,13 +313,13 @@ describe('delete collections', () => {
   beforeAll(async () => {
     server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
     })
     id = data?.putCollection?.id
     const othersServer = await testClient({ isAuth: true, isMatty: true })
     const { data: data2 } = await othersServer.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
     })
     othersId = data2?.putCollection?.id
@@ -387,12 +379,12 @@ describe('add articles to collections', () => {
   beforeAll(async () => {
     server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'collection 1' } },
     })
     collectionId1 = data?.putCollection?.id
     const { data: data2 } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'collection 2' } },
     })
     collectionId2 = data2?.putCollection?.id
@@ -468,7 +460,7 @@ describe('add articles to collections', () => {
         putCollection: { id: othersCollectionId },
       },
     } = await server2.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
     })
 
@@ -548,13 +540,13 @@ describe('delete articles in collections', () => {
   beforeAll(async () => {
     server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
     })
     collectionId = data?.putCollection?.id
     const othersServer = await testClient({ isAuth: true, isMatty: true })
     const { data: data2 } = await othersServer.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'others collection' } },
     })
     othersCollectionId = data2?.putCollection?.id
@@ -631,7 +623,7 @@ describe('reorder articles in collections', () => {
   beforeAll(async () => {
     server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
     })
     collectionId = data?.putCollection?.id
@@ -661,7 +653,7 @@ describe('reorder articles in collections', () => {
   })
 })
 
-describe('togglePinWork', () => {
+describe('update pinned', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let server: any
   let collectionId: string
@@ -669,7 +661,7 @@ describe('togglePinWork', () => {
   beforeAll(async () => {
     server = await testClient({ isAuth: true })
     const { data } = await server.executeOperation({
-      query: PUT_COLLECTIONS,
+      query: PUT_COLLECTION,
       variables: { input: { title } },
     })
     collectionId = data?.putCollection?.id
@@ -683,58 +675,23 @@ describe('togglePinWork', () => {
       },
     })
   })
-  test('invalid id', async () => {
-    const { errors } = await server.executeOperation({
-      query: TOGGLE_PIN_WORK,
-      variables: {
-        input: {
-          id: toGlobalId({ type: NODE_TYPES.Circle, id: '1' }),
-        },
-      },
-    })
-    expect(errors?.[0]?.message).toBe('Invalid id')
-
-    const { data } = await server.executeOperation({
-      query: GET_PINNED_WORKS,
-    })
-    expect(data?.viewer.pinnedWorks).toEqual([])
-  })
   test('pin collection success', async () => {
-    const { data } = await server.executeOperation({
-      query: TOGGLE_PIN_WORK,
+    const { data, errors } = await server.executeOperation({
+      query: PUT_COLLECTION,
       variables: {
         input: {
           id: collectionId,
+          pinned: true,
         },
       },
     })
-    expect(data?.togglePinWork?.pinned).toBe(true)
-    expect(data?.togglePinWork?.title).toBe(title)
+    console.log(data)
+    console.log(errors)
+    expect(data?.putCollection?.pinned).toBe(true)
 
     const { data: data2 } = await server.executeOperation({
       query: GET_PINNED_WORKS,
     })
     expect(data2?.viewer.pinnedWorks.length).toEqual(1)
-  })
-
-  test('pin article success', async () => {
-    const { data } = await server.executeOperation({
-      query: TOGGLE_PIN_WORK,
-      variables: {
-        input: {
-          id: articleGlobalId1,
-        },
-      },
-    })
-    expect(data?.togglePinWork?.pinned).toBe(true)
-
-    const { data: data2, errors } = await server.executeOperation({
-      query: GET_PINNED_WORKS,
-    })
-    console.log(errors)
-    expect(data2?.viewer.pinnedWorks.length).toEqual(2)
-    // order by pinned_at desc
-    expect(data2?.viewer.pinnedWorks[0].id).toEqual(articleGlobalId1)
-    expect(data2?.viewer.pinnedWorks[1].id).toEqual(collectionId)
   })
 })

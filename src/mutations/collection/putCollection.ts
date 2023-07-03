@@ -18,7 +18,7 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: MutationToPutCollectionResolver = async (
   _,
-  { input: { id, title, description, cover } },
+  { input: { id, title, description, cover, pinned } },
   { dataSources: { collectionService, systemService }, viewer }
 ) => {
   if (!viewer.id) {
@@ -67,11 +67,20 @@ const resolver: MutationToPutCollectionResolver = async (
     if (collection.authorId !== viewer.id) {
       throw new ForbiddenError('Viewer has no permission')
     }
-    return await collectionService.updateCollection(dbId, {
-      title: trimedTitle,
-      description: trimedDescription,
-      cover: coverId,
-    })
+
+    let res
+    if (typeof pinned === 'boolean') {
+      res = await collectionService.updatePinned(dbId, viewer.id, pinned)
+    }
+
+    if (title ?? description ?? cover) {
+      res = await collectionService.updateCollection(dbId, {
+        title: trimedTitle,
+        description: trimedDescription,
+        cover: coverId,
+      })
+    }
+    return res ?? collection
   } else {
     if (!trimedTitle) {
       throw new UserInputError('title is required')
@@ -81,6 +90,7 @@ const resolver: MutationToPutCollectionResolver = async (
       title: trimedTitle,
       description: trimedDescription,
       cover: coverId,
+      pinned,
     })
   }
 }
