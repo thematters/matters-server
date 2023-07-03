@@ -566,13 +566,10 @@ export interface GQLArticle extends GQLNode, GQLPinnableWork {
   subscribed: boolean
 
   /**
-   * This value determines if this article is an author selected article or not. Deprecated, user pinned instead
+   * This value determines if this article is an author selected article or not.
+   * @deprecated Use pinned instead
    */
   sticky: boolean
-
-  /**
-   * This value determines if this article is an author selected article or not.
-   */
   pinned: boolean
 
   /**
@@ -976,8 +973,8 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
-  pinned?: boolean
   sticky?: boolean
+  pinned?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
