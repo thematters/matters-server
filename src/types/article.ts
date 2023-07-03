@@ -438,7 +438,7 @@ export default /* GraphQL */ `
   input EditArticleInput {
     id: ID!
     state: ArticleState
-    sticky: Boolean @deprecated(reason: "Use pinned instead")
+    sticky: Boolean
     pinned: Boolean
     summary: String
     tags: [String!]

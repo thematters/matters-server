@@ -652,7 +652,7 @@ input PublishArticleInput {
 input EditArticleInput {
   id: ID!
   state: ArticleState
-  sticky: Boolean @deprecated(reason: "Use pinned instead")
+  sticky: Boolean
   pinned: Boolean
   summary: String
   tags: [String!]
@@ -2141,8 +2141,6 @@ enum SearchTypes {
 enum SearchAPIVersion {
   v20230601
   v20230301
-  v20221212
-  v20221212prior
 }
 
 enum BoostTypes {

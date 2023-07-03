@@ -973,8 +973,8 @@ export interface GQLPublishArticleInput {
 export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
-  pinned?: boolean
   sticky?: boolean
+  pinned?: boolean
   summary?: string
   tags?: Array<string>
   content?: string
@@ -3051,8 +3051,6 @@ export const enum GQLSearchTypes {
 export const enum GQLSearchAPIVersion {
   v20230601 = 'v20230601',
   v20230301 = 'v20230301',
-  v20221212 = 'v20221212',
-  v20221212prior = 'v20221212prior',
 }
 
 export const enum GQLBoostTypes {
