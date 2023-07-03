@@ -128,6 +128,9 @@ export class ArticleService extends BaseService {
     forcePinned?: boolean
   ) => {
     const article = await this.baseFindById(articleId)
+    if (!article) {
+      throw new ArticleNotFoundError('Cannot find article')
+    }
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
