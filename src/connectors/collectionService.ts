@@ -62,17 +62,20 @@ export class CollectionService extends BaseService {
     authorId,
     description,
     cover,
+    pinned,
   }: {
     title: string
     authorId: string
     description?: string
     cover?: string
+    pinned?: boolean
   }) =>
     this.baseCreate({
       title,
       authorId,
       cover,
       description,
+      pinned,
     })
 
   public updateCollection = async (
@@ -253,10 +256,10 @@ export class CollectionService extends BaseService {
    * Throw error if there already has 3 pinned articles/collections
    * or user is not the author of the article.
    */
-  public togglePin = async (
+  public updatePinned = async (
     collectionId: string,
     userId: string,
-    forcePinned?: boolean
+    pinned: boolean
   ) => {
     const collection = await this.loadById(collectionId)
     if (!collection) {
@@ -267,7 +270,6 @@ export class CollectionService extends BaseService {
     }
     const userService = new UserService()
     const totalPinned = await userService.totalPinnedWorks(userId)
-    const pinned = forcePinned ?? !collection.pinned
     if (pinned === collection.pinned) {
       return collection
     }
