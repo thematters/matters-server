@@ -62,7 +62,13 @@ export class CollectionService extends BaseService {
       cover?: string
       description?: string
     }
-  ) => this.baseUpdate(id, { title, cover, description })
+  ) =>
+    this.baseUpdate(id, {
+      title,
+      cover,
+      description,
+      updatedAt: this.knex.fn.now(),
+    })
 
   public findAndCountCollectionsByUser = async (
     id: string,
@@ -70,6 +76,7 @@ export class CollectionService extends BaseService {
   ): Promise<[Collection[], number]> => {
     const records = await this.baseFind({
       where: { authorId: id },
+      orderBy: [{ column: 'updated_at', order: 'desc' }],
       skip,
       take,
       returnTotalCount: true,
@@ -140,11 +147,13 @@ export class CollectionService extends BaseService {
   public deleteCollectionArticles = async (
     collectionId: string,
     articleIds: readonly string[]
-  ) =>
+  ) => {
     await this.knex('collection_article')
       .where('collection_id', collectionId)
       .whereIn('article_id', articleIds)
       .del()
+    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
+  }
 
   public findById = async (id: string) => await this.dataloader.load(id)
 
@@ -166,6 +175,7 @@ export class CollectionService extends BaseService {
         order: initOrder + index,
       }))
     )
+    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
   }
 
   public reorderArticles = async (
@@ -185,6 +195,8 @@ export class CollectionService extends BaseService {
     if (moves.some(({ articleId }) => !articleIds.includes(articleId))) {
       throw new UserInputError('Invalid articleId')
     }
+
+    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
 
     for (const { articleId, newPosition } of moves) {
       if (
