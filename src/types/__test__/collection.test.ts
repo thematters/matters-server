@@ -165,13 +165,13 @@ describe('collections CURD', () => {
     const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({
       query: PUT_COLLECTIONS,
-      variables: { input: { title: 'a'.repeat(21) } },
+      variables: { input: { title: 'a'.repeat(41) } },
     })
     expect(errors?.[0]?.message).toBe('Title too long')
 
     const { errors: errors2 } = await server.executeOperation({
       query: PUT_COLLECTIONS,
-      variables: { input: { title: 'test', description: 'a'.repeat(141) } },
+      variables: { input: { title: 'test', description: 'a'.repeat(201) } },
     })
     expect(errors2?.[0]?.message).toBe('Description too long')
   })
