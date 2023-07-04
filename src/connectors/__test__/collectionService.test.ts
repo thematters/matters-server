@@ -37,14 +37,16 @@ test('findAndCountCollectionsByUser', async () => {
   expect(records0.length).toBe(0)
   expect(count0).toBe(0)
 
-  await collectionService.createCollection({
+  const { id: id1 } = await collectionService.createCollection({
     authorId: '2',
     title: 'test',
   })
-  await collectionService.createCollection({
+  const { id: id2 } = await collectionService.createCollection({
     authorId: '2',
     title: 'test',
   })
+
+  // order by `updated_at` desc
 
   const [records1, count1] =
     await collectionService.findAndCountCollectionsByUser('2', {
@@ -54,6 +56,37 @@ test('findAndCountCollectionsByUser', async () => {
 
   expect(records1.length).toBe(1)
   expect(count1).toBe(2)
+  expect(records1[0].id).toBe(id2)
+
+  // update collections meta info will update `updated_at`
+
+  await collectionService.updateCollection(id1, { title: 'new title' })
+
+  const [records2] = await collectionService.findAndCountCollectionsByUser(
+    '2',
+    {
+      skip: 0,
+      take: 2,
+    }
+  )
+
+  expect(records2[0].id).toBe(id1)
+  expect(records2[1].id).toBe(id2)
+
+  // add articles to collection will update `updated_at`
+
+  await collectionService.addArticles(id2, ['2'])
+
+  const [records3] = await collectionService.findAndCountCollectionsByUser(
+    '2',
+    {
+      skip: 0,
+      take: 2,
+    }
+  )
+
+  expect(records3[0].id).toBe(id2)
+  expect(records3[1].id).toBe(id1)
 })
 
 test('deleteCollections', async () => {

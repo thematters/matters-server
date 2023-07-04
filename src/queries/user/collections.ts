@@ -16,7 +16,6 @@ const resolver: UserToCollectionsResolver = async (
   const [records, totalCount] =
     await collectionService.findAndCountCollectionsByUser(id, { take, skip })
 
-  // console.log('records', records)
   return connectionFromArray(records, input, totalCount)
 }
 
