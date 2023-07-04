@@ -1,5 +1,6 @@
 import type { MutationToPutCollectionResolver } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { validate as validateUUID } from 'uuid'
 
 import {
@@ -15,6 +16,7 @@ import {
   AssetNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { redis } from 'connectors'
 
 const resolver: MutationToPutCollectionResolver = async (
   _,
@@ -76,12 +78,17 @@ const resolver: MutationToPutCollectionResolver = async (
     if (!trimedTitle) {
       throw new UserInputError('title is required')
     }
-    return await collectionService.createCollection({
+    const collection = await collectionService.createCollection({
       authorId: viewer.id,
       title: trimedTitle,
       description: trimedDescription,
       cover: coverId,
     })
+    await invalidateFQC({
+      node: { type: NODE_TYPES.User, id: collection.authorId },
+      redis,
+    })
+    return collection
   }
 }
 
