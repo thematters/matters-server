@@ -127,8 +127,7 @@ export default /* GraphQL */ `
 
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection!
-    pinnedWorks: [PinnableWork!]! @logCache(type: "${NODE_TYPES.PinnableWork}")
-
+    pinnedWorks: [PinnableWork!]!
     "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 

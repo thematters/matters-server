@@ -1,6 +1,8 @@
-import { ArticleService } from 'connectors'
+import { ArticleService, UserService } from 'connectors'
 
 const articleService = new ArticleService()
+
+let articleId: string
 
 test('publish', async () => {
   // publish article to IPFS
@@ -23,6 +25,7 @@ test('publish', async () => {
   expect(dataHash).toBeDefined()
   expect(articlePublished.state).toBe('pending')
 
+  articleId = articlePublished.id
   // publish to IPNS
   // await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
@@ -68,6 +71,39 @@ test('findTagIds', async () => {
 test('findSubscriptions', async () => {
   const subs = await articleService.findSubscriptions({ id: '2' })
   expect(subs.length).toEqual(2)
+})
+
+describe('updatePinned', () => {
+  const getArticleFromDb = async (id: string) => articleService.baseFindById(id)
+  test('invaild article id will throw error', async () => {
+    await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(
+      'Cannot find article'
+    )
+  })
+  test('not author user id will throw error', async () => {
+    await expect(articleService.updatePinned('1', '999', true)).rejects.toThrow(
+      'Only author can pin article'
+    )
+  })
+  test('success', async () => {
+    let article = await new ArticleService().updatePinned('1', '1', true)
+    expect(article.pinned).toBe(true)
+    expect((await getArticleFromDb('1')).pinned).toBe(true)
+    article = await new ArticleService().updatePinned('1', '1', true)
+    expect(article.pinned).toBe(true)
+    expect((await getArticleFromDb('1')).pinned).toBe(true)
+  })
+  test('cannot toggle more than 3 works', async () => {
+    await articleService.updatePinned('4', '1', true)
+    await articleService.updatePinned('6', '1', true)
+
+    const userService = new UserService()
+    const total = await userService.totalPinnedWorks('1')
+    expect(total).toBe(3)
+    await expect(
+      articleService.updatePinned(articleId, '1', true)
+    ).rejects.toThrow()
+  })
 })
 
 test('update', async () => {

@@ -144,8 +144,8 @@ test('deleteCollectionArticles', async () => {
   expect(res2[0][0].articleId).toBe('3')
 })
 
-test('findByIds', async () => {
-  const res = await collectionService.findByIds([])
+test('loadByIds', async () => {
+  const res = await collectionService.loadByIds([])
   expect(res.length).toBe(0)
 
   const { id: id1 } = await collectionService.createCollection({
@@ -156,7 +156,7 @@ test('findByIds', async () => {
     authorId: '1',
     title: 'test',
   })
-  const res2 = await collectionService.findByIds([id1, id2])
+  const res2 = await collectionService.loadByIds([id1, id2])
   expect(res2.length).toBe(2)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expect((res2[0] as any).id).toBe(id1)
@@ -295,4 +295,31 @@ describe('reorderArticles', () => {
     expect(records[2].articleId).toBe('1')
     expect(records[3].articleId).toBe('2')
   })
+})
+
+describe('findPinnedByAuthor', () => {
+  test('empty', async () => {
+    const records = await collectionService.findPinnedByAuthor('1')
+    expect(records.length).toBe(0)
+  })
+  test('success', async () => {
+    const { id } = await collectionService.createCollection({
+      authorId: '1',
+      title: 'test',
+    })
+    await collectionService.updatePinned(id, '1', true)
+    const records = await collectionService.findPinnedByAuthor('1')
+    expect(records.length).toBe(1)
+  })
+})
+
+test('updatePinned', async () => {
+  const { id } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  expect((await collectionService.baseFindById(id)).pinned).toBe(false)
+  const collection = await collectionService.updatePinned(id, '1', true)
+  expect(collection.pinned).toBe(true)
+  expect((await collectionService.baseFindById(id)).pinned).toBe(true)
 })

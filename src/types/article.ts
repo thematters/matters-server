@@ -438,6 +438,7 @@ export default /* GraphQL */ `
   input EditArticleInput {
     id: ID!
     state: ArticleState
+    "deprecated, use pinned instead"
     sticky: Boolean
     pinned: Boolean
     summary: String

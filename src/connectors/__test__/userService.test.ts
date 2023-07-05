@@ -334,3 +334,17 @@ describe('restrictions CRUD', () => {
     expect(skipCount).toBe(2)
   })
 })
+
+describe('totalPinnedWorks', () => {
+  test('get 0 pinned works', async () => {
+    const res = await userService.totalPinnedWorks('1')
+    expect(res).toBe(0)
+  })
+  test('get 1 pinned works', async () => {
+    await userService
+      .knex('collection')
+      .insert({ authorId: '1', title: 'test', pinned: true })
+    const res = await userService.totalPinnedWorks('1')
+    expect(res).toBe(1)
+  })
+})

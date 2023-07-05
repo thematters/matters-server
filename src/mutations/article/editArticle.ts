@@ -141,27 +141,9 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Pinned or Sticky
    */
-  const isPinned = sticky
-  // const isPinned = pinned ?? sticky
+  const isPinned = pinned ?? sticky
   if (typeof isPinned === 'boolean') {
-    // reset if there are some sticky articles.
-    if (isPinned === true) {
-      const pinnedIds = (
-        await atomService.findMany({
-          table: 'article',
-          where: { authorId: viewer.id, pinned: true },
-        })
-      ).map(({ id: articleId }: { id: string }) => articleId)
-      await articleService.baseBatchUpdate(pinnedIds, {
-        pinned: false,
-        updatedAt: knex.fn.now(),
-      })
-    }
-
-    await articleService.baseUpdate(dbId, {
-      pinned: isPinned,
-      updatedAt: knex.fn.now(),
-    })
+    await articleService.updatePinned(article.id, viewer.id, isPinned)
   }
 
   /**

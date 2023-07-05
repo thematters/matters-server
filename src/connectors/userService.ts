@@ -1884,4 +1884,16 @@ export class UserService extends BaseService {
       await this.knex(this.table).update('last_seen', now).where({ id })
     }
   }
+
+  public totalPinnedWorks = async (id: string): Promise<number> => {
+    const res1 = await this.knex('article')
+      .count()
+      .where({ authorId: id, pinned: true, state: ARTICLE_STATE.active })
+      .first()
+    const res2 = await this.knex('collection')
+      .count()
+      .where({ authorId: id, pinned: true })
+      .first()
+    return (Number(res1?.count) || 0) + (Number(res2?.count) || 0)
+  }
 }

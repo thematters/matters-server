@@ -15,9 +15,6 @@ export default /* GraphQL */ `
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}")
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
-
-    "Toggle pin status of the work."
-    togglePinWork(input: ToggleItemInput!): PinnableWork! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.PinnableWork}")
   }
 
   type Collection implements Node & PinnableWork  {
@@ -53,6 +50,7 @@ export default /* GraphQL */ `
     title: String
     cover: ID
     description: String
+    pinned: Boolean
   }
 
   input DeleteCollectionsInput {
