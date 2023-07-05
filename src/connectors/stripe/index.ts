@@ -33,21 +33,21 @@ const logger = getLogger('service-stripe')
  * @see {@url https://stripe.com/docs/api/errors/handling}
  */
 class StripeService {
-  stripeAPI: Stripe
+  public stripeAPI: Stripe
 
-  constructor() {
+  public constructor() {
     let options: Record<string, any> = {}
     if (isTest) {
       options = LOCAL_STRIPE
     }
 
     this.stripeAPI = new Stripe(environment.stripeSecret, {
-      apiVersion: '2020-08-27',
+      apiVersion: '2022-11-15',
       ...options,
     })
   }
 
-  handleError(err: Stripe.StripeError) {
+  private handleError(err: Stripe.errors.StripeError) {
     const slack = new SlackService()
 
     logger.error(err)
@@ -71,7 +71,11 @@ class StripeService {
   /**
    * Customer
    */
-  createCustomer = async ({ user }: { user: User }) => {
+  public createCustomer = async ({
+    user,
+  }: {
+    user: Pick<User, 'id' | 'email'>
+  }) => {
     logger.info('create customer for user %s', user.id)
     try {
       return await this.stripeAPI.customers.create({
@@ -83,7 +87,7 @@ class StripeService {
     }
   }
 
-  updateCustomer = async ({
+  public updateCustomer = async ({
     id,
     paymentMethod,
   }: {
@@ -102,7 +106,7 @@ class StripeService {
     }
   }
 
-  getPaymentMethod = async (id: string) => {
+  public getPaymentMethod = async (id: string) => {
     try {
       return await this.stripeAPI.paymentMethods.retrieve(id)
     } catch (err: any) {
@@ -118,7 +122,7 @@ class StripeService {
    * @param currency
    *
    */
-  createPaymentIntent = async ({
+  public createPaymentIntent = async ({
     customerId,
     amount,
     currency,
@@ -147,7 +151,7 @@ class StripeService {
    * @param currency
    *
    */
-  createSetupIntent = async ({
+  public createSetupIntent = async ({
     customerId,
     metadata,
   }: {
@@ -172,12 +176,12 @@ class StripeService {
    *
    * @see {@url https://stripe.com/docs/connect/service-agreement-types}
    */
-  createExpressAccount = async ({
+  public createExpressAccount = async ({
     country,
     user,
   }: {
     country: keyof typeof COUNTRY_CODE
-    user: User
+    user: Pick<User, 'id' | 'email'>
   }) => {
     const isUS = country === 'UnitedStates'
     const returnUrlPrefix = `https://${environment.siteDomain}/oauth/stripe-connect`
@@ -209,7 +213,7 @@ class StripeService {
     }
   }
 
-  createExpressLoginLink = async (accountId: string) => {
+  public createExpressLoginLink = async (accountId: string) => {
     const { url } = await this.stripeAPI.accounts.createLoginLink(accountId)
     return url
   }
@@ -219,7 +223,7 @@ class StripeService {
    *
    * @see {url https://stripe.com/docs/connect/cross-border-payouts}
    */
-  transfer = async ({
+  public transfer = async ({
     amount,
     currency,
     recipientStripeConnectedId,
@@ -252,7 +256,13 @@ class StripeService {
   /**
    * Product & Price
    */
-  createProduct = async ({ name, owner }: { name: string; owner: string }) => {
+  public createProduct = async ({
+    name,
+    owner,
+  }: {
+    name: string
+    owner: string
+  }) => {
     logger.info('create product %s for user %s', name, owner)
     try {
       return await this.stripeAPI.products.create({
@@ -264,7 +274,7 @@ class StripeService {
     }
   }
 
-  updateProduct = async ({ id, name }: { id: string; name: string }) => {
+  public updateProduct = async ({ id, name }: { id: string; name: string }) => {
     logger.info('update product %s to %s', id, name)
     try {
       return await this.stripeAPI.products.update(id, { name })
@@ -273,7 +283,7 @@ class StripeService {
     }
   }
 
-  createPrice = async ({
+  public createPrice = async ({
     amount,
     currency,
     interval,
@@ -306,7 +316,7 @@ class StripeService {
   /**
    * Subscription
    */
-  createSubscription = async ({
+  public createSubscription = async ({
     customer,
     price,
   }: {
@@ -333,7 +343,7 @@ class StripeService {
     }
   }
 
-  cancelSubscription = async (id: string) => {
+  public cancelSubscription = async (id: string) => {
     logger.info('cancel subscription %s', id)
     try {
       return await this.stripeAPI.subscriptions.del(id, { prorate: false })
@@ -342,7 +352,7 @@ class StripeService {
     }
   }
 
-  createSubscriptionItem = async ({
+  public createSubscriptionItem = async ({
     price,
     subscription,
   }: {
@@ -366,7 +376,7 @@ class StripeService {
     }
   }
 
-  deleteSubscriptionItem = async (id: string) => {
+  public deleteSubscriptionItem = async (id: string) => {
     logger.info('delete subscription item %s', id)
     try {
       return await this.stripeAPI.subscriptionItems.del(id, {
@@ -377,7 +387,7 @@ class StripeService {
     }
   }
 
-  listSubscriptionItems = async (id: string) => {
+  public listSubscriptionItems = async (id: string) => {
     try {
       return await this.stripeAPI.subscriptionItems.list({
         subscription: id,
@@ -391,7 +401,7 @@ class StripeService {
   /**
    * Get customer portal URL
    */
-  getCustomerPortal = async ({ customerId }: { customerId: string }) => {
+  public getCustomerPortal = async ({ customerId }: { customerId: string }) => {
     try {
       const session = await this.stripeAPI.billingPortal.sessions.create({
         customer: customerId,
