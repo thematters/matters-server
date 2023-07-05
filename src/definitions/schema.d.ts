@@ -3109,6 +3109,7 @@ export const enum GQLEntityType {
   circle = 'circle',
   announcement = 'announcement',
   topic = 'topic',
+  collection = 'collection',
 }
 
 /**
