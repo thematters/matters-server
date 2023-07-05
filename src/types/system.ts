@@ -399,6 +399,7 @@ export default /* GraphQL */ `
     circle
     announcement
     topic
+    collection
   }
 
   "Enums for user roles."

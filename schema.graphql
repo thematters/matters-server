@@ -2195,6 +2195,7 @@ enum EntityType {
   circle
   announcement
   topic
+  collection
 }
 
 """Enums for user roles."""
