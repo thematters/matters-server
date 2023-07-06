@@ -17,7 +17,7 @@ const resolver: UserToPinnedWorksResolver = async (
       ...collection,
       __type: NODE_TYPES.Collection,
     })),
-  ].sort((a, b) => b.pinnedAt.getTime() - a.pinnedAt.getTime())
+  ].sort((a, b) => a.pinnedAt.getTime() - b.pinnedAt.getTime())
 
   return await Promise.all(
     pinnedWorks.map(async (work) => {

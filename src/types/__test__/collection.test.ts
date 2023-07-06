@@ -693,7 +693,7 @@ describe('update pinned', () => {
     expect(data2?.viewer.pinnedWorks.length).toEqual(1)
   })
 
-  test('pinned work order by pinnedAt desc', async () => {
+  test('pinned work order by pinnedAt asc', async () => {
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title } },
@@ -715,6 +715,6 @@ describe('update pinned', () => {
     })
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
-    expect(data3?.viewer.pinnedWorks[0].id).toEqual(collectionId2)
+    expect(data3?.viewer.pinnedWorks[0].id).toEqual(collectionId)
   })
 })
