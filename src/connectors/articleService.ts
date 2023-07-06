@@ -16,7 +16,6 @@ import {
   COMMENT_TYPE,
   DEFAULT_IPNS_LIFETIME,
   MINUTE,
-  PUBLISH_STATE,
   QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -708,6 +707,7 @@ export class ArticleService extends BaseService {
       tagIds,
       inRangeStart,
       inRangeEnd,
+      orderBy = [{ column: 'article.id', order: 'desc' }],
       skip,
       take,
     }: {
@@ -716,24 +716,14 @@ export class ArticleService extends BaseService {
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
+      orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
       skip?: number
       take?: number
     } = {}
   ) =>
     this.knex
       .select(columns)
-      .from(this.knex.ref(this.table))
-      .join(
-        this.knex
-          .from('draft')
-          .select('id', 'article_id')
-          .distinctOn('article_id')
-          .where({ authorId, publishState: PUBLISH_STATE.published })
-          .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
-          .as('t'),
-        'article_id',
-        'article.id'
-      )
+      .from(this.table)
       .where({
         authorId,
         ...(showAll
@@ -762,7 +752,7 @@ export class ArticleService extends BaseService {
         }
 
         // always as last orderBy
-        builder.orderBy('article.id', 'desc')
+        builder.orderBy(orderBy)
 
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -1008,7 +998,7 @@ export class ArticleService extends BaseService {
     return { nodes, totalCount }
   }
 
-  searchV3 = async ({
+  public searchV3 = async ({
     key,
     // keyOriginal,
     take = 10,
@@ -1448,7 +1438,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article is connected by how many active articles.
    */
-  countActiveConnectedBy = async (id: string) => {
+  public countActiveConnectedBy = async (id: string) => {
     const query = this.knexRO('article_connection')
       .rightJoin('article', 'article_connection.entrance_id', 'article.id')
       .where({
