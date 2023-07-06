@@ -7,15 +7,18 @@ const resolver: UserToPinnedWorksResolver = async (
   _,
   { dataSources: { articleService, collectionService, draftService } }
 ) => {
-  const articles = (await articleService.findPinnedByAuthor(id)).map(
-    (article) => ({ ...article, __type: NODE_TYPES.Article })
-  )
-  const collections = (await collectionService.findPinnedByAuthor(id)).map(
-    (collection) => ({ ...collection, __type: NODE_TYPES.Collection })
-  )
-  const pinnedWorks = [...articles, ...collections].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-  )
+  const [articles, collections] = await Promise.all([
+    articleService.findPinnedByAuthor(id),
+    collectionService.findPinnedByAuthor(id),
+  ])
+  const pinnedWorks = [
+    ...articles.map((article) => ({ ...article, __type: NODE_TYPES.Article })),
+    ...collections.map((collection) => ({
+      ...collection,
+      __type: NODE_TYPES.Collection,
+    })),
+  ].sort((a, b) => a.pinnedAt.getTime() - b.pinnedAt.getTime())
+
   return await Promise.all(
     pinnedWorks.map(async (work) => {
       if (work.__type === NODE_TYPES.Article) {

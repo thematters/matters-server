@@ -73,6 +73,10 @@ const resolver: MutationToPutCollectionResolver = async (
     let res
     if (typeof pinned === 'boolean') {
       res = await collectionService.updatePinned(dbId, viewer.id, pinned)
+      await invalidateFQC({
+        node: { type: NODE_TYPES.User, id: collection.authorId },
+        redis,
+      })
     }
 
     if (title ?? description ?? cover) {

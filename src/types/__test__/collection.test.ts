@@ -676,7 +676,7 @@ describe('update pinned', () => {
     })
   })
   test('pin collection success', async () => {
-    const { data, errors } = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: {
         input: {
@@ -685,13 +685,36 @@ describe('update pinned', () => {
         },
       },
     })
-    console.log(data)
-    console.log(errors)
     expect(data?.putCollection?.pinned).toBe(true)
 
     const { data: data2 } = await server.executeOperation({
       query: GET_PINNED_WORKS,
     })
     expect(data2?.viewer.pinnedWorks.length).toEqual(1)
+  })
+
+  test('pinned work order by pinnedAt asc', async () => {
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: { input: { title } },
+    })
+    const collectionId2 = data?.putCollection?.id
+    const { data: data2 } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: {
+        input: {
+          id: collectionId2,
+          pinned: true,
+        },
+      },
+    })
+    expect(data2?.putCollection?.pinned).toBe(true)
+
+    const { data: data3 } = await server.executeOperation({
+      query: GET_PINNED_WORKS,
+    })
+    expect(data3?.viewer.pinnedWorks.length).toEqual(2)
+    expect(data3?.viewer.pinnedWorks.length).toEqual(2)
+    expect(data3?.viewer.pinnedWorks[0].id).toEqual(collectionId)
   })
 })
