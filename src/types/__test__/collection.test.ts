@@ -39,6 +39,21 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
+const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    viewer {
+      collections(input: { first: null }) {
+        edges {
+          node {
+            id
+            contains(input: $input)
+          }
+        }
+      }
+    }
+  }
+`
+
 const PUT_COLLECTION = /* GraphQL */ `
   mutation ($input: PutCollectionInput!) {
     putCollection(input: $input) {
@@ -716,5 +731,59 @@ describe('update pinned', () => {
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
     expect(data3?.viewer.pinnedWorks[0].id).toEqual(collectionId)
+  })
+})
+
+describe('check article if in collections', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let server: any
+  let collectionId: string
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: { input: { title: 'test' } },
+    })
+    collectionId = data?.putCollection?.id
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_COLLECTIONS,
+    })
+    // make sure test collection index 0
+    expect(data2?.viewer?.collections?.edges[0].node.id).toBe(collectionId)
+  })
+  test('empty collections return false', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLE_CONTAINS,
+      variables: {
+        input: { id: articleGlobalId1 },
+      },
+    })
+    expect(data?.viewer?.collections?.edges[0].node.contains).toBe(false)
+  })
+  test('article in collections return true', async () => {
+    await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [articleGlobalId1],
+        },
+      },
+    })
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLE_CONTAINS,
+      variables: {
+        input: { id: articleGlobalId1 },
+      },
+    })
+    expect(data?.viewer?.collections?.edges[0].node.contains).toBe(true)
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION_ARTICLE_CONTAINS,
+      variables: {
+        input: { id: articleGlobalId4 },
+      },
+    })
+    expect(data2?.viewer?.collections?.edges[0].node.contains).toBe(false)
   })
 })

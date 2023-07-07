@@ -142,6 +142,14 @@ export class CollectionService extends BaseService {
     return [records, totalCount]
   }
 
+  public containsArticle = async (collectionId: string, articleId: string) => {
+    const res = await this.knex('collection_article')
+      .where({ collectionId, articleId })
+      .count()
+      .first()
+    return Number(res?.count) > 0
+  }
+
   /**
    * Delete collections and articles in those collections
    */

@@ -4502,6 +4502,11 @@ export interface GQLCollection extends GQLNode, GQLPinnableWork {
   articles: GQLArticleConnection
   pinned: boolean
   updatedAt: GQLDateTime
+
+  /**
+   * Check if the collection contains the article
+   */
+  contains: boolean
 }
 
 export interface GQLCollectionEdge {
@@ -14022,6 +14027,7 @@ export interface GQLCollectionTypeResolver<TParent = any> {
   articles?: CollectionToArticlesResolver<TParent>
   pinned?: CollectionToPinnedResolver<TParent>
   updatedAt?: CollectionToUpdatedAtResolver<TParent>
+  contains?: CollectionToContainsResolver<TParent>
 }
 
 export interface CollectionToIdResolver<TParent = any, TResult = any> {
@@ -14094,6 +14100,18 @@ export interface CollectionToUpdatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CollectionToContainsArgs {
+  input: GQLNodeInput
+}
+export interface CollectionToContainsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CollectionToContainsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
