@@ -38,6 +38,10 @@ test('sumAppreciation', async () => {
 test('findByAuthor', async () => {
   const articles = await articleService.findByAuthor('1')
   expect(articles.length).toBeDefined()
+  const articles2 = await articleService.findByAuthor('1', {
+    orderBy: [{ column: 'updated_at', order: 'desc' }],
+  })
+  expect(articles2.length).toBeDefined()
 })
 
 test('findByCommentedAuthor', async () => {

@@ -16,10 +16,10 @@ import {
   COMMENT_TYPE,
   DEFAULT_IPNS_LIFETIME,
   MINUTE,
-  PUBLISH_STATE,
   QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  PUBLISH_STATE,
   TRANSACTION_TARGET_TYPE,
   MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
@@ -708,6 +708,7 @@ export class ArticleService extends BaseService {
       tagIds,
       inRangeStart,
       inRangeEnd,
+      orderBy = [{ column: 'article.id', order: 'desc' }],
       skip,
       take,
     }: {
@@ -716,6 +717,7 @@ export class ArticleService extends BaseService {
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
+      orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
       skip?: number
       take?: number
     } = {}
@@ -762,7 +764,7 @@ export class ArticleService extends BaseService {
         }
 
         // always as last orderBy
-        builder.orderBy('article.id', 'desc')
+        builder.orderBy(orderBy)
 
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -1008,7 +1010,7 @@ export class ArticleService extends BaseService {
     return { nodes, totalCount }
   }
 
-  searchV3 = async ({
+  public searchV3 = async ({
     key,
     // keyOriginal,
     take = 10,
@@ -1448,7 +1450,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article is connected by how many active articles.
    */
-  countActiveConnectedBy = async (id: string) => {
+  public countActiveConnectedBy = async (id: string) => {
     const query = this.knexRO('article_connection')
       .rightJoin('article', 'article_connection.entrance_id', 'article.id')
       .where({
