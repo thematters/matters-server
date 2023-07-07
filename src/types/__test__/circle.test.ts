@@ -597,7 +597,7 @@ describe('circle CRUD', () => {
     })
 
     const circle = _get(data, 'viewer.ownCircles[0]')
-    const article = _get(data, 'viewer.articles.edges[2].node')
+    const article = _get(data, 'viewer.articles.edges[1].node')
 
     // add to circle with paywall access
     const paywallInput: Record<string, any> = {

@@ -19,6 +19,7 @@ import {
   QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  PUBLISH_STATE,
   TRANSACTION_TARGET_TYPE,
   MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
@@ -723,7 +724,18 @@ export class ArticleService extends BaseService {
   ) =>
     this.knex
       .select(columns)
-      .from(this.table)
+      .from(this.knex.ref(this.table))
+      .join(
+        this.knex
+          .from('draft')
+          .select('id', 'article_id')
+          .distinctOn('article_id')
+          .where({ authorId, publishState: PUBLISH_STATE.published })
+          .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
+          .as('t'),
+        'article_id',
+        'article.id'
+      )
       .where({
         authorId,
         ...(showAll
