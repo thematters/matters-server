@@ -455,7 +455,7 @@ describe('circle CRUD', () => {
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
-    const article = _get(data, 'viewer.articles.edges[0].node')
+    const article = _get(data, 'viewer.articles.edges[1].node')
 
     // add to circle with public access
     const publicInput: Record<string, any> = {
@@ -522,7 +522,7 @@ describe('circle CRUD', () => {
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
-    const article = _get(data1, 'viewer.articles.edges[0].node')
+    const article = _get(data1, 'viewer.articles.edges[1].node')
     expect(_get(article, 'id')).not.toBeNull()
 
     // add to circle with public access
@@ -597,7 +597,7 @@ describe('circle CRUD', () => {
     })
 
     const circle = _get(data, 'viewer.ownCircles[0]')
-    const article = _get(data, 'viewer.articles.edges[1].node')
+    const article = _get(data, 'viewer.articles.edges[2].node')
 
     // add to circle with paywall access
     const paywallInput: Record<string, any> = {
