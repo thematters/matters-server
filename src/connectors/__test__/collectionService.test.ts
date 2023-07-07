@@ -226,11 +226,13 @@ describe('reorderArticles', () => {
     await collectionService.reorderArticles(collectionId, [
       { articleId: '4', newPosition: 0 },
     ])
-    const [records, _] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
+    const [records] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
         skip: 0,
         take: 4,
-      })
+      }
+    )
     expect(records[0].articleId).toBe('4')
     expect(records[1].articleId).toBe('3')
     expect(records[2].articleId).toBe('2')
@@ -240,11 +242,13 @@ describe('reorderArticles', () => {
     await collectionService.reorderArticles(collectionId, [
       { articleId: '2', newPosition: 0 },
     ])
-    const [records, _] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
+    const [records] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
         skip: 0,
         take: 4,
-      })
+      }
+    )
     expect(records[0].articleId).toBe('2')
     expect(records[1].articleId).toBe('4')
     expect(records[2].articleId).toBe('3')
@@ -254,11 +258,13 @@ describe('reorderArticles', () => {
     await collectionService.reorderArticles(collectionId, [
       { articleId: '3', newPosition: 3 },
     ])
-    const [records, _] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
+    const [records] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
         skip: 0,
         take: 4,
-      })
+      }
+    )
     expect(records[0].articleId).toBe('4')
     expect(records[1].articleId).toBe('2')
     expect(records[2].articleId).toBe('1')
@@ -268,11 +274,13 @@ describe('reorderArticles', () => {
     await collectionService.reorderArticles(collectionId, [
       { articleId: '3', newPosition: 2 },
     ])
-    const [records, _] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
+    const [records] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
         skip: 0,
         take: 4,
-      })
+      }
+    )
     expect(records[0].articleId).toBe('4')
     expect(records[1].articleId).toBe('2')
     expect(records[2].articleId).toBe('3')
@@ -285,11 +293,13 @@ describe('reorderArticles', () => {
       { articleId: '2', newPosition: 4 - 1 },
       { articleId: '1', newPosition: 3 - 1 },
     ])
-    const [records, _] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
+    const [records] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
         skip: 0,
         take: 4,
-      })
+      }
+    )
     expect(records[0].articleId).toBe('3')
     expect(records[1].articleId).toBe('4')
     expect(records[2].articleId).toBe('1')

@@ -3,6 +3,7 @@ import { toGlobalId } from 'common/utils'
 
 import articles from './articles'
 import author from './author'
+import contains from './contains'
 import cover from './cover'
 
 export default {
@@ -11,4 +12,5 @@ export default {
   cover,
   articles,
   author,
+  contains,
 }
