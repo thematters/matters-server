@@ -54,6 +54,8 @@ stripeRouter.post('/', async (req, res) => {
     res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
+  logger.info('Received event', event)
+
   if (!event) {
     slack.sendStripeAlert({ message: 'Empty event object' })
     return res.status(400).send(`Webhook Error: empty event object`)
