@@ -13,7 +13,6 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { toDBAmount } from 'common/utils'
@@ -27,10 +26,6 @@ import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 const logger = getLogger('route-stripe-circle')
-
-const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-08-27',
-})
 
 /**
  * Complete the circle subscription that
@@ -325,6 +320,7 @@ export const completeCircleInvoice = async ({
     })) as CircleSubscription
 
     // retrieve prices
+    const stripe = paymentService.stripe.stripeAPI
     const lines = invoice.lines.has_more
       ? await stripe.invoices.listLineItems(providerInvoiceId, { limit: 100 })
       : invoice.lines

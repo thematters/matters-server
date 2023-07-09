@@ -18,10 +18,6 @@ import { createRefundTxs, updateTxState } from './transaction'
 
 const logger = getLogger('route-stripe')
 
-const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-08-27',
-})
-
 const stripeRouter = Router()
 
 /**
@@ -34,6 +30,7 @@ stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 stripeRouter.post('/', async (req, res) => {
   const paymentService = new PaymentService()
   const slack = new SlackService()
+  const stripe = paymentService.stripe.stripeAPI
 
   const sig = req.headers['stripe-signature'] as string
 
@@ -56,6 +53,8 @@ stripeRouter.post('/', async (req, res) => {
     })
     res.status(400).send(`Webhook Error: ${err.message}`)
   }
+
+  logger.info('Received event', event)
 
   if (!event) {
     slack.sendStripeAlert({ message: 'Empty event object' })
@@ -89,6 +88,14 @@ stripeRouter.post('/', async (req, res) => {
         break
       case 'charge.refunded':
         const charge = event.data.object as Stripe.Charge
+        if (charge.refunds === null) {
+          logger.error('No refunds found')
+          slack.sendStripeAlert({
+            data: slackEventData,
+            message: 'No refunds found',
+          })
+          break
+        }
         await createRefundTxs(charge.refunds)
         break
       case 'customer.deleted':
