@@ -19,6 +19,7 @@ import {
   createOrUpdateUpdatedRefundTx,
   createDisputeTx,
   updateDisputeTx,
+  updatePayoutTx,
 } from './transaction'
 
 const logger = getLogger('route-stripe')
@@ -121,6 +122,11 @@ stripeRouter.post('/', async (req, res) => {
       case 'charge.dispute.funds_reinstated': {
         const dispute = event.data.object as Stripe.Dispute
         await updateDisputeTx(dispute)
+        break
+      }
+      case 'transfer.reversed': {
+        const transfer = event.data.object as Stripe.Transfer
+        await updatePayoutTx(transfer)
         break
       }
       case 'customer.deleted': {

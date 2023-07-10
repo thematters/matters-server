@@ -11,6 +11,7 @@ import {
   createOrUpdateUpdatedRefundTx,
   createDisputeTx,
   updateDisputeTx,
+  updatePayoutTx,
 } from '../pay/stripe/transaction'
 
 const paymentServce = new PaymentService()
@@ -129,5 +130,45 @@ describe('create or update dispute', () => {
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
     expect(tx.state).toBe('canceled')
+  })
+})
+
+describe('update payout', () => {
+  const transferObject: Stripe.Transfer = {
+    id: 'tr_1NSHTXCE0HD6LY9UruEkYFSz',
+    object: 'transfer',
+    amount: 100,
+    amount_reversed: 100,
+    balance_transaction: 'txn_1NSHTYCE0HD6LY9UMZBAf4jw',
+    created: 1688985471,
+    currency: 'usd',
+    description: null,
+    destination: 'acct_1MdrcWFfKdlnxiKX',
+    destination_payment: 'py_1NSHTXFfKdlnxiKXmk8xBHye',
+    livemode: false,
+    metadata: {
+      db_tx_id: '21056',
+    },
+    reversals: {
+      object: 'list',
+      data: [],
+      has_more: false,
+      url: '/v1/transfers/tr_1NSHTXCE0HD6LY9UruEkYFSz/reversals',
+    },
+
+    reversed: false,
+    source_transaction: null,
+    source_type: 'card',
+    transfer_group: null,
+  }
+  test('not existed payout tx will throw error', async () => {
+    await expect(updatePayoutTx(transferObject)).rejects.toThrow(
+      'Payout transaction not found'
+    )
+  })
+  test('amount_reversed not equal amount will throw error', async () => {
+    await expect(
+      updatePayoutTx({ ...transferObject, amount_reversed: 50 })
+    ).rejects.toThrow('Expect transfer amount to be equal to reversed amount')
   })
 })

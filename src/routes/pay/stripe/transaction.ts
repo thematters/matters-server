@@ -239,3 +239,22 @@ export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
     remark: dispute.reason,
   })
 }
+
+export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
+  if (transfer.amount !== transfer.amount_reversed) {
+    throw new Error('Expect transfer amount to be equal to reversed amount')
+  }
+  const paymentService = new PaymentService()
+  const payoutTx = (
+    await paymentService.findTransactions({
+      providerTxId: transfer.id,
+    })
+  )[0]
+  if (!payoutTx) {
+    throw new Error('Payout transaction not found')
+  }
+  paymentService.markTransactionStateAs({
+    id: payoutTx.id,
+    state: TRANSACTION_STATE.failed,
+  })
+}
