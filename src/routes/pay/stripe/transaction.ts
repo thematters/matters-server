@@ -179,3 +179,63 @@ export const createOrUpdateUpdatedRefundTx = async (refund: Stripe.Refund) => {
     })
   }
 }
+
+export const createDisputeTx = async (dispute: Stripe.Dispute) => {
+  const paymentService = new PaymentService()
+  const disputeTx = (
+    await paymentService.findTransactions({
+      providerTxId: dispute.id,
+    })
+  )[0]
+  if (disputeTx) {
+    return
+  } else {
+    const paymentTx = (
+      await paymentService.findTransactions({
+        providerTxId: dispute.payment_intent as string,
+      })
+    )[0]
+
+    // skip if related payment transaction doesn't exists
+    if (!paymentTx) {
+      throw new Error('Related payment transaction not found')
+    }
+
+    // create a dispute transaction,
+    // and link with payment intent transaction
+    await paymentService.createTransaction({
+      amount: toDBAmount({ amount: dispute.amount }),
+
+      state: TRANSACTION_STATE.succeeded,
+      currency: _.upperCase(dispute.currency) as PAYMENT_CURRENCY,
+      purpose: TRANSACTION_PURPOSE.disputeWithdrawnFunds,
+
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: dispute.id,
+
+      recipientId: undefined,
+      senderId: paymentTx.recipientId,
+
+      targetId: paymentTx.id,
+      targetType: TRANSACTION_TARGET_TYPE.transaction,
+      remark: dispute.reason,
+    })
+  }
+}
+
+export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
+  const paymentService = new PaymentService()
+  const disputeTx = (
+    await paymentService.findTransactions({
+      providerTxId: dispute.id,
+    })
+  )[0]
+  if (!disputeTx) {
+    throw new Error('Dispute transaction not found')
+  }
+  paymentService.markTransactionStateAs({
+    id: disputeTx.id,
+    state: TRANSACTION_STATE.canceled,
+    remark: dispute.reason,
+  })
+}

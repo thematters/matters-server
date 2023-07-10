@@ -1,6 +1,5 @@
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
-import _ from 'lodash'
 import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
@@ -18,6 +17,8 @@ import {
   createRefundTxs,
   updateTxState,
   createOrUpdateUpdatedRefundTx,
+  createDisputeTx,
+  updateDisputeTx,
 } from './transaction'
 
 const logger = getLogger('route-stripe')
@@ -73,24 +74,28 @@ stripeRouter.post('/', async (req, res) => {
   try {
     // Handle the event
     switch (event.type) {
-      case 'payment_intent.canceled':
+      case 'payment_intent.canceled': {
         const canceled = event.data.object as Stripe.PaymentIntent
         await updateTxState(canceled, event.type, canceled.cancellation_reason)
         break
-      case 'payment_intent.payment_failed':
+      }
+      case 'payment_intent.payment_failed': {
         const failed = event.data.object as Stripe.PaymentIntent
         await updateTxState(failed, event.type, failed.last_payment_error?.code)
         break
+      }
       case 'payment_intent.processing':
-      case 'payment_intent.succeeded':
+      case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         await updateTxState(paymentIntent, event.type)
         break
-      case 'invoice.payment_succeeded':
+      }
+      case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
         await completeCircleInvoice({ invoice, event })
         break
-      case 'charge.refunded':
+      }
+      case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge
         if (charge.refunds === null) {
           logger.error('No refunds found')
@@ -102,15 +107,27 @@ stripeRouter.post('/', async (req, res) => {
         }
         await createRefundTxs(charge.refunds)
         break
-      case 'charge.refund.updated':
+      }
+      case 'charge.refund.updated': {
         const refund = event.data.object as Stripe.Refund
         await createOrUpdateUpdatedRefundTx(refund)
         break
-
-      case 'customer.deleted':
+      }
+      case 'charge.dispute.funds_withdrawn': {
+        const dispute = event.data.object as Stripe.Dispute
+        await createDisputeTx(dispute)
+        break
+      }
+      case 'charge.dispute.funds_reinstated': {
+        const dispute = event.data.object as Stripe.Dispute
+        await updateDisputeTx(dispute)
+        break
+      }
+      case 'customer.deleted': {
         const customer = event.data.object as Stripe.Customer
         await paymentService.deleteCustomer({ customerId: customer.id })
         break
+      }
       case 'customer.subscription.updated':
       case 'customer.subscription.trial_will_end':
       case 'customer.subscription.deleted':
@@ -120,7 +137,7 @@ stripeRouter.post('/', async (req, res) => {
         await updateSubscription({ subscription, event })
         break
       }
-      case 'setup_intent.succeeded':
+      case 'setup_intent.succeeded': {
         const setupIntent = event.data.object as Stripe.SetupIntent
         const dbCustomer = await updateCustomerCard({ setupIntent, event })
 
@@ -129,6 +146,7 @@ stripeRouter.post('/', async (req, res) => {
         }
 
         break
+      }
       default:
         logger.error('Unexpected event type', event.type)
         slack.sendStripeAlert({
