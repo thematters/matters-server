@@ -14,7 +14,11 @@ import {
   updateSubscription,
 } from './circle'
 import { updateCustomerCard } from './customer'
-import { createRefundTxs, updateTxState } from './transaction'
+import {
+  createRefundTxs,
+  updateTxState,
+  createOrUpdateUpdatedRefundTx,
+} from './transaction'
 
 const logger = getLogger('route-stripe')
 
@@ -98,6 +102,11 @@ stripeRouter.post('/', async (req, res) => {
         }
         await createRefundTxs(charge.refunds)
         break
+      case 'charge.refund.updated':
+        const refund = event.data.object as Stripe.Refund
+        await createOrUpdateUpdatedRefundTx(refund)
+        break
+
       case 'customer.deleted':
         const customer = event.data.object as Stripe.Customer
         await paymentService.deleteCustomer({ customerId: customer.id })

@@ -390,7 +390,12 @@ export class PaymentService extends BaseService {
           state,
         }
 
-    return this.baseUpdate(id, { updatedAt: new Date(), ...data })
+    return this.baseUpdate(
+      id,
+      { updatedAt: new Date(), ...data },
+      'transaction',
+      trx
+    )
   }
 
   /**
@@ -431,7 +436,7 @@ export class PaymentService extends BaseService {
     user,
     provider,
   }: {
-    user: User
+    user: Pick<User, 'id' | 'email'>
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
@@ -1006,7 +1011,10 @@ export class PaymentService extends BaseService {
   /**
    * Accept invitation
    */
-  public acceptInvitation = async (ivtId: string, subscriptionItemId: string) => {
+  public acceptInvitation = async (
+    ivtId: string,
+    subscriptionItemId: string
+  ) => {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({

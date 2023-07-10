@@ -105,7 +105,7 @@ export const createRefundTxs = async (
 
       // skip if related payment transaction doesn't exists
       if (!paymentTx) {
-        return
+        throw new Error('Related payment transaction not found')
       }
 
       // create a refund transaction,
@@ -128,4 +128,54 @@ export const createRefundTxs = async (
       })
     })
   )
+}
+
+export const createOrUpdateUpdatedRefundTx = async (refund: Stripe.Refund) => {
+  if (refund.status !== 'failed') {
+    throw new Error('Expect updated refund status to be failed')
+  }
+  const paymentService = new PaymentService()
+  const refundTx = (
+    await paymentService.findTransactions({
+      providerTxId: refund.id,
+    })
+  )[0]
+  if (refundTx) {
+    paymentService.markTransactionStateAs({
+      id: refundTx.id,
+      state: TRANSACTION_STATE.failed,
+      remark: refund.failure_reason,
+    })
+  } else {
+    const paymentTx = (
+      await paymentService.findTransactions({
+        providerTxId: refund.payment_intent as string,
+      })
+    )[0]
+
+    // skip if related payment transaction doesn't exists
+    if (!paymentTx) {
+      throw new Error('Related payment transaction not found')
+    }
+
+    // create a refund transaction,
+    // and link with payment intent transaction
+    await paymentService.createTransaction({
+      amount: toDBAmount({ amount: refund.amount }),
+
+      state: TRANSACTION_STATE.failed,
+      currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+      purpose: TRANSACTION_PURPOSE.refund,
+
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: refund.id,
+
+      recipientId: undefined,
+      senderId: paymentTx.recipientId,
+
+      targetId: paymentTx.id,
+      targetType: TRANSACTION_TARGET_TYPE.transaction,
+      remark: refund.failure_reason,
+    })
+  }
 }
