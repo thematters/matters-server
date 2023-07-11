@@ -182,6 +182,7 @@ export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
 
 export const createDisputeTx = async (dispute: Stripe.Dispute) => {
   const paymentService = new PaymentService()
+
   const disputeTx = (
     await paymentService.findTransactions({
       providerTxId: dispute.id,
@@ -205,7 +206,7 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
     }
 
     if (paymentTx.amount !== toDBAmount({ amount: dispute.amount })) {
-      console.warn('Dispute amount to be equal to payment amount')
+      console.warn('Expect dispute amount to be equal to payment amount')
     }
 
     // create a dispute transaction,
