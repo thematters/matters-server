@@ -1,5 +1,3 @@
-import _get from 'lodash/get'
-
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
@@ -49,19 +47,19 @@ describe('donation', () => {
     const server = await testClient({
       isAuth: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO,
       variables: {
         input: { amount, currency, purpose, recipientId: senderId, targetId },
       },
     })
-    expect(_get(result, 'errors.0.message')).toBe('cannot payTo yourself')
+    expect(errors[0]?.message).toBe('cannot payTo yourself')
   })
   test('cannot donate to wrong recipient', async () => {
     const server = await testClient({
       isAuth: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO,
       variables: {
         input: {
@@ -73,7 +71,7 @@ describe('donation', () => {
         },
       },
     })
-    expect(_get(result, 'errors.0.message')).toBe(
+    expect(errors[0]?.message).toBe(
       'target author is not the same as the recipient'
     )
   })
@@ -81,7 +79,7 @@ describe('donation', () => {
     const server = await testClient({
       isAuth: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
       variables: {
         input: {
@@ -93,7 +91,7 @@ describe('donation', () => {
         },
       },
     })
-    expect(_get(result, 'errors.0.message')).toBe(
+    expect(errors[0]?.message).toBe(
       '`chain` is required if `currency` is `USDT`'
     )
   })
@@ -101,7 +99,7 @@ describe('donation', () => {
     const server = await testClient({
       isAuth: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
       variables: {
         input: {
@@ -114,7 +112,7 @@ describe('donation', () => {
         },
       },
     })
-    expect(_get(result, 'errors.0.message')).toBe(
+    expect(errors[0]?.message).toBe(
       '`txHash` is required if `currency` is `USDT`'
     )
   })
@@ -122,7 +120,7 @@ describe('donation', () => {
     const server = await testClient({
       isAuth: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
       variables: {
         input: {
@@ -136,13 +134,14 @@ describe('donation', () => {
         },
       },
     })
-    expect(_get(result, 'errors.0.message')).toBe('invalid transaction hash')
+    expect(errors[0]?.message).toBe('invalid transaction hash')
   })
-  test('can call USDT payTo', async () => {
+  test('banned users can not donate', async () => {
     const server = await testClient({
       isAuth: true,
+      isBanned: true,
     })
-    const result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
       variables: {
         input: {
@@ -156,13 +155,60 @@ describe('donation', () => {
         },
       },
     })
-    expect(_get(result, 'data.payTo.transaction.amount')).toBe(amount)
-    expect(_get(result, 'data.payTo.transaction.state')).toBe('pending')
-    expect(_get(result, 'data.payTo.transaction.blockchainTx.chain')).toBe(
-      chain
-    )
-    expect(_get(result, 'data.payTo.transaction.blockchainTx.txHash')).toBe(
-      txHash
-    )
+    expect(errors[0]?.message).toBe('banned user has no permission')
+  })
+  test('can call USDT payTo', async () => {
+    const server = await testClient({
+      isAuth: true,
+    })
+    const {
+      data: {
+        payTo: { transaction },
+      },
+    } = await server.executeOperation({
+      query: PAYTO_USDT,
+      variables: {
+        input: {
+          amount,
+          currency,
+          purpose,
+          recipientId,
+          targetId,
+          chain,
+          txHash,
+        },
+      },
+    })
+    expect(transaction.amount).toBe(amount)
+    expect(transaction.state).toBe('pending')
+    expect(transaction.blockchainTx.chain).toBe(chain)
+    expect(transaction.blockchainTx.txHash).toBe(txHash)
+  })
+})
+
+describe('payout', () => {
+  const PAYOUT = /* GraphQL */ `
+    mutation ($input: PayoutInput!) {
+      payout(input: $input) {
+        amount
+        state
+      }
+    }
+  `
+  test('banned users cannot payout', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isBanned: true,
+    })
+    const { errors } = await server.executeOperation({
+      query: PAYOUT,
+      variables: {
+        input: {
+          amount: 500,
+          password: '123456',
+        },
+      },
+    })
+    expect(errors[0]?.message).toBe('banned user has no permission')
   })
 })

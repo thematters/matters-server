@@ -7,9 +7,11 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  USER_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
+  ForbiddenByStateError,
   EntityNotFoundError,
   PasswordInvalidError,
   PaymentAmountTooSmallError,
@@ -23,7 +25,7 @@ import { payoutQueue } from 'connectors/queue'
 import { MutationToPayoutResolver } from 'definitions'
 
 const resolver: MutationToPayoutResolver = async (
-  parent,
+  _,
   { input: { amount, password } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {
@@ -39,6 +41,10 @@ const resolver: MutationToPayoutResolver = async (
     throw new PaymentAmountTooSmallError(
       `The minimal amount is ${PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD}`
     )
+  }
+
+  if (viewer.state === USER_STATE.banned) {
+    throw new ForbiddenByStateError('banned user has no permission')
   }
 
   if (!viewer.paymentPasswordHash) {

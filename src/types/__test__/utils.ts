@@ -57,6 +57,7 @@ export const testClient = async (
     isMatty,
     isOnboarding,
     isFrozen,
+    isBanned,
     context,
     dataSources,
   }: {
@@ -65,12 +66,14 @@ export const testClient = async (
     isMatty?: boolean
     isOnboarding?: boolean
     isFrozen?: boolean
+    isBanned?: boolean
     context?: any
     dataSources?: any
   } = {
     isAuth: false,
     isAdmin: false,
     isMatty: false,
+    isBanned: false,
     isOnboarding: false,
     isFrozen: false,
     context: null,
@@ -87,6 +90,8 @@ export const testClient = async (
         ? 'onboarding@matters.news'
         : isFrozen
         ? 'frozen@matters.news'
+        : isBanned
+        ? 'banned@matters.town'
         : isAdmin
         ? adminUser.email
         : defaultTestUser.email,
