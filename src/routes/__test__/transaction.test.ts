@@ -4,6 +4,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   PAYMENT_CURRENCY,
+  TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentService } from 'connectors'
 
@@ -113,7 +114,17 @@ describe('create or update dispute', () => {
     if (data) {
       paymentIntentId = data.transaction.providerTxId
     }
+    await expect(
+      createDisputeTx({ ...disputeObject, payment_intent: paymentIntentId })
+    ).rejects.toThrow('Related payment transaction is not succeeded')
+
+    await paymentServce.markTransactionStateAs({
+      id: data?.transaction.id,
+      state: TRANSACTION_STATE.succeeded,
+    })
+
     await createDisputeTx({ ...disputeObject, payment_intent: paymentIntentId })
+
     const tx = (
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
