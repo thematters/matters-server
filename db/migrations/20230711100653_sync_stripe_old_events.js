@@ -278,12 +278,14 @@ const disputes = {
   ],
 }
 
+const env = process.env.MATTERS_ENV
+
 exports.up = async (knex) => {
   // migrate payout reversals
   await knex(table)
-    .whereIn('provider_tx_id', payouts[process.env.MATTERS_ENV] ?? [])
+    .whereIn('provider_tx_id', payouts[env] ?? [])
     .update({ state: 'failed' })
-  for (const dispute of disputes[process.env.MATTERS_ENV] ?? []) {
+  for (const dispute of disputes[env] ?? []) {
     const payment = await knex(table)
       .where({ provider_tx_id: dispute.payment_intent })
       .first()
@@ -301,17 +303,19 @@ exports.up = async (knex) => {
         updated_at: new Date(dispute.created * 1000),
       })
     } else {
-      console.error(
-        `payment ${dispute.payment_intent} not found or not succeeded`
-      )
+      if (env === 'production' || env === 'development') {
+        throw new Error(
+          `payment ${dispute.payment_intent} not found or not succeeded`
+        )
+      }
     }
   }
 }
 
 exports.down = async (knex) => {
   await knex(table)
-    .whereIn('provider_tx_id', payouts[process.env.MATTERS_ENV] ?? [])
+    .whereIn('provider_tx_id', payouts[env] ?? [])
     .update({ state: 'succeeded' })
-  const disputeIds = (disputes[process.env.MATTERS_ENV] ?? []).map((d) => d.id)
+  const disputeIds = (disputes[env] ?? []).map((d) => d.id)
   await knex(table).whereIn('provider_tx_id', disputeIds).del()
 }
