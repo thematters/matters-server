@@ -99,12 +99,7 @@ stripeRouter.post('/', async (req, res) => {
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge
         if (charge.refunds === null) {
-          logger.error('No refunds found')
-          slack.sendStripeAlert({
-            data: slackEventData,
-            message: 'No refunds found',
-          })
-          break
+          throw new Error('No refunds found in charge.refunded event')
         }
         await createRefundTxs(charge.refunds)
         break
