@@ -200,14 +200,21 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
     if (!paymentTx) {
       throw new Error('Related payment transaction not found')
     }
+    if (paymentTx.state !== TRANSACTION_STATE.succeeded) {
+      throw new Error('Related payment transaction is not succeeded')
+    }
+
+    if (paymentTx.amount !== toDBAmount({ amount: dispute.amount })) {
+      console.warn('Dispute amount to be equal to payment amount')
+    }
 
     // create a dispute transaction,
     // and link with payment intent transaction
     await paymentService.createTransaction({
-      amount: toDBAmount({ amount: dispute.amount }),
+      amount: paymentTx.amount,
 
       state: TRANSACTION_STATE.succeeded,
-      currency: _.upperCase(dispute.currency) as PAYMENT_CURRENCY,
+      currency: paymentTx.currency,
       purpose: TRANSACTION_PURPOSE.disputeWithdrawnFunds,
 
       provider: PAYMENT_PROVIDER.stripe,
