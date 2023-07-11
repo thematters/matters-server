@@ -8,7 +8,7 @@ import {
 import { PaymentService } from 'connectors'
 
 import {
-  createOrUpdateUpdatedRefundTx,
+  createOrUpdateFailedRefundTx,
   createDisputeTx,
   updateDisputeTx,
   updatePayoutTx,
@@ -58,7 +58,7 @@ describe('createOrUpdateRefundTxs', () => {
   }
   test('not existed payment will throw error', async () => {
     await expect(
-      createOrUpdateUpdatedRefundTx(updatedRefundObject)
+      createOrUpdateFailedRefundTx(updatedRefundObject)
     ).rejects.toThrow('Related payment transaction not found')
   })
   test('updated refund create or update transaction', async () => {
@@ -70,7 +70,7 @@ describe('createOrUpdateRefundTxs', () => {
         ...updatedRefundObject,
         payment_intent: paymentIntentId,
       }
-      await createOrUpdateUpdatedRefundTx(refundObejct)
+      await createOrUpdateFailedRefundTx(refundObejct)
       const tx = (
         await paymentServce.findTransactions({ providerTxId: refundObejct.id })
       )[0]

@@ -16,7 +16,7 @@ import { updateCustomerCard } from './customer'
 import {
   createRefundTxs,
   updateTxState,
-  createOrUpdateUpdatedRefundTx,
+  createOrUpdateFailedRefundTx,
   createDisputeTx,
   updateDisputeTx,
   updatePayoutTx,
@@ -111,7 +111,7 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.refund.updated': {
         const refund = event.data.object as Stripe.Refund
-        await createOrUpdateUpdatedRefundTx(refund)
+        await createOrUpdateFailedRefundTx(refund)
         break
       }
       case 'charge.dispute.funds_withdrawn': {

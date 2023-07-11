@@ -130,7 +130,7 @@ export const createRefundTxs = async (
   )
 }
 
-export const createOrUpdateUpdatedRefundTx = async (refund: Stripe.Refund) => {
+export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
   if (refund.status !== 'failed') {
     throw new Error('Expect updated refund status to be failed')
   }
