@@ -13,6 +13,14 @@ const resolver: UserToCollectionsResolver = async (
   }
   const { take, skip } = fromConnectionArgs(input)
 
+  if (take === 0) {
+    const [_, count] = await collectionService.findAndCountCollectionsByUser(
+      id,
+      { take: 1, skip }
+    )
+    return { edges: [], totalCount: count }
+  }
+
   const [records, totalCount] =
     await collectionService.findAndCountCollectionsByUser(id, { take, skip })
 

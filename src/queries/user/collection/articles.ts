@@ -16,6 +16,19 @@ const resolver: CollectionToArticlesResolver = async (
   }
 
   const { skip, take } = fromConnectionArgs({ first, after })
+
+  if (take === 0) {
+    const [_, count] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
+        skip,
+        take: 1,
+        reversed,
+      }
+    )
+    return connectionFromArray([], { first, after }, count)
+  }
+
   const [articles, totalCount] =
     await collectionService.findAndCountArticlesInCollection(collectionId, {
       skip,
