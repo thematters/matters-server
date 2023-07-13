@@ -7,6 +7,7 @@ import {
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
+export * from './user'
 export * from './action'
 export * from './email'
 export * from './language'
@@ -68,14 +69,6 @@ export const COMMENT_TYPE = {
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
   Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
 )
-
-export const USER_STATE = {
-  frozen: 'frozen',
-  onboarding: 'onboarding',
-  active: 'active',
-  banned: 'banned',
-  archived: 'archived',
-}
 
 export const ARTICLE_STATE = {
   active: 'active',

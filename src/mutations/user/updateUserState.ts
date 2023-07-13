@@ -53,7 +53,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
    */
   const handleUpdateUserState = async (user: User) => {
     if (state === USER_STATE.banned) {
-      return await userService.banUser(user.id, banDays)
+      return await userService.banUser(user.id, { banDays })
     } else if (state !== user.state && user.state === USER_STATE.banned) {
       return await userService.unbanUser(user.id, state)
     } else {

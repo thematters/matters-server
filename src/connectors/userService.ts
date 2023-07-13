@@ -23,6 +23,7 @@ import {
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
+  USER_BAN_REMARK,
   VERIFICATION_CODE_EXPIRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VIEW,
@@ -1867,11 +1868,22 @@ export class UserService extends BaseService {
     return [users, users[0]?.totalCount || 0]
   }
 
-  public banUser = async (userId: string, banDays?: number) => {
+  public banUser = async (
+    userId: string,
+    {
+      banDays,
+      remark,
+      noticeType,
+    }: {
+      noticeType?: OFFICIAL_NOTICE_EXTEND_TYPE
+      banDays?: number
+      remark?: ValueOf<typeof USER_BAN_REMARK>
+    } = {}
+  ) => {
     const notificationService = new NotificationService()
     // trigger notification
     notificationService.trigger({
-      event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
+      event: noticeType ?? OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
       recipientId: userId,
     })
 
@@ -1888,10 +1900,12 @@ export class UserService extends BaseService {
       )
     }
 
-    return await this.baseUpdate(userId, {
+    const data = {
       state: USER_STATE.banned,
       updatedAt: new Date(),
-    })
+    }
+
+    return await this.baseUpdate(userId, remark ? { ...data, remark } : data)
   }
 
   public unbanUser = async (

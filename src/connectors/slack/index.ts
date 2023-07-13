@@ -70,6 +70,23 @@ class SlackService {
     }
   }
 
+  public sendPaymentAlert = async ({ message }: { message: string }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackPayoutChannel,
+        text: `[${environment.env}] - Alert`,
+        attachments: [
+          {
+            color: this.getMessageColor(SLACK_MESSAGE_STATE.failed),
+            text: '\n' + `\n- *Message*: ${message}`,
+          },
+        ],
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
   /**
    * Send alert realted to stripe issues.
    */
@@ -93,7 +110,7 @@ class SlackService {
               `\n- *Data*: ${JSON.stringify(data || {})}`,
           },
         ],
-        markdownn: true,
+        markdown: true,
       })
     } catch (error) {
       logger.error(error)

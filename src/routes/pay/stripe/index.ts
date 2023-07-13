@@ -2,6 +2,7 @@ import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
 import Stripe from 'stripe'
 
+import { USER_BAN_REMARK, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { PaymentService, UserService } from 'connectors'
@@ -84,6 +85,25 @@ stripeRouter.post('/', async (req, res) => {
       case 'payment_intent.payment_failed': {
         const failed = event.data.object as Stripe.PaymentIntent
         await updateTxState(failed, event.type, failed.last_payment_error?.code)
+
+        // if payment is high risk, ban user and send slack alert
+
+        // @ts-ignore
+        const outcome = failed.charges?.data[0].outcome
+        if (outcome.risk_level === 'highest') {
+          const tx = (
+            await paymentService.findTransactions({
+              providerTxId: failed.id,
+            })
+          )[0]
+          await userService.banUser(tx.recipientId, {
+            remark: USER_BAN_REMARK.paymentHighRisk,
+            noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
+          })
+          slack.sendPaymentAlert({
+            message: `user ${tx.recipientId} banned due to high risk payment`,
+          })
+        }
         break
       }
       case 'payment_intent.processing':
@@ -132,12 +152,21 @@ stripeRouter.post('/', async (req, res) => {
       case 'transfer.reversed': {
         const transfer = event.data.object as Stripe.Transfer
         await updatePayoutTx(transfer)
+
+        // if payout is reversed, ban user and send slack alert
+
         const payoutTx = (
           await paymentService.findTransactions({
             providerTxId: transfer.id,
           })
         )[0]
-        await userService.banUser(payoutTx.senderId)
+        await userService.banUser(payoutTx.senderId, {
+          remark: USER_BAN_REMARK.payoutReversedByAdmin,
+          noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
+        })
+        slack.sendPaymentAlert({
+          message: `user ${payoutTx.senderId} banned due to payout reversed`,
+        })
         break
       }
       case 'customer.deleted': {
