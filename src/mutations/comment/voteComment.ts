@@ -18,7 +18,6 @@ const resolver: MutationToVoteCommentResolver = async (
       paymentService,
       commentService,
     },
-    knex,
   }
 ) => {
   if (!viewer.id) {

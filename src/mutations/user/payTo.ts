@@ -29,7 +29,7 @@ import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
-  parent,
+  _,
   {
     input: {
       amount,
@@ -85,8 +85,9 @@ const resolver: MutationToPayToResolver = async (
   }
 
   if (
-    viewer.state === USER_STATE.archived ||
-    viewer.state === USER_STATE.frozen
+    [USER_STATE.archived, USER_STATE.frozen, USER_STATE.banned].includes(
+      viewer.state
+    )
   ) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
