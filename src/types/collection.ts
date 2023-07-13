@@ -6,13 +6,13 @@ export default /* GraphQL */ `
 
     putCollection(input: PutCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
-    deleteCollections(input: DeleteCollectionsInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    deleteCollections(input: DeleteCollectionsInput!): Boolean! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Add articles to the begining of the collections."
-    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @complexity(value: 10, multipliers: ["input.collections", "input.articles"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Remove articles from the collection."
-    deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}")
+    deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
   }
@@ -64,6 +64,7 @@ export default /* GraphQL */ `
     collections: [ID!]!
     articles: [ID!]!
   }
+
   input  DeleteCollectionArticlesInput {
     collection: ID!
     articles: [ID!]!

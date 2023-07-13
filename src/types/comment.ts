@@ -18,7 +18,7 @@ export default /* GraphQL */ `
     unvoteComment(input: UnvoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
 
     ##############
