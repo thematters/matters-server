@@ -72,7 +72,7 @@ export default /* GraphQL */ `
     claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
     "update tags for showing on profile page"
-    putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
+    putFeaturedTags(input: FeaturedTagsInput!): [Tag!] @complexity(value: 10, multipliers: ["input.ids"])
 
     ##############
     #     OSS    #

@@ -11,7 +11,7 @@ const TranslatedAnnouncementFields = `
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
-    nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
+    nodes(input: NodesInput!): [Node!] @complexity(value: 1, multipliers: ["input.ids"]) @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     search(input: SearchInput!): SearchResultConnection! @complexity(multipliers: ["input.first"], value: 1) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
@@ -41,7 +41,7 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
-    putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @auth(mode: "${AUTH_MODE.admin}")
+    putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
   }
 
 
@@ -209,7 +209,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input NodesInput{
+  input NodesInput {
     ids: [ID!]!
   }
 
