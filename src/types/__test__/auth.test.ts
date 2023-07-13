@@ -135,6 +135,7 @@ const prepare = async ({
   scope?: { [key: string]: any }
 }) => {
   const context = await getUserContext({ email })
+  // @ts-ignore
   context.viewer.authMode = mode || context.viewer.role
   // @ts-ignore
   context.viewer.scope = scope || {}

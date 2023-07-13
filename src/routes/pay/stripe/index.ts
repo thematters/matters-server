@@ -4,7 +4,7 @@ import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { PaymentService } from 'connectors'
+import { PaymentService, UserService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import {
@@ -35,6 +35,7 @@ stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 
 stripeRouter.post('/', async (req, res) => {
   const paymentService = new PaymentService()
+  const userService = new UserService()
   const slack = new SlackService()
   const stripe = paymentService.stripe.stripeAPI
 
@@ -131,6 +132,12 @@ stripeRouter.post('/', async (req, res) => {
       case 'transfer.reversed': {
         const transfer = event.data.object as Stripe.Transfer
         await updatePayoutTx(transfer)
+        const payoutTx = (
+          await paymentService.findTransactions({
+            providerTxId: transfer.id,
+          })
+        )[0]
+        await userService.banUser(payoutTx.senderId)
         break
       }
       case 'customer.deleted': {

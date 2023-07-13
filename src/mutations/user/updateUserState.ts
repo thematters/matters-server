@@ -1,92 +1,29 @@
-import { OFFICIAL_NOTICE_EXTEND_TYPE, USER_STATE } from 'common/enums'
+import type { MutationToUpdateUserStateResolver, User } from 'definitions'
+
+import { USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
-import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { userQueue } from 'connectors/queue'
-import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
-  { input: { id, state, banDays, password, emails } },
+  { input: { id: globalId, state, banDays, password, emails } },
   { viewer, dataSources: { userService, notificationService, atomService } }
 ) => {
-  // handlers for cleanup and notification
-  const handleBan = async (userId: string) => {
-    // trigger notification
-    notificationService.trigger({
-      event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
-      recipientId: userId,
-    })
-
-    // insert record into punish_record
-    if (typeof banDays === 'number') {
-      const expiredAt = getPunishExpiredDate(banDays)
-      await userService.baseCreate(
-        {
-          userId,
-          state,
-          expiredAt,
-        },
-        'punish_record'
-      )
-    }
-  }
-
-  // clean up punish recods if team manually recover it from ban
-  const handleUnban = (userId: string) =>
-    userService.archivePunishRecordsByUserId({
-      userId,
-      state: USER_STATE.banned,
-    })
-
-  const isArchived = state === USER_STATE.archived
+  const id = globalId ? fromGlobalId(globalId).id : undefined
 
   /**
-   * Batch update with email array
+   * archive
    */
-  if (emails && emails.length > 0) {
-    if (isArchived) {
+
+  if (state === USER_STATE.archived) {
+    if (emails && emails.length > 0) {
       throw new UserInputError('Cannot archive users in batch')
     }
-
-    const updatedUsers = await userService.knex
-      .whereIn('email', emails)
-      .update({ state })
-      .into(userService.table)
-      .returning('*')
-      .then((users) =>
-        users.map((batchUpdatedUser) => {
-          const { id: userId } = batchUpdatedUser
-          if (state === USER_STATE.banned) {
-            handleBan(userId)
-          }
-
-          return batchUpdatedUser
-        })
-      )
-
-    return updatedUsers
-  }
-
-  if (!id) {
-    throw new UserInputError('need to provide `id` or `emails`')
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const user = await userService.dataloader.load(dbId)
-
-  // check to prevent unarchiving user
-  if (
-    user.state === USER_STATE.archived ||
-    (state === USER_STATE.banned && user.state === USER_STATE.banned)
-  ) {
-    throw new ActionFailedError(`user has already been ${state}`)
-  }
-
-  /**
-   * Archive
-   */
-  if (isArchived) {
-    // verify password if target state is `archived`
+    if (!id) {
+      throw new UserInputError('need to provide `id` or `emails`')
+    }
+    // verify *viewer's* password if target state is `archived`
     if (!password || !viewer.id) {
       throw new UserInputError('`password` is required for archiving user')
     } else {
@@ -94,10 +31,11 @@ const resolver: MutationToUpdateUserStateResolver = async (
     }
 
     // sync
-    const archivedUser = await userService.archive(dbId)
+    const user = await userService.dataloader.load(id)
+    const archivedUser = await userService.archive(id)
 
     // async
-    userQueue.archiveUser({ userId: archivedUser.id })
+    userQueue.archiveUser({ userId: id })
 
     notificationService.mail.sendUserDeletedByAdmin({
       to: user.email,
@@ -113,21 +51,46 @@ const resolver: MutationToUpdateUserStateResolver = async (
   /**
    * active, banned, frozen
    */
-  const updatedUser = await atomService.update({
-    table: 'user',
-    where: { id: dbId },
-    data: {
-      state,
-    },
-  })
-
-  if (state === USER_STATE.banned) {
-    handleBan(updatedUser.id)
-  } else if (state !== user.state && user.state === USER_STATE.banned) {
-    handleUnban(updatedUser.id)
+  const handleUpdateUserState = async (user: User) => {
+    if (state === USER_STATE.banned) {
+      return await userService.banUser(user.id, banDays)
+    } else if (state !== user.state && user.state === USER_STATE.banned) {
+      return await userService.unbanUser(user.id, state)
+    } else {
+      return await atomService.update({
+        table: 'user',
+        where: { id: user.id },
+        data: {
+          state,
+        },
+      })
+    }
+  }
+  const validateUserState = (user: User) => {
+    if (
+      user.state === USER_STATE.archived ||
+      (state === USER_STATE.banned && user.state === USER_STATE.banned)
+    ) {
+      throw new ActionFailedError(`user has already been ${user.state}`)
+    }
   }
 
-  return [updatedUser]
+  if (id) {
+    const user = (await userService.dataloader.load(id)) as User
+    validateUserState(user)
+    return [await handleUpdateUserState(user)]
+  }
+
+  if (emails && emails.length > 0) {
+    const users = await userService.findByEmails(emails)
+    // check to prevent unarchiving user
+    for (const user of users) {
+      validateUserState(user)
+    }
+    return await Promise.all(users.map((user) => handleUpdateUserState(user)))
+  }
+
+  throw new UserInputError('need to provide `id` or `emails`')
 }
 
 export default resolver
