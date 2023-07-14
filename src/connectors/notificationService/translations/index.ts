@@ -120,7 +120,7 @@ export default {
       '由於系統偵測到異常金流，您的帳號將被暫時凍結，有任何疑問請來信 hi@matters.town 聯繫站方',
     zh_hans:
       '由于系統检测到异常金流，您的账号將被暂时冻结，有任何疑问请來信 hi@matters.town 联系站方',
-    en: 'Your account has been temporarily deactivated for abnormal payment. Please contact us at hi@matters.town',
+    en: 'Due to the detection of irregular transactions, your account has been temporarily suspended. If you require further clarification, please contact us at hi@matters.town',
   }),
   user_frozen: i18n({
     zh_hant: '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
