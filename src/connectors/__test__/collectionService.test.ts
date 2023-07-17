@@ -272,7 +272,7 @@ describe('reorderArticles', () => {
   })
   test('move to middle position', async () => {
     await collectionService.reorderArticles(collectionId, [
-      { articleId: '3', newPosition: 2 },
+      { articleId: '3', newPosition: 3 - 1 },
     ])
     const [records] = await collectionService.findAndCountArticlesInCollection(
       collectionId,
@@ -285,6 +285,21 @@ describe('reorderArticles', () => {
     expect(records[1].articleId).toBe('2')
     expect(records[2].articleId).toBe('3')
     expect(records[3].articleId).toBe('1')
+
+    await collectionService.reorderArticles(collectionId, [
+      { articleId: '3', newPosition: 2 - 1 },
+    ])
+    const [records2] = await collectionService.findAndCountArticlesInCollection(
+      collectionId,
+      {
+        skip: 0,
+        take: 4,
+      }
+    )
+    expect(records2[0].articleId).toBe('4')
+    expect(records2[1].articleId).toBe('3')
+    expect(records2[2].articleId).toBe('2')
+    expect(records2[3].articleId).toBe('1')
   })
   test('move multiple articles', async () => {
     await collectionService.reorderArticles(collectionId, [

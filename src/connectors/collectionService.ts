@@ -118,7 +118,7 @@ export class CollectionService extends BaseService {
       skip,
       take,
       reversed = true,
-    }: { skip?: number; take?: number; reversed?: boolean }
+    }: { skip?: number; take?: number; reversed?: boolean } = {}
   ): Promise<[CollectionArticle[], number]> => {
     const records = await this.knex('collection_article')
       .select(
@@ -198,7 +198,7 @@ export class CollectionService extends BaseService {
     moves: Array<{ articleId: string; newPosition: number }>
   ) => {
     const [collectionArticles, count] =
-      await this.findAndCountArticlesInCollection(collectionId, {})
+      await this.findAndCountArticlesInCollection(collectionId)
 
     if (
       moves.some(({ newPosition }) => newPosition < 0 || newPosition >= count)
@@ -241,16 +241,17 @@ export class CollectionService extends BaseService {
         )
         collectionArticles.push({ ...article, order: order.toString() })
       } else {
-        const prevOrder = parseFloat(collectionArticles[newPosition].order)
-        const nextOrder = parseFloat(collectionArticles[newPosition + 1].order)
-        const order = (prevOrder + nextOrder) / 2
-        await this.knex('collection_article')
-          .update({ order })
-          .where({ articleId, collectionId })
+        // first put aside the article to be moved
         const [article] = collectionArticles.splice(
           collectionArticles.findIndex(({ articleId: id }) => id === articleId),
           1
         )
+        const prevOrder = parseFloat(collectionArticles[newPosition].order)
+        const nextOrder = parseFloat(collectionArticles[newPosition - 1].order)
+        const order = (prevOrder + nextOrder) / 2
+        await this.knex('collection_article')
+          .update({ order })
+          .where({ articleId, collectionId })
         collectionArticles.splice(newPosition, 0, {
           ...article,
           order: order.toString(),
