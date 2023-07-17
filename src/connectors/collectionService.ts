@@ -199,8 +199,6 @@ export class CollectionService extends BaseService {
   ) => {
     const [collectionArticles, count] =
       await this.findAndCountArticlesInCollection(collectionId)
-    console.dir(collectionArticles, { depth: null })
-    console.log('collectionId: ', collectionId)
 
     if (
       moves.some(({ newPosition }) => newPosition < 0 || newPosition >= count)
