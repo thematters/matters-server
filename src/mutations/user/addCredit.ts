@@ -14,7 +14,7 @@ import {
 import { Customer, MutationToAddCreditResolver } from 'definitions'
 
 const resolver: MutationToAddCreditResolver = async (
-  parent,
+  _,
   { input: { amount } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {

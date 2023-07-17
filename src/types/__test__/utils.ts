@@ -298,10 +298,14 @@ export const updateUserDescription = async ({
 
 export const updateUserState = async ({
   id,
+  emails,
   state,
+  password,
 }: {
-  id: string
+  id?: string
+  emails?: string[]
   state: string
+  password?: string
 }) => {
   const UPDATE_USER_STATE = `
     mutation UpdateUserState($input: UpdateUserStateInput!) {
@@ -310,14 +314,17 @@ export const updateUserState = async ({
         status {
           state
         }
+        info {
+          email
+        }
       }
     }
   `
 
-  const server = await testClient({ isAdmin: true })
+  const server = await testClient({ isAdmin: true, isAuth: true })
   return server.executeOperation({
     query: UPDATE_USER_STATE,
-    variables: { input: { id, state } },
+    variables: { input: { id, state, emails, password } },
   })
 }
 

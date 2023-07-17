@@ -31,7 +31,7 @@ const logger = getLogger('service-payment')
 export class PaymentService extends BaseService {
   stripe: typeof stripe
 
-  constructor() {
+  public constructor() {
     super('transaction')
 
     this.stripe = stripe
@@ -44,7 +44,7 @@ export class PaymentService extends BaseService {
    *             Wallet            *
    *                               *
    *********************************/
-  calculateBalance = async ({
+  public calculateBalance = async ({
     userId,
     currency,
   }: {
@@ -61,7 +61,7 @@ export class PaymentService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  makeTransactionsQuery = ({
+  private makeTransactionsQuery = ({
     id,
     providerTxId,
     userId,
@@ -124,7 +124,7 @@ export class PaymentService extends BaseService {
   }
 
   // count transactions by given conditions
-  totalTransactionCount = async (params: {
+  public totalTransactionCount = async (params: {
     id?: string
     providerTxId?: string
     userId: string
@@ -141,7 +141,7 @@ export class PaymentService extends BaseService {
   }
 
   // find transactions by given conditions
-  findTransactions = ({
+  public findTransactions = ({
     skip,
     take,
     ...restParams
@@ -169,7 +169,7 @@ export class PaymentService extends BaseService {
     return query.orderBy('created_at', 'desc')
   }
 
-  createTransaction = async (
+  public createTransaction = async (
     {
       amount,
       fee,
@@ -238,10 +238,10 @@ export class PaymentService extends BaseService {
     )
   }
 
-  findBlockchainTransactionById = async (id: string) =>
+  public findBlockchainTransactionById = async (id: string) =>
     this.baseFindById(id, 'blockchain_transaction')
 
-  findOrCreateBlockchainTransaction = async (
+  public findOrCreateBlockchainTransaction = async (
     { chain, txHash }: { chain: GQLChain; txHash: string },
     data?: { state?: BLOCKCHAIN_TRANSACTION_STATE },
     trx?: Knex.Transaction
@@ -266,7 +266,7 @@ export class PaymentService extends BaseService {
     return this.baseFindOrCreate({ where, data: toInsert, table, trx })
   }
 
-  findOrCreateTransactionByBlockchainTxHash = async ({
+  public findOrCreateTransactionByBlockchainTxHash = async ({
     chain,
     txHash,
 
@@ -351,7 +351,7 @@ export class PaymentService extends BaseService {
   }
 
   // Update blockchain_transaction's state by given id
-  markBlockchainTransactionStateAs = async (
+  public markBlockchainTransactionStateAs = async (
     {
       id,
       state,
@@ -369,7 +369,7 @@ export class PaymentService extends BaseService {
     )
 
   // Update transaction's state by given id
-  markTransactionStateAs = async (
+  public markTransactionStateAs = async (
     {
       id,
       state,
@@ -390,14 +390,19 @@ export class PaymentService extends BaseService {
           state,
         }
 
-    return this.baseUpdate(id, { updatedAt: new Date(), ...data })
+    return this.baseUpdate(
+      id,
+      { updatedAt: new Date(), ...data },
+      'transaction',
+      trx
+    )
   }
 
   /**
    * Sum up the amount of donation transaction.
    *
    */
-  sumTodayDonationTransactions = async ({
+  public sumTodayDonationTransactions = async ({
     currency = PAYMENT_CURRENCY.HKD,
     senderId,
   }: {
@@ -427,11 +432,11 @@ export class PaymentService extends BaseService {
    *            Customer           *
    *                               *
    *********************************/
-  createCustomer = async ({
+  public createCustomer = async ({
     user,
     provider,
   }: {
-    user: User
+    user: Pick<User, 'id' | 'email'>
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
@@ -454,7 +459,7 @@ export class PaymentService extends BaseService {
     }
   }
 
-  deleteCustomer = async ({
+  public deleteCustomer = async ({
     userId,
     customerId,
   }: {
@@ -483,7 +488,7 @@ export class PaymentService extends BaseService {
    *            Payment            *
    *                               *
    *********************************/
-  createPayment = async ({
+  public createPayment = async ({
     userId,
     customerId,
     amount,
@@ -537,7 +542,7 @@ export class PaymentService extends BaseService {
    *             Payout            *
    *                               *
    *********************************/
-  calculateHKDBalance = async ({ userId }: { userId: string }) => {
+  public calculateHKDBalance = async ({ userId }: { userId: string }) => {
     const result = await this.knex
       .select()
       .from(
@@ -563,7 +568,7 @@ export class PaymentService extends BaseService {
     return parseInt(result?.amount || 0, 10)
   }
 
-  countPendingPayouts = async ({ userId }: { userId: string }) => {
+  public countPendingPayouts = async ({ userId }: { userId: string }) => {
     const result = await this.knex('transaction')
       .where({
         purpose: TRANSACTION_PURPOSE.payout,
@@ -583,7 +588,7 @@ export class PaymentService extends BaseService {
    *             Invoice           *
    *                               *
    *********************************/
-  findInvoice = async ({
+  public findInvoice = async ({
     id,
     userId,
     providerInvoiceId,
@@ -617,7 +622,7 @@ export class PaymentService extends BaseService {
     return query.orderBy('created_at', 'desc')
   }
 
-  createInvoiceWithTransactions = async ({
+  public createInvoiceWithTransactions = async ({
     amount,
     currency,
     providerTxId,
@@ -716,7 +721,7 @@ export class PaymentService extends BaseService {
     }
   }
 
-  isTransactionSplitted = async ({
+  public isTransactionSplitted = async ({
     parentId,
     amount,
   }: {
@@ -744,7 +749,7 @@ export class PaymentService extends BaseService {
   /**
    * Check if user is circle member
    */
-  isCircleMember = async ({
+  public isCircleMember = async ({
     circleId,
     userId,
   }: {
@@ -771,7 +776,7 @@ export class PaymentService extends BaseService {
     return isCircleMember
   }
 
-  findActiveSubscriptions = async ({
+  public findActiveSubscriptions = async ({
     userId,
     provider,
   }: {
@@ -791,7 +796,7 @@ export class PaymentService extends BaseService {
     return subscriptions || []
   }
 
-  createSubscriptionOrItem = async (data: {
+  public createSubscriptionOrItem = async (data: {
     userId: string
     priceId: string
     providerPriceId: string
@@ -820,7 +825,7 @@ export class PaymentService extends BaseService {
    * Create a subscription by a given circle price,
    * subscription item will be created correspondingly.
    */
-  createSubscription = async ({
+  public createSubscription = async ({
     userId,
     priceId,
     providerPriceId,
@@ -900,7 +905,7 @@ export class PaymentService extends BaseService {
    * Create a subscription item by a given circle price,
    * and added to subscription.
    */
-  createSubscriptionItem = async ({
+  public createSubscriptionItem = async ({
     userId,
     priceId,
     providerPriceId,
@@ -978,7 +983,7 @@ export class PaymentService extends BaseService {
   /**
    * Find invitation applicable to a user for a cirlce
    */
-  findPendingInvitation = async (params: {
+  public findPendingInvitation = async (params: {
     userId: string
     priceId: string
   }) => {
@@ -1006,7 +1011,10 @@ export class PaymentService extends BaseService {
   /**
    * Accept invitation
    */
-  acceptInvitation = async (ivtId: string, subscriptionItemId: string) => {
+  public acceptInvitation = async (
+    ivtId: string,
+    subscriptionItemId: string
+  ) => {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({
@@ -1023,7 +1031,7 @@ export class PaymentService extends BaseService {
    *                               *
    *********************************/
 
-  notifyDonation = async ({
+  public notifyDonation = async ({
     tx,
     sender,
     recipient,

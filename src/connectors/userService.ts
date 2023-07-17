@@ -7,6 +7,7 @@ import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
+  OFFICIAL_NOTICE_EXTEND_TYPE,
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
   CACHE_PREFIX,
@@ -22,6 +23,7 @@ import {
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
+  USER_BAN_REMARK,
   VERIFICATION_CODE_EXPIRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VIEW,
@@ -40,6 +42,7 @@ import {
   generatePasswordhash,
   isValidUserName,
   makeUserName,
+  getPunishExpiredDate,
 } from 'common/utils'
 import {
   AtomService,
@@ -47,19 +50,22 @@ import {
   CacheService,
   ipfsServers,
   OAuthService,
+  NotificationService,
 } from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchExclude,
-  GQLUserRestriction,
+  type GQLUserRestriction,
   GQLUserRestrictionType,
   GQLVerificationCodeType,
-  Item,
-  ItemData,
-  UserOAuthLikeCoin,
+  type Item,
+  type ItemData,
+  type UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
-  VerficationCode,
+  type User,
+  type VerficationCode,
+  type ValueOf,
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -251,20 +257,23 @@ export class UserService extends BaseService {
     return user
   }
 
-  public findByEmail = async (email: string) =>
+  public findByEmail = async (email: string): Promise<User> =>
     this.knex.select().from(this.table).where({ email }).first()
 
-  public findByUserName = async (userName: string) =>
+  public findByEmails = async (emails: string[]): Promise<User[]> =>
+    this.knex.select().from(this.table).whereIn('email', emails)
+
+  public findByUserName = async (userName: string): Promise<User> =>
     this.knex.select().from(this.table).where({ userName }).first()
 
-  public findByEthAddress = async (ethAddress: string) =>
+  public findByEthAddress = async (ethAddress: string): Promise<User> =>
     this.knex
       .select()
       .from(this.table)
       .where('ethAddress', 'ILIKE', `%${ethAddress}%`) // ethAddress case insensitive
       .first()
 
-  public findByLikerId = async (likerId: string) =>
+  public findByLikerId = async (likerId: string): Promise<User> =>
     this.knex
       .select()
       .from(this.table)
@@ -1857,6 +1866,58 @@ export class UserService extends BaseService {
       })
 
     return [users, users[0]?.totalCount || 0]
+  }
+
+  public banUser = async (
+    userId: string,
+    {
+      banDays,
+      remark,
+      noticeType,
+    }: {
+      noticeType?: OFFICIAL_NOTICE_EXTEND_TYPE
+      banDays?: number
+      remark?: ValueOf<typeof USER_BAN_REMARK>
+    } = {}
+  ) => {
+    const notificationService = new NotificationService()
+    // trigger notification
+    notificationService.trigger({
+      event: noticeType ?? OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
+      recipientId: userId,
+    })
+
+    // insert record into punish_record
+    if (typeof banDays === 'number') {
+      const expiredAt = getPunishExpiredDate(banDays)
+      await this.baseCreate(
+        {
+          userId,
+          state: USER_STATE.banned,
+          expiredAt,
+        },
+        'punish_record'
+      )
+    }
+
+    const data = {
+      state: USER_STATE.banned,
+      updatedAt: new Date(),
+    }
+
+    return await this.baseUpdate(userId, remark ? { ...data, remark } : data)
+  }
+
+  public unbanUser = async (
+    userId: string,
+    state: ValueOf<typeof USER_STATE>
+  ) => {
+    // clean up punish recods if team manually recover it from ban
+    await this.archivePunishRecordsByUserId({
+      userId,
+      state: USER_STATE.banned,
+    })
+    return await this.baseUpdate(userId, { state })
   }
 
   /*********************************

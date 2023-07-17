@@ -7,13 +7,13 @@ import { getLogger } from 'common/logger'
 const logger = getLogger('service-slack')
 
 class SlackService {
-  client: WebClient
+  private client: WebClient
 
-  constructor() {
+  public constructor() {
     this.client = new WebClient(environment.slackToken)
   }
 
-  getMessageColor = (state: SLACK_MESSAGE_STATE) => {
+  private getMessageColor = (state: SLACK_MESSAGE_STATE) => {
     switch (state) {
       case SLACK_MESSAGE_STATE.successful:
         return '#27ffc9'
@@ -24,7 +24,7 @@ class SlackService {
     }
   }
 
-  sendPayoutMessage = async ({
+  public sendPayoutMessage = async ({
     amount,
     amountInUSD,
     fee,
@@ -70,10 +70,27 @@ class SlackService {
     }
   }
 
+  public sendPaymentAlert = async ({ message }: { message: string }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackPayoutChannel,
+        text: `[${environment.env}] - Alert`,
+        attachments: [
+          {
+            color: this.getMessageColor(SLACK_MESSAGE_STATE.failed),
+            text: '\n' + `\n- *Message*: ${message}`,
+          },
+        ],
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
   /**
    * Send alert realted to stripe issues.
    */
-  sendStripeAlert = async ({
+  public sendStripeAlert = async ({
     data,
     message,
   }: {
@@ -93,14 +110,14 @@ class SlackService {
               `\n- *Data*: ${JSON.stringify(data || {})}`,
           },
         ],
-        markdownn: true,
+        markdown: true,
       })
     } catch (error) {
       logger.error(error)
     }
   }
 
-  sendQueueMessage = async ({
+  public sendQueueMessage = async ({
     data,
     title,
     message,

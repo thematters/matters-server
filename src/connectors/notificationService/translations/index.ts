@@ -115,6 +115,13 @@ export default {
           `and comments within ${banDays} days for vilolating the Term of Use`
         : 'You have been fobidden to publish any contents and comments for vilolating the Term of Use',
   }),
+  user_banned_payment: i18n({
+    zh_hant:
+      '由於系統偵測到異常金流，您的帳號將被暫時凍結，有任何疑問請來信 hi@matters.town 聯繫站方',
+    zh_hans:
+      '由于系統检测到异常金流，您的账号將被暂时冻结，有任何疑问请來信 hi@matters.town 联系站方',
+    en: 'Due to the detection of irregular transactions, your account has been temporarily suspended. If you require further clarification, please contact us at hi@matters.town',
+  }),
   user_frozen: i18n({
     zh_hant: '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
     zh_hans: '因为违反社区规则，Matters 决定将您的账户冻结，无法在站上进行互动',

@@ -105,7 +105,7 @@ export const createRefundTxs = async (
 
       // skip if related payment transaction doesn't exists
       if (!paymentTx) {
-        return
+        throw new Error('Related payment transaction not found')
       }
 
       // create a refund transaction,
@@ -128,4 +128,141 @@ export const createRefundTxs = async (
       })
     })
   )
+}
+
+export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
+  if (refund.status !== 'failed') {
+    throw new Error('Expect updated refund status to be failed')
+  }
+  const paymentService = new PaymentService()
+  const refundTx = (
+    await paymentService.findTransactions({
+      providerTxId: refund.id,
+    })
+  )[0]
+  if (refundTx) {
+    paymentService.markTransactionStateAs({
+      id: refundTx.id,
+      state: TRANSACTION_STATE.failed,
+      remark: refund.failure_reason,
+    })
+  } else {
+    const paymentTx = (
+      await paymentService.findTransactions({
+        providerTxId: refund.payment_intent as string,
+      })
+    )[0]
+
+    // skip if related payment transaction doesn't exists
+    if (!paymentTx) {
+      throw new Error('Related payment transaction not found')
+    }
+
+    // create a refund transaction,
+    // and link with payment intent transaction
+    await paymentService.createTransaction({
+      amount: toDBAmount({ amount: refund.amount }),
+
+      state: TRANSACTION_STATE.failed,
+      currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+      purpose: TRANSACTION_PURPOSE.refund,
+
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: refund.id,
+
+      recipientId: undefined,
+      senderId: paymentTx.recipientId,
+
+      targetId: paymentTx.id,
+      targetType: TRANSACTION_TARGET_TYPE.transaction,
+      remark: refund.failure_reason,
+    })
+  }
+}
+
+export const createDisputeTx = async (dispute: Stripe.Dispute) => {
+  const paymentService = new PaymentService()
+
+  const disputeTx = (
+    await paymentService.findTransactions({
+      providerTxId: dispute.id,
+    })
+  )[0]
+  if (disputeTx) {
+    return
+  } else {
+    const paymentTx = (
+      await paymentService.findTransactions({
+        providerTxId: dispute.payment_intent as string,
+      })
+    )[0]
+
+    // skip if related payment transaction doesn't exists
+    if (!paymentTx) {
+      throw new Error('Related payment transaction not found')
+    }
+    if (paymentTx.state !== TRANSACTION_STATE.succeeded) {
+      throw new Error('Related payment transaction is not succeeded')
+    }
+
+    if (paymentTx.amount !== toDBAmount({ amount: dispute.amount })) {
+      console.warn('Expect dispute amount to be equal to payment amount')
+    }
+
+    // create a dispute transaction,
+    // and link with payment intent transaction
+    await paymentService.createTransaction({
+      amount: paymentTx.amount,
+
+      state: TRANSACTION_STATE.succeeded,
+      currency: paymentTx.currency,
+      purpose: TRANSACTION_PURPOSE.disputeWithdrawnFunds,
+
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: dispute.id,
+
+      recipientId: undefined,
+      senderId: paymentTx.recipientId,
+
+      targetId: paymentTx.id,
+      targetType: TRANSACTION_TARGET_TYPE.transaction,
+      remark: dispute.reason,
+    })
+  }
+}
+
+export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
+  const paymentService = new PaymentService()
+  const disputeTx = (
+    await paymentService.findTransactions({
+      providerTxId: dispute.id,
+    })
+  )[0]
+  if (!disputeTx) {
+    throw new Error('Dispute transaction not found')
+  }
+  paymentService.markTransactionStateAs({
+    id: disputeTx.id,
+    state: TRANSACTION_STATE.canceled,
+    remark: dispute.reason,
+  })
+}
+
+export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
+  if (transfer.amount !== transfer.amount_reversed) {
+    throw new Error('Expect transfer amount to be equal to reversed amount')
+  }
+  const paymentService = new PaymentService()
+  const payoutTx = (
+    await paymentService.findTransactions({
+      providerTxId: transfer.id,
+    })
+  )[0]
+  if (!payoutTx) {
+    throw new Error('Payout transaction not found')
+  }
+  paymentService.markTransactionStateAs({
+    id: payoutTx.id,
+    state: TRANSACTION_STATE.failed,
+  })
 }
