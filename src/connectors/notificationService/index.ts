@@ -139,6 +139,12 @@ export class NotificationService extends BaseService {
           recipientId: params.recipientId,
           message: trans.user_banned(language, {}),
         }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment:
+        return {
+          type: DB_NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.user_banned_payment(language, {}),
+        }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen:
         return {
           type: DB_NOTICE_TYPE.official_announcement,
