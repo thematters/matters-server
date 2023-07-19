@@ -126,7 +126,7 @@ export default /* GraphQL */ `
     topics(input: TopicInput!): TopicConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "collections authored by current user."
-    collections(input: ConnectionArgs!): CollectionConnection!
+    collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
     pinnedWorks: [PinnableWork!]!
     "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
