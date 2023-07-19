@@ -9,7 +9,7 @@ export default /* GraphQL */ `
     deleteCollections(input: DeleteCollectionsInput!): Boolean! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Add articles to the begining of the collections."
-    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @complexity(value: 10, multipliers: ["input.collection"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @complexity(value: 10, multipliers: ["input.collections"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Remove articles from the collection."
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
