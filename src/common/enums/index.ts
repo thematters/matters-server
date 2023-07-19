@@ -28,7 +28,7 @@ export * from './sqs'
 export * from './logging'
 export * from './collection'
 
-export const GRAPHQL_COST_LIMIT = 5000
+export const GRAPHQL_COST_LIMIT = 13000
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
 
 export const BCRYPT_ROUNDS = 12
