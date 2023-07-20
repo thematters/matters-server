@@ -23,7 +23,7 @@ export default /* GraphQL */ `
      cover: String
      description: String
      author: User!
-     articles(input: CollectionArticlesInput!): ArticleConnection! @complexity(value: 1, multipliers: ["input.first"])
+     articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
 
