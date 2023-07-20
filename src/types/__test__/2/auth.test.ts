@@ -3,7 +3,12 @@ import _ from 'lodash'
 import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
+import {
+  adminUser,
+  defaultTestUser,
+  getUserContext,
+  testClient,
+} from '../utils'
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 

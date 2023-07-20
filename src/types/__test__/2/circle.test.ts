@@ -10,7 +10,7 @@ import { toGlobalId } from 'common/utils'
 // import { AtomService } from 'connectors'
 import { GQLCommentType } from 'definitions'
 
-import { delay, publishArticle, putDraft, testClient } from './utils'
+import { delay, publishArticle, putDraft, testClient } from '../utils'
 
 const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {

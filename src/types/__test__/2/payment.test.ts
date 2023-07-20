@@ -6,7 +6,7 @@ import {
   GQLTransactionPurpose,
 } from 'definitions'
 
-import { testClient } from './utils'
+import { testClient } from '../utils'
 
 describe('donation', () => {
   const PAYTO = /* GraphQL */ `
