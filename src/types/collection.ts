@@ -9,7 +9,7 @@ export default /* GraphQL */ `
     deleteCollections(input: DeleteCollectionsInput!): Boolean! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Add articles to the begining of the collections."
-    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @complexity(value: 2, multipliers: ["input.collections", "input.articles"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]! @complexity(value: 10, multipliers: ["input.collections"]) @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
     "Remove articles from the collection."
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
@@ -23,7 +23,7 @@ export default /* GraphQL */ `
      cover: String
      description: String
      author: User!
-     articles(input: CollectionArticlesInput!): ArticleConnection!
+     articles(input: CollectionArticlesInput!): ArticleConnection! @complexity(value: 1, multipliers: ["input.first"])
      pinned: Boolean!
      updatedAt: DateTime!
 
