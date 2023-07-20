@@ -1,7 +1,7 @@
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { testClient } from './utils'
+import { testClient } from '../utils'
 
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })

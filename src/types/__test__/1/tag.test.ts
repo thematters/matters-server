@@ -11,7 +11,7 @@ import {
   GQLUpdateTagSettingType,
 } from 'definitions'
 
-import { setFeature, testClient } from './utils'
+import { setFeature, testClient } from '../utils'
 
 const QUERY_TAG = /* GraphQL */ `
   query ($input: NodeInput!) {

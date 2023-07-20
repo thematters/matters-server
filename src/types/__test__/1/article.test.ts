@@ -22,7 +22,7 @@ import {
   putDraft,
   testClient,
   updateUserState,
-} from './utils'
+} from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var

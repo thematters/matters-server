@@ -4,7 +4,7 @@ import { FileUpload, Upload } from 'graphql-upload'
 import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE } from 'common/enums'
 import { SystemService } from 'connectors'
 
-import { testClient } from './utils'
+import { testClient } from '../utils'
 
 const SINGLE_FILE_UPLOAD = /* GraphQL */ `
   fragment Asset on Asset {

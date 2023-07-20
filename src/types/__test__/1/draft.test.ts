@@ -3,7 +3,7 @@ import _get from 'lodash/get'
 import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { putDraft } from './utils'
+import { putDraft } from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var

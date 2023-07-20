@@ -11,7 +11,7 @@ import {
   registerUser,
   testClient,
   updateUserDescription,
-} from './utils'
+} from '../utils'
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
