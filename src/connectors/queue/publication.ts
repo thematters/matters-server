@@ -15,6 +15,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
@@ -108,6 +109,20 @@ export class PublicationQueue extends BaseQueue {
     }
     await job.progress(5)
 
+    const author = await this.userService.baseFindById(draft.authorId)
+    if (
+      [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+        author.state
+      )
+    ) {
+      this.draftService.baseUpdate(draft.id, {
+        publishState: PUBLISH_STATE.error,
+      })
+      await job.progress(100)
+      done(null, 'user has no permission')
+      return
+    }
+
     try {
       const summary = draft.summary || makeSummary(draft.content)
       const wordCount = countWords(draft.content)
@@ -157,7 +172,6 @@ export class PublicationQueue extends BaseQueue {
 
       await job.progress(30)
 
-      const author = await this.userService.baseFindById(draft.authorId)
       const { userName, displayName } = author
       let tags = draft.tags as string[]
 
