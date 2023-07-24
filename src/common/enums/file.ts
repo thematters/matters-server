@@ -7,6 +7,7 @@ export const IMAGE_ASSET_TYPE = {
   tagCover: 'tagCover',
   circleAvatar: 'circleAvatar',
   circleCover: 'circleCover',
+  collectionCover: 'collectionCover',
   announcementCover: 'announcementCover',
   topicCover: 'topicCover',
 }

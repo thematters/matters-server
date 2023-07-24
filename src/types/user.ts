@@ -72,7 +72,7 @@ export default /* GraphQL */ `
     claimLogbooks(input: ClaimLogbooksInput!): ClaimLogbooksResult!
 
     "update tags for showing on profile page"
-    putFeaturedTags(input: FeaturedTagsInput!): [Tag!]
+    putFeaturedTags(input: FeaturedTagsInput!): [Tag!] @complexity(value: 10, multipliers: ["input.ids"])
 
     ##############
     #     OSS    #
@@ -125,6 +125,9 @@ export default /* GraphQL */ `
     "Topics created by current user."
     topics(input: TopicInput!): TopicConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "collections authored by current user."
+    collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
+    pinnedWorks: [PinnableWork!]!
     "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 

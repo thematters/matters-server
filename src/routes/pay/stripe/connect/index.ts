@@ -4,15 +4,12 @@ import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { updateAccount } from './account'
 
 const logger = getLogger('router-stripe-connect')
-
-const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-08-27',
-})
 
 const stripeRouter = Router()
 
@@ -24,7 +21,9 @@ const stripeRouter = Router()
 stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 
 stripeRouter.post('/', async (req, res) => {
+  const paymentService = new PaymentService()
   const slack = new SlackService()
+  const stripe = paymentService.stripe.stripeAPI
 
   const sig = req.headers['stripe-signature'] as string
 

@@ -1,4 +1,4 @@
-import { ArticleToAuthorResolver } from 'definitions'
+import type { ArticleToAuthorResolver } from 'definitions'
 
 const resolver: ArticleToAuthorResolver = (
   { authorId },

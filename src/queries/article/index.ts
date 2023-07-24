@@ -1,9 +1,9 @@
+import type { GQLArticleLicenseType } from 'definitions'
+
 import slugify from '@matters/slugify'
 
 import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
-import { getLogger } from 'common/logger'
 import { toGlobalId } from 'common/utils'
-import { GQLArticleLicenseType } from 'definitions'
 
 import * as articleAccess from './access'
 import appreciateLeft from './appreciateLeft'
@@ -23,8 +23,10 @@ import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
+import idResolver from './id'
 import language from './language'
 import * as articleOSS from './oss'
+import pinned from './pinned'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
@@ -68,8 +70,6 @@ import userArticles from './user/articles'
 // import userTags from './user/tags'
 import userTopics from './user/topics'
 
-const logger = getLogger('query-article')
-
 export default {
   Query: {
     article: rootArticle,
@@ -80,21 +80,7 @@ export default {
     topics: userTopics,
   },
   Article: {
-    id: (
-      { articleId, id }: { articleId: string; id: string },
-      _: any,
-      __: any,
-      info: any
-    ) => {
-      if (!articleId) {
-        logger.warn(
-          "Article's fields should derive from Draft instead of Article: %j",
-          info.path
-        )
-        return toGlobalId({ type: NODE_TYPES.Article, id })
-      }
-      return toGlobalId({ type: NODE_TYPES.Article, id: articleId })
-    },
+    id: idResolver,
     content,
     contents: (root: any) => root,
     summary,
@@ -120,6 +106,7 @@ export default {
     mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
     state,
     sticky,
+    pinned,
     subscribed,
     subscribers,
     tags,

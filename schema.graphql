@@ -254,13 +254,24 @@ type Mutation {
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
+  putCollection(input: PutCollectionInput!): Collection!
+  deleteCollections(input: DeleteCollectionsInput!): Boolean!
+
+  """Add articles to the begining of the collections."""
+  addCollectionsArticles(input: AddCollectionsArticlesInput!): [Collection!]!
+
+  """Remove articles from the collection."""
+  deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection!
+
+  """Reorder articles in the collection."""
+  reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
 }
 
 """
 This type contains metadata, content, hash and related data of an article. If you
 want information about article's comments. Please check Comment type.
 """
-type Article implements Node {
+type Article implements Node & PinnableWork {
   """Unique ID of this article"""
   id: ID!
 
@@ -359,7 +370,8 @@ type Article implements Node {
   """
   This value determines if this article is an author selected article or not.
   """
-  sticky: Boolean!
+  sticky: Boolean! @deprecated(reason: "Use pinned instead")
+  pinned: Boolean!
 
   """Translation of article title and content."""
   translation(input: TranslationArgs): ArticleTranslation
@@ -637,7 +649,10 @@ input PublishArticleInput {
 input EditArticleInput {
   id: ID!
   state: ArticleState
+
+  """deprecated, use pinned instead"""
   sticky: Boolean
+  pinned: Boolean
   summary: String
   tags: [String!]
   content: String
@@ -947,6 +962,10 @@ type User implements Node {
 
   """Topics created by current user."""
   topics(input: TopicInput!): TopicConnection!
+
+  """collections authored by current user."""
+  collections(input: ConnectionArgs!): CollectionConnection!
+  pinnedWorks: [PinnableWork!]!
 
   """Tags by by usage order of current user."""
   tags(input: ConnectionArgs!): TagConnection!
@@ -1829,6 +1848,13 @@ interface Node {
   id: ID!
 }
 
+interface PinnableWork {
+  id: ID!
+  pinned: Boolean!
+  title: String!
+  cover: String
+}
+
 type PageInfo {
   startCursor: String
   endCursor: String
@@ -2114,8 +2140,6 @@ enum SearchTypes {
 enum SearchAPIVersion {
   v20230601
   v20230301
-  v20221212
-  v20221212prior
 }
 
 enum BoostTypes {
@@ -2157,6 +2181,7 @@ enum AssetType {
   tagCover
   circleAvatar
   circleCover
+  collectionCover
   announcementCover
   topicCover
 }
@@ -2169,6 +2194,7 @@ enum EntityType {
   circle
   announcement
   topic
+  collection
 }
 
 """Enums for user roles."""
@@ -3278,4 +3304,71 @@ input PutOAuthClientInput {
 enum GrantType {
   authorization_code
   refresh_token
+}
+
+type Collection implements Node & PinnableWork {
+  id: ID!
+  title: String!
+  cover: String
+  description: String
+  author: User!
+  articles(input: CollectionArticlesInput!): ArticleConnection!
+  pinned: Boolean!
+  updatedAt: DateTime!
+
+  """Check if the collection contains the article"""
+  contains(input: NodeInput!): Boolean!
+}
+
+type CollectionEdge {
+  cursor: String!
+  node: Collection!
+}
+
+type CollectionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CollectionEdge!]
+}
+
+input CollectionArticlesInput {
+  after: String
+  first: Int
+  reversed: Boolean
+}
+
+input PutCollectionInput {
+  id: ID
+  title: String
+  cover: ID
+  description: String
+  pinned: Boolean
+}
+
+input DeleteCollectionsInput {
+  ids: [ID!]!
+}
+
+input AddCollectionsArticlesInput {
+  collections: [ID!]!
+  articles: [ID!]!
+}
+
+input DeleteCollectionArticlesInput {
+  collection: ID!
+  articles: [ID!]!
+}
+
+input ReorderMoveInput {
+  item: ID!
+
+  """
+  The new position move to. To move item to the beginning of the list, set to 0. To the end of the list, set to the length of the list - 1.
+  """
+  newPosition: Int!
+}
+
+input ReorderCollectionArticlesInput {
+  collection: ID!
+  moves: [ReorderMoveInput!]!
 }

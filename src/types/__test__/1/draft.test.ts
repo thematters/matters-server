@@ -3,7 +3,7 @@ import _get from 'lodash/get'
 import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { putDraft } from './utils'
+import { putDraft } from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -118,7 +118,7 @@ describe('put draft', () => {
 
   test('edit draft collection', async () => {
     const limit = 4
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const collection = [
       toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
       toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
@@ -197,7 +197,7 @@ describe('put draft', () => {
 
     // out of limit collection can remain
     const smallerlimit = limit - 1
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = smallerlimit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = smallerlimit
     const remainRes = await putDraft({
       draft: {
         id: draftId,

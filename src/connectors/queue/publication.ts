@@ -402,7 +402,7 @@ export class PublicationQueue extends BaseQueue {
       // createdAt: new Date(), // default to CURRENT_TIMESTAMP
       // updatedAt: new Date(), // default to CURRENT_TIMESTAMP
     }))
-    await this.articleService.baseBatchCreate(items, 'collection')
+    await this.articleService.baseBatchCreate(items, 'article_connection')
 
     // trigger notifications
     draft.collection.forEach(async (id: string) => {

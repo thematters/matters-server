@@ -43,7 +43,7 @@ enum ACTION {
 }
 
 const resolver: MutationToPutCircleResolver = async (
-  root,
+  _,
   { input: { id, avatar, cover, name, displayName, description, amount } },
   { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {

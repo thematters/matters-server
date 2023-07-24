@@ -26,7 +26,10 @@ export class BaseService {
     this.cfsvc = cfsvc
   }
 
-  baseCount = async (where?: { [key: string]: any }, table?: TableName) => {
+  public baseCount = async (
+    where?: { [key: string]: any },
+    table?: TableName
+  ) => {
     const query = this.knex(table || this.table)
       .count()
       .first()
@@ -42,7 +45,10 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: string, table?: TableName): Promise<any | null> =>
+  public baseFindById = async (
+    id: string,
+    table?: TableName
+  ): Promise<any | null> =>
     this.knex // .select()
       .from(table || this.table)
       .where({ id })
@@ -52,7 +58,7 @@ export class BaseService {
    * Find items by given ids.
    */
 
-  baseFindByIds = async (ids: readonly string[], table?: TableName) => {
+  public baseFindByIds = async (ids: readonly string[], table?: TableName) => {
     let rows = await this.knex
       .select()
       .from(table || this.table)
@@ -67,7 +73,7 @@ export class BaseService {
    * Find an item by a given uuid.
    *
    */
-  baseFindByUUID = async (
+  public baseFindByUUID = async (
     uuid: string,
     table?: TableName
   ): Promise<any | null> => {
@@ -86,7 +92,10 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByUUIDs = async (uuids: readonly string[], table?: TableName) => {
+  public baseFindByUUIDs = async (
+    uuids: readonly string[],
+    table?: TableName
+  ) => {
     let rows = await this.knex
       .select()
       .from(table || this.table)
@@ -100,13 +109,14 @@ export class BaseService {
   /**
    * Find items by given "where", "offset" and "limit"
    */
-  baseFind = async ({
+  public baseFind = async ({
     table,
     select = ['*'],
     where,
     orderBy, // = [{ column: 'id', order: 'desc' }],
     skip,
     take,
+    returnTotalCount,
   }: {
     table?: TableName
     // where?: { [key: string]: any }
@@ -115,7 +125,14 @@ export class BaseService {
     orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
     skip?: number
     take?: number
+    returnTotalCount?: boolean
   }) => {
+    if (returnTotalCount) {
+      select.push(
+        this.knex.raw('count(1) OVER() AS total_count') as any as string
+      )
+    }
+
     const query = this.knex.select(select).from(table || this.table)
 
     if (where) {
@@ -138,7 +155,7 @@ export class BaseService {
   /**
    * Create item
    */
-  baseCreate = async (
+  public baseCreate = async (
     data: ItemData,
     table?: TableName,
     columns: string[] = ['*'],
@@ -168,7 +185,7 @@ export class BaseService {
   /**
    * Create a batch of items
    */
-  baseBatchCreate = async (
+  public baseBatchCreate = async (
     dataItems: ItemData[],
     table?: TableName,
     trx?: Knex.Transaction
@@ -185,7 +202,7 @@ export class BaseService {
   /**
    * Create or Update Item
    */
-  baseUpdateOrCreate = async ({
+  public baseUpdateOrCreate = async ({
     where,
     data,
     table,
@@ -233,7 +250,7 @@ export class BaseService {
   /**
    * Find or Create Item
    */
-  baseFindOrCreate = async ({
+  public baseFindOrCreate = async ({
     where,
     data,
     table,
@@ -265,7 +282,7 @@ export class BaseService {
   /**
    * Update an item by a given id.
    */
-  baseUpdate = async (
+  public baseUpdate = async (
     id: string,
     data: ItemData,
     table?: TableName,
@@ -288,7 +305,11 @@ export class BaseService {
   /**
    * Update a batch of items by given ids.
    */
-  baseBatchUpdate = async (ids: string[], data: ItemData, table?: TableName) =>
+  public baseBatchUpdate = async (
+    ids: string[],
+    data: ItemData,
+    table?: TableName
+  ) =>
     this.knex
       .whereIn('id', ids)
       .update(data)
@@ -298,7 +319,7 @@ export class BaseService {
   /**
    * Delete an item by a given id.
    */
-  baseDelete = async (id: string, table?: TableName) =>
+  public baseDelete = async (id: string, table?: TableName) =>
     this.knex(table || this.table)
       .where({ id })
       .del()
@@ -306,7 +327,7 @@ export class BaseService {
   /**
    * Delete a batch of items by  given ids.
    */
-  baseBatchDelete = async (ids: string[], table?: TableName) =>
+  protected baseBatchDelete = async (ids: string[], table?: TableName) =>
     this.knex(table || this.table)
       .whereIn('id', ids)
       .del()
@@ -314,12 +335,12 @@ export class BaseService {
   /**
    * Find entity type id by a given type string.
    */
-  baseFindEntityTypeId = async (entityType: string) =>
+  public baseFindEntityTypeId = async (entityType: string) =>
     this.knexRO('entity_type').select('id').where({ table: entityType }).first()
 
   /**
    * Find entity type table by a given id.
    */
-  baseFindEntityTypeTable = async (id: string) =>
+  public baseFindEntityTypeTable = async (id: string) =>
     this.knexRO('entity_type').select('table').where({ id }).first()
 }

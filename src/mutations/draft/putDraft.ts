@@ -2,7 +2,7 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import _ from 'lodash'
+import { isUndefined, omitBy, isString, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -13,7 +13,7 @@ import {
   MAX_ARTICE_SUMMARY_LENGTH,
   MAX_ARTICE_TITLE_LENGTH,
   MAX_ARTICLE_CONTENT_LENGTH,
-  MAX_ARTICLES_PER_COLLECTION_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
   NODE_TYPES,
   PUBLISH_STATE,
@@ -37,7 +37,7 @@ import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
-  root,
+  _,
   { input },
   {
     viewer,
@@ -111,9 +111,9 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check collection
   const collection = collectionGlobalId
-    ? _.uniq(
+    ? uniq(
         collectionGlobalId
-          .filter(_.isString)
+          .filter(isString)
           .map((articleId: string) => fromGlobalId(articleId).id)
       ).filter((articleId) => !!articleId)
     : collectionGlobalId // do not convert null or undefined
@@ -156,7 +156,7 @@ const resolver: MutationToPutDraftResolver = async (
   const resetCover = cover === null
   const resetCircle = circleGlobalId === null
 
-  const data: ItemData = _.omitBy(
+  const data: ItemData = omitBy(
     {
       authorId: id ? undefined : viewer.id,
       title,
@@ -175,7 +175,7 @@ const resolver: MutationToPutDraftResolver = async (
       iscnPublish,
       canComment,
     },
-    _.isUndefined // to drop only undefined // _.isNil
+    isUndefined // to drop only undefined // .isNil
   )
 
   // check for title, summary and content length limit
@@ -232,11 +232,11 @@ const resolver: MutationToPutDraftResolver = async (
       const oldCollectionLength =
         draft.collection == null ? 0 : draft.collection.length
       if (
-        collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT &&
+        collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
         collection.length > oldCollectionLength
       ) {
         throw new ArticleCollectionReachLimitError(
-          `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+          `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
         )
       }
     }
@@ -288,9 +288,9 @@ const resolver: MutationToPutDraftResolver = async (
         `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
       )
     }
-    if (collection && collection.length > MAX_ARTICLES_PER_COLLECTION_LIMIT) {
+    if (collection && collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT) {
       throw new ArticleCollectionReachLimitError(
-        `Not allow more than ${MAX_ARTICLES_PER_COLLECTION_LIMIT} articles in collection`
+        `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
       )
     }
 

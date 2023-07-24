@@ -5,6 +5,7 @@ import {
   NODE_TYPES,
   PAYMENT_CURRENCY,
   RESERVED_NAMES,
+  USER_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   VERIFICATION_CODE_STATUS,
@@ -12,14 +13,14 @@ import {
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 
-import { createDonationTx, createTx } from '../../connectors/__test__/utils'
-
+import { createDonationTx, createTx } from '../../../connectors/__test__/utils'
 import {
   defaultTestUser,
   getUserContext,
   registerUser,
   testClient,
-} from './utils'
+  updateUserState,
+} from '../utils'
 
 let userService: any
 beforeAll(async () => {
@@ -1454,5 +1455,54 @@ describe('crypto wallet', () => {
       variables: { input: { id: _get(data, 'user.id') } },
     })
     expect(_get(resetResult, 'data.resetWallet.id')).toBeFalsy()
+  })
+})
+
+describe('update user state', () => {
+  // archive user
+  const id = toGlobalId({ type: NODE_TYPES.User, id: '1' })
+  let archivedUserEmail: string
+  // active users
+  const activeUser1Id = toGlobalId({ type: NODE_TYPES.User, id: '2' })
+
+  const activeUser1Email = 'test2@matters.news'
+  const activeUser2Email = 'test3@matters.news'
+
+  test('archive user should provide viewer passwd', async () => {
+    const { errors } = await updateUserState({ id, state: USER_STATE.archived })
+    expect(errors[0].message).toBe('`password` is required for archiving user')
+    const { data } = await updateUserState({
+      id,
+      state: USER_STATE.archived,
+      password: '12345678',
+    })
+    expect(data.updateUserState[0].status.state).toBe('archived')
+
+    archivedUserEmail = data.updateUserState[0].info.email
+  })
+
+  test('archived user can not change to other state', async () => {
+    const { errors } = await updateUserState({ id, state: USER_STATE.banned })
+    expect(errors[0].message).toBe('user has already been archived')
+
+    const { errors: errors2 } = await updateUserState({
+      emails: [archivedUserEmail, activeUser1Email],
+      state: USER_STATE.banned,
+    })
+    expect(errors2[0].message).toBe('user has already been archived')
+  })
+  test('ban user by id', async () => {
+    const { data } = await updateUserState({
+      id: activeUser1Id,
+      state: USER_STATE.banned,
+    })
+    expect(data.updateUserState[0].status.state).toBe('banned')
+  })
+  test('ban users by emails', async () => {
+    const { data } = await updateUserState({
+      emails: [activeUser2Email],
+      state: USER_STATE.banned,
+    })
+    expect(data.updateUserState[0].status.state).toBe('banned')
   })
 })

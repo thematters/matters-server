@@ -37,10 +37,10 @@ export default /* GraphQL */ `
     putChapter(input: PutChapterInput!): Chapter! @purgeCache(type: "${NODE_TYPES.Chapter}")
 
     "Delete topics"
-    deleteTopics(input: DeleteTopicsInput!): Boolean!
+    deleteTopics(input: DeleteTopicsInput!): Boolean! @complexity(value: 10, multipliers: ["input.ids"])
 
     "Sort topics"
-    sortTopics(input: SortTopicsInput!): [Topic!]! @purgeCache(type: "${NODE_TYPES.Topic}")
+    sortTopics(input: SortTopicsInput!): [Topic!]! @complexity(value: 10, multipliers: ["input.ids"]) @purgeCache(type: "${NODE_TYPES.Topic}")
 
     ##############
     #     Tag    #
@@ -75,16 +75,16 @@ export default /* GraphQL */ `
     updateArticleSensitive(input: UpdateArticleSensitiveInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     toggleTagRecommend(input: ToggleRecommendInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
-    deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+    deleteTags(input: DeleteTagsInput!): Boolean @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     renameTag(input: RenameTagInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
-    mergeTags(input: MergeTagsInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
+    mergeTags(input: MergeTagsInput!): Tag! @complexity(value: 10, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
   }
 
   """
   This type contains metadata, content, hash and related data of an article. If you
   want information about article's comments. Please check Comment type.
   """
-  type Article implements Node {
+  type Article implements Node & PinnableWork {
     "Unique ID of this article"
     id: ID!
 
@@ -179,7 +179,8 @@ export default /* GraphQL */ `
     subscribed: Boolean!
 
     "This value determines if this article is an author selected article or not."
-    sticky: Boolean!
+    sticky: Boolean! @deprecated(reason: "Use pinned instead")
+    pinned: Boolean!
 
     "Translation of article title and content."
     translation(input: TranslationArgs): ArticleTranslation
@@ -440,7 +441,9 @@ export default /* GraphQL */ `
   input EditArticleInput {
     id: ID!
     state: ArticleState
+    "deprecated, use pinned instead"
     sticky: Boolean
+    pinned: Boolean
     summary: String
     tags: [String!]
     content: String

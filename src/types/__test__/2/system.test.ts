@@ -11,7 +11,7 @@ import {
   registerUser,
   testClient,
   updateUserDescription,
-} from './utils'
+} from '../utils'
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
@@ -81,6 +81,24 @@ const GET_COMMENT = /* GraphQL */ `
       ... on Comment {
         id
         content
+      }
+    }
+  }
+`
+const GET_NODES = /* GraphQL */ `
+  query ($input: NodesInput!) {
+    nodes(input: $input) {
+      ... on Article {
+        id
+        title
+      }
+      ... on Comment {
+        id
+        content
+      }
+      ... on User {
+        id
+        userName
       }
     }
   }
@@ -251,6 +269,28 @@ describe('query nodes of different type', () => {
     })
     const node = data && data.node
     expect(node.id).toBe(id)
+  })
+  test('query nodes', async () => {
+    const userId = toGlobalId({ type: NODE_TYPES.User, id: 1 })
+    const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
+    const articleId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+    const articleId2 = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_NODES,
+      variables: {
+        input: { ids: [userId, commentId, articleId1, articleId2] },
+      },
+    })
+    expect(data.nodes.length).toBe(4)
+    expect(data.nodes[0].id).toBe(userId)
+    expect(data.nodes[0].userName).toBeDefined()
+    expect(data.nodes[1].id).toBe(commentId)
+    expect(data.nodes[1].content).toBeDefined()
+    expect(data.nodes[2].id).toBe(articleId1)
+    expect(data.nodes[2].title).toBeDefined()
+    expect(data.nodes[3].id).toBe(articleId2)
+    expect(data.nodes[3].title).toBeDefined()
   })
 })
 

@@ -11,7 +11,7 @@ const TranslatedAnnouncementFields = `
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
-    nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
+    nodes(input: NodesInput!): [Node!] @complexity(value: 1, multipliers: ["input.ids"]) @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     search(input: SearchInput!): SearchResultConnection! @complexity(multipliers: ["input.first"], value: 1) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
@@ -41,7 +41,7 @@ export default /* GraphQL */ `
     toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
-    putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @auth(mode: "${AUTH_MODE.admin}")
+    putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
   }
 
 
@@ -55,6 +55,13 @@ export default /* GraphQL */ `
 
   interface Node {
     id: ID!
+  }
+
+  interface PinnableWork {
+    id: ID!
+    pinned: Boolean!
+    title: String!
+    cover: String
   }
 
   type PageInfo {
@@ -202,7 +209,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input NodesInput{
+  input NodesInput {
     ids: [ID!]!
   }
 
@@ -379,6 +386,7 @@ export default /* GraphQL */ `
     tagCover
     circleAvatar
     circleCover
+    collectionCover
     announcementCover
     topicCover
   }
@@ -391,6 +399,7 @@ export default /* GraphQL */ `
     circle
     announcement
     topic
+    collection
   }
 
   "Enums for user roles."
@@ -456,7 +465,7 @@ export default /* GraphQL */ `
 
   directive @deprecated(
     reason: String = "No longer supported"
-  ) on FIELD_DEFINITION | ENUM_VALUE
+  ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
 
   directive @complexity(
     value: Int!

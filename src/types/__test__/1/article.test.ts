@@ -14,7 +14,7 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleService, AtomService, PaymentService } from 'connectors'
-import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
+import { GQLNodeInput } from 'definitions'
 
 import {
   getUserContext,
@@ -22,7 +22,7 @@ import {
   putDraft,
   testClient,
   updateUserState,
-} from './utils'
+} from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -139,14 +139,6 @@ const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
   }
 `
 
-const APPRECIATE_ARTICLE = /* GraphQL */ `
-  mutation ($input: AppreciateArticleInput!) {
-    appreciateArticle(input: $input) {
-      appreciationsReceivedTotal
-    }
-  }
-`
-
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation ($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -216,23 +208,6 @@ export const getArticleAppreciationsReceivedTotal = async (
   })
   const { appreciationsReceivedTotal } = data && data.node && data.node
   return appreciationsReceivedTotal
-}
-
-export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
-  const server = await testClient({
-    isAuth: true,
-  })
-  const result = await server.executeOperation({
-    query: APPRECIATE_ARTICLE,
-    variables: { input },
-  })
-
-  if (result.errors) {
-    throw result.errors
-  }
-
-  const article = result && result.data && result.data.appreciateArticle
-  return article
 }
 
 describe('query article', () => {
@@ -663,7 +638,7 @@ describe('edit article', () => {
     ]).toEqual(collection.slice(0, limit))
 
     // set collection out of limit
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const failedRes = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
@@ -674,7 +649,7 @@ describe('edit article', () => {
       },
     })
     expect(_get(failedRes, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+      `Not allow more than ${limit} articles in connection`
     )
 
     // do not change collection when not in input
@@ -755,7 +730,7 @@ describe('edit article', () => {
     expect(_get(resetResult2, 'data.editArticle.collection.totalCount')).toBe(0)
 
     // out of limit collection can remain
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = 10
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = 10
 
     const res1 = await server.executeOperation({
       query: EDIT_ARTICLE,
@@ -768,7 +743,7 @@ describe('edit article', () => {
     })
     expect(_get(res1, 'data.editArticle.collection.totalCount')).toBe(limit + 2)
 
-    globalThis.mockEnums.MAX_ARTICLES_PER_COLLECTION_LIMIT = limit
+    globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const remainRes = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
@@ -793,7 +768,7 @@ describe('edit article', () => {
       },
     })
     expect(_get(failedRes2, 'errors.0.message')).toBe(
-      `Not allow more than ${limit} articles in collection`
+      `Not allow more than ${limit} articles in connection`
     )
 
     // out of limit collection can decrease,  even to a amount still out of limit

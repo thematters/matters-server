@@ -16,16 +16,22 @@ import {
   COMMENT_TYPE,
   DEFAULT_IPNS_LIFETIME,
   MINUTE,
-  PUBLISH_STATE,
   QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  PUBLISH_STATE,
   TRANSACTION_TARGET_TYPE,
+  MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
-import { ArticleNotFoundError, ServerError } from 'common/errors'
+import {
+  ArticleNotFoundError,
+  ServerError,
+  ForbiddenError,
+  ActionLimitExceededError,
+} from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
   AtomService,
@@ -47,10 +53,10 @@ const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService {
-  ipfsServers: typeof ipfsServers
+  private ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
 
-  constructor() {
+  public constructor() {
     super('article')
     this.ipfsServers = ipfsServers
 
@@ -84,7 +90,7 @@ export class ArticleService extends BaseService {
   /**
    * Create a pending article with linked draft
    */
-  createArticle = async ({
+  public createArticle = async ({
     draftId,
     authorId,
     title,
@@ -112,9 +118,45 @@ export class ArticleService extends BaseService {
     })
 
   /**
+   * Update article's pin status and return article
+   * Throw error if there already has 3 pinned articles/collections
+   * or user is not the author of the article.
+   */
+  public updatePinned = async (
+    articleId: string,
+    userId: string,
+    pinned: boolean
+  ) => {
+    const article = await this.baseFindById(articleId)
+    if (!article) {
+      throw new ArticleNotFoundError('Cannot find article')
+    }
+    if (article.authorId !== userId) {
+      throw new ForbiddenError('Only author can pin article')
+    }
+    const userService = new UserService()
+    const totalPinned = await userService.totalPinnedWorks(userId)
+    if (pinned === article.pinned) {
+      return article
+    }
+    if (pinned && totalPinned >= MAX_PINNED_WORKS_LIMIT) {
+      throw new ActionLimitExceededError(
+        `Can only pin up to ${MAX_PINNED_WORKS_LIMIT} articles/collections`
+      )
+    }
+    await this.baseUpdate(articleId, { pinned, pinnedAt: this.knex.fn.now() })
+    return { ...article, pinned }
+  }
+
+  public findPinnedByAuthor = async (authorId: string) =>
+    this.baseFind({
+      where: { authorId, pinned: true, state: ARTICLE_STATE.active },
+    })
+
+  /**
    * Publish draft data to IPFS
    */
-  publishToIPFS = async (draft: any) => {
+  public publishToIPFS = async (draft: any) => {
     const userService = new UserService()
     const systemService = new SystemService()
     const atomService = new AtomService()
@@ -255,7 +297,7 @@ export class ArticleService extends BaseService {
 
   // DEPRECATED, To Be Deleted
   //  moved to IPNS-Listener
-  publishFeedToIPNS = async ({
+  public publishFeedToIPNS = async ({
     userName,
     numArticles = 50,
     incremental = false,
@@ -591,7 +633,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  sendArticleFeedMsgToSQS = async ({
+  public sendArticleFeedMsgToSQS = async ({
     article,
     author,
     ipnsData,
@@ -635,7 +677,7 @@ export class ArticleService extends BaseService {
   /**
    * Archive article
    */
-  archive = async (id: string) => {
+  public archive = async (id: string) => {
     const atomService = new AtomService()
     const targetArticle = await atomService.findFirst({
       table: 'article',
@@ -650,36 +692,34 @@ export class ArticleService extends BaseService {
     for (const article of articles) {
       await this.baseUpdate(article.id, {
         state: ARTICLE_STATE.archived,
-        sticky: false,
+        pinned: false,
         updatedAt: new Date(),
       })
     }
   }
 
-  /**
-   *  Find articles by a given author id (user).
-   */
-  findByAuthor = async (
+  public loadById = async (id: string) => this.dataloader.load(id)
+
+  public findByAuthor = async (
     authorId: string,
-    // filter = {},
     {
       columns = ['draft_id'],
-      // filter = {},
       showAll = false,
       stickyFirst = false,
       tagIds,
       inRangeStart,
       inRangeEnd,
+      orderBy = [{ column: 'article.id', order: 'desc' }],
       skip,
       take,
     }: {
       columns?: string[]
-      // filter?: object
       showAll?: boolean
       stickyFirst?: boolean
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
+      orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
       skip?: number
       take?: number
     } = {}
@@ -726,10 +766,10 @@ export class ArticleService extends BaseService {
         }
 
         if (stickyFirst === true) {
-          builder.orderBy('article.sticky', 'desc')
+          builder.orderBy('article.pinned', 'desc')
         }
         // always as last orderBy
-        builder.orderBy('article.id', 'desc')
+        builder.orderBy(orderBy)
 
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -739,10 +779,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  /**
-   * Find article by title
-   */
-  findByTitle = async ({
+  public findByTitle = async ({
     title,
     oss = false,
     filter,
@@ -764,10 +801,7 @@ export class ArticleService extends BaseService {
     return query.orderBy('id', 'desc')
   }
 
-  /**
-   * Find articles by which commented by author.
-   */
-  findByCommentedAuthor = async ({
+  public findByCommentedAuthor = async ({
     id,
     skip,
     take,
@@ -802,7 +836,7 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
 
-  searchByMediaHash = async ({
+  public searchByMediaHash = async ({
     key,
     oss = false,
     filter,
@@ -832,7 +866,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  search = async ({
+  public search = async ({
     key,
     keyOriginal,
     take = 10,
@@ -981,7 +1015,7 @@ export class ArticleService extends BaseService {
     return { nodes, totalCount }
   }
 
-  searchV3 = async ({
+  public searchV3 = async ({
     key,
     // keyOriginal,
     take = 10,
@@ -1034,7 +1068,7 @@ export class ArticleService extends BaseService {
   /**
    * Boost & Score
    */
-  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+  public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { articleId: id },
       data: { articleId: id, boost, updatedAt: new Date() },
@@ -1049,7 +1083,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  sumAppreciation = async (articleId: string) => {
+  public sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
       .from('appreciation')
@@ -1068,7 +1102,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's appreciations by a given articleId.
    */
-  countAppreciations = async (articleId: string) => {
+  public countAppreciations = async (articleId: string) => {
     const result = await this.knexRO('appreciation')
       .countDistinct(this.knexRO.raw('(sender_id, reference_id)'))
       .where({
@@ -1082,7 +1116,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async ({
+  public findAppreciations = async ({
     referenceId,
     take,
     skip,
@@ -1114,7 +1148,7 @@ export class ArticleService extends BaseService {
         }
       })
 
-  appreciateLeftByUser = async ({
+  public appreciateLeftByUser = async ({
     articleId,
     userId,
   }: {
@@ -1138,7 +1172,7 @@ export class ArticleService extends BaseService {
   /**
    * User appreciate an article
    */
-  appreciate = async ({
+  public appreciate = async ({
     articleId,
     senderId,
     recipientId,
@@ -1203,7 +1237,7 @@ export class ArticleService extends BaseService {
   /**
    * Find tags by a given article id.
    */
-  findTagIds = async ({
+  public findTagIds = async ({
     id: articleId,
   }: {
     id: string
@@ -1225,7 +1259,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async ({
+  public findSubscriptions = async ({
     id: targetId,
     take,
     skip,
@@ -1256,7 +1290,7 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async ({
+  public read = async ({
     userId,
     articleId,
     ip,
@@ -1389,13 +1423,13 @@ export class ArticleService extends BaseService {
 
   /*********************************
    *                               *
-   *          Collection           *
+   *          Connection           *
    *                               *
    *********************************/
   /**
-   * Find an article's collections by a given article id.
+   * Find an article's connections by a given article id.
    */
-  findCollections = async ({
+  public findConnections = async ({
     entranceId,
     take,
     skip,
@@ -1404,7 +1438,7 @@ export class ArticleService extends BaseService {
     take?: number
     skip?: number
   }) =>
-    this.knex('collection')
+    this.knex('article_connection')
       .select('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
       .where({ entranceId, state: ARTICLE_STATE.active })
@@ -1419,13 +1453,13 @@ export class ArticleService extends BaseService {
       })
 
   /**
-   * Count an article is collected by how many active articles.
+   * Count an article is connected by how many active articles.
    */
-  countActiveCollectedBy = async (id: string) => {
-    const query = this.knexRO('collection')
-      .rightJoin('article', 'collection.entrance_id', 'article.id')
+  public countActiveConnectedBy = async (id: string) => {
+    const query = this.knexRO('article_connection')
+      .rightJoin('article', 'article_connection.entrance_id', 'article.id')
       .where({
-        'collection.article_id': id,
+        'article_connection.article_id': id,
         'article.state': ARTICLE_STATE.active,
       })
       .countDistinct('entrance_id')
@@ -1439,7 +1473,7 @@ export class ArticleService extends BaseService {
    *           Response            *
    *                               *
    *********************************/
-  makeResponseQuery = ({
+  private makeResponseQuery = ({
     id,
     order,
     state,
@@ -1462,12 +1496,19 @@ export class ArticleService extends BaseService {
             operator
               .select(
                 this.knex.raw(
-                  "'Article' as type, entrance_id as entity_id, collection.created_at"
+                  "'Article' as type, entrance_id as entity_id, article_connection.created_at"
                 )
               )
-              .from('collection')
-              .rightJoin('article', 'collection.entrance_id', 'article.id')
-              .where({ 'collection.article_id': id, 'article.state': state })
+              .from('article_connection')
+              .rightJoin(
+                'article',
+                'article_connection.entrance_id',
+                'article.id'
+              )
+              .where({
+                'article_connection.article_id': id,
+                'article.state': state,
+              })
           })
 
           if (articleOnly !== true) {
@@ -1494,7 +1535,7 @@ export class ArticleService extends BaseService {
         .as('sources')
     })
 
-  makeResponseFilterQuery = ({
+  private makeResponseFilterQuery = ({
     id,
     entityId,
     order,
@@ -1517,7 +1558,7 @@ export class ArticleService extends BaseService {
     return query.where({ entityId }).first()
   }
 
-  findResponses = ({
+  public findResponses = ({
     id,
     order = 'desc',
     state = ARTICLE_STATE.active,
@@ -1572,7 +1613,7 @@ export class ArticleService extends BaseService {
     return query
   }
 
-  responseRange = async ({
+  public responseRange = async ({
     id,
     order,
     state,
@@ -1602,7 +1643,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's transactions by a given articleId.
    */
-  countTransactions = async ({
+  public countTransactions = async ({
     purpose = TRANSACTION_PURPOSE.donation,
     state = TRANSACTION_STATE.succeeded,
     targetId,
@@ -1645,7 +1686,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's transactions by a given articleId.
    */
-  findTransactions = async ({
+  public findTransactions = async ({
     take,
     skip,
     purpose = TRANSACTION_PURPOSE.donation,
@@ -1691,7 +1732,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles which also donated by the donator of a given article
    */
-  makeRelatedDonationsQuery = ({
+  private makeRelatedDonationsQuery = ({
     articleId,
     targetTypeId,
     notIn,
@@ -1748,7 +1789,7 @@ export class ArticleService extends BaseService {
       .where({ state: ARTICLE_STATE.active })
   }
 
-  countRelatedDonations = async ({
+  public countRelatedDonations = async ({
     articleId,
     notIn,
   }: {
@@ -1773,7 +1814,7 @@ export class ArticleService extends BaseService {
   /**
    * Find articles which also donated by the donator of a given article
    */
-  findRelatedDonations = async ({
+  public findRelatedDonations = async ({
     articleId,
     notIn,
     take,
@@ -1809,7 +1850,7 @@ export class ArticleService extends BaseService {
    *            Access             *
    *                               *
    *********************************/
-  findArticleCircle = async (articleId: string) =>
+  public findArticleCircle = async (articleId: string) =>
     this.knex
       .select('article_circle.*')
       .from('article_circle')

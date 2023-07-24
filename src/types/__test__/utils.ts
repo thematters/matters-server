@@ -13,6 +13,7 @@ import {
   SystemService,
   TagService,
   UserService,
+  CollectionService,
 } from 'connectors'
 import {
   GQLPublishArticleInput,
@@ -56,6 +57,7 @@ export const testClient = async (
     isMatty,
     isOnboarding,
     isFrozen,
+    isBanned,
     context,
     dataSources,
   }: {
@@ -64,12 +66,14 @@ export const testClient = async (
     isMatty?: boolean
     isOnboarding?: boolean
     isFrozen?: boolean
+    isBanned?: boolean
     context?: any
     dataSources?: any
   } = {
     isAuth: false,
     isAdmin: false,
     isMatty: false,
+    isBanned: false,
     isOnboarding: false,
     isFrozen: false,
     context: null,
@@ -86,6 +90,8 @@ export const testClient = async (
         ? 'onboarding@matters.news'
         : isFrozen
         ? 'frozen@matters.news'
+        : isBanned
+        ? 'banned@matters.town'
         : isAdmin
         ? adminUser.email
         : defaultTestUser.email,
@@ -134,6 +140,7 @@ export const testClient = async (
       notificationService: new NotificationService(),
       oauthService: new OAuthService(),
       paymentService: new PaymentService(),
+      collectionService: new CollectionService(),
       ...dataSources,
     },
   })
@@ -291,10 +298,14 @@ export const updateUserDescription = async ({
 
 export const updateUserState = async ({
   id,
+  emails,
   state,
+  password,
 }: {
-  id: string
+  id?: string
+  emails?: string[]
   state: string
+  password?: string
 }) => {
   const UPDATE_USER_STATE = `
     mutation UpdateUserState($input: UpdateUserStateInput!) {
@@ -303,14 +314,17 @@ export const updateUserState = async ({
         status {
           state
         }
+        info {
+          email
+        }
       }
     }
   `
 
-  const server = await testClient({ isAdmin: true })
+  const server = await testClient({ isAdmin: true, isAuth: true })
   return server.executeOperation({
     query: UPDATE_USER_STATE,
-    variables: { input: { id, state } },
+    variables: { input: { id, state, emails, password } },
   })
 }
 

@@ -4,7 +4,7 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
-import { testClient } from './utils'
+import { testClient } from '../utils'
 
 const isDesc = (ints: number[]) =>
   ints

@@ -6,7 +6,7 @@ const resolver: ArticleToStickyResolver = async (
   { dataSources: { articleService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
-  return article.sticky
+  return article.pinned
 }
 
 export default resolver

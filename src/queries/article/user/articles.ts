@@ -23,6 +23,7 @@ const resolver: UserToArticlesResolver = async (
     showAll: isViewer || isAdmin,
     stickyFirst: true,
     tagIds,
+    orderBy: [{ column: 'article.updated_at', order: 'desc' }],
     inRangeStart: input.filter?.inRangeStart,
     inRangeEnd: input.filter?.inRangeEnd,
   })

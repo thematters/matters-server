@@ -110,6 +110,15 @@ exports.seed = function (knex, Promise) {
           eth_address: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
           liker_id: 'test_liker_id_8',
         },
+        {
+          uuid: '00000000-0000-0000-0000-000000000011',
+          user_name: 'banned',
+          display_name: 'banned_user',
+          email: 'banned@matters.town',
+          role: 'user',
+          state: 'banned',
+          password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
+        },
       ])
     })
 }

@@ -22,6 +22,9 @@ import {
   GQLUserStatusTypeResolver,
   GQLUserTypeResolver,
   GQLWalletTypeResolver,
+  GQLCollectionTypeResolver,
+  GQLPinnableWorkTypeResolver,
+  GQLPossiblePinnableWorkTypeNames,
 } from 'definitions'
 
 import UserAnalytics from './analytics'
@@ -30,6 +33,8 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import Collection from './collection'
+import collections from './collections'
 import commentCount from './commentCount'
 import cryptoWallet from './cryptoWallet'
 import donatedArticleCount from './donatedArticleCount'
@@ -50,6 +55,7 @@ import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
 import { boost, restrictions, score } from './oss'
 import ownCircles from './ownCircles'
+import pinnedWorks from './pinnedWorks'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
@@ -95,9 +101,13 @@ const user: {
   TransactionTarget: {
     __resolveType: GQLTransactionTargetTypeResolver
   }
+  PinnableWork: {
+    __resolveType: GQLPinnableWorkTypeResolver
+  }
   StripeAccount: GQLStripeAccountTypeResolver
 
   CryptoWallet: GQLCryptoWalletTypeResolver
+  Collection: GQLCollectionTypeResolver
 } = {
   Query: {
     viewer: (_, __, { viewer }) => viewer,
@@ -120,6 +130,8 @@ const user: {
     oss: (root) => root,
     // hasFollowed,
     subscriptions,
+    collections,
+    pinnedWorks,
     followers,
     isFollower,
     isFollowee,
@@ -187,6 +199,10 @@ const user: {
   Wallet,
   Transaction,
   TransactionTarget,
+  PinnableWork: {
+    __resolveType: ({ __type }: { __type: GQLPossiblePinnableWorkTypeNames }) =>
+      __type,
+  },
   StripeAccount,
 
   CryptoWallet: {
@@ -198,6 +214,8 @@ const user: {
     hasNFTs,
     nfts,
   },
+
+  Collection,
 }
 
 export default user

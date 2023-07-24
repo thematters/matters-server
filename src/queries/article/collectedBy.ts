@@ -13,13 +13,13 @@ const resolver: ArticleToCollectedByResolver = async (
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
-  const [countRecord, collections] = await Promise.all([
-    knex('collection')
+  const [countRecord, connections] = await Promise.all([
+    knex('article_connection')
       .where({ articleId })
       .countDistinct('entrance_id')
       .first(),
     atomService.findMany({
-      table: 'collection',
+      table: 'article_connection',
       where: { articleId },
       skip,
       take,
@@ -32,7 +32,7 @@ const resolver: ArticleToCollectedByResolver = async (
   )
 
   const articles = await articleService.dataloader
-    .loadMany(collections.map((collection) => collection.entranceId))
+    .loadMany(connections.map((connection) => connection.entranceId))
     .then(loadManyFilterError)
     .then((items) =>
       items.filter(({ state }) => state === ARTICLE_STATE.active)

@@ -7,6 +7,7 @@ import {
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
+export * from './user'
 export * from './action'
 export * from './email'
 export * from './language'
@@ -25,8 +26,10 @@ export * from './hardcode'
 export * from './cors'
 export * from './sqs'
 export * from './logging'
+export * from './collection'
 
 export const GRAPHQL_COST_LIMIT = 5000
+export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
 
 export const BCRYPT_ROUNDS = 12
 
@@ -66,14 +69,6 @@ export const COMMENT_TYPE = {
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
   Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
 )
-
-export const USER_STATE = {
-  frozen: 'frozen',
-  onboarding: 'onboarding',
-  active: 'active',
-  banned: 'banned',
-  archived: 'archived',
-}
 
 export const ARTICLE_STATE = {
   active: 'active',
@@ -181,6 +176,7 @@ export enum NODE_TYPES {
   Circle = 'Circle',
   Topic = 'Topic',
   Chapter = 'Chapter',
+  Collection = 'Collection',
 
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',
@@ -194,6 +190,7 @@ export enum NODE_TYPES {
   Notice = 'Notice',
   Response = 'Response',
   TransactionTarget = 'TransactionTarget',
+  PinnableWork = 'PinnableWork',
 }
 
 export const APPRECIATION_TYPES = {
@@ -248,7 +245,7 @@ export enum ActivityType {
 export const MAX_ARTICE_TITLE_LENGTH = 100
 export const MAX_ARTICE_SUMMARY_LENGTH = 200
 export const MAX_ARTICLE_CONTENT_LENGTH = 50e3
-export const MAX_ARTICLES_PER_COLLECTION_LIMIT = 7
+export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 7
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 3
@@ -256,3 +253,5 @@ export const TAGS_RECOMMENDED_LIMIT = 100
 
 export const MAX_TAG_CONTENT_LENGTH = 50
 export const MAX_TAG_DESCRIPTION_LENGTH = 200
+
+export const MAX_PINNED_WORKS_LIMIT = 3
