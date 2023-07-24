@@ -1,4 +1,7 @@
 import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import { isTest } from 'common/environment'
+
+const PUBLISH_ARTICLE_RATE_LIMIT = isTest ? 100 : 10
 
 export default /* GraphQL */ `
   extend type Query {
@@ -10,7 +13,7 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Draft}") @rateLimit(limit:10, period:7200)
+    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Draft}") @rateLimit(limit:${PUBLISH_ARTICLE_RATE_LIMIT}, period:7200)
 
     "Edit an article."
     editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")

@@ -39,16 +39,16 @@ const checkOperationLimit = async ({
     return true
   }
 
-  // within period
-  const valid = operationLog.map(
-    (timestamp) => parseInt(timestamp, 10) >= current - period
-  )
-
-  // count
-  const times: number = valid.reduce<any>(
-    (a: boolean, b: boolean) => (a ? 1 : 0) + (b ? 1 : 0),
-    0
-  )
+  // count times within period
+  const cutoff = current - period
+  let times = 0
+  for (const timestamp of operationLog) {
+    if (parseInt(timestamp, 10) >= cutoff) {
+      times += 1
+    } else {
+      break
+    }
+  }
 
   // over limit
   if (times >= limit) {
