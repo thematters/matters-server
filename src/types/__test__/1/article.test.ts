@@ -14,7 +14,7 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleService, AtomService, PaymentService } from 'connectors'
-import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
+import { GQLNodeInput } from 'definitions'
 
 import {
   getUserContext,
@@ -139,14 +139,6 @@ const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
   }
 `
 
-const APPRECIATE_ARTICLE = /* GraphQL */ `
-  mutation ($input: AppreciateArticleInput!) {
-    appreciateArticle(input: $input) {
-      appreciationsReceivedTotal
-    }
-  }
-`
-
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation ($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -216,23 +208,6 @@ export const getArticleAppreciationsReceivedTotal = async (
   })
   const { appreciationsReceivedTotal } = data && data.node && data.node
   return appreciationsReceivedTotal
-}
-
-export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
-  const server = await testClient({
-    isAuth: true,
-  })
-  const result = await server.executeOperation({
-    query: APPRECIATE_ARTICLE,
-    variables: { input },
-  })
-
-  if (result.errors) {
-    throw result.errors
-  }
-
-  const article = result && result.data && result.data.appreciateArticle
-  return article
 }
 
 describe('query article', () => {
