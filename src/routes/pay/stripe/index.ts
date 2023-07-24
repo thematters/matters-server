@@ -5,6 +5,7 @@ import Stripe from 'stripe'
 import { USER_BAN_REMARK, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { toDBAmount } from 'common/utils'
 import { PaymentService, UserService } from 'connectors'
 import SlackService from 'connectors/slack'
 
@@ -124,7 +125,9 @@ stripeRouter.post('/', async (req, res) => {
         }
         await createRefundTxs(charge.refunds)
         slack.sendStripeAlert({
-          message: `Refund created for ${charge.amount} ${charge.currency}`,
+          message: `Refund created for ${toDBAmount({
+            amount: charge.amount,
+          })} ${charge.currency}`,
         })
         break
       }
@@ -132,7 +135,9 @@ stripeRouter.post('/', async (req, res) => {
         const refund = event.data.object as Stripe.Refund
         await createOrUpdateFailedRefundTx(refund)
         slack.sendStripeAlert({
-          message: `Refund for ${refund.amount} ${refund.currency} failed`,
+          message: `Refund for ${toDBAmount({ amount: refund.amount })} ${
+            refund.currency
+          } failed`,
         })
         break
       }
@@ -140,7 +145,9 @@ stripeRouter.post('/', async (req, res) => {
         const dispute = event.data.object as Stripe.Dispute
         await createDisputeTx(dispute)
         slack.sendStripeAlert({
-          message: `Dispute created for ${dispute.amount} ${dispute.currency}`,
+          message: `Dispute created for ${toDBAmount({
+            amount: dispute.amount,
+          })} ${dispute.currency}`,
         })
         break
       }
