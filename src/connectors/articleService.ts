@@ -705,7 +705,6 @@ export class ArticleService extends BaseService {
     {
       columns = ['draft_id'],
       showAll = false,
-      stickyFirst = false,
       tagIds,
       inRangeStart,
       inRangeEnd,
@@ -715,7 +714,6 @@ export class ArticleService extends BaseService {
     }: {
       columns?: string[]
       showAll?: boolean
-      stickyFirst?: boolean
       tagIds?: string[]
       inRangeStart?: string
       inRangeEnd?: string
@@ -765,9 +763,6 @@ export class ArticleService extends BaseService {
           builder.andWhere('article.created_at', '<', inRangeEnd)
         }
 
-        if (stickyFirst === true) {
-          builder.orderBy('article.pinned', 'desc')
-        }
         // always as last orderBy
         builder.orderBy(orderBy)
 

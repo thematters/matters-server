@@ -21,7 +21,6 @@ const resolver: UserToArticlesResolver = async (
   const articles = await articleService.findByAuthor(id, {
     // filter,
     showAll: isViewer || isAdmin,
-    stickyFirst: true,
     tagIds,
     orderBy: [{ column: 'article.updated_at', order: 'desc' }],
     inRangeStart: input.filter?.inRangeStart,
