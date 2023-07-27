@@ -15,7 +15,7 @@ export enum TRANSACTION_PURPOSE {
   payout = 'payout',
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
-  disputeWithdrawnFunds = 'dispute-withdrawn-funds',
+  dispute = 'dispute',
 }
 
 export enum TRANSACTION_TARGET_TYPE {

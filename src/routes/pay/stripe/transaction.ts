@@ -216,7 +216,7 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
 
       state: TRANSACTION_STATE.succeeded,
       currency: paymentTx.currency,
-      purpose: TRANSACTION_PURPOSE.disputeWithdrawnFunds,
+      purpose: TRANSACTION_PURPOSE.dispute,
 
       provider: PAYMENT_PROVIDER.stripe,
       providerTxId: dispute.id,
