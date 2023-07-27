@@ -4292,6 +4292,8 @@ export const enum GQLTransactionPurpose {
   refund = 'refund',
   payout = 'payout',
   subscriptionSplit = 'subscriptionSplit',
+  dispute = 'dispute',
+  payoutReversal = 'payoutReversal',
 }
 
 export const enum GQLTransactionCurrency {

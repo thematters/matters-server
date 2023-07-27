@@ -144,6 +144,8 @@ export default /* GraphQL */ `
     refund
     payout
     subscriptionSplit
+    dispute
+    payoutReversal
   }
 
   enum TransactionCurrency {

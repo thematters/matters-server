@@ -21,7 +21,7 @@ import {
   createOrUpdateFailedRefundTx,
   createDisputeTx,
   updateDisputeTx,
-  updatePayoutTx,
+  createPayoutReversalTx,
 } from './transaction'
 
 const logger = getLogger('route-stripe')
@@ -158,7 +158,7 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'transfer.reversed': {
         const transfer = event.data.object as Stripe.Transfer
-        await updatePayoutTx(transfer)
+        await createPayoutReversalTx(transfer)
 
         // if payout is reversed, ban user and send slack alert
 

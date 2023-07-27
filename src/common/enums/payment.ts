@@ -13,6 +13,7 @@ export enum TRANSACTION_PURPOSE {
   refund = 'refund',
   fee = 'fee',
   payout = 'payout',
+  payoutReversal = 'payout-reversal',
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
   dispute = 'dispute',

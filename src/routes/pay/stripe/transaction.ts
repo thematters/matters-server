@@ -258,9 +258,12 @@ export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
   })
 }
 
-export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
+export const createPayoutReversalTx = async (transfer: Stripe.Transfer) => {
   if (transfer.amount !== transfer.amount_reversed) {
     throw new Error('Expect transfer amount to be equal to reversed amount')
+  }
+  if (transfer.reversals.data.length !== 1) {
+    throw new Error('Expect transfer to have only one reversal')
   }
   const paymentService = new PaymentService()
   const payoutTx = (
@@ -271,8 +274,19 @@ export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
   if (!payoutTx) {
     throw new Error('Payout transaction not found')
   }
-  await paymentService.markTransactionStateAs({
-    id: payoutTx.id,
-    state: TRANSACTION_STATE.failed,
+  await paymentService.createTransaction({
+    amount: payoutTx.amount,
+
+    state: TRANSACTION_STATE.succeeded,
+    currency: payoutTx.currency,
+    purpose: TRANSACTION_PURPOSE.payoutReversal,
+
+    provider: PAYMENT_PROVIDER.stripe,
+    providerTxId: transfer.reversals.data[0].id,
+
+    recipientId: payoutTx.senderId,
+
+    targetId: payoutTx.id,
+    targetType: TRANSACTION_TARGET_TYPE.transaction,
   })
 }

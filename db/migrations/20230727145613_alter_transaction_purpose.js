@@ -29,6 +29,7 @@ exports.up = async (knex) => {
       'subscription',
       'subscription-split',
       'dispute',
+      'payout-reversal',
     ])
   )
 }
