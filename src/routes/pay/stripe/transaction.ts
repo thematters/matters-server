@@ -214,7 +214,7 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
     await paymentService.createTransaction({
       amount: paymentTx.amount,
 
-      state: TRANSACTION_STATE.succeeded,
+      state: TRANSACTION_STATE.pending,
       currency: paymentTx.currency,
       purpose: TRANSACTION_PURPOSE.dispute,
 
@@ -241,10 +241,20 @@ export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
   if (!disputeTx) {
     throw new Error('Dispute transaction not found')
   }
-  paymentService.markTransactionStateAs({
+  let state: TRANSACTION_STATE
+  if (dispute.status === 'won') {
+    // we won the dispute, user lost.
+    state = TRANSACTION_STATE.failed
+  } else if (dispute.status === 'lost') {
+    state = TRANSACTION_STATE.succeeded
+  } else if (dispute.status === 'warning_closed') {
+    state = TRANSACTION_STATE.canceled
+  } else {
+    throw new Error('Expect dispute status to be won or lost or warning_closed')
+  }
+  await paymentService.markTransactionStateAs({
     id: disputeTx.id,
-    state: TRANSACTION_STATE.canceled,
-    remark: dispute.reason,
+    state,
   })
 }
 
@@ -261,7 +271,7 @@ export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
   if (!payoutTx) {
     throw new Error('Payout transaction not found')
   }
-  paymentService.markTransactionStateAs({
+  await paymentService.markTransactionStateAs({
     id: payoutTx.id,
     state: TRANSACTION_STATE.failed,
   })

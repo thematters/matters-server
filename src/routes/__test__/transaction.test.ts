@@ -128,7 +128,7 @@ describe('create or update dispute', () => {
     const tx = (
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
-    expect(tx.state).toBe('succeeded')
+    expect(tx.state).toBe('pending')
   })
   test('update not existed dispute will throw error', async () => {
     await expect(
@@ -136,11 +136,15 @@ describe('create or update dispute', () => {
     ).rejects.toThrow('Dispute transaction not found')
   })
   test('update dispute', async () => {
-    await updateDisputeTx({ ...disputeObject, payment_intent: paymentIntentId })
+    await updateDisputeTx({
+      ...disputeObject,
+      payment_intent: paymentIntentId,
+      status: 'lost',
+    })
     const tx = (
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
-    expect(tx.state).toBe('canceled')
+    expect(tx.state).toBe('succeeded')
   })
 })
 
