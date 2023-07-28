@@ -540,7 +540,9 @@ export class ArticleService extends BaseService {
           } catch (err) {
             logger.error(
               `ipfs.name.publish for ${cidToPublish?.toString()} failed ${retries} retries with ERROR, ${
-                retries <= this.ipfsServers.size ? 'will retry with another ipfs server' : 'give up.'
+                retries <= this.ipfsServers.size
+                  ? 'will retry with another ipfs server'
+                  : 'give up.'
               }`,
               err
             )

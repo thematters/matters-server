@@ -95,7 +95,7 @@ export enum SLACK_MESSAGE_STATE {
 }
 
 export enum TRANSACTION_REMARK {
-  // LIKE & BLOCKCHAIN
+  // LIKE & BLOCKCHAIN, used in lambda
   TIME_OUT = 'time_out',
 
   // BLOCKCHAIN
