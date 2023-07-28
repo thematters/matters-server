@@ -13,9 +13,10 @@ export enum TRANSACTION_PURPOSE {
   refund = 'refund',
   fee = 'fee',
   payout = 'payout',
+  payoutReversal = 'payout-reversal',
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
-  disputeWithdrawnFunds = 'dispute-withdrawn-funds',
+  dispute = 'dispute',
 }
 
 export enum TRANSACTION_TARGET_TYPE {

@@ -214,9 +214,9 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
     await paymentService.createTransaction({
       amount: paymentTx.amount,
 
-      state: TRANSACTION_STATE.succeeded,
+      state: TRANSACTION_STATE.pending,
       currency: paymentTx.currency,
-      purpose: TRANSACTION_PURPOSE.disputeWithdrawnFunds,
+      purpose: TRANSACTION_PURPOSE.dispute,
 
       provider: PAYMENT_PROVIDER.stripe,
       providerTxId: dispute.id,
@@ -241,16 +241,29 @@ export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
   if (!disputeTx) {
     throw new Error('Dispute transaction not found')
   }
-  paymentService.markTransactionStateAs({
+  let state: TRANSACTION_STATE
+  if (dispute.status === 'won') {
+    // we won the dispute, user lost.
+    state = TRANSACTION_STATE.failed
+  } else if (dispute.status === 'lost') {
+    state = TRANSACTION_STATE.succeeded
+  } else if (dispute.status === 'warning_closed') {
+    state = TRANSACTION_STATE.canceled
+  } else {
+    throw new Error('Expect dispute status to be won or lost or warning_closed')
+  }
+  await paymentService.markTransactionStateAs({
     id: disputeTx.id,
-    state: TRANSACTION_STATE.canceled,
-    remark: dispute.reason,
+    state,
   })
 }
 
-export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
+export const createPayoutReversalTx = async (transfer: Stripe.Transfer) => {
   if (transfer.amount !== transfer.amount_reversed) {
     throw new Error('Expect transfer amount to be equal to reversed amount')
+  }
+  if (transfer.reversals.data.length !== 1) {
+    throw new Error('Expect transfer to have only one reversal')
   }
   const paymentService = new PaymentService()
   const payoutTx = (
@@ -261,8 +274,19 @@ export const updatePayoutTx = async (transfer: Stripe.Transfer) => {
   if (!payoutTx) {
     throw new Error('Payout transaction not found')
   }
-  paymentService.markTransactionStateAs({
-    id: payoutTx.id,
-    state: TRANSACTION_STATE.failed,
+  await paymentService.createTransaction({
+    amount: payoutTx.amount,
+
+    state: TRANSACTION_STATE.succeeded,
+    currency: payoutTx.currency,
+    purpose: TRANSACTION_PURPOSE.payoutReversal,
+
+    provider: PAYMENT_PROVIDER.stripe,
+    providerTxId: transfer.reversals.data[0].id,
+
+    recipientId: payoutTx.senderId,
+
+    targetId: payoutTx.id,
+    targetType: TRANSACTION_TARGET_TYPE.transaction,
   })
 }

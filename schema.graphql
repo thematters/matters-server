@@ -3135,6 +3135,8 @@ enum TransactionPurpose {
   refund
   payout
   subscriptionSplit
+  dispute
+  payoutReversal
 }
 
 enum TransactionCurrency {

@@ -12,7 +12,7 @@ import {
   createOrUpdateFailedRefundTx,
   createDisputeTx,
   updateDisputeTx,
-  updatePayoutTx,
+  createPayoutReversalTx,
 } from '../pay/stripe/transaction'
 
 const paymentServce = new PaymentService()
@@ -128,7 +128,7 @@ describe('create or update dispute', () => {
     const tx = (
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
-    expect(tx.state).toBe('succeeded')
+    expect(tx.state).toBe('pending')
   })
   test('update not existed dispute will throw error', async () => {
     await expect(
@@ -136,11 +136,15 @@ describe('create or update dispute', () => {
     ).rejects.toThrow('Dispute transaction not found')
   })
   test('update dispute', async () => {
-    await updateDisputeTx({ ...disputeObject, payment_intent: paymentIntentId })
+    await updateDisputeTx({
+      ...disputeObject,
+      payment_intent: paymentIntentId,
+      status: 'lost',
+    })
     const tx = (
       await paymentServce.findTransactions({ providerTxId: disputeObject.id })
     )[0]
-    expect(tx.state).toBe('canceled')
+    expect(tx.state).toBe('succeeded')
   })
 })
 
@@ -162,7 +166,20 @@ describe('update payout', () => {
     },
     reversals: {
       object: 'list',
-      data: [],
+      data: [
+        {
+          id: 'trr_1NXNmDCE0HD6LY9UBtCg1mZs',
+          object: 'transfer_reversal',
+          amount: 5172,
+          balance_transaction: 'txn_1NXNmDCE0HD6LY9UvcUF2cHa',
+          created: 1690201333,
+          currency: 'usd',
+          destination_payment_refund: 'pyr_1NXNmDFwNmhhVYjPjpwqJNqt',
+          metadata: {},
+          source_refund: null,
+          transfer: 'tr_1NXNksCE0HD6LY9UavAWLkJv',
+        },
+      ],
       has_more: false,
       url: '/v1/transfers/tr_1NSHTXCE0HD6LY9UruEkYFSz/reversals',
     },
@@ -173,13 +190,13 @@ describe('update payout', () => {
     transfer_group: null,
   }
   test('not existed payout tx will throw error', async () => {
-    await expect(updatePayoutTx(transferObject)).rejects.toThrow(
+    await expect(createPayoutReversalTx(transferObject)).rejects.toThrow(
       'Payout transaction not found'
     )
   })
   test('amount_reversed not equal amount will throw error', async () => {
     await expect(
-      updatePayoutTx({ ...transferObject, amount_reversed: 50 })
+      createPayoutReversalTx({ ...transferObject, amount_reversed: 50 })
     ).rejects.toThrow('Expect transfer amount to be equal to reversed amount')
   })
 })

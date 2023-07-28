@@ -57,6 +57,12 @@ export class PaymentService extends BaseService {
         currency,
         state: TRANSACTION_STATE.succeeded,
       })
+      .orWhere({
+        userId,
+        currency,
+        purpose: TRANSACTION_PURPOSE.dispute,
+        state: TRANSACTION_STATE.pending,
+      })
       .sum('delta as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
