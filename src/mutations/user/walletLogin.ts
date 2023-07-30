@@ -28,15 +28,15 @@ import {
 } from 'common/utils'
 import { redis } from 'connectors'
 import {
-  AuthMode,
+  type AuthMode,
   GQLAuthResultType,
   GQLVerificationCodeType,
-  MutationToWalletLoginResolver,
+  type GQLMutationResolvers,
 } from 'definitions'
 
 const logger = getLogger('mutation-wallet-login')
 
-const resolver: MutationToWalletLoginResolver = async (
+const resolver: GQLMutationResolvers['walletLogin'] = async (
   _,
   { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
   context
@@ -214,7 +214,7 @@ const resolver: MutationToWalletLoginResolver = async (
    * SignUp
    */
   if (!email || !codeId) {
-    return
+    throw new UserInputError('email and codeId are required')
   }
 
   // check verification code

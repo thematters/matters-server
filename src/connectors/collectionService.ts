@@ -1,3 +1,5 @@
+import type { Collection, CollectionArticle } from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
@@ -13,20 +15,6 @@ import { BaseService, UserService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
 // const logger = getLogger('service-collection')
-//
-interface Collection {
-  id: string
-  title: string
-  authorId: string
-  description?: string
-  cover?: string
-}
-
-interface CollectionArticle {
-  articleId: string
-  draftId: string
-  order: string
-}
 
 export class CollectionService extends BaseService {
   public constructor() {
@@ -34,10 +22,11 @@ export class CollectionService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  public loadById = async (id: string) => await this.dataloader.load(id)
+  public loadById = async (id: string): Promise<Collection> =>
+    this.dataloader.load(id) as Promise<Collection>
 
-  public loadByIds = async (ids: readonly string[]) =>
-    await this.dataloader.loadMany(ids)
+  public loadByIds = async (ids: readonly string[]): Promise<Collection[]> =>
+    this.dataloader.loadMany(ids) as Promise<Collection[]>
 
   public addArticles = async (
     collectionId: string,

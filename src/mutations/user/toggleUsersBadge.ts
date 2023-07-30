@@ -1,11 +1,11 @@
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleUsersBadgeResolver } from 'definitions'
+import { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToToggleUsersBadgeResolver = async (
-  root,
+const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
+  _,
   { input: { ids, type, enabled } },
-  { dataSources: { atomService }, viewer }
+  { dataSources: { atomService } }
 ) => {
   if (!ids || ids.length === 0) {
     throw new UserInputError('"ids" is required')

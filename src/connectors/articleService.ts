@@ -174,7 +174,7 @@ export class ArticleService extends BaseService {
       articleId,
       updatedAt: publishedAt,
     } = draft
-    const author = await userService.dataloader.load(authorId)
+    const author = await userService.loadById(authorId)
     const {
       // avatar,
       displayName,

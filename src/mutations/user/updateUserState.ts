@@ -1,11 +1,11 @@
-import type { MutationToUpdateUserStateResolver, User } from 'definitions'
+import type { GQLMutationResolvers, User } from 'definitions'
 
 import { USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 
-const resolver: MutationToUpdateUserStateResolver = async (
+const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
   { input: { id: globalId, state, banDays, password, emails } },
   { viewer, dataSources: { userService, notificationService, atomService } }
@@ -31,7 +31,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
     }
 
     // sync
-    const user = await userService.dataloader.load(id)
+    const user = await userService.loadById(id)
     const archivedUser = await userService.archive(id)
 
     // async
@@ -76,7 +76,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   }
 
   if (id) {
-    const user = (await userService.dataloader.load(id)) as User
+    const user = (await userService.loadById(id)) as User
     validateUserState(user)
     return [await handleUpdateUserState(user)]
   }

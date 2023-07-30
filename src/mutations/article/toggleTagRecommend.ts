@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleTagRecommendResolver } from 'definitions'
 
-const resolver: MutationToToggleTagRecommendResolver = async (
+const resolver: GQLMutationResolvers['toggleTagRecommend'] = async (
   _,
   { input: { id, enabled } },
   { dataSources: { tagService } }

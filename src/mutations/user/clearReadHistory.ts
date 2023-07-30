@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { AuthenticationError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToClearReadHistoryResolver } from 'definitions'
 
-const resolver: MutationToClearReadHistoryResolver = async (
+const resolver: GQLMutationResolvers['clearReadHistory'] = async (
   _,
   { input: { id } },
   { viewer, dataSources: { userService, atomService } }

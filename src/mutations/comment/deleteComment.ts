@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   COMMENT_STATE,
@@ -11,9 +13,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteCommentResolver } from 'definitions'
 
-const resolver: MutationToDeleteCommentResolver = async (
+const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,
   { input: { id } },
   { viewer, dataSources: { atomService, commentService, articleService } }

@@ -1,4 +1,6 @@
 // import slugify from '@matters/slugify'
+import type { GQLMutationResolvers } from 'definitions'
+
 import { v4 } from 'uuid'
 
 import {
@@ -21,9 +23,8 @@ import {
 import { fromGlobalId } from 'common/utils'
 import { GCP } from 'connectors'
 import { appreciationQueue } from 'connectors/queue'
-import { MutationToAppreciateArticleResolver } from 'definitions'
 
-const resolver: MutationToAppreciateArticleResolver = async (
+const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
   { input: { id, amount, token, superLike } },
   {
@@ -82,7 +83,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
-  const author = await userService.dataloader.load(article.authorId)
+  const author = await userService.loadById(article.authorId)
   if (!author) {
     throw new ForbiddenError('author has no liker id')
   }

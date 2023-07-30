@@ -11,10 +11,10 @@ import { isValidPassword, isValidPaymentPassword } from 'common/utils'
 import {
   GQLVerificationCodeType,
   LANGUAGES,
-  MutationToResetPasswordResolver,
+  type GQLMutationResolvers,
 } from 'definitions'
 
-const resolver: MutationToResetPasswordResolver = async (
+const resolver: GQLMutationResolvers['resetPassword'] = async (
   _,
   { input: { password, codeId: uuid, type } },
   { dataSources: { userService, notificationService } }

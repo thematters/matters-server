@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleArticleRecommendResolver } from 'definitions'
 
-const resolver: MutationToToggleArticleRecommendResolver = async (
+const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
   root,
   { input: { id, enabled, type = 'icymi' } },
   { viewer, dataSources: { atomService, articleService, draftService } }

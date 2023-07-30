@@ -1,12 +1,8 @@
 import { getViewerFromUser, setCookie } from 'common/utils'
-import {
-  AuthMode,
-  GQLAuthResultType,
-  MutationToUserLoginResolver,
-} from 'definitions'
+import { AuthMode, GQLAuthResultType, GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUserLoginResolver = async (
-  root,
+const resolver: GQLMutationResolvers['userLogin'] = async (
+  _,
   { input },
   context
 ) => {

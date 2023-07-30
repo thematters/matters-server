@@ -26,14 +26,14 @@ import {
   setCookie,
 } from 'common/utils'
 import {
-  AuthMode,
+  type AuthMode,
   GQLAuthResultType,
   GQLVerificationCodeType,
-  MutationToUserRegisterResolver,
+  type GQLMutationResolvers,
 } from 'definitions'
 
-const resolver: MutationToUserRegisterResolver = async (
-  root,
+const resolver: GQLMutationResolvers['userRegister'] = async (
+  _,
   { input },
   context
 ) => {

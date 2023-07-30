@@ -94,6 +94,11 @@ export class UserService extends BaseService {
    *            Account            *
    *                               *
    *********************************/
+  public loadById = async (id: string): Promise<User> =>
+    this.dataloader.load(id) as Promise<User>
+  public loadByIds = async (ids: string[]): Promise<User[]> =>
+    this.dataloader.loadMany(ids) as Promise<User[]>
+
   public create = async ({
     userName,
     displayName,

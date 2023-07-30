@@ -20,10 +20,10 @@ import {
 import { fromGlobalId } from 'common/utils'
 import {
   GQLUpdateTagSettingType as UpdateType,
-  MutationToUpdateTagSettingResolver,
+  type GQLMutationResolvers,
 } from 'definitions'
 
-const resolver: MutationToUpdateTagSettingResolver = async (
+const resolver: GQLMutationResolvers['updateTagSetting'] = async (
   _,
   { input: { id, type, editors } },
   {
@@ -175,9 +175,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       )
 
       // send emails and notices
-      const recipients = (await userService.dataloader.loadMany(
-        newEditors
-      )) as Array<Record<string, any>>
+      const recipients = (await userService.loadByIds(newEditors)) as Array<
+        Record<string, any>
+      >
 
       recipients.map((recipient) => {
         notificationService.mail.sendAssignAsTagEditor({

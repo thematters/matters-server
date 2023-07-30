@@ -13,13 +13,13 @@ import { getProvider } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 import {
   GQLSigningMessagePurpose,
-  MutationToClaimLogbooksResolver,
+  type GQLMutationResolvers,
 } from 'definitions'
 
-const resolver: MutationToClaimLogbooksResolver = async (
+const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   _,
   { input: { ethAddress, nonce, signature, signedMessage } },
-  { viewer, dataSources: { atomService } }
+  { dataSources: { atomService } }
 ) => {
   // verify signature
   const sig_table = 'crypto_wallet_signature'

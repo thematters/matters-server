@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   COMMENT_TYPE,
@@ -10,9 +12,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToTogglePinCommentResolver } from 'definitions'
 
-const resolver: MutationToTogglePinCommentResolver = async (
+const resolver: GQLMutationResolvers['togglePinComment'] = async (
   _,
   { input: { id, enabled } },
   {

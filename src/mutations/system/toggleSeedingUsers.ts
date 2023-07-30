@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleSeedingUsersResolver } from 'definitions'
 
-const resolver: MutationToToggleSeedingUsersResolver = async (
+const resolver: GQLMutationResolvers['toggleSeedingUsers'] = async (
   root,
   { input: { ids, enabled } },
   { dataSources: { atomService }, viewer }

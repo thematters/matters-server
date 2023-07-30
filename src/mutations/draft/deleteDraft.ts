@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import { NODE_TYPES } from 'common/enums'
@@ -8,9 +10,8 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { redis } from 'connectors'
-import { MutationToDeleteDraftResolver } from 'definitions'
 
-const resolver: MutationToDeleteDraftResolver = async (
+const resolver: GQLMutationResolvers['deleteDraft'] = async (
   _,
   { input: { id } },
   { viewer, dataSources: { atomService } }

@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
@@ -5,9 +7,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUnvoteCommentResolver } from 'definitions'
 
-const resolver: MutationToUnvoteCommentResolver = async (
+const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,
   { input: { id } },
   {

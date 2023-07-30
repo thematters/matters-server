@@ -1,14 +1,14 @@
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUnbindLikerIdResolver } from 'definitions'
+import { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUnbindLikerIdResolver = async (
-  root,
+const resolver: GQLMutationResolvers['unbindLikerId'] = async (
+  _,
   { input: { id, likerId } },
-  { dataSources: { atomService, userService }, knex }
+  { dataSources: { userService }, knex }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.dataloader.load(dbId)
+  const user = await userService.loadById(dbId)
 
   // check user's liker id
   if (user.likerId !== likerId) {

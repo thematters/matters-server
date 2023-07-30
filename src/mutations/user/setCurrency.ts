@@ -1,7 +1,8 @@
-import { AuthenticationError } from 'common/errors'
-import { MutationToSetCurrencyResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToSetCurrencyResolver = async (
+import { AuthenticationError } from 'common/errors'
+
+const resolver: GQLMutationResolvers['setCurrency'] = async (
   _,
   { input: { currency } },
   { viewer, dataSources: { atomService } }

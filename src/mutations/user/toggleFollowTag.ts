@@ -1,9 +1,10 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
 import { AuthenticationError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleFollowTagResolver } from 'definitions'
 
-const resolver: MutationToToggleFollowTagResolver = async (
+const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { tagService } }

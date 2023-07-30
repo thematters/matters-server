@@ -1,8 +1,9 @@
 // import { UserNotFoundError } from 'common/errors'
-import { publicationQueue } from 'connectors/queue'
-import { MutationToRefreshIPNSFeedResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToRefreshIPNSFeedResolver = async (
+import { publicationQueue } from 'connectors/queue'
+
+const resolver: GQLMutationResolvers['refreshIPNSFeed'] = async (
   _,
   { input: { userName, numArticles = 50 } },
   { viewer, dataSources: { atomService, userService } }

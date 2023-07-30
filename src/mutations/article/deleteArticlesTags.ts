@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
@@ -12,9 +14,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteArticlesTagsResolver } from 'definitions'
 
-const resolver: MutationToDeleteArticlesTagsResolver = async (
+const resolver: GQLMutationResolvers['deleteArticlesTags'] = async (
   root,
   { input: { id, articles } },
   {

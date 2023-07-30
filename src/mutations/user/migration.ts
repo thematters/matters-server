@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
@@ -8,9 +10,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { migrationQueue } from 'connectors/queue'
-import { MutationToMigrationResolver } from 'definitions'
 
-const resolver: MutationToMigrationResolver = async (
+const resolver: GQLMutationResolvers['migration'] = async (
   _,
   { input: { type, files } },
   { viewer, dataSources: { userService } }

@@ -1,7 +1,7 @@
 import { AuthenticationError } from 'common/errors'
-import { MutationToUpdateNotificationSettingResolver } from 'definitions'
+import { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUpdateNotificationSettingResolver = async (
+const resolver: GQLMutationResolvers['updateNotificationSetting'] = async (
   _,
   { input: { type, enabled } },
   { viewer, dataSources: { userService } }

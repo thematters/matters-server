@@ -3,17 +3,14 @@ import { customAlphabet } from 'nanoid'
 
 import { environment } from 'common/environment'
 import { UserInputError } from 'common/errors'
-import {
-  GQLSigningMessagePurpose,
-  MutationToGenerateSigningMessageResolver,
-} from 'definitions'
+import { GQLSigningMessagePurpose, GQLMutationResolvers } from 'definitions'
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
 
-const resolver: MutationToGenerateSigningMessageResolver = async (
+const resolver: GQLMutationResolvers['generateSigningMessage'] = async (
   _,
   { input: { address, purpose } },
-  { viewer, dataSources: { atomService } }
+  { dataSources: { atomService } }
 ) => {
   // check address is a valid one,
   if (!address || !utils.isAddress(address)) {

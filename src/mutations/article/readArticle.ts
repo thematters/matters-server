@@ -1,12 +1,13 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { ARTICLE_STATE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
-import { MutationToReadArticleResolver } from 'definitions'
 
 const logger = getLogger('mutation-read-article')
 
-const resolver: MutationToReadArticleResolver = async (
+const resolver: GQLMutationResolvers['readArticle'] = async (
   _,
   { input: { id } },
   { viewer, dataSources: { atomService, articleService, draftService } }

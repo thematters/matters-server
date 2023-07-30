@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   DB_NOTICE_TYPE,
@@ -12,9 +14,8 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleFollowUserResolver } from 'definitions'
 
-const resolver: MutationToToggleFollowUserResolver = async (
+const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { userService, notificationService } }
@@ -29,7 +30,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.dataloader.load(dbId)
+  const user = await userService.loadById(dbId)
 
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
@@ -70,6 +71,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
   }
 
   // invalidate extra nodes
+  // @ts-ignore
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,

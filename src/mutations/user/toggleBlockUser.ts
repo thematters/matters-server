@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   ActionFailedError,
@@ -5,9 +7,8 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleBlockUserResolver } from 'definitions'
 
-const resolver: MutationToToggleBlockUserResolver = async (
+const resolver: GQLMutationResolvers['toggleBlockUser'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { userService } }
@@ -23,7 +24,7 @@ const resolver: MutationToToggleBlockUserResolver = async (
     throw new ActionFailedError('cannot block yourself')
   }
 
-  const user = await userService.dataloader.load(dbId)
+  const user = await userService.loadById(dbId)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }

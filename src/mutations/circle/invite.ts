@@ -21,12 +21,12 @@ import {
   makeUserName,
 } from 'common/utils'
 import { redis } from 'connectors'
-import { GQLVerificationCodeType, MutationToInviteResolver } from 'definitions'
+import { GQLVerificationCodeType, type GQLMutationResolvers } from 'definitions'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
-const resolver: MutationToInviteResolver = async (
-  root,
+const resolver: GQLMutationResolvers['invite'] = async (
+  _,
   { input: { invitees, freePeriod, circleId } },
   {
     dataSources: {

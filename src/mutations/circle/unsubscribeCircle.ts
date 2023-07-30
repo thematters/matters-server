@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
@@ -15,9 +17,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUnsubscribeCircleResolver } from 'definitions'
 
-const resolver: MutationToUnsubscribeCircleResolver = async (
+const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
   root,
   { input: { id } },
   {

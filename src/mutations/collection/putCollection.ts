@@ -1,4 +1,4 @@
-import type { MutationToPutCollectionResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { validate as validateUUID } from 'uuid'
@@ -18,7 +18,7 @@ import {
 import { fromGlobalId } from 'common/utils'
 import { redis } from 'connectors'
 
-const resolver: MutationToPutCollectionResolver = async (
+const resolver: GQLMutationResolvers['putCollection'] = async (
   _,
   { input: { id, title, description, cover, pinned } },
   { dataSources: { collectionService, systemService }, viewer }

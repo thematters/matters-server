@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { AuthenticationError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutFeaturedTagsResolver } from 'definitions'
 
-const resolver: MutationToPutFeaturedTagsResolver = async (
+const resolver: GQLMutationResolvers['putFeaturedTags'] = async (
   _,
   { input: { ids } },
   { viewer, dataSources: { systemService, tagService } }

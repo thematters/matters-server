@@ -1,3 +1,5 @@
+import type { Customer, GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
 
@@ -23,9 +25,8 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { redis } from 'connectors'
-import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 
-const resolver: MutationToSubscribeCircleResolver = async (
+const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,
   { input: { id, password } },
   {

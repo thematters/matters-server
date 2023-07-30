@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -12,7 +14,6 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleFollowCircleResolver } from 'definitions'
 
 // local enums
 enum ACTION {
@@ -20,7 +21,7 @@ enum ACTION {
   unfollow = 'unfollow',
 }
 
-const resolver: MutationToToggleFollowCircleResolver = async (
+const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
   root,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, systemService, notificationService } }

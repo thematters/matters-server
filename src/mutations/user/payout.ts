@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
@@ -22,9 +24,8 @@ import {
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
 import { payoutQueue } from 'connectors/queue'
-import { MutationToPayoutResolver } from 'definitions'
 
-const resolver: MutationToPayoutResolver = async (
+const resolver: GQLMutationResolvers['payout'] = async (
   _,
   { input: { amount, password } },
   { viewer, dataSources: { atomService, paymentService } }

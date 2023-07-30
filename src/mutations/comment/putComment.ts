@@ -2,7 +2,7 @@ import {
   normalizeCommentHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import _ from 'lodash'
+import { some, get } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -27,13 +27,13 @@ import {
 import { fromGlobalId } from 'common/utils'
 import {
   GQLCommentType,
-  MutationToPutCommentResolver,
-  NoticeCircleNewBroadcastCommentsParams,
-  NoticeCircleNewDiscussionCommentsParams,
+  type GQLMutationResolvers,
+  type NoticeCircleNewBroadcastCommentsParams,
+  type NoticeCircleNewDiscussionCommentsParams,
 } from 'definitions'
 
-const resolver: MutationToPutCommentResolver = async (
-  root,
+const resolver: GQLMutationResolvers['putComment'] = async (
+  _,
   {
     input: {
       comment: {
@@ -57,7 +57,6 @@ const resolver: MutationToPutCommentResolver = async (
       articleService,
       notificationService,
       userService,
-      systemService,
     },
     knex,
   }
@@ -242,7 +241,7 @@ const resolver: MutationToPutCommentResolver = async (
     )
 
     // check if mentioned user blocked viewer
-    const anyBlocked = _.some(
+    const anyBlocked = some(
       await Promise.all(
         data.mentionedUserIds.map((mentionUserId: string) =>
           userService.blocked({
@@ -257,10 +256,10 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
-  const parentCommentAuthor = _.get(parentComment, 'authorId')
-  const parentCommentId = _.get(parentComment, 'id')
-  const replyToCommentAuthor = _.get(replyToComment, 'authorId')
-  const replyToCommentId = _.get(replyToComment, 'id')
+  const parentCommentAuthor = get(parentComment, 'authorId')
+  const parentCommentId = get(parentComment, 'id')
+  const replyToCommentAuthor = get(replyToComment, 'authorId')
+  const replyToCommentId = get(replyToComment, 'id')
 
   const isLevel1Comment = !parentComment && !replyToComment
   const isReplyLevel1Comment =

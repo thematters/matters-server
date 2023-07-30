@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteAnnouncementsResolver } from 'definitions'
 
-const resolver: MutationToDeleteAnnouncementsResolver = async (
+const resolver: GQLMutationResolvers['deleteAnnouncements'] = async (
   root,
   { input: { ids } },
   { dataSources: { atomService } }

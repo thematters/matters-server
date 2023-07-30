@@ -1,6 +1,6 @@
-import { MutationToClearSearchHistoryResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToClearSearchHistoryResolver = async (
+const resolver: GQLMutationResolvers['clearSearchHistory'] = async (
   _,
   __,
   { viewer, dataSources: { userService } }

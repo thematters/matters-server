@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _inter from 'lodash/intersection'
 import _uniq from 'lodash/uniq'
@@ -10,9 +12,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutChapterResolver } from 'definitions'
 
-const resolver: MutationToPutChapterResolver = async (
+const resolver: GQLMutationResolvers['putChapter'] = async (
   _,
   { input: { id, articles, topic: topicGlobalId, ...rest } },
   { viewer, dataSources: { atomService } }

@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   COMMENT_STATE,
   COMMENT_TYPE,
@@ -6,9 +8,8 @@ import {
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MutationToUpdateCommentsStateResolver } from 'definitions'
 
-const resolver: MutationToUpdateCommentsStateResolver = async (
+const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   _,
   { input: { ids, state } },
   {
@@ -86,7 +87,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
   if (state === COMMENT_STATE.banned) {
     await Promise.all(
       comments.map(async (comment) => {
-        const user = await userService.dataloader.load(comment.authorId)
+        const user = await userService.loadById(comment.authorId)
 
         notificationService.trigger({
           event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,

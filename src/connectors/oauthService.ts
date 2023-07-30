@@ -120,7 +120,7 @@ export class OAuthService extends BaseService {
 
     const client = (await this.getClientById(token.clientId)) as OAuthClient
     const userService = new UserService()
-    const user = (await userService.dataloader.load(token.userId)) as User
+    const user = (await userService.loadById(token.userId)) as User
 
     return {
       accessToken: token.token,
@@ -198,7 +198,7 @@ export class OAuthService extends BaseService {
       .first()
     const client = (await this.getClientById(code.clientId)) as OAuthClient
     const userService = new UserService()
-    const user = (await userService.dataloader.load(code.userId)) as User
+    const user = (await userService.loadById(code.userId)) as User
 
     if (!code) {
       return
@@ -278,7 +278,7 @@ export class OAuthService extends BaseService {
       .first()
     const client = (await this.getClientById(token.clientId)) as OAuthClient
     const userService = new UserService()
-    const user = (await userService.dataloader.load(token.userId)) as User
+    const user = (await userService.loadById(token.userId)) as User
 
     if (!token) {
       return
@@ -360,7 +360,7 @@ export class OAuthService extends BaseService {
    *********************************/
   generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
     const userService = new UserService()
-    const user = (await userService.dataloader.load(userId)) as User
+    const user = (await userService.loadById(userId)) as User
     const name = environment.likecoinOAuthClientName
     const client = await this.findClientByName({ name })
     const oauthClient = this.toOAuthClient(client)

@@ -23,13 +23,13 @@ import {
 import { cfsvc } from 'connectors'
 import {
   GQLAssetType,
-  ItemData,
-  MutationToUpdateUserInfoResolver,
+  type ItemData,
+  type GQLMutationResolvers,
 } from 'definitions'
 
 const logger = getLogger('mutation-update-user-info')
 
-const resolver: MutationToUpdateUserInfoResolver = async (
+const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   _,
   { input },
   {

@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { EntityNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToSetBoostResolver } from 'definitions'
 
-const resolver: MutationToSetBoostResolver = async (
+const resolver: GQLMutationResolvers['setBoost'] = async (
   root,
   { input: { id, boost, type } },
   { viewer, dataSources: { userService, tagService, articleService } }

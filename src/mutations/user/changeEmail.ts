@@ -6,12 +6,9 @@ import {
   EmailExistsError,
   UserNotFoundError,
 } from 'common/errors'
-import {
-  GQLVerificationCodeType,
-  MutationToChangeEmailResolver,
-} from 'definitions'
+import { GQLVerificationCodeType, type GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToChangeEmailResolver = async (
+const resolver: GQLMutationResolvers['changeEmail'] = async (
   _,
   {
     input: {
@@ -21,7 +18,7 @@ const resolver: MutationToChangeEmailResolver = async (
       newEmailCodeId,
     },
   },
-  { viewer, dataSources: { userService, atomService } }
+  { dataSources: { userService, atomService } }
 ) => {
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null

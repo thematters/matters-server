@@ -11,14 +11,11 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
-import {
-  GQLVerificationCodeType,
-  MutationToSendVerificationCodeResolver,
-} from 'definitions'
+import { GQLVerificationCodeType, type GQLMutationResolvers } from 'definitions'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
-const resolver: MutationToSendVerificationCodeResolver = async (
+const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
   { input: { email: rawEmail, type, redirectUrl } },
   { viewer, dataSources: { userService, notificationService, systemService } }

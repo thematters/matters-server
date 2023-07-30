@@ -1,8 +1,8 @@
-import { MutationToUnpinCommentResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import togglePinCommentResolver from './togglePinComment'
 
-const resolver: MutationToUnpinCommentResolver = async (
+const resolver: GQLMutationResolvers['unpinComment'] = async (
   parent,
   { input: { id } },
   ...rest

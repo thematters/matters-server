@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
@@ -8,9 +10,8 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
-import { MutationToPublishArticleResolver } from 'definitions'
 
-const resolver: MutationToPublishArticleResolver = async (
+const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id, iscnPublish } },
   { viewer, dataSources: { draftService }, knex }
