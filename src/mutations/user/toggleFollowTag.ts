@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const tag = await tagService.dataloader.load(dbId)
+  const tag = await tagService.loadById(dbId)
 
   if (!tag) {
     throw new TagNotFoundError('target user does not exists')

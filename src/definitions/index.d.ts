@@ -29,6 +29,7 @@ import {
 export * from './article'
 export * from './tag'
 export * from './collection'
+export * from './comment'
 export * from './language'
 export * from './schema'
 export * from './notification'
@@ -45,6 +46,7 @@ export interface User {
   emailVerified: string
   likerId?: string
   passwordHash: string
+  paymentPointer?: string
   paymentPasswordHash?: string
   baseGravity: number
   currGravity: number

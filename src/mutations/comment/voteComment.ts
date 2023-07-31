@@ -26,7 +26,7 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any

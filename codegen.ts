@@ -8,7 +8,6 @@ const config: CodegenConfig = {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
         useIndexSignature: true,
-        contextType: './index#Context',
         typesPrefix: 'GQL',
         namingConvention: {
           enumValues: 'keep',
@@ -22,7 +21,10 @@ const config: CodegenConfig = {
           Wallet: './index#User',
           Tag: './tag#Tag',
           Collection: './collection#Collection',
+          Comment: './comment#Comment',
         },
+        contextType: './index#Context',
+        makeResolverTypeCallable: true,
       },
     },
   },

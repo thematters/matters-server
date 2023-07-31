@@ -3,10 +3,10 @@ import {
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
 } from 'graphql'
-
-import { Collection as CollectionModel } from './collection'
 import { User as UserModel, Context } from './index'
 import { Tag as TagModel } from './tag'
+import { Collection as CollectionModel } from './collection'
+import { Comment as CommentModel } from './comment'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -73,7 +73,7 @@ export type GQLAnnouncement = {
   link?: Maybe<Scalars['String']['output']>
   order: Scalars['Int']['output']
   title?: Maybe<Scalars['String']['output']>
-  translations?: Maybe<GQLTranslatedAnnouncement[]>
+  translations?: Maybe<Array<GQLTranslatedAnnouncement>>
   type: GQLAnnouncementType
   updatedAt: Scalars['DateTime']['output']
   visible: Scalars['Boolean']['output']
@@ -114,7 +114,7 @@ export type GQLAppreciation = {
 
 export type GQLAppreciationConnection = GQLConnection & {
   __typename?: 'AppreciationConnection'
-  edges?: Maybe<GQLAppreciationEdge[]>
+  edges?: Maybe<Array<GQLAppreciationEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -154,11 +154,11 @@ export type GQLArticle = GQLNode &
     /** Total number of appreciations recieved of this article. */
     appreciationsReceivedTotal: Scalars['Int']['output']
     /** List of assets are belonged to this article (Only the author can access currently). */
-    assets: GQLAsset[]
+    assets: Array<GQLAsset>
     /** Author of this article. */
     author: GQLUser
     /** Available translation languages. */
-    availableTranslations?: Maybe<GQLUserLanguage[]>
+    availableTranslations?: Maybe<Array<GQLUserLanguage>>
     /** whether readers can comment */
     canComment: Scalars['Boolean']['output']
     /** This value determines if current viewer can SuperLike or not. */
@@ -185,7 +185,7 @@ export type GQLArticle = GQLNode &
      * Drafts linked to this article.
      * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
      */
-    drafts?: Maybe<GQLDraft[]>
+    drafts?: Maybe<Array<GQLDraft>>
     /** List of featured comments of this article. */
     featuredComments: GQLCommentConnection
     /** This value determines if current viewer has appreciated or not. */
@@ -211,7 +211,7 @@ export type GQLArticle = GQLNode &
     pinCommentLimit: Scalars['Int']['output']
     pinned: Scalars['Boolean']['output']
     /** List of pinned comments. */
-    pinnedComments?: Maybe<GQLComment[]>
+    pinnedComments?: Maybe<Array<GQLComment>>
     /** Cumulative reading time in seconds */
     readTime: Scalars['Float']['output']
     /** Related articles to this article. */
@@ -253,7 +253,7 @@ export type GQLArticle = GQLNode &
     /** This value determines if the summary is customized or not. */
     summaryCustomized: Scalars['Boolean']['output']
     /** Tags attached to this article. */
-    tags?: Maybe<GQLTag[]>
+    tags?: Maybe<Array<GQLTag>>
     /** Article title. */
     title: Scalars['String']['output']
     /** The number represents how popular is this article. */
@@ -370,7 +370,7 @@ export enum GQLArticleAccessType {
 export type GQLArticleArticleNotice = GQLNotice & {
   __typename?: 'ArticleArticleNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   article: GQLArticle
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
@@ -388,7 +388,7 @@ export enum GQLArticleArticleNoticeType {
 
 export type GQLArticleConnection = GQLConnection & {
   __typename?: 'ArticleConnection'
-  edges?: Maybe<GQLArticleEdge[]>
+  edges?: Maybe<Array<GQLArticleEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -422,7 +422,7 @@ export enum GQLArticleLicenseType {
 export type GQLArticleNotice = GQLNotice & {
   __typename?: 'ArticleNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -455,7 +455,7 @@ export type GQLArticleOss = {
 export type GQLArticleRecommendationActivity = {
   __typename?: 'ArticleRecommendationActivity'
   /** Recommended articles */
-  nodes?: Maybe<GQLArticle[]>
+  nodes?: Maybe<Array<GQLArticle>>
   /** The source type of recommendation */
   source?: Maybe<GQLArticleRecommendationActivitySource>
 }
@@ -475,7 +475,7 @@ export enum GQLArticleState {
 export type GQLArticleTagNotice = GQLNotice & {
   __typename?: 'ArticleTagNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -618,7 +618,7 @@ export type GQLChapter = GQLNode & {
   /** Number articles included in this chapter. */
   articleCount: Scalars['Int']['output']
   /** Articles included in this Chapter */
-  articles?: Maybe<GQLArticle[]>
+  articles?: Maybe<Array<GQLArticle>>
   /** Description of this chapter. */
   description?: Maybe<Scalars['String']['output']>
   /** Unique id of this chapter. */
@@ -697,9 +697,9 @@ export type GQLCircle = GQLNode & {
   /** Circle owner. */
   owner: GQLUser
   /** Pinned comments broadcasted by Circle owner. */
-  pinnedBroadcast?: Maybe<GQLComment[]>
+  pinnedBroadcast?: Maybe<Array<GQLComment>>
   /** Prices offered by this Circle. */
-  prices?: Maybe<GQLPrice[]>
+  prices?: Maybe<Array<GQLPrice>>
   /**
    * State of this Circle.
    * @deprecated No longer in use
@@ -747,15 +747,15 @@ export type GQLCircleAnalytics = {
 
 export type GQLCircleConnection = GQLConnection & {
   __typename?: 'CircleConnection'
-  edges?: Maybe<GQLCircleEdge[]>
+  edges?: Maybe<Array<GQLCircleEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
 
 export type GQLCircleContentAnalytics = {
   __typename?: 'CircleContentAnalytics'
-  paywall?: Maybe<GQLCircleContentAnalyticsDatum[]>
-  public?: Maybe<GQLCircleContentAnalyticsDatum[]>
+  paywall?: Maybe<Array<GQLCircleContentAnalyticsDatum>>
+  public?: Maybe<Array<GQLCircleContentAnalyticsDatum>>
 }
 
 export type GQLCircleContentAnalyticsDatum = {
@@ -777,13 +777,13 @@ export type GQLCircleFollowerAnalytics = {
   /** the percentage of follower count in reader count of circle articles */
   followerPercentage: Scalars['Float']['output']
   /** subscriber count history of last 4 months */
-  history: GQLMonthlyDatum[]
+  history: Array<GQLMonthlyDatum>
 }
 
 export type GQLCircleIncomeAnalytics = {
   __typename?: 'CircleIncomeAnalytics'
   /** income history of last 4 months */
-  history: GQLMonthlyDatum[]
+  history: Array<GQLMonthlyDatum>
   /** income of next month */
   nextMonth: Scalars['Float']['output']
   /** income of this month */
@@ -800,17 +800,17 @@ export type GQLCircleInput = {
 export type GQLCircleNotice = GQLNotice & {
   __typename?: 'CircleNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Optional discussion/broadcast comments for bundled notices */
-  comments?: Maybe<GQLComment[]>
+  comments?: Maybe<Array<GQLComment>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
   id: Scalars['ID']['output']
   /** Optional mention comments for bundled notices */
-  mentions?: Maybe<GQLComment[]>
+  mentions?: Maybe<Array<GQLComment>>
   /** Optional discussion/broadcast replies for bundled notices */
-  replies?: Maybe<GQLComment[]>
+  replies?: Maybe<Array<GQLComment>>
   target: GQLCircle
   type: GQLCircleNoticeType
   /** The value determines if the notice is unread or not. */
@@ -829,7 +829,7 @@ export enum GQLCircleNoticeType {
 export type GQLCircleRecommendationActivity = {
   __typename?: 'CircleRecommendationActivity'
   /** Recommended circles */
-  nodes?: Maybe<GQLCircle[]>
+  nodes?: Maybe<Array<GQLCircle>>
   /** The source type of recommendation */
   source?: Maybe<GQLCircleRecommendationActivitySource>
 }
@@ -850,9 +850,9 @@ export type GQLCircleSubscriberAnalytics = {
   /** current subscriber count */
   currentSubscriber: Scalars['Int']['output']
   /** invitee count history of last 4 months */
-  inviteeHistory: GQLMonthlyDatum[]
+  inviteeHistory: Array<GQLMonthlyDatum>
   /** subscriber count history of last 4 months */
-  subscriberHistory: GQLMonthlyDatum[]
+  subscriberHistory: Array<GQLMonthlyDatum>
 }
 
 export type GQLClaimLogbooksInput = {
@@ -906,7 +906,7 @@ export type GQLCollectionArticlesInput = {
 
 export type GQLCollectionConnection = GQLConnection & {
   __typename?: 'CollectionConnection'
-  edges?: Maybe<GQLCollectionEdge[]>
+  edges?: Maybe<Array<GQLCollectionEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -963,7 +963,7 @@ export type GQLCommentCommentsArgs = {
 export type GQLCommentCommentNotice = GQLNotice & {
   __typename?: 'CommentCommentNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   comment: GQLComment
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
@@ -988,7 +988,7 @@ export type GQLCommentCommentsInput = {
 
 export type GQLCommentConnection = GQLConnection & {
   __typename?: 'CommentConnection'
-  edges?: Maybe<GQLCommentEdge[]>
+  edges?: Maybe<Array<GQLCommentEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -1012,7 +1012,7 @@ export type GQLCommentInput = {
 export type GQLCommentNotice = GQLNotice & {
   __typename?: 'CommentNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -1101,7 +1101,7 @@ export type GQLCryptoWallet = {
   hasNFTs: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   /** NFT assets owned by this wallet address */
-  nfts?: Maybe<GQLNftAsset[]>
+  nfts?: Maybe<Array<GQLNftAsset>>
 }
 
 export enum GQLCryptoWalletSignaturePurpose {
@@ -1153,7 +1153,7 @@ export type GQLDraft = GQLNode & {
   /** Published article */
   article?: Maybe<GQLArticle>
   /** List of assets are belonged to this draft. */
-  assets: GQLAsset[]
+  assets: Array<GQLAsset>
   /** whether readers can comment */
   canComment: Scalars['Boolean']['output']
   /** Collection list of this draft. */
@@ -1209,7 +1209,7 @@ export type GQLDraftAccess = {
 
 export type GQLDraftConnection = GQLConnection & {
   __typename?: 'DraftConnection'
-  edges?: Maybe<GQLDraftEdge[]>
+  edges?: Maybe<Array<GQLDraftEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -1346,7 +1346,7 @@ export type GQLFollowingActivity =
 
 export type GQLFollowingActivityConnection = GQLConnection & {
   __typename?: 'FollowingActivityConnection'
-  edges?: Maybe<GQLFollowingActivityEdge[]>
+  edges?: Maybe<Array<GQLFollowingActivityEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -1396,7 +1396,7 @@ export type GQLInvitation = {
 
 export type GQLInvitationConnection = GQLConnection & {
   __typename?: 'InvitationConnection'
-  edges?: Maybe<GQLInvitationEdge[]>
+  edges?: Maybe<Array<GQLInvitationEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -1417,7 +1417,7 @@ export enum GQLInvitationState {
 export type GQLInviteCircleInput = {
   circleId: Scalars['ID']['input']
   freePeriod: Scalars['Int']['input']
-  invitees: GQLInviteCircleInvitee[]
+  invitees: Array<GQLInviteCircleInvitee>
 }
 
 export type GQLInviteCircleInvitee = {
@@ -1486,7 +1486,7 @@ export type GQLMember = {
 
 export type GQLMemberConnection = GQLConnection & {
   __typename?: 'MemberConnection'
-  edges?: Maybe<GQLMemberEdge[]>
+  edges?: Maybe<Array<GQLMemberEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -1524,7 +1524,7 @@ export type GQLMutation = {
   /** Add blocked search keyword to blocked_search_word db */
   addBlockedSearchKeyword: GQLBlockedSearchKeyword
   /** Add articles to the begining of the collections. */
-  addCollectionsArticles: GQLCollection[]
+  addCollectionsArticles: Array<GQLCollection>
   /** Add Credit to User Wallet */
   addCredit: GQLAddCreditResult
   /** Appreciate an article. */
@@ -1563,7 +1563,7 @@ export type GQLMutation = {
   /** Get signing message. */
   generateSigningMessage: GQLSigningMessageResult
   /** Invite others to join circle */
-  invite?: Maybe<GQLInvitation[]>
+  invite?: Maybe<Array<GQLInvitation>>
   /** Add specific user behavior record. */
   logRecord?: Maybe<Scalars['Boolean']['output']>
   /** Mark all received notices as read. */
@@ -1595,12 +1595,12 @@ export type GQLMutation = {
   /** Create or update a draft. */
   putDraft: GQLDraft
   /** update tags for showing on profile page */
-  putFeaturedTags?: Maybe<GQLTag[]>
+  putFeaturedTags?: Maybe<Array<GQLTag>>
   /** Create or Update an OAuth Client, used in OSS. */
   putOAuthClient?: Maybe<GQLOAuthClient>
   putRemark?: Maybe<Scalars['String']['output']>
-  putRestrictedUsers: GQLUser[]
-  putSkippedListItem?: Maybe<GQLSkippedListItem[]>
+  putRestrictedUsers: Array<GQLUser>
+  putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
   /** Create or update tag. */
   putTag: GQLTag
   /** Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title. */
@@ -1627,7 +1627,7 @@ export type GQLMutation = {
   /** Upload a single file. */
   singleFileUpload: GQLAsset
   /** Sort topics */
-  sortTopics: GQLTopic[]
+  sortTopics: Array<GQLTopic>
   /** Subscribe a Circle. */
   subscribeCircle: GQLSubscribeCircleResult
   toggleArticleRecommend: GQLArticle
@@ -1663,7 +1663,7 @@ export type GQLMutation = {
   /** Update articles' tag. */
   updateArticlesTags: GQLTag
   /** Update a comments' state. */
-  updateCommentsState: GQLComment[]
+  updateCommentsState: Array<GQLComment>
   /** Update user notification settings. */
   updateNotificationSetting: GQLUser
   /** Update member, permission and othters of a tag. */
@@ -1673,7 +1673,7 @@ export type GQLMutation = {
   /** Update state of a user, used in OSS. */
   updateUserRole: GQLUser
   /** Update state of a user, used in OSS. */
-  updateUserState?: Maybe<GQLUser[]>
+  updateUserState?: Maybe<Array<GQLUser>>
   /** Login user. */
   userLogin: GQLAuthResult
   /** Logout user. */
@@ -2063,7 +2063,7 @@ export type GQLNotice = {
 
 export type GQLNoticeConnection = GQLConnection & {
   __typename?: 'NoticeConnection'
-  edges?: Maybe<GQLNoticeEdge[]>
+  edges?: Maybe<Array<GQLNoticeEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2138,7 +2138,7 @@ export type GQLOAuthClient = {
   /** App Description */
   description?: Maybe<Scalars['String']['output']>
   /** Grant Types */
-  grantTypes?: Maybe<GQLGrantType[]>
+  grantTypes?: Maybe<Array<GQLGrantType>>
   /** Unique Client ID of this OAuth Client. */
   id: Scalars['ID']['output']
   /** App name */
@@ -2157,7 +2157,7 @@ export type GQLOAuthClient = {
 
 export type GQLOAuthClientConnection = GQLConnection & {
   __typename?: 'OAuthClientConnection'
-  edges?: Maybe<GQLOAuthClientEdge[]>
+  edges?: Maybe<Array<GQLOAuthClientEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2225,9 +2225,9 @@ export type GQLOssUsersArgs = {
 export type GQLOfficial = {
   __typename?: 'Official'
   /** Announcements */
-  announcements?: Maybe<GQLAnnouncement[]>
+  announcements?: Maybe<Array<GQLAnnouncement>>
   /** Feature flag */
-  features: GQLFeature[]
+  features: Array<GQLFeature>
 }
 
 /** This type contains system-wise info and settings. */
@@ -2349,7 +2349,7 @@ export type GQLPutAnnouncementInput = {
   link?: InputMaybe<Scalars['String']['input']>
   order?: InputMaybe<Scalars['Int']['input']>
   title?: InputMaybe<Scalars['String']['input']>
-  translations?: InputMaybe<GQLTranslatedAnnouncementInput[]>
+  translations?: InputMaybe<Array<GQLTranslatedAnnouncementInput>>
   type?: InputMaybe<GQLAnnouncementType>
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
@@ -2432,7 +2432,7 @@ export type GQLPutDraftInput = {
 export type GQLPutOAuthClientInput = {
   avatar?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Scalars['String']['input']>
-  grantTypes?: InputMaybe<GQLGrantType[]>
+  grantTypes?: InputMaybe<Array<GQLGrantType>>
   id?: InputMaybe<Scalars['ID']['input']>
   name?: InputMaybe<Scalars['String']['input']>
   redirectURIs?: InputMaybe<Array<Scalars['String']['input']>>
@@ -2450,7 +2450,7 @@ export type GQLPutRemarkInput = {
 
 export type GQLPutRestrictedUsersInput = {
   ids: Array<Scalars['ID']['input']>
-  restrictions: GQLUserRestrictionType[]
+  restrictions: Array<GQLUserRestrictionType>
 }
 
 export type GQLPutSkippedListItemInput = {
@@ -2481,10 +2481,10 @@ export type GQLQuery = {
   __typename?: 'Query'
   article?: Maybe<GQLArticle>
   circle?: Maybe<GQLCircle>
-  exchangeRates?: Maybe<GQLExchangeRate[]>
+  exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
   node?: Maybe<GQLNode>
-  nodes?: Maybe<GQLNode[]>
+  nodes?: Maybe<Array<GQLNode>>
   oauthClient?: Maybe<GQLOAuthClient>
   official: GQLOfficial
   oss: GQLOss
@@ -2547,7 +2547,7 @@ export type GQLReadHistory = {
 
 export type GQLReadHistoryConnection = GQLConnection & {
   __typename?: 'ReadHistoryConnection'
-  edges?: Maybe<GQLReadHistoryEdge[]>
+  edges?: Maybe<Array<GQLReadHistoryEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2560,7 +2560,7 @@ export type GQLReadHistoryEdge = {
 
 export type GQLRecentSearchConnection = GQLConnection & {
   __typename?: 'RecentSearchConnection'
-  edges?: Maybe<GQLRecentSearchEdge[]>
+  edges?: Maybe<Array<GQLRecentSearchEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2689,7 +2689,7 @@ export type GQLRenameTagInput = {
 
 export type GQLReorderCollectionArticlesInput = {
   collection: Scalars['ID']['input']
-  moves: GQLReorderMoveInput[]
+  moves: Array<GQLReorderMoveInput>
 }
 
 export type GQLReorderMoveInput = {
@@ -2721,7 +2721,7 @@ export type GQLResponse = GQLArticle | GQLComment
 
 export type GQLResponseConnection = GQLConnection & {
   __typename?: 'ResponseConnection'
-  edges?: Maybe<GQLResponseEdge[]>
+  edges?: Maybe<Array<GQLResponseEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2793,7 +2793,7 @@ export type GQLSearchInput = {
 
 export type GQLSearchResultConnection = GQLConnection & {
   __typename?: 'SearchResultConnection'
-  edges?: Maybe<GQLSearchResultEdge[]>
+  edges?: Maybe<Array<GQLSearchResultEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2886,7 +2886,7 @@ export enum GQLSkippedListItemType {
 
 export type GQLSkippedListItemsConnection = GQLConnection & {
   __typename?: 'SkippedListItemsConnection'
-  edges?: Maybe<GQLSkippedListItemEdge[]>
+  edges?: Maybe<Array<GQLSkippedListItemEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -2973,7 +2973,7 @@ export type GQLTag = GQLNode & {
   /** Description of this tag. */
   description?: Maybe<Scalars['String']['output']>
   /** Editors of this tag. */
-  editors?: Maybe<GQLUser[]>
+  editors?: Maybe<Array<GQLUser>>
   /** Followers of this tag. */
   followers: GQLUserConnection
   /** Unique id of this tag. */
@@ -3044,7 +3044,7 @@ export enum GQLTagArticlesSortBy {
 
 export type GQLTagConnection = GQLConnection & {
   __typename?: 'TagConnection'
-  edges?: Maybe<GQLTagEdge[]>
+  edges?: Maybe<Array<GQLTagEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -3063,7 +3063,7 @@ export type GQLTagEditorsInput = {
 export type GQLTagNotice = GQLNotice & {
   __typename?: 'TagNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -3140,7 +3140,7 @@ export type GQLToggleUsersBadgeInput = {
 
 export type GQLTopDonatorConnection = GQLConnection & {
   __typename?: 'TopDonatorConnection'
-  edges?: Maybe<GQLTopDonatorEdge[]>
+  edges?: Maybe<Array<GQLTopDonatorEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -3169,13 +3169,13 @@ export type GQLTopic = GQLNode & {
   /** Number articles included in this topic. */
   articleCount: Scalars['Int']['output']
   /** List of articles included in this topic. */
-  articles?: Maybe<GQLArticle[]>
+  articles?: Maybe<Array<GQLArticle>>
   /** Author of this topic. */
   author: GQLUser
   /** Number of chapters included in this topic. */
   chapterCount: Scalars['Int']['output']
   /** List of chapters included in this topic. */
-  chapters?: Maybe<GQLChapter[]>
+  chapters?: Maybe<Array<GQLChapter>>
   /** Cover of this topic. */
   cover?: Maybe<Scalars['String']['output']>
   /** Description of this topic. */
@@ -3192,7 +3192,7 @@ export type GQLTopic = GQLNode & {
 
 export type GQLTopicConnection = GQLConnection & {
   __typename?: 'TopicConnection'
-  edges?: Maybe<GQLTopicEdge[]>
+  edges?: Maybe<Array<GQLTopicEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -3233,7 +3233,7 @@ export type GQLTransaction = {
 
 export type GQLTransactionConnection = GQLConnection & {
   __typename?: 'TransactionConnection'
-  edges?: Maybe<GQLTransactionEdge[]>
+  edges?: Maybe<Array<GQLTransactionEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -3253,7 +3253,7 @@ export type GQLTransactionEdge = {
 export type GQLTransactionNotice = GQLNotice & {
   __typename?: 'TransactionNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -3294,14 +3294,14 @@ export type GQLTransactionsArgs = {
   /** deprecated, use TransactionsFilter.id instead. */
   id?: InputMaybe<Scalars['ID']['input']>
   /** deprecated, use TransactionsFilter.states instead. */
-  states?: InputMaybe<GQLTransactionState[]>
+  states?: InputMaybe<Array<GQLTransactionState>>
 }
 
 export type GQLTransactionsFilter = {
   currency?: InputMaybe<GQLTransactionCurrency>
   id?: InputMaybe<Scalars['ID']['input']>
   purpose?: InputMaybe<GQLTransactionPurpose>
-  states?: InputMaybe<GQLTransactionState[]>
+  states?: InputMaybe<Array<GQLTransactionState>>
 }
 
 export type GQLTransactionsReceivedByArgs = {
@@ -3460,12 +3460,12 @@ export type GQLUser = GQLNode & {
   notices: GQLNoticeConnection
   oss: GQLUserOss
   /** Circles belong to current user. */
-  ownCircles?: Maybe<GQLCircle[]>
+  ownCircles?: Maybe<Array<GQLCircle>>
   /** Payment pointer that resolves to Open Payments endpoints */
   paymentPointer?: Maybe<Scalars['String']['output']>
   /** Tags pinned by current user. */
   pinnedTags: GQLTagConnection
-  pinnedWorks: GQLPinnableWork[]
+  pinnedWorks: Array<GQLPinnableWork>
   /** Article recommendations for current user. */
   recommendation: GQLRecommendation
   remark?: Maybe<Scalars['String']['output']>
@@ -3603,7 +3603,7 @@ export type GQLUserBroadcastCircleActivity = {
 
 export type GQLUserConnection = GQLConnection & {
   __typename?: 'UserConnection'
-  edges?: Maybe<GQLUserEdge[]>
+  edges?: Maybe<Array<GQLUserEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
@@ -3632,7 +3632,7 @@ export type GQLUserInfo = {
   /** Timestamp of user agreement. */
   agreeOn?: Maybe<Scalars['DateTime']['output']>
   /** User badges. */
-  badges?: Maybe<GQLBadge[]>
+  badges?: Maybe<Array<GQLBadge>>
   /** Timestamp of registration. */
   createdAt?: Maybe<Scalars['DateTime']['output']>
   /** Connected wallet. */
@@ -3644,7 +3644,7 @@ export type GQLUserInfo = {
   /** Login address */
   ethAddress?: Maybe<Scalars['String']['output']>
   /** saved tags for showing on profile page, API allows up to 100, front-end lock'ed at lower limit */
-  featuredTags?: Maybe<GQLTag[]>
+  featuredTags?: Maybe<Array<GQLTag>>
   /** Type of group. */
   group: GQLUserGroup
   /** the ipnsKey (`ipfs.io/ipns/<ipnsKey>/...`) for feed.json / rss.xml / index */
@@ -3683,7 +3683,7 @@ export type GQLUserLoginInput = {
 export type GQLUserNotice = GQLNotice & {
   __typename?: 'UserNotice'
   /** List of notice actors. */
-  actors?: Maybe<GQLUser[]>
+  actors?: Maybe<Array<GQLUser>>
   /** Time of this notice was created. */
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this notice. */
@@ -3701,7 +3701,7 @@ export enum GQLUserNoticeType {
 export type GQLUserOss = {
   __typename?: 'UserOSS'
   boost: Scalars['Float']['output']
-  restrictions: GQLUserRestriction[]
+  restrictions: Array<GQLUserRestriction>
   score: Scalars['Float']['output']
 }
 
@@ -3716,7 +3716,7 @@ export type GQLUserPublishArticleActivity = {
 export type GQLUserRecommendationActivity = {
   __typename?: 'UserRecommendationActivity'
   /** Recommended users */
-  nodes?: Maybe<GQLUser[]>
+  nodes?: Maybe<Array<GQLUser>>
   /** The source type of recommendation */
   source?: Maybe<GQLUserRecommendationActivitySource>
 }
@@ -3850,12 +3850,12 @@ export type ResolversObject<TObject> = WithIndex<TObject>
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
 
-export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
-  resolve: ResolverFn<TResult, TParent, TContext, TArgs>
-}
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
-  | ResolverFn<TResult, TParent, TContext, TArgs>
-  | ResolverWithResolve<TResult, TParent, TContext, TArgs>
+export type Resolver<
+  TResult,
+  TParent = {},
+  TContext = {},
+  TArgs = {}
+> = ResolverFn<TResult, TParent, TContext, TArgs>
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -4022,15 +4022,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
           tags?: Maybe<Array<RefType['Tag']>>
           transactionsReceivedBy: RefType['UserConnection']
         })
-      | (Omit<
-          GQLComment,
-          'author' | 'comments' | 'parentComment' | 'replyTo'
-        > & {
-          author: RefType['User']
-          comments: RefType['CommentConnection']
-          parentComment?: Maybe<RefType['Comment']>
-          replyTo?: Maybe<RefType['Comment']>
-        })
+      | CommentModel
     TransactionTarget:
       | (Omit<
           GQLArticle,
@@ -4225,12 +4217,7 @@ export type GQLResolversInterfaceTypes<
         works: RefType['ArticleConnection']
       })
     | CollectionModel
-    | (Omit<GQLComment, 'author' | 'comments' | 'parentComment' | 'replyTo'> & {
-        author: RefType['User']
-        comments: RefType['CommentConnection']
-        parentComment?: Maybe<RefType['Comment']>
-        replyTo?: Maybe<RefType['Comment']>
-      })
+    | CommentModel
     | (Omit<GQLDraft, 'access' | 'article' | 'collection'> & {
         access: RefType['DraftAccess']
         article?: Maybe<RefType['Article']>
@@ -4563,14 +4550,7 @@ export type GQLResolversTypes = ResolversObject<{
   CollectionEdge: ResolverTypeWrapper<
     Omit<GQLCollectionEdge, 'node'> & { node: GQLResolversTypes['Collection'] }
   >
-  Comment: ResolverTypeWrapper<
-    Omit<GQLComment, 'author' | 'comments' | 'parentComment' | 'replyTo'> & {
-      author: GQLResolversTypes['User']
-      comments: GQLResolversTypes['CommentConnection']
-      parentComment?: Maybe<GQLResolversTypes['Comment']>
-      replyTo?: Maybe<GQLResolversTypes['Comment']>
-    }
-  >
+  Comment: ResolverTypeWrapper<CommentModel>
   CommentCommentNotice: ResolverTypeWrapper<
     Omit<GQLCommentCommentNotice, 'actors' | 'comment' | 'target'> & {
       actors?: Maybe<Array<GQLResolversTypes['User']>>
@@ -5277,15 +5257,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CollectionEdge: Omit<GQLCollectionEdge, 'node'> & {
     node: GQLResolversParentTypes['Collection']
   }
-  Comment: Omit<
-    GQLComment,
-    'author' | 'comments' | 'parentComment' | 'replyTo'
-  > & {
-    author: GQLResolversParentTypes['User']
-    comments: GQLResolversParentTypes['CommentConnection']
-    parentComment?: Maybe<GQLResolversParentTypes['Comment']>
-    replyTo?: Maybe<GQLResolversParentTypes['Comment']>
-  }
+  Comment: CommentModel
   CommentCommentNotice: Omit<
     GQLCommentCommentNotice,
     'actors' | 'comment' | 'target'

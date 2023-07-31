@@ -26,7 +26,7 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   const dbIds = (ids || []).map((id) => fromGlobalId(id).id)
 
   const updateCommentState = async (id: string) => {
-    const comment = await commentService.dataloader.load(id)
+    const comment = await commentService.loadById(id)
 
     // check target
     let article: any

@@ -13,7 +13,10 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: GQLMutationResolvers['togglePinComment'] = async (
+const resolver: Exclude<
+  GQLMutationResolvers['togglePinComment'],
+  undefined
+> = async (
   _,
   { input: { id, enabled } },
   {
@@ -31,7 +34,7 @@ const resolver: GQLMutationResolvers['togglePinComment'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any

@@ -4,6 +4,6 @@ const resolver: GQLCommentResolvers['parentComment'] = (
   { parentCommentId },
   _,
   { dataSources: { commentService } }
-) => (parentCommentId ? commentService.dataloader.load(parentCommentId) : null)
+) => (parentCommentId ? commentService.loadById(parentCommentId) : null)
 
 export default resolver

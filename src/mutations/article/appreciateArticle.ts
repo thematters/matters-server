@@ -87,6 +87,9 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   if (!author) {
     throw new ForbiddenError('author has no liker id')
   }
+  if (!author.likerId) {
+    throw new ForbiddenError('author has no liker id')
+  }
 
   if (author.state === USER_STATE.frozen) {
     throw new ForbiddenByTargetStateError(

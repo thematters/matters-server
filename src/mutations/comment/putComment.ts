@@ -146,7 +146,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   let parentComment: any
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
-    parentComment = await commentService.dataloader.load(parentDbId)
+    parentComment = await commentService.loadById(parentDbId)
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
@@ -169,7 +169,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   let replyToComment: any
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
-    replyToComment = await commentService.dataloader.load(replyToDBId)
+    replyToComment = await commentService.loadById(replyToDBId)
     if (!replyToComment) {
       throw new CommentNotFoundError('target replyToComment does not exists')
     }
@@ -299,7 +299,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     const { id: commentDbId } = fromGlobalId(id)
 
     // check permission
-    const comment = await commentService.dataloader.load(commentDbId)
+    const comment = await commentService.loadById(commentDbId)
     if (comment.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }

@@ -4,6 +4,6 @@ const resolver: GQLCommentToReplyResolvers[''] = (
   { replyTo },
   _,
   { dataSources: { commentService } }
-) => (replyTo ? commentService.dataloader.load(replyTo) : null)
+) => (replyTo ? commentService.loadById(replyTo) : null)
 
 export default resolver
