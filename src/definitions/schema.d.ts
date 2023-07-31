@@ -4,9 +4,9 @@ import {
   GraphQLScalarTypeConfig,
 } from 'graphql'
 
-import { Collection } from './collection'
-import { User, Context } from './index'
-import { Tag } from './tag'
+import { Collection as CollectionModel } from './collection'
+import { User as UserModel, Context } from './index'
+import { Tag as TagModel } from './tag'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3845,6 +3845,9 @@ export type GQLWalletLoginInput = {
   signedMessage: Scalars['String']['input']
 }
 
+export type WithIndex<TObject> = TObject & Record<string, any>
+export type ResolversObject<TObject> = WithIndex<TObject>
+
 export type ResolverTypeWrapper<T> = Promise<T> | T
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
@@ -3951,153 +3954,157 @@ export type DirectiveResolverFn<
 ) => TResult | Promise<TResult>
 
 /** Mapping of union types */
-export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> = {
-  FollowingActivity:
-    | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
-        nodes?: Maybe<Array<RefType['Article']>>
-      })
-    | (Omit<GQLCircleRecommendationActivity, 'nodes'> & {
-        nodes?: Maybe<Array<RefType['Circle']>>
-      })
-    | (Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
-        actor: RefType['User']
-        node: RefType['Article']
-        target: RefType['Tag']
-      })
-    | (Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
-        actor: RefType['User']
-        node: RefType['Comment']
-        target: RefType['Circle']
-      })
-    | (Omit<GQLUserCreateCircleActivity, 'actor' | 'node'> & {
-        actor: RefType['User']
-        node: RefType['Circle']
-      })
-    | (Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
-        actor: RefType['User']
-        node: RefType['Article']
-      })
-    | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
-        nodes?: Maybe<Array<RefType['User']>>
-      })
-  Invitee: GQLPerson | User
-  Response:
-    | (Omit<
-        GQLArticle,
-        | 'access'
-        | 'appreciationsReceived'
-        | 'author'
-        | 'collectedBy'
-        | 'collection'
-        | 'comments'
-        | 'drafts'
-        | 'featuredComments'
-        | 'newestPublishedDraft'
-        | 'newestUnpublishedDraft'
-        | 'pinnedComments'
-        | 'relatedArticles'
-        | 'relatedDonationArticles'
-        | 'subscribers'
-        | 'tags'
-        | 'transactionsReceivedBy'
-      > & {
-        access: RefType['ArticleAccess']
-        appreciationsReceived: RefType['AppreciationConnection']
-        author: RefType['User']
-        collectedBy: RefType['ArticleConnection']
-        collection: RefType['ArticleConnection']
-        comments: RefType['CommentConnection']
-        drafts?: Maybe<Array<RefType['Draft']>>
-        featuredComments: RefType['CommentConnection']
-        newestPublishedDraft: RefType['Draft']
-        newestUnpublishedDraft?: Maybe<RefType['Draft']>
-        pinnedComments?: Maybe<Array<RefType['Comment']>>
-        relatedArticles: RefType['ArticleConnection']
-        relatedDonationArticles: RefType['ArticleConnection']
-        subscribers: RefType['UserConnection']
-        tags?: Maybe<Array<RefType['Tag']>>
-        transactionsReceivedBy: RefType['UserConnection']
-      })
-    | (Omit<GQLComment, 'author' | 'comments' | 'parentComment' | 'replyTo'> & {
-        author: RefType['User']
-        comments: RefType['CommentConnection']
-        parentComment?: Maybe<RefType['Comment']>
-        replyTo?: Maybe<RefType['Comment']>
-      })
-  TransactionTarget:
-    | (Omit<
-        GQLArticle,
-        | 'access'
-        | 'appreciationsReceived'
-        | 'author'
-        | 'collectedBy'
-        | 'collection'
-        | 'comments'
-        | 'drafts'
-        | 'featuredComments'
-        | 'newestPublishedDraft'
-        | 'newestUnpublishedDraft'
-        | 'pinnedComments'
-        | 'relatedArticles'
-        | 'relatedDonationArticles'
-        | 'subscribers'
-        | 'tags'
-        | 'transactionsReceivedBy'
-      > & {
-        access: RefType['ArticleAccess']
-        appreciationsReceived: RefType['AppreciationConnection']
-        author: RefType['User']
-        collectedBy: RefType['ArticleConnection']
-        collection: RefType['ArticleConnection']
-        comments: RefType['CommentConnection']
-        drafts?: Maybe<Array<RefType['Draft']>>
-        featuredComments: RefType['CommentConnection']
-        newestPublishedDraft: RefType['Draft']
-        newestUnpublishedDraft?: Maybe<RefType['Draft']>
-        pinnedComments?: Maybe<Array<RefType['Comment']>>
-        relatedArticles: RefType['ArticleConnection']
-        relatedDonationArticles: RefType['ArticleConnection']
-        subscribers: RefType['UserConnection']
-        tags?: Maybe<Array<RefType['Tag']>>
-        transactionsReceivedBy: RefType['UserConnection']
-      })
-    | (Omit<
-        GQLCircle,
-        | 'analytics'
-        | 'broadcast'
-        | 'discussion'
-        | 'followers'
-        | 'invitedBy'
-        | 'invites'
-        | 'members'
-        | 'owner'
-        | 'pinnedBroadcast'
-        | 'prices'
-        | 'works'
-      > & {
-        analytics: RefType['CircleAnalytics']
-        broadcast: RefType['CommentConnection']
-        discussion: RefType['CommentConnection']
-        followers: RefType['UserConnection']
-        invitedBy?: Maybe<RefType['Invitation']>
-        invites: RefType['Invites']
-        members: RefType['MemberConnection']
-        owner: RefType['User']
-        pinnedBroadcast?: Maybe<Array<RefType['Comment']>>
-        prices?: Maybe<Array<RefType['Price']>>
-        works: RefType['ArticleConnection']
-      })
-    | (Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
-        recipient?: Maybe<RefType['User']>
-        sender?: Maybe<RefType['User']>
-        target?: Maybe<RefType['TransactionTarget']>
-      })
-}
+export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
+  ResolversObject<{
+    FollowingActivity:
+      | (Omit<GQLArticleRecommendationActivity, 'nodes'> & {
+          nodes?: Maybe<Array<RefType['Article']>>
+        })
+      | (Omit<GQLCircleRecommendationActivity, 'nodes'> & {
+          nodes?: Maybe<Array<RefType['Circle']>>
+        })
+      | (Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
+          actor: RefType['User']
+          node: RefType['Article']
+          target: RefType['Tag']
+        })
+      | (Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
+          actor: RefType['User']
+          node: RefType['Comment']
+          target: RefType['Circle']
+        })
+      | (Omit<GQLUserCreateCircleActivity, 'actor' | 'node'> & {
+          actor: RefType['User']
+          node: RefType['Circle']
+        })
+      | (Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
+          actor: RefType['User']
+          node: RefType['Article']
+        })
+      | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
+          nodes?: Maybe<Array<RefType['User']>>
+        })
+    Invitee: GQLPerson | UserModel
+    Response:
+      | (Omit<
+          GQLArticle,
+          | 'access'
+          | 'appreciationsReceived'
+          | 'author'
+          | 'collectedBy'
+          | 'collection'
+          | 'comments'
+          | 'drafts'
+          | 'featuredComments'
+          | 'newestPublishedDraft'
+          | 'newestUnpublishedDraft'
+          | 'pinnedComments'
+          | 'relatedArticles'
+          | 'relatedDonationArticles'
+          | 'subscribers'
+          | 'tags'
+          | 'transactionsReceivedBy'
+        > & {
+          access: RefType['ArticleAccess']
+          appreciationsReceived: RefType['AppreciationConnection']
+          author: RefType['User']
+          collectedBy: RefType['ArticleConnection']
+          collection: RefType['ArticleConnection']
+          comments: RefType['CommentConnection']
+          drafts?: Maybe<Array<RefType['Draft']>>
+          featuredComments: RefType['CommentConnection']
+          newestPublishedDraft: RefType['Draft']
+          newestUnpublishedDraft?: Maybe<RefType['Draft']>
+          pinnedComments?: Maybe<Array<RefType['Comment']>>
+          relatedArticles: RefType['ArticleConnection']
+          relatedDonationArticles: RefType['ArticleConnection']
+          subscribers: RefType['UserConnection']
+          tags?: Maybe<Array<RefType['Tag']>>
+          transactionsReceivedBy: RefType['UserConnection']
+        })
+      | (Omit<
+          GQLComment,
+          'author' | 'comments' | 'parentComment' | 'replyTo'
+        > & {
+          author: RefType['User']
+          comments: RefType['CommentConnection']
+          parentComment?: Maybe<RefType['Comment']>
+          replyTo?: Maybe<RefType['Comment']>
+        })
+    TransactionTarget:
+      | (Omit<
+          GQLArticle,
+          | 'access'
+          | 'appreciationsReceived'
+          | 'author'
+          | 'collectedBy'
+          | 'collection'
+          | 'comments'
+          | 'drafts'
+          | 'featuredComments'
+          | 'newestPublishedDraft'
+          | 'newestUnpublishedDraft'
+          | 'pinnedComments'
+          | 'relatedArticles'
+          | 'relatedDonationArticles'
+          | 'subscribers'
+          | 'tags'
+          | 'transactionsReceivedBy'
+        > & {
+          access: RefType['ArticleAccess']
+          appreciationsReceived: RefType['AppreciationConnection']
+          author: RefType['User']
+          collectedBy: RefType['ArticleConnection']
+          collection: RefType['ArticleConnection']
+          comments: RefType['CommentConnection']
+          drafts?: Maybe<Array<RefType['Draft']>>
+          featuredComments: RefType['CommentConnection']
+          newestPublishedDraft: RefType['Draft']
+          newestUnpublishedDraft?: Maybe<RefType['Draft']>
+          pinnedComments?: Maybe<Array<RefType['Comment']>>
+          relatedArticles: RefType['ArticleConnection']
+          relatedDonationArticles: RefType['ArticleConnection']
+          subscribers: RefType['UserConnection']
+          tags?: Maybe<Array<RefType['Tag']>>
+          transactionsReceivedBy: RefType['UserConnection']
+        })
+      | (Omit<
+          GQLCircle,
+          | 'analytics'
+          | 'broadcast'
+          | 'discussion'
+          | 'followers'
+          | 'invitedBy'
+          | 'invites'
+          | 'members'
+          | 'owner'
+          | 'pinnedBroadcast'
+          | 'prices'
+          | 'works'
+        > & {
+          analytics: RefType['CircleAnalytics']
+          broadcast: RefType['CommentConnection']
+          discussion: RefType['CommentConnection']
+          followers: RefType['UserConnection']
+          invitedBy?: Maybe<RefType['Invitation']>
+          invites: RefType['Invites']
+          members: RefType['MemberConnection']
+          owner: RefType['User']
+          pinnedBroadcast?: Maybe<Array<RefType['Comment']>>
+          prices?: Maybe<Array<RefType['Price']>>
+          works: RefType['ArticleConnection']
+        })
+      | (Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
+          recipient?: Maybe<RefType['User']>
+          sender?: Maybe<RefType['User']>
+          target?: Maybe<RefType['TransactionTarget']>
+        })
+  }>
 
 /** Mapping of interface types */
 export type GQLResolversInterfaceTypes<
   RefType extends Record<string, unknown>
-> = {
+> = ResolversObject<{
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['AppreciationEdge']>>
@@ -4217,7 +4224,7 @@ export type GQLResolversInterfaceTypes<
         prices?: Maybe<Array<RefType['Price']>>
         works: RefType['ArticleConnection']
       })
-    | Collection
+    | CollectionModel
     | (Omit<GQLComment, 'author' | 'comments' | 'parentComment' | 'replyTo'> & {
         author: RefType['User']
         comments: RefType['CommentConnection']
@@ -4229,14 +4236,14 @@ export type GQLResolversInterfaceTypes<
         article?: Maybe<RefType['Article']>
         collection: RefType['ArticleConnection']
       })
-    | Tag
+    | TagModel
     | (Omit<GQLTopic, 'articles' | 'author' | 'chapters' | 'latestArticle'> & {
         articles?: Maybe<Array<RefType['Article']>>
         author: RefType['User']
         chapters?: Maybe<Array<RefType['Chapter']>>
         latestArticle?: Maybe<RefType['Article']>
       })
-    | User
+    | UserModel
   Notice:
     | (Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
         actors?: Maybe<Array<RefType['User']>>
@@ -4321,11 +4328,11 @@ export type GQLResolversInterfaceTypes<
         tags?: Maybe<Array<RefType['Tag']>>
         transactionsReceivedBy: RefType['UserConnection']
       })
-    | Collection
-}
+    | CollectionModel
+}>
 
 /** Mapping between all available schema types and the resolvers types */
-export type GQLResolversTypes = {
+export type GQLResolversTypes = ResolversObject<{
   AddArticlesTagsInput: GQLAddArticlesTagsInput
   AddCollectionsArticlesInput: GQLAddCollectionsArticlesInput
   AddCreditInput: GQLAddCreditInput
@@ -4546,7 +4553,7 @@ export type GQLResolversTypes = {
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
   ClearReadHistoryInput: GQLClearReadHistoryInput
-  Collection: ResolverTypeWrapper<Collection>
+  Collection: ResolverTypeWrapper<CollectionModel>
   CollectionArticlesInput: GQLCollectionArticlesInput
   CollectionConnection: ResolverTypeWrapper<
     Omit<GQLCollectionConnection, 'edges'> & {
@@ -4894,7 +4901,7 @@ export type GQLResolversTypes = {
       circle: GQLResolversTypes['Circle']
     }
   >
-  Tag: ResolverTypeWrapper<Tag>
+  Tag: ResolverTypeWrapper<TagModel>
   TagArticlesInput: GQLTagArticlesInput
   TagArticlesSortBy: GQLTagArticlesSortBy
   TagConnection: ResolverTypeWrapper<
@@ -5000,7 +5007,7 @@ export type GQLResolversTypes = {
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>
-  User: ResolverTypeWrapper<User>
+  User: ResolverTypeWrapper<UserModel>
   UserActivity: ResolverTypeWrapper<
     Omit<
       GQLUserActivity,
@@ -5045,7 +5052,7 @@ export type GQLResolversTypes = {
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
   UserGroup: GQLUserGroup
-  UserInfo: ResolverTypeWrapper<User>
+  UserInfo: ResolverTypeWrapper<UserModel>
   UserInfoFields: GQLUserInfoFields
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
@@ -5076,17 +5083,17 @@ export type GQLResolversTypes = {
   UserRole: GQLUserRole
   UserSettings: ResolverTypeWrapper<GQLUserSettings>
   UserState: GQLUserState
-  UserStatus: ResolverTypeWrapper<User>
+  UserStatus: ResolverTypeWrapper<UserModel>
   VerificationCodeType: GQLVerificationCodeType
   VerifyEmailInput: GQLVerifyEmailInput
   Vote: GQLVote
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ResolverTypeWrapper<User>
+  Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
-}
+}>
 
 /** Mapping between all available schema types and the resolvers parents */
-export type GQLResolversParentTypes = {
+export type GQLResolversParentTypes = ResolversObject<{
   AddArticlesTagsInput: GQLAddArticlesTagsInput
   AddCollectionsArticlesInput: GQLAddCollectionsArticlesInput
   AddCreditInput: GQLAddCreditInput
@@ -5262,7 +5269,7 @@ export type GQLResolversParentTypes = {
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
   ClearReadHistoryInput: GQLClearReadHistoryInput
-  Collection: Collection
+  Collection: CollectionModel
   CollectionArticlesInput: GQLCollectionArticlesInput
   CollectionConnection: Omit<GQLCollectionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['CollectionEdge']>>
@@ -5527,7 +5534,7 @@ export type GQLResolversParentTypes = {
   SubscribeCircleResult: Omit<GQLSubscribeCircleResult, 'circle'> & {
     circle: GQLResolversParentTypes['Circle']
   }
-  Tag: Tag
+  Tag: TagModel
   TagArticlesInput: GQLTagArticlesInput
   TagConnection: Omit<GQLTagConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TagEdge']>>
@@ -5606,7 +5613,7 @@ export type GQLResolversParentTypes = {
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: Scalars['Upload']['output']
-  User: User
+  User: UserModel
   UserActivity: Omit<
     GQLUserActivity,
     'appreciationsReceived' | 'appreciationsSent' | 'history'
@@ -5647,7 +5654,7 @@ export type GQLResolversParentTypes = {
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
-  UserInfo: User
+  UserInfo: UserModel
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
   UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
@@ -5668,12 +5675,12 @@ export type GQLResolversParentTypes = {
   UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
   UserSettings: GQLUserSettings
-  UserStatus: User
+  UserStatus: UserModel
   VerifyEmailInput: GQLVerifyEmailInput
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: User
+  Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
-}
+}>
 
 export type GQLAuthDirectiveArgs = {
   group?: Maybe<Scalars['String']['input']>
@@ -5799,7 +5806,7 @@ export type GQLRateLimitDirectiveResolver<
 export type GQLAddCreditResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['AddCreditResult'] = GQLResolversParentTypes['AddCreditResult']
-> = {
+> = ResolversObject<{
   client_secret?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   transaction?: Resolver<
     GQLResolversTypes['Transaction'],
@@ -5807,12 +5814,12 @@ export type GQLAddCreditResultResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAnnouncementResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Announcement'] = GQLResolversParentTypes['Announcement']
-> = {
+> = ResolversObject<{
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -5837,12 +5844,12 @@ export type GQLAnnouncementResolvers<
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   visible?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAppreciationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Appreciation'] = GQLResolversParentTypes['Appreciation']
-> = {
+> = ResolversObject<{
   amount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   content?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
@@ -5859,12 +5866,12 @@ export type GQLAppreciationResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAppreciationConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['AppreciationConnection'] = GQLResolversParentTypes['AppreciationConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['AppreciationEdge']>>,
     ParentType,
@@ -5873,21 +5880,21 @@ export type GQLAppreciationConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAppreciationEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['AppreciationEdge'] = GQLResolversParentTypes['AppreciationEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Appreciation'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Article'] = GQLResolversParentTypes['Article']
-> = {
+> = ResolversObject<{
   access?: Resolver<GQLResolversTypes['ArticleAccess'], ParentType, ContextType>
   appreciateLeft?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   appreciateLimit?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
@@ -6075,12 +6082,12 @@ export type GQLArticleResolvers<
   >
   wordCount?: Resolver<Maybe<GQLResolversTypes['Int']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleAccessResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleAccess'] = GQLResolversParentTypes['ArticleAccess']
-> = {
+> = ResolversObject<{
   circle?: Resolver<Maybe<GQLResolversTypes['Circle']>, ParentType, ContextType>
   secret?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   type?: Resolver<
@@ -6089,12 +6096,12 @@ export type GQLArticleAccessResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleArticleNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleArticleNotice'] = GQLResolversParentTypes['ArticleArticleNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6111,12 +6118,12 @@ export type GQLArticleArticleNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleConnection'] = GQLResolversParentTypes['ArticleConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['ArticleEdge']>>,
     ParentType,
@@ -6125,30 +6132,30 @@ export type GQLArticleConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleContentsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleContents'] = GQLResolversParentTypes['ArticleContents']
-> = {
+> = ResolversObject<{
   html?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   markdown?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleEdge'] = GQLResolversParentTypes['ArticleEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleNotice'] = GQLResolversParentTypes['ArticleNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6164,12 +6171,12 @@ export type GQLArticleNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleOSS'] = GQLResolversParentTypes['ArticleOSS']
-> = {
+> = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   inRecommendHottest?: Resolver<
     GQLResolversTypes['Boolean'],
@@ -6188,12 +6195,12 @@ export type GQLArticleOssResolvers<
   >
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleRecommendationActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleRecommendationActivity'] = GQLResolversParentTypes['ArticleRecommendationActivity']
-> = {
+> = ResolversObject<{
   nodes?: Resolver<
     Maybe<Array<GQLResolversTypes['Article']>>,
     ParentType,
@@ -6205,12 +6212,12 @@ export type GQLArticleRecommendationActivityResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleTagNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleTagNotice'] = GQLResolversParentTypes['ArticleTagNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6227,12 +6234,12 @@ export type GQLArticleTagNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLArticleTranslationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ArticleTranslation'] = GQLResolversParentTypes['ArticleTranslation']
-> = {
+> = ResolversObject<{
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -6250,69 +6257,69 @@ export type GQLArticleTranslationResolvers<
   >
   title?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAssetResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Asset'] = GQLResolversParentTypes['Asset']
-> = {
+> = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   path?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AssetType'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLAuthResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['AuthResult'] = GQLResolversParentTypes['AuthResult']
-> = {
+> = ResolversObject<{
   auth?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   token?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AuthResultType'], ParentType, ContextType>
   user?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLBadgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Badge'] = GQLResolversParentTypes['Badge']
-> = {
+> = ResolversObject<{
   type?: Resolver<GQLResolversTypes['BadgeType'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLBalanceResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Balance'] = GQLResolversParentTypes['Balance']
-> = {
+> = ResolversObject<{
   HKD?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLBlockchainTransactionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['BlockchainTransaction'] = GQLResolversParentTypes['BlockchainTransaction']
-> = {
+> = ResolversObject<{
   chain?: Resolver<GQLResolversTypes['Chain'], ParentType, ContextType>
   txHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLBlockedSearchKeywordResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['BlockedSearchKeyword'] = GQLResolversParentTypes['BlockedSearchKeyword']
-> = {
+> = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   searchKey?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLChapterResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Chapter'] = GQLResolversParentTypes['Chapter']
-> = {
+> = ResolversObject<{
   articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   articles?: Resolver<
     Maybe<Array<GQLResolversTypes['Article']>>,
@@ -6328,12 +6335,12 @@ export type GQLChapterResolvers<
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   topic?: Resolver<GQLResolversTypes['Topic'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Circle'] = GQLResolversParentTypes['Circle']
-> = {
+> = ResolversObject<{
   analytics?: Resolver<
     GQLResolversTypes['CircleAnalytics'],
     ParentType,
@@ -6408,12 +6415,12 @@ export type GQLCircleResolvers<
     RequireFields<GQLCircleWorksArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleAnalytics'] = GQLResolversParentTypes['CircleAnalytics']
-> = {
+> = ResolversObject<{
   content?: Resolver<
     GQLResolversTypes['CircleContentAnalytics'],
     ParentType,
@@ -6435,12 +6442,12 @@ export type GQLCircleAnalyticsResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleConnection'] = GQLResolversParentTypes['CircleConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['CircleEdge']>>,
     ParentType,
@@ -6449,12 +6456,12 @@ export type GQLCircleConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleContentAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleContentAnalytics'] = GQLResolversParentTypes['CircleContentAnalytics']
-> = {
+> = ResolversObject<{
   paywall?: Resolver<
     Maybe<Array<GQLResolversTypes['CircleContentAnalyticsDatum']>>,
     ParentType,
@@ -6466,30 +6473,30 @@ export type GQLCircleContentAnalyticsResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleContentAnalyticsDatumResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleContentAnalyticsDatum'] = GQLResolversParentTypes['CircleContentAnalyticsDatum']
-> = {
+> = ResolversObject<{
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   readCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleEdge'] = GQLResolversParentTypes['CircleEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Circle'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleFollowerAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleFollowerAnalytics'] = GQLResolversParentTypes['CircleFollowerAnalytics']
-> = {
+> = ResolversObject<{
   current?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   followerPercentage?: Resolver<
     GQLResolversTypes['Float'],
@@ -6502,12 +6509,12 @@ export type GQLCircleFollowerAnalyticsResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleIncomeAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleIncomeAnalytics'] = GQLResolversParentTypes['CircleIncomeAnalytics']
-> = {
+> = ResolversObject<{
   history?: Resolver<
     Array<GQLResolversTypes['MonthlyDatum']>,
     ParentType,
@@ -6517,12 +6524,12 @@ export type GQLCircleIncomeAnalyticsResolvers<
   thisMonth?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   total?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleNotice'] = GQLResolversParentTypes['CircleNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6553,12 +6560,12 @@ export type GQLCircleNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleRecommendationActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleRecommendationActivity'] = GQLResolversParentTypes['CircleRecommendationActivity']
-> = {
+> = ResolversObject<{
   nodes?: Resolver<
     Maybe<Array<GQLResolversTypes['Circle']>>,
     ParentType,
@@ -6570,12 +6577,12 @@ export type GQLCircleRecommendationActivityResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCircleSubscriberAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CircleSubscriberAnalytics'] = GQLResolversParentTypes['CircleSubscriberAnalytics']
-> = {
+> = ResolversObject<{
   currentInvitee?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   currentSubscriber?: Resolver<
     GQLResolversTypes['Int'],
@@ -6593,21 +6600,21 @@ export type GQLCircleSubscriberAnalyticsResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLClaimLogbooksResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ClaimLogbooksResult'] = GQLResolversParentTypes['ClaimLogbooksResult']
-> = {
+> = ResolversObject<{
   ids?: Resolver<Maybe<Array<GQLResolversTypes['ID']>>, ParentType, ContextType>
   txHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCollectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Collection'] = GQLResolversParentTypes['Collection']
-> = {
+> = ResolversObject<{
   articles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
@@ -6632,12 +6639,12 @@ export type GQLCollectionResolvers<
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCollectionConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CollectionConnection'] = GQLResolversParentTypes['CollectionConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['CollectionEdge']>>,
     ParentType,
@@ -6646,21 +6653,21 @@ export type GQLCollectionConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCollectionEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CollectionEdge'] = GQLResolversParentTypes['CollectionEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Collection'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCommentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Comment'] = GQLResolversParentTypes['Comment']
-> = {
+> = ResolversObject<{
   author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   comments?: Resolver<
     GQLResolversTypes['CommentConnection'],
@@ -6695,12 +6702,12 @@ export type GQLCommentResolvers<
   type?: Resolver<GQLResolversTypes['CommentType'], ParentType, ContextType>
   upvotes?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCommentCommentNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CommentCommentNotice'] = GQLResolversParentTypes['CommentCommentNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6717,12 +6724,12 @@ export type GQLCommentCommentNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCommentConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CommentConnection'] = GQLResolversParentTypes['CommentConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['CommentEdge']>>,
     ParentType,
@@ -6731,21 +6738,21 @@ export type GQLCommentConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCommentEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CommentEdge'] = GQLResolversParentTypes['CommentEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Comment'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLCommentNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CommentNotice'] = GQLResolversParentTypes['CommentNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -6761,20 +6768,20 @@ export type GQLCommentNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLConnectStripeAccountResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ConnectStripeAccountResult'] = GQLResolversParentTypes['ConnectStripeAccountResult']
-> = {
+> = ResolversObject<{
   redirectUrl?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Connection'] = GQLResolversParentTypes['Connection']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     | 'AppreciationConnection'
     | 'ArticleConnection'
@@ -6802,12 +6809,12 @@ export type GQLConnectionResolvers<
   >
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-}
+}>
 
 export type GQLCryptoWalletResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CryptoWallet'] = GQLResolversParentTypes['CryptoWallet']
-> = {
+> = ResolversObject<{
   address?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   hasNFTs?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
@@ -6817,7 +6824,7 @@ export type GQLCryptoWalletResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export interface GQLDateTimeScalarConfig
   extends GraphQLScalarTypeConfig<GQLResolversTypes['DateTime'], any> {
@@ -6827,7 +6834,7 @@ export interface GQLDateTimeScalarConfig
 export type GQLDraftResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Draft'] = GQLResolversParentTypes['Draft']
-> = {
+> = ResolversObject<{
   access?: Resolver<GQLResolversTypes['DraftAccess'], ParentType, ContextType>
   article?: Resolver<
     Maybe<GQLResolversTypes['Article']>,
@@ -6905,12 +6912,12 @@ export type GQLDraftResolvers<
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   wordCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLDraftAccessResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['DraftAccess'] = GQLResolversParentTypes['DraftAccess']
-> = {
+> = ResolversObject<{
   circle?: Resolver<Maybe<GQLResolversTypes['Circle']>, ParentType, ContextType>
   type?: Resolver<
     GQLResolversTypes['ArticleAccessType'],
@@ -6918,12 +6925,12 @@ export type GQLDraftAccessResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLDraftConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['DraftConnection'] = GQLResolversParentTypes['DraftConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['DraftEdge']>>,
     ParentType,
@@ -6932,21 +6939,21 @@ export type GQLDraftConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLDraftEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['DraftEdge'] = GQLResolversParentTypes['DraftEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Draft'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLExchangeRateResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ExchangeRate'] = GQLResolversParentTypes['ExchangeRate']
-> = {
+> = ResolversObject<{
   from?: Resolver<
     GQLResolversTypes['TransactionCurrency'],
     ParentType,
@@ -6956,21 +6963,21 @@ export type GQLExchangeRateResolvers<
   to?: Resolver<GQLResolversTypes['QuoteCurrency'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLFeatureResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Feature'] = GQLResolversParentTypes['Feature']
-> = {
+> = ResolversObject<{
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['FeatureName'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLFollowingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Following'] = GQLResolversParentTypes['Following']
-> = {
+> = ResolversObject<{
   circles?: Resolver<
     GQLResolversTypes['CircleConnection'],
     ParentType,
@@ -6990,12 +6997,12 @@ export type GQLFollowingResolvers<
     RequireFields<GQLFollowingUsersArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLFollowingActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['FollowingActivity'] = GQLResolversParentTypes['FollowingActivity']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     | 'ArticleRecommendationActivity'
     | 'CircleRecommendationActivity'
@@ -7007,12 +7014,12 @@ export type GQLFollowingActivityResolvers<
     ParentType,
     ContextType
   >
-}
+}>
 
 export type GQLFollowingActivityConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['FollowingActivityConnection'] = GQLResolversParentTypes['FollowingActivityConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['FollowingActivityEdge']>>,
     ParentType,
@@ -7021,12 +7028,12 @@ export type GQLFollowingActivityConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLFollowingActivityEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['FollowingActivityEdge'] = GQLResolversParentTypes['FollowingActivityEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<
     GQLResolversTypes['FollowingActivity'],
@@ -7034,12 +7041,12 @@ export type GQLFollowingActivityEdgeResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLInvitationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Invitation'] = GQLResolversParentTypes['Invitation']
-> = {
+> = ResolversObject<{
   acceptedAt?: Resolver<
     Maybe<GQLResolversTypes['DateTime']>,
     ParentType,
@@ -7058,12 +7065,12 @@ export type GQLInvitationResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLInvitationConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['InvitationConnection'] = GQLResolversParentTypes['InvitationConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['InvitationEdge']>>,
     ParentType,
@@ -7072,28 +7079,28 @@ export type GQLInvitationConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLInvitationEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['InvitationEdge'] = GQLResolversParentTypes['InvitationEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Invitation'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLInviteeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Invitee'] = GQLResolversParentTypes['Invitee']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<'Person' | 'User', ParentType, ContextType>
-}
+}>
 
 export type GQLInvitesResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Invites'] = GQLResolversParentTypes['Invites']
-> = {
+> = ResolversObject<{
   accepted?: Resolver<
     GQLResolversTypes['InvitationConnection'],
     ParentType,
@@ -7107,12 +7114,12 @@ export type GQLInvitesResolvers<
     RequireFields<GQLInvitesPendingArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLLikerResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Liker'] = GQLResolversParentTypes['Liker']
-> = {
+> = ResolversObject<{
   civicLiker?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   likerId?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -7122,21 +7129,21 @@ export type GQLLikerResolvers<
   rateUSD?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   total?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLMemberResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Member'] = GQLResolversParentTypes['Member']
-> = {
+> = ResolversObject<{
   price?: Resolver<GQLResolversTypes['Price'], ParentType, ContextType>
   user?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLMemberConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['MemberConnection'] = GQLResolversParentTypes['MemberConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['MemberEdge']>>,
     ParentType,
@@ -7145,30 +7152,30 @@ export type GQLMemberConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLMemberEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['MemberEdge'] = GQLResolversParentTypes['MemberEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Member'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLMonthlyDatumResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['MonthlyDatum'] = GQLResolversParentTypes['MonthlyDatum']
-> = {
+> = ResolversObject<{
   date?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   value?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLMutationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Mutation'] = GQLResolversParentTypes['Mutation']
-> = {
+> = ResolversObject<{
   addArticlesTags?: Resolver<
     GQLResolversTypes['Tag'],
     ParentType,
@@ -7691,12 +7698,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationWalletLoginArgs, 'input'>
   >
-}
+}>
 
 export type GQLNftAssetResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NFTAsset'] = GQLResolversParentTypes['NFTAsset']
-> = {
+> = ResolversObject<{
   collectionName?: Resolver<
     GQLResolversTypes['String'],
     ParentType,
@@ -7721,12 +7728,12 @@ export type GQLNftAssetResolvers<
   imageUrl?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLNodeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Node'] = GQLResolversParentTypes['Node']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     | 'Article'
     | 'Chapter'
@@ -7741,12 +7748,12 @@ export type GQLNodeResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-}
+}>
 
 export type GQLNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Notice'] = GQLResolversParentTypes['Notice']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
@@ -7764,12 +7771,12 @@ export type GQLNoticeResolvers<
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-}
+}>
 
 export type GQLNoticeConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NoticeConnection'] = GQLResolversParentTypes['NoticeConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['NoticeEdge']>>,
     ParentType,
@@ -7778,21 +7785,21 @@ export type GQLNoticeConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLNoticeEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NoticeEdge'] = GQLResolversParentTypes['NoticeEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Notice'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLNotificationSettingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NotificationSetting'] = GQLResolversParentTypes['NotificationSetting']
-> = {
+> = ResolversObject<{
   articleCommentPinned?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7887,12 +7894,12 @@ export type GQLNotificationSettingResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOAuthClientResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['OAuthClient'] = GQLResolversParentTypes['OAuthClient']
-> = {
+> = ResolversObject<{
   avatar?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   description?: Resolver<
@@ -7925,12 +7932,12 @@ export type GQLOAuthClientResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOAuthClientConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['OAuthClientConnection'] = GQLResolversParentTypes['OAuthClientConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['OAuthClientEdge']>>,
     ParentType,
@@ -7939,21 +7946,21 @@ export type GQLOAuthClientConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOAuthClientEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['OAuthClientEdge'] = GQLResolversParentTypes['OAuthClientEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['OAuthClient'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['OSS'] = GQLResolversParentTypes['OSS']
-> = {
+> = ResolversObject<{
   articles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
@@ -8009,12 +8016,12 @@ export type GQLOssResolvers<
     RequireFields<GQLOssUsersArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOfficialResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Official'] = GQLResolversParentTypes['Official']
-> = {
+> = ResolversObject<{
   announcements?: Resolver<
     Maybe<Array<GQLResolversTypes['Announcement']>>,
     ParentType,
@@ -8027,24 +8034,24 @@ export type GQLOfficialResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLOfficialAnnouncementNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['OfficialAnnouncementNotice'] = GQLResolversParentTypes['OfficialAnnouncementNotice']
-> = {
+> = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   link?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   message?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLPageInfoResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['PageInfo'] = GQLResolversParentTypes['PageInfo']
-> = {
+> = ResolversObject<{
   endCursor?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -8062,12 +8069,12 @@ export type GQLPageInfoResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLPayToResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['PayToResult'] = GQLResolversParentTypes['PayToResult']
-> = {
+> = ResolversObject<{
   redirectUrl?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -8079,20 +8086,20 @@ export type GQLPayToResultResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLPersonResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Person'] = GQLResolversParentTypes['Person']
-> = {
+> = ResolversObject<{
   email?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLPinnableWorkResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['PinnableWork'] = GQLResolversParentTypes['PinnableWork']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     'Article' | 'Collection',
     ParentType,
@@ -8102,12 +8109,12 @@ export type GQLPinnableWorkResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-}
+}>
 
 export type GQLPriceResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Price'] = GQLResolversParentTypes['Price']
-> = {
+> = ResolversObject<{
   amount?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   circle?: Resolver<GQLResolversTypes['Circle'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
@@ -8120,12 +8127,12 @@ export type GQLPriceResolvers<
   state?: Resolver<GQLResolversTypes['PriceState'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLQueryResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Query'] = GQLResolversParentTypes['Query']
-> = {
+> = ResolversObject<{
   article?: Resolver<
     Maybe<GQLResolversTypes['Article']>,
     ParentType,
@@ -8183,21 +8190,21 @@ export type GQLQueryResolvers<
     RequireFields<GQLQueryUserArgs, 'input'>
   >
   viewer?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
-}
+}>
 
 export type GQLReadHistoryResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ReadHistory'] = GQLResolversParentTypes['ReadHistory']
-> = {
+> = ResolversObject<{
   article?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   readAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLReadHistoryConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ReadHistoryConnection'] = GQLResolversParentTypes['ReadHistoryConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['ReadHistoryEdge']>>,
     ParentType,
@@ -8206,21 +8213,21 @@ export type GQLReadHistoryConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLReadHistoryEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ReadHistoryEdge'] = GQLResolversParentTypes['ReadHistoryEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['ReadHistory'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLRecentSearchConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['RecentSearchConnection'] = GQLResolversParentTypes['RecentSearchConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['RecentSearchEdge']>>,
     ParentType,
@@ -8229,21 +8236,21 @@ export type GQLRecentSearchConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLRecentSearchEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['RecentSearchEdge'] = GQLResolversParentTypes['RecentSearchEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLRecommendationResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Recommendation'] = GQLResolversParentTypes['Recommendation']
-> = {
+> = ResolversObject<{
   authors?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -8311,19 +8318,19 @@ export type GQLRecommendationResolvers<
     RequireFields<GQLRecommendationTagsArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLResponseResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Response'] = GQLResolversParentTypes['Response']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<'Article' | 'Comment', ParentType, ContextType>
-}
+}>
 
 export type GQLResponseConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ResponseConnection'] = GQLResolversParentTypes['ResponseConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['ResponseEdge']>>,
     ParentType,
@@ -8332,21 +8339,21 @@ export type GQLResponseConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLResponseEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['ResponseEdge'] = GQLResolversParentTypes['ResponseEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSearchResultConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SearchResultConnection'] = GQLResolversParentTypes['SearchResultConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['SearchResultEdge']>>,
     ParentType,
@@ -8355,21 +8362,21 @@ export type GQLSearchResultConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSearchResultEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SearchResultEdge'] = GQLResolversParentTypes['SearchResultEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSigningMessageResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SigningMessageResult'] = GQLResolversParentTypes['SigningMessageResult']
-> = {
+> = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   expiredAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   nonce?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
@@ -8384,12 +8391,12 @@ export type GQLSigningMessageResultResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSkippedListItemResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SkippedListItem'] = GQLResolversParentTypes['SkippedListItem']
-> = {
+> = ResolversObject<{
   archived?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
@@ -8402,12 +8409,12 @@ export type GQLSkippedListItemResolvers<
   uuid?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   value?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSkippedListItemEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SkippedListItemEdge'] = GQLResolversParentTypes['SkippedListItemEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<
     Maybe<GQLResolversTypes['SkippedListItem']>,
@@ -8415,12 +8422,12 @@ export type GQLSkippedListItemEdgeResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSkippedListItemsConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SkippedListItemsConnection'] = GQLResolversParentTypes['SkippedListItemsConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['SkippedListItemEdge']>>,
     ParentType,
@@ -8429,21 +8436,21 @@ export type GQLSkippedListItemsConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLStripeAccountResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['StripeAccount'] = GQLResolversParentTypes['StripeAccount']
-> = {
+> = ResolversObject<{
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   loginUrl?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLSubscribeCircleResultResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['SubscribeCircleResult'] = GQLResolversParentTypes['SubscribeCircleResult']
-> = {
+> = ResolversObject<{
   circle?: Resolver<GQLResolversTypes['Circle'], ParentType, ContextType>
   client_secret?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -8451,12 +8458,12 @@ export type GQLSubscribeCircleResultResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTagResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Tag'] = GQLResolversParentTypes['Tag']
-> = {
+> = ResolversObject<{
   articles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
@@ -8525,12 +8532,12 @@ export type GQLTagResolvers<
     RequireFields<GQLTagSelectedArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTagConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TagConnection'] = GQLResolversParentTypes['TagConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['TagEdge']>>,
     ParentType,
@@ -8539,21 +8546,21 @@ export type GQLTagConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTagEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TagEdge'] = GQLResolversParentTypes['TagEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Tag'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTagNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TagNotice'] = GQLResolversParentTypes['TagNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -8565,22 +8572,22 @@ export type GQLTagNoticeResolvers<
   type?: Resolver<GQLResolversTypes['TagNoticeType'], ParentType, ContextType>
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTagOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TagOSS'] = GQLResolversParentTypes['TagOSS']
-> = {
+> = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   selected?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTopDonatorConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TopDonatorConnection'] = GQLResolversParentTypes['TopDonatorConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['TopDonatorEdge']>>,
     ParentType,
@@ -8589,22 +8596,22 @@ export type GQLTopDonatorConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTopDonatorEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TopDonatorEdge'] = GQLResolversParentTypes['TopDonatorEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTopicResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Topic'] = GQLResolversParentTypes['Topic']
-> = {
+> = ResolversObject<{
   articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   articles?: Resolver<
     Maybe<Array<GQLResolversTypes['Article']>>,
@@ -8633,12 +8640,12 @@ export type GQLTopicResolvers<
   public?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTopicConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TopicConnection'] = GQLResolversParentTypes['TopicConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['TopicEdge']>>,
     ParentType,
@@ -8647,21 +8654,21 @@ export type GQLTopicConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTopicEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TopicEdge'] = GQLResolversParentTypes['TopicEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Topic'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTransactionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Transaction'] = GQLResolversParentTypes['Transaction']
-> = {
+> = ResolversObject<{
   amount?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   blockchainTx?: Resolver<
     Maybe<GQLResolversTypes['BlockchainTransaction']>,
@@ -8703,12 +8710,12 @@ export type GQLTransactionResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTransactionConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TransactionConnection'] = GQLResolversParentTypes['TransactionConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['TransactionEdge']>>,
     ParentType,
@@ -8717,21 +8724,21 @@ export type GQLTransactionConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTransactionEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TransactionEdge'] = GQLResolversParentTypes['TransactionEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Transaction'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTransactionNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TransactionNotice'] = GQLResolversParentTypes['TransactionNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -8747,23 +8754,23 @@ export type GQLTransactionNoticeResolvers<
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLTransactionTargetResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TransactionTarget'] = GQLResolversParentTypes['TransactionTarget']
-> = {
+> = ResolversObject<{
   __resolveType: TypeResolveFn<
     'Article' | 'Circle' | 'Transaction',
     ParentType,
     ContextType
   >
-}
+}>
 
 export type GQLTranslatedAnnouncementResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['TranslatedAnnouncement'] = GQLResolversParentTypes['TranslatedAnnouncement']
-> = {
+> = ResolversObject<{
   content?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -8778,7 +8785,7 @@ export type GQLTranslatedAnnouncementResolvers<
   link?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   title?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export interface GQLUploadScalarConfig
   extends GraphQLScalarTypeConfig<GQLResolversTypes['Upload'], any> {
@@ -8788,7 +8795,7 @@ export interface GQLUploadScalarConfig
 export type GQLUserResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['User'] = GQLResolversParentTypes['User']
-> = {
+> = ResolversObject<{
   activity?: Resolver<
     GQLResolversTypes['UserActivity'],
     ParentType,
@@ -8935,12 +8942,12 @@ export type GQLUserResolvers<
   >
   wallet?: Resolver<GQLResolversTypes['Wallet'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserActivity'] = GQLResolversParentTypes['UserActivity']
-> = {
+> = ResolversObject<{
   appreciationsReceived?: Resolver<
     GQLResolversTypes['AppreciationConnection'],
     ParentType,
@@ -8976,23 +8983,23 @@ export type GQLUserActivityResolvers<
     RequireFields<GQLUserActivityRecentSearchesArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserAddArticleTagActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserAddArticleTagActivity'] = GQLResolversParentTypes['UserAddArticleTagActivity']
-> = {
+> = ResolversObject<{
   actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Tag'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserAnalyticsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserAnalytics'] = GQLResolversParentTypes['UserAnalytics']
-> = {
+> = ResolversObject<{
   topDonators?: Resolver<
     GQLResolversTypes['TopDonatorConnection'],
     ParentType,
@@ -9000,23 +9007,23 @@ export type GQLUserAnalyticsResolvers<
     RequireFields<GQLUserAnalyticsTopDonatorsArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserBroadcastCircleActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserBroadcastCircleActivity'] = GQLResolversParentTypes['UserBroadcastCircleActivity']
-> = {
+> = ResolversObject<{
   actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Comment'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Circle'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserConnection'] = GQLResolversParentTypes['UserConnection']
-> = {
+> = ResolversObject<{
   edges?: Resolver<
     Maybe<Array<GQLResolversTypes['UserEdge']>>,
     ParentType,
@@ -9025,31 +9032,31 @@ export type GQLUserConnectionResolvers<
   pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
   totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserCreateCircleActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserCreateCircleActivity'] = GQLResolversParentTypes['UserCreateCircleActivity']
-> = {
+> = ResolversObject<{
   actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Circle'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserEdge'] = GQLResolversParentTypes['UserEdge']
-> = {
+> = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserInfoResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserInfo'] = GQLResolversParentTypes['UserInfo']
-> = {
+> = ResolversObject<{
   agreeOn?: Resolver<
     Maybe<GQLResolversTypes['DateTime']>,
     ParentType,
@@ -9104,12 +9111,12 @@ export type GQLUserInfoResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserNoticeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserNotice'] = GQLResolversParentTypes['UserNotice']
-> = {
+> = ResolversObject<{
   actors?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -9121,12 +9128,12 @@ export type GQLUserNoticeResolvers<
   type?: Resolver<GQLResolversTypes['UserNoticeType'], ParentType, ContextType>
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserOssResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserOSS'] = GQLResolversParentTypes['UserOSS']
-> = {
+> = ResolversObject<{
   boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   restrictions?: Resolver<
     Array<GQLResolversTypes['UserRestriction']>,
@@ -9135,22 +9142,22 @@ export type GQLUserOssResolvers<
   >
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserPublishArticleActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserPublishArticleActivity'] = GQLResolversParentTypes['UserPublishArticleActivity']
-> = {
+> = ResolversObject<{
   actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserRecommendationActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserRecommendationActivity'] = GQLResolversParentTypes['UserRecommendationActivity']
-> = {
+> = ResolversObject<{
   nodes?: Resolver<
     Maybe<Array<GQLResolversTypes['User']>>,
     ParentType,
@@ -9162,12 +9169,12 @@ export type GQLUserRecommendationActivityResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserRestrictionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserRestriction'] = GQLResolversParentTypes['UserRestriction']
-> = {
+> = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   type?: Resolver<
     GQLResolversTypes['UserRestrictionType'],
@@ -9175,12 +9182,12 @@ export type GQLUserRestrictionResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserSettingsResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserSettings'] = GQLResolversParentTypes['UserSettings']
-> = {
+> = ResolversObject<{
   currency?: Resolver<
     GQLResolversTypes['QuoteCurrency'],
     ParentType,
@@ -9197,12 +9204,12 @@ export type GQLUserSettingsResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLUserStatusResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserStatus'] = GQLResolversParentTypes['UserStatus']
-> = {
+> = ResolversObject<{
   articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donatedArticleCount?: Resolver<
@@ -9234,12 +9241,12 @@ export type GQLUserStatusResolvers<
     ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
 export type GQLWalletResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Wallet'] = GQLResolversParentTypes['Wallet']
-> = {
+> = ResolversObject<{
   balance?: Resolver<GQLResolversTypes['Balance'], ParentType, ContextType>
   cardLast4?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -9263,9 +9270,9 @@ export type GQLWalletResolvers<
     RequireFields<GQLWalletTransactionsArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
+}>
 
-export type GQLResolvers<ContextType = Context> = {
+export type GQLResolvers<ContextType = Context> = ResolversObject<{
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
   Appreciation?: GQLAppreciationResolvers<ContextType>
@@ -9403,9 +9410,9 @@ export type GQLResolvers<ContextType = Context> = {
   UserSettings?: GQLUserSettingsResolvers<ContextType>
   UserStatus?: GQLUserStatusResolvers<ContextType>
   Wallet?: GQLWalletResolvers<ContextType>
-}
+}>
 
-export type GQLDirectiveResolvers<ContextType = Context> = {
+export type GQLDirectiveResolvers<ContextType = Context> = ResolversObject<{
   auth?: GQLAuthDirectiveResolver<any, any, ContextType>
   cacheControl?: GQLCacheControlDirectiveResolver<any, any, ContextType>
   complexity?: GQLComplexityDirectiveResolver<any, any, ContextType>
@@ -9415,4 +9422,4 @@ export type GQLDirectiveResolvers<ContextType = Context> = {
   privateCache?: GQLPrivateCacheDirectiveResolver<any, any, ContextType>
   purgeCache?: GQLPurgeCacheDirectiveResolver<any, any, ContextType>
   rateLimit?: GQLRateLimitDirectiveResolver<any, any, ContextType>
-}
+}>

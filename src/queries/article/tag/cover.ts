@@ -3,7 +3,6 @@ import type { GQLTagResolvers } from 'definitions'
 import _find from 'lodash/find'
 import _isNil from 'lodash/isNil'
 
-
 const resolver: GQLTagResolvers['cover'] = async (
   { id, cover },
   _,
