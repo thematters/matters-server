@@ -1,3 +1,14 @@
+import type {
+  GQLUserRestriction,
+  Item,
+  ItemData,
+  UserOAuthLikeCoin,
+  UserOAuthLikeCoinAccountType,
+  User,
+  VerficationCode,
+  ValueOf,
+} from 'definitions'
+
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
@@ -17,6 +28,7 @@ import {
   MATERIALIZED_VIEW,
   PRICE_STATE,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  SEARCH_EXCLUDE,
   SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -24,8 +36,12 @@ import {
   USER_ACTION,
   USER_STATE,
   USER_BAN_REMARK,
+  AUTHOR_TYPE,
+  RESET_PASSWORD_TYPE,
   VERIFICATION_CODE_EXPIRED_AFTER,
   VERIFICATION_CODE_STATUS,
+  VERIFICATION_CODE_TYPE,
+  USER_RESTRICTION_TYPE,
   VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -52,21 +68,6 @@ import {
   OAuthService,
   NotificationService,
 } from 'connectors'
-import {
-  GQLAuthorsType,
-  GQLResetPasswordType,
-  GQLSearchExclude,
-  type GQLUserRestriction,
-  GQLUserRestrictionType,
-  GQLVerificationCodeType,
-  type Item,
-  type ItemData,
-  type UserOAuthLikeCoin,
-  UserOAuthLikeCoinAccountType,
-  type User,
-  type VerficationCode,
-  type ValueOf,
-} from 'definitions'
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
@@ -244,11 +245,11 @@ export class UserService extends BaseService {
   public changePassword = async ({
     userId,
     password,
-    type = GQLResetPasswordType.account,
+    type = RESET_PASSWORD_TYPE.account,
   }: {
     userId: string
     password: string
-    type?: GQLResetPasswordType
+    type?: keyof typeof RESET_PASSWORD_TYPE
   }) => {
     const passwordHash = await generatePasswordhash(password)
     const data =
@@ -451,7 +452,7 @@ export class UserService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
-    exclude?: GQLSearchExclude
+    exclude?: keyof typeof SEARCH_EXCLUDE
     coefficients?: string
     quicksearch?: boolean
   }) => {
@@ -478,7 +479,7 @@ export class UserService extends BaseService {
     }
 
     // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    const excludeBlocked = exclude === SEARCH_EXCLUDE.blocked && viewerId
     let blockedIds: string[] = []
     if (excludeBlocked) {
       blockedIds = (
@@ -608,7 +609,7 @@ export class UserService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
-    exclude?: GQLSearchExclude
+    exclude?: keyof typeof SEARCH_EXCLUDE
     coefficients?: string
     quicksearch?: boolean
   }) => {
@@ -1003,14 +1004,14 @@ export class UserService extends BaseService {
   public countAuthor = async ({
     notIn = [],
     oss = false,
-    type = GQLAuthorsType.default,
+    type = AUTHOR_TYPE.default,
   }: {
     notIn?: string[]
     oss?: boolean
-    type: GQLAuthorsType
+    type: AUTHOR_TYPE
   }) => {
     switch (type) {
-      case GQLAuthorsType.default: {
+      case AUTHOR_TYPE.default: {
         const table = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
@@ -1021,13 +1022,13 @@ export class UserService extends BaseService {
           .first()
         return parseInt(result ? (result.count as string) : '0', 10)
       }
-      case GQLAuthorsType.active:
-      case GQLAuthorsType.appreciated:
-      case GQLAuthorsType.trendy: {
+      case AUTHOR_TYPE.active:
+      case AUTHOR_TYPE.appreciated:
+      case AUTHOR_TYPE.trendy: {
         const view =
-          type === GQLAuthorsType.active
+          type === AUTHOR_TYPE.active
             ? 'most_active_author_materialized'
-            : type === GQLAuthorsType.appreciated
+            : type === AUTHOR_TYPE.appreciated
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
         const result = await this.knex
@@ -1047,16 +1048,16 @@ export class UserService extends BaseService {
     skip,
     notIn = [],
     oss = false,
-    type = GQLAuthorsType.default,
+    type = AUTHOR_TYPE.default,
   }: {
     take?: number
     skip?: number
     notIn?: string[]
     oss?: boolean
-    type?: GQLAuthorsType
+    type?: keyof typeof AUTHOR_TYPE
   }) => {
     switch (type) {
-      case GQLAuthorsType.default: {
+      case AUTHOR_TYPE.default: {
         const table = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
@@ -1076,13 +1077,13 @@ export class UserService extends BaseService {
 
         return query
       }
-      case GQLAuthorsType.active:
-      case GQLAuthorsType.appreciated:
-      case GQLAuthorsType.trendy: {
+      case AUTHOR_TYPE.active:
+      case AUTHOR_TYPE.appreciated:
+      case AUTHOR_TYPE.trendy: {
         const view =
-          type === GQLAuthorsType.active
+          type === AUTHOR_TYPE.active
             ? 'most_active_author_materialized'
-            : type === GQLAuthorsType.appreciated
+            : type === AUTHOR_TYPE.appreciated
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
 
@@ -1404,7 +1405,7 @@ export class UserService extends BaseService {
   }: {
     where?: {
       [key: string]: any
-      type?: GQLVerificationCodeType
+      type?: keyof typeof VERIFICATION_CODE_TYPE
       status?: VERIFICATION_CODE_STATUS
     }
   }) => {
@@ -1824,7 +1825,7 @@ export class UserService extends BaseService {
 
   public updateRestrictions = async (
     id: string,
-    types: GQLUserRestrictionType[]
+    types: Array<keyof typeof USER_RESTRICTION_TYPE>
   ) => {
     const olds = (await this.findRestrictions(id)).map(({ type }) => type)
     const news = [...new Set(types)]
@@ -1836,7 +1837,10 @@ export class UserService extends BaseService {
     ])
   }
 
-  public addRestriction = async (id: string, type: GQLUserRestrictionType) => {
+  public addRestriction = async (
+    id: string,
+    type: keyof typeof USER_RESTRICTION_TYPE
+  ) => {
     const table = 'user_restriction'
     const atomService = new AtomService()
     await atomService.create({ table, data: { userId: id, type } })
@@ -1844,7 +1848,7 @@ export class UserService extends BaseService {
 
   public removeRestriction = async (
     id: string,
-    type: GQLUserRestrictionType
+    type: keyof typeof USER_RESTRICTION_TYPE
   ) => {
     const table = 'user_restriction'
     const atomService = new AtomService()

@@ -34,9 +34,7 @@ export const sendCircleInvitation = async ({
   const templateId = EMAIL_TEMPLATE_ID.circleInvitation[language]
   const urlHasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
   const registerLink = code
-    ? `${redirectUrl}${urlHasQs ? '&' : '?'}code=${code}&type=${
-        "register"
-      }`
+    ? `${redirectUrl}${urlHasQs ? '&' : '?'}code=${code}&type=${'register'}`
     : undefined
   const circleLink = code
     ? undefined

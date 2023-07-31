@@ -39,20 +39,20 @@ export enum PAYMENT_PROVIDER {
   blockchain = 'blockchain',
 }
 
-export enum BLOCKCHAIN {
-  Polygon = 'Polygon',
-}
+export const BLOCKCHAIN = {
+  Polygon: 'Polygon',
+} as const
 
 export const BLOCKCHAIN_CHAINID = {
   [BLOCKCHAIN.Polygon]: {
     PolygonMainnet: '137',
     PolygonMumbai: '80001',
   },
-}
+} as const
 
 export const BLOCKCHAIN_SAFE_CONFIRMS = {
   [BLOCKCHAIN.Polygon]: 128,
-}
+} as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {
   pending = 'pending',

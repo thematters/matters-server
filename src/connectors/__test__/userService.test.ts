@@ -191,7 +191,7 @@ describe('search', () => {
       key: 'test2',
       take: 3,
       skip: 0,
-      exclude: "blocked",
+      exclude: 'blocked',
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)

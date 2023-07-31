@@ -27,6 +27,9 @@ export * from './cors'
 export * from './sqs'
 export * from './logging'
 export * from './collection'
+export * from './feature'
+export * from './auth'
+export * from './oss'
 
 export const GRAPHQL_COST_LIMIT = 5000
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
@@ -84,10 +87,10 @@ export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
 }
 
 export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
-  cc_0: "cc_0",
-  cc_by_nc_nd_2: "cc_by_nc_nd_2",
-  cc_by_nc_nd_4: "cc_by_nc_nd_4",
-  arr: "arr",
+  cc_0: 'cc_0',
+  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
+  cc_by_nc_nd_4: 'cc_by_nc_nd_4',
+  arr: 'arr',
 }
 
 export const PUBLISH_STATE = {
@@ -201,6 +204,9 @@ export const APPRECIATION_TYPES = {
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
 export const SEARCH_ARTICLE_URL_REGEX =
   /^(https:\/\/([a-z0-9-]+.)?matters.(town|news)\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
+export const SEARCH_EXCLUDE = {
+  blocked: 'blocked',
+} as const
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
