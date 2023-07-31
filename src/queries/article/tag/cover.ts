@@ -6,7 +6,7 @@ import _isNil from 'lodash/isNil'
 const resolver: GQLTagResolvers['cover'] = async (
   { id, cover },
   _,
-  { dataSources: { articleService, systemService, tagService } }
+  { dataSources: { systemService, tagService } }
 ) => {
   let coverId = cover
 

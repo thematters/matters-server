@@ -5,11 +5,11 @@ export interface Tag {
   updatedAt: string
   remark?: string
   delete: boolean
-  cover?: number
+  cover?: string
   description?: string
   editor?: string[]
   creator: string
   owner: string
-  major_tag_id?: string
+  majorTagId?: string
   slug: string
 }

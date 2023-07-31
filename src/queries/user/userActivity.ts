@@ -3,9 +3,9 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { GQLUserActivityTypeResolver } from 'definitions'
+import { GQLUserActivityResolvers } from 'definitions'
 
-const resolver: GQLUserActivityTypeResolver = {
+const resolver: GQLUserActivityResolvers = {
   history: async (
     { id },
     { input },

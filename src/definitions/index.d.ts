@@ -60,6 +60,7 @@ export interface User {
   updatedAt: string
   agreeOn: string
   ethAddress: string
+  currency?: string
 }
 
 export type UserRole = 'admin' | 'user'

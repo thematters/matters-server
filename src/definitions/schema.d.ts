@@ -3,7 +3,7 @@ import {
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
 } from 'graphql'
-import { User as UserModel, Context } from './index'
+import { Viewer as ViewerModel, Context } from './index'
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
@@ -1099,7 +1099,7 @@ export type GQLConnectionArgs = {
 export type GQLCryptoWallet = {
   __typename?: 'CryptoWallet'
   address: Scalars['String']['output']
-  /**  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query  */
+  /**  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query */
   hasNFTs: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   /** NFT assets owned by this wallet address */
@@ -3986,7 +3986,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
       | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<RefType['User']>>
         })
-    Invitee: GQLPerson | UserModel
+    Invitee: GQLPerson | ViewerModel
     Response: DraftModel | CommentModel
     TransactionTarget:
       | DraftModel
@@ -4075,7 +4075,7 @@ export type GQLResolversInterfaceTypes<
         chapters?: Maybe<Array<RefType['Chapter']>>
         latestArticle?: Maybe<RefType['Article']>
       })
-    | UserModel
+    | ViewerModel
   Notice:
     | (Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
         actors?: Maybe<Array<RefType['User']>>
@@ -4370,13 +4370,7 @@ export type GQLResolversTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
-  Following: ResolverTypeWrapper<
-    Omit<GQLFollowing, 'circles' | 'tags' | 'users'> & {
-      circles: GQLResolversTypes['CircleConnection']
-      tags: GQLResolversTypes['TagConnection']
-      users: GQLResolversTypes['UserConnection']
-    }
-  >
+  Following: ResolverTypeWrapper<ViewerModel>
   FollowingActivity: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['FollowingActivity']
   >
@@ -4420,7 +4414,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: ResolverTypeWrapper<GQLLiker>
+  Liker: ResolverTypeWrapper<ViewerModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
   Member: ResolverTypeWrapper<
@@ -4546,32 +4540,7 @@ export type GQLResolversTypes = ResolversObject<{
   RecentSearchEdge: ResolverTypeWrapper<GQLRecentSearchEdge>
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
-  Recommendation: ResolverTypeWrapper<
-    Omit<
-      GQLRecommendation,
-      | 'authors'
-      | 'hottest'
-      | 'hottestCircles'
-      | 'hottestTags'
-      | 'icymi'
-      | 'newest'
-      | 'newestCircles'
-      | 'readTagsArticles'
-      | 'selectedTags'
-      | 'tags'
-    > & {
-      authors: GQLResolversTypes['UserConnection']
-      hottest: GQLResolversTypes['ArticleConnection']
-      hottestCircles: GQLResolversTypes['CircleConnection']
-      hottestTags: GQLResolversTypes['TagConnection']
-      icymi: GQLResolversTypes['ArticleConnection']
-      newest: GQLResolversTypes['ArticleConnection']
-      newestCircles: GQLResolversTypes['CircleConnection']
-      readTagsArticles: GQLResolversTypes['ArticleConnection']
-      selectedTags: GQLResolversTypes['TagConnection']
-      tags: GQLResolversTypes['TagConnection']
-    }
-  >
+  Recommendation: ResolverTypeWrapper<ViewerModel>
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -4727,17 +4696,8 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>
-  User: ResolverTypeWrapper<UserModel>
-  UserActivity: ResolverTypeWrapper<
-    Omit<
-      GQLUserActivity,
-      'appreciationsReceived' | 'appreciationsSent' | 'history'
-    > & {
-      appreciationsReceived: GQLResolversTypes['AppreciationConnection']
-      appreciationsSent: GQLResolversTypes['AppreciationConnection']
-      history: GQLResolversTypes['ReadHistoryConnection']
-    }
-  >
+  User: ResolverTypeWrapper<ViewerModel>
+  UserActivity: ResolverTypeWrapper<ViewerModel>
   UserAddArticleTagActivity: ResolverTypeWrapper<
     Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4745,11 +4705,7 @@ export type GQLResolversTypes = ResolversObject<{
       target: GQLResolversTypes['Tag']
     }
   >
-  UserAnalytics: ResolverTypeWrapper<
-    Omit<GQLUserAnalytics, 'topDonators'> & {
-      topDonators: GQLResolversTypes['TopDonatorConnection']
-    }
-  >
+  UserAnalytics: ResolverTypeWrapper<ViewerModel>
   UserBroadcastCircleActivity: ResolverTypeWrapper<
     Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4772,7 +4728,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
   UserGroup: GQLUserGroup
-  UserInfo: ResolverTypeWrapper<UserModel>
+  UserInfo: ResolverTypeWrapper<ViewerModel>
   UserInfoFields: GQLUserInfoFields
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
@@ -4784,7 +4740,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   UserNoticeType: GQLUserNoticeType
-  UserOSS: ResolverTypeWrapper<GQLUserOss>
+  UserOSS: ResolverTypeWrapper<ViewerModel>
   UserPublishArticleActivity: ResolverTypeWrapper<
     Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
       actor: GQLResolversTypes['User']
@@ -4801,14 +4757,14 @@ export type GQLResolversTypes = ResolversObject<{
   UserRestriction: ResolverTypeWrapper<GQLUserRestriction>
   UserRestrictionType: GQLUserRestrictionType
   UserRole: GQLUserRole
-  UserSettings: ResolverTypeWrapper<GQLUserSettings>
+  UserSettings: ResolverTypeWrapper<ViewerModel>
   UserState: GQLUserState
-  UserStatus: ResolverTypeWrapper<UserModel>
+  UserStatus: ResolverTypeWrapper<ViewerModel>
   VerificationCodeType: GQLVerificationCodeType
   VerifyEmailInput: GQLVerifyEmailInput
   Vote: GQLVote
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ResolverTypeWrapper<UserModel>
+  Wallet: ResolverTypeWrapper<ViewerModel>
   WalletLoginInput: GQLWalletLoginInput
 }>
 
@@ -4995,11 +4951,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: Scalars['Float']['output']
-  Following: Omit<GQLFollowing, 'circles' | 'tags' | 'users'> & {
-    circles: GQLResolversParentTypes['CircleConnection']
-    tags: GQLResolversParentTypes['TagConnection']
-    users: GQLResolversParentTypes['UserConnection']
-  }
+  Following: ViewerModel
   FollowingActivity: GQLResolversUnionTypes<GQLResolversParentTypes>['FollowingActivity']
   FollowingActivityConnection: GQLFollowingActivityConnection
   FollowingActivityEdge: Omit<GQLFollowingActivityEdge, 'node'> & {
@@ -5029,7 +4981,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: GQLLiker
+  Liker: ViewerModel
   LogRecordInput: GQLLogRecordInput
   Member: Omit<GQLMember, 'price' | 'user'> & {
     price: GQLResolversParentTypes['Price']
@@ -5125,30 +5077,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecentSearchConnection: GQLRecentSearchConnection
   RecentSearchEdge: GQLRecentSearchEdge
   RecommendInput: GQLRecommendInput
-  Recommendation: Omit<
-    GQLRecommendation,
-    | 'authors'
-    | 'hottest'
-    | 'hottestCircles'
-    | 'hottestTags'
-    | 'icymi'
-    | 'newest'
-    | 'newestCircles'
-    | 'readTagsArticles'
-    | 'selectedTags'
-    | 'tags'
-  > & {
-    authors: GQLResolversParentTypes['UserConnection']
-    hottest: GQLResolversParentTypes['ArticleConnection']
-    hottestCircles: GQLResolversParentTypes['CircleConnection']
-    hottestTags: GQLResolversParentTypes['TagConnection']
-    icymi: GQLResolversParentTypes['ArticleConnection']
-    newest: GQLResolversParentTypes['ArticleConnection']
-    newestCircles: GQLResolversParentTypes['CircleConnection']
-    readTagsArticles: GQLResolversParentTypes['ArticleConnection']
-    selectedTags: GQLResolversParentTypes['TagConnection']
-    tags: GQLResolversParentTypes['TagConnection']
-  }
+  Recommendation: ViewerModel
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RenameTagInput: GQLRenameTagInput
@@ -5263,15 +5192,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: Scalars['Upload']['output']
-  User: UserModel
-  UserActivity: Omit<
-    GQLUserActivity,
-    'appreciationsReceived' | 'appreciationsSent' | 'history'
-  > & {
-    appreciationsReceived: GQLResolversParentTypes['AppreciationConnection']
-    appreciationsSent: GQLResolversParentTypes['AppreciationConnection']
-    history: GQLResolversParentTypes['ReadHistoryConnection']
-  }
+  User: ViewerModel
+  UserActivity: ViewerModel
   UserAddArticleTagActivity: Omit<
     GQLUserAddArticleTagActivity,
     'actor' | 'node' | 'target'
@@ -5280,9 +5202,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Article']
     target: GQLResolversParentTypes['Tag']
   }
-  UserAnalytics: Omit<GQLUserAnalytics, 'topDonators'> & {
-    topDonators: GQLResolversParentTypes['TopDonatorConnection']
-  }
+  UserAnalytics: ViewerModel
   UserBroadcastCircleActivity: Omit<
     GQLUserBroadcastCircleActivity,
     'actor' | 'node' | 'target'
@@ -5304,14 +5224,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
-  UserInfo: UserModel
+  UserInfo: ViewerModel
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
   UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
     actors?: Maybe<Array<GQLResolversParentTypes['User']>>
     target: GQLResolversParentTypes['User']
   }
-  UserOSS: GQLUserOss
+  UserOSS: ViewerModel
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
     'actor' | 'node'
@@ -5324,11 +5244,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
-  UserSettings: GQLUserSettings
-  UserStatus: UserModel
+  UserSettings: ViewerModel
+  UserStatus: ViewerModel
   VerifyEmailInput: GQLVerifyEmailInput
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: UserModel
+  Wallet: ViewerModel
   WalletLoginInput: GQLWalletLoginInput
 }>
 
@@ -6457,8 +6377,6 @@ export type GQLConnectionResolvers<
     ParentType,
     ContextType
   >
-  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
-  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
 }>
 
 export type GQLCryptoWalletResolvers<
@@ -7397,7 +7315,6 @@ export type GQLNodeResolvers<
     ParentType,
     ContextType
   >
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
 }>
 
 export type GQLNoticeResolvers<
@@ -7418,9 +7335,6 @@ export type GQLNoticeResolvers<
     ParentType,
     ContextType
   >
-  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
 }>
 
 export type GQLNoticeConnectionResolvers<
@@ -7755,10 +7669,6 @@ export type GQLPinnableWorkResolvers<
     ParentType,
     ContextType
   >
-  cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
 }>
 
 export type GQLPriceResolvers<

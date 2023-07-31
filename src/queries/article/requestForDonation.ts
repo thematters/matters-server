@@ -1,9 +1,8 @@
-import type { GQLArticleToReplyResolvers } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: GQLArticleToReplyResolvers['donator'] = async (
+const resolver: GQLArticleResolvers['requestForDonation'] = async (
   { requestForDonation },
-  _,
-  { dataSources: { draftService } }
-) => requestForDonation
+  _
+) => requestForDonation ?? null
 
 export default resolver

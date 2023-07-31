@@ -1,4 +1,4 @@
-import { GQLWalletTypeResolver } from 'definitions'
+import { GQLWalletResolvers } from 'definitions'
 
 import balance from './balance'
 import cardLast4 from './cardLast4'
@@ -6,7 +6,7 @@ import customerPortal from './customerPortal'
 import stripeAccount from './stripeAccount'
 import transactions from './transactions'
 
-const Wallet: GQLWalletTypeResolver = {
+const Wallet: GQLWalletResolvers = {
   balance,
   transactions,
   stripeAccount,
