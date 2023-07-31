@@ -50,6 +50,9 @@ const resolver: GQLUserActivityResolvers = {
     { input },
     { dataSources: { userService } }
   ) => {
+    if (!id) {
+      return connectionFromArray([], input)
+    }
     const { take, skip } = fromConnectionArgs(input)
     const totalCount = await userService.totalSentAppreciationCount(id)
     return connectionFromPromisedArray(
@@ -59,14 +62,21 @@ const resolver: GQLUserActivityResolvers = {
     )
   },
 
-  appreciationsSentTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalSent(id),
+  appreciationsSentTotal: ({ id }, _, { dataSources: { userService } }) => {
+    if (!id) {
+      return 0
+    }
+    return userService.totalSent(id)
+  },
 
   appreciationsReceived: async (
     { id },
     { input },
     { dataSources: { userService } }
   ) => {
+    if (!id) {
+      return connectionFromArray([], input)
+    }
     const { take, skip } = fromConnectionArgs(input)
 
     const totalCount = await userService.totalRecivedAppreciationCount(id)
@@ -77,8 +87,12 @@ const resolver: GQLUserActivityResolvers = {
     )
   },
 
-  appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalRecived(id),
+  appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) => {
+    if (!id) {
+      return 0
+    }
+    return userService.totalRecived(id)
+  },
 }
 
 export default resolver

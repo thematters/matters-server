@@ -1,10 +1,10 @@
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
 import {
-  GQLChain,
-  GQLTransactionCurrency,
-  GQLTransactionPurpose,
-} from 'definitions'
+  NODE_TYPES,
+  BLOCKCHAIN,
+  TRANSACTION_PURPOSE,
+  PAYMENT_CURRENCY,
+} from 'common/enums'
+import { toGlobalId } from 'common/utils'
 
 import { testClient } from '../utils'
 
@@ -34,13 +34,13 @@ describe('donation', () => {
     }
   `
   const amount = 1.1
-  const currency = GQLTransactionCurrency.USDT
-  const purpose = GQLTransactionPurpose.donation
+  const currency = PAYMENT_CURRENCY.USDT
+  const purpose = TRANSACTION_PURPOSE.donation
   const senderId = toGlobalId({ type: NODE_TYPES.User, id: 1 })
   const recipientId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
   const wrongRecipientId = toGlobalId({ type: NODE_TYPES.User, id: 3 })
   const targetId = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
-  const chain = GQLChain.Polygon
+  const chain = BLOCKCHAIN.Polygon
   const txHash =
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
   test('cannot donate yourself', async () => {

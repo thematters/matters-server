@@ -1,3 +1,5 @@
+import type { ItemData, SkippedListItemType, Viewer } from 'definitions'
+
 import { v4 } from 'uuid'
 
 import {
@@ -11,7 +13,6 @@ import {
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
-import { ItemData, SkippedListItemType, Viewer } from 'definitions'
 
 const logger = getLogger('service-system')
 
@@ -74,7 +75,7 @@ export class SystemService extends BaseService {
   public getFeatureFlags = () =>
     this.knex(this.featureFlagTable).select('*').limit(50)
 
-  public getFeatureFlag = async (name: GQLFeatureName) => {
+  public getFeatureFlag = async (name: keyof typeof FEATURE_NAME) => {
     const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
     return featureFlag
   }

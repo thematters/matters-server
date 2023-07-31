@@ -1,8 +1,8 @@
-import { GQLStripeAccountTypeResolver } from 'definitions'
+import type { GQLStripeAccountResolvers } from 'definitions'
 
 import loginUrl from './loginUrl'
 
-const StripeAccount: GQLStripeAccountTypeResolver = {
+const StripeAccount: GQLStripeAccountResolvers = {
   id: ({ accountId }) => accountId,
   loginUrl,
 }

@@ -114,7 +114,7 @@ export const createRefundTxs = async (
         amount: toDBAmount({ amount: refund.amount }),
 
         state: TRANSACTION_STATE.succeeded,
-        currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+        currency: _.upperCase(refund.currency) as keyof typeof PAYMENT_CURRENCY,
         purpose: TRANSACTION_PURPOSE.refund,
 
         provider: PAYMENT_PROVIDER.stripe,
@@ -164,7 +164,7 @@ export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
       amount: toDBAmount({ amount: refund.amount }),
 
       state: TRANSACTION_STATE.failed,
-      currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+      currency: _.upperCase(refund.currency) as keyof typeof PAYMENT_CURRENCY,
       purpose: TRANSACTION_PURPOSE.refund,
 
       provider: PAYMENT_PROVIDER.stripe,

@@ -35,6 +35,8 @@ const config: CodegenConfig = {
           ArticleOSS: './draft#Draft',
           ArticleContents: './draft#Draft',
           Circle: './circle#Circle',
+          StripeAccount: './payment#PayoutAccount',
+          Transaction: './index#Transaction',
         },
         contextType: './index#Context',
         makeResolverTypeCallable: true,

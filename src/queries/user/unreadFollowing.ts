@@ -7,6 +7,9 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   _,
   { dataSources: { systemService }, knex }
 ) => {
+  if (userId === null) {
+    return false
+  }
   const readFollowingFeedLog = await systemService.findLogRecord({
     userId,
     type: LOG_RECORD_TYPES.ReadFollowingFeed,

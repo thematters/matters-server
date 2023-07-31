@@ -21,6 +21,9 @@ const resolver: GQLWalletResolvers['transactions'] = async (
   { dataSources: { paymentService }, viewer },
   info
 ) => {
+  if (userId === null) {
+    return connectionFromArray([], input)
+  }
   const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
 

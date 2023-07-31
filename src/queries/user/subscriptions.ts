@@ -1,12 +1,19 @@
 import type { GQLUserResolvers } from 'definitions'
 
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils'
 
 const resolver: GQLUserResolvers['subscriptions'] = async (
-  { id }: { id: string },
+  { id },
   { input },
   { dataSources: { articleService, draftService, userService } }
 ) => {
+  if (id === null) {
+    return connectionFromArray([], input)
+  }
   const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, actions] = await Promise.all([

@@ -30,6 +30,7 @@ export * from './collection'
 export * from './feature'
 export * from './auth'
 export * from './oss'
+export * from './tag'
 
 export const GRAPHQL_COST_LIMIT = 5000
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
@@ -55,20 +56,21 @@ export const APPRECIATION_PURPOSE = {
 export const VOTE = {
   up: 'up',
   down: 'down',
-}
+} as const
 
 export const COMMENT_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
   collapsed: 'collapsed',
-}
+} as const
 
 export const COMMENT_TYPE = {
   article: 'article',
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
-}
+} as const
+
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
   Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
 )

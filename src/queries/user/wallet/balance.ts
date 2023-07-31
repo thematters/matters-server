@@ -7,6 +7,11 @@ const resolver: GQLWalletResolvers['balance'] = async (
   _,
   { dataSources: { paymentService } }
 ) => {
+  if (id === null) {
+    return {
+      HKD: 0,
+    }
+  }
   const HKD = await paymentService.calculateBalance({
     userId: id,
     currency: PAYMENT_CURRENCY.HKD,

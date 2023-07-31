@@ -4,11 +4,9 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
-  // PUBLISH_STATE,
+  COMMENT_TYPE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-// import { AtomService } from 'connectors'
-import { GQLCommentType } from 'definitions'
 
 import { delay, publishArticle, putDraft, testClient } from '../utils'
 
@@ -658,7 +656,7 @@ describe('circle CRUD', () => {
           comment: {
             content: 'discussion',
             circleId: circle.id,
-            type: GQLCommentType.circleDiscussion,
+            type: COMMENT_TYPE.circleDiscussion,
           },
         },
       },
@@ -698,7 +696,7 @@ describe('circle CRUD', () => {
           comment: {
             content: 'broadcast',
             circleId: circle.id,
-            type: GQLCommentType.circleBroadcast,
+            type: COMMENT_TYPE.circleBroadcast,
           },
         },
       },

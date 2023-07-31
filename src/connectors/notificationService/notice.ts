@@ -1,11 +1,4 @@
-import DataLoader from 'dataloader'
-import { isArray, isEqual, mergeWith, uniq } from 'lodash'
-import { v4 } from 'uuid'
-
-import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
-import { getLogger } from 'common/logger'
-import { BaseService } from 'connectors'
-import {
+import type {
   GQLNotificationSettingType,
   NoticeData,
   NoticeDetail,
@@ -19,9 +12,15 @@ import {
   User,
 } from 'definitions'
 
-const logger = getLogger('service:notice')
+import DataLoader from 'dataloader'
+import { isArray, isEqual, mergeWith, uniq } from 'lodash'
+import { v4 } from 'uuid'
 
-export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
+import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
+import { getLogger } from 'common/logger'
+import { BaseService } from 'connectors'
+
+const logger = getLogger('service:notice')
 
 const mergeDataCustomizer = (objValue: any, srcValue: any) => {
   if (isArray(objValue)) {
@@ -458,7 +457,7 @@ class Notice extends BaseService {
     setting,
   }: {
     event: NotificationType
-    setting: { [key in DBNotificationSettingType]: boolean }
+    setting: { [key in GQLNotificationSettingType]: boolean }
   }) => {
     if (!setting || !setting.enable) {
       return false

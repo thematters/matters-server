@@ -180,7 +180,7 @@ export class UserService extends BaseService {
     if (!user || user.state === USER_STATE.archived) {
       // record agent hash if state is archived
       if (user && user.state === USER_STATE.archived && archivedCallback) {
-        await archivedCallback().catch((error) => logger.error)
+        await archivedCallback().catch((error) => logger.error(error))
       }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
@@ -219,7 +219,7 @@ export class UserService extends BaseService {
     if (!user || user.state === USER_STATE.archived) {
       // record agent hash if state is archived
       if (user && user.state === USER_STATE.archived && archivedCallback) {
-        await archivedCallback().catch((error) => logger.error)
+        await archivedCallback().catch((error) => logger.error(error))
       }
       throw new EthAddressNotFoundError(
         'Cannot find user with such ethAddress, login failed.'
@@ -598,9 +598,6 @@ export class UserService extends BaseService {
     // keyOriginal,
     take,
     skip,
-    exclude,
-    viewerId,
-    coefficients,
     quicksearch,
   }: {
     key: string
@@ -1008,7 +1005,7 @@ export class UserService extends BaseService {
   }: {
     notIn?: string[]
     oss?: boolean
-    type: AUTHOR_TYPE
+    type: keyof typeof AUTHOR_TYPE
   }) => {
     switch (type) {
       case AUTHOR_TYPE.default: {

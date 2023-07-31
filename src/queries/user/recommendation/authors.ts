@@ -1,19 +1,21 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
+import { AUTHOR_TYPE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { GQLAuthorsType, type GQLRecommendationResolvers } from 'definitions'
 
 export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
   { input },
   { dataSources: { userService }, viewer }
 ) => {
-  const { filter, oss = false, type = GQLAuthorsType.default } = input
+  const { filter, oss = false, type = AUTHOR_TYPE.default } = input
   const { take, skip } = fromConnectionArgs(input)
 
   if (oss) {
@@ -22,8 +24,8 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     }
   }
 
-  const isDefault = type === GQLAuthorsType.default
-  const isAppreciated = type === GQLAuthorsType.appreciated
+  const isDefault = type === AUTHOR_TYPE.default
+  const isAppreciated = type === AUTHOR_TYPE.appreciated
 
   /**
    * Filter out followed users

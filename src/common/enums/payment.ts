@@ -25,12 +25,12 @@ export enum TRANSACTION_TARGET_TYPE {
   circlePrice = 'circle_price',
 }
 
-export enum PAYMENT_CURRENCY {
-  HKD = 'HKD',
-  USD = 'USD',
-  LIKE = 'LIKE',
-  USDT = 'USDT',
-}
+export const PAYMENT_CURRENCY = {
+  HKD: 'HKD',
+  USD: 'USD',
+  LIKE: 'LIKE',
+  USDT: 'USDT',
+} as const
 
 export enum PAYMENT_PROVIDER {
   likecoin = 'likecoin',
@@ -48,6 +48,11 @@ export const BLOCKCHAIN_CHAINID = {
     PolygonMainnet: '137',
     PolygonMumbai: '80001',
   },
+} as const
+
+export const BLOCKCHAIN_CHAINNAME = {
+  '137': BLOCKCHAIN.Polygon,
+  '80001': BLOCKCHAIN.Polygon,
 } as const
 
 export const BLOCKCHAIN_SAFE_CONFIRMS = {

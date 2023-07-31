@@ -1,4 +1,4 @@
-import type { GQLUserResolvers } from 'definitions'
+import type { GQLUserResolvers, Circle } from 'definitions'
 
 import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
@@ -51,9 +51,9 @@ const resolver: GQLUserResolvers['subscribedCircles'] = async (
   }
 
   const circleIds = await query.select('circle_price.circle_id')
-  const circles = await atomService.circleIdLoader.loadMany(
+  const circles = (await atomService.circleIdLoader.loadMany(
     circleIds.map(({ circleId }) => circleId)
-  )
+  )) as Circle[]
 
   return connectionFromArray(circles, input, totalCount)
 }

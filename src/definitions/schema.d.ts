@@ -9,7 +9,8 @@ import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
 import { Draft as DraftModel } from './draft'
 import { Circle as CircleModel } from './circle'
-import { Context } from './index'
+import { PayoutAccount as PayoutAccountModel } from './payment'
+import { Transaction as TransactionModel, Context } from './index'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3825,14 +3826,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
         })
     Invitee: GQLPerson | GQLUserModel
     Response: DraftModel | CommentModel
-    TransactionTarget:
-      | DraftModel
-      | CircleModel
-      | (Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
-          recipient?: Maybe<RefType['User']>
-          sender?: Maybe<RefType['User']>
-          target?: Maybe<RefType['TransactionTarget']>
-        })
+    TransactionTarget: DraftModel | CircleModel | TransactionModel
   }>
 
 /** Mapping of interface types */
@@ -4419,7 +4413,7 @@ export type GQLResolversTypes = ResolversObject<{
   SkippedListItemsInput: GQLSkippedListItemsInput
   SortTopicsInput: GQLSortTopicsInput
   String: ResolverTypeWrapper<Scalars['String']['output']>
-  StripeAccount: ResolverTypeWrapper<GQLStripeAccount>
+  StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: ResolverTypeWrapper<
@@ -4482,13 +4476,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLTopicEdge, 'node'> & { node: GQLResolversTypes['Topic'] }
   >
   TopicInput: GQLTopicInput
-  Transaction: ResolverTypeWrapper<
-    Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
-      recipient?: Maybe<GQLResolversTypes['User']>
-      sender?: Maybe<GQLResolversTypes['User']>
-      target?: Maybe<GQLResolversTypes['TransactionTarget']>
-    }
-  >
+  Transaction: ResolverTypeWrapper<TransactionModel>
   TransactionConnection: ResolverTypeWrapper<
     Omit<GQLTransactionConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['TransactionEdge']>>
@@ -4945,7 +4933,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SkippedListItemsInput: GQLSkippedListItemsInput
   SortTopicsInput: GQLSortTopicsInput
   String: Scalars['String']['output']
-  StripeAccount: GQLStripeAccount
+  StripeAccount: PayoutAccountModel
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: Omit<GQLSubscribeCircleResult, 'circle'> & {
     circle: GQLResolversParentTypes['Circle']
@@ -4993,11 +4981,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Topic']
   }
   TopicInput: GQLTopicInput
-  Transaction: Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
-    recipient?: Maybe<GQLResolversParentTypes['User']>
-    sender?: Maybe<GQLResolversParentTypes['User']>
-    target?: Maybe<GQLResolversParentTypes['TransactionTarget']>
-  }
+  Transaction: TransactionModel
   TransactionConnection: Omit<GQLTransactionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TransactionEdge']>>
   }

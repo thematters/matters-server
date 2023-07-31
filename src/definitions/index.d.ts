@@ -37,6 +37,7 @@ export * from './language'
 export * from './schema'
 export * from './notification'
 export * from './generic'
+export * from './payment'
 
 export interface Context extends BasedContext {
   viewer: Viewer
