@@ -1,12 +1,6 @@
-import {
-  ArticleOSSToBoostResolver,
-  ArticleOSSToInRecommendHottestResolver,
-  ArticleOSSToInRecommendIcymiResolver,
-  ArticleOSSToInRecommendNewestResolver,
-  ArticleOSSToScoreResolver,
-} from 'definitions'
+import type { GQLArticleOssResolvers } from 'definitions'
 
-export const boost: GQLArticleOSSResolvers['boost'] = async (
+export const boost: GQLArticleOssResolvers['boost'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }
@@ -23,7 +17,7 @@ export const boost: GQLArticleOSSResolvers['boost'] = async (
   return articleBoost.boost
 }
 
-export const score: GQLArticleOSSResolvers['score'] = async (
+export const score: GQLArticleOssResolvers['score'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }
@@ -35,7 +29,7 @@ export const score: GQLArticleOSSResolvers['score'] = async (
   return article?.score || 0
 }
 
-export const inRecommendIcymi: GQLArticleOSSResolvers['inRecommendIcymi'] =
+export const inRecommendIcymi: GQLArticleOssResolvers['inRecommendIcymi'] =
   async ({ articleId }, _, { dataSources: { atomService } }) => {
     const record = await atomService.findFirst({
       table: 'matters_choice',
@@ -44,7 +38,7 @@ export const inRecommendIcymi: GQLArticleOSSResolvers['inRecommendIcymi'] =
     return !!record
   }
 
-export const inRecommendHottest: GQLArticleOSSResolvers['inRecommendHottest'] =
+export const inRecommendHottest: GQLArticleOssResolvers['inRecommendHottest'] =
   async ({ articleId }, _, { dataSources: { atomService } }) => {
     const setting = await atomService.findFirst({
       table: 'article_recommend_setting',
@@ -58,7 +52,7 @@ export const inRecommendHottest: GQLArticleOSSResolvers['inRecommendHottest'] =
     return setting.inHottest
   }
 
-export const inRecommendNewest: GQLArticleOSSResolvers['inRecommendNewest'] =
+export const inRecommendNewest: GQLArticleOssResolvers['inRecommendNewest'] =
   async ({ articleId }, _, { dataSources: { atomService } }) => {
     const setting = await atomService.findFirst({
       table: 'article_recommend_setting',

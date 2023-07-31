@@ -20,7 +20,7 @@ const resolver: GQLArticleResolvers['language'] = async (
     .then((language) => language && draftService.baseUpdate(id, { language }))
 
   // return first to prevent blocking
-  return
+  return null
 }
 
 export default resolver

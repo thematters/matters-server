@@ -1,15 +1,12 @@
+import type { GQLArticleResolvers, Item } from 'definitions'
+
 import { ARTICLE_STATE } from 'common/enums'
-import {
-  connectionFromPromisedArray,
-  fromConnectionArgs,
-  loadManyFilterError,
-} from 'common/utils'
-import { ArticleToCollectionResolver, Item } from 'definitions'
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['collection'] = async (
   { articleId },
   { input },
-  { dataSources: { articleService }, knex }
+  { dataSources: { articleService, draftService }, knex }
 ) => {
   const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
@@ -32,9 +29,9 @@ const resolver: GQLArticleResolvers['collection'] = async (
   )
 
   return connectionFromPromisedArray(
-    articleService.draftLoader
-      .loadMany(connections.map((connection: Item) => connection.articleId))
-      .then(loadManyFilterError),
+    draftService.loadByIds(
+      connections.map((connection: Item) => connection.articleId)
+    ),
     input,
     totalCount
   )

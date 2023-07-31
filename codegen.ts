@@ -26,6 +26,7 @@ const config: CodegenConfig = {
           Article: './draft#Draft',
           ArticleAccess: './draft#Draft',
           ArticleOSS: './draft#Draft',
+          ArticleContents: './draft#Draft',
           Circle: './circle#Circle',
         },
         contextType: './index#Context',

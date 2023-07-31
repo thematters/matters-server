@@ -4174,7 +4174,7 @@ export type GQLResolversTypes = ResolversObject<{
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
     }
   >
-  ArticleContents: ResolverTypeWrapper<GQLArticleContents>
+  ArticleContents: ResolverTypeWrapper<DraftModel>
   ArticleEdge: ResolverTypeWrapper<
     Omit<GQLArticleEdge, 'node'> & { node: GQLResolversTypes['Article'] }
   >
@@ -4847,7 +4847,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
-  ArticleContents: GQLArticleContents
+  ArticleContents: DraftModel
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }

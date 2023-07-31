@@ -2,11 +2,10 @@ import type { GQLArticleAccessResolvers } from 'definitions'
 
 import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 
-export const type: GQLArticleAccessResolvers['type'] = async (
-  { articleId },
-  _,
-  { dataSources: { articleService } }
-) => {
+export const type: Exclude<
+  GQLArticleAccessResolvers['type'],
+  undefined
+> = async ({ articleId }, _, { dataSources: { articleService } }) => {
   const articleCircle = await articleService.findArticleCircle(articleId)
 
   // not in circle, fallback to public

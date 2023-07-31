@@ -43,7 +43,7 @@ import {
   SystemService,
   UserService,
 } from 'connectors'
-import { GQLSearchExclude, Item } from 'definitions'
+import { GQLSearchExclude, Item, Article } from 'definitions'
 
 const logger = getLogger('service-article')
 
@@ -70,6 +70,7 @@ export class ArticleService extends BaseService {
       return result
     })
 
+    // load drafts by aritcle ids
     this.draftLoader = new DataLoader(async (ids: readonly string[]) => {
       const items = await this.baseFindByIds(ids)
 
@@ -86,6 +87,11 @@ export class ArticleService extends BaseService {
       return result
     })
   }
+
+  public loadById = async (id: string): Promise<Article> =>
+    this.dataloader.load(id) as Promise<Article>
+  public loadByIds = async (ids: string[]): Promise<Article[]> =>
+    this.dataloader.loadMany(ids) as Promise<Article[]>
 
   /**
    * Create a pending article with linked draft
@@ -704,8 +710,6 @@ export class ArticleService extends BaseService {
       })
     }
   }
-
-  public loadById = async (id: string) => this.dataloader.load(id)
 
   public findByAuthor = async (
     authorId: string,

@@ -9,10 +9,12 @@ export interface Draft {
   title: string
   cover?: number
   summary?: string
+  summaryCustomized: boolean
   wordCount?: string
   dataHash: string
   mediaHash: string
   content: string
+  contentMd?: string
   createdAt: string
   updatedAt: string
   articleId: string
@@ -24,5 +26,7 @@ export interface Draft {
   pinState: PIN_STATE
   archived: boolean
   language?: LANGUAGES
+  replyToDonator?: string
+  requestForDonation?: string
   iscnId?: string
 }
