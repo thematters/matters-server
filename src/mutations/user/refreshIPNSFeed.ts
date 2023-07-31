@@ -6,7 +6,7 @@ import { publicationQueue } from 'connectors/queue'
 const resolver: GQLMutationResolvers['refreshIPNSFeed'] = async (
   _,
   { input: { userName, numArticles = 50 } },
-  { viewer, dataSources: { atomService, userService } }
+  { dataSources: { userService } }
 ) => {
   // const ipnsKeyRec =
   await userService.findOrCreateIPNSKey(userName)

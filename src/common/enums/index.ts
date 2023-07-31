@@ -1,6 +1,6 @@
 import {
-  GQLArticleAccessType,
-  GQLArticleLicenseType,
+  type GQLArticleAccessType,
+  type GQLArticleLicenseType,
   NotificationType,
   SkippedListItemType,
 } from 'definitions'
@@ -79,15 +79,15 @@ export const ARTICLE_STATE = {
 }
 
 export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
-  public: GQLArticleAccessType.public,
-  paywall: GQLArticleAccessType.paywall,
+  public: 'public',
+  paywall: 'paywall',
 }
 
 export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
-  cc_0: GQLArticleLicenseType.cc_0,
-  cc_by_nc_nd_2: GQLArticleLicenseType.cc_by_nc_nd_2,
-  cc_by_nc_nd_4: GQLArticleLicenseType.cc_by_nc_nd_4,
-  arr: GQLArticleLicenseType.arr,
+  cc_0: "cc_0",
+  cc_by_nc_nd_2: "cc_by_nc_nd_2",
+  cc_by_nc_nd_4: "cc_by_nc_nd_4",
+  arr: "arr",
 }
 
 export const PUBLISH_STATE = {

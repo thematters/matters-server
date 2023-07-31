@@ -141,11 +141,11 @@ const user: {
     ipnsKey,
     badges,
     userNameEditable,
-    email: (user) => {
-      if (user.id === null) {
+    email: (root) => {
+      if (root.id === null) {
         return null
       }
-      return user.email && user.email.replace(/#/g, '@')
+      return root.email && root.email.replace(/#/g, '@')
     },
     profileCover,
     group,
@@ -155,11 +155,11 @@ const user: {
   },
   UserSettings: {
     language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
-    currency: (user) => {
-      if (user.id === null) {
+    currency: (root) => {
+      if (root.id === null) {
         return 'USD' as GQLQuoteCurrency
       }
-      return (user.currency || 'USD') as GQLQuoteCurrency
+      return (root.currency || 'USD') as GQLQuoteCurrency
     },
     notification,
   },

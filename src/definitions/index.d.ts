@@ -26,6 +26,7 @@ import {
   CollectionService,
 } from 'connectors'
 
+export * from './user'
 export * from './article'
 export * from './draft'
 export * from './tag'
@@ -36,51 +37,6 @@ export * from './language'
 export * from './schema'
 export * from './notification'
 export * from './generic'
-
-export interface User {
-  id: string
-  uuid: string
-  userName: string
-  displayName: string
-  description: string
-  avatar: string
-  email: string
-  emailVerified: string
-  likerId?: string
-  passwordHash: string
-  paymentPointer?: string
-  paymentPasswordHash?: string
-  baseGravity: number
-  currGravity: number
-  language: LANGUAGES
-  // oauthType: any
-  role: UserRole
-  state: UserState
-  createdAt: string
-  updatedAt: string
-  agreeOn: string
-  ethAddress: string
-  currency?: string
-}
-
-export type UserRole = 'admin' | 'user'
-
-export type UserState = 'active' | 'banned' | 'archived'
-
-export type Viewer = (User | { id: null }) & {
-  hasRole: (role: UserRole) => boolean
-  hasAuthMode: (mode: string) => boolean
-  ip?: string
-  userAgent: string
-  role: string
-  language: LANGUAGES
-  scope: { [key: string]: any }
-  authMode: AuthMode
-  oauthClient?: OAuthClient
-  agentHash?: string
-  token?: string
-  group: 'a' | 'b'
-}
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -246,69 +202,7 @@ export type ResponseType = 'Article' | 'Comment'
 
 export type TransactionTargetType = 'Article' | 'Transaction'
 
-export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
-
-export interface UserOAuthLikeCoin {
-  likerId: string
-  accountType: UserOAuthLikeCoinAccountType
-  accessToken: string
-  refreshToken: string
-  expires: Date
-  scope: string | string[]
-}
-
-export interface OAuthClient {
-  [key: string]: any
-  id: string
-  redirectUris?: string | string[]
-  grants: string | string[]
-  accessTokenLifetime?: number
-  refreshTokenLifetime?: number
-}
-
-export interface OAuthAuthorizationCode {
-  [key: string]: any
-  authorizationCode: string
-  expiresAt: Date
-  redirectUri: string
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthToken {
-  [key: string]: any
-  accessToken: string
-  accessTokenExpiresAt?: Date
-  refreshToken?: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthRefreshToken {
-  [key: string]: any
-  refreshToken: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface VerficationCode {
-  id: string
-  uuid: string
-  expiredAt: Date
-  code: string
-  type: GQLVerificationCodeType
-  status: VERIFICATION_CODE_STATUS
-  email: string
-}
-
 export type Falsey = '' | 0 | false | null | undefined
-
-export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 

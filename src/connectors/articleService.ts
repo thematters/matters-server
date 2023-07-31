@@ -1,3 +1,5 @@
+import type { GQLSearchExclude, Item, Article } from 'definitions'
+
 import {
   ArticlePageContext,
   makeArticlePage,
@@ -43,7 +45,6 @@ import {
   SystemService,
   UserService,
 } from 'connectors'
-import { GQLSearchExclude, Item, Article } from 'definitions'
 
 const logger = getLogger('service-article')
 
@@ -920,7 +921,7 @@ export class ArticleService extends BaseService {
     // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    const excludeBlocked = exclude === 'blocked' && viewerId
     let blockedIds: string[] = []
     if (excludeBlocked) {
       blockedIds = (

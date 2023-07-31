@@ -3,12 +3,13 @@ import {
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
 } from 'graphql'
-import { Viewer as ViewerModel, Context } from './index'
+import { GQLUser as GQLUserModel } from './user'
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
 import { Draft as DraftModel } from './draft'
 import { Circle as CircleModel } from './circle'
+import { Context } from './index'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -81,11 +82,7 @@ export type GQLAnnouncement = {
   visible: Scalars['Boolean']['output']
 }
 
-export enum GQLAnnouncementType {
-  community = 'community',
-  product = 'product',
-  seminar = 'seminar',
-}
+export type GQLAnnouncementType = 'community' | 'product' | 'seminar'
 
 export type GQLAnnouncementsInput = {
   id?: InputMaybe<Scalars['ID']['input']>
@@ -127,16 +124,15 @@ export type GQLAppreciationEdge = {
   node: GQLAppreciation
 }
 
-export enum GQLAppreciationPurpose {
-  appreciate = 'appreciate',
-  appreciateComment = 'appreciateComment',
-  appreciateSubsidy = 'appreciateSubsidy',
-  firstPost = 'firstPost',
-  invitationAccepted = 'invitationAccepted',
-  joinByInvitation = 'joinByInvitation',
-  joinByTask = 'joinByTask',
-  systemSubsidy = 'systemSubsidy',
-}
+export type GQLAppreciationPurpose =
+  | 'appreciate'
+  | 'appreciateComment'
+  | 'appreciateSubsidy'
+  | 'firstPost'
+  | 'invitationAccepted'
+  | 'joinByInvitation'
+  | 'joinByTask'
+  | 'systemSubsidy'
 
 /**
  * This type contains metadata, content, hash and related data of an article. If you
@@ -364,10 +360,7 @@ export type GQLArticleAccess = {
 }
 
 /** Enums for types of article access */
-export enum GQLArticleAccessType {
-  paywall = 'paywall',
-  public = 'public',
-}
+export type GQLArticleAccessType = 'paywall' | 'public'
 
 export type GQLArticleArticleNotice = GQLNotice & {
   __typename?: 'ArticleArticleNotice'
@@ -384,9 +377,7 @@ export type GQLArticleArticleNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLArticleArticleNoticeType {
-  ArticleNewCollected = 'ArticleNewCollected',
-}
+export type GQLArticleArticleNoticeType = 'ArticleNewCollected'
 
 export type GQLArticleConnection = GQLConnection & {
   __typename?: 'ArticleConnection'
@@ -414,12 +405,11 @@ export type GQLArticleInput = {
 }
 
 /** Enums for types of article license */
-export enum GQLArticleLicenseType {
-  arr = 'arr',
-  cc_0 = 'cc_0',
-  cc_by_nc_nd_2 = 'cc_by_nc_nd_2',
-  cc_by_nc_nd_4 = 'cc_by_nc_nd_4',
-}
+export type GQLArticleLicenseType =
+  | 'arr'
+  | 'cc_0'
+  | 'cc_by_nc_nd_2'
+  | 'cc_by_nc_nd_4'
 
 export type GQLArticleNotice = GQLNotice & {
   __typename?: 'ArticleNotice'
@@ -435,15 +425,14 @@ export type GQLArticleNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLArticleNoticeType {
-  ArticleMentionedYou = 'ArticleMentionedYou',
-  ArticleNewAppreciation = 'ArticleNewAppreciation',
-  ArticleNewSubscriber = 'ArticleNewSubscriber',
-  ArticlePublished = 'ArticlePublished',
-  CircleNewArticle = 'CircleNewArticle',
-  RevisedArticleNotPublished = 'RevisedArticleNotPublished',
-  RevisedArticlePublished = 'RevisedArticlePublished',
-}
+export type GQLArticleNoticeType =
+  | 'ArticleMentionedYou'
+  | 'ArticleNewAppreciation'
+  | 'ArticleNewSubscriber'
+  | 'ArticlePublished'
+  | 'CircleNewArticle'
+  | 'RevisedArticleNotPublished'
+  | 'RevisedArticlePublished'
 
 export type GQLArticleOss = {
   __typename?: 'ArticleOSS'
@@ -462,17 +451,12 @@ export type GQLArticleRecommendationActivity = {
   source?: Maybe<GQLArticleRecommendationActivitySource>
 }
 
-export enum GQLArticleRecommendationActivitySource {
-  ReadArticlesTags = 'ReadArticlesTags',
-  UserDonation = 'UserDonation',
-}
+export type GQLArticleRecommendationActivitySource =
+  | 'ReadArticlesTags'
+  | 'UserDonation'
 
 /** Enums for an article state. */
-export enum GQLArticleState {
-  active = 'active',
-  archived = 'archived',
-  banned = 'banned',
-}
+export type GQLArticleState = 'active' | 'archived' | 'banned'
 
 export type GQLArticleTagNotice = GQLNotice & {
   __typename?: 'ArticleTagNotice'
@@ -489,12 +473,10 @@ export type GQLArticleTagNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLArticleTagNoticeType {
-  ArticleTagAdded = 'ArticleTagAdded',
-  ArticleTagRemoved = 'ArticleTagRemoved',
-  /** @deprecated No longer in use */
-  ArticleTagUnselected = 'ArticleTagUnselected',
-}
+export type GQLArticleTagNoticeType =
+  | 'ArticleTagAdded'
+  | 'ArticleTagRemoved'
+  | 'ArticleTagUnselected'
 
 export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
@@ -518,20 +500,19 @@ export type GQLAsset = {
 }
 
 /** Enums for asset types. */
-export enum GQLAssetType {
-  announcementCover = 'announcementCover',
-  avatar = 'avatar',
-  circleAvatar = 'circleAvatar',
-  circleCover = 'circleCover',
-  collectionCover = 'collectionCover',
-  cover = 'cover',
-  embed = 'embed',
-  embedaudio = 'embedaudio',
-  oauthClientAvatar = 'oauthClientAvatar',
-  profileCover = 'profileCover',
-  tagCover = 'tagCover',
-  topicCover = 'topicCover',
-}
+export type GQLAssetType =
+  | 'announcementCover'
+  | 'avatar'
+  | 'circleAvatar'
+  | 'circleCover'
+  | 'collectionCover'
+  | 'cover'
+  | 'embed'
+  | 'embedaudio'
+  | 'oauthClientAvatar'
+  | 'profileCover'
+  | 'tagCover'
+  | 'topicCover'
 
 export type GQLAuthResult = {
   __typename?: 'AuthResult'
@@ -541,29 +522,16 @@ export type GQLAuthResult = {
   user?: Maybe<GQLUser>
 }
 
-export enum GQLAuthResultType {
-  LinkAccount = 'LinkAccount',
-  Login = 'Login',
-  Signup = 'Signup',
-}
+export type GQLAuthResultType = 'LinkAccount' | 'Login' | 'Signup'
 
-export enum GQLAuthorsType {
-  active = 'active',
-  appreciated = 'appreciated',
-  default = 'default',
-  trendy = 'trendy',
-}
+export type GQLAuthorsType = 'active' | 'appreciated' | 'default' | 'trendy'
 
 export type GQLBadge = {
   __typename?: 'Badge'
   type: GQLBadgeType
 }
 
-export enum GQLBadgeType {
-  architect = 'architect',
-  golden_motor = 'golden_motor',
-  seed = 'seed',
-}
+export type GQLBadgeType = 'architect' | 'golden_motor' | 'seed'
 
 export type GQLBadgedUsersInput = {
   after?: InputMaybe<Scalars['String']['input']>
@@ -592,20 +560,11 @@ export type GQLBlockedSearchKeyword = {
   searchKey: Scalars['String']['output']
 }
 
-export enum GQLBoostTypes {
-  Article = 'Article',
-  Tag = 'Tag',
-  User = 'User',
-}
+export type GQLBoostTypes = 'Article' | 'Tag' | 'User'
 
-export enum GQLCacheControlScope {
-  PRIVATE = 'PRIVATE',
-  PUBLIC = 'PUBLIC',
-}
+export type GQLCacheControlScope = 'PRIVATE' | 'PUBLIC'
 
-export enum GQLChain {
-  Polygon = 'Polygon',
-}
+export type GQLChain = 'Polygon'
 
 export type GQLChangeEmailInput = {
   newEmail: Scalars['String']['input']
@@ -819,14 +778,13 @@ export type GQLCircleNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLCircleNoticeType {
-  CircleInvitation = 'CircleInvitation',
-  CircleNewBroadcastComments = 'CircleNewBroadcastComments',
-  CircleNewDiscussionComments = 'CircleNewDiscussionComments',
-  CircleNewFollower = 'CircleNewFollower',
-  CircleNewSubscriber = 'CircleNewSubscriber',
-  CircleNewUnsubscriber = 'CircleNewUnsubscriber',
-}
+export type GQLCircleNoticeType =
+  | 'CircleInvitation'
+  | 'CircleNewBroadcastComments'
+  | 'CircleNewDiscussionComments'
+  | 'CircleNewFollower'
+  | 'CircleNewSubscriber'
+  | 'CircleNewUnsubscriber'
 
 export type GQLCircleRecommendationActivity = {
   __typename?: 'CircleRecommendationActivity'
@@ -836,14 +794,9 @@ export type GQLCircleRecommendationActivity = {
   source?: Maybe<GQLCircleRecommendationActivitySource>
 }
 
-export enum GQLCircleRecommendationActivitySource {
-  UserSubscription = 'UserSubscription',
-}
+export type GQLCircleRecommendationActivitySource = 'UserSubscription'
 
-export enum GQLCircleState {
-  active = 'active',
-  archived = 'archived',
-}
+export type GQLCircleState = 'active' | 'archived'
 
 export type GQLCircleSubscriberAnalytics = {
   __typename?: 'CircleSubscriberAnalytics'
@@ -977,9 +930,7 @@ export type GQLCommentCommentNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLCommentCommentNoticeType {
-  CommentNewReply = 'CommentNewReply',
-}
+export type GQLCommentCommentNoticeType = 'CommentNewReply'
 
 export type GQLCommentCommentsInput = {
   after?: InputMaybe<Scalars['String']['input']>
@@ -1025,33 +976,20 @@ export type GQLCommentNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLCommentNoticeType {
-  ArticleNewComment = 'ArticleNewComment',
-  CircleNewBroadcast = 'CircleNewBroadcast',
-  CommentMentionedYou = 'CommentMentionedYou',
-  CommentPinned = 'CommentPinned',
-  SubscribedArticleNewComment = 'SubscribedArticleNewComment',
-}
+export type GQLCommentNoticeType =
+  | 'ArticleNewComment'
+  | 'CircleNewBroadcast'
+  | 'CommentMentionedYou'
+  | 'CommentPinned'
+  | 'SubscribedArticleNewComment'
 
 /** Enums for sorting comments by time. */
-export enum GQLCommentSort {
-  newest = 'newest',
-  oldest = 'oldest',
-}
+export type GQLCommentSort = 'newest' | 'oldest'
 
 /** Enums for comment state. */
-export enum GQLCommentState {
-  active = 'active',
-  archived = 'archived',
-  banned = 'banned',
-  collapsed = 'collapsed',
-}
+export type GQLCommentState = 'active' | 'archived' | 'banned' | 'collapsed'
 
-export enum GQLCommentType {
-  article = 'article',
-  circleBroadcast = 'circleBroadcast',
-  circleDiscussion = 'circleDiscussion',
-}
+export type GQLCommentType = 'article' | 'circleBroadcast' | 'circleDiscussion'
 
 export type GQLCommentsFilter = {
   author?: InputMaybe<Scalars['ID']['input']>
@@ -1106,12 +1044,11 @@ export type GQLCryptoWallet = {
   nfts?: Maybe<Array<GQLNftAsset>>
 }
 
-export enum GQLCryptoWalletSignaturePurpose {
-  airdrop = 'airdrop',
-  connect = 'connect',
-  login = 'login',
-  signup = 'signup',
-}
+export type GQLCryptoWalletSignaturePurpose =
+  | 'airdrop'
+  | 'connect'
+  | 'login'
+  | 'signup'
 
 export type GQLDeleteAnnouncementsInput = {
   ids?: InputMaybe<Array<Scalars['ID']['input']>>
@@ -1245,16 +1182,15 @@ export type GQLEditArticleInput = {
   tags?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
-export enum GQLEntityType {
-  announcement = 'announcement',
-  article = 'article',
-  circle = 'circle',
-  collection = 'collection',
-  draft = 'draft',
-  tag = 'tag',
-  topic = 'topic',
-  user = 'user',
-}
+export type GQLEntityType =
+  | 'announcement'
+  | 'article'
+  | 'circle'
+  | 'collection'
+  | 'draft'
+  | 'tag'
+  | 'topic'
+  | 'user'
 
 export type GQLExchangeRate = {
   __typename?: 'ExchangeRate'
@@ -1276,23 +1212,17 @@ export type GQLFeature = {
   name: GQLFeatureName
 }
 
-export enum GQLFeatureFlag {
-  admin = 'admin',
-  off = 'off',
-  on = 'on',
-  seeding = 'seeding',
-}
+export type GQLFeatureFlag = 'admin' | 'off' | 'on' | 'seeding'
 
-export enum GQLFeatureName {
-  add_credit = 'add_credit',
-  circle_interact = 'circle_interact',
-  circle_management = 'circle_management',
-  fingerprint = 'fingerprint',
-  payment = 'payment',
-  payout = 'payout',
-  tag_adoption = 'tag_adoption',
-  verify_appreciate = 'verify_appreciate',
-}
+export type GQLFeatureName =
+  | 'add_credit'
+  | 'circle_interact'
+  | 'circle_management'
+  | 'fingerprint'
+  | 'payment'
+  | 'payout'
+  | 'tag_adoption'
+  | 'verify_appreciate'
 
 export type GQLFeaturedCommentsInput = {
   after?: InputMaybe<Scalars['String']['input']>
@@ -1369,10 +1299,7 @@ export type GQLGenerateSigningMessageInput = {
   purpose?: InputMaybe<GQLSigningMessagePurpose>
 }
 
-export enum GQLGrantType {
-  authorization_code = 'authorization_code',
-  refresh_token = 'refresh_token',
-}
+export type GQLGrantType = 'authorization_code' | 'refresh_token'
 
 export type GQLInvitation = {
   __typename?: 'Invitation'
@@ -1409,12 +1336,11 @@ export type GQLInvitationEdge = {
   node: GQLInvitation
 }
 
-export enum GQLInvitationState {
-  accepted = 'accepted',
-  pending = 'pending',
-  transfer_failed = 'transfer_failed',
-  transfer_succeeded = 'transfer_succeeded',
-}
+export type GQLInvitationState =
+  | 'accepted'
+  | 'pending'
+  | 'transfer_failed'
+  | 'transfer_succeeded'
 
 export type GQLInviteCircleInput = {
   circleId: Scalars['ID']['input']
@@ -1472,11 +1398,10 @@ export type GQLLogRecordInput = {
   type: GQLLogRecordTypes
 }
 
-export enum GQLLogRecordTypes {
-  ReadFolloweeArticles = 'ReadFolloweeArticles',
-  ReadFollowingFeed = 'ReadFollowingFeed',
-  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp',
-}
+export type GQLLogRecordTypes =
+  | 'ReadFolloweeArticles'
+  | 'ReadFollowingFeed'
+  | 'ReadResponseInfoPopUp'
 
 export type GQLMember = {
   __typename?: 'Member'
@@ -1509,9 +1434,7 @@ export type GQLMigrationInput = {
   type?: InputMaybe<GQLMigrationType>
 }
 
-export enum GQLMigrationType {
-  medium = 'medium',
-}
+export type GQLMigrationType = 'medium'
 
 export type GQLMonthlyDatum = {
   __typename?: 'MonthlyDatum'
@@ -2103,33 +2026,32 @@ export type GQLNotificationSetting = {
   userNewFollower: Scalars['Boolean']['output']
 }
 
-export enum GQLNotificationSettingType {
-  articleCommentPinned = 'articleCommentPinned',
-  articleNewAppreciation = 'articleNewAppreciation',
-  articleNewCollected = 'articleNewCollected',
-  articleNewComment = 'articleNewComment',
-  articleNewSubscription = 'articleNewSubscription',
-  articleSubscribedNewComment = 'articleSubscribedNewComment',
-  circleMemberBroadcast = 'circleMemberBroadcast',
-  circleMemberNewBroadcastReply = 'circleMemberNewBroadcastReply',
-  circleMemberNewDiscussion = 'circleMemberNewDiscussion',
-  circleMemberNewDiscussionReply = 'circleMemberNewDiscussionReply',
-  circleNewDiscussion = 'circleNewDiscussion',
-  circleNewFollower = 'circleNewFollower',
+export type GQLNotificationSettingType =
+  | 'articleCommentPinned'
+  | 'articleNewAppreciation'
+  | 'articleNewCollected'
+  | 'articleNewComment'
+  | 'articleNewSubscription'
+  | 'articleSubscribedNewComment'
+  | 'circleMemberBroadcast'
+  | 'circleMemberNewBroadcastReply'
+  | 'circleMemberNewDiscussion'
+  | 'circleMemberNewDiscussionReply'
+  | 'circleNewDiscussion'
+  | 'circleNewFollower'
   /** for circle owners */
-  circleNewSubscriber = 'circleNewSubscriber',
-  circleNewUnsubscriber = 'circleNewUnsubscriber',
-  email = 'email',
-  enable = 'enable',
+  | 'circleNewSubscriber'
+  | 'circleNewUnsubscriber'
+  | 'email'
+  | 'enable'
   /** for circle members */
-  inCircleNewArticle = 'inCircleNewArticle',
-  inCircleNewBroadcast = 'inCircleNewBroadcast',
-  inCircleNewBroadcastReply = 'inCircleNewBroadcastReply',
-  inCircleNewDiscussion = 'inCircleNewDiscussion',
-  inCircleNewDiscussionReply = 'inCircleNewDiscussionReply',
-  mention = 'mention',
-  userNewFollower = 'userNewFollower',
-}
+  | 'inCircleNewArticle'
+  | 'inCircleNewBroadcast'
+  | 'inCircleNewBroadcastReply'
+  | 'inCircleNewDiscussion'
+  | 'inCircleNewDiscussionReply'
+  | 'mention'
+  | 'userNewFollower'
 
 export type GQLOAuthClient = {
   __typename?: 'OAuthClient'
@@ -2325,10 +2247,7 @@ export type GQLPrice = {
   updatedAt: Scalars['DateTime']['output']
 }
 
-export enum GQLPriceState {
-  active = 'active',
-  archived = 'archived',
-}
+export type GQLPriceState = 'active' | 'archived'
 
 export type GQLPublishArticleInput = {
   id: Scalars['ID']['input']
@@ -2337,12 +2256,7 @@ export type GQLPublishArticleInput = {
 }
 
 /** Enums for publishing state. */
-export enum GQLPublishState {
-  error = 'error',
-  pending = 'pending',
-  published = 'published',
-  unpublished = 'unpublished',
-}
+export type GQLPublishState = 'error' | 'pending' | 'published' | 'unpublished'
 
 export type GQLPutAnnouncementInput = {
   content?: InputMaybe<Scalars['String']['input']>
@@ -2376,10 +2290,7 @@ export type GQLPutCircleArticlesInput = {
   type: GQLPutCircleArticlesType
 }
 
-export enum GQLPutCircleArticlesType {
-  add = 'add',
-  remove = 'remove',
-}
+export type GQLPutCircleArticlesType = 'add' | 'remove'
 
 export type GQLPutCircleInput = {
   /** Circle's subscription fee. */
@@ -2531,11 +2442,7 @@ export type GQLQueryUserArgs = {
   input: GQLUserInput
 }
 
-export enum GQLQuoteCurrency {
-  HKD = 'HKD',
-  TWD = 'TWD',
-  USD = 'USD',
-}
+export type GQLQuoteCurrency = 'HKD' | 'TWD' | 'USD'
 
 export type GQLReadArticleInput = {
   id: Scalars['ID']['input']
@@ -2582,11 +2489,7 @@ export type GQLRecommendInput = {
 }
 
 /** Enums for types of recommend articles. */
-export enum GQLRecommendTypes {
-  hottest = 'hottest',
-  icymi = 'icymi',
-  newest = 'newest',
-}
+export type GQLRecommendTypes = 'hottest' | 'icymi' | 'newest'
 
 export type GQLRecommendation = {
   __typename?: 'Recommendation'
@@ -2675,14 +2578,13 @@ export type GQLRelatedDonationArticlesInput = {
   random?: InputMaybe<Scalars['Int']['input']>
 }
 
-export enum GQLRemarkTypes {
-  Article = 'Article',
-  Comment = 'Comment',
-  Feedback = 'Feedback',
-  Report = 'Report',
-  Tag = 'Tag',
-  User = 'User',
-}
+export type GQLRemarkTypes =
+  | 'Article'
+  | 'Comment'
+  | 'Feedback'
+  | 'Report'
+  | 'Tag'
+  | 'User'
 
 export type GQLRenameTagInput = {
   content: Scalars['String']['input']
@@ -2710,10 +2612,7 @@ export type GQLResetPasswordInput = {
   type?: InputMaybe<GQLResetPasswordType>
 }
 
-export enum GQLResetPasswordType {
-  account = 'account',
-  payment = 'payment',
-}
+export type GQLResetPasswordType = 'account' | 'payment'
 
 export type GQLResetWalletInput = {
   id: Scalars['ID']['input']
@@ -2735,10 +2634,7 @@ export type GQLResponseEdge = {
 }
 
 /** Enums for sorting responses. */
-export enum GQLResponseSort {
-  newest = 'newest',
-  oldest = 'oldest',
-}
+export type GQLResponseSort = 'newest' | 'oldest'
 
 export type GQLResponsesInput = {
   after?: InputMaybe<Scalars['String']['input']>
@@ -2751,20 +2647,11 @@ export type GQLResponsesInput = {
 }
 
 /** Enums for user roles. */
-export enum GQLRole {
-  admin = 'admin',
-  user = 'user',
-  vistor = 'vistor',
-}
+export type GQLRole = 'admin' | 'user' | 'vistor'
 
-export enum GQLSearchApiVersion {
-  v20230301 = 'v20230301',
-  v20230601 = 'v20230601',
-}
+export type GQLSearchApiVersion = 'v20230301' | 'v20230601'
 
-export enum GQLSearchExclude {
-  blocked = 'blocked',
-}
+export type GQLSearchExclude = 'blocked'
 
 export type GQLSearchFilter = {
   authorId?: InputMaybe<Scalars['ID']['input']>
@@ -2806,11 +2693,7 @@ export type GQLSearchResultEdge = {
   node: GQLNode
 }
 
-export enum GQLSearchTypes {
-  Article = 'Article',
-  Tag = 'Tag',
-  User = 'User',
-}
+export type GQLSearchTypes = 'Article' | 'Tag' | 'User'
 
 export type GQLSendVerificationCodeInput = {
   email: Scalars['String']['input']
@@ -2838,13 +2721,12 @@ export type GQLSetFeatureInput = {
   name: GQLFeatureName
 }
 
-export enum GQLSigningMessagePurpose {
-  airdrop = 'airdrop',
-  claimLogbook = 'claimLogbook',
-  connect = 'connect',
-  login = 'login',
-  signup = 'signup',
-}
+export type GQLSigningMessagePurpose =
+  | 'airdrop'
+  | 'claimLogbook'
+  | 'connect'
+  | 'login'
+  | 'signup'
 
 export type GQLSigningMessageResult = {
   __typename?: 'SigningMessageResult'
@@ -2880,11 +2762,7 @@ export type GQLSkippedListItemEdge = {
   node?: Maybe<GQLSkippedListItem>
 }
 
-export enum GQLSkippedListItemType {
-  agent_hash = 'agent_hash',
-  domain = 'domain',
-  email = 'email',
-}
+export type GQLSkippedListItemType = 'agent_hash' | 'domain' | 'email'
 
 export type GQLSkippedListItemsConnection = GQLConnection & {
   __typename?: 'SkippedListItemsConnection'
@@ -2909,40 +2787,39 @@ export type GQLStripeAccount = {
   loginUrl: Scalars['String']['output']
 }
 
-export enum GQLStripeAccountCountry {
-  Australia = 'Australia',
-  Austria = 'Austria',
-  Belgium = 'Belgium',
-  Bulgaria = 'Bulgaria',
-  Canada = 'Canada',
-  Cyprus = 'Cyprus',
-  Denmark = 'Denmark',
-  Estonia = 'Estonia',
-  Finland = 'Finland',
-  France = 'France',
-  Germany = 'Germany',
-  Greece = 'Greece',
-  HongKong = 'HongKong',
-  Ireland = 'Ireland',
-  Italy = 'Italy',
-  Latvia = 'Latvia',
-  Lithuania = 'Lithuania',
-  Luxembourg = 'Luxembourg',
-  Malta = 'Malta',
-  Netherlands = 'Netherlands',
-  NewZealand = 'NewZealand',
-  Norway = 'Norway',
-  Poland = 'Poland',
-  Portugal = 'Portugal',
-  Romania = 'Romania',
-  Singapore = 'Singapore',
-  Slovakia = 'Slovakia',
-  Slovenia = 'Slovenia',
-  Spain = 'Spain',
-  Sweden = 'Sweden',
-  UnitedKingdom = 'UnitedKingdom',
-  UnitedStates = 'UnitedStates',
-}
+export type GQLStripeAccountCountry =
+  | 'Australia'
+  | 'Austria'
+  | 'Belgium'
+  | 'Bulgaria'
+  | 'Canada'
+  | 'Cyprus'
+  | 'Denmark'
+  | 'Estonia'
+  | 'Finland'
+  | 'France'
+  | 'Germany'
+  | 'Greece'
+  | 'HongKong'
+  | 'Ireland'
+  | 'Italy'
+  | 'Latvia'
+  | 'Lithuania'
+  | 'Luxembourg'
+  | 'Malta'
+  | 'Netherlands'
+  | 'NewZealand'
+  | 'Norway'
+  | 'Poland'
+  | 'Portugal'
+  | 'Romania'
+  | 'Singapore'
+  | 'Slovakia'
+  | 'Slovenia'
+  | 'Spain'
+  | 'Sweden'
+  | 'UnitedKingdom'
+  | 'UnitedStates'
 
 export type GQLSubscribeCircleInput = {
   /** Unique ID. */
@@ -3039,10 +2916,7 @@ export type GQLTagArticlesInput = {
   sortBy?: InputMaybe<GQLTagArticlesSortBy>
 }
 
-export enum GQLTagArticlesSortBy {
-  byCreatedAtDesc = 'byCreatedAtDesc',
-  byHottestDesc = 'byHottestDesc',
-}
+export type GQLTagArticlesSortBy = 'byCreatedAtDesc' | 'byHottestDesc'
 
 export type GQLTagConnection = GQLConnection & {
   __typename?: 'TagConnection'
@@ -3076,12 +2950,11 @@ export type GQLTagNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLTagNoticeType {
-  TagAddEditor = 'TagAddEditor',
-  TagAdoption = 'TagAdoption',
-  TagLeave = 'TagLeave',
-  TagLeaveEditor = 'TagLeaveEditor',
-}
+export type GQLTagNoticeType =
+  | 'TagAddEditor'
+  | 'TagAdoption'
+  | 'TagLeave'
+  | 'TagLeaveEditor'
 
 export type GQLTagOss = {
   __typename?: 'TagOSS'
@@ -3102,11 +2975,7 @@ export type GQLTagsInput = {
 }
 
 /** Enums for sorting tags. */
-export enum GQLTagsSort {
-  hottest = 'hottest',
-  newest = 'newest',
-  oldest = 'oldest',
-}
+export type GQLTagsSort = 'hottest' | 'newest' | 'oldest'
 
 export type GQLToggleCircleMemberInput = {
   /** Toggle value. */
@@ -3240,11 +3109,7 @@ export type GQLTransactionConnection = GQLConnection & {
   totalCount: Scalars['Int']['output']
 }
 
-export enum GQLTransactionCurrency {
-  HKD = 'HKD',
-  LIKE = 'LIKE',
-  USDT = 'USDT',
-}
+export type GQLTransactionCurrency = 'HKD' | 'LIKE' | 'USDT'
 
 export type GQLTransactionEdge = {
   __typename?: 'TransactionEdge'
@@ -3266,26 +3131,22 @@ export type GQLTransactionNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLTransactionNoticeType {
-  PaymentReceivedDonation = 'PaymentReceivedDonation',
-}
+export type GQLTransactionNoticeType = 'PaymentReceivedDonation'
 
-export enum GQLTransactionPurpose {
-  addCredit = 'addCredit',
-  dispute = 'dispute',
-  donation = 'donation',
-  payout = 'payout',
-  payoutReversal = 'payoutReversal',
-  refund = 'refund',
-  subscriptionSplit = 'subscriptionSplit',
-}
+export type GQLTransactionPurpose =
+  | 'addCredit'
+  | 'dispute'
+  | 'donation'
+  | 'payout'
+  | 'payoutReversal'
+  | 'refund'
+  | 'subscriptionSplit'
 
-export enum GQLTransactionState {
-  canceled = 'canceled',
-  failed = 'failed',
-  pending = 'pending',
-  succeeded = 'succeeded',
-}
+export type GQLTransactionState =
+  | 'canceled'
+  | 'failed'
+  | 'pending'
+  | 'succeeded'
 
 export type GQLTransactionTarget = GQLArticle | GQLCircle | GQLTransaction
 
@@ -3384,13 +3245,12 @@ export type GQLUpdateTagSettingInput = {
   type: GQLUpdateTagSettingType
 }
 
-export enum GQLUpdateTagSettingType {
-  add_editor = 'add_editor',
-  adopt = 'adopt',
-  leave = 'leave',
-  leave_editor = 'leave_editor',
-  remove_editor = 'remove_editor',
-}
+export type GQLUpdateTagSettingType =
+  | 'add_editor'
+  | 'adopt'
+  | 'leave'
+  | 'leave_editor'
+  | 'remove_editor'
 
 export type GQLUpdateUserInfoInput = {
   agreeOn?: InputMaybe<Scalars['Boolean']['input']>
@@ -3624,10 +3484,7 @@ export type GQLUserEdge = {
   node: GQLUser
 }
 
-export enum GQLUserGroup {
-  a = 'a',
-  b = 'b',
-}
+export type GQLUserGroup = 'a' | 'b'
 
 export type GQLUserInfo = {
   __typename?: 'UserInfo'
@@ -3658,24 +3515,19 @@ export type GQLUserInfo = {
   userNameEditable: Scalars['Boolean']['output']
 }
 
-export enum GQLUserInfoFields {
-  agreeOn = 'agreeOn',
-  avatar = 'avatar',
-  description = 'description',
-  displayName = 'displayName',
-  email = 'email',
-}
+export type GQLUserInfoFields =
+  | 'agreeOn'
+  | 'avatar'
+  | 'description'
+  | 'displayName'
+  | 'email'
 
 export type GQLUserInput = {
   ethAddress?: InputMaybe<Scalars['String']['input']>
   userName?: InputMaybe<Scalars['String']['input']>
 }
 
-export enum GQLUserLanguage {
-  en = 'en',
-  zh_hans = 'zh_hans',
-  zh_hant = 'zh_hant',
-}
+export type GQLUserLanguage = 'en' | 'zh_hans' | 'zh_hant'
 
 export type GQLUserLoginInput = {
   email: Scalars['String']['input']
@@ -3696,9 +3548,7 @@ export type GQLUserNotice = GQLNotice & {
   unread: Scalars['Boolean']['output']
 }
 
-export enum GQLUserNoticeType {
-  UserNewFollower = 'UserNewFollower',
-}
+export type GQLUserNoticeType = 'UserNewFollower'
 
 export type GQLUserOss = {
   __typename?: 'UserOSS'
@@ -3723,9 +3573,7 @@ export type GQLUserRecommendationActivity = {
   source?: Maybe<GQLUserRecommendationActivitySource>
 }
 
-export enum GQLUserRecommendationActivitySource {
-  UserFollowing = 'UserFollowing',
-}
+export type GQLUserRecommendationActivitySource = 'UserFollowing'
 
 export type GQLUserRegisterInput = {
   codeId: Scalars['ID']['input']
@@ -3742,15 +3590,9 @@ export type GQLUserRestriction = {
   type: GQLUserRestrictionType
 }
 
-export enum GQLUserRestrictionType {
-  articleHottest = 'articleHottest',
-  articleNewest = 'articleNewest',
-}
+export type GQLUserRestrictionType = 'articleHottest' | 'articleNewest'
 
-export enum GQLUserRole {
-  admin = 'admin',
-  user = 'user',
-}
+export type GQLUserRole = 'admin' | 'user'
 
 export type GQLUserSettings = {
   __typename?: 'UserSettings'
@@ -3762,13 +3604,12 @@ export type GQLUserSettings = {
   notification?: Maybe<GQLNotificationSetting>
 }
 
-export enum GQLUserState {
-  active = 'active',
-  archived = 'archived',
-  banned = 'banned',
-  frozen = 'frozen',
-  onboarding = 'onboarding',
-}
+export type GQLUserState =
+  | 'active'
+  | 'archived'
+  | 'banned'
+  | 'frozen'
+  | 'onboarding'
 
 export type GQLUserStatus = {
   __typename?: 'UserStatus'
@@ -3794,23 +3635,19 @@ export type GQLUserStatus = {
   unreadNoticeCount: Scalars['Int']['output']
 }
 
-export enum GQLVerificationCodeType {
-  email_reset = 'email_reset',
-  email_reset_confirm = 'email_reset_confirm',
-  password_reset = 'password_reset',
-  payment_password_reset = 'payment_password_reset',
-  register = 'register',
-}
+export type GQLVerificationCodeType =
+  | 'email_reset'
+  | 'email_reset_confirm'
+  | 'password_reset'
+  | 'payment_password_reset'
+  | 'register'
 
 export type GQLVerifyEmailInput = {
   codeId: Scalars['ID']['input']
 }
 
 /** Enums for vote types. */
-export enum GQLVote {
-  down = 'down',
-  up = 'up',
-}
+export type GQLVote = 'down' | 'up'
 
 export type GQLVoteCommentInput = {
   id: Scalars['ID']['input']
@@ -3986,7 +3823,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
       | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<RefType['User']>>
         })
-    Invitee: GQLPerson | ViewerModel
+    Invitee: GQLPerson | GQLUserModel
     Response: DraftModel | CommentModel
     TransactionTarget:
       | DraftModel
@@ -4075,7 +3912,7 @@ export type GQLResolversInterfaceTypes<
         chapters?: Maybe<Array<RefType['Chapter']>>
         latestArticle?: Maybe<RefType['Article']>
       })
-    | ViewerModel
+    | GQLUserModel
   Notice:
     | (Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
         actors?: Maybe<Array<RefType['User']>>
@@ -4370,7 +4207,7 @@ export type GQLResolversTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
-  Following: ResolverTypeWrapper<ViewerModel>
+  Following: ResolverTypeWrapper<GQLUserModel>
   FollowingActivity: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['FollowingActivity']
   >
@@ -4414,7 +4251,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: ResolverTypeWrapper<ViewerModel>
+  Liker: ResolverTypeWrapper<GQLUserModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
   Member: ResolverTypeWrapper<
@@ -4540,7 +4377,7 @@ export type GQLResolversTypes = ResolversObject<{
   RecentSearchEdge: ResolverTypeWrapper<GQLRecentSearchEdge>
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
-  Recommendation: ResolverTypeWrapper<ViewerModel>
+  Recommendation: ResolverTypeWrapper<GQLUserModel>
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -4696,8 +4533,8 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>
-  User: ResolverTypeWrapper<ViewerModel>
-  UserActivity: ResolverTypeWrapper<ViewerModel>
+  User: ResolverTypeWrapper<GQLUserModel>
+  UserActivity: ResolverTypeWrapper<GQLUserModel>
   UserAddArticleTagActivity: ResolverTypeWrapper<
     Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4705,7 +4542,7 @@ export type GQLResolversTypes = ResolversObject<{
       target: GQLResolversTypes['Tag']
     }
   >
-  UserAnalytics: ResolverTypeWrapper<ViewerModel>
+  UserAnalytics: ResolverTypeWrapper<GQLUserModel>
   UserBroadcastCircleActivity: ResolverTypeWrapper<
     Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4728,7 +4565,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
   UserGroup: GQLUserGroup
-  UserInfo: ResolverTypeWrapper<ViewerModel>
+  UserInfo: ResolverTypeWrapper<GQLUserModel>
   UserInfoFields: GQLUserInfoFields
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
@@ -4740,7 +4577,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   UserNoticeType: GQLUserNoticeType
-  UserOSS: ResolverTypeWrapper<ViewerModel>
+  UserOSS: ResolverTypeWrapper<GQLUserModel>
   UserPublishArticleActivity: ResolverTypeWrapper<
     Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
       actor: GQLResolversTypes['User']
@@ -4757,14 +4594,14 @@ export type GQLResolversTypes = ResolversObject<{
   UserRestriction: ResolverTypeWrapper<GQLUserRestriction>
   UserRestrictionType: GQLUserRestrictionType
   UserRole: GQLUserRole
-  UserSettings: ResolverTypeWrapper<ViewerModel>
+  UserSettings: ResolverTypeWrapper<GQLUserModel>
   UserState: GQLUserState
-  UserStatus: ResolverTypeWrapper<ViewerModel>
+  UserStatus: ResolverTypeWrapper<GQLUserModel>
   VerificationCodeType: GQLVerificationCodeType
   VerifyEmailInput: GQLVerifyEmailInput
   Vote: GQLVote
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ResolverTypeWrapper<ViewerModel>
+  Wallet: ResolverTypeWrapper<GQLUserModel>
   WalletLoginInput: GQLWalletLoginInput
 }>
 
@@ -4951,7 +4788,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: Scalars['Float']['output']
-  Following: ViewerModel
+  Following: GQLUserModel
   FollowingActivity: GQLResolversUnionTypes<GQLResolversParentTypes>['FollowingActivity']
   FollowingActivityConnection: GQLFollowingActivityConnection
   FollowingActivityEdge: Omit<GQLFollowingActivityEdge, 'node'> & {
@@ -4981,7 +4818,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: ViewerModel
+  Liker: GQLUserModel
   LogRecordInput: GQLLogRecordInput
   Member: Omit<GQLMember, 'price' | 'user'> & {
     price: GQLResolversParentTypes['Price']
@@ -5077,7 +4914,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecentSearchConnection: GQLRecentSearchConnection
   RecentSearchEdge: GQLRecentSearchEdge
   RecommendInput: GQLRecommendInput
-  Recommendation: ViewerModel
+  Recommendation: GQLUserModel
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RenameTagInput: GQLRenameTagInput
@@ -5192,8 +5029,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: Scalars['Upload']['output']
-  User: ViewerModel
-  UserActivity: ViewerModel
+  User: GQLUserModel
+  UserActivity: GQLUserModel
   UserAddArticleTagActivity: Omit<
     GQLUserAddArticleTagActivity,
     'actor' | 'node' | 'target'
@@ -5202,7 +5039,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Article']
     target: GQLResolversParentTypes['Tag']
   }
-  UserAnalytics: ViewerModel
+  UserAnalytics: GQLUserModel
   UserBroadcastCircleActivity: Omit<
     GQLUserBroadcastCircleActivity,
     'actor' | 'node' | 'target'
@@ -5224,14 +5061,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
-  UserInfo: ViewerModel
+  UserInfo: GQLUserModel
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
   UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
     actors?: Maybe<Array<GQLResolversParentTypes['User']>>
     target: GQLResolversParentTypes['User']
   }
-  UserOSS: ViewerModel
+  UserOSS: GQLUserModel
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
     'actor' | 'node'
@@ -5244,11 +5081,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
-  UserSettings: ViewerModel
-  UserStatus: ViewerModel
+  UserSettings: GQLUserModel
+  UserStatus: GQLUserModel
   VerifyEmailInput: GQLVerifyEmailInput
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ViewerModel
+  Wallet: GQLUserModel
   WalletLoginInput: GQLWalletLoginInput
 }>
 
