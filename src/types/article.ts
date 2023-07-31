@@ -1,7 +1,7 @@
 import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
-import { isTest } from 'common/environment'
+import { isProd } from 'common/environment'
 
-const PUBLISH_ARTICLE_RATE_LIMIT = isTest ? 100 : 10
+const PUBLISH_ARTICLE_RATE_LIMIT = isProd ? 10 : 1000
 
 export default /* GraphQL */ `
   extend type Query {

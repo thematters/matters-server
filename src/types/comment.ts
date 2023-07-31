@@ -1,7 +1,7 @@
 import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
-import { isTest } from 'common/environment'
+import { isProd } from 'common/environment'
 
-const PUT_COMMENT_RATE_LIMIT = isTest ? 100 : 3
+const PUT_COMMENT_RATE_LIMIT = isProd ? 3 : 1000
 
 export default /* GraphQL */ `
   extend type Mutation {
