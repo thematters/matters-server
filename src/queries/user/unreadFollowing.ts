@@ -1,7 +1,8 @@
-import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
-import { UserStatusToUnreadFollowingResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToUnreadFollowingResolver = async (
+import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+
+const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   { id: userId },
   _,
   { dataSources: { systemService }, knex }

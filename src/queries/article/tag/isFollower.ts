@@ -1,7 +1,8 @@
-import { TAG_ACTION } from 'common/enums'
-import { TagToIsFollowerResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToIsFollowerResolver = async (
+import { TAG_ACTION } from 'common/enums'
+
+const resolver: GQLTagResolvers['isFollower'] = async (
   { id },
   _,
   { viewer, dataSources: { tagService } }

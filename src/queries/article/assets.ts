@@ -1,6 +1,6 @@
-import { ArticleToAssetsResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToAssetsResolver = async (
+const resolver: GQLArticleResolvers['assets'] = async (
   { id, authorId, articleId },
   _,
   { viewer, dataSources: { systemService } }

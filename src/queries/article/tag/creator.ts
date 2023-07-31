@@ -1,6 +1,6 @@
-import { TagToCreatorResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToCreatorResolver = (
+const resolver: GQLTagResolvers['creator'] = (
   { creator },
   _,
   { dataSources: { userService } }
@@ -9,7 +9,7 @@ const resolver: TagToCreatorResolver = (
     return
   }
 
-  return userService.dataloader.load(creator)
+  return userService.loadById(creator)
 }
 
 export default resolver

@@ -12,11 +12,11 @@ import {
 } from 'common/utils'
 import {
   GQLNode,
-  GQLSearchAPIVersion,
-  QueryToSearchResolver,
+  GQLSearchApiVersion,
+  type GQLQueryResolvers,
 } from 'definitions'
 
-const resolver: QueryToSearchResolver = async (
+const resolver: GQLQueryResolvers['search'] = async (
   _,
   args, // { input },
   context // { dataSources: { systemService, articleService, userService, tagService }, viewer, }
@@ -58,7 +58,7 @@ const resolver: QueryToSearchResolver = async (
   const keyOriginal = input.key
   input.key = await normalizeQueryInput(keyOriginal)
 
-  const connection = await (input.version === GQLSearchAPIVersion.v20230601
+  const connection = await (input.version === GQLSearchApiVersion.v20230601
     ? serviceMap[input.type].searchV3
     : serviceMap[input.type].search)({
     ...input,

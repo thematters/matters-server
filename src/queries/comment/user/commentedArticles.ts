@@ -1,8 +1,9 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToCommentedArticlesResolver } from 'definitions'
 
-const resolver: UserToCommentedArticlesResolver = async (
+const resolver: GQLUserResolvers['commentedArticles'] = async (
   { id },
   { input },
   { dataSources: { draftService }, knex }

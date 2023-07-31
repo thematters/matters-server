@@ -1,7 +1,8 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { UserStatusToCommentCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToCommentCountResolver = async (
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+
+const resolver: GQLUserStatusResolvers['commentCount'] = async (
   { id },
   _,
   { dataSources: { atomService } }

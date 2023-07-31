@@ -1,6 +1,6 @@
-import { DraftToAssetsResolver } from 'definitions'
+import type { GQLDraftResolvers } from 'definitions'
 
-const resolver: DraftToAssetsResolver = async (
+const resolver: GQLDraftResolvers['assets'] = async (
   { id, authorId },
   _,
   { viewer, dataSources: { systemService } }

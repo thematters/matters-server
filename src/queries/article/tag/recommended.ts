@@ -1,3 +1,5 @@
+import type { Item, GQLTagResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { TAGS_RECOMMENDED_LIMIT } from 'common/enums'
@@ -7,9 +9,8 @@ import {
   fromConnectionArgs,
   normalizeTagInput,
 } from 'common/utils'
-import { Item, TagToRecommendedResolver } from 'definitions'
 
-const resolver: TagToRecommendedResolver = async (
+const resolver: GQLTagResolvers['recommended'] = async (
   { id },
   { input },
   { dataSources: { tagService } }

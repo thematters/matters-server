@@ -1,7 +1,8 @@
-import { connectionFromArray } from 'common/utils'
-import { RecommendationToHottestCirclesResolver } from 'definitions'
+import type { GQLRecommendationResolvers } from 'definitions'
 
-const resolver: RecommendationToHottestCirclesResolver = async (
+import { connectionFromArray } from 'common/utils'
+
+const resolver: GQLRecommendationResolvers['hottestCircles'] = async (
   { id },
   { input },
   { viewer, dataSources: { atomService }, knex }

@@ -1,3 +1,5 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import {
@@ -5,9 +7,8 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { RecommendationToHottestTagsResolver } from 'definitions'
 
-export const hottestTags: RecommendationToHottestTagsResolver = async (
+export const hottestTags: GQLRecommendationResolvers['hottestTags'] = async (
   _,
   { input },
   { dataSources: { userService } }

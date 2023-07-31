@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { TagToArticlesResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToArticlesResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLTagResolvers['articles'] = async (
   { id, numArticles, numAuthors },
   { input },
   { dataSources: { tagService, articleService } }

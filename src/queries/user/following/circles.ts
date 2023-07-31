@@ -1,12 +1,13 @@
+import type { GQLFollowingResolvers } from 'definitions'
+
 import { CIRCLE_ACTION } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { FollowingToCirclesResolver } from 'definitions'
 
-const resolver: FollowingToCirclesResolver = async (
+const resolver: GQLFollowingResolvers['circles'] = async (
   { id },
   { input },
   { dataSources: { atomService } }

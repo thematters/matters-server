@@ -1,6 +1,6 @@
-import { UserStatusToUnreadNoticeCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToUnreadNoticeCountResolver = (
+const resolver: GQLUserStatusResolvers['unreadNoticeCount'] = (
   { id },
   _,
   { dataSources: { notificationService } }

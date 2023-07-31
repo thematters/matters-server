@@ -1,6 +1,6 @@
-import { UserSettingsToNotificationResolver } from 'definitions'
+import type { GQLUserSettingsResolvers } from 'definitions'
 
-const resolver: UserSettingsToNotificationResolver = (
+const resolver: GQLUserSettingsResolvers['notification'] = (
   { id },
   _,
   { dataSources: { userService } }

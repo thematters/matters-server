@@ -1,6 +1,6 @@
-import { QueryToFrequentSearchResolver } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions'
 
-const resolver: QueryToFrequentSearchResolver = (
+const resolver: GQLQueryResolvers['frequentSearch'] = (
   _,
   { input },
   { dataSources: { systemService } }

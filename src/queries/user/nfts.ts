@@ -16,7 +16,7 @@ interface OpenSeaNFTAsset {
   media: any
 }
 
-export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
+export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   { userId, address },
   _,
   { dataSources: { userService } }
@@ -38,7 +38,7 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   return Array.isArray(assets?.ownedNfts) && assets.ownedNfts.length > 0
 }
 
-export const nfts: CryptoWalletToNftsResolver = async (
+export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   { userId, address },
   _,
   { dataSources: { userService } }

@@ -1,7 +1,8 @@
-import { CIRCLE_STATE } from 'common/enums'
-import { QueryToCircleResolver } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions'
 
-const resolver: QueryToCircleResolver = async (
+import { CIRCLE_STATE } from 'common/enums'
+
+const resolver: GQLQueryResolvers['circle'] = async (
   root,
   { input: { name } },
   { dataSources: { atomService } }

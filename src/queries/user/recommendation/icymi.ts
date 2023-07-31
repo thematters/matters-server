@@ -1,8 +1,9 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToIcymiResolver } from 'definitions'
 
-export const icymi: RecommendationToIcymiResolver = async (
+export const icymi: GQLRecommendationResolvers['icymi'] = async (
   { id },
   { input },
   { dataSources: { draftService }, knex }

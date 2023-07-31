@@ -1,12 +1,13 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { VIEW } from 'common/enums'
 // import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToTagsResolver } from 'definitions'
 
-export const tags: RecommendationToTagsResolver = async (
+export const tags: GQLRecommendationResolvers['tags'] = async (
   { id },
   { input },
   { viewer, dataSources: { tagService } }

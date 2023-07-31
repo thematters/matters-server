@@ -1,6 +1,6 @@
-import { TagToNumArticlesResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToNumArticlesResolver = async (
+const resolver: GQLTagResolvers['numArticles'] = async (
   { id, numArticles },
   _,
   { dataSources: { tagService } }

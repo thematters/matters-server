@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToCommentsResolver } from 'definitions'
+import type { GQLOSSResolvers } from 'definitions'
 
-export const comments: OSSToCommentsResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const comments: GQLOSSResolvers['comments'] = async (
   _,
   { input },
   { dataSources: { commentService } }

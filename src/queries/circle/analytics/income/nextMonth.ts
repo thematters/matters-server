@@ -1,12 +1,13 @@
+import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions'
+
 import {
   INVITATION_STATE,
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
-import { CircleIncomeAnalyticsToNextMonthResolver } from 'definitions'
 
-const resolver: CircleIncomeAnalyticsToNextMonthResolver = async (
+const resolver: GQLCircleIncomeAnalyticsResolvers['nextMonth'] = async (
   { id },
   _,
   { dataSources: { atomService }, knex }

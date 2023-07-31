@@ -6,7 +6,7 @@ import {
   ArticleOSSToScoreResolver,
 } from 'definitions'
 
-export const boost: ArticleOSSToBoostResolver = async (
+export const boost: GQLArticleOSSResolvers['boost'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }
@@ -23,7 +23,7 @@ export const boost: ArticleOSSToBoostResolver = async (
   return articleBoost.boost
 }
 
-export const score: ArticleOSSToScoreResolver = async (
+export const score: GQLArticleOSSResolvers['score'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }
@@ -35,19 +35,16 @@ export const score: ArticleOSSToScoreResolver = async (
   return article?.score || 0
 }
 
-export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
-  { articleId },
-  _,
-  { dataSources: { atomService } }
-) => {
-  const record = await atomService.findFirst({
-    table: 'matters_choice',
-    where: { articleId },
-  })
-  return !!record
-}
+export const inRecommendIcymi: GQLArticleOSSResolvers['inRecommendIcymi'] =
+  async ({ articleId }, _, { dataSources: { atomService } }) => {
+    const record = await atomService.findFirst({
+      table: 'matters_choice',
+      where: { articleId },
+    })
+    return !!record
+  }
 
-export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver =
+export const inRecommendHottest: GQLArticleOSSResolvers['inRecommendHottest'] =
   async ({ articleId }, _, { dataSources: { atomService } }) => {
     const setting = await atomService.findFirst({
       table: 'article_recommend_setting',
@@ -61,19 +58,16 @@ export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver =
     return setting.inHottest
   }
 
-export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
-  { articleId },
-  _,
-  { dataSources: { atomService } }
-) => {
-  const setting = await atomService.findFirst({
-    table: 'article_recommend_setting',
-    where: { articleId },
-  })
+export const inRecommendNewest: GQLArticleOSSResolvers['inRecommendNewest'] =
+  async ({ articleId }, _, { dataSources: { atomService } }) => {
+    const setting = await atomService.findFirst({
+      table: 'article_recommend_setting',
+      where: { articleId },
+    })
 
-  if (!setting) {
-    return true
+    if (!setting) {
+      return true
+    }
+
+    return setting.inNewest
   }
-
-  return setting.inNewest
-}

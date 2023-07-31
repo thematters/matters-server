@@ -1,7 +1,8 @@
-import { likecoin } from 'connectors'
-import { LikerToCivicLikerResolver } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions'
 
-const resolver: LikerToCivicLikerResolver = async (
+import { likecoin } from 'connectors'
+
+const resolver: GQLLikerResolvers['civicLiker'] = async (
   { id },
   _: any,
   { dataSources: { userService } }

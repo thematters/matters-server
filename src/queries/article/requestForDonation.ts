@@ -1,6 +1,6 @@
-import { ArticleToReplyToDonatorResolver } from 'definitions'
+import type { GQLArticleToReplyResolvers } from 'definitions'
 
-const resolver: ArticleToReplyToDonatorResolver = async (
+const resolver: GQLArticleToReplyResolvers['donator'] = async (
   { requestForDonation },
   _,
   { dataSources: { draftService } }

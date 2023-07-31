@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToBadgedUsersResolver } from 'definitions'
+import type { GQLOSSResolvers } from 'definitions'
 
-export const badgedUsers: OSSToBadgedUsersResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const badgedUsers: GQLOSSResolvers['badgedUsers'] = async (
   _,
   { input },
   { dataSources: { atomService }, knex }

@@ -1,6 +1,6 @@
-import { ArticleToStickyResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToStickyResolver = async (
+const resolver: GQLArticleResolvers['sticky'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

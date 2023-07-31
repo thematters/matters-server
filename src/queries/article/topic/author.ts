@@ -1,9 +1,9 @@
-import { TopicToAuthorResolver } from 'definitions'
+import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: TopicToAuthorResolver = (
+const resolver: GQLTopicResolvers['author'] = (
   { userId },
   _,
   { dataSources: { userService } }
-) => userService.dataloader.load(userId)
+) => userService.loadById(userId)
 
 export default resolver

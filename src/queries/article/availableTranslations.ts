@@ -3,7 +3,7 @@ import {
   GQLUserLanguage,
 } from 'definitions'
 
-const resolver: ArticleToAvailableTranslationsResolver = async (
+const resolver: GQLArticleResolvers['availableTranslations'] = async (
   { articleId },
   _,
   { viewer, dataSources: { userService, atomService } }

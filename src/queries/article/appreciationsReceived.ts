@@ -1,7 +1,8 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToAppreciationsReceivedResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToAppreciationsReceivedResolver = async (
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLArticleResolvers['appreciationsReceived'] = async (
   { articleId },
   { input },
   { dataSources: { articleService } }

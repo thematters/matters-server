@@ -1,3 +1,5 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import _last from 'lodash/last'
 
 import {
@@ -5,9 +7,8 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { RecommendationToReadTagsArticlesResolver } from 'definitions'
 
-const resolver: RecommendationToReadTagsArticlesResolver = async (
+const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
   { id: userId },
   { input },
   { dataSources: { articleService, atomService } }

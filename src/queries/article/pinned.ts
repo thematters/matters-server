@@ -1,6 +1,6 @@
-import { ArticleToPinnedResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToPinnedResolver = async (
+const resolver: GQLArticleResolvers['pinned'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

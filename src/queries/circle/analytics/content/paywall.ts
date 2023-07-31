@@ -3,7 +3,7 @@ import {
   GQLArticleAccessType,
 } from 'definitions'
 
-const resolver: CircleContentAnalyticsToPaywallResolver = async (
+const resolver: GQLCircleContentAnalyticsResolvers['paywall'] = async (
   { id },
   _,
   { dataSources: { atomService }, knex }

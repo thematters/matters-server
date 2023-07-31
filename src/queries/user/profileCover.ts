@@ -1,6 +1,6 @@
-import { UserInfoToProfileCoverResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToProfileCoverResolver = async (
+const resolver: GQLUserInfoResolvers['profileCover'] = async (
   { profileCover },
   _,
   { dataSources: { systemService } }

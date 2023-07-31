@@ -1,9 +1,10 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
-const resolver: ArticleToRelatedDonationArticlesResolver = async (
+const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
   { articleId },
   { input },
   { dataSources: { articleService, draftService } }

@@ -1,6 +1,6 @@
-import { ArticleAccessToCircleResolver } from 'definitions'
+import type { GQLArticleAccessResolvers } from 'definitions'
 
-export const circle: ArticleAccessToCircleResolver = async (
+export const circle: GQLArticleAccessResolvers['circle'] = async (
   { articleId },
   _,
   { dataSources: { atomService, articleService } }

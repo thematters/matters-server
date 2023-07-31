@@ -1,12 +1,13 @@
+import type { GQLCommentResolvers } from 'definitions'
+
 import {
   COMMENT_TYPE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { CommentToFromDonatorResolver } from 'definitions'
 
-const resolver: CommentToFromDonatorResolver = async (
+const resolver: GQLCommentResolvers['fromDonator'] = async (
   { authorId, targetId, type },
   _,
   { dataSources: { atomService, articleService } }

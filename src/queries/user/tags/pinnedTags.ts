@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToPinnedTagsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToPinnedTagsResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLUserResolvers['pinnedTags'] = async (
   { id },
   { input },
   { dataSources: { tagService, userService } }

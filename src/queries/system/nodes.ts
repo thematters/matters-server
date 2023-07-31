@@ -1,11 +1,11 @@
-import type { QueryToNodesResolver } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions'
 
 import { GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'
 
 import { getNode } from './utils'
 
-const resolver: QueryToNodesResolver = async (
+const resolver: GQLQueryResolvers['nodes'] = async (
   _,
   { input: { ids } },
   context

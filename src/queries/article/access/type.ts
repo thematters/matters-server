@@ -1,7 +1,8 @@
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
-import { ArticleAccessToTypeResolver } from 'definitions'
+import type { GQLArticleAccessResolvers } from 'definitions'
 
-export const type: ArticleAccessToTypeResolver = async (
+import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+
+export const type: GQLArticleAccessResolvers['type'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

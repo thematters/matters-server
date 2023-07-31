@@ -1,11 +1,12 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { UserToBlockListResolver } from 'definitions'
 
-const resolver: UserToBlockListResolver = async (
+const resolver: GQLUserResolvers['blockList'] = async (
   { id },
   { input },
   { dataSources: { userService } }
@@ -20,7 +21,7 @@ const resolver: UserToBlockListResolver = async (
   const actions = await userService.findBlockList({ userId: id, skip, take })
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(
+    userService.loadByIds(
       actions.map(({ targetId }: { targetId: string }) => targetId)
     ),
     input,

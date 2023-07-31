@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToSeedingUsersResolver } from 'definitions'
+import type { GQLOSSResolvers } from 'definitions'
 
-export const seedingUsers: OSSToSeedingUsersResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const seedingUsers: GQLOSSResolvers['seedingUsers'] = async (
   _,
   { input },
   { dataSources: { atomService } }

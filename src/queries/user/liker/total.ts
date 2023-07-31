@@ -1,6 +1,6 @@
-import { LikerToTotalResolver } from 'definitions'
+import type { GQLLikerToResolvers } from 'definitions'
 
-const resolver: LikerToTotalResolver = async (
+const resolver: GQLLikerToResolvers['tal'] = async (
   { id },
   _: any,
   { dataSources: { userService } }

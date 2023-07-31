@@ -1,11 +1,12 @@
+import type { GQLArticleToReplyResolvers } from 'definitions'
+
 import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { ArticleToReplyToDonatorResolver } from 'definitions'
 
-const resolver: ArticleToReplyToDonatorResolver = async (
+const resolver: GQLArticleToReplyResolvers['donator'] = async (
   { authorId, articleId, replyToDonator },
   _,
   { viewer, dataSources }

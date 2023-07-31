@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToArticlesResolver } from 'definitions'
+import type { GQLOSSResolvers } from 'definitions'
 
-export const articles: OSSToArticlesResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const articles: GQLOSSResolvers['articles'] = async (
   _,
   { input },
   { dataSources: { articleService, draftService } }

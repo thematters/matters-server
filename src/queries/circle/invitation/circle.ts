@@ -1,6 +1,6 @@
-import { InvitationToCircleResolver } from 'definitions'
+import type { GQLInvitationResolvers } from 'definitions'
 
-const resolver: InvitationToCircleResolver = async (
+const resolver: GQLInvitationResolvers['circle'] = async (
   { circleId },
   _,
   { dataSources: { atomService } }

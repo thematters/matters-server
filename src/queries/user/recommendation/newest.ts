@@ -1,12 +1,13 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { Knex } from 'knex'
 
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { readonlyKnex as knexRO } from 'connectors'
-import { RecommendationToNewestResolver } from 'definitions'
 
-export const newest: RecommendationToNewestResolver = async (
+export const newest: GQLRecommendationResolvers['newest'] = async (
   _,
   { input },
   { viewer, dataSources: { draftService } }

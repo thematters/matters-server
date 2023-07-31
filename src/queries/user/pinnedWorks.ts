@@ -1,8 +1,8 @@
-import type { UserToPinnedWorksResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 
-const resolver: UserToPinnedWorksResolver = async (
+const resolver: GQLUserResolvers['pinnedWorks'] = async (
   { id },
   _,
   { dataSources: { articleService, collectionService, draftService } }

@@ -9,9 +9,9 @@ export const Transaction: GQLTransactionTypeResolver = {
   fee: ({ fee }) => fee || 0,
   purpose: ({ purpose }) => camelCase(purpose),
   sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.dataloader.load(trx.senderId) : null,
+    trx.senderId ? userService.loadById(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+    trx.recipientId ? userService.loadById(trx.recipientId) : null,
   blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
     if (trx.provider === PAYMENT_PROVIDER.blockchain) {
       const blockchainTx = await paymentService.findBlockchainTransactionById(

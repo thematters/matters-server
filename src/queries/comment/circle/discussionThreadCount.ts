@@ -1,7 +1,8 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { CircleToDiscussionThreadCountResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToDiscussionThreadCountResolver = async (
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+
+const resolver: GQLCircleResolvers['discussionThreadCount'] = async (
   { id },
   _,
   { dataSources: { atomService } }

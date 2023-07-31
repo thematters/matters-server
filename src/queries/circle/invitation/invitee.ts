@@ -1,6 +1,6 @@
-import { InvitationToInviteeResolver } from 'definitions'
+import type { GQLInvitationResolvers } from 'definitions'
 
-const resolver: InvitationToInviteeResolver = async (
+const resolver: GQLInvitationResolvers['invitee'] = async (
   { email, userId },
   _,
   { dataSources: { atomService } }

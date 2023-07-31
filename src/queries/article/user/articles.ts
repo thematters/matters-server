@@ -1,11 +1,12 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromGlobalId,
 } from 'common/utils'
-import { UserToArticlesResolver } from 'definitions'
 
-const resolver: UserToArticlesResolver = async (
+const resolver: GQLUserResolvers['articles'] = async (
   { id },
   { input },
   { dataSources: { articleService, draftService }, viewer }

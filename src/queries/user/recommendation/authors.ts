@@ -6,9 +6,9 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { GQLAuthorsType, RecommendationToAuthorsResolver } from 'definitions'
+import { GQLAuthorsType, type GQLRecommendationResolvers } from 'definitions'
 
-export const authors: RecommendationToAuthorsResolver = async (
+export const authors: GQLRecommendationResolvers['authors'] = async (
   { id },
   { input },
   { dataSources: { userService }, viewer }

@@ -1,7 +1,8 @@
-import { PAYMENT_CURRENCY } from 'common/enums'
-import { WalletToBalanceResolver } from 'definitions'
+import type { GQLWalletResolvers } from 'definitions'
 
-const resolver: WalletToBalanceResolver = async (
+import { PAYMENT_CURRENCY } from 'common/enums'
+
+const resolver: GQLWalletResolvers['balance'] = async (
   { id },
   _,
   { dataSources: { paymentService } }

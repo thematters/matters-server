@@ -1,6 +1,6 @@
-import { UserInfoToIsWalletAuthResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToIsWalletAuthResolver = async (
+const resolver: GQLUserInfoResolvers['isWalletAuth'] = async (
   { id },
   _,
   { viewer }

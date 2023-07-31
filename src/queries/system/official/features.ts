@@ -1,6 +1,6 @@
-import { OfficialToFeaturesResolver } from 'definitions'
+import type { GQLOfficialResolvers } from 'definitions'
 
-export const features: OfficialToFeaturesResolver = async (
+export const features: GQLOfficialResolvers['features'] = async (
   root,
   input,
   { viewer, dataSources: { systemService } }

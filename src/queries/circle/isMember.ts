@@ -1,6 +1,6 @@
-import { CircleToIsMemberResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToIsMemberResolver = async (
+const resolver: GQLCircleResolvers['isMember'] = async (
   { id },
   _,
   { viewer, dataSources: { paymentService } }

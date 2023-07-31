@@ -1,6 +1,6 @@
-import { ArticleToTagsResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToTagsResolver = async (
+const resolver: GQLArticleResolvers['tags'] = async (
   { articleId },
   _,
   { dataSources: { articleService, tagService } }

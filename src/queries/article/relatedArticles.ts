@@ -1,12 +1,13 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import _ from 'lodash'
 
 import { getLogger } from 'common/logger'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const logger = getLogger('related-articles')
 
-const resolver: ArticleToRelatedArticlesResolver = async (
+const resolver: GQLArticleResolvers['relatedArticles'] = async (
   { articleId, authorId },
   { input },
   { dataSources: { articleService, draftService, tagService } }

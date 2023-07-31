@@ -1,7 +1,8 @@
-import { COMMENT_STATE } from 'common/enums'
-import { CommentToContentResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToContentResolver = (
+import { COMMENT_STATE } from 'common/enums'
+
+const resolver: GQLCommentResolvers['content'] = (
   { content, state },
   _,
   { viewer }

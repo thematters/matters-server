@@ -1,6 +1,6 @@
-import { CircleToCoverResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToCoverResolver = async (
+const resolver: GQLCircleResolvers['cover'] = async (
   { cover },
   _,
   { dataSources: { systemService } }

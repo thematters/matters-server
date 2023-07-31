@@ -1,12 +1,13 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { CircleToWorksResolver } from 'definitions'
 
-const resolver: CircleToWorksResolver = async (
+const resolver: GQLCircleResolvers['works'] = async (
   { id },
   { input },
   { dataSources: { atomService }, knex }

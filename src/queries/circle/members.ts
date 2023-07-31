@@ -1,8 +1,9 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { CircleToMembersResolver } from 'definitions'
 
-const resolver: CircleToMembersResolver = async (
+const resolver: GQLCircleResolvers['members'] = async (
   { id },
   { input },
   { dataSources: { atomService }, knex }

@@ -1,6 +1,6 @@
-import { OAuthClientToAvatarResolver } from 'definitions'
+import type { GQLOAuthClientResolvers } from 'definitions'
 
-const resolver: OAuthClientToAvatarResolver = async (
+const resolver: GQLOAuthClientResolvers['avatar'] = async (
   { avatar },
   _,
   { dataSources: { systemService } }

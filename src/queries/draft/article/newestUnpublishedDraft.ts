@@ -1,7 +1,8 @@
-import { PUBLISH_STATE } from 'common/enums'
-import { ArticleToNewestUnpublishedDraftResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToNewestUnpublishedDraftResolver = async (
+import { PUBLISH_STATE } from 'common/enums'
+
+const resolver: GQLArticleResolvers['newestUnpublishedDraft'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }

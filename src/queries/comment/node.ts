@@ -1,7 +1,8 @@
-import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
-import { CommentToNodeResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToNodeResolver = async (
+import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
+
+const resolver: GQLCommentResolvers['node'] = async (
   { targetId, targetTypeId, type },
   _,
   { dataSources: { atomService, articleService } }

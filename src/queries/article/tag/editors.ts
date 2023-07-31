@@ -1,7 +1,8 @@
-import { environment } from 'common/environment'
-import { TagToEditorsResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToEditorsResolver = (
+import { environment } from 'common/environment'
+
+const resolver: GQLTagResolvers['editors'] = (
   { editors, owner },
   { input },
   { dataSources: { userService } }
@@ -16,7 +17,7 @@ const resolver: TagToEditorsResolver = (
     ids = ids.filter((editor: string) => editor !== owner)
   }
 
-  return userService.dataloader.loadMany(ids)
+  return userService.loadByIds(ids)
 }
 
 export default resolver

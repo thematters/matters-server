@@ -1,12 +1,13 @@
+import type { GQLFollowingResolvers } from 'definitions'
+
 import { TAG_ACTION } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { FollowingToTagsResolver } from 'definitions'
 
-const resolver: FollowingToTagsResolver = async (
+const resolver: GQLFollowingResolvers['tags'] = async (
   { id },
   { input },
   { dataSources: { atomService, tagService } }

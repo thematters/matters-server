@@ -9,7 +9,7 @@ import { ArticleToTransactionsReceivedByResolver, Item } from 'definitions'
 const dashCase = (str: string) =>
   str.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())
 
-const resolver: ArticleToTransactionsReceivedByResolver = async (
+const resolver: GQLArticleResolvers['transactionsReceivedBy'] = async (
   { articleId },
   { input },
   { dataSources: { articleService, userService } }
@@ -37,7 +37,7 @@ const resolver: ArticleToTransactionsReceivedByResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(txs.map(({ senderId }: Item) => senderId)),
+    userService.loadByIds(txs.map(({ senderId }: Item) => senderId)),
     input,
     totalCount
   )

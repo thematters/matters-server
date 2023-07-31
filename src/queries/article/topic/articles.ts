@@ -1,6 +1,6 @@
-import { TopicToArticlesResolver } from 'definitions'
+import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: TopicToArticlesResolver = async (
+const resolver: GQLTopicResolvers['articles'] = async (
   { id: topicId },
   _,
   { dataSources: { atomService, articleService } }

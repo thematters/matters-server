@@ -76,9 +76,9 @@ export const Appreciation: GQLAppreciationTypeResolver = {
     }
   },
   sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.dataloader.load(trx.senderId) : null,
+    trx.senderId ? userService.loadById(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+    trx.recipientId ? userService.loadById(trx.recipientId) : null,
   target: (trx, _, { dataSources: { articleService } }) =>
     trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId
       ? articleService.draftLoader.load(trx.referenceId)

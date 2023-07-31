@@ -1,6 +1,6 @@
-import { CircleToAvatarResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToAvatarResolver = async (
+const resolver: GQLCircleResolvers['avatar'] = async (
   { avatar },
   _,
   { dataSources: { systemService } }

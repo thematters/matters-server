@@ -1,12 +1,13 @@
+import type { GQLTagResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
   fromConnectionArgs,
 } from 'common/utils'
-import { TagToFollowersResolver } from 'definitions'
 
-const resolver: TagToFollowersResolver = async (
+const resolver: GQLTagResolvers['followers'] = async (
   { id },
   { input },
   { dataSources: { tagService, userService } }
@@ -27,7 +28,7 @@ const resolver: TagToFollowersResolver = async (
     {}
   )
 
-  const users = (await userService.dataloader.loadMany(
+  const users = (await userService.loadByIds(
     actions.map(({ userId }: { userId: string }) => userId)
   )) as Array<Record<string, any>>
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))

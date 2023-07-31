@@ -1,12 +1,13 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { COMMENT_STATE, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
 import {
   connectionFromArray, // fromConnectionArgs
   fromGlobalId,
   toGlobalId,
 } from 'common/utils'
-import { CircleToBroadcastResolver } from 'definitions'
 
-const resolver: CircleToBroadcastResolver = async (
+const resolver: GQLCircleResolvers['broadcast'] = async (
   { id },
   { input: { sort, first, ...rest } },
   { dataSources: { atomService, commentService } }

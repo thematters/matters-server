@@ -1,7 +1,8 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { UserToCollectionsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToCollectionsResolver = async (
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLUserResolvers['collections'] = async (
   user,
   { input },
   { dataSources: { collectionService } }

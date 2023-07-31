@@ -1,6 +1,6 @@
-import { DraftAccessToCircleResolver } from 'definitions'
+import type { GQLDraftAccessResolvers } from 'definitions'
 
-export const circle: DraftAccessToCircleResolver = (
+export const circle: GQLDraftAccessResolvers['circle'] = (
   { circleId },
   _,
   { dataSources: { atomService } }

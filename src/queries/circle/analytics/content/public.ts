@@ -3,7 +3,7 @@ import {
   GQLArticleAccessType,
 } from 'definitions'
 
-const resolver: CircleContentAnalyticsToPublicResolver = async (
+const resolver: GQLCircleContentAnalyticsResolvers['public'] = async (
   { id },
   _,
   { dataSources: { atomService }, knex }

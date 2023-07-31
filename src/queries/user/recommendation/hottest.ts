@@ -1,12 +1,13 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { Knex } from 'knex'
 
 import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { readonlyKnex as knexRO } from 'connectors'
-import { RecommendationToHottestResolver } from 'definitions'
 
-export const hottest: RecommendationToHottestResolver = async (
+export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,
   { input },
   { viewer, dataSources: { draftService } }

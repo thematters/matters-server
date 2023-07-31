@@ -5045,11 +5045,7 @@ export type GQLResolversTypes = {
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
   UserGroup: GQLUserGroup
-  UserInfo: ResolverTypeWrapper<
-    Omit<GQLUserInfo, 'featuredTags'> & {
-      featuredTags?: Maybe<Array<GQLResolversTypes['Tag']>>
-    }
-  >
+  UserInfo: ResolverTypeWrapper<User>
   UserInfoFields: GQLUserInfoFields
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
@@ -5080,16 +5076,12 @@ export type GQLResolversTypes = {
   UserRole: GQLUserRole
   UserSettings: ResolverTypeWrapper<GQLUserSettings>
   UserState: GQLUserState
-  UserStatus: ResolverTypeWrapper<GQLUserStatus>
+  UserStatus: ResolverTypeWrapper<User>
   VerificationCodeType: GQLVerificationCodeType
   VerifyEmailInput: GQLVerifyEmailInput
   Vote: GQLVote
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ResolverTypeWrapper<
-    Omit<GQLWallet, 'transactions'> & {
-      transactions: GQLResolversTypes['TransactionConnection']
-    }
-  >
+  Wallet: ResolverTypeWrapper<User>
   WalletLoginInput: GQLWalletLoginInput
 }
 
@@ -5655,9 +5647,7 @@ export type GQLResolversParentTypes = {
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
-  UserInfo: Omit<GQLUserInfo, 'featuredTags'> & {
-    featuredTags?: Maybe<Array<GQLResolversParentTypes['Tag']>>
-  }
+  UserInfo: User
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
   UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
@@ -5678,12 +5668,10 @@ export type GQLResolversParentTypes = {
   UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
   UserSettings: GQLUserSettings
-  UserStatus: GQLUserStatus
+  UserStatus: User
   VerifyEmailInput: GQLVerifyEmailInput
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: Omit<GQLWallet, 'transactions'> & {
-    transactions: GQLResolversParentTypes['TransactionConnection']
-  }
+  Wallet: User
   WalletLoginInput: GQLWalletLoginInput
 }
 

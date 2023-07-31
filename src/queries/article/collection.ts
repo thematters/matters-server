@@ -6,7 +6,7 @@ import {
 } from 'common/utils'
 import { ArticleToCollectionResolver, Item } from 'definitions'
 
-const resolver: ArticleToCollectionResolver = async (
+const resolver: GQLArticleResolvers['collection'] = async (
   { articleId },
   { input },
   { dataSources: { articleService }, knex }

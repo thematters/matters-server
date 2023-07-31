@@ -1,9 +1,9 @@
-import { ArticleToDraftsResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
 import publishedResolver from './newestPublishedDraft'
 import unpublishedResolver from './newestUnpublishedDraft'
 
-const resolver: ArticleToDraftsResolver = async (
+const resolver: GQLArticleResolvers['drafts'] = async (
   parent,
   args,
   context,

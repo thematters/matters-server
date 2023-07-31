@@ -1,6 +1,6 @@
-import { UserInfoToFeaturedTagsResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToFeaturedTagsResolver = async (
+const resolver: GQLUserInfoResolvers['featuredTags'] = async (
   { id },
   _,
   { dataSources: { atomService, tagService } }

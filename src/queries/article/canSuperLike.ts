@@ -1,10 +1,11 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { ArticleToCanSuperLikeResolver } from 'definitions'
 
 const logger = getLogger('mutation-superlike')
 
-const resolver: ArticleToCanSuperLikeResolver = async (
+const resolver: GQLArticleResolvers['canSuperLike'] = async (
   { articleId },
   _,
   { viewer, dataSources: { userService } }

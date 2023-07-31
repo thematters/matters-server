@@ -15,6 +15,9 @@ const config: CodegenConfig = {
         inputMaybeValue: 'T | undefined',
         mappers: {
           User: './index#User',
+          UserInfo: './index#User',
+          UserStatus: './index#User',
+          Wallet: './index#User',
           Tag: './tag#Tag',
           Collection: './collection#Collection',
         },

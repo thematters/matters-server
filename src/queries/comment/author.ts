@@ -1,9 +1,9 @@
-import { CommentToAuthorResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToAuthorResolver = (
+const resolver: GQLCommentResolvers['author'] = (
   { authorId },
   _,
   { dataSources: { userService } }
-) => userService.dataloader.load(authorId)
+) => userService.loadById(authorId)
 
 export default resolver

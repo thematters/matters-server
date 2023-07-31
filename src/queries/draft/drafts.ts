@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray } from 'common/utils'
-import { UserToDraftsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToDraftsResolver = (
+import { connectionFromPromisedArray } from 'common/utils'
+
+const resolver: GQLUserResolvers['drafts'] = (
   { id },
   { input },
   { dataSources: { draftService } }

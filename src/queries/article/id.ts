@@ -1,4 +1,4 @@
-import type { ArticleToIdResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
@@ -6,7 +6,7 @@ import { toGlobalId } from 'common/utils'
 
 const logger = getLogger('query-article-id')
 
-const resolver: ArticleToIdResolver = async (
+const resolver: GQLArticleResolvers['id'] = async (
   { articleId, id },
   _,
   __,

@@ -1,3 +1,5 @@
+import type { GQLWalletResolvers } from 'definitions'
+
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
 import {
@@ -12,9 +14,8 @@ import {
   fromConnectionArgs,
   fromGlobalId,
 } from 'common/utils'
-import { WalletToTransactionsResolver } from 'definitions'
 
-const resolver: WalletToTransactionsResolver = async (
+const resolver: GQLWalletResolvers['transactions'] = async (
   { id: userId },
   { input },
   { dataSources: { paymentService }, viewer },

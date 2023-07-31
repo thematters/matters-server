@@ -1,3 +1,5 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import _chunk from 'lodash/chunk'
 import _times from 'lodash/times'
 
@@ -7,7 +9,6 @@ import {
   fromConnectionArgs,
   indexToCursor,
 } from 'common/utils'
-import { RecommendationToFollowingResolver } from 'definitions'
 
 import {
   makeBaseActivityQuery,
@@ -25,7 +26,7 @@ export enum RecommendationSource {
   UserSubscription = 'UserSubscription',
 }
 
-const resolver: RecommendationToFollowingResolver = async (
+const resolver: GQLRecommendationResolvers['following'] = async (
   { id: userId },
   { input },
   {
@@ -36,7 +37,6 @@ const resolver: RecommendationToFollowingResolver = async (
       atomService,
       articleService,
     },
-    knex,
   }
 ) => {
   if (!userId) {

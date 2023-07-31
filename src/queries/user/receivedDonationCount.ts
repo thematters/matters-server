@@ -1,6 +1,6 @@
-import { UserStatusToReceivedDonationCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToReceivedDonationCountResolver = (
+const resolver: GQLUserStatusResolvers['receivedDonationCount'] = (
   { id },
   _,
   { dataSources: { userService } }

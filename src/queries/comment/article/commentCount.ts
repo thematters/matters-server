@@ -1,6 +1,6 @@
-import { ArticleToCommentCountResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToCommentCountResolver = (
+const resolver: GQLArticleResolvers['commentCount'] = (
   { articleId },
   _,
   { dataSources: { commentService } }

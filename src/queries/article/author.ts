@@ -1,9 +1,9 @@
-import type { ArticleToAuthorResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToAuthorResolver = (
+const resolver: GQLArticleResolvers['author'] = (
   { authorId },
   _,
   { dataSources: { userService } }
-) => userService.dataloader.load(authorId)
+) => userService.loadById(authorId)
 
 export default resolver

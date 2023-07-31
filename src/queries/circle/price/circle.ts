@@ -1,6 +1,6 @@
-import { PriceToCircleResolver } from 'definitions'
+import type { GQLPriceResolvers } from 'definitions'
 
-const resolver: PriceToCircleResolver = async (
+const resolver: GQLPriceResolvers['circle'] = async (
   { circle_id },
   _,
   { viewer, dataSources: { atomService } }

@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToSubscriptionsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToSubscriptionsResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLUserResolvers['subscriptions'] = async (
   { id }: { id: string },
   { input },
   { dataSources: { articleService, draftService, userService } }

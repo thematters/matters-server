@@ -1,6 +1,6 @@
-import { WalletToStripeAccountResolver } from 'definitions'
+import type { GQLWalletResolvers } from 'definitions'
 
-const resolver: WalletToStripeAccountResolver = async (
+const resolver: GQLWalletResolvers['stripeAccount'] = async (
   { id },
   _,
   { dataSources: { atomService } }
