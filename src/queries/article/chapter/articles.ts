@@ -3,7 +3,7 @@ import type { GQLChapterResolvers } from 'definitions'
 const resolver: GQLChapterResolvers['articles'] = async (
   { id: chapterId },
   _,
-  { dataSources: { atomService, articleService } }
+  { dataSources: { atomService, draftService } }
 ) => {
   const chapterArticles = await atomService.findMany({
     table: 'article_chapter',
@@ -11,9 +11,7 @@ const resolver: GQLChapterResolvers['articles'] = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.draftLoader.loadMany(
-    chapterArticles.map((item) => item.articleId)
-  )
+  return draftService.loadByIds(chapterArticles.map((item) => item.articleId))
 }
 
 export default resolver

@@ -40,6 +40,7 @@ const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
   })
 
   // invalidate extra nodes
+  // @ts-ignore
   tag[CACHE_KEYWORD] = [
     {
       id: viewer.id,

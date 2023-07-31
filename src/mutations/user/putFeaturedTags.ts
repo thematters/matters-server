@@ -22,7 +22,7 @@ const resolver: GQLMutationResolvers['putFeaturedTags'] = async (
     updateUpdatedAt: true,
   })
 
-  return tagService.dataloader.loadMany(entry.tagIds)
+  return tagService.loadByIds(entry.tagIds)
 }
 
 export default resolver

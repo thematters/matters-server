@@ -37,7 +37,7 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     })
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     { first, after },
     totalCount
   )

@@ -17,7 +17,7 @@ const resolver: GQLUserResolvers['pinnedTags'] = async (
 
   return connectionFromPromisedArray(
     // tagService.findPinnedTagsByUserId(id),
-    tagService.dataloader.loadMany(tagIds.map((tag: any) => `${tag.id}`)),
+    tagService.loadByIds(tagIds.map((tag: any) => `${tag.id}`)),
     input
   )
 }

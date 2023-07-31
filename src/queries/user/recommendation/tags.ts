@@ -38,9 +38,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.dataloader.loadMany(
-        filteredTags.map((tag: any) => `${tag.id}`)
-      ),
+      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
       input,
       curationTags.length
     )
@@ -56,7 +54,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(items.map((item: any) => `${item.id}`)),
+    tagService.loadByIds(items.map((item: any) => `${item.id}`)),
     input,
     totalCount
   )

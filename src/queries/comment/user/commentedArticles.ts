@@ -30,9 +30,7 @@ const resolver: GQLUserResolvers['commentedArticles'] = async (
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article) => article.draftId)),
     input,
     totalCount
   )

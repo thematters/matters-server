@@ -7,6 +7,8 @@ import { User as UserModel, Context } from './index'
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
+import { Draft as DraftModel } from './draft'
+import { Circle as CircleModel } from './circle'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3985,107 +3987,10 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
           nodes?: Maybe<Array<RefType['User']>>
         })
     Invitee: GQLPerson | UserModel
-    Response:
-      | (Omit<
-          GQLArticle,
-          | 'access'
-          | 'appreciationsReceived'
-          | 'author'
-          | 'collectedBy'
-          | 'collection'
-          | 'comments'
-          | 'drafts'
-          | 'featuredComments'
-          | 'newestPublishedDraft'
-          | 'newestUnpublishedDraft'
-          | 'pinnedComments'
-          | 'relatedArticles'
-          | 'relatedDonationArticles'
-          | 'subscribers'
-          | 'tags'
-          | 'transactionsReceivedBy'
-        > & {
-          access: RefType['ArticleAccess']
-          appreciationsReceived: RefType['AppreciationConnection']
-          author: RefType['User']
-          collectedBy: RefType['ArticleConnection']
-          collection: RefType['ArticleConnection']
-          comments: RefType['CommentConnection']
-          drafts?: Maybe<Array<RefType['Draft']>>
-          featuredComments: RefType['CommentConnection']
-          newestPublishedDraft: RefType['Draft']
-          newestUnpublishedDraft?: Maybe<RefType['Draft']>
-          pinnedComments?: Maybe<Array<RefType['Comment']>>
-          relatedArticles: RefType['ArticleConnection']
-          relatedDonationArticles: RefType['ArticleConnection']
-          subscribers: RefType['UserConnection']
-          tags?: Maybe<Array<RefType['Tag']>>
-          transactionsReceivedBy: RefType['UserConnection']
-        })
-      | CommentModel
+    Response: DraftModel | CommentModel
     TransactionTarget:
-      | (Omit<
-          GQLArticle,
-          | 'access'
-          | 'appreciationsReceived'
-          | 'author'
-          | 'collectedBy'
-          | 'collection'
-          | 'comments'
-          | 'drafts'
-          | 'featuredComments'
-          | 'newestPublishedDraft'
-          | 'newestUnpublishedDraft'
-          | 'pinnedComments'
-          | 'relatedArticles'
-          | 'relatedDonationArticles'
-          | 'subscribers'
-          | 'tags'
-          | 'transactionsReceivedBy'
-        > & {
-          access: RefType['ArticleAccess']
-          appreciationsReceived: RefType['AppreciationConnection']
-          author: RefType['User']
-          collectedBy: RefType['ArticleConnection']
-          collection: RefType['ArticleConnection']
-          comments: RefType['CommentConnection']
-          drafts?: Maybe<Array<RefType['Draft']>>
-          featuredComments: RefType['CommentConnection']
-          newestPublishedDraft: RefType['Draft']
-          newestUnpublishedDraft?: Maybe<RefType['Draft']>
-          pinnedComments?: Maybe<Array<RefType['Comment']>>
-          relatedArticles: RefType['ArticleConnection']
-          relatedDonationArticles: RefType['ArticleConnection']
-          subscribers: RefType['UserConnection']
-          tags?: Maybe<Array<RefType['Tag']>>
-          transactionsReceivedBy: RefType['UserConnection']
-        })
-      | (Omit<
-          GQLCircle,
-          | 'analytics'
-          | 'broadcast'
-          | 'discussion'
-          | 'followers'
-          | 'invitedBy'
-          | 'invites'
-          | 'members'
-          | 'owner'
-          | 'pinnedBroadcast'
-          | 'prices'
-          | 'works'
-        > & {
-          analytics: RefType['CircleAnalytics']
-          broadcast: RefType['CommentConnection']
-          discussion: RefType['CommentConnection']
-          followers: RefType['UserConnection']
-          invitedBy?: Maybe<RefType['Invitation']>
-          invites: RefType['Invites']
-          members: RefType['MemberConnection']
-          owner: RefType['User']
-          pinnedBroadcast?: Maybe<Array<RefType['Comment']>>
-          prices?: Maybe<Array<RefType['Price']>>
-          works: RefType['ArticleConnection']
-        })
+      | DraftModel
+      | CircleModel
       | (Omit<GQLTransaction, 'recipient' | 'sender' | 'target'> & {
           recipient?: Maybe<RefType['User']>
           sender?: Maybe<RefType['User']>
@@ -4150,72 +4055,12 @@ export type GQLResolversInterfaceTypes<
         edges?: Maybe<Array<RefType['UserEdge']>>
       })
   Node:
-    | (Omit<
-        GQLArticle,
-        | 'access'
-        | 'appreciationsReceived'
-        | 'author'
-        | 'collectedBy'
-        | 'collection'
-        | 'comments'
-        | 'drafts'
-        | 'featuredComments'
-        | 'newestPublishedDraft'
-        | 'newestUnpublishedDraft'
-        | 'pinnedComments'
-        | 'relatedArticles'
-        | 'relatedDonationArticles'
-        | 'subscribers'
-        | 'tags'
-        | 'transactionsReceivedBy'
-      > & {
-        access: RefType['ArticleAccess']
-        appreciationsReceived: RefType['AppreciationConnection']
-        author: RefType['User']
-        collectedBy: RefType['ArticleConnection']
-        collection: RefType['ArticleConnection']
-        comments: RefType['CommentConnection']
-        drafts?: Maybe<Array<RefType['Draft']>>
-        featuredComments: RefType['CommentConnection']
-        newestPublishedDraft: RefType['Draft']
-        newestUnpublishedDraft?: Maybe<RefType['Draft']>
-        pinnedComments?: Maybe<Array<RefType['Comment']>>
-        relatedArticles: RefType['ArticleConnection']
-        relatedDonationArticles: RefType['ArticleConnection']
-        subscribers: RefType['UserConnection']
-        tags?: Maybe<Array<RefType['Tag']>>
-        transactionsReceivedBy: RefType['UserConnection']
-      })
+    | DraftModel
     | (Omit<GQLChapter, 'articles' | 'topic'> & {
         articles?: Maybe<Array<RefType['Article']>>
         topic: RefType['Topic']
       })
-    | (Omit<
-        GQLCircle,
-        | 'analytics'
-        | 'broadcast'
-        | 'discussion'
-        | 'followers'
-        | 'invitedBy'
-        | 'invites'
-        | 'members'
-        | 'owner'
-        | 'pinnedBroadcast'
-        | 'prices'
-        | 'works'
-      > & {
-        analytics: RefType['CircleAnalytics']
-        broadcast: RefType['CommentConnection']
-        discussion: RefType['CommentConnection']
-        followers: RefType['UserConnection']
-        invitedBy?: Maybe<RefType['Invitation']>
-        invites: RefType['Invites']
-        members: RefType['MemberConnection']
-        owner: RefType['User']
-        pinnedBroadcast?: Maybe<Array<RefType['Comment']>>
-        prices?: Maybe<Array<RefType['Price']>>
-        works: RefType['ArticleConnection']
-      })
+    | CircleModel
     | CollectionModel
     | CommentModel
     | (Omit<GQLDraft, 'access' | 'article' | 'collection'> & {
@@ -4278,44 +4123,7 @@ export type GQLResolversInterfaceTypes<
         actors?: Maybe<Array<RefType['User']>>
         target: RefType['User']
       })
-  PinnableWork:
-    | (Omit<
-        GQLArticle,
-        | 'access'
-        | 'appreciationsReceived'
-        | 'author'
-        | 'collectedBy'
-        | 'collection'
-        | 'comments'
-        | 'drafts'
-        | 'featuredComments'
-        | 'newestPublishedDraft'
-        | 'newestUnpublishedDraft'
-        | 'pinnedComments'
-        | 'relatedArticles'
-        | 'relatedDonationArticles'
-        | 'subscribers'
-        | 'tags'
-        | 'transactionsReceivedBy'
-      > & {
-        access: RefType['ArticleAccess']
-        appreciationsReceived: RefType['AppreciationConnection']
-        author: RefType['User']
-        collectedBy: RefType['ArticleConnection']
-        collection: RefType['ArticleConnection']
-        comments: RefType['CommentConnection']
-        drafts?: Maybe<Array<RefType['Draft']>>
-        featuredComments: RefType['CommentConnection']
-        newestPublishedDraft: RefType['Draft']
-        newestUnpublishedDraft?: Maybe<RefType['Draft']>
-        pinnedComments?: Maybe<Array<RefType['Comment']>>
-        relatedArticles: RefType['ArticleConnection']
-        relatedDonationArticles: RefType['ArticleConnection']
-        subscribers: RefType['UserConnection']
-        tags?: Maybe<Array<RefType['Tag']>>
-        transactionsReceivedBy: RefType['UserConnection']
-      })
-    | CollectionModel
+  PinnableWork: DraftModel | CollectionModel
 }>
 
 /** Mapping between all available schema types and the resolvers types */
@@ -4350,49 +4158,8 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   AppreciationPurpose: GQLAppreciationPurpose
-  Article: ResolverTypeWrapper<
-    Omit<
-      GQLArticle,
-      | 'access'
-      | 'appreciationsReceived'
-      | 'author'
-      | 'collectedBy'
-      | 'collection'
-      | 'comments'
-      | 'drafts'
-      | 'featuredComments'
-      | 'newestPublishedDraft'
-      | 'newestUnpublishedDraft'
-      | 'pinnedComments'
-      | 'relatedArticles'
-      | 'relatedDonationArticles'
-      | 'subscribers'
-      | 'tags'
-      | 'transactionsReceivedBy'
-    > & {
-      access: GQLResolversTypes['ArticleAccess']
-      appreciationsReceived: GQLResolversTypes['AppreciationConnection']
-      author: GQLResolversTypes['User']
-      collectedBy: GQLResolversTypes['ArticleConnection']
-      collection: GQLResolversTypes['ArticleConnection']
-      comments: GQLResolversTypes['CommentConnection']
-      drafts?: Maybe<Array<GQLResolversTypes['Draft']>>
-      featuredComments: GQLResolversTypes['CommentConnection']
-      newestPublishedDraft: GQLResolversTypes['Draft']
-      newestUnpublishedDraft?: Maybe<GQLResolversTypes['Draft']>
-      pinnedComments?: Maybe<Array<GQLResolversTypes['Comment']>>
-      relatedArticles: GQLResolversTypes['ArticleConnection']
-      relatedDonationArticles: GQLResolversTypes['ArticleConnection']
-      subscribers: GQLResolversTypes['UserConnection']
-      tags?: Maybe<Array<GQLResolversTypes['Tag']>>
-      transactionsReceivedBy: GQLResolversTypes['UserConnection']
-    }
-  >
-  ArticleAccess: ResolverTypeWrapper<
-    Omit<GQLArticleAccess, 'circle'> & {
-      circle?: Maybe<GQLResolversTypes['Circle']>
-    }
-  >
+  Article: ResolverTypeWrapper<DraftModel>
+  ArticleAccess: ResolverTypeWrapper<DraftModel>
   ArticleAccessType: GQLArticleAccessType
   ArticleArticleNotice: ResolverTypeWrapper<
     Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
@@ -4420,7 +4187,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleNoticeType: GQLArticleNoticeType
-  ArticleOSS: ResolverTypeWrapper<GQLArticleOss>
+  ArticleOSS: ResolverTypeWrapper<DraftModel>
   ArticleRecommendationActivity: ResolverTypeWrapper<
     Omit<GQLArticleRecommendationActivity, 'nodes'> & {
       nodes?: Maybe<Array<GQLResolversTypes['Article']>>
@@ -4461,34 +4228,7 @@ export type GQLResolversTypes = ResolversObject<{
       topic: GQLResolversTypes['Topic']
     }
   >
-  Circle: ResolverTypeWrapper<
-    Omit<
-      GQLCircle,
-      | 'analytics'
-      | 'broadcast'
-      | 'discussion'
-      | 'followers'
-      | 'invitedBy'
-      | 'invites'
-      | 'members'
-      | 'owner'
-      | 'pinnedBroadcast'
-      | 'prices'
-      | 'works'
-    > & {
-      analytics: GQLResolversTypes['CircleAnalytics']
-      broadcast: GQLResolversTypes['CommentConnection']
-      discussion: GQLResolversTypes['CommentConnection']
-      followers: GQLResolversTypes['UserConnection']
-      invitedBy?: Maybe<GQLResolversTypes['Invitation']>
-      invites: GQLResolversTypes['Invites']
-      members: GQLResolversTypes['MemberConnection']
-      owner: GQLResolversTypes['User']
-      pinnedBroadcast?: Maybe<Array<GQLResolversTypes['Comment']>>
-      prices?: Maybe<Array<GQLResolversTypes['Price']>>
-      works: GQLResolversTypes['ArticleConnection']
-    }
-  >
+  Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<
     Omit<GQLCircleAnalytics, 'content'> & {
       content: GQLResolversTypes['CircleContentAnalytics']
@@ -4900,7 +4640,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   TagNoticeType: GQLTagNoticeType
-  TagOSS: ResolverTypeWrapper<GQLTagOss>
+  TagOSS: ResolverTypeWrapper<TagModel>
   TagSelectedInput: GQLTagSelectedInput
   TagsInput: GQLTagsInput
   TagsSort: GQLTagsSort
@@ -5094,45 +4834,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   AppreciationEdge: Omit<GQLAppreciationEdge, 'node'> & {
     node: GQLResolversParentTypes['Appreciation']
   }
-  Article: Omit<
-    GQLArticle,
-    | 'access'
-    | 'appreciationsReceived'
-    | 'author'
-    | 'collectedBy'
-    | 'collection'
-    | 'comments'
-    | 'drafts'
-    | 'featuredComments'
-    | 'newestPublishedDraft'
-    | 'newestUnpublishedDraft'
-    | 'pinnedComments'
-    | 'relatedArticles'
-    | 'relatedDonationArticles'
-    | 'subscribers'
-    | 'tags'
-    | 'transactionsReceivedBy'
-  > & {
-    access: GQLResolversParentTypes['ArticleAccess']
-    appreciationsReceived: GQLResolversParentTypes['AppreciationConnection']
-    author: GQLResolversParentTypes['User']
-    collectedBy: GQLResolversParentTypes['ArticleConnection']
-    collection: GQLResolversParentTypes['ArticleConnection']
-    comments: GQLResolversParentTypes['CommentConnection']
-    drafts?: Maybe<Array<GQLResolversParentTypes['Draft']>>
-    featuredComments: GQLResolversParentTypes['CommentConnection']
-    newestPublishedDraft: GQLResolversParentTypes['Draft']
-    newestUnpublishedDraft?: Maybe<GQLResolversParentTypes['Draft']>
-    pinnedComments?: Maybe<Array<GQLResolversParentTypes['Comment']>>
-    relatedArticles: GQLResolversParentTypes['ArticleConnection']
-    relatedDonationArticles: GQLResolversParentTypes['ArticleConnection']
-    subscribers: GQLResolversParentTypes['UserConnection']
-    tags?: Maybe<Array<GQLResolversParentTypes['Tag']>>
-    transactionsReceivedBy: GQLResolversParentTypes['UserConnection']
-  }
-  ArticleAccess: Omit<GQLArticleAccess, 'circle'> & {
-    circle?: Maybe<GQLResolversParentTypes['Circle']>
-  }
+  Article: DraftModel
+  ArticleAccess: DraftModel
   ArticleArticleNotice: Omit<
     GQLArticleArticleNotice,
     'actors' | 'article' | 'target'
@@ -5153,7 +4856,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     actors?: Maybe<Array<GQLResolversParentTypes['User']>>
     target: GQLResolversParentTypes['Article']
   }
-  ArticleOSS: GQLArticleOss
+  ArticleOSS: DraftModel
   ArticleRecommendationActivity: Omit<
     GQLArticleRecommendationActivity,
     'nodes'
@@ -5179,32 +4882,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     articles?: Maybe<Array<GQLResolversParentTypes['Article']>>
     topic: GQLResolversParentTypes['Topic']
   }
-  Circle: Omit<
-    GQLCircle,
-    | 'analytics'
-    | 'broadcast'
-    | 'discussion'
-    | 'followers'
-    | 'invitedBy'
-    | 'invites'
-    | 'members'
-    | 'owner'
-    | 'pinnedBroadcast'
-    | 'prices'
-    | 'works'
-  > & {
-    analytics: GQLResolversParentTypes['CircleAnalytics']
-    broadcast: GQLResolversParentTypes['CommentConnection']
-    discussion: GQLResolversParentTypes['CommentConnection']
-    followers: GQLResolversParentTypes['UserConnection']
-    invitedBy?: Maybe<GQLResolversParentTypes['Invitation']>
-    invites: GQLResolversParentTypes['Invites']
-    members: GQLResolversParentTypes['MemberConnection']
-    owner: GQLResolversParentTypes['User']
-    pinnedBroadcast?: Maybe<Array<GQLResolversParentTypes['Comment']>>
-    prices?: Maybe<Array<GQLResolversParentTypes['Price']>>
-    works: GQLResolversParentTypes['ArticleConnection']
-  }
+  Circle: CircleModel
   CircleAnalytics: Omit<GQLCircleAnalytics, 'content'> & {
     content: GQLResolversParentTypes['CircleContentAnalytics']
   }
@@ -5517,7 +5195,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     actors?: Maybe<Array<GQLResolversParentTypes['User']>>
     target: GQLResolversParentTypes['Tag']
   }
-  TagOSS: GQLTagOss
+  TagOSS: TagModel
   TagSelectedInput: GQLTagSelectedInput
   TagsInput: GQLTagsInput
   ToggleCircleMemberInput: GQLToggleCircleMemberInput

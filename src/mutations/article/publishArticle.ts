@@ -34,7 +34,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const draft = await draftService.dataloader.load(draftDBId)
+  const draft = await draftService.loadById(draftDBId)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {

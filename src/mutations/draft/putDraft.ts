@@ -193,7 +193,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.dataloader.load(dbId)
+    const draft = await draftService.loadById(dbId)
 
     // check for draft existence
     if (!draft) {

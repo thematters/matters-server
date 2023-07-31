@@ -64,7 +64,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   ])
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     MAX_ITEM_COUNT // totalCount
   )

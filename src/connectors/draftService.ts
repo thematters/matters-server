@@ -1,3 +1,5 @@
+import type { Draft } from 'definitions'
+
 import DataLoader from 'dataloader'
 
 import { PUBLISH_STATE } from 'common/enums'
@@ -9,7 +11,10 @@ export class DraftService extends BaseService {
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  public loadById = async (id: string) => this.dataloader.load(id)
+  public loadById = async (id: string): Promise<Draft> =>
+    this.dataloader.load(id) as Promise<Draft>
+  public loadByIds = async (ids: string[]): Promise<Draft[]> =>
+    this.dataloader.loadMany(ids) as Promise<Draft[]>
 
   public countByAuthor = async (authorId: string) => {
     const result = await this.knex(this.table)

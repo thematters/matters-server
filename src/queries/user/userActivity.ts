@@ -23,7 +23,7 @@ const resolver: GQLUserActivityTypeResolver = {
     ])
     const nodes = await Promise.all(
       reads.map(async ({ article, readAt }) => {
-        const node = await draftService.dataloader.load(article.draftId)
+        const node = await draftService.loadById(article.draftId)
         return { readAt, article: node }
       })
     )

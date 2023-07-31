@@ -29,7 +29,7 @@ const resolver: GQLTopicResolvers['latestArticle'] = async (
     return
   }
 
-  return draftService.dataloader.load(latestArticle.draftId)
+  return draftService.loadById(latestArticle.draftId)
 }
 
 export default resolver

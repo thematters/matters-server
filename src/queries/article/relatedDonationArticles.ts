@@ -32,7 +32,7 @@ const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
     const filteredArticles = chunks[index] || []
 
     return connectionFromPromisedArray(
-      draftService.dataloader.loadMany(
+      draftService.loadByIds(
         filteredArticles.map((article) => article.draftId)
       ),
       input,
@@ -51,9 +51,7 @@ const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article) => article.draftId)),
     input,
     totalCount
   )

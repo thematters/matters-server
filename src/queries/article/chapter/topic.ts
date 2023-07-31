@@ -1,6 +1,6 @@
-import type { GQLChapterToResolvers } from 'definitions'
+import type { GQLChapterResolvers } from 'definitions'
 
-const resolver: GQLChapterToResolvers['pic'] = async (
+const resolver: GQLChapterResolvers['topic'] = async (
   { id: chapterId },
   _,
   { dataSources: { atomService } }

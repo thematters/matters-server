@@ -17,7 +17,7 @@ const resolver: GQLUserResolvers['tags'] = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(
+    tagService.loadByIds(
       items.filter((item: any) => item?.id).map((item: any) => `${item.id}`)
     ),
     input,

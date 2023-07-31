@@ -102,7 +102,7 @@ const resolver: GQLArticleResolvers['translation'] = async (
     const tagIds = await articleService.findTagIds({ id: articleId })
     if (tagIds && tagIds.length > 0) {
       try {
-        const tags = await tagService.dataloader.loadMany(tagIds)
+        const tags = await tagService.loadByIds(tagIds)
         await Promise.all(
           tags.map(async (tag) => {
             if (tag instanceof Error) {

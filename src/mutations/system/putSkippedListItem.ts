@@ -5,9 +5,9 @@ import { EntityNotFoundError, UserInputError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
-  root,
+  _,
   { input: { id, type, value, archived } },
-  { viewer, dataSources: { systemService } }
+  { dataSources: { systemService } }
 ) => {
   // Update
   if (id) {
@@ -63,6 +63,8 @@ const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
       },
     ]
   }
+
+  return null
 }
 
 export default resolver

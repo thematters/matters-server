@@ -22,6 +22,8 @@ export class TagService extends BaseService {
 
   public loadById = async (id: string): Promise<Tag> =>
     this.dataloader.load(id) as Promise<Tag>
+  public loadByIds = async (ids: string[]): Promise<Tag[]> =>
+    this.dataloader.loadMany(ids) as Promise<Tag[]>
 
   /**
    * Find tags

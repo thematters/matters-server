@@ -14,7 +14,7 @@ import { migrationQueue } from 'connectors/queue'
 const resolver: GQLMutationResolvers['migration'] = async (
   _,
   { input: { type, files } },
-  { viewer, dataSources: { userService } }
+  { viewer }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission.')
@@ -38,7 +38,7 @@ const resolver: GQLMutationResolvers['migration'] = async (
       const { createReadStream, mimetype } = upload.file
 
       if (!createReadStream || mimetype !== 'text/html') {
-        return ''
+        return false
       }
 
       const stream = createReadStream()
@@ -67,7 +67,6 @@ const resolver: GQLMutationResolvers['migration'] = async (
           ? new MigrationReachLimitError('migration file size reaches limit.')
           : err
       throw error
-      break
     }
   }
 

@@ -40,7 +40,7 @@ export const icymi: GQLRecommendationResolvers['icymi'] = async (
   )
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

@@ -14,7 +14,7 @@ export const articles: GQLOSSResolvers['articles'] = async (
     articleService.baseFind({ skip, take }),
   ])
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(items.map((item) => item.draftId)),
+    draftService.loadByIds(items.map((item) => item.draftId)),
     input,
     totalCount
   )

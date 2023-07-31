@@ -27,7 +27,9 @@ import {
 } from 'connectors'
 
 export * from './article'
+export * from './draft'
 export * from './tag'
+export * from './circle'
 export * from './collection'
 export * from './comment'
 export * from './language'

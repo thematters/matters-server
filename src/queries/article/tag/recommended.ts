@@ -28,7 +28,7 @@ const resolver: GQLTagResolvers['recommended'] = async (
   const relatedIds = await tagService.findRelatedTags({ id })
 
   const tags = (
-    (await tagService.dataloader.loadMany(
+    (await tagService.loadByIds(
       relatedIds.map((tag: any) => `${tag.id}`)
     )) as Item[]
   ).filter(({ content }) => normalizeTagInput(content) === content)
@@ -48,9 +48,7 @@ const resolver: GQLTagResolvers['recommended'] = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.dataloader.loadMany(
-        filteredTags.map((tag: any) => `${tag.id}`)
-      ),
+      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
       input,
       totalCount
     )

@@ -14,7 +14,7 @@ const resolver: GQLUserInfoResolvers['featuredTags'] = async (
     where: { userId: id },
   })
 
-  return tagService.dataloader.loadMany(userTags?.tagIds)
+  return tagService.loadByIds(userTags?.tagIds)
 }
 
 export default resolver

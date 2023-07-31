@@ -19,7 +19,7 @@ export interface ConnectionHelpers {
 }
 
 export interface Connection<T> {
-  totalCount?: number
+  totalCount: number
   edges: Array<Edge<T>>
   pageInfo: PageInfo
 }
@@ -32,8 +32,8 @@ export interface Edge<T> {
 export interface PageInfo {
   startCursor?: ConnectionCursor | null
   endCursor?: ConnectionCursor | null
-  hasPreviousPage?: boolean | null
-  hasNextPage?: boolean | null
+  hasPreviousPage: boolean
+  hasNextPage: boolean
 }
 
 const PREFIX = 'arrayconnection'

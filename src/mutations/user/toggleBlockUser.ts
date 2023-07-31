@@ -47,6 +47,7 @@ const resolver: GQLMutationResolvers['toggleBlockUser'] = async (
     : userService.unblock(viewer.id, user.id))
 
   // invalidate extra nodes
+  // @ts-ignore
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,

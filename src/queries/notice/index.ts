@@ -148,7 +148,7 @@ const notice: {
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
+      draftService.loadById(entities.target.draftId),
   },
   ArticleArticleNotice: {
     type: ({ type }) => {
@@ -158,10 +158,10 @@ const notice: {
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
+      draftService.loadById(entities.target.draftId),
     article: ({ entities, type }, _, { dataSources: { draftService } }) => {
       if (type === DB_NOTICE_TYPE.article_new_collected) {
-        return draftService.dataloader.load(entities.collection.draftId)
+        return draftService.loadById(entities.collection.draftId)
       }
       return null
     },
@@ -176,7 +176,7 @@ const notice: {
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
+      draftService.loadById(entities.target.draftId),
     tag: ({ entities }) => entities.tag,
   },
   TagNotice: {

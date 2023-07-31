@@ -29,9 +29,7 @@ const resolver: GQLUserResolvers['articles'] = async (
   })
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article: any) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article: any) => article.draftId)),
     input
   )
 }

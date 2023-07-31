@@ -1,12 +1,9 @@
-import {
-  ArticleToAvailableTranslationsResolver,
-  GQLUserLanguage,
-} from 'definitions'
+import { type GQLArticleResolvers, GQLUserLanguage } from 'definitions'
 
 const resolver: GQLArticleResolvers['availableTranslations'] = async (
   { articleId },
   _,
-  { viewer, dataSources: { userService, atomService } }
+  { dataSources: { atomService } }
 ) => {
   const validLanguages = [
     GQLUserLanguage.en,

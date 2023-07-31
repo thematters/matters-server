@@ -6,7 +6,7 @@ const resolver: GQLArticleResolvers['tags'] = async (
   { dataSources: { articleService, tagService } }
 ) => {
   const tagIds = await articleService.findTagIds({ id: articleId })
-  return tagService.dataloader.loadMany(tagIds)
+  return tagService.loadByIds(tagIds)
 }
 
 export default resolver

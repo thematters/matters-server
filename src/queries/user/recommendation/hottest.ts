@@ -66,7 +66,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )
