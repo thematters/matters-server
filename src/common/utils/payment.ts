@@ -20,7 +20,7 @@ export const numMinus = (num1: number, num2: number) => NP.minus(num1, num2)
 
 interface ToAmountArgs {
   amount: number
-  currency?: PAYMENT_CURRENCY.HKD | PAYMENT_CURRENCY.USD
+  currency?: 'HKD' | 'USD'
   provider?: Exclude<
     PAYMENT_PROVIDER,
     | PAYMENT_PROVIDER.likecoin

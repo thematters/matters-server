@@ -13,7 +13,12 @@ const resolver: GQLLikerResolvers['civicLiker'] = async (
     return false
   }
 
-  return likecoin.isCivicLiker({ likerId: liker.likerId, userId: id })
+  const isCivicLiker = likecoin.isCivicLiker({
+    likerId: liker.likerId,
+    userId: id,
+  })
+
+  return !!isCivicLiker
 }
 
 export default resolver

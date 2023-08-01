@@ -1,15 +1,13 @@
-import { type GQLArticleResolvers, GQLUserLanguage } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
+
+import { LANGUAGE } from 'common/enums'
 
 const resolver: GQLArticleResolvers['availableTranslations'] = async (
   { articleId },
   _,
   { dataSources: { atomService } }
 ) => {
-  const validLanguages = [
-    GQLUserLanguage.en,
-    GQLUserLanguage.zh_hans,
-    GQLUserLanguage.zh_hant,
-  ]
+  const validLanguages = [LANGUAGE.en, LANGUAGE.zh_hans, LANGUAGE.zh_hant]
 
   const languages = (
     await atomService.findMany({

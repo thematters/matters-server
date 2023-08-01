@@ -3,7 +3,7 @@ import type { GQLQueryResolvers } from 'definitions'
 import { CIRCLE_STATE } from 'common/enums'
 
 const resolver: GQLQueryResolvers['circle'] = async (
-  root,
+  _,
   { input: { name } },
   { dataSources: { atomService } }
 ) => {

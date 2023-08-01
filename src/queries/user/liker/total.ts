@@ -1,6 +1,6 @@
-import type { GQLLikerToResolvers } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions'
 
-const resolver: GQLLikerToResolvers['tal'] = async (
+const resolver: GQLLikerResolvers['total'] = async (
   { id },
   _: any,
   { dataSources: { userService } }

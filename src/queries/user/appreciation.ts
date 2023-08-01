@@ -1,10 +1,14 @@
+import type {
+  GQLAppreciationResolvers,
+  GQLAppreciationPurpose,
+} from 'definitions'
+
 import { camelCase } from 'lodash'
 
 import { APPRECIATION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { i18n } from 'common/utils/i18n'
-import { GQLAppreciationTypeResolver } from 'definitions'
 
 const logger = getLogger('query-appreciation')
 
@@ -41,8 +45,8 @@ const trans = {
   }),
 }
 
-export const Appreciation: GQLAppreciationTypeResolver = {
-  purpose: ({ purpose }) => camelCase(purpose),
+export const Appreciation: GQLAppreciationResolvers = {
+  purpose: ({ purpose }) => camelCase(purpose) as GQLAppreciationPurpose,
   content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:

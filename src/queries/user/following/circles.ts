@@ -1,4 +1,4 @@
-import type { GQLFollowingResolvers } from 'definitions'
+import type { GQLFollowingResolvers, Circle } from 'definitions'
 
 import { CIRCLE_ACTION } from 'common/enums'
 import {
@@ -35,7 +35,7 @@ const resolver: GQLFollowingResolvers['circles'] = async (
   return connectionFromPromisedArray(
     atomService.circleIdLoader.loadMany(
       actions.map(({ targetId }) => targetId)
-    ),
+    ) as Promise<Circle[]>,
     input,
     totalCount
   )

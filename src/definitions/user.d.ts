@@ -1,7 +1,5 @@
 import { LANGUAGES } from './language'
 
-export type GQLUser = User | Viewer
-
 export interface User {
   id: string
   uuid: string
@@ -26,6 +24,7 @@ export interface User {
   agreeOn: string
   ethAddress: string
   currency?: string
+  profileCover?: string
 }
 
 export type UserRole = 'admin' | 'user'
@@ -107,4 +106,10 @@ export interface VerficationCode {
   type: GQLVerificationCodeType
   status: VERIFICATION_CODE_STATUS
   email: string
+}
+
+export interface Wallet {
+  id: string
+  userId: string
+  address: string
 }

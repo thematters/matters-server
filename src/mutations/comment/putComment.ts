@@ -1,3 +1,9 @@
+import type {
+  GQLMutationResolvers,
+  NoticeCircleNewBroadcastCommentsParams,
+  NoticeCircleNewDiscussionCommentsParams,
+} from 'definitions'
+
 import {
   normalizeCommentHTML,
   sanitizeHTML,
@@ -25,12 +31,6 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import {
-  GQLCommentType,
-  type GQLMutationResolvers,
-  type NoticeCircleNewBroadcastCommentsParams,
-  type NoticeCircleNewDiscussionCommentsParams,
-} from 'definitions'
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,
@@ -123,9 +123,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check comment type
    */
-  const isArticleType = type === GQLCommentType.article
-  const isCircleDiscussion = type === GQLCommentType.circleDiscussion
-  const isCircleBroadcast = type === GQLCommentType.circleBroadcast
+  const isArticleType = type === 'article'
+  const isCircleDiscussion = type === 'circleDiscussion'
+  const isCircleBroadcast = type === 'circleBroadcast'
   if (isArticleType && !article) {
     throw new UserInputError('`articleId` is required if `type` is `article`')
   } else if ((isCircleDiscussion || isCircleBroadcast) && !circle) {
@@ -133,11 +133,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       '`circleId` is required if `type` is `circleBroadcast` or `circleDiscussion`'
     )
   } else {
-    data.type = {
-      [GQLCommentType.article]: COMMENT_TYPE.article,
-      [GQLCommentType.circleBroadcast]: COMMENT_TYPE.circleBroadcast,
-      [GQLCommentType.circleDiscussion]: COMMENT_TYPE.circleDiscussion,
-    }[type]
+    data.type = COMMENT_TYPE[type]
   }
 
   /**

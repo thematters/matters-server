@@ -1,29 +1,21 @@
+import type {
+  DBNoticeType,
+  GQLArticleArticleNoticeResolvers,
+  GQLArticleNoticeResolvers,
+  GQLArticleTagNoticeResolvers,
+  GQLCircleNoticeResolvers,
+  GQLCommentCommentNoticeResolvers,
+  GQLCommentNoticeResolvers,
+  GQLOfficialAnnouncementNoticeResolvers,
+  GQLTagNoticeResolvers,
+  GQLTransactionNoticeResolvers,
+  GQLUserNoticeResolvers,
+  GQLUserResolvers,
+} from 'definitions'
+
 import _capitalize from 'lodash/capitalize'
 
 import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
-import {
-  DBNoticeType,
-  GQLArticleArticleNoticeType,
-  GQLArticleArticleNoticeTypeResolver,
-  GQLArticleNoticeType,
-  GQLArticleNoticeTypeResolver,
-  GQLArticleTagNoticeType,
-  GQLArticleTagNoticeTypeResolver,
-  GQLCircleNoticeType,
-  GQLCircleNoticeTypeResolver,
-  GQLCommentCommentNoticeType,
-  GQLCommentCommentNoticeTypeResolver,
-  GQLCommentNoticeType,
-  GQLCommentNoticeTypeResolver,
-  GQLOfficialAnnouncementNoticeTypeResolver,
-  GQLTagNoticeType,
-  GQLTagNoticeTypeResolver,
-  GQLTransactionNoticeType,
-  GQLTransactionNoticeTypeResolver,
-  GQLUserNoticeType,
-  GQLUserNoticeTypeResolver,
-  GQLUserTypeResolver,
-} from 'definitions'
 
 import notices from './notices'
 
@@ -43,22 +35,22 @@ enum NOTICE_TYPE {
 }
 
 const notice: {
-  User: GQLUserTypeResolver
+  User: GQLUserResolvers
   Notice: any
-  UserNotice: GQLUserNoticeTypeResolver
-  ArticleNotice: GQLArticleNoticeTypeResolver
-  ArticleArticleNotice: GQLArticleArticleNoticeTypeResolver
-  ArticleTagNotice: GQLArticleTagNoticeTypeResolver
-  TagNotice: GQLTagNoticeTypeResolver
-  CommentNotice: GQLCommentNoticeTypeResolver
-  CommentCommentNotice: GQLCommentCommentNoticeTypeResolver
-  TransactionNotice: GQLTransactionNoticeTypeResolver
-  CircleNotice: GQLCircleNoticeTypeResolver
-  OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
+  UserNotice: GQLUserNoticeResolvers
+  ArticleNotice: GQLArticleNoticeResolvers
+  ArticleArticleNotice: GQLArticleArticleNoticeResolvers
+  ArticleTagNotice: GQLArticleTagNoticeResolvers
+  TagNotice: GQLTagNoticeResolvers
+  CommentNotice: GQLCommentNoticeResolvers
+  CommentCommentNotice: GQLCommentCommentNoticeResolvers
+  TransactionNotice: GQLTransactionNoticeResolvers
+  CircleNotice: GQLCircleNoticeResolvers
+  OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeResolvers
 } = {
   User: { notices },
   Notice: {
-    __resolveType: ({ type }: { type: DBNoticeType }) => {
+    __resolveType: ({ type }: {type: DBNoticeType}) => {
       const noticeTypeMap: Record<DBNoticeType, NOTICE_TYPE> = {
         // user
         user_new_follower: NOTICE_TYPE.UserNotice,

@@ -1,10 +1,10 @@
-import { GQLFollowingTypeResolver } from 'definitions'
+import { type GQLFollowingResolvers } from 'definitions'
 
 import circles from './circles'
 import tags from './tags'
 import users from './users'
 
-const Following: GQLFollowingTypeResolver = {
+const Following: GQLFollowingResolvers = {
   circles,
   tags,
   users,

@@ -2,7 +2,7 @@ export interface Collection {
   id: string
   authorId: string
   title: string
-  cover?: number
+  cover?: string
   description?: string
   pinned: boolean
   pinnedAt: string

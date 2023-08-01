@@ -3,14 +3,19 @@ import {
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
 } from 'graphql'
-import { GQLUser as GQLUserModel } from './user'
+import { User as UserModel, Wallet as WalletModel } from './user'
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
 import { Draft as DraftModel } from './draft'
-import { Circle as CircleModel } from './circle'
+import {
+  Circle as CircleModel,
+  CircleInvitation as CircleInvitationModel,
+} from './circle'
 import { PayoutAccount as PayoutAccountModel } from './payment'
 import { Transaction as TransactionModel, Context } from './index'
+import { Asset as AssetModel } from './asset'
+import { NoticeItem as NoticeItemModel } from './notification'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3824,7 +3829,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
       | (Omit<GQLUserRecommendationActivity, 'nodes'> & {
           nodes?: Maybe<Array<RefType['User']>>
         })
-    Invitee: GQLPerson | GQLUserModel
+    Invitee: GQLPerson | UserModel
     Response: DraftModel | CommentModel
     TransactionTarget: DraftModel | CircleModel | TransactionModel
   }>
@@ -3859,7 +3864,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLMemberConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['MemberEdge']>>
       })
-    | GQLNoticeConnection
+    | (Omit<GQLNoticeConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['NoticeEdge']>>
+      })
     | (Omit<GQLOAuthClientConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['OAuthClientEdge']>>
       })
@@ -3894,9 +3901,10 @@ export type GQLResolversInterfaceTypes<
     | CircleModel
     | CollectionModel
     | CommentModel
-    | (Omit<GQLDraft, 'access' | 'article' | 'collection'> & {
+    | (Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
         access: RefType['DraftAccess']
         article?: Maybe<RefType['Article']>
+        assets: Array<RefType['Asset']>
         collection: RefType['ArticleConnection']
       })
     | TagModel
@@ -3906,7 +3914,7 @@ export type GQLResolversInterfaceTypes<
         chapters?: Maybe<Array<RefType['Chapter']>>
         latestArticle?: Maybe<RefType['Article']>
       })
-    | GQLUserModel
+    | UserModel
   Notice:
     | (Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
         actors?: Maybe<Array<RefType['User']>>
@@ -4035,7 +4043,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleTagNoticeType: GQLArticleTagNoticeType
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
-  Asset: ResolverTypeWrapper<GQLAsset>
+  Asset: ResolverTypeWrapper<AssetModel>
   AssetType: GQLAssetType
   AuthResult: ResolverTypeWrapper<
     Omit<GQLAuthResult, 'user'> & { user?: Maybe<GQLResolversTypes['User']> }
@@ -4060,22 +4068,13 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   Circle: ResolverTypeWrapper<CircleModel>
-  CircleAnalytics: ResolverTypeWrapper<
-    Omit<GQLCircleAnalytics, 'content'> & {
-      content: GQLResolversTypes['CircleContentAnalytics']
-    }
-  >
+  CircleAnalytics: ResolverTypeWrapper<CircleModel>
   CircleConnection: ResolverTypeWrapper<
     Omit<GQLCircleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['CircleEdge']>>
     }
   >
-  CircleContentAnalytics: ResolverTypeWrapper<
-    Omit<GQLCircleContentAnalytics, 'paywall' | 'public'> & {
-      paywall?: Maybe<Array<GQLResolversTypes['CircleContentAnalyticsDatum']>>
-      public?: Maybe<Array<GQLResolversTypes['CircleContentAnalyticsDatum']>>
-    }
-  >
+  CircleContentAnalytics: ResolverTypeWrapper<CircleModel>
   CircleContentAnalyticsDatum: ResolverTypeWrapper<
     Omit<GQLCircleContentAnalyticsDatum, 'node'> & {
       node: GQLResolversTypes['Article']
@@ -4084,8 +4083,8 @@ export type GQLResolversTypes = ResolversObject<{
   CircleEdge: ResolverTypeWrapper<
     Omit<GQLCircleEdge, 'node'> & { node: GQLResolversTypes['Circle'] }
   >
-  CircleFollowerAnalytics: ResolverTypeWrapper<GQLCircleFollowerAnalytics>
-  CircleIncomeAnalytics: ResolverTypeWrapper<GQLCircleIncomeAnalytics>
+  CircleFollowerAnalytics: ResolverTypeWrapper<CircleModel>
+  CircleIncomeAnalytics: ResolverTypeWrapper<CircleModel>
   CircleInput: GQLCircleInput
   CircleNotice: ResolverTypeWrapper<
     Omit<
@@ -4107,7 +4106,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   CircleRecommendationActivitySource: GQLCircleRecommendationActivitySource
   CircleState: GQLCircleState
-  CircleSubscriberAnalytics: ResolverTypeWrapper<GQLCircleSubscriberAnalytics>
+  CircleSubscriberAnalytics: ResolverTypeWrapper<CircleModel>
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: ResolverTypeWrapper<GQLClaimLogbooksResult>
   ClearReadHistoryInput: GQLClearReadHistoryInput
@@ -4159,7 +4158,7 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversInterfaceTypes<GQLResolversTypes>['Connection']
   >
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: ResolverTypeWrapper<GQLCryptoWallet>
+  CryptoWallet: ResolverTypeWrapper<WalletModel>
   CryptoWalletSignaturePurpose: GQLCryptoWalletSignaturePurpose
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>
   DeleteAnnouncementsInput: GQLDeleteAnnouncementsInput
@@ -4171,9 +4170,10 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
   Draft: ResolverTypeWrapper<
-    Omit<GQLDraft, 'access' | 'article' | 'collection'> & {
+    Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
       access: GQLResolversTypes['DraftAccess']
       article?: Maybe<GQLResolversTypes['Article']>
+      assets: Array<GQLResolversTypes['Asset']>
       collection: GQLResolversTypes['ArticleConnection']
     }
   >
@@ -4201,7 +4201,7 @@ export type GQLResolversTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: ResolverTypeWrapper<Scalars['Float']['output']>
-  Following: ResolverTypeWrapper<GQLUserModel>
+  Following: ResolverTypeWrapper<UserModel>
   FollowingActivity: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['FollowingActivity']
   >
@@ -4237,15 +4237,10 @@ export type GQLResolversTypes = ResolversObject<{
   Invitee: ResolverTypeWrapper<
     GQLResolversUnionTypes<GQLResolversTypes>['Invitee']
   >
-  Invites: ResolverTypeWrapper<
-    Omit<GQLInvites, 'accepted' | 'pending'> & {
-      accepted: GQLResolversTypes['InvitationConnection']
-      pending: GQLResolversTypes['InvitationConnection']
-    }
-  >
+  Invites: ResolverTypeWrapper<CircleModel>
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: ResolverTypeWrapper<GQLUserModel>
+  Liker: ResolverTypeWrapper<UserModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
   Member: ResolverTypeWrapper<
@@ -4273,11 +4268,15 @@ export type GQLResolversTypes = ResolversObject<{
   >
   NodeInput: GQLNodeInput
   NodesInput: GQLNodesInput
-  Notice: ResolverTypeWrapper<
-    GQLResolversInterfaceTypes<GQLResolversTypes>['Notice']
+  Notice: ResolverTypeWrapper<NoticeItemModel>
+  NoticeConnection: ResolverTypeWrapper<
+    Omit<GQLNoticeConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['NoticeEdge']>>
+    }
   >
-  NoticeConnection: ResolverTypeWrapper<GQLNoticeConnection>
-  NoticeEdge: ResolverTypeWrapper<GQLNoticeEdge>
+  NoticeEdge: ResolverTypeWrapper<
+    Omit<GQLNoticeEdge, 'node'> & { node: GQLResolversTypes['Notice'] }
+  >
   NotificationSetting: ResolverTypeWrapper<GQLNotificationSetting>
   NotificationSettingType: GQLNotificationSettingType
   OAuthClient: ResolverTypeWrapper<
@@ -4371,7 +4370,7 @@ export type GQLResolversTypes = ResolversObject<{
   RecentSearchEdge: ResolverTypeWrapper<GQLRecentSearchEdge>
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
-  Recommendation: ResolverTypeWrapper<GQLUserModel>
+  Recommendation: ResolverTypeWrapper<UserModel>
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -4521,8 +4520,8 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>
-  User: ResolverTypeWrapper<GQLUserModel>
-  UserActivity: ResolverTypeWrapper<GQLUserModel>
+  User: ResolverTypeWrapper<UserModel>
+  UserActivity: ResolverTypeWrapper<UserModel>
   UserAddArticleTagActivity: ResolverTypeWrapper<
     Omit<GQLUserAddArticleTagActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4530,7 +4529,7 @@ export type GQLResolversTypes = ResolversObject<{
       target: GQLResolversTypes['Tag']
     }
   >
-  UserAnalytics: ResolverTypeWrapper<GQLUserModel>
+  UserAnalytics: ResolverTypeWrapper<UserModel>
   UserBroadcastCircleActivity: ResolverTypeWrapper<
     Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4553,7 +4552,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLUserEdge, 'node'> & { node: GQLResolversTypes['User'] }
   >
   UserGroup: GQLUserGroup
-  UserInfo: ResolverTypeWrapper<GQLUserModel>
+  UserInfo: ResolverTypeWrapper<UserModel>
   UserInfoFields: GQLUserInfoFields
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
@@ -4565,7 +4564,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   UserNoticeType: GQLUserNoticeType
-  UserOSS: ResolverTypeWrapper<GQLUserModel>
+  UserOSS: ResolverTypeWrapper<UserModel>
   UserPublishArticleActivity: ResolverTypeWrapper<
     Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
       actor: GQLResolversTypes['User']
@@ -4582,14 +4581,14 @@ export type GQLResolversTypes = ResolversObject<{
   UserRestriction: ResolverTypeWrapper<GQLUserRestriction>
   UserRestrictionType: GQLUserRestrictionType
   UserRole: GQLUserRole
-  UserSettings: ResolverTypeWrapper<GQLUserModel>
+  UserSettings: ResolverTypeWrapper<UserModel>
   UserState: GQLUserState
-  UserStatus: ResolverTypeWrapper<GQLUserModel>
+  UserStatus: ResolverTypeWrapper<UserModel>
   VerificationCodeType: GQLVerificationCodeType
   VerifyEmailInput: GQLVerifyEmailInput
   Vote: GQLVote
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: ResolverTypeWrapper<GQLUserModel>
+  Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
 }>
 
@@ -4648,7 +4647,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     target: GQLResolversParentTypes['Article']
   }
   ArticleTranslation: GQLArticleTranslation
-  Asset: GQLAsset
+  Asset: AssetModel
   AuthResult: Omit<GQLAuthResult, 'user'> & {
     user?: Maybe<GQLResolversParentTypes['User']>
   }
@@ -4664,31 +4663,19 @@ export type GQLResolversParentTypes = ResolversObject<{
     topic: GQLResolversParentTypes['Topic']
   }
   Circle: CircleModel
-  CircleAnalytics: Omit<GQLCircleAnalytics, 'content'> & {
-    content: GQLResolversParentTypes['CircleContentAnalytics']
-  }
+  CircleAnalytics: CircleModel
   CircleConnection: Omit<GQLCircleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['CircleEdge']>>
   }
-  CircleContentAnalytics: Omit<
-    GQLCircleContentAnalytics,
-    'paywall' | 'public'
-  > & {
-    paywall?: Maybe<
-      Array<GQLResolversParentTypes['CircleContentAnalyticsDatum']>
-    >
-    public?: Maybe<
-      Array<GQLResolversParentTypes['CircleContentAnalyticsDatum']>
-    >
-  }
+  CircleContentAnalytics: CircleModel
   CircleContentAnalyticsDatum: Omit<GQLCircleContentAnalyticsDatum, 'node'> & {
     node: GQLResolversParentTypes['Article']
   }
   CircleEdge: Omit<GQLCircleEdge, 'node'> & {
     node: GQLResolversParentTypes['Circle']
   }
-  CircleFollowerAnalytics: GQLCircleFollowerAnalytics
-  CircleIncomeAnalytics: GQLCircleIncomeAnalytics
+  CircleFollowerAnalytics: CircleModel
+  CircleIncomeAnalytics: CircleModel
   CircleInput: GQLCircleInput
   CircleNotice: Omit<
     GQLCircleNotice,
@@ -4704,7 +4691,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     GQLCircleRecommendationActivity,
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Circle']>> }
-  CircleSubscriberAnalytics: GQLCircleSubscriberAnalytics
+  CircleSubscriberAnalytics: CircleModel
   ClaimLogbooksInput: GQLClaimLogbooksInput
   ClaimLogbooksResult: GQLClaimLogbooksResult
   ClearReadHistoryInput: GQLClearReadHistoryInput
@@ -4744,7 +4731,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ConnectStripeAccountResult: GQLConnectStripeAccountResult
   Connection: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Connection']
   ConnectionArgs: GQLConnectionArgs
-  CryptoWallet: GQLCryptoWallet
+  CryptoWallet: WalletModel
   DateTime: Scalars['DateTime']['output']
   DeleteAnnouncementsInput: GQLDeleteAnnouncementsInput
   DeleteArticlesTagsInput: GQLDeleteArticlesTagsInput
@@ -4754,9 +4741,10 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
-  Draft: Omit<GQLDraft, 'access' | 'article' | 'collection'> & {
+  Draft: Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
     access: GQLResolversParentTypes['DraftAccess']
     article?: Maybe<GQLResolversParentTypes['Article']>
+    assets: Array<GQLResolversParentTypes['Asset']>
     collection: GQLResolversParentTypes['ArticleConnection']
   }
   DraftAccess: Omit<GQLDraftAccess, 'circle'> & {
@@ -4776,7 +4764,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   FeaturedTagsInput: GQLFeaturedTagsInput
   FilterInput: GQLFilterInput
   Float: Scalars['Float']['output']
-  Following: GQLUserModel
+  Following: UserModel
   FollowingActivity: GQLResolversUnionTypes<GQLResolversParentTypes>['FollowingActivity']
   FollowingActivityConnection: GQLFollowingActivityConnection
   FollowingActivityEdge: Omit<GQLFollowingActivityEdge, 'node'> & {
@@ -4800,13 +4788,10 @@ export type GQLResolversParentTypes = ResolversObject<{
   InviteCircleInput: GQLInviteCircleInput
   InviteCircleInvitee: GQLInviteCircleInvitee
   Invitee: GQLResolversUnionTypes<GQLResolversParentTypes>['Invitee']
-  Invites: Omit<GQLInvites, 'accepted' | 'pending'> & {
-    accepted: GQLResolversParentTypes['InvitationConnection']
-    pending: GQLResolversParentTypes['InvitationConnection']
-  }
+  Invites: CircleModel
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
-  Liker: GQLUserModel
+  Liker: UserModel
   LogRecordInput: GQLLogRecordInput
   Member: Omit<GQLMember, 'price' | 'user'> & {
     price: GQLResolversParentTypes['Price']
@@ -4826,9 +4811,13 @@ export type GQLResolversParentTypes = ResolversObject<{
   Node: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Node']
   NodeInput: GQLNodeInput
   NodesInput: GQLNodesInput
-  Notice: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Notice']
-  NoticeConnection: GQLNoticeConnection
-  NoticeEdge: GQLNoticeEdge
+  Notice: NoticeItemModel
+  NoticeConnection: Omit<GQLNoticeConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['NoticeEdge']>>
+  }
+  NoticeEdge: Omit<GQLNoticeEdge, 'node'> & {
+    node: GQLResolversParentTypes['Notice']
+  }
   NotificationSetting: GQLNotificationSetting
   OAuthClient: Omit<GQLOAuthClient, 'user'> & {
     user?: Maybe<GQLResolversParentTypes['User']>
@@ -4902,7 +4891,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecentSearchConnection: GQLRecentSearchConnection
   RecentSearchEdge: GQLRecentSearchEdge
   RecommendInput: GQLRecommendInput
-  Recommendation: GQLUserModel
+  Recommendation: UserModel
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RenameTagInput: GQLRenameTagInput
@@ -5013,8 +5002,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: Scalars['Upload']['output']
-  User: GQLUserModel
-  UserActivity: GQLUserModel
+  User: UserModel
+  UserActivity: UserModel
   UserAddArticleTagActivity: Omit<
     GQLUserAddArticleTagActivity,
     'actor' | 'node' | 'target'
@@ -5023,7 +5012,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Article']
     target: GQLResolversParentTypes['Tag']
   }
-  UserAnalytics: GQLUserModel
+  UserAnalytics: UserModel
   UserBroadcastCircleActivity: Omit<
     GQLUserBroadcastCircleActivity,
     'actor' | 'node' | 'target'
@@ -5045,14 +5034,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserEdge: Omit<GQLUserEdge, 'node'> & {
     node: GQLResolversParentTypes['User']
   }
-  UserInfo: GQLUserModel
+  UserInfo: UserModel
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
   UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
     actors?: Maybe<Array<GQLResolversParentTypes['User']>>
     target: GQLResolversParentTypes['User']
   }
-  UserOSS: GQLUserModel
+  UserOSS: UserModel
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
     'actor' | 'node'
@@ -5065,11 +5054,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   UserRegisterInput: GQLUserRegisterInput
   UserRestriction: GQLUserRestriction
-  UserSettings: GQLUserModel
-  UserStatus: GQLUserModel
+  UserSettings: UserModel
+  UserStatus: UserModel
   VerifyEmailInput: GQLVerifyEmailInput
   VoteCommentInput: GQLVoteCommentInput
-  Wallet: GQLUserModel
+  Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
 }>
 

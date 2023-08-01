@@ -1,7 +1,4 @@
-import {
-  GQLPossibleConnectionTypeNames,
-  GQLPossibleNodeTypeNames,
-} from 'definitions'
+import type { GQLResolvers } from 'definitions'
 
 import frequentSearch from './frequentSearch'
 import node from './node'
@@ -10,21 +7,20 @@ import { announcements, features, translations } from './official'
 import OSS from './oss'
 import search from './search'
 
-export default {
+const system: GQLResolvers = {
   Query: {
     node,
     nodes,
     search,
     frequentSearch,
-    official: () => true,
-    oss: () => true,
+    official: (root) => root as any,
+    oss: (root) => root as any,
   },
   Node: {
-    __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type,
+    __resolveType: ({ __type }: any) => __type,
   },
   Connection: {
-    __resolveType: ({ __type }: { __type: GQLPossibleConnectionTypeNames }) =>
-      __type,
+    __resolveType: ({ __type }: any) => __type,
   },
   Asset: {
     id: ({ uuid }: { uuid: string }) => uuid,
@@ -38,3 +34,5 @@ export default {
   },
   OSS,
 }
+
+export default system

@@ -14,3 +14,12 @@ export interface Circle {
   createdAt: string
   updatedAt: string
 }
+
+export interface CircleInvitation {
+  id: string
+  userId?: string
+  circleId: string
+  inviter: string
+  email: string
+  durationInDays: number
+}

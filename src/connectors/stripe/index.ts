@@ -129,7 +129,7 @@ class StripeService {
   }: {
     customerId: string
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
   }) => {
     logger.info('create payment intent for customer %s', customerId)
     try {
@@ -230,7 +230,7 @@ class StripeService {
     txId,
   }: {
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     recipientStripeConnectedId: string
     txId: string
   }) => {
@@ -290,7 +290,7 @@ class StripeService {
     productId,
   }: {
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     interval: 'month' | 'week'
     productId: string
   }) => {

@@ -27,9 +27,9 @@ const resolver: GQLUserResolvers['followers'] = async (
     (map, action) => ({ ...map, [action.userId]: action.id }),
     {}
   )
-  const users = (await userService.loadByIds(
+  const users = await userService.loadByIds(
     actions.map(({ userId }: { userId: string }) => userId)
-  )) as Array<Record<string, any>>
+  )
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))
 
   return connectionFromArrayWithKeys(data, input, count)

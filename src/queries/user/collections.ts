@@ -10,7 +10,7 @@ const resolver: GQLUserResolvers['collections'] = async (
   const { id } = user
   // if visitor is not logged in, return empty collections
   if (!id) {
-    return { edges: [], totalCount: 0 }
+    return connectionFromArray([], input)
   }
   const { take, skip } = fromConnectionArgs(input)
 
@@ -19,7 +19,7 @@ const resolver: GQLUserResolvers['collections'] = async (
       id,
       { take: 1, skip }
     )
-    return { edges: [], totalCount: count }
+    return connectionFromArray([], input, count)
   }
 
   const [records, totalCount] =
