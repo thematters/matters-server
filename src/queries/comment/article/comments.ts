@@ -69,7 +69,7 @@ const resolver: GQLArticleResolvers['comments'] = async (
     commentService.range(where),
   ])
 
-  const edges = comments.map((comment: { [key: string]: string }) => ({
+  const edges = comments.map((comment) => ({
     cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     node: comment,
   }))

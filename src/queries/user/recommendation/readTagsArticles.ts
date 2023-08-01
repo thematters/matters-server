@@ -33,7 +33,7 @@ const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    articleService.draftLoader.loadMany(
+    articleService.loadDraftsByArticles(
       tagDrafts.map(({ articleId }) => articleId)
     ) as Promise<Draft[]>,
     input,

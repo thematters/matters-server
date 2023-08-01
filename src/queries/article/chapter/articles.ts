@@ -11,7 +11,7 @@ const resolver: GQLChapterResolvers['articles'] = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.draftLoader.loadMany(
+  return articleService.loadDraftsByArticles(
     chapterArticles.map((item) => item.articleId)
   ) as Promise<Draft[]>
 }

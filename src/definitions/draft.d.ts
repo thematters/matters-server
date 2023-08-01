@@ -7,7 +7,7 @@ export interface Draft {
   uuid: string
   authorId: string
   title: string
-  cover?: number
+  cover?: string
   summary?: string
   summaryCustomized: boolean
   wordCount?: string

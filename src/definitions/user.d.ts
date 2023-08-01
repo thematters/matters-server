@@ -59,6 +59,12 @@ export interface UserOAuthLikeCoin {
   scope: string | string[]
 }
 
+export interface OAuthClientDB {
+  id: sring
+  userId: string
+  avatar: string
+}
+
 export interface OAuthClient {
   [key: string]: any
   id: string

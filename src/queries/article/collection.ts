@@ -29,7 +29,7 @@ const resolver: GQLArticleResolvers['collection'] = async (
   )
 
   return connectionFromPromisedArray(
-    articleService.draftLoader.loadMany(
+    articleService.loadDraftsByArticles(
       connections.map((connection: Item) => connection.articleId)
     ) as Promise<Draft[]>,
     input,

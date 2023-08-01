@@ -1,9 +1,9 @@
-import type { GQLPriceResolvers } from 'definitions'
+import type { GQLPriceResolvers, Circle } from 'definitions'
 
 const resolver: GQLPriceResolvers['circle'] = async (
-  { circle_id },
+  { circleId },
   _,
-  { viewer, dataSources: { atomService } }
-) => (circle_id ? atomService.circleIdLoader.load(circle_id) : null)
+  { dataSources: { atomService } }
+) => atomService.circleIdLoader.load(circleId) as Promise<Circle>
 
 export default resolver

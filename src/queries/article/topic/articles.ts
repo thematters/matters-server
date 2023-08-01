@@ -11,7 +11,7 @@ const resolver: GQLTopicResolvers['articles'] = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.draftLoader.loadMany(
+  return articleService.loadDraftsByArticles(
     topicArticles.map((item) => item.articleId)
   )
 }

@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers, Draft } from 'definitions'
 
 import publishedResolver from './newestPublishedDraft'
 import unpublishedResolver from './newestUnpublishedDraft'
@@ -14,7 +14,7 @@ const resolver: GQLArticleResolvers['drafts'] = async (
     publishedResolver(parent, args, context, info),
   ])
 
-  return drafts.filter((draft) => draft)
+  return drafts.filter((draft) => draft) as Draft[]
 }
 
 export default resolver

@@ -12,7 +12,7 @@ const resolver: GQLDraftResolvers['collection'] = (
   }
 
   return connectionFromPromisedArray(
-    articleService.draftLoader.loadMany(collection),
+    articleService.loadDraftsByArticles(collection),
     input
   )
 }

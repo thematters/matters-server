@@ -1,6 +1,6 @@
-import type { GQLCommentToReplyResolvers } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: GQLCommentToReplyResolvers[''] = (
+const resolver: GQLCommentResolvers['replyTo'] = (
   { replyTo },
   _,
   { dataSources: { commentService } }

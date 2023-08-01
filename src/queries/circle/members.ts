@@ -1,4 +1,4 @@
-import type { GQLCircleResolvers } from 'definitions'
+import type { GQLCircleResolvers, CircleMember } from 'definitions'
 
 import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
@@ -55,7 +55,7 @@ const resolver: GQLCircleResolvers['members'] = async (
     await atomService.userIdLoader.loadMany(
       memberIds.map(({ userId }) => userId)
     )
-  ).map((user) => ({ ...user, circleId: id }))
+  ).map((user) => ({ ...user, circleId: id })) as CircleMember[]
 
   return connectionFromArray(members, input, totalCount)
 }

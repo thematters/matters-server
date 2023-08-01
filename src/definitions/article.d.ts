@@ -8,7 +8,7 @@ export interface Article {
   authorId: string
   title: string
   slug: string
-  cover?: number
+  cover?: string
   summary: string
   wordCount: string
   dataHash: string

@@ -15,7 +15,7 @@ const resolver: GQLQueryResolvers['nodes'] = async (
       `query exceeds maximum input limit ${GRAPHQL_INPUT_LENGTH_LIMIT}, current: ${ids.length}`
     )
   }
-  return Promise.all(ids.map((id) => getNode(id, context)))
+  return Promise.all(ids.map((id) => getNode(id, context))) as any
 }
 
 export default resolver

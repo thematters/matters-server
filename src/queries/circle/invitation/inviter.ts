@@ -3,7 +3,7 @@ import type { GQLInvitationResolvers } from 'definitions'
 const resolver: GQLInvitationResolvers['inviter'] = async (
   { inviter },
   _,
-  { dataSources: { atomService } }
-) => (inviter ? atomService.userIdLoader.load(inviter) : null)
+  { dataSources: { userService } }
+) => (inviter ? userService.loadById(inviter) : null)
 
 export default resolver

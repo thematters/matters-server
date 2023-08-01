@@ -7,7 +7,7 @@ export interface Tag {
   delete: boolean
   cover?: string
   description?: string
-  editor?: string[]
+  editors?: string[]
   creator: string
   owner: string
   majorTagId?: string

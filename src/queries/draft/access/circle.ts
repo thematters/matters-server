@@ -1,4 +1,4 @@
-import type { GQLDraftAccessResolvers } from 'definitions'
+import type { GQLDraftAccessResolvers, Circle } from 'definitions'
 
 export const circle: GQLDraftAccessResolvers['circle'] = (
   { circleId },
@@ -6,8 +6,8 @@ export const circle: GQLDraftAccessResolvers['circle'] = (
   { dataSources: { atomService } }
 ) => {
   if (!circleId) {
-    return
+    return null
   }
 
-  return atomService.circleIdLoader.load(circleId)
+  return atomService.circleIdLoader.load(circleId) as Promise<Circle>
 }

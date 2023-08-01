@@ -12,7 +12,7 @@ const resolver: GQLCommentResolvers['content'] = (
   const isAdmin = viewer.hasRole('admin')
 
   if (isActive || isCollapsed || isAdmin) {
-    return content
+    return content ?? null
   }
 
   return ''

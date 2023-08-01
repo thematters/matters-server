@@ -10,7 +10,7 @@ import {
 const resolver: GQLCircleResolvers['broadcast'] = async (
   { id },
   { input: { sort, first, ...rest } },
-  { dataSources: { atomService, commentService } }
+  { dataSources: { commentService } }
 ) => {
   if (!id) {
     return connectionFromArray([], rest)
@@ -72,7 +72,7 @@ const resolver: GQLCircleResolvers['broadcast'] = async (
     commentService.range(where),
   ])
 
-  const edges = comments.map((comment: { [key: string]: string }) => ({
+  const edges = comments.map((comment) => ({
     cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     node: comment,
   }))

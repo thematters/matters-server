@@ -1,4 +1,4 @@
-import type { GQLTagResolvers, Draft } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
@@ -30,7 +30,7 @@ const resolver: GQLTagResolvers['articles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    articleService.draftLoader.loadMany(articleIds) as Promise<Draft[]>,
+    articleService.loadDraftsByArticles(articleIds),
     input,
     totalCount
   )

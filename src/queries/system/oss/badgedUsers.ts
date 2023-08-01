@@ -5,7 +5,7 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
   _,
   { input },
-  { dataSources: { atomService }, knex }
+  { dataSources: { userService }, knex }
 ) => {
   const { type } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -41,7 +41,7 @@ export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
   )
 
   return connectionFromPromisedArray(
-    atomService.userIdLoader.loadMany(users.map(({ userId }) => userId)),
+    userService.loadByIds(users.map(({ userId }) => userId)),
     input,
     totalCount
   )

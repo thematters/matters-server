@@ -3,7 +3,7 @@ import type { GQLCommentResolvers } from 'definitions'
 const voteMap = {
   up_vote: 'up',
   down_vote: 'down',
-}
+} as const
 
 const resolver: GQLCommentResolvers['myVote'] = async (
   { id },

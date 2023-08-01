@@ -1,3 +1,10 @@
+import type {
+  GQLCommentCommentsInput,
+  GQLCommentsInput,
+  GQLVote,
+  Comment,
+} from 'definitions'
+
 import DataLoader from 'dataloader'
 
 import {
@@ -8,12 +15,6 @@ import {
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
-import {
-  GQLCommentCommentsInput,
-  GQLCommentsInput,
-  GQLVote,
-  Comment,
-} from 'definitions'
 
 interface CommentFilter {
   targetId?: string
@@ -111,7 +112,9 @@ export class CommentService extends BaseService {
     before,
     includeAfter = false,
     includeBefore = false,
-  }: GQLCommentsInput & { where: CommentFilter; order?: string }) => {
+  }: GQLCommentsInput & { where: CommentFilter; order?: string }): Promise<
+    Comment[]
+  > => {
     const query = this.knex
       .select()
       .from(this.table)

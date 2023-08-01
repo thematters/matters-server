@@ -1,4 +1,4 @@
-import type { GQLSearchExclude, Item, Article } from 'definitions'
+import type { GQLSearchExclude, Item, Article, Draft } from 'definitions'
 
 import {
   ArticlePageContext,
@@ -93,6 +93,9 @@ export class ArticleService extends BaseService {
     this.dataloader.load(id) as Promise<Article>
   public loadByIds = async (ids: string[]): Promise<Article[]> =>
     this.dataloader.loadMany(ids) as Promise<Article[]>
+
+  public loadDraftsByArticles = async (ids: string[]): Promise<Draft[]> =>
+    this.dataloader.loadMany(ids) as Promise<Draft[]>
 
   /**
    * Create a pending article with linked draft

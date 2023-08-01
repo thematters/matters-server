@@ -1,8 +1,8 @@
-import { GQLUserAnalyticsTypeResolver } from 'definitions'
+import { GQLUserAnalyticsResolvers } from 'definitions'
 
 import topDonators from './topDonators'
 
-const UserAnalytics: GQLUserAnalyticsTypeResolver = {
+const UserAnalytics: GQLUserAnalyticsResolvers = {
   topDonators,
 }
 

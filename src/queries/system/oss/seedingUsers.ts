@@ -5,7 +5,7 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 export const seedingUsers: GQLOssResolvers['seedingUsers'] = async (
   _,
   { input },
-  { dataSources: { atomService } }
+  { dataSources: { userService, atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
@@ -20,7 +20,7 @@ export const seedingUsers: GQLOssResolvers['seedingUsers'] = async (
   const [totalCount, users] = await Promise.all([countQuery, usersQuery])
 
   return connectionFromPromisedArray(
-    atomService.userIdLoader.loadMany(users.map(({ userId }) => userId)),
+    userService.loadByIds(users.map(({ userId }) => userId)),
     input,
     totalCount
   )

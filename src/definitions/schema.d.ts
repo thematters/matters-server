@@ -3,7 +3,11 @@ import {
   GraphQLScalarType,
   GraphQLScalarTypeConfig,
 } from 'graphql'
-import { User as UserModel, Wallet as WalletModel } from './user'
+import {
+  User as UserModel,
+  Wallet as WalletModel,
+  OAuthClientDB as OAuthClientDBModel,
+} from './user'
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
@@ -11,9 +15,14 @@ import { Draft as DraftModel } from './draft'
 import {
   Circle as CircleModel,
   CircleInvitation as CircleInvitationModel,
+  CircleMember as CircleMemberModel,
 } from './circle'
+import {
+  CirclePrice as CirclePriceModel,
+  Transaction as TransactionModel,
+  Context,
+} from './index'
 import { PayoutAccount as PayoutAccountModel } from './payment'
-import { Transaction as TransactionModel, Context } from './index'
 import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
@@ -3902,12 +3911,7 @@ export type GQLResolversInterfaceTypes<
     | CircleModel
     | CollectionModel
     | CommentModel
-    | (Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
-        access: RefType['DraftAccess']
-        article?: Maybe<RefType['Article']>
-        assets: Array<RefType['Asset']>
-        collection: RefType['ArticleConnection']
-      })
+    | DraftModel
     | TagModel
     | (Omit<GQLTopic, 'articles' | 'author' | 'chapters' | 'latestArticle'> & {
         articles?: Maybe<Array<RefType['Article']>>
@@ -4089,19 +4093,8 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
-  Draft: ResolverTypeWrapper<
-    Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
-      access: GQLResolversTypes['DraftAccess']
-      article?: Maybe<GQLResolversTypes['Article']>
-      assets: Array<GQLResolversTypes['Asset']>
-      collection: GQLResolversTypes['ArticleConnection']
-    }
-  >
-  DraftAccess: ResolverTypeWrapper<
-    Omit<GQLDraftAccess, 'circle'> & {
-      circle?: Maybe<GQLResolversTypes['Circle']>
-    }
-  >
+  Draft: ResolverTypeWrapper<DraftModel>
+  DraftAccess: ResolverTypeWrapper<DraftModel>
   DraftConnection: ResolverTypeWrapper<
     Omit<GQLDraftConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['DraftEdge']>>
@@ -4163,12 +4156,7 @@ export type GQLResolversTypes = ResolversObject<{
   Liker: ResolverTypeWrapper<UserModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
-  Member: ResolverTypeWrapper<
-    Omit<GQLMember, 'price' | 'user'> & {
-      price: GQLResolversTypes['Price']
-      user: GQLResolversTypes['User']
-    }
-  >
+  Member: ResolverTypeWrapper<CircleMemberModel>
   MemberConnection: ResolverTypeWrapper<
     Omit<GQLMemberConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['MemberEdge']>>
@@ -4199,9 +4187,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   NotificationSetting: ResolverTypeWrapper<GQLNotificationSetting>
   NotificationSettingType: GQLNotificationSettingType
-  OAuthClient: ResolverTypeWrapper<
-    Omit<GQLOAuthClient, 'user'> & { user?: Maybe<GQLResolversTypes['User']> }
-  >
+  OAuthClient: ResolverTypeWrapper<OAuthClientDBModel>
   OAuthClientConnection: ResolverTypeWrapper<
     Omit<GQLOAuthClientConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['OAuthClientEdge']>>
@@ -4250,9 +4236,7 @@ export type GQLResolversTypes = ResolversObject<{
   PinnableWork: ResolverTypeWrapper<
     GQLResolversInterfaceTypes<GQLResolversTypes>['PinnableWork']
   >
-  Price: ResolverTypeWrapper<
-    Omit<GQLPrice, 'circle'> & { circle: GQLResolversTypes['Circle'] }
-  >
+  Price: ResolverTypeWrapper<CirclePriceModel>
   PriceState: GQLPriceState
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
@@ -4609,15 +4593,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
-  Draft: Omit<GQLDraft, 'access' | 'article' | 'assets' | 'collection'> & {
-    access: GQLResolversParentTypes['DraftAccess']
-    article?: Maybe<GQLResolversParentTypes['Article']>
-    assets: Array<GQLResolversParentTypes['Asset']>
-    collection: GQLResolversParentTypes['ArticleConnection']
-  }
-  DraftAccess: Omit<GQLDraftAccess, 'circle'> & {
-    circle?: Maybe<GQLResolversParentTypes['Circle']>
-  }
+  Draft: DraftModel
+  DraftAccess: DraftModel
   DraftConnection: Omit<GQLDraftConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['DraftEdge']>>
   }
@@ -4661,10 +4638,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   KeywordsInput: GQLKeywordsInput
   Liker: UserModel
   LogRecordInput: GQLLogRecordInput
-  Member: Omit<GQLMember, 'price' | 'user'> & {
-    price: GQLResolversParentTypes['Price']
-    user: GQLResolversParentTypes['User']
-  }
+  Member: CircleMemberModel
   MemberConnection: Omit<GQLMemberConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['MemberEdge']>>
   }
@@ -4687,9 +4661,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Notice']
   }
   NotificationSetting: GQLNotificationSetting
-  OAuthClient: Omit<GQLOAuthClient, 'user'> & {
-    user?: Maybe<GQLResolversParentTypes['User']>
-  }
+  OAuthClient: OAuthClientDBModel
   OAuthClientConnection: Omit<GQLOAuthClientConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['OAuthClientEdge']>>
   }
@@ -4728,9 +4700,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Person: GQLPerson
   PinCommentInput: GQLPinCommentInput
   PinnableWork: GQLResolversInterfaceTypes<GQLResolversParentTypes>['PinnableWork']
-  Price: Omit<GQLPrice, 'circle'> & {
-    circle: GQLResolversParentTypes['Circle']
-  }
+  Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
   PutChapterInput: GQLPutChapterInput

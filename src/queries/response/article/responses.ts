@@ -70,7 +70,7 @@ const resolver: GQLArticleResolvers['responses'] = async (
     return {
       cursor: toGlobalId({ type, id }),
       node: { __type: type, ...item },
-    }
+    } as any
   })
 
   // handle page info
