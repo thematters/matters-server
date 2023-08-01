@@ -1,8 +1,8 @@
-import type { GQLOSSResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
-export const comments: GQLOSSResolvers['comments'] = async (
+export const comments: GQLOssResolvers['comments'] = async (
   _,
   { input },
   { dataSources: { commentService } }

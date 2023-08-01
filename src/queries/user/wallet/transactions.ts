@@ -1,4 +1,4 @@
-import type { GQLWalletResolvers } from 'definitions'
+import type { GQLWalletResolvers, LANGUAGES } from 'definitions'
 
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
@@ -21,9 +21,6 @@ const resolver: GQLWalletResolvers['transactions'] = async (
   { dataSources: { paymentService }, viewer },
   info
 ) => {
-  if (userId === null) {
-    return connectionFromArray([], input)
-  }
   const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
 
@@ -72,7 +69,7 @@ const resolver: GQLWalletResolvers['transactions'] = async (
 
     // only return message for failed tx for now
     if (tx.purpose === TRANSACTION_STATE.failed) {
-      const text = TransactionRemarkText[viewer.language]
+      const text = TransactionRemarkText[viewer.language as LANGUAGES]
 
       // known error code or unknown error code
       return Object.keys(text).includes(tx.remark)

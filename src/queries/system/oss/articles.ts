@@ -1,8 +1,8 @@
-import type { GQLOSSResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
-export const articles: GQLOSSResolvers['articles'] = async (
+export const articles: GQLOssResolvers['articles'] = async (
   _,
   { input },
   { dataSources: { articleService, draftService } }

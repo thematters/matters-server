@@ -58,6 +58,7 @@ const config: CodegenConfig = {
           CircleNotice: './notification#NoticeItem',
           OfficialNotice: './notification#NoticeItem',
           OfficialAnnouncementNotice: './notification#NoticeItem',
+          Appreciation: './appreciation#Appreciation',
         },
         contextType: './index#Context',
         makeResolverTypeCallable: true,

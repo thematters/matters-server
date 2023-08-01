@@ -1,9 +1,4 @@
-import {
-  type GQLArticleAccessType,
-  type GQLArticleLicenseType,
-  NotificationType,
-  SkippedListItemType,
-} from 'definitions'
+import type { NotificationType, SkippedListItemType } from 'definitions'
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
@@ -71,26 +66,26 @@ export const ARTICLE_STATE = {
   banned: 'banned',
   pending: 'pending',
   error: 'error',
-}
+} as const
 
-export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
+export const ARTICLE_ACCESS_TYPE = {
   public: 'public',
   paywall: 'paywall',
-}
+} as const
 
-export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
+export const ARTICLE_LICENSE_TYPE = {
   cc_0: 'cc_0',
   cc_by_nc_nd_2: 'cc_by_nc_nd_2',
   cc_by_nc_nd_4: 'cc_by_nc_nd_4',
   arr: 'arr',
-}
+} as const
 
 export const PUBLISH_STATE = {
   unpublished: 'unpublished',
   pending: 'pending',
   error: 'error',
   published: 'published',
-}
+} as const
 
 export enum PIN_STATE {
   pinned = 'pinned',

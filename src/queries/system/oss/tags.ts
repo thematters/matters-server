@@ -1,8 +1,8 @@
-import type { GQLOSSResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
-export const tags: GQLOSSResolvers['tags'] = async (
+export const tags: GQLOssResolvers['tags'] = async (
   _,
   { input },
   { dataSources: { tagService } }

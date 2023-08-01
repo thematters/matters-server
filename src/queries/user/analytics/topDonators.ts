@@ -1,4 +1,4 @@
-import type { GQLUserAnalyticsToResolvers } from 'definitions'
+import type { GQLUserAnalyticsResolvers } from 'definitions'
 
 import {
   connectionFromArray,
@@ -6,7 +6,7 @@ import {
   fromConnectionArgs,
 } from 'common/utils'
 
-const resolver: GQLUserAnalyticsToResolvers['pDonators'] = async (
+const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },
   { input },
   { dataSources: { userService } }
@@ -33,7 +33,7 @@ const resolver: GQLUserAnalyticsToResolvers['pDonators'] = async (
       node: await userService.loadById(edge.node.senderId),
       donationCount: edge.node.count,
     })),
-  }
+  } as any
 }
 
 export default resolver

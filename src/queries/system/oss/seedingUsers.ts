@@ -1,8 +1,8 @@
-import type { GQLOSSResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
-export const seedingUsers: GQLOSSResolvers['seedingUsers'] = async (
+export const seedingUsers: GQLOssResolvers['seedingUsers'] = async (
   _,
   { input },
   { dataSources: { atomService } }

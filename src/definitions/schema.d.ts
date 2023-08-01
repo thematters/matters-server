@@ -16,6 +16,7 @@ import { PayoutAccount as PayoutAccountModel } from './payment'
 import { Transaction as TransactionModel, Context } from './index'
 import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
+import { Appreciation as AppreciationModel } from './appreciation'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3943,13 +3944,7 @@ export type GQLResolversTypes = ResolversObject<{
   AnnouncementType: GQLAnnouncementType
   AnnouncementsInput: GQLAnnouncementsInput
   AppreciateArticleInput: GQLAppreciateArticleInput
-  Appreciation: ResolverTypeWrapper<
-    Omit<GQLAppreciation, 'recipient' | 'sender' | 'target'> & {
-      recipient: GQLResolversTypes['User']
-      sender?: Maybe<GQLResolversTypes['User']>
-      target?: Maybe<GQLResolversTypes['Article']>
-    }
-  >
+  Appreciation: ResolverTypeWrapper<AppreciationModel>
   AppreciationConnection: ResolverTypeWrapper<
     Omit<GQLAppreciationConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['AppreciationEdge']>>
@@ -4513,11 +4508,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Announcement: GQLAnnouncement
   AnnouncementsInput: GQLAnnouncementsInput
   AppreciateArticleInput: GQLAppreciateArticleInput
-  Appreciation: Omit<GQLAppreciation, 'recipient' | 'sender' | 'target'> & {
-    recipient: GQLResolversParentTypes['User']
-    sender?: Maybe<GQLResolversParentTypes['User']>
-    target?: Maybe<GQLResolversParentTypes['Article']>
-  }
+  Appreciation: AppreciationModel
   AppreciationConnection: Omit<GQLAppreciationConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['AppreciationEdge']>>
   }

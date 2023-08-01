@@ -1,6 +1,7 @@
 import type {
   GQLAppreciationResolvers,
   GQLAppreciationPurpose,
+  Draft
 } from 'definitions'
 
 import { camelCase } from 'lodash'
@@ -51,7 +52,7 @@ export const Appreciation: GQLAppreciationResolvers = {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:
       case APPRECIATION_PURPOSE.superlike:
-        const node = await articleService.draftLoader.load(trx.referenceId)
+        const node = await articleService.draftLoader.load(trx.referenceId as string)
         if (!node) {
           throw new ArticleNotFoundError(
             'reference article linked draft not found'
@@ -82,9 +83,9 @@ export const Appreciation: GQLAppreciationResolvers = {
   sender: (trx, _, { dataSources: { userService } }) =>
     trx.senderId ? userService.loadById(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.loadById(trx.recipientId) : null,
+    userService.loadById(trx.recipientId),
   target: (trx, _, { dataSources: { articleService } }) =>
     trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId
-      ? articleService.draftLoader.load(trx.referenceId)
+      ? articleService.draftLoader.load(trx.referenceId) as Promise<Draft>
       : null,
 }

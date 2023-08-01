@@ -1,4 +1,4 @@
-import type { GQLOSSResolvers } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import {
@@ -7,7 +7,7 @@ import {
   toGlobalId,
 } from 'common/utils'
 
-export const skippedListItems: GQLOSSResolvers['skippedListItems'] = async (
+export const skippedListItems: GQLOssResolvers['skippedListItems'] = async (
   _,
   { input },
   { dataSources: { systemService } }
