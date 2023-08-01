@@ -1,5 +1,4 @@
 import type {
-  DBNoticeType,
   GQLArticleArticleNoticeResolvers,
   GQLArticleNoticeResolvers,
   GQLArticleTagNoticeResolvers,
@@ -10,33 +9,35 @@ import type {
   GQLTagNoticeResolvers,
   GQLTransactionNoticeResolvers,
   GQLUserNoticeResolvers,
+  GQLNoticeResolvers,
   GQLUserResolvers,
 } from 'definitions'
 
 import _capitalize from 'lodash/capitalize'
 
 import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
+import { ServerError } from 'common/errors'
 
 import notices from './notices'
 
-enum NOTICE_TYPE {
-  UserNotice = 'UserNotice',
-  ArticleNotice = 'ArticleNotice',
-  ArticleArticleNotice = 'ArticleArticleNotice',
-  CommentNotice = 'CommentNotice',
-  CommentCommentNotice = 'CommentCommentNotice',
-  ArticleTagNotice = 'ArticleTagNotice',
-  TagNotice = 'TagNotice',
-  TransactionNotice = 'TransactionNotice',
-  CircleNotice = 'CircleNotice',
-  CircleArticleNotice = 'CircleArticleNotice',
-  CircleCommentNotice = 'CircleCommentNotice',
-  OfficialAnnouncementNotice = 'OfficialAnnouncementNotice',
-}
+const NOTICE_TYPE = {
+  UserNotice: 'UserNotice',
+  ArticleNotice: 'ArticleNotice',
+  ArticleArticleNotice: 'ArticleArticleNotice',
+  CommentNotice: 'CommentNotice',
+  CommentCommentNotice: 'CommentCommentNotice',
+  ArticleTagNotice: 'ArticleTagNotice',
+  TagNotice: 'TagNotice',
+  TransactionNotice: 'TransactionNotice',
+  CircleNotice: 'CircleNotice',
+  CircleArticleNotice: 'CircleArticleNotice',
+  CircleCommentNotice: 'CircleCommentNotice',
+  OfficialAnnouncementNotice: 'OfficialAnnouncementNotice',
+} as const
 
 const notice: {
   User: GQLUserResolvers
-  Notice: any
+  Notice: GQLNoticeResolvers
   UserNotice: GQLUserNoticeResolvers
   ArticleNotice: GQLArticleNoticeResolvers
   ArticleArticleNotice: GQLArticleArticleNoticeResolvers
@@ -50,8 +51,8 @@ const notice: {
 } = {
   User: { notices },
   Notice: {
-    __resolveType: ({ type }: {type: DBNoticeType}) => {
-      const noticeTypeMap: Record<DBNoticeType, NOTICE_TYPE> = {
+    __resolveType: ({ type }) => {
+      const noticeTypeMap = {
         // user
         user_new_follower: NOTICE_TYPE.UserNotice,
 
@@ -101,7 +102,7 @@ const notice: {
 
         // official
         official_announcement: NOTICE_TYPE.OfficialAnnouncementNotice,
-      }
+      } as const
 
       return noticeTypeMap[type]
     },
@@ -110,10 +111,11 @@ const notice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.user_new_follower:
-          return GQLUserNoticeType.UserNewFollower
+          return 'UserNewFollower'
       }
+      throw new ServerError(`Unknown UserNotice type: ${type}`)
     },
-    target: ({ entities, type }, _, { viewer }) => {
+    target: ({ type }, _, { viewer }) => {
       if (type === DB_NOTICE_TYPE.user_new_follower) {
         return viewer
       }
@@ -124,84 +126,117 @@ const notice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_published:
-          return GQLArticleNoticeType.ArticlePublished
+          return 'ArticlePublished'
         case DB_NOTICE_TYPE.article_new_appreciation:
-          return GQLArticleNoticeType.ArticleNewAppreciation
+          return 'ArticleNewAppreciation'
         case DB_NOTICE_TYPE.article_new_subscriber:
-          return GQLArticleNoticeType.ArticleNewSubscriber
+          return 'ArticleNewSubscriber'
         case DB_NOTICE_TYPE.article_mentioned_you:
-          return GQLArticleNoticeType.ArticleMentionedYou
+          return 'ArticleMentionedYou'
         case DB_NOTICE_TYPE.revised_article_published:
-          return GQLArticleNoticeType.RevisedArticlePublished
+          return 'RevisedArticlePublished'
         case DB_NOTICE_TYPE.revised_article_not_published:
-          return GQLArticleNoticeType.RevisedArticleNotPublished
+          return 'RevisedArticleNotPublished'
         case DB_NOTICE_TYPE.circle_new_article:
-          return GQLArticleNoticeType.CircleNewArticle
+          return 'CircleNewArticle'
       }
+      throw new ServerError(`Unknown ArticleNotice type: ${type}`)
     },
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.loadById(entities.target.draftId),
+    target: ({ entities }, _, { dataSources: { draftService } }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return draftService.loadById(entities.target.draftId)
+    },
   },
   ArticleArticleNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_new_collected:
-          return GQLArticleArticleNoticeType.ArticleNewCollected
+          return 'ArticleNewCollected'
       }
+      throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.loadById(entities.target.draftId),
+    target: ({ entities }, _, { dataSources: { draftService } }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return draftService.loadById(entities.target.draftId)
+    },
     article: ({ entities, type }, _, { dataSources: { draftService } }) => {
       if (type === DB_NOTICE_TYPE.article_new_collected) {
+        if (!entities) {
+          throw new ServerError('entities is empty')
+        }
         return draftService.loadById(entities.collection.draftId)
       }
-      return null
+      throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
   },
   ArticleTagNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.article_tag_has_been_added:
-          return GQLArticleTagNoticeType.ArticleTagAdded
+          return 'ArticleTagAdded'
         case DB_NOTICE_TYPE.article_tag_has_been_removed:
-          return GQLArticleTagNoticeType.ArticleTagRemoved
+          return 'ArticleTagRemoved'
       }
+      throw new ServerError(`Unknown ArticleTagNotice type: ${type}`)
     },
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.loadById(entities.target.draftId),
-    tag: ({ entities }) => entities.tag,
+    target: ({ entities }, _, { dataSources: { draftService } }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return draftService.loadById(entities.target.draftId)
+    },
+    tag: ({ entities }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return entities.tag
+    },
   },
   TagNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.tag_adoption:
-          return GQLTagNoticeType.TagAdoption
+          return 'TagAdoption'
         case DB_NOTICE_TYPE.tag_leave:
-          return GQLTagNoticeType.TagLeave
+          return 'TagLeave'
         case DB_NOTICE_TYPE.tag_add_editor:
-          return GQLTagNoticeType.TagAddEditor
+          return 'TagAddEditor'
         case DB_NOTICE_TYPE.tag_leave_editor:
-          return GQLTagNoticeType.TagLeaveEditor
+          return 'TagLeaveEditor'
       }
+      throw new ServerError(`Unknown TagNotice type: ${type}`)
     },
-    target: ({ entities }) => entities.target,
+    target: ({ entities }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return entities.target
+    },
   },
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
-          return GQLCommentNoticeType.CommentPinned
+          return 'CommentPinned'
         case DB_NOTICE_TYPE.comment_mentioned_you:
-          return GQLCommentNoticeType.CommentMentionedYou
+          return 'CommentMentionedYou'
         case DB_NOTICE_TYPE.article_new_comment:
-          return GQLCommentNoticeType.ArticleNewComment
+          return 'ArticleNewComment'
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
-          return GQLCommentNoticeType.SubscribedArticleNewComment
+          return 'SubscribedArticleNewComment'
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
-          return GQLCommentNoticeType.CircleNewBroadcast
+          return 'CircleNewBroadcast'
       }
+      throw new ServerError(`Unknown CommentNotice type: ${type}`)
     },
     target: ({ entities, type }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
         case DB_NOTICE_TYPE.comment_mentioned_you:
@@ -211,101 +246,112 @@ const notice: {
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return entities.comment
       }
+      throw new ServerError(`Unknown CommentNotice type: ${type}`)
     },
   },
   CommentCommentNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_new_reply:
-          return GQLCommentCommentNoticeType.CommentNewReply
+          return 'CommentNewReply'
       }
+      throw new ServerError(`Unknown CommentCommentNotice type: ${type}`)
     },
-    target: ({ entities }) => entities.target,
+    target: ({ entities }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return entities.target
+    },
     comment: ({ entities, type }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
       switch (type) {
         case DB_NOTICE_TYPE.comment_new_reply:
           return entities.reply
       }
+      throw new ServerError(`Unknown CommentCommentNotice type: ${type}`)
     },
   },
   TransactionNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.payment_received_donation:
-          return GQLTransactionNoticeType.PaymentReceivedDonation
+          return 'PaymentReceivedDonation'
       }
+      throw new ServerError(`Unknown TransactionNotice type: ${type}`)
     },
-    target: ({ entities }) => entities.target,
+    target: ({ entities }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return entities.target
+    },
   },
   CircleNotice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.circle_invitation:
-          return GQLCircleNoticeType.CircleInvitation
+          return 'CircleInvitation'
         case DB_NOTICE_TYPE.circle_new_subscriber:
-          return GQLCircleNoticeType.CircleNewSubscriber
+          return 'CircleNewSubscriber'
         case DB_NOTICE_TYPE.circle_new_follower:
-          return GQLCircleNoticeType.CircleNewFollower
+          return 'CircleNewFollower'
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
-          return GQLCircleNoticeType.CircleNewUnsubscriber
+          return 'CircleNewUnsubscriber'
         case DB_NOTICE_TYPE.circle_new_broadcast_comments:
-          return GQLCircleNoticeType.CircleNewBroadcastComments
+          return 'CircleNewBroadcastComments'
         case DB_NOTICE_TYPE.circle_new_discussion_comments:
-          return GQLCircleNoticeType.CircleNewDiscussionComments
+          return 'CircleNewDiscussionComments'
       }
+      throw new ServerError(`Unknown CircleNotice type: ${type}`)
     },
-    target: ({ entities }) => entities.target,
-    comments: async (
-      { data }: { data: any },
-      _,
-      { dataSources: { commentService } }
-    ) => {
+    target: ({ entities }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      return entities.target
+    },
+    comments: async ({ data }, _, { dataSources: { commentService } }) => {
       const { comments } = data || {}
 
       if (!comments || comments.length <= 0) {
-        return
+        return null
       }
 
-      return (await commentService.dataloader.loadMany(comments)).map((c) => ({
+      return (await commentService.loadByIds(comments)).map((c) => ({
         ...c,
         __typename: NODE_TYPES.Comment,
       }))
     },
-    replies: async (
-      { data }: { data: any },
-      _,
-      { dataSources: { commentService } }
-    ) => {
+    replies: async ({ data }, _, { dataSources: { commentService } }) => {
       const { replies } = data || {}
 
       if (!replies || replies.length <= 0) {
-        return
+        return null
       }
 
-      return (await commentService.dataloader.loadMany(replies)).map((c) => ({
+      return (await commentService.loadByIds(replies)).map((c) => ({
         ...c,
         __typename: NODE_TYPES.Comment,
       }))
     },
-    mentions: async (
-      { data }: { data: any },
-      _,
-      { dataSources: { commentService } }
-    ) => {
+    mentions: async ({ data }, _, { dataSources: { commentService } }) => {
       const { mentions } = data || {}
 
       if (!mentions || mentions.length <= 0) {
-        return
+        return null
       }
 
-      return (await commentService.dataloader.loadMany(mentions)).map((c) => ({
+      return (await commentService.loadByIds(mentions)).map((c) => ({
         ...c,
         __typename: NODE_TYPES.Comment,
       }))
     },
   },
   OfficialAnnouncementNotice: {
-    link: ({ data }: { data: any }) => data && data.link,
+    link: ({ data }) => (data && data.link) ?? null,
   },
 }
 

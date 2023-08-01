@@ -5,7 +5,7 @@ import {
 } from 'common/enums/notification'
 import { TableName, User } from 'definitions'
 
-export type DBNoticeType = keyof typeof DB_NOTICE_TYPE
+export type DBNoticeType = DB_NOTICE_TYPE
 
 export type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
 
@@ -435,7 +435,7 @@ export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
 export interface NoticeData {
   // used by official annoncement notices
-  url?: string
+  link?: string
   // reason for banned/frozen users, not in used
   reason?: string
 

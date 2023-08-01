@@ -3916,52 +3916,16 @@ export type GQLResolversInterfaceTypes<
       })
     | UserModel
   Notice:
-    | (Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        article: RefType['Article']
-        target: RefType['Article']
-      })
-    | (Omit<GQLArticleNotice, 'actors' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        target: RefType['Article']
-      })
-    | (Omit<GQLArticleTagNotice, 'actors' | 'tag' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        tag: RefType['Tag']
-        target: RefType['Article']
-      })
-    | (Omit<
-        GQLCircleNotice,
-        'actors' | 'comments' | 'mentions' | 'replies' | 'target'
-      > & {
-        actors?: Maybe<Array<RefType['User']>>
-        comments?: Maybe<Array<RefType['Comment']>>
-        mentions?: Maybe<Array<RefType['Comment']>>
-        replies?: Maybe<Array<RefType['Comment']>>
-        target: RefType['Circle']
-      })
-    | (Omit<GQLCommentCommentNotice, 'actors' | 'comment' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        comment: RefType['Comment']
-        target: RefType['Comment']
-      })
-    | (Omit<GQLCommentNotice, 'actors' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        target: RefType['Comment']
-      })
-    | GQLOfficialAnnouncementNotice
-    | (Omit<GQLTagNotice, 'actors' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        target: RefType['Tag']
-      })
-    | (Omit<GQLTransactionNotice, 'actors' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        target: RefType['Transaction']
-      })
-    | (Omit<GQLUserNotice, 'actors' | 'target'> & {
-        actors?: Maybe<Array<RefType['User']>>
-        target: RefType['User']
-      })
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
+    | NoticeItemModel
   PinnableWork: DraftModel | CollectionModel
 }>
 
@@ -4000,13 +3964,7 @@ export type GQLResolversTypes = ResolversObject<{
   Article: ResolverTypeWrapper<DraftModel>
   ArticleAccess: ResolverTypeWrapper<DraftModel>
   ArticleAccessType: GQLArticleAccessType
-  ArticleArticleNotice: ResolverTypeWrapper<
-    Omit<GQLArticleArticleNotice, 'actors' | 'article' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      article: GQLResolversTypes['Article']
-      target: GQLResolversTypes['Article']
-    }
-  >
+  ArticleArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleArticleNoticeType: GQLArticleArticleNoticeType
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
@@ -4019,12 +3977,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleInput: GQLArticleInput
   ArticleLicenseType: GQLArticleLicenseType
-  ArticleNotice: ResolverTypeWrapper<
-    Omit<GQLArticleNotice, 'actors' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      target: GQLResolversTypes['Article']
-    }
-  >
+  ArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleNoticeType: GQLArticleNoticeType
   ArticleOSS: ResolverTypeWrapper<DraftModel>
   ArticleRecommendationActivity: ResolverTypeWrapper<
@@ -4034,13 +3987,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
-  ArticleTagNotice: ResolverTypeWrapper<
-    Omit<GQLArticleTagNotice, 'actors' | 'tag' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      tag: GQLResolversTypes['Tag']
-      target: GQLResolversTypes['Article']
-    }
-  >
+  ArticleTagNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleTagNoticeType: GQLArticleTagNoticeType
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
   Asset: ResolverTypeWrapper<AssetModel>
@@ -4086,18 +4033,7 @@ export type GQLResolversTypes = ResolversObject<{
   CircleFollowerAnalytics: ResolverTypeWrapper<CircleModel>
   CircleIncomeAnalytics: ResolverTypeWrapper<CircleModel>
   CircleInput: GQLCircleInput
-  CircleNotice: ResolverTypeWrapper<
-    Omit<
-      GQLCircleNotice,
-      'actors' | 'comments' | 'mentions' | 'replies' | 'target'
-    > & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      comments?: Maybe<Array<GQLResolversTypes['Comment']>>
-      mentions?: Maybe<Array<GQLResolversTypes['Comment']>>
-      replies?: Maybe<Array<GQLResolversTypes['Comment']>>
-      target: GQLResolversTypes['Circle']
-    }
-  >
+  CircleNotice: ResolverTypeWrapper<NoticeItemModel>
   CircleNoticeType: GQLCircleNoticeType
   CircleRecommendationActivity: ResolverTypeWrapper<
     Omit<GQLCircleRecommendationActivity, 'nodes'> & {
@@ -4121,13 +4057,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLCollectionEdge, 'node'> & { node: GQLResolversTypes['Collection'] }
   >
   Comment: ResolverTypeWrapper<CommentModel>
-  CommentCommentNotice: ResolverTypeWrapper<
-    Omit<GQLCommentCommentNotice, 'actors' | 'comment' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      comment: GQLResolversTypes['Comment']
-      target: GQLResolversTypes['Comment']
-    }
-  >
+  CommentCommentNotice: ResolverTypeWrapper<NoticeItemModel>
   CommentCommentNoticeType: GQLCommentCommentNoticeType
   CommentCommentsInput: GQLCommentCommentsInput
   CommentConnection: ResolverTypeWrapper<
@@ -4139,12 +4069,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLCommentEdge, 'node'> & { node: GQLResolversTypes['Comment'] }
   >
   CommentInput: GQLCommentInput
-  CommentNotice: ResolverTypeWrapper<
-    Omit<GQLCommentNotice, 'actors' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      target: GQLResolversTypes['Comment']
-    }
-  >
+  CommentNotice: ResolverTypeWrapper<NoticeItemModel>
   CommentNoticeType: GQLCommentNoticeType
   CommentSort: GQLCommentSort
   CommentState: GQLCommentState
@@ -4316,7 +4241,7 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   Official: ResolverTypeWrapper<GQLOfficial>
-  OfficialAnnouncementNotice: ResolverTypeWrapper<GQLOfficialAnnouncementNotice>
+  OfficialAnnouncementNotice: ResolverTypeWrapper<NoticeItemModel>
   PageInfo: ResolverTypeWrapper<GQLPageInfo>
   PayToInput: GQLPayToInput
   PayToResult: ResolverTypeWrapper<
@@ -4432,12 +4357,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLTagEdge, 'node'> & { node: GQLResolversTypes['Tag'] }
   >
   TagEditorsInput: GQLTagEditorsInput
-  TagNotice: ResolverTypeWrapper<
-    Omit<GQLTagNotice, 'actors' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      target: GQLResolversTypes['Tag']
-    }
-  >
+  TagNotice: ResolverTypeWrapper<NoticeItemModel>
   TagNoticeType: GQLTagNoticeType
   TagOSS: ResolverTypeWrapper<TagModel>
   TagSelectedInput: GQLTagSelectedInput
@@ -4487,12 +4407,7 @@ export type GQLResolversTypes = ResolversObject<{
       node: GQLResolversTypes['Transaction']
     }
   >
-  TransactionNotice: ResolverTypeWrapper<
-    Omit<GQLTransactionNotice, 'actors' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      target: GQLResolversTypes['Transaction']
-    }
-  >
+  TransactionNotice: ResolverTypeWrapper<NoticeItemModel>
   TransactionNoticeType: GQLTransactionNoticeType
   TransactionPurpose: GQLTransactionPurpose
   TransactionState: GQLTransactionState
@@ -4557,12 +4472,7 @@ export type GQLResolversTypes = ResolversObject<{
   UserInput: GQLUserInput
   UserLanguage: GQLUserLanguage
   UserLoginInput: GQLUserLoginInput
-  UserNotice: ResolverTypeWrapper<
-    Omit<GQLUserNotice, 'actors' | 'target'> & {
-      actors?: Maybe<Array<GQLResolversTypes['User']>>
-      target: GQLResolversTypes['User']
-    }
-  >
+  UserNotice: ResolverTypeWrapper<NoticeItemModel>
   UserNoticeType: GQLUserNoticeType
   UserOSS: ResolverTypeWrapper<UserModel>
   UserPublishArticleActivity: ResolverTypeWrapper<
@@ -4616,14 +4526,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   Article: DraftModel
   ArticleAccess: DraftModel
-  ArticleArticleNotice: Omit<
-    GQLArticleArticleNotice,
-    'actors' | 'article' | 'target'
-  > & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    article: GQLResolversParentTypes['Article']
-    target: GQLResolversParentTypes['Article']
-  }
+  ArticleArticleNotice: NoticeItemModel
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -4632,20 +4535,13 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Article']
   }
   ArticleInput: GQLArticleInput
-  ArticleNotice: Omit<GQLArticleNotice, 'actors' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    target: GQLResolversParentTypes['Article']
-  }
+  ArticleNotice: NoticeItemModel
   ArticleOSS: DraftModel
   ArticleRecommendationActivity: Omit<
     GQLArticleRecommendationActivity,
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
-  ArticleTagNotice: Omit<GQLArticleTagNotice, 'actors' | 'tag' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    tag: GQLResolversParentTypes['Tag']
-    target: GQLResolversParentTypes['Article']
-  }
+  ArticleTagNotice: NoticeItemModel
   ArticleTranslation: GQLArticleTranslation
   Asset: AssetModel
   AuthResult: Omit<GQLAuthResult, 'user'> & {
@@ -4677,16 +4573,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CircleFollowerAnalytics: CircleModel
   CircleIncomeAnalytics: CircleModel
   CircleInput: GQLCircleInput
-  CircleNotice: Omit<
-    GQLCircleNotice,
-    'actors' | 'comments' | 'mentions' | 'replies' | 'target'
-  > & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    comments?: Maybe<Array<GQLResolversParentTypes['Comment']>>
-    mentions?: Maybe<Array<GQLResolversParentTypes['Comment']>>
-    replies?: Maybe<Array<GQLResolversParentTypes['Comment']>>
-    target: GQLResolversParentTypes['Circle']
-  }
+  CircleNotice: NoticeItemModel
   CircleRecommendationActivity: Omit<
     GQLCircleRecommendationActivity,
     'nodes'
@@ -4704,14 +4591,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Collection']
   }
   Comment: CommentModel
-  CommentCommentNotice: Omit<
-    GQLCommentCommentNotice,
-    'actors' | 'comment' | 'target'
-  > & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    comment: GQLResolversParentTypes['Comment']
-    target: GQLResolversParentTypes['Comment']
-  }
+  CommentCommentNotice: NoticeItemModel
   CommentCommentsInput: GQLCommentCommentsInput
   CommentConnection: Omit<GQLCommentConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['CommentEdge']>>
@@ -4720,10 +4600,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Comment']
   }
   CommentInput: GQLCommentInput
-  CommentNotice: Omit<GQLCommentNotice, 'actors' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    target: GQLResolversParentTypes['Comment']
-  }
+  CommentNotice: NoticeItemModel
   CommentsFilter: GQLCommentsFilter
   CommentsInput: GQLCommentsInput
   ConfirmVerificationCodeInput: GQLConfirmVerificationCodeInput
@@ -4850,7 +4727,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     users: GQLResolversParentTypes['UserConnection']
   }
   Official: GQLOfficial
-  OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
+  OfficialAnnouncementNotice: NoticeItemModel
   PageInfo: GQLPageInfo
   PayToInput: GQLPayToInput
   PayToResult: Omit<GQLPayToResult, 'transaction'> & {
@@ -4934,10 +4811,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TagEdge: Omit<GQLTagEdge, 'node'> & { node: GQLResolversParentTypes['Tag'] }
   TagEditorsInput: GQLTagEditorsInput
-  TagNotice: Omit<GQLTagNotice, 'actors' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    target: GQLResolversParentTypes['Tag']
-  }
+  TagNotice: NoticeItemModel
   TagOSS: TagModel
   TagSelectedInput: GQLTagSelectedInput
   TagsInput: GQLTagsInput
@@ -4977,10 +4851,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TransactionEdge: Omit<GQLTransactionEdge, 'node'> & {
     node: GQLResolversParentTypes['Transaction']
   }
-  TransactionNotice: Omit<GQLTransactionNotice, 'actors' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    target: GQLResolversParentTypes['Transaction']
-  }
+  TransactionNotice: NoticeItemModel
   TransactionTarget: GQLResolversUnionTypes<GQLResolversParentTypes>['TransactionTarget']
   TransactionsArgs: GQLTransactionsArgs
   TransactionsFilter: GQLTransactionsFilter
@@ -5037,10 +4908,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserInfo: UserModel
   UserInput: GQLUserInput
   UserLoginInput: GQLUserLoginInput
-  UserNotice: Omit<GQLUserNotice, 'actors' | 'target'> & {
-    actors?: Maybe<Array<GQLResolversParentTypes['User']>>
-    target: GQLResolversParentTypes['User']
-  }
+  UserNotice: NoticeItemModel
   UserOSS: UserModel
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
