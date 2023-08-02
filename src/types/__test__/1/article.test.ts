@@ -216,11 +216,11 @@ describe('query article', () => {
       isAuth: true,
       isAdmin: true,
     })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_ARTICLES,
       variables: { input: {} },
     })
-    expect(_get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
+    expect(data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 
   test('query related articles', async () => {

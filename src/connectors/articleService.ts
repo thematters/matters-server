@@ -95,7 +95,7 @@ export class ArticleService extends BaseService {
     this.dataloader.loadMany(ids) as Promise<Article[]>
 
   public loadDraftsByArticles = async (ids: string[]): Promise<Draft[]> =>
-    this.dataloader.loadMany(ids) as Promise<Draft[]>
+    this.draftLoader.loadMany(ids) as Promise<Draft[]>
 
   /**
    * Create a pending article with linked draft
@@ -1030,9 +1030,6 @@ export class ArticleService extends BaseService {
     // keyOriginal,
     take = 10,
     skip = 0,
-    exclude,
-    viewerId,
-    coefficients,
   }: {
     key: string
     // keyOriginal?: string

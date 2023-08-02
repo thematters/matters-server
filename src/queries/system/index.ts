@@ -13,8 +13,8 @@ const system: GQLResolvers = {
     nodes,
     search,
     frequentSearch,
-    official: (root) => root as any,
-    oss: (root) => root as any,
+    official: () => ({} as any),
+    oss: () => ({} as any),
   },
   Node: {
     __resolveType: ({ __type }: any) => __type,
