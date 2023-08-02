@@ -1,4 +1,4 @@
-import { CIRCLE_STATE } from 'common/enums'
+import { CIRCLE_STATE, INVITATION_STATE } from 'common/enums'
 
 import { User } from './user'
 
@@ -24,6 +24,7 @@ export interface CircleInvitation {
   inviter: string
   email: string
   durationInDays: number
+  state: INVITATION_STATE
 }
 
 export type CircleMember = User & { circleId: string }

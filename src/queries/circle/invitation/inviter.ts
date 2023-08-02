@@ -4,6 +4,5 @@ const resolver: GQLInvitationResolvers['inviter'] = async (
   { inviter },
   _,
   { dataSources: { userService } }
-) => (inviter ? userService.loadById(inviter) : null)
-
+) => userService.loadById(inviter)
 export default resolver

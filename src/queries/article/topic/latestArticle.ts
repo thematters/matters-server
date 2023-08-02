@@ -26,7 +26,7 @@ const resolver: GQLTopicResolvers['latestArticle'] = async (
     .first()
 
   if (!latestArticle) {
-    return
+    return null
   }
 
   return draftService.loadById(latestArticle.draftId)

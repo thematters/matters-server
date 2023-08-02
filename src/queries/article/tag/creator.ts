@@ -6,7 +6,7 @@ const resolver: GQLTagResolvers['creator'] = (
   { dataSources: { userService } }
 ) => {
   if (!creator) {
-    return
+    return null
   }
 
   return userService.loadById(creator)

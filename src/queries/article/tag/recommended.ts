@@ -1,4 +1,4 @@
-import type { Item, GQLTagResolvers } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
 import { chunk } from 'lodash'
 
@@ -28,9 +28,7 @@ const resolver: GQLTagResolvers['recommended'] = async (
   const relatedIds = await tagService.findRelatedTags({ id })
 
   const tags = (
-    (await tagService.loadByIds(
-      relatedIds.map((tag: any) => `${tag.id}`)
-    )) as Item[]
+    await tagService.loadByIds(relatedIds.map((tag: any) => `${tag.id}`))
   ).filter(({ content }) => normalizeTagInput(content) === content)
 
   const totalCount = tags?.length ?? 0

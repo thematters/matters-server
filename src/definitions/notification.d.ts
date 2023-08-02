@@ -5,7 +5,7 @@ import {
 } from 'common/enums/notification'
 import { TableName, User } from 'definitions'
 
-export type DBNoticeType = DB_NOTICE_TYPE
+export type DBNoticeType = keyof typeof DB_NOTICE_TYPE
 
 export type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
 

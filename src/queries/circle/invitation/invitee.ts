@@ -1,20 +1,25 @@
 import type { GQLInvitationResolvers } from 'definitions'
 
+import { ServerError } from 'common/errors'
+
 const resolver: GQLInvitationResolvers['invitee'] = async (
   { email, userId },
   _,
-  { dataSources: { atomService } }
+  { dataSources: { userService } }
 ) => {
   if (email) {
     return { __type: 'Person', email }
   }
 
-  const user = await atomService.userIdLoader.load(userId)
+  if (!userId) {
+    throw new ServerError('userId is missing')
+  }
+
+  const user = await userService.loadById(userId)
   if (user) {
     return { __type: 'User', ...user }
   }
-
-  return null
+  throw new ServerError('user not found')
 }
 
 export default resolver

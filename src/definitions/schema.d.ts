@@ -26,6 +26,7 @@ import { PayoutAccount as PayoutAccountModel } from './payment'
 import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
+import { Topic as TopicModel } from './topic'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -3913,12 +3914,7 @@ export type GQLResolversInterfaceTypes<
     | CommentModel
     | DraftModel
     | TagModel
-    | (Omit<GQLTopic, 'articles' | 'author' | 'chapters' | 'latestArticle'> & {
-        articles?: Maybe<Array<RefType['Article']>>
-        author: RefType['User']
-        chapters?: Maybe<Array<RefType['Chapter']>>
-        latestArticle?: Maybe<RefType['Article']>
-      })
+    | TopicModel
     | UserModel
   Notice:
     | NoticeItemModel
@@ -4129,13 +4125,7 @@ export type GQLResolversTypes = ResolversObject<{
   GrantType: GQLGrantType
   ID: ResolverTypeWrapper<Scalars['ID']['output']>
   Int: ResolverTypeWrapper<Scalars['Int']['output']>
-  Invitation: ResolverTypeWrapper<
-    Omit<GQLInvitation, 'circle' | 'invitee' | 'inviter'> & {
-      circle: GQLResolversTypes['Circle']
-      invitee: GQLResolversTypes['Invitee']
-      inviter: GQLResolversTypes['User']
-    }
-  >
+  Invitation: ResolverTypeWrapper<CircleInvitationModel>
   InvitationConnection: ResolverTypeWrapper<
     Omit<GQLInvitationConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['InvitationEdge']>>
@@ -4357,14 +4347,7 @@ export type GQLResolversTypes = ResolversObject<{
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  Topic: ResolverTypeWrapper<
-    Omit<GQLTopic, 'articles' | 'author' | 'chapters' | 'latestArticle'> & {
-      articles?: Maybe<Array<GQLResolversTypes['Article']>>
-      author: GQLResolversTypes['User']
-      chapters?: Maybe<Array<GQLResolversTypes['Chapter']>>
-      latestArticle?: Maybe<GQLResolversTypes['Article']>
-    }
-  >
+  Topic: ResolverTypeWrapper<TopicModel>
   TopicConnection: ResolverTypeWrapper<
     Omit<GQLTopicConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['TopicEdge']>>
@@ -4619,11 +4602,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   GenerateSigningMessageInput: GQLGenerateSigningMessageInput
   ID: Scalars['ID']['output']
   Int: Scalars['Int']['output']
-  Invitation: Omit<GQLInvitation, 'circle' | 'invitee' | 'inviter'> & {
-    circle: GQLResolversParentTypes['Circle']
-    invitee: GQLResolversParentTypes['Invitee']
-    inviter: GQLResolversParentTypes['User']
-  }
+  Invitation: CircleInvitationModel
   InvitationConnection: Omit<GQLInvitationConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['InvitationEdge']>>
   }
@@ -4789,15 +4768,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  Topic: Omit<
-    GQLTopic,
-    'articles' | 'author' | 'chapters' | 'latestArticle'
-  > & {
-    articles?: Maybe<Array<GQLResolversParentTypes['Article']>>
-    author: GQLResolversParentTypes['User']
-    chapters?: Maybe<Array<GQLResolversParentTypes['Chapter']>>
-    latestArticle?: Maybe<GQLResolversParentTypes['Article']>
-  }
+  Topic: TopicModel
   TopicConnection: Omit<GQLTopicConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TopicEdge']>>
   }

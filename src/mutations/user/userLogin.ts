@@ -1,5 +1,7 @@
+import type { AuthMode, GQLMutationResolvers } from 'definitions'
+
+import { AUTH_RESULT_TYPE } from 'common/enums'
 import { getViewerFromUser, setCookie } from 'common/utils'
-import { AuthMode, GQLAuthResultType, GQLMutationResolvers } from 'definitions'
 
 const resolver: GQLMutationResolvers['userLogin'] = async (
   _,
@@ -30,7 +32,7 @@ const resolver: GQLMutationResolvers['userLogin'] = async (
   return {
     token,
     auth: true,
-    type: GQLAuthResultType.Login,
+    type: AUTH_RESULT_TYPE.Login,
     user,
   }
 }

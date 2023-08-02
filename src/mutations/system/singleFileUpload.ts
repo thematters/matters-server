@@ -38,8 +38,8 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type)
-  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type)
+  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
+  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type as any)
 
   if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')

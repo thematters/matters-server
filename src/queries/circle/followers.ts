@@ -10,7 +10,7 @@ import {
 const resolver: GQLCircleResolvers['followers'] = async (
   { id },
   { input },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -33,7 +33,7 @@ const resolver: GQLCircleResolvers['followers'] = async (
   ])
 
   return connectionFromPromisedArray(
-    atomService.userIdLoader.loadMany(actions.map(({ userId }) => userId)),
+    userService.loadByIds(actions.map(({ userId }) => userId)),
     input,
     totalCount
   )

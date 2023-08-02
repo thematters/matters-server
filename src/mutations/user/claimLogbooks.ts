@@ -1,8 +1,11 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import axios from 'axios'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { ethers } from 'ethers'
 import { Knex } from 'knex'
 
+import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
   EntityNotFoundError,
@@ -11,10 +14,6 @@ import {
 } from 'common/errors'
 import { getProvider } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
-import {
-  GQLSigningMessagePurpose,
-  type GQLMutationResolvers,
-} from 'definitions'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   _,
@@ -31,7 +30,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
         .where({
           address: ethAddress,
           nonce,
-          purpose: GQLSigningMessagePurpose.claimLogbook,
+          purpose: SIGNING_MESSAGE_PURPOSE.claimLogbook,
         })
         .whereNull('signature')
         .whereRaw('expired_at > CURRENT_TIMESTAMP'),

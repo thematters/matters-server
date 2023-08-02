@@ -1,4 +1,4 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import { VERIFICATION_CODE_STATUS, VERIFICATION_CODE_TYPE } from 'common/enums'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -8,11 +8,7 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { isValidPassword, isValidPaymentPassword } from 'common/utils'
-import {
-  GQLVerificationCodeType,
-  LANGUAGES,
-  type GQLMutationResolvers,
-} from 'definitions'
+import { LANGUAGES, type GQLMutationResolvers } from 'definitions'
 
 const resolver: GQLMutationResolvers['resetPassword'] = async (
   _,
@@ -24,8 +20,8 @@ const resolver: GQLMutationResolvers['resetPassword'] = async (
       uuid,
       type:
         type === 'payment'
-          ? GQLVerificationCodeType.payment_password_reset
-          : GQLVerificationCodeType.password_reset,
+          ? VERIFICATION_CODE_TYPE.payment_password_reset
+          : VERIFICATION_CODE_TYPE.password_reset,
     },
   })
   const code = codes?.length > 0 ? codes[0] : {}

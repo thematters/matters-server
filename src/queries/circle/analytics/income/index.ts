@@ -1,11 +1,11 @@
-import { GQLCircleIncomeAnalyticsTypeResolver } from 'definitions/schema'
+import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions/schema'
 
 import history from './history'
 import nextMonth from './nextMonth'
 import thisMonth from './thisMonth'
 import total from './total'
 
-const resolvers: GQLCircleIncomeAnalyticsTypeResolver = {
+const resolvers: GQLCircleIncomeAnalyticsResolvers = {
   history,
   total,
   thisMonth,

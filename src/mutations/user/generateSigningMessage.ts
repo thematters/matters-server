@@ -1,9 +1,11 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { utils } from 'ethers'
 import { customAlphabet } from 'nanoid'
 
+import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment } from 'common/environment'
 import { UserInputError } from 'common/errors'
-import { GQLSigningMessagePurpose, GQLMutationResolvers } from 'definitions'
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 12)
 
@@ -47,12 +49,12 @@ Resources:
     // and not already in-use by anyone
     const lastUsed = await atomService.findFirst({
       table,
-      where: { address, purpose: GQLSigningMessagePurpose.signup },
+      where: { address, purpose: SIGNING_MESSAGE_PURPOSE.signup },
       orderBy: [{ column: 'id', order: 'desc' }],
     })
     purpose = lastUsed?.userId
-      ? GQLSigningMessagePurpose.login
-      : GQLSigningMessagePurpose.signup
+      ? SIGNING_MESSAGE_PURPOSE.login
+      : SIGNING_MESSAGE_PURPOSE.signup
   }
 
   await atomService.create({

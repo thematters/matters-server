@@ -97,13 +97,13 @@ export const CIRCLE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
-}
+} as const
 
 export const PRICE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
-}
+} as const
 
 export const SUBSCRIPTION_STATE = {
   active: 'active',
@@ -113,7 +113,7 @@ export const SUBSCRIPTION_STATE = {
   incomplete: 'incomplete',
   incompleteExpired: 'incomplete_expired',
   trialing: 'trialing',
-}
+} as const
 
 export const APPRECIATION_REWARD = {
   invitationCalculate: 20,
@@ -121,7 +121,7 @@ export const APPRECIATION_REWARD = {
   joinByInvitation: 5,
   joinByTask: 10,
   firstPost: 10,
-}
+} as const
 
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3

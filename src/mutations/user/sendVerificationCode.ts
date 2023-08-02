@@ -1,7 +1,10 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_DOMAIN_WHITELIST,
+  VERIFICATION_CODE_TYPE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -11,7 +14,6 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
-import { GQLVerificationCodeType, type GQLMutationResolvers } from 'definitions'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
@@ -31,7 +33,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   let user
 
   // register check
-  if (type === GQLVerificationCodeType.register) {
+  if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
     user = await userService.findByEmail(email)
     if (user) {
@@ -40,9 +42,9 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   }
 
   if (
-    type === GQLVerificationCodeType.payment_password_reset ||
-    type === GQLVerificationCodeType.password_reset ||
-    type === GQLVerificationCodeType.email_reset
+    type === VERIFICATION_CODE_TYPE.payment_password_reset ||
+    type === VERIFICATION_CODE_TYPE.password_reset ||
+    type === VERIFICATION_CODE_TYPE.email_reset
   ) {
     user = await userService.findByEmail(email)
     if (!user) {

@@ -49,7 +49,7 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
     const isValidToState = [
       COMMENT_STATE.active,
       COMMENT_STATE.collapsed,
-    ].includes(state)
+    ].includes(state as any)
 
     if (!isTargetAuthor || !isValidFromState || !isValidToState) {
       throw new ForbiddenError(

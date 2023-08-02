@@ -1,4 +1,6 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import type { GQLMutationResolvers } from 'definitions'
+
+import { VERIFICATION_CODE_STATUS, VERIFICATION_CODE_TYPE } from 'common/enums'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -6,7 +8,6 @@ import {
   EmailExistsError,
   UserNotFoundError,
 } from 'common/errors'
-import { GQLVerificationCodeType, type GQLMutationResolvers } from 'definitions'
 
 const resolver: GQLMutationResolvers['changeEmail'] = async (
   _,
@@ -28,14 +29,14 @@ const resolver: GQLMutationResolvers['changeEmail'] = async (
       where: {
         uuid: oldEmailCodeId,
         email: oldEmail,
-        type: GQLVerificationCodeType.email_reset,
+        type: VERIFICATION_CODE_TYPE.email_reset,
       },
     }),
     userService.findVerificationCodes({
       where: {
         uuid: newEmailCodeId,
         email: newEmail,
-        type: GQLVerificationCodeType.email_reset_confirm,
+        type: VERIFICATION_CODE_TYPE.email_reset_confirm,
       },
     }),
   ])

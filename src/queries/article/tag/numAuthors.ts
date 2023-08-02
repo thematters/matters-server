@@ -1,7 +1,7 @@
 import type { GQLTagResolvers } from 'definitions'
 
 const resolver: GQLTagResolvers['numAuthors'] = async (
-  { id, numAuthors },
+  { id, numAuthors }: any,
   _,
   { dataSources: { tagService } }
 ) => {

@@ -1,6 +1,6 @@
 import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: GQLTopicResolvers['chapters'] = async (
+const resolver: GQLTopicResolvers['chapterCount'] = async (
   { id: topicId },
   _,
   { dataSources: { atomService } }

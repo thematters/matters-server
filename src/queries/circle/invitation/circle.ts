@@ -1,9 +1,9 @@
-import type { GQLInvitationResolvers } from 'definitions'
+import type { GQLInvitationResolvers, Circle } from 'definitions'
 
 const resolver: GQLInvitationResolvers['circle'] = async (
   { circleId },
   _,
   { dataSources: { atomService } }
-) => (circleId ? atomService.circleIdLoader.load(circleId) : null)
+) => atomService.circleIdLoader.load(circleId) as Promise<Circle>
 
 export default resolver

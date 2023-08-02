@@ -3,8 +3,16 @@ export const RESET_PASSWORD_TYPE = {
   payment: 'payment',
 } as const
 
-export const AuthResultType = {
+export const AUTH_RESULT_TYPE = {
   Login: 'Login',
   Signup: 'Signup',
   LinkAccount: 'LinkAccount',
+} as const
+
+export const SIGNING_MESSAGE_PURPOSE = {
+  airdrop: 'airdrop',
+  connect: 'connect',
+  signup: 'signup',
+  login: 'login',
+  claimLogbook: 'claimLogbook',
 } as const

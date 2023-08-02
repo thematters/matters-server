@@ -1,9 +1,13 @@
+import type { AuthMode, GQLMutationResolvers } from 'definitions'
+
 import {
   AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
   VERIFICATION_CODE_STATUS,
+  VERIFICATION_CODE_TYPE,
+  AUTH_RESULT_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -25,12 +29,6 @@ import {
   isValidUserName,
   setCookie,
 } from 'common/utils'
-import {
-  type AuthMode,
-  GQLAuthResultType,
-  GQLVerificationCodeType,
-  type GQLMutationResolvers,
-} from 'definitions'
 
 const resolver: GQLMutationResolvers['userRegister'] = async (
   _,
@@ -54,7 +52,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
     where: {
       uuid: codeId,
       email,
-      type: GQLVerificationCodeType.register,
+      type: VERIFICATION_CODE_TYPE.register,
     },
   })
   const code = codes?.length > 0 ? codes[0] : {}
@@ -164,7 +162,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
   return {
     token,
     auth: true,
-    type: GQLAuthResultType.Signup,
+    type: AUTH_RESULT_TYPE.Signup,
     user,
   }
 }

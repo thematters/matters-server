@@ -217,7 +217,9 @@ export class SystemService extends BaseService {
    * Gen the url of an asset according asset type.
    */
   public genAssetUrl = (asset: { path: string; type: string }): string => {
-    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(asset.type)
+    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(
+      asset.type as any
+    )
     return isImageType
       ? this.cfsvc.genUrl(asset.path)
       : `${this.aws.s3Endpoint}/${asset.path}`
