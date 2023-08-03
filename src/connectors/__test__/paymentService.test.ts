@@ -317,3 +317,37 @@ describe('notifyDonation', () => {
     expect(getDonationCount()).toBe(2)
   })
 })
+
+describe('calculateBalance', () => {
+  const amount = 1
+  const fee = 0.1
+  const state = TRANSACTION_STATE.pending
+  const purpose = TRANSACTION_PURPOSE.dispute
+  const currency = PAYMENT_CURRENCY.HKD
+  const provider = PAYMENT_PROVIDER.stripe
+  const providerTxId = genRandomProviderTxId()
+  const senderId = '1'
+  test('pending dispute affect balance', async () => {
+    const paymentService = new PaymentService()
+    const prev = await paymentService.calculateBalance({
+      userId: senderId,
+      currency,
+    })
+
+    await paymentService.createTransaction({
+      amount,
+      fee,
+      state,
+      purpose,
+      currency,
+      provider,
+      providerTxId,
+      senderId,
+    })
+    const next = await paymentService.calculateBalance({
+      userId: senderId,
+      currency,
+    })
+    expect(next).toBe(prev - amount)
+  })
+})

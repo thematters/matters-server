@@ -13,9 +13,10 @@ export enum TRANSACTION_PURPOSE {
   refund = 'refund',
   fee = 'fee',
   payout = 'payout',
+  payoutReversal = 'payout-reversal',
   subscription = 'subscription',
   subscriptionSplit = 'subscription-split',
-  disputeWithdrawnFunds = 'dispute-withdrawn-funds',
+  dispute = 'dispute',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
@@ -94,7 +95,7 @@ export enum SLACK_MESSAGE_STATE {
 }
 
 export enum TRANSACTION_REMARK {
-  // LIKE & BLOCKCHAIN
+  // LIKE & BLOCKCHAIN, used in lambda
   TIME_OUT = 'time_out',
 
   // BLOCKCHAIN

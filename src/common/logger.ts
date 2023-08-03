@@ -1,6 +1,7 @@
 import type { ValueOf } from 'definitions'
 
 import { AsyncLocalStorage } from 'async_hooks'
+import util from 'node:util'
 import { createLogger, format, transports } from 'winston'
 
 import { LOGGING_CONTEXT_KEY, LOGGING_LEVEL } from 'common/enums'
@@ -22,6 +23,15 @@ const setContext = format((info, _) => {
   return info
 })
 
+// use similar logic from format.simple() to also print anything else of format args
+// https://github.com/winstonjs/logform/blob/master/simple.js
+const customFormatter = format.printf(
+  ({ timestamp, requestId, label, level, message, stack, ...rest }) =>
+    `${timestamp} ${requestId ?? '-'} ${label} [${level}]: ${message} ${
+      stack ?? ''
+    } ${Object.keys(rest).length === 0 ? '' : util.format(rest)}`.trimEnd()
+)
+
 const createWinstonLogger = (name: string, level: LoggingLevel) =>
   createLogger({
     level,
@@ -33,12 +43,7 @@ const createWinstonLogger = (name: string, level: LoggingLevel) =>
       format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss',
       }),
-      format.printf(
-        (info) =>
-          `${info.timestamp} ${info.requestId ?? '-'} ${info.label} [${
-            info.level
-          }]: ${info.message} ${info.stack ?? ''}`
-      )
+      customFormatter
     ),
     transports: [new transports.Console({ level })],
   })
