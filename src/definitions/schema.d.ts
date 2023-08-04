@@ -1054,7 +1054,7 @@ export type GQLConnectionArgs = {
 export type GQLCryptoWallet = {
   __typename?: 'CryptoWallet'
   address: Scalars['String']['output']
-  /**  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query */
+  /**  does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query  */
   hasNFTs: Scalars['Boolean']['output']
   id: Scalars['ID']['output']
   /** NFT assets owned by this wallet address */
