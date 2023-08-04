@@ -1,12 +1,13 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromArrayWithKeys,
   cursorToKeys,
   fromConnectionArgs,
 } from 'common/utils'
-import { UserToFollowersResolver } from 'definitions'
 
-const resolver: UserToFollowersResolver = async (
+const resolver: GQLUserResolvers['followers'] = async (
   { id },
   { input },
   { dataSources: { userService } }
@@ -26,9 +27,9 @@ const resolver: UserToFollowersResolver = async (
     (map, action) => ({ ...map, [action.userId]: action.id }),
     {}
   )
-  const users = (await userService.dataloader.loadMany(
+  const users = await userService.loadByIds(
     actions.map(({ userId }: { userId: string }) => userId)
-  )) as Array<Record<string, any>>
+  )
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))
 
   return connectionFromArrayWithKeys(data, input, count)

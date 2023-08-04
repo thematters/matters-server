@@ -1,6 +1,6 @@
-import { ArticleToStateResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToStateResolver = async (
+const resolver: GQLArticleResolvers['state'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

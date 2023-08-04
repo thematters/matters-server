@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _uniq from 'lodash/uniq'
 
@@ -5,9 +7,8 @@ import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { redis } from 'connectors'
-import { MutationToDeleteTopicsResolver } from 'definitions'
 
-const resolver: MutationToDeleteTopicsResolver = async (
+const resolver: GQLMutationResolvers['deleteTopics'] = async (
   root,
   { input: { ids } },
   { viewer, dataSources: { atomService } }

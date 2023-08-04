@@ -1,9 +1,8 @@
-import {
-  CircleContentAnalyticsToPaywallResolver,
-  GQLArticleAccessType,
-} from 'definitions'
+import type { GQLCircleContentAnalyticsResolvers } from 'definitions'
 
-const resolver: CircleContentAnalyticsToPaywallResolver = async (
+import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+
+const resolver: GQLCircleContentAnalyticsResolvers['paywall'] = async (
   { id },
   _,
   { dataSources: { atomService }, knex }
@@ -14,7 +13,7 @@ const resolver: CircleContentAnalyticsToPaywallResolver = async (
     .innerJoin('article_read_count as arc', 'ac.article_id', 'arc.article_id')
     .where({
       'ac.circle_id': id,
-      'ac.access': GQLArticleAccessType.paywall,
+      'ac.access': ARTICLE_ACCESS_TYPE.paywall,
     })
     .sum('arc.timed_count as readCount')
     .groupBy('ac.article_id')

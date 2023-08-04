@@ -1,12 +1,10 @@
+import type { GQLCryptoWalletResolvers } from 'definitions'
+
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
-import {
-  CryptoWalletToHasNFTsResolver,
-  CryptoWalletToNftsResolver,
-} from 'definitions'
 interface OpenSeaNFTAsset {
   id: any
   token_id: string
@@ -16,7 +14,7 @@ interface OpenSeaNFTAsset {
   media: any
 }
 
-export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
+export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   { userId, address },
   _,
   { dataSources: { userService } }
@@ -38,7 +36,7 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   return Array.isArray(assets?.ownedNfts) && assets.ownedNfts.length > 0
 }
 
-export const nfts: CryptoWalletToNftsResolver = async (
+export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   { userId, address },
   _,
   { dataSources: { userService } }

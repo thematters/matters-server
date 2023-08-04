@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   ARTICLE_STATE,
   DB_NOTICE_TYPE,
@@ -10,9 +12,8 @@ import {
   ForbiddenByStateError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 
-const resolver: MutationToToggleSubscribeArticleResolver = async (
+const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   root,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, draftService, notificationService } }

@@ -1,12 +1,12 @@
+import type { GQLTagResolvers } from 'definitions'
+
 import _find from 'lodash/find'
 import _isNil from 'lodash/isNil'
 
-import { TagToCoverResolver } from 'definitions'
-
-const resolver: TagToCoverResolver = async (
+const resolver: GQLTagResolvers['cover'] = async (
   { id, cover },
   _,
-  { dataSources: { articleService, systemService, tagService } }
+  { dataSources: { systemService, tagService } }
 ) => {
   let coverId = cover
 

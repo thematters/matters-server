@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _inter from 'lodash/intersection'
 import _uniq from 'lodash/uniq'
@@ -11,9 +13,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutTopicResolver } from 'definitions'
 
-const resolver: MutationToPutTopicResolver = async (
+const resolver: GQLMutationResolvers['putTopic'] = async (
   _,
   { input: { id, chapters, articles, cover, ...rest } },
   { viewer, dataSources: { atomService, systemService } }

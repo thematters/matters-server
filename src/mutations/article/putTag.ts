@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   ASSET_TYPE,
   MAX_TAG_CONTENT_LENGTH,
@@ -19,9 +21,8 @@ import {
   fromGlobalId,
   normalizeTagInput, // stripAllPunct,
 } from 'common/utils'
-import { MutationToPutTagResolver } from 'definitions'
 
-const resolver: MutationToPutTagResolver = async (
+const resolver: GQLMutationResolvers['putTag'] = async (
   root,
   { input: { id, content, cover, description } },
   { viewer, dataSources: { systemService, tagService, userService } }

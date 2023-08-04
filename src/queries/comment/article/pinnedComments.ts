@@ -1,7 +1,8 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { ArticleToPinnedCommentsResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToPinnedCommentsResolver = (
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+
+const resolver: GQLArticleResolvers['pinnedComments'] = (
   { articleId },
   _,
   { dataSources: { atomService } }

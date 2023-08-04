@@ -1,15 +1,16 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { CIRCLE_ACTION } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { CircleToFollowersResolver } from 'definitions'
 
-const resolver: CircleToFollowersResolver = async (
+const resolver: GQLCircleResolvers['followers'] = async (
   { id },
   { input },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -32,7 +33,7 @@ const resolver: CircleToFollowersResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    atomService.userIdLoader.loadMany(actions.map(({ userId }) => userId)),
+    userService.loadByIds(actions.map(({ userId }) => userId)),
     input,
     totalCount
   )

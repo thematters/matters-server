@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
@@ -8,9 +10,8 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
-import { MutationToPublishArticleResolver } from 'definitions'
 
-const resolver: MutationToPublishArticleResolver = async (
+const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id, iscnPublish } },
   { viewer, dataSources: { draftService }, knex }
@@ -33,7 +34,7 @@ const resolver: MutationToPublishArticleResolver = async (
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const draft = await draftService.dataloader.load(draftDBId)
+  const draft = await draftService.loadById(draftDBId)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {

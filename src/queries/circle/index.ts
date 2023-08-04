@@ -1,22 +1,22 @@
+import type {
+  GQLCircleAnalyticsResolvers,
+  GQLCircleContentAnalyticsResolvers,
+  GQLCircleFollowerAnalyticsResolvers,
+  GQLCircleIncomeAnalyticsResolvers,
+  GQLCircleSubscriberAnalyticsResolvers,
+  GQLCircleResolvers,
+  GQLInvitationResolvers,
+  GQLInviteeResolvers,
+  GQLInvitesResolvers,
+  GQLMemberResolvers,
+  GQLPersonResolvers,
+  GQLPriceResolvers,
+  GQLQueryResolvers,
+} from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { toGlobalId } from 'common/utils'
-import {
-  GQLCircleAnalyticsTypeResolver,
-  GQLCircleContentAnalyticsTypeResolver,
-  GQLCircleFollowerAnalyticsTypeResolver,
-  GQLCircleIncomeAnalyticsTypeResolver,
-  GQLCircleSubscriberAnalyticsTypeResolver,
-  GQLCircleTypeResolver,
-  GQLInvitationTypeResolver,
-  GQLInviteeTypeResolver,
-  GQLInvitesTypeResolver,
-  GQLMemberTypeResolver,
-  GQLPersonTypeResolver,
-  GQLPossibleInviteeTypeNames,
-  GQLPriceTypeResolver,
-  GQLQueryTypeResolver,
-} from 'definitions'
 
 import analytics from './analytics'
 import avatar from './avatar'
@@ -39,22 +39,20 @@ import rootCircle from './rootCircle'
 import works from './works'
 
 const circle: {
-  Query: GQLQueryTypeResolver
+  Query: GQLQueryResolvers
 
-  Circle: GQLCircleTypeResolver
-  Member: GQLMemberTypeResolver
-  Price: GQLPriceTypeResolver
-  Invites: GQLInvitesTypeResolver
-  Invitation: GQLInvitationTypeResolver
-  Invitee: {
-    __resolveType: GQLInviteeTypeResolver
-  }
-  Person: GQLPersonTypeResolver
-  CircleAnalytics: GQLCircleAnalyticsTypeResolver
-  CircleIncomeAnalytics: GQLCircleIncomeAnalyticsTypeResolver
-  CircleSubscriberAnalytics: GQLCircleSubscriberAnalyticsTypeResolver
-  CircleFollowerAnalytics: GQLCircleFollowerAnalyticsTypeResolver
-  CircleContentAnalytics: GQLCircleContentAnalyticsTypeResolver
+  Circle: GQLCircleResolvers
+  Member: GQLMemberResolvers
+  Price: GQLPriceResolvers
+  Invites: GQLInvitesResolvers
+  Invitation: GQLInvitationResolvers
+  Invitee: GQLInviteeResolvers
+  Person: GQLPersonResolvers
+  CircleAnalytics: GQLCircleAnalyticsResolvers
+  CircleIncomeAnalytics: GQLCircleIncomeAnalyticsResolvers
+  CircleSubscriberAnalytics: GQLCircleSubscriberAnalyticsResolvers
+  CircleFollowerAnalytics: GQLCircleFollowerAnalyticsResolvers
+  CircleContentAnalytics: GQLCircleContentAnalyticsResolvers
 } = {
   Query: {
     circle: rootCircle,
@@ -108,8 +106,7 @@ const circle: {
   },
 
   Invitee: {
-    __resolveType: ({ __type }: { __type: GQLPossibleInviteeTypeNames }) =>
-      __type,
+    __resolveType: ({ __type }: any) => __type,
   },
 
   Person: {

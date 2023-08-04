@@ -3,6 +3,7 @@ import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 
 import {
+  BLOCKCHAIN,
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   MINUTE,
@@ -29,7 +30,6 @@ import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
 import { PaymentService, redis } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
-import { GQLChain } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -409,7 +409,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       const data: any = { ...log.event }
       const blockchainTx =
         await this.paymentService.findOrCreateBlockchainTransaction(
-          { chain: GQLChain.Polygon, txHash: log.txHash },
+          { chain: BLOCKCHAIN.Polygon, txHash: log.txHash },
           { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
         )
       data.blockchainTransactionId = blockchainTx.id

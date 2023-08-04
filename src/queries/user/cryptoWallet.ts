@@ -1,6 +1,6 @@
-import { UserInfoToCryptoWalletResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToCryptoWalletResolver = async (
+const resolver: GQLUserInfoResolvers['cryptoWallet'] = async (
   { id },
   _,
   { dataSources: { userService, atomService } }

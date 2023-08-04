@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniqBy from 'lodash/uniqBy'
@@ -19,7 +21,6 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ArticleService, NotificationService } from 'connectors'
-import { MutationToAddArticlesTagsResolver } from 'definitions'
 
 const triggerNotice = async ({
   articleId,
@@ -64,8 +65,8 @@ const triggerNotice = async ({
   })
 }
 
-const resolver: MutationToAddArticlesTagsResolver = async (
-  root,
+const resolver: GQLMutationResolvers['addArticlesTags'] = async (
+  _,
   { input: { id, articles, selected } },
   {
     viewer,

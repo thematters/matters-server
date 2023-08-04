@@ -1,4 +1,4 @@
-import type { MutationToDeleteCollectionsResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
@@ -7,7 +7,7 @@ import { ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { redis } from 'connectors'
 
-const resolver: MutationToDeleteCollectionsResolver = async (
+const resolver: GQLMutationResolvers['deleteCollections'] = async (
   _,
   { input: { ids } },
   { dataSources: { collectionService }, viewer }

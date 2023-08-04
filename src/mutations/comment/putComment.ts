@@ -1,8 +1,14 @@
+import type {
+  GQLMutationResolvers,
+  NoticeCircleNewBroadcastCommentsParams,
+  NoticeCircleNewDiscussionCommentsParams,
+} from 'definitions'
+
 import {
   normalizeCommentHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import _ from 'lodash'
+import { some, get } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -25,15 +31,9 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import {
-  GQLCommentType,
-  MutationToPutCommentResolver,
-  NoticeCircleNewBroadcastCommentsParams,
-  NoticeCircleNewDiscussionCommentsParams,
-} from 'definitions'
 
-const resolver: MutationToPutCommentResolver = async (
-  root,
+const resolver: GQLMutationResolvers['putComment'] = async (
+  _,
   {
     input: {
       comment: {
@@ -57,7 +57,6 @@ const resolver: MutationToPutCommentResolver = async (
       articleService,
       notificationService,
       userService,
-      systemService,
     },
     knex,
   }
@@ -124,9 +123,9 @@ const resolver: MutationToPutCommentResolver = async (
   /**
    * check comment type
    */
-  const isArticleType = type === GQLCommentType.article
-  const isCircleDiscussion = type === GQLCommentType.circleDiscussion
-  const isCircleBroadcast = type === GQLCommentType.circleBroadcast
+  const isArticleType = type === 'article'
+  const isCircleDiscussion = type === 'circleDiscussion'
+  const isCircleBroadcast = type === 'circleBroadcast'
   if (isArticleType && !article) {
     throw new UserInputError('`articleId` is required if `type` is `article`')
   } else if ((isCircleDiscussion || isCircleBroadcast) && !circle) {
@@ -134,11 +133,7 @@ const resolver: MutationToPutCommentResolver = async (
       '`circleId` is required if `type` is `circleBroadcast` or `circleDiscussion`'
     )
   } else {
-    data.type = {
-      [GQLCommentType.article]: COMMENT_TYPE.article,
-      [GQLCommentType.circleBroadcast]: COMMENT_TYPE.circleBroadcast,
-      [GQLCommentType.circleDiscussion]: COMMENT_TYPE.circleDiscussion,
-    }[type]
+    data.type = COMMENT_TYPE[type]
   }
 
   /**
@@ -147,7 +142,7 @@ const resolver: MutationToPutCommentResolver = async (
   let parentComment: any
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
-    parentComment = await commentService.dataloader.load(parentDbId)
+    parentComment = await commentService.loadById(parentDbId)
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
@@ -170,7 +165,7 @@ const resolver: MutationToPutCommentResolver = async (
   let replyToComment: any
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
-    replyToComment = await commentService.dataloader.load(replyToDBId)
+    replyToComment = await commentService.loadById(replyToDBId)
     if (!replyToComment) {
       throw new CommentNotFoundError('target replyToComment does not exists')
     }
@@ -242,7 +237,7 @@ const resolver: MutationToPutCommentResolver = async (
     )
 
     // check if mentioned user blocked viewer
-    const anyBlocked = _.some(
+    const anyBlocked = some(
       await Promise.all(
         data.mentionedUserIds.map((mentionUserId: string) =>
           userService.blocked({
@@ -257,10 +252,10 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
-  const parentCommentAuthor = _.get(parentComment, 'authorId')
-  const parentCommentId = _.get(parentComment, 'id')
-  const replyToCommentAuthor = _.get(replyToComment, 'authorId')
-  const replyToCommentId = _.get(replyToComment, 'id')
+  const parentCommentAuthor = get(parentComment, 'authorId')
+  const parentCommentId = get(parentComment, 'id')
+  const replyToCommentAuthor = get(replyToComment, 'authorId')
+  const replyToCommentId = get(replyToComment, 'id')
 
   const isLevel1Comment = !parentComment && !replyToComment
   const isReplyLevel1Comment =
@@ -300,7 +295,7 @@ const resolver: MutationToPutCommentResolver = async (
     const { id: commentDbId } = fromGlobalId(id)
 
     // check permission
-    const comment = await commentService.dataloader.load(commentDbId)
+    const comment = await commentService.loadById(commentDbId)
     if (comment.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }

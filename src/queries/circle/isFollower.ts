@@ -1,7 +1,8 @@
-import { CIRCLE_ACTION } from 'common/enums'
-import { CircleToIsFollowerResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToIsFollowerResolver = async (
+import { CIRCLE_ACTION } from 'common/enums'
+
+const resolver: GQLCircleResolvers['isFollower'] = async (
   { id },
   _,
   { viewer, dataSources: { atomService } }

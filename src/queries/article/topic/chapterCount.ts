@@ -1,6 +1,6 @@
-import { TopicToChaptersResolver } from 'definitions'
+import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: TopicToChaptersResolver = async (
+const resolver: GQLTopicResolvers['chapterCount'] = async (
   { id: topicId },
   _,
   { dataSources: { atomService } }

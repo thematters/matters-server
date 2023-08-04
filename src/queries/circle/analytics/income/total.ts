@@ -1,3 +1,5 @@
+import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions'
+
 import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -5,9 +7,8 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { CircleIncomeAnalyticsToTotalResolver } from 'definitions'
 
-const resolver: CircleIncomeAnalyticsToTotalResolver = async (
+const resolver: GQLCircleIncomeAnalyticsResolvers['total'] = async (
   { id, owner },
   _,
   { dataSources: { atomService, systemService }, knex }

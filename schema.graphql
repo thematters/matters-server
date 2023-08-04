@@ -2685,7 +2685,7 @@ type CryptoWallet {
   id: ID!
   address: String!
 
-  """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query 
+  """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query
   """
   hasNFTs: Boolean!
 

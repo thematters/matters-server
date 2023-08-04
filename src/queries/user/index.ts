@@ -1,31 +1,30 @@
+import type {
+  GQLAppreciationResolvers,
+  GQLCryptoWalletResolvers,
+  GQLFollowingActivityResolvers,
+  GQLFollowingResolvers,
+  GQLLikerResolvers,
+  GQLQueryResolvers,
+  GQLQuoteCurrency,
+  GQLRecommendationResolvers,
+  GQLStripeAccountResolvers,
+  GQLTransactionTargetResolvers,
+  GQLTransactionResolvers,
+  GQLUserActivityResolvers,
+  GQLUserAnalyticsResolvers,
+  GQLUserInfoResolvers,
+  GQLUserLanguage,
+  GQLUserOssResolvers,
+  GQLUserSettingsResolvers,
+  GQLUserStatusResolvers,
+  GQLUserResolvers,
+  GQLWalletResolvers,
+  GQLCollectionResolvers,
+  GQLPinnableWorkResolvers,
+} from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import {
-  GQLAppreciationTypeResolver,
-  GQLCryptoWalletTypeResolver,
-  GQLFollowingActivityTypeResolver,
-  GQLFollowingTypeResolver,
-  GQLLikerTypeResolver,
-  GQLPossibleFollowingActivityTypeNames,
-  GQLQueryTypeResolver,
-  GQLQuoteCurrency,
-  GQLRecommendationTypeResolver,
-  GQLStripeAccountTypeResolver,
-  GQLTransactionTargetTypeResolver,
-  GQLTransactionTypeResolver,
-  GQLUserActivityTypeResolver,
-  GQLUserAnalyticsTypeResolver,
-  GQLUserInfoTypeResolver,
-  GQLUserLanguage,
-  GQLUserOSSTypeResolver,
-  GQLUserSettingsTypeResolver,
-  GQLUserStatusTypeResolver,
-  GQLUserTypeResolver,
-  GQLWalletTypeResolver,
-  GQLCollectionTypeResolver,
-  GQLPinnableWorkTypeResolver,
-  GQLPossiblePinnableWorkTypeNames,
-} from 'definitions'
 
 import UserAnalytics from './analytics'
 import { Appreciation } from './appreciation'
@@ -75,39 +74,33 @@ import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
 
 const user: {
-  Query: GQLQueryTypeResolver
+  Query: GQLQueryResolvers
 
-  User: GQLUserTypeResolver
-  UserInfo: GQLUserInfoTypeResolver
-  UserSettings: GQLUserSettingsTypeResolver
-  UserActivity: GQLUserActivityTypeResolver
-  UserAnalytics: GQLUserAnalyticsTypeResolver
-  UserStatus: GQLUserStatusTypeResolver
-  Appreciation: GQLAppreciationTypeResolver
+  User: GQLUserResolvers
+  UserInfo: GQLUserInfoResolvers
+  UserSettings: GQLUserSettingsResolvers
+  UserActivity: GQLUserActivityResolvers
+  UserAnalytics: GQLUserAnalyticsResolvers
+  UserStatus: GQLUserStatusResolvers
+  Appreciation: GQLAppreciationResolvers
 
-  Following: GQLFollowingTypeResolver
-  FollowingActivity: {
-    __resolveType: GQLFollowingActivityTypeResolver
-  }
+  Following: GQLFollowingResolvers
+  FollowingActivity: GQLFollowingActivityResolvers
 
-  Recommendation: GQLRecommendationTypeResolver
+  Recommendation: GQLRecommendationResolvers
 
-  Liker: GQLLikerTypeResolver
+  Liker: GQLLikerResolvers
 
-  UserOSS: GQLUserOSSTypeResolver
+  UserOSS: GQLUserOssResolvers
 
-  Wallet: GQLWalletTypeResolver
-  Transaction: GQLTransactionTypeResolver
-  TransactionTarget: {
-    __resolveType: GQLTransactionTargetTypeResolver
-  }
-  PinnableWork: {
-    __resolveType: GQLPinnableWorkTypeResolver
-  }
-  StripeAccount: GQLStripeAccountTypeResolver
+  Wallet: GQLWalletResolvers
+  Transaction: GQLTransactionResolvers
+  TransactionTarget: GQLTransactionTargetResolvers
+  PinnableWork: GQLPinnableWorkResolvers
+  StripeAccount: GQLStripeAccountResolvers
 
-  CryptoWallet: GQLCryptoWalletTypeResolver
-  Collection: GQLCollectionTypeResolver
+  CryptoWallet: GQLCryptoWalletResolvers
+  Collection: GQLCollectionResolvers
 } = {
   Query: {
     viewer: (_, __, { viewer }) => viewer,
@@ -122,7 +115,7 @@ const user: {
     // ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
-    status: (root) => (root.id ? root : null),
+    status: (root) => root,
     activity: (root) => root,
     following: (root) => root,
     analytics: (root) => root,
@@ -148,7 +141,12 @@ const user: {
     ipnsKey,
     badges,
     userNameEditable,
-    email: ({ email }) => email && email.replace(/#/g, '@'),
+    email: (root) => {
+      if (root.id === null) {
+        return null
+      }
+      return root.email && root.email.replace(/#/g, '@')
+    },
     profileCover,
     group,
     isWalletAuth,
@@ -157,7 +155,12 @@ const user: {
   },
   UserSettings: {
     language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
-    currency: ({ currency }) => currency || ('USD' as GQLQuoteCurrency),
+    currency: (root) => {
+      if (root.id === null) {
+        return 'USD' as GQLQuoteCurrency
+      }
+      return (root.currency || 'USD') as GQLQuoteCurrency
+    },
     notification,
   },
   UserActivity,
@@ -176,11 +179,7 @@ const user: {
 
   Following,
   FollowingActivity: {
-    __resolveType: ({
-      __type,
-    }: {
-      __type: GQLPossibleFollowingActivityTypeNames
-    }) => __type,
+    __resolveType: ({ __type }: any) => __type,
   },
 
   Recommendation,
@@ -198,10 +197,10 @@ const user: {
   // Payment
   Wallet,
   Transaction,
+  // @ts-ignore
   TransactionTarget,
   PinnableWork: {
-    __resolveType: ({ __type }: { __type: GQLPossiblePinnableWorkTypeNames }) =>
-      __type,
+    __resolveType: ({ __type }: any) => __type,
   },
   StripeAccount,
 

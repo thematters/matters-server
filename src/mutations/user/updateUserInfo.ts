@@ -1,3 +1,5 @@
+import type { ItemData, GQLMutationResolvers } from 'definitions'
+
 import { has, isEmpty } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -21,15 +23,10 @@ import {
   setCookie,
 } from 'common/utils'
 import { cfsvc } from 'connectors'
-import {
-  GQLAssetType,
-  ItemData,
-  MutationToUpdateUserInfoResolver,
-} from 'definitions'
 
 const logger = getLogger('mutation-update-user-info')
 
-const resolver: MutationToUpdateUserInfoResolver = async (
+const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   _,
   { input },
   {
@@ -72,7 +69,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       let keyPath: string | undefined
       try {
         keyPath = await cfsvc.baseUploadFileByUrl(
-          GQLAssetType.avatar,
+          ASSET_TYPE.avatar,
           input.avatar,
           uuid
         )

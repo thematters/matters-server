@@ -1,14 +1,15 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { redis, GCP } from 'connectors'
-import { ArticleToTranslationResolver } from 'definitions'
 
 const logger = getLogger('query-translations')
 
-const resolver: ArticleToTranslationResolver = async (
+const resolver: GQLArticleResolvers['translation'] = async (
   {
     content: originContent,
     title: originTitle,
@@ -101,7 +102,7 @@ const resolver: ArticleToTranslationResolver = async (
     const tagIds = await articleService.findTagIds({ id: articleId })
     if (tagIds && tagIds.length > 0) {
       try {
-        const tags = await tagService.dataloader.loadMany(tagIds)
+        const tags = await tagService.loadByIds(tagIds)
         await Promise.all(
           tags.map(async (tag) => {
             if (tag instanceof Error) {

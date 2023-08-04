@@ -1,6 +1,6 @@
-import { ArticleToAppreciateLeftResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToAppreciateLeftResolver = async (
+const resolver: GQLArticleResolvers['appreciateLeft'] = async (
   { articleId },
   _,
   { viewer, dataSources: { articleService } }

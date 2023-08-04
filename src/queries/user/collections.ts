@@ -1,7 +1,8 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { UserToCollectionsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToCollectionsResolver = async (
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLUserResolvers['collections'] = async (
   user,
   { input },
   { dataSources: { collectionService } }
@@ -9,7 +10,7 @@ const resolver: UserToCollectionsResolver = async (
   const { id } = user
   // if visitor is not logged in, return empty collections
   if (!id) {
-    return { edges: [], totalCount: 0 }
+    return connectionFromArray([], input)
   }
   const { take, skip } = fromConnectionArgs(input)
 
@@ -18,7 +19,7 @@ const resolver: UserToCollectionsResolver = async (
       id,
       { take: 1, skip }
     )
-    return { edges: [], totalCount: count }
+    return connectionFromArray([], input, count)
   }
 
   const [records, totalCount] =

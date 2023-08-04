@@ -1,9 +1,9 @@
-import { GQLInvitesTypeResolver } from 'definitions'
+import { GQLInvitesResolvers } from 'definitions'
 
 import accepted from './accepted'
 import pending from './pending'
 
-const Invites: GQLInvitesTypeResolver = {
+const Invites: GQLInvitesResolvers = {
   accepted,
   pending,
 }

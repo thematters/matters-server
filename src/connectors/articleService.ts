@@ -1,3 +1,5 @@
+import type { GQLSearchExclude, Item, Article, Draft } from 'definitions'
+
 import {
   ArticlePageContext,
   makeArticlePage,
@@ -43,7 +45,6 @@ import {
   SystemService,
   UserService,
 } from 'connectors'
-import { GQLSearchExclude, Item } from 'definitions'
 
 const logger = getLogger('service-article')
 
@@ -70,6 +71,7 @@ export class ArticleService extends BaseService {
       return result
     })
 
+    // load drafts by aritcle ids
     this.draftLoader = new DataLoader(async (ids: readonly string[]) => {
       const items = await this.baseFindByIds(ids)
 
@@ -86,6 +88,14 @@ export class ArticleService extends BaseService {
       return result
     })
   }
+
+  public loadById = async (id: string): Promise<Article> =>
+    this.dataloader.load(id) as Promise<Article>
+  public loadByIds = async (ids: string[]): Promise<Article[]> =>
+    this.dataloader.loadMany(ids) as Promise<Article[]>
+
+  public loadDraftsByArticles = async (ids: string[]): Promise<Draft[]> =>
+    this.draftLoader.loadMany(ids) as Promise<Draft[]>
 
   /**
    * Create a pending article with linked draft
@@ -174,7 +184,7 @@ export class ArticleService extends BaseService {
       articleId,
       updatedAt: publishedAt,
     } = draft
-    const author = await userService.dataloader.load(authorId)
+    const author = await userService.loadById(authorId)
     const {
       // avatar,
       displayName,
@@ -705,8 +715,6 @@ export class ArticleService extends BaseService {
     }
   }
 
-  public loadById = async (id: string) => this.dataloader.load(id)
-
   public findByAuthor = async (
     authorId: string,
     {
@@ -916,7 +924,7 @@ export class ArticleService extends BaseService {
     // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
-    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    const excludeBlocked = exclude === 'blocked' && viewerId
     let blockedIds: string[] = []
     if (excludeBlocked) {
       blockedIds = (
@@ -1022,9 +1030,6 @@ export class ArticleService extends BaseService {
     // keyOriginal,
     take = 10,
     skip = 0,
-    exclude,
-    viewerId,
-    coefficients,
   }: {
     key: string
     // keyOriginal?: string

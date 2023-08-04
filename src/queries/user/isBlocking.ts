@@ -1,6 +1,6 @@
-import { UserToIsBlockedResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToIsBlockedResolver = async (
+const resolver: GQLUserResolvers['isBlocked'] = async (
   { id },
   _,
   { viewer, dataSources: { userService } }

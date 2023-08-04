@@ -1,11 +1,12 @@
+import type { GQLUserAnalyticsResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { UserAnalyticsToTopDonatorsResolver } from 'definitions'
 
-const resolver: UserAnalyticsToTopDonatorsResolver = async (
+const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },
   { input },
   { dataSources: { userService } }
@@ -29,10 +30,10 @@ const resolver: UserAnalyticsToTopDonatorsResolver = async (
     ...connection,
     edges: connection.edges.map(async (edge) => ({
       cursor: edge.cursor,
-      node: await userService.dataloader.load(edge.node.senderId),
+      node: await userService.loadById(edge.node.senderId),
       donationCount: edge.node.count,
     })),
-  }
+  } as any
 }
 
 export default resolver

@@ -1,6 +1,6 @@
-import { ChapterToArticlesResolver } from 'definitions'
+import type { GQLChapterResolvers, Draft } from 'definitions'
 
-const resolver: ChapterToArticlesResolver = async (
+const resolver: GQLChapterResolvers['articles'] = async (
   { id: chapterId },
   _,
   { dataSources: { atomService, articleService } }
@@ -11,9 +11,9 @@ const resolver: ChapterToArticlesResolver = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.draftLoader.loadMany(
+  return articleService.loadDraftsByArticles(
     chapterArticles.map((item) => item.articleId)
-  )
+  ) as Promise<Draft[]>
 }
 
 export default resolver

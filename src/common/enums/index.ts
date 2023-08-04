@@ -1,9 +1,4 @@
-import {
-  GQLArticleAccessType,
-  GQLArticleLicenseType,
-  NotificationType,
-  SkippedListItemType,
-} from 'definitions'
+import type { NotificationType, SkippedListItemType } from 'definitions'
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
@@ -27,6 +22,12 @@ export * from './cors'
 export * from './sqs'
 export * from './logging'
 export * from './collection'
+export * from './feature'
+export * from './auth'
+export * from './oss'
+export * from './tag'
+export * from './search'
+export * from './appreciation'
 
 export const GRAPHQL_COST_LIMIT = 5000
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
@@ -37,35 +38,24 @@ export const DEFAULT_TAKE_PER_PAGE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
-export const APPRECIATION_PURPOSE = {
-  appreciate: 'appreciate',
-  superlike: 'superlike',
-  appreciateComment: 'appreciate-comment',
-  appreciateSubsidy: 'appreciate-subsidy',
-  invitationAccepted: 'invitation-accepted',
-  joinByInvitation: 'join-by-invitation',
-  joinByTask: 'join-by-task',
-  firstPost: 'first-post',
-  systemSubsidy: 'system-subsidy',
-}
-
 export const VOTE = {
   up: 'up',
   down: 'down',
-}
+} as const
 
 export const COMMENT_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
   collapsed: 'collapsed',
-}
+} as const
 
 export const COMMENT_TYPE = {
   article: 'article',
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
-}
+} as const
+
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
   Object.entries(COMMENT_TYPE).map(([k, v]) => [v, k])
 )
@@ -76,26 +66,26 @@ export const ARTICLE_STATE = {
   banned: 'banned',
   pending: 'pending',
   error: 'error',
-}
+} as const
 
-export const ARTICLE_ACCESS_TYPE: Record<string, GQLArticleAccessType> = {
-  public: GQLArticleAccessType.public,
-  paywall: GQLArticleAccessType.paywall,
-}
+export const ARTICLE_ACCESS_TYPE = {
+  public: 'public',
+  paywall: 'paywall',
+} as const
 
-export const ARTICLE_LICENSE_TYPE: Record<string, GQLArticleLicenseType> = {
-  cc_0: GQLArticleLicenseType.cc_0,
-  cc_by_nc_nd_2: GQLArticleLicenseType.cc_by_nc_nd_2,
-  cc_by_nc_nd_4: GQLArticleLicenseType.cc_by_nc_nd_4,
-  arr: GQLArticleLicenseType.arr,
-}
+export const ARTICLE_LICENSE_TYPE = {
+  cc_0: 'cc_0',
+  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
+  cc_by_nc_nd_4: 'cc_by_nc_nd_4',
+  arr: 'arr',
+} as const
 
 export const PUBLISH_STATE = {
   unpublished: 'unpublished',
   pending: 'pending',
   error: 'error',
   published: 'published',
-}
+} as const
 
 export enum PIN_STATE {
   pinned = 'pinned',
@@ -107,13 +97,13 @@ export const CIRCLE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
-}
+} as const
 
 export const PRICE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
-}
+} as const
 
 export const SUBSCRIPTION_STATE = {
   active: 'active',
@@ -123,7 +113,7 @@ export const SUBSCRIPTION_STATE = {
   incomplete: 'incomplete',
   incompleteExpired: 'incomplete_expired',
   trialing: 'trialing',
-}
+} as const
 
 export const APPRECIATION_REWARD = {
   invitationCalculate: 20,
@@ -131,7 +121,7 @@ export const APPRECIATION_REWARD = {
   joinByInvitation: 5,
   joinByTask: 10,
   firstPost: 10,
-}
+} as const
 
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
@@ -197,10 +187,6 @@ export const APPRECIATION_TYPES = {
   like: 'LIKE',
   mat: 'MAT',
 }
-
-export const SEARCH_KEY_TRUNCATE_LENGTH = 100
-export const SEARCH_ARTICLE_URL_REGEX =
-  /^(https:\/\/([a-z0-9-]+.)?matters.(town|news)\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',

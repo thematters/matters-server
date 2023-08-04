@@ -1,12 +1,13 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { Knex } from 'knex'
 
 import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 import { readonlyKnex as knexRO } from 'connectors'
-import { RecommendationToHottestResolver } from 'definitions'
 
-export const hottest: RecommendationToHottestResolver = async (
+export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,
   { input },
   { viewer, dataSources: { draftService } }
@@ -65,7 +66,7 @@ export const hottest: RecommendationToHottestResolver = async (
   const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

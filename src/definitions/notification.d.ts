@@ -435,7 +435,7 @@ export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
 export interface NoticeData {
   // used by official annoncement notices
-  url?: string
+  link?: string
   // reason for banned/frozen users, not in used
   reason?: string
 

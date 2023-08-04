@@ -1,12 +1,13 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { VIEW } from 'common/enums'
 // import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToTagsResolver } from 'definitions'
 
-export const tags: RecommendationToTagsResolver = async (
+export const tags: GQLRecommendationResolvers['tags'] = async (
   { id },
   { input },
   { viewer, dataSources: { tagService } }
@@ -37,9 +38,7 @@ export const tags: RecommendationToTagsResolver = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.dataloader.loadMany(
-        filteredTags.map((tag: any) => `${tag.id}`)
-      ),
+      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
       input,
       curationTags.length
     )
@@ -55,7 +54,7 @@ export const tags: RecommendationToTagsResolver = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(items.map((item: any) => `${item.id}`)),
+    tagService.loadByIds(items.map((item: any) => `${item.id}`)),
     input,
     totalCount
   )

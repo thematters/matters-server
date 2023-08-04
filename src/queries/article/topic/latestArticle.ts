@@ -1,6 +1,6 @@
-import { TopicToLatestArticleResolver } from 'definitions'
+import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: TopicToLatestArticleResolver = async (
+const resolver: GQLTopicResolvers['latestArticle'] = async (
   { id: topicId },
   _,
   { dataSources: { draftService }, knex }
@@ -26,10 +26,10 @@ const resolver: TopicToLatestArticleResolver = async (
     .first()
 
   if (!latestArticle) {
-    return
+    return null
   }
 
-  return draftService.dataloader.load(latestArticle.draftId)
+  return draftService.loadById(latestArticle.draftId)
 }
 
 export default resolver

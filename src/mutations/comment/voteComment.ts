@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
@@ -5,9 +7,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToVoteCommentResolver } from 'definitions'
 
-const resolver: MutationToVoteCommentResolver = async (
+const resolver: GQLMutationResolvers['voteComment'] = async (
   _,
   { input: { id, vote } },
   {
@@ -25,7 +26,7 @@ const resolver: MutationToVoteCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any

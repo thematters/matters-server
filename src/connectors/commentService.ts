@@ -1,3 +1,10 @@
+import type {
+  GQLCommentCommentsInput,
+  GQLCommentsInput,
+  GQLVote,
+  Comment,
+} from 'definitions'
+
 import DataLoader from 'dataloader'
 
 import {
@@ -8,7 +15,6 @@ import {
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
-import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
 interface CommentFilter {
   targetId?: string
@@ -19,7 +25,7 @@ interface CommentFilter {
 }
 
 export class CommentService extends BaseService {
-  constructor() {
+  public constructor() {
     super('comment')
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {
       const result = await this.baseFindByIds(ids)
@@ -31,10 +37,15 @@ export class CommentService extends BaseService {
     })
   }
 
+  public loadById = async (id: string): Promise<Comment> =>
+    this.dataloader.load(id) as Promise<Comment>
+  public loadByIds = async (ids: string[]): Promise<Comment[]> =>
+    this.dataloader.loadMany(ids) as Promise<Comment[]>
+
   /**
    * Count comments by a given article id.
    */
-  countByArticle = async (articleId: string) => {
+  public countByArticle = async (articleId: string) => {
     const result = await this.knex(this.table)
       .where({
         targetId: articleId,
@@ -49,7 +60,7 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given comment id.
    */
-  findByParent = async ({
+  public findByParent = async ({
     id,
     author,
     sort,
@@ -93,7 +104,7 @@ export class CommentService extends BaseService {
   /**
    * Find comments.
    */
-  find = async ({
+  public find = async ({
     order = 'desc',
     where,
     after,
@@ -101,7 +112,9 @@ export class CommentService extends BaseService {
     before,
     includeAfter = false,
     includeBefore = false,
-  }: GQLCommentsInput & { where: CommentFilter; order?: string }) => {
+  }: GQLCommentsInput & { where: CommentFilter; order?: string }): Promise<
+    Comment[]
+  > => {
     const query = this.knex
       .select()
       .from(this.table)
@@ -134,7 +147,7 @@ export class CommentService extends BaseService {
   /**
    * Find id range with given filter
    */
-  range = async (where: CommentFilter) => {
+  public range = async (where: CommentFilter) => {
     const { count, max, min } = (await this.knex
       .select()
       .from(this.table)
@@ -156,7 +169,7 @@ export class CommentService extends BaseService {
    *              Vote             *
    *                               *
    *********************************/
-  vote = async ({
+  public vote = async ({
     userId,
     commentId,
     vote,
@@ -178,7 +191,7 @@ export class CommentService extends BaseService {
     })
   }
 
-  unvote = async ({
+  public unvote = async ({
     userId,
     commentId,
   }: {
@@ -195,7 +208,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's up votes by a given target id (comment).
    */
-  countUpVote = async (targetId: string) => {
+  public countUpVote = async (targetId: string) => {
     const result = await this.knex('action_comment')
       .where({
         targetId,
@@ -209,7 +222,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's down votes by a given target id (comment).
    */
-  countDownVote = async (targetId: string) => {
+  public countDownVote = async (targetId: string) => {
     const result = await this.knex('action_comment')
       .where({
         target_id: targetId,
@@ -223,7 +236,7 @@ export class CommentService extends BaseService {
   /**
    * Find a comment's votes by a given target id (comment).
    */
-  findVotesByUserId = async ({
+  public findVotesByUserId = async ({
     userId,
     commentId: targetId,
   }: {
@@ -242,7 +255,7 @@ export class CommentService extends BaseService {
   /**
    * Remove a comment's votes a given target id (comment).
    */
-  removeVotesByUserId = async ({
+  public removeVotesByUserId = async ({
     userId,
     commentId: targetId,
   }: {
@@ -267,7 +280,7 @@ export class CommentService extends BaseService {
   /**
    * Find pinned comments by a given article id.
    */
-  countPinnedByArticle = async ({
+  private countPinnedByArticle = async ({
     articleId,
     activeOnly,
   }: {
@@ -290,7 +303,7 @@ export class CommentService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  pinLeftByArticle = async (articleId: string) => {
+  public pinLeftByArticle = async (articleId: string) => {
     const pinnedCount = await this.countPinnedByArticle({
       articleId,
       activeOnly: true,

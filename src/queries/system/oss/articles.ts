@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToArticlesResolver } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
-export const articles: OSSToArticlesResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const articles: GQLOssResolvers['articles'] = async (
   _,
   { input },
   { dataSources: { articleService, draftService } }
@@ -13,7 +14,7 @@ export const articles: OSSToArticlesResolver = async (
     articleService.baseFind({ skip, take }),
   ])
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(items.map((item) => item.draftId)),
+    draftService.loadByIds(items.map((item) => item.draftId)),
     input,
     totalCount
   )

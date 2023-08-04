@@ -1,6 +1,7 @@
+import type { ItemData, GQLMutationResolvers } from 'definitions'
+
 import axios from 'axios'
 import { FileUpload } from 'graphql-upload'
-import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -13,7 +14,6 @@ import {
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
-import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const logger = getLogger('mutation-upload')
 
@@ -33,13 +33,13 @@ const getFileName = (disposition: string, url: string) => {
   }
 }
 
-const resolver: MutationToSingleFileUploadResolver = async (
-  root,
+const resolver: GQLMutationResolvers['singleFileUpload'] = async (
+  _,
   { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type)
-  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type)
+  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
+  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type as any)
 
   if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')

@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUpdateArticleSensitiveResolver } from 'definitions'
 
-const resolver: MutationToUpdateArticleSensitiveResolver = async (
+const resolver: GQLMutationResolvers['updateArticleSensitive'] = async (
   _,
   { input: { id, sensitive } },
   { dataSources: { articleService, draftService } }

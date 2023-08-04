@@ -1,22 +1,18 @@
-import {
-  TagOSSToBoostResolver,
-  TagOSSToScoreResolver,
-  TagOSSToSelectedResolver,
-} from 'definitions'
+import { GQLTagOssResolvers } from 'definitions'
 
-export const boost: TagOSSToBoostResolver = (
+export const boost: GQLTagOssResolvers['boost'] = (
   { id },
   _,
   { dataSources: { tagService } }
 ) => tagService.findBoost(id)
 
-export const score: TagOSSToScoreResolver = (
+export const score: GQLTagOssResolvers['score'] = (
   { id },
   _,
   { dataSources: { tagService } }
 ) => tagService.findScore(id)
 
-export const selected: TagOSSToSelectedResolver = async (
+export const selected: GQLTagOssResolvers['selected'] = async (
   { id },
   _,
   { dataSources: { tagService } }

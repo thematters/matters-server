@@ -1,6 +1,6 @@
-import { TopicToArticlesResolver } from 'definitions'
+import type { GQLTopicResolvers } from 'definitions'
 
-const resolver: TopicToArticlesResolver = async (
+const resolver: GQLTopicResolvers['articles'] = async (
   { id: topicId },
   _,
   { dataSources: { atomService, articleService } }
@@ -11,7 +11,7 @@ const resolver: TopicToArticlesResolver = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.draftLoader.loadMany(
+  return articleService.loadDraftsByArticles(
     topicArticles.map((item) => item.articleId)
   )
 }

@@ -1,11 +1,19 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToPinnedTagsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToPinnedTagsResolver = async (
+import {
+  connectionFromPromisedArray,
+  connectionFromArray,
+  fromConnectionArgs,
+} from 'common/utils'
+
+const resolver: GQLUserResolvers['pinnedTags'] = async (
   { id },
   { input },
-  { dataSources: { tagService, userService } }
+  { dataSources: { tagService } }
 ) => {
+  if (id === null) {
+    return connectionFromArray([], input)
+  }
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 5 })
 
   const tagIds = await tagService.findPinnedTagsByUserId({
@@ -16,7 +24,7 @@ const resolver: UserToPinnedTagsResolver = async (
 
   return connectionFromPromisedArray(
     // tagService.findPinnedTagsByUserId(id),
-    tagService.dataloader.loadMany(tagIds.map((tag: any) => `${tag.id}`)),
+    tagService.loadByIds(tagIds.map((tag: any) => `${tag.id}`)),
     input
   )
 }

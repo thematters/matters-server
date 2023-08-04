@@ -1,10 +1,11 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import { UserNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToMergeTagsResolver } from 'definitions'
 
-const resolver: MutationToMergeTagsResolver = async (
+const resolver: GQLMutationResolvers['mergeTags'] = async (
   _,
   { input: { ids, content } },
   { dataSources: { tagService } }

@@ -8,6 +8,14 @@ export enum VERIFICATION_CODE_STATUS {
   used = 'used',
 }
 
+export const VERIFICATION_CODE_TYPE = {
+  email_reset: 'email_reset',
+  email_reset_confirm: 'email_reset_confirm',
+  password_reset: 'password_reset',
+  payment_password_reset: 'payment_password_reset',
+  register: 'register',
+} as const
+
 export const VERIFICATION_CODE_PROTECTED_TYPES = [
   'email_reset',
   'email_reset_confirm',

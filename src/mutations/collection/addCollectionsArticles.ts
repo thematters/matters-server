@@ -1,4 +1,4 @@
-import type { MutationToAddCollectionsArticlesResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import {
   ARTICLE_STATE,
@@ -15,7 +15,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToAddCollectionsArticlesResolver = async (
+const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   _,
   { input: { collections: rawCollections, articles: rawArticles } },
   { dataSources: { collectionService, articleService }, viewer }

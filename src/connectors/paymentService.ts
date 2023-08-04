@@ -49,7 +49,7 @@ export class PaymentService extends BaseService {
     currency,
   }: {
     userId: string
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
   }) => {
     const result = await this.knex('transaction_delta_view')
       .where({
@@ -81,7 +81,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId?: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -135,7 +135,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -156,7 +156,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId?: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -199,7 +199,7 @@ export class PaymentService extends BaseService {
 
       state: TRANSACTION_STATE
       purpose: TRANSACTION_PURPOSE
-      currency?: PAYMENT_CURRENCY
+      currency?: keyof typeof PAYMENT_CURRENCY
 
       provider: PAYMENT_PROVIDER
       providerTxId: string
@@ -298,7 +298,7 @@ export class PaymentService extends BaseService {
 
     state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
 
     recipientId?: string
     senderId?: string
@@ -412,7 +412,7 @@ export class PaymentService extends BaseService {
     currency = PAYMENT_CURRENCY.HKD,
     senderId,
   }: {
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     senderId: string
   }) => {
     const todayMidnight = getUTC8Midnight()
@@ -506,7 +506,7 @@ export class PaymentService extends BaseService {
     customerId: string
     amount: number
     purpose: TRANSACTION_PURPOSE
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {

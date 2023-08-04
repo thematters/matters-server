@@ -1,6 +1,6 @@
-import { QueryToOauthClientResolver } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions'
 
-const resolver: QueryToOauthClientResolver = async (
+const resolver: GQLQueryResolvers['oauthClient'] = async (
   root,
   { input: { id } },
   { viewer, dataSources: { oauthService } }

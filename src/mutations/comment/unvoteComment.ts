@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
@@ -5,9 +7,8 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUnvoteCommentResolver } from 'definitions'
 
-const resolver: MutationToUnvoteCommentResolver = async (
+const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,
   { input: { id } },
   {
@@ -18,7 +19,6 @@ const resolver: MutationToUnvoteCommentResolver = async (
       paymentService,
       commentService,
     },
-    knex,
   }
 ) => {
   if (!viewer.id) {
@@ -26,14 +26,14 @@ const resolver: MutationToUnvoteCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any
   let circle: any
   let targetAuthor: any
   if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.dataloader.load(comment.targetId)
+    article = await articleService.loadById(comment.targetId)
     targetAuthor = article.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)

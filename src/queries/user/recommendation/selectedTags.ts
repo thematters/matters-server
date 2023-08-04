@@ -1,9 +1,10 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToSelectedTagsResolver } from 'definitions'
 
-export const selectedTags: RecommendationToSelectedTagsResolver = async (
+export const selectedTags: GQLRecommendationResolvers['selectedTags'] = async (
   _,
   { input },
   { dataSources: { tagService } }

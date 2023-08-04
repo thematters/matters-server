@@ -1,2 +1,3 @@
 .eslintrc.js
+src/definitions/schema.d.ts
 build/*

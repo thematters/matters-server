@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
@@ -26,9 +28,8 @@ import {
 } from 'common/errors'
 import { fromGlobalId, isValidTransactionHash } from 'common/utils'
 import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
-import { MutationToPayToResolver } from 'definitions'
 
-const resolver: MutationToPayToResolver = async (
+const resolver: GQLMutationResolvers['payTo'] = async (
   _,
   {
     input: {

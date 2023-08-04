@@ -1,8 +1,9 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { USER_ACTION } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToSubscribersResolver } from 'definitions'
 
-const resolver: ArticleToSubscribersResolver = async (
+const resolver: GQLArticleResolvers['subscribers'] = async (
   { articleId },
   { input },
   { dataSources: { articleService, userService }, knex }
@@ -23,7 +24,7 @@ const resolver: ArticleToSubscribersResolver = async (
   )
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(
+    userService.loadByIds(
       actions.map(({ userId }: { userId: string }) => userId)
     ),
     input,

@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { nanoid } from 'nanoid'
 
 import { ASSET_TYPE } from 'common/enums'
@@ -8,11 +10,10 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutOAuthClientResolver } from 'definitions'
 
 const logger = getLogger('mutation-put-oauth-client')
 
-const resolver: MutationToPutOAuthClientResolver = async (
+const resolver: GQLMutationResolvers['putOAuthClient'] = async (
   _,
   {
     input: {

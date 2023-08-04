@@ -1,6 +1,6 @@
-import { UserInfoToIpnsKeyResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToIpnsKeyResolver = async (
+const resolver: GQLUserInfoResolvers['ipnsKey'] = async (
   { id },
   _,
   { dataSources: { atomService } }

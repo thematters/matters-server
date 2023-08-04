@@ -1,7 +1,8 @@
-import { USER_ACTION } from 'common/enums'
-import { ArticleToSubscribedResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToSubscribedResolver = async (
+import { USER_ACTION } from 'common/enums'
+
+const resolver: GQLArticleResolvers['subscribed'] = async (
   { articleId },
   _,
   { viewer, dataSources: { atomService } }

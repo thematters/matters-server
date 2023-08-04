@@ -32,7 +32,7 @@ export const createTx = async ({
   senderId: string
   recipientId: string
   purpose: TRANSACTION_PURPOSE
-  currency: PAYMENT_CURRENCY
+  currency: keyof typeof PAYMENT_CURRENCY
   state: TRANSACTION_STATE
 }) => {
   const paymentService = new PaymentService()

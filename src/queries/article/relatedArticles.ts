@@ -1,12 +1,13 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import _ from 'lodash'
 
 import { getLogger } from 'common/logger'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const logger = getLogger('related-articles')
 
-const resolver: ArticleToRelatedArticlesResolver = async (
+const resolver: GQLArticleResolvers['relatedArticles'] = async (
   { articleId, authorId },
   { input },
   { dataSources: { articleService, draftService, tagService } }
@@ -41,7 +42,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     })
 
     // get articles and append
-    const articlesFromTag = await articleService.dataloader.loadMany(articleIds)
+    const articlesFromTag = await articleService.loadByIds(articleIds)
 
     articles = addRec(articles, articlesFromTag)
   }
@@ -96,9 +97,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     sameIdx = -1
   }
 
-  const nodes = await draftService.dataloader.loadMany(
-    pick.map((item) => item.draftId)
-  )
+  const nodes = await draftService.loadByIds(pick.map((item) => item.draftId))
 
   if (
     // tslint:disable-next-line

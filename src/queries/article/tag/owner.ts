@@ -1,9 +1,9 @@
-import { TagToOwnerResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToOwnerResolver = (
+const resolver: GQLTagResolvers['owner'] = (
   { owner },
   _,
   { dataSources: { userService } }
-) => (owner ? userService.dataloader.load(owner) : null)
+) => (owner ? userService.loadById(owner) : null)
 
 export default resolver

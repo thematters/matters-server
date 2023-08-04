@@ -1,3 +1,5 @@
+import type { DataSources, ItemData, GQLMutationResolvers } from 'definitions'
+
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -34,9 +36,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
-import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
-const resolver: MutationToPutDraftResolver = async (
+const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
   { input },
   {
@@ -192,7 +193,7 @@ const resolver: MutationToPutDraftResolver = async (
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.dataloader.load(dbId)
+    const draft = await draftService.loadById(dbId)
 
     // check for draft existence
     if (!draft) {

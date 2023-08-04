@@ -1,9 +1,9 @@
-import { CommentToReplyToResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToReplyToResolver = (
+const resolver: GQLCommentResolvers['replyTo'] = (
   { replyTo },
   _,
   { dataSources: { commentService } }
-) => (replyTo ? commentService.dataloader.load(replyTo) : null)
+) => (replyTo ? commentService.loadById(replyTo) : null)
 
 export default resolver

@@ -1,6 +1,6 @@
-import { ArticleToCreatedAtResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToCreatedAtResolver = async (
+const resolver: GQLArticleResolvers['createdAt'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

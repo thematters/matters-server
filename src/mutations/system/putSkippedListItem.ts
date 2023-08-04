@@ -1,12 +1,13 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
 import { EntityNotFoundError, UserInputError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MutationToPutSkippedListItemResolver } from 'definitions'
 
-const resolver: MutationToPutSkippedListItemResolver = async (
-  root,
+const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
+  _,
   { input: { id, type, value, archived } },
-  { viewer, dataSources: { systemService } }
+  { dataSources: { systemService } }
 ) => {
   // Update
   if (id) {
@@ -62,6 +63,8 @@ const resolver: MutationToPutSkippedListItemResolver = async (
       },
     ]
   }
+
+  return null
 }
 
 export default resolver

@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { CommentToCommentsResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToCommentsResolver = (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLCommentResolvers['comments'] = (
   { id },
   { input: { author, sort, ...connectionArgs } },
   { dataSources: { commentService } }

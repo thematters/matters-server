@@ -1,7 +1,8 @@
-import { environment } from 'common/environment'
-import { LikerToLikerIdResolver } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions'
 
-const resolver: LikerToLikerIdResolver = async (
+import { environment } from 'common/environment'
+
+const resolver: GQLLikerResolvers['likerId'] = async (
   { likerId },
   _,
   { viewer, dataSources: { userService } }

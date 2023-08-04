@@ -1,7 +1,8 @@
-import { PAYMENT_PROVIDER } from 'common/enums'
-import { Customer, WalletToCardLast4Resolver } from 'definitions'
+import type { Customer, GQLWalletResolvers } from 'definitions'
 
-const resolver: WalletToCardLast4Resolver = async (
+import { PAYMENT_PROVIDER } from 'common/enums'
+
+const resolver: GQLWalletResolvers['cardLast4'] = async (
   { id },
   _,
   { dataSources: { atomService } }
@@ -12,7 +13,7 @@ const resolver: WalletToCardLast4Resolver = async (
   })) as Customer
 
   if (!customer || !customer.cardLast4) {
-    return
+    return null
   }
 
   return customer.cardLast4

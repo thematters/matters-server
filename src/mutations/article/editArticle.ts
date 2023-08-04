@@ -1,3 +1,4 @@
+import type { Article, DataSources, GQLMutationResolvers } from 'definitions'
 import type { Knex } from 'knex'
 
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -44,15 +45,10 @@ import {
 import { getLogger } from 'common/logger'
 import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
 import { publicationQueue, revisionQueue } from 'connectors/queue'
-import {
-  Article,
-  DataSources,
-  MutationToEditArticleResolver,
-} from 'definitions'
 
 const logger = getLogger('mutation-edit-article')
 
-const resolver: MutationToEditArticleResolver = async (
+const resolver: GQLMutationResolvers['editArticle'] = async (
   _,
   {
     input: {

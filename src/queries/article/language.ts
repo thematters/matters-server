@@ -1,9 +1,10 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { stripHtml } from '@matters/ipns-site-generator'
 
 import { GCP } from 'connectors'
-import { ArticleToLanguageResolver } from 'definitions'
 
-const resolver: ArticleToLanguageResolver = async (
+const resolver: GQLArticleResolvers['language'] = async (
   { id, content, language: storedLanguage },
   _,
   { dataSources: { draftService } }
@@ -19,7 +20,7 @@ const resolver: ArticleToLanguageResolver = async (
     .then((language) => language && draftService.baseUpdate(id, { language }))
 
   // return first to prevent blocking
-  return
+  return null
 }
 
 export default resolver

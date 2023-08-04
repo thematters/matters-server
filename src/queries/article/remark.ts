@@ -1,6 +1,6 @@
-import { ArticleToRemarkResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToRemarkResolver = async (
+const resolver: GQLArticleResolvers['remark'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

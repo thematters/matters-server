@@ -1,11 +1,12 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { EntityNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToSetBoostResolver } from 'definitions'
 
-const resolver: MutationToSetBoostResolver = async (
-  root,
+const resolver: GQLMutationResolvers['setBoost'] = async (
+  _,
   { input: { id, boost, type } },
-  { viewer, dataSources: { userService, tagService, articleService } }
+  { dataSources: { userService, tagService, articleService } }
 ) => {
   const serviceMap = {
     Article: articleService,
@@ -14,14 +15,14 @@ const resolver: MutationToSetBoostResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const entity = await serviceMap[type].dataloader.load(dbId)
+  const entity = await serviceMap[type].loadById(dbId)
   if (!entity) {
     throw new EntityNotFoundError(`target ${type} does not exists`)
   }
 
   await serviceMap[type].setBoost({ id: dbId, boost })
 
-  return { ...entity, __type: type }
+  return { ...entity, __type: type, id } as any
 }
 
 export default resolver

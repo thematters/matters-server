@@ -1,7 +1,7 @@
-import { DraftToContentResolver } from 'definitions'
+import type { GQLDraftResolvers } from 'definitions'
 
 // ACL for article content
-const resolver: DraftToContentResolver = async (
+const resolver: GQLDraftResolvers['content'] = async (
   { authorId, content },
   _,
   { viewer }

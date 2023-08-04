@@ -1,7 +1,8 @@
-import { fromGlobalId } from 'common/utils'
-import { MutationToUpdateUserRoleResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUpdateUserRoleResolver = async (
+import { fromGlobalId } from 'common/utils'
+
+const resolver: GQLMutationResolvers['updateUserRole'] = async (
   _,
   { input: { id, role } },
   { dataSources: { atomService } }

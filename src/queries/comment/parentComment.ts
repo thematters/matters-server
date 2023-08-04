@@ -1,9 +1,9 @@
-import { CommentToParentCommentResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToParentCommentResolver = (
+const resolver: GQLCommentResolvers['parentComment'] = (
   { parentCommentId },
   _,
   { dataSources: { commentService } }
-) => (parentCommentId ? commentService.dataloader.load(parentCommentId) : null)
+) => (parentCommentId ? commentService.loadById(parentCommentId) : null)
 
 export default resolver

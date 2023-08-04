@@ -1,10 +1,16 @@
-import { connectionFromPromisedArray } from 'common/utils'
-import { UserToTagsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToTagsResolver = async (
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+
+const resolver: GQLUserResolvers['tags'] = async (
   { id },
   { input },
   { dataSources: { tagService } }
-) => connectionFromPromisedArray(tagService.findByMaintainer(id), input)
+) => {
+  if (id === null) {
+    return connectionFromArray([], input)
+  }
+  return connectionFromPromisedArray(tagService.findByMaintainer(id), input)
+}
 
 export default resolver

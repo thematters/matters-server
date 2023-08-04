@@ -1,11 +1,4 @@
-import DataLoader from 'dataloader'
-import { isArray, isEqual, mergeWith, uniq } from 'lodash'
-import { v4 } from 'uuid'
-
-import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
-import { getLogger } from 'common/logger'
-import { BaseService } from 'connectors'
-import {
+import type {
   GQLNotificationSettingType,
   NoticeData,
   NoticeDetail,
@@ -19,9 +12,15 @@ import {
   User,
 } from 'definitions'
 
-const logger = getLogger('service:notice')
+import DataLoader from 'dataloader'
+import { isArray, isEqual, mergeWith, uniq } from 'lodash'
+import { v4 } from 'uuid'
 
-export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
+import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
+import { getLogger } from 'common/logger'
+import { BaseService } from 'connectors'
+
+const logger = getLogger('service:notice')
 
 const mergeDataCustomizer = (objValue: any, srcValue: any) => {
   if (isArray(objValue)) {
@@ -33,7 +32,7 @@ const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 class Notice extends BaseService {
-  constructor() {
+  public constructor() {
     super('notice')
     this.dataloader = new DataLoader(this.findByIds)
   }
@@ -41,7 +40,7 @@ class Notice extends BaseService {
   /**
    * Create a notice item
    */
-  async create({
+  public async create({
     type,
     actorId,
     recipientId,
@@ -115,7 +114,7 @@ class Notice extends BaseService {
   /**
    * Bundle with existing notice
    */
-  async addNoticeActor({
+  public async addNoticeActor({
     noticeId,
     actorId,
   }: {
@@ -145,7 +144,7 @@ class Notice extends BaseService {
   /**
    * Update data of existing notice
    */
-  async updateNoticeData({
+  private async updateNoticeData({
     noticeId,
     data,
   }: {
@@ -163,7 +162,7 @@ class Notice extends BaseService {
    * Process new event to determine
    * whether to bundle with old notice or create new notice or do nothing
    */
-  process = async (
+  public process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
     const bundleables = await this.findBundleables(params)
@@ -194,7 +193,7 @@ class Notice extends BaseService {
    * Find bundleable notices
    *
    */
-  findBundleables = async ({
+  public findBundleables = async ({
     type,
     recipientId,
     entities,
@@ -275,7 +274,7 @@ class Notice extends BaseService {
   /**
    * Find notices with detail
    */
-  findDetail = async ({
+  private findDetail = async ({
     where,
     whereIn,
     skip,
@@ -332,7 +331,7 @@ class Notice extends BaseService {
   /**
    * Find notice entities by a given notice id
    */
-  findEntities = async (
+  private findEntities = async (
     noticeId: string,
     expand = true
   ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
@@ -375,7 +374,7 @@ class Notice extends BaseService {
   /**
    * Find notice actors by a given notice id
    */
-  findActors = async (
+  public findActors = async (
     noticeId: string
   ): Promise<Array<User & { noticeActorCreatedAt: string }>> => {
     const actors = await this.knex
@@ -389,7 +388,7 @@ class Notice extends BaseService {
   /**
    * Find notices by given ids.
    */
-  findByIds = async (ids: readonly string[]): Promise<NoticeItem[]> => {
+  private findByIds = async (ids: readonly string[]): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       whereIn: ['notice.id', ids as string[]],
     })
@@ -415,7 +414,7 @@ class Notice extends BaseService {
    *           By User             *
    *                               *
    *********************************/
-  findByUser = async ({
+  public findByUser = async ({
     userId,
     onlyRecent,
     take,
@@ -453,12 +452,12 @@ class Notice extends BaseService {
     )
   }
 
-  checkUserNotifySetting = async ({
+  public checkUserNotifySetting = async ({
     event,
     setting,
   }: {
     event: NotificationType
-    setting: { [key in DBNotificationSettingType]: boolean }
+    setting: { [key in GQLNotificationSettingType]: boolean }
   }) => {
     if (!setting || !setting.enable) {
       return false
@@ -540,12 +539,12 @@ class Notice extends BaseService {
     return noticeSettingMap[event]
   }
 
-  markAllNoticesAsRead = async (userId: string) =>
+  public markAllNoticesAsRead = async (userId: string) =>
     this.knex('notice')
       .where({ recipientId: userId, unread: true })
       .update({ unread: false })
 
-  countNotice = async ({
+  public countNotice = async ({
     userId,
     unread,
     onlyRecent,

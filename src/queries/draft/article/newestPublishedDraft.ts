@@ -1,11 +1,11 @@
-import { PUBLISH_STATE } from 'common/enums'
-import { ArticleToNewestPublishedDraftResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToNewestPublishedDraftResolver = async (
-  { articleId },
-  _,
-  { dataSources: { atomService } }
-) => {
+import { PUBLISH_STATE } from 'common/enums'
+
+const resolver: Exclude<
+  GQLArticleResolvers['newestPublishedDraft'],
+  undefined
+> = async ({ articleId }, _, { dataSources: { atomService } }) => {
   const draft = await atomService.findFirst({
     table: 'draft',
     where: { articleId, publishState: PUBLISH_STATE.published },

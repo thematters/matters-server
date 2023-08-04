@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import lodash from 'lodash'
 
 import { ASSET_TYPE, NODE_TYPES } from 'common/enums'
@@ -7,9 +9,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MutationToPutAnnouncementResolver } from 'definitions'
 
-const resolver: MutationToPutAnnouncementResolver = async (
+const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   root,
   { input },
   { dataSources: { atomService, systemService }, viewer }

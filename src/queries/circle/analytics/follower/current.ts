@@ -1,7 +1,8 @@
-import { CIRCLE_ACTION } from 'common/enums'
-import { CircleFollowerAnalyticsToCurrentResolver } from 'definitions'
+import type { GQLCircleFollowerAnalyticsResolvers } from 'definitions'
 
-const resolver: CircleFollowerAnalyticsToCurrentResolver = (
+import { CIRCLE_ACTION } from 'common/enums'
+
+const resolver: GQLCircleFollowerAnalyticsResolvers['current'] = (
   { id },
   _,
   { dataSources: { atomService } }

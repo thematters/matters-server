@@ -1,23 +1,31 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToSubscriptionsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToSubscriptionsResolver = async (
-  { id }: { id: string },
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+} from 'common/utils'
+
+const resolver: GQLUserResolvers['subscriptions'] = async (
+  { id },
   { input },
   { dataSources: { articleService, draftService, userService } }
 ) => {
+  if (id === null) {
+    return connectionFromArray([], input)
+  }
   const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, actions] = await Promise.all([
     userService.countSubscription(id),
     userService.findSubscriptions({ userId: id, skip, take }),
   ])
-  const articles = (await articleService.dataloader.loadMany(
+  const articles = (await articleService.loadByIds(
     actions.map(({ targetId }: { targetId: string }) => targetId)
   )) as any[]
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

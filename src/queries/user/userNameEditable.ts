@@ -1,6 +1,6 @@
-import { UserInfoToUserNameEditableResolver } from 'definitions'
+import type { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToUserNameEditableResolver = (
+const resolver: GQLUserInfoResolvers['userNameEditable'] = (
   { id },
   _,
   { dataSources: { userService } }

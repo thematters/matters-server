@@ -1,7 +1,8 @@
-import { AuthenticationError } from 'common/errors'
-import { MutationToGenerateLikerIdResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToGenerateLikerIdResolver = async (
+import { AuthenticationError } from 'common/errors'
+
+const resolver: GQLMutationResolvers['generateLikerId'] = async (
   _,
   __,
   { viewer, dataSources: { userService, systemService } }

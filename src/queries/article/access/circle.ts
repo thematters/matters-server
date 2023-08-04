@@ -1,6 +1,6 @@
-import { ArticleAccessToCircleResolver } from 'definitions'
+import type { GQLArticleAccessResolvers, Circle } from 'definitions'
 
-export const circle: ArticleAccessToCircleResolver = async (
+export const circle: GQLArticleAccessResolvers['circle'] = async (
   { articleId },
   _,
   { dataSources: { atomService, articleService } }
@@ -8,8 +8,10 @@ export const circle: ArticleAccessToCircleResolver = async (
   const articleCircle = await articleService.findArticleCircle(articleId)
 
   if (!articleCircle || !articleCircle.circleId) {
-    return
+    return null
   }
 
-  return atomService.circleIdLoader.load(articleCircle.circleId)
+  return atomService.circleIdLoader.load(
+    articleCircle.circleId
+  ) as Promise<Circle>
 }

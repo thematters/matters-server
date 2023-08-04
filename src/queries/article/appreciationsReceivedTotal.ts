@@ -1,6 +1,6 @@
-import { ArticleToAppreciationsReceivedTotalResolver } from 'definitions'
+import { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToAppreciationsReceivedTotalResolver = async (
+const resolver: GQLArticleResolvers['appreciationsReceivedTotal'] = async (
   { articleId },
   _: any,
   { dataSources: { articleService } }

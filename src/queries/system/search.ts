@@ -1,8 +1,11 @@
+import type { GQLNode, GQLQueryResolvers } from 'definitions'
+
 import { compact } from 'lodash'
 
 import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  SEARCH_API_VERSION,
 } from 'common/enums'
 import {
   connectionFromArray,
@@ -10,13 +13,8 @@ import {
   fromGlobalId,
   normalizeQueryInput,
 } from 'common/utils'
-import {
-  GQLNode,
-  GQLSearchAPIVersion,
-  QueryToSearchResolver,
-} from 'definitions'
 
-const resolver: QueryToSearchResolver = async (
+const resolver: GQLQueryResolvers['search'] = async (
   _,
   args, // { input },
   context // { dataSources: { systemService, articleService, userService, tagService }, viewer, }
@@ -58,7 +56,7 @@ const resolver: QueryToSearchResolver = async (
   const keyOriginal = input.key
   input.key = await normalizeQueryInput(keyOriginal)
 
-  const connection = await (input.version === GQLSearchAPIVersion.v20230601
+  const connection = await (input.version === SEARCH_API_VERSION.v20230601
     ? serviceMap[input.type].searchV3
     : serviceMap[input.type].search)({
     ...input,

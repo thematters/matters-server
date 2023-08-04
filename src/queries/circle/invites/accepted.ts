@@ -1,8 +1,9 @@
+import type { GQLInvitesResolvers } from 'definitions'
+
 import { INVITATION_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { InvitesToAcceptedResolver } from 'definitions'
 
-const resolver: InvitesToAcceptedResolver = async (
+const resolver: GQLInvitesResolvers['accepted'] = async (
   { id, owner },
   { input },
   { dataSources: { atomService }, viewer, knex }

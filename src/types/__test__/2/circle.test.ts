@@ -4,11 +4,8 @@ import {
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
   NODE_TYPES,
-  // PUBLISH_STATE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-// import { AtomService } from 'connectors'
-import { GQLCommentType } from 'definitions'
 
 import { delay, publishArticle, putDraft, testClient } from '../utils'
 
@@ -651,36 +648,32 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // add
-    const addedData = await server.executeOperation({
+    const { data: addedData } = await server.executeOperation({
       query: PUT_CIRCLE_COMMENT,
       variables: {
         input: {
           comment: {
             content: 'discussion',
             circleId: circle.id,
-            type: GQLCommentType.circleDiscussion,
+            type: 'circleDiscussion',
           },
         },
       },
     })
-    const commentId = _get(addedData, `data.putComment.id`)
+    const commentId = addedData.putComment.id
 
     expect(commentId).toBeTruthy()
 
     // retrieve
-    const retrieveData = await server.executeOperation({
+    const { data: retrieveData } = await server.executeOperation({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
         input: { name: circle.name },
       },
     })
 
-    expect(
-      _get(retrieveData, 'data.circle.discussion.totalCount')
-    ).toBeGreaterThan(0)
-    expect(_get(retrieveData, 'data.circle.discussion.edges.0.node.id')).toBe(
-      commentId
-    )
+    expect(retrieveData.circle.discussion.totalCount).toBeGreaterThan(0)
+    expect(retrieveData.circle.discussion.edges[0].node?.id).toBe(commentId)
   })
 
   test('add, pin and retrieve broadcast', async () => {
@@ -698,7 +691,7 @@ describe('circle CRUD', () => {
           comment: {
             content: 'broadcast',
             circleId: circle.id,
-            type: GQLCommentType.circleBroadcast,
+            type: 'circleBroadcast',
           },
         },
       },

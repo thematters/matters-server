@@ -1,6 +1,5 @@
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { CacheService, UserService } from 'connectors'
-import { GQLSearchExclude, GQLUserRestrictionType } from 'definitions'
 
 import { createDonationTx } from './utils'
 
@@ -192,7 +191,7 @@ describe('search', () => {
       key: 'test2',
       take: 3,
       skip: 0,
-      exclude: GQLSearchExclude.blocked,
+      exclude: 'blocked',
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)
@@ -264,8 +263,8 @@ describe('updateLastSeen', () => {
 
 describe('restrictions CRUD', () => {
   const userId = '1'
-  const restriction1 = 'articleHottest' as GQLUserRestrictionType
-  const restriction2 = 'articleNewest' as GQLUserRestrictionType
+  const restriction1 = 'articleHottest'
+  const restriction2 = 'articleNewest'
 
   test('get empty result', async () => {
     expect(await userService.findRestrictions(userId)).toEqual([])

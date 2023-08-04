@@ -1,6 +1,6 @@
-import { StripeAccountToLoginUrlResolver } from 'definitions'
+import type { GQLStripeAccountResolvers } from 'definitions'
 
-const resolver: StripeAccountToLoginUrlResolver = async (
+const resolver: GQLStripeAccountResolvers['loginUrl'] = async (
   { accountId },
   _,
   { dataSources: { paymentService } }

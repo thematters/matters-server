@@ -275,7 +275,9 @@ export const completeCircleInvoice = async ({
     const providerInvoiceId = invoice.id as string
     const providerTxId = invoice.payment_intent as string
     const amount = toDBAmount({ amount: invoice.amount_paid })
-    const currency = _.toUpper(invoice.currency) as PAYMENT_CURRENCY
+    const currency = _.toUpper(
+      invoice.currency
+    ) as keyof typeof PAYMENT_CURRENCY
 
     if (!providerTxId) {
       return

@@ -1,15 +1,16 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { COMMENT_STATE, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
 import {
   connectionFromArray, // fromConnectionArgs
   fromGlobalId,
   toGlobalId,
 } from 'common/utils'
-import { CircleToDiscussionResolver } from 'definitions'
 
-const resolver: CircleToDiscussionResolver = async (
+const resolver: GQLCircleResolvers['discussion'] = async (
   { id, owner },
   { input: { sort, first, ...rest } },
-  { viewer, dataSources: { atomService, paymentService, commentService } }
+  { viewer, dataSources: { paymentService, commentService } }
 ) => {
   if (!id || !viewer.id) {
     return connectionFromArray([], rest)
@@ -82,7 +83,7 @@ const resolver: CircleToDiscussionResolver = async (
     commentService.range(where),
   ])
 
-  const edges = comments.map((comment: { [key: string]: string }) => ({
+  const edges = comments.map((comment) => ({
     cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     node: comment,
   }))

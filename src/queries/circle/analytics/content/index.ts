@@ -1,9 +1,9 @@
-import { GQLCircleContentAnalyticsTypeResolver } from 'definitions/schema'
+import type { GQLCircleContentAnalyticsResolvers } from 'definitions/schema'
 
 import conetntPaywall from './paywall'
 import contentPublic from './public'
 
-const resolvers: GQLCircleContentAnalyticsTypeResolver = {
+const resolvers: GQLCircleContentAnalyticsResolvers = {
   paywall: conetntPaywall,
   public: contentPublic,
 }

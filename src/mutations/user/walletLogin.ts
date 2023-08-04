@@ -1,3 +1,9 @@
+import type {
+  AuthMode,
+  GQLAuthResultType,
+  GQLMutationResolvers,
+} from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { Contract, utils } from 'ethers'
@@ -8,6 +14,8 @@ import {
   BLOCKCHAIN_CHAINID,
   NODE_TYPES,
   VERIFICATION_CODE_STATUS,
+  VERIFICATION_CODE_TYPE,
+  AUTH_RESULT_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -27,16 +35,10 @@ import {
   setCookie,
 } from 'common/utils'
 import { redis } from 'connectors'
-import {
-  AuthMode,
-  GQLAuthResultType,
-  GQLVerificationCodeType,
-  MutationToWalletLoginResolver,
-} from 'definitions'
 
 const logger = getLogger('mutation-wallet-login')
 
-const resolver: MutationToWalletLoginResolver = async (
+const resolver: GQLMutationResolvers['walletLogin'] = async (
   _,
   { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
   context
@@ -161,7 +163,7 @@ const resolver: MutationToWalletLoginResolver = async (
     return {
       token: viewer.token,
       auth: true,
-      type: GQLAuthResultType.LinkAccount,
+      type: AUTH_RESULT_TYPE.LinkAccount,
       user: viewer,
     }
   }
@@ -201,7 +203,7 @@ const resolver: MutationToWalletLoginResolver = async (
    */
   if (!email || !codeId) {
     try {
-      return await tryLogin(GQLAuthResultType.Login)
+      return await tryLogin(AUTH_RESULT_TYPE.Login)
     } catch (err) {
       const isNoEthAddress = err instanceof EthAddressNotFoundError
       if (!isNoEthAddress) {
@@ -214,7 +216,7 @@ const resolver: MutationToWalletLoginResolver = async (
    * SignUp
    */
   if (!email || !codeId) {
-    return
+    throw new UserInputError('email and codeId are required')
   }
 
   // check verification code
@@ -222,7 +224,7 @@ const resolver: MutationToWalletLoginResolver = async (
     where: {
       uuid: codeId,
       email,
-      type: GQLVerificationCodeType.register,
+      type: VERIFICATION_CODE_TYPE.register,
     },
   })
   const code = codes?.length > 0 ? codes[0] : {}
@@ -273,7 +275,7 @@ const resolver: MutationToWalletLoginResolver = async (
     language: viewer.language,
   })
 
-  return tryLogin(GQLAuthResultType.Signup)
+  return tryLogin(AUTH_RESULT_TYPE.Signup)
 }
 
 export default resolver

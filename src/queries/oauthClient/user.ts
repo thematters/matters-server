@@ -1,9 +1,9 @@
-import { OAuthClientToUserResolver } from 'definitions'
+import type { GQLOAuthClientResolvers } from 'definitions'
 
-const resolver: OAuthClientToUserResolver = async (
+const resolver: GQLOAuthClientResolvers['user'] = async (
   { userId },
   _,
   { dataSources: { userService } }
-) => (userId ? userService.dataloader.load(userId) : null)
+) => (userId ? userService.loadById(userId) : null)
 
 export default resolver

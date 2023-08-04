@@ -1,11 +1,11 @@
-import { CommentToMyVoteResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
 const voteMap = {
   up_vote: 'up',
   down_vote: 'down',
-}
+} as const
 
-const resolver: CommentToMyVoteResolver = async (
+const resolver: GQLCommentResolvers['myVote'] = async (
   { id },
   _,
   { viewer, dataSources: { commentService } }

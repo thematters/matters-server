@@ -1,9 +1,10 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
 import { AuthenticationError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToTogglePinTagResolver } from 'definitions'
 
-const resolver: MutationToTogglePinTagResolver = async (
+const resolver: GQLMutationResolvers['togglePinTag'] = async (
   _,
   { input: { id, enabled } },
   { viewer, dataSources: { tagService } }
@@ -14,7 +15,7 @@ const resolver: MutationToTogglePinTagResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const tag = await tagService.dataloader.load(dbId)
+  const tag = await tagService.loadById(dbId)
 
   if (!tag) {
     throw new TagNotFoundError('target user does not exists')
@@ -39,6 +40,7 @@ const resolver: MutationToTogglePinTagResolver = async (
   })
 
   // invalidate extra nodes
+  // @ts-ignore
   tag[CACHE_KEYWORD] = [
     {
       id: viewer.id,

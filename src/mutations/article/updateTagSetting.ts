@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
@@ -7,6 +9,7 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
+  UPDATE_TAG_SETTING_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -18,12 +21,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import {
-  GQLUpdateTagSettingType as UpdateType,
-  MutationToUpdateTagSettingResolver,
-} from 'definitions'
 
-const resolver: MutationToUpdateTagSettingResolver = async (
+const resolver: GQLMutationResolvers['updateTagSetting'] = async (
   _,
   { input: { id, type, editors } },
   {
@@ -58,7 +57,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   let updatedTag
 
   switch (type) {
-    case UpdateType.adopt: {
+    case UPDATE_TAG_SETTING_TYPE.adopt: {
       // check feature is enabled
       const feature = await systemService.getFeatureFlag('tag_adoption')
       if (
@@ -106,7 +105,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       })
       break
     }
-    case UpdateType.leave: {
+    case UPDATE_TAG_SETTING_TYPE.leave: {
       // if tag has no owner or owner is not viewer, throw error
       if (!tag.owner || (tag.owner && !isOwner)) {
         throw new ForbiddenError('viewer has no permission')
@@ -136,7 +135,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
       break
     }
-    case UpdateType.add_editor: {
+    case UPDATE_TAG_SETTING_TYPE.add_editor: {
       // only owner can add editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -175,9 +174,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       )
 
       // send emails and notices
-      const recipients = (await userService.dataloader.loadMany(
-        newEditors
-      )) as Array<Record<string, any>>
+      const recipients = (await userService.loadByIds(newEditors)) as Array<
+        Record<string, any>
+      >
 
       recipients.map((recipient) => {
         notificationService.mail.sendAssignAsTagEditor({
@@ -203,7 +202,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       })
       break
     }
-    case UpdateType.remove_editor: {
+    case UPDATE_TAG_SETTING_TYPE.remove_editor: {
       // only owner can remove editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -230,7 +229,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       })
       break
     }
-    case UpdateType.leave_editor: {
+    case UPDATE_TAG_SETTING_TYPE.leave_editor: {
       const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
       if (!isEditor) {
         throw new ForbiddenError('viewer has no permission')

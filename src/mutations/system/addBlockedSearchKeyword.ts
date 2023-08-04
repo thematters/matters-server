@@ -1,7 +1,8 @@
-import { UserInputError } from 'common/errors'
-import { MutationToAddBlockedSearchKeywordResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToAddBlockedSearchKeywordResolver = async (
+import { UserInputError } from 'common/errors'
+
+const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
   root,
   { input: { keyword } },
   { dataSources: { atomService, systemService }, viewer }

@@ -1,7 +1,8 @@
-import { TAG_ACTION } from 'common/enums'
-import { TagToIsPinnedResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToIsPinnedResolver = async (
+import { TAG_ACTION } from 'common/enums'
+
+const resolver: GQLTagResolvers['isPinned'] = async (
   { id },
   _,
   { viewer, dataSources: { tagService } }

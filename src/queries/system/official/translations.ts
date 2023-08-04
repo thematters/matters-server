@@ -1,8 +1,9 @@
+import type { GQLAnnouncementResolvers } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { AnnouncementToTranslationsResolver } from 'definitions'
 
-export const translations: AnnouncementToTranslationsResolver = async (
+export const translations: GQLAnnouncementResolvers['translations'] = async (
   { id },
   _, // { input: { id, visible } },
   { dataSources: { atomService, systemService }, viewer }

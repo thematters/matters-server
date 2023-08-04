@@ -1,6 +1,6 @@
-import { CommentToDownvotesResolver } from 'definitions'
+import type { GQLCommentResolvers } from 'definitions'
 
-const resolver: CommentToDownvotesResolver = (
+const resolver: GQLCommentResolvers['downvotes'] = (
   { id },
   _,
   { dataSources: { commentService } }

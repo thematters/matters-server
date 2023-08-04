@@ -1,4 +1,4 @@
-import type { MutationToDeleteCollectionArticlesResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
 import {
@@ -8,7 +8,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToDeleteCollectionArticlesResolver = async (
+const resolver: GQLMutationResolvers['deleteCollectionArticles'] = async (
   _,
   { input: { collection: globalId, articles } },
   { dataSources: { collectionService }, viewer }

@@ -1,11 +1,12 @@
+import type { GQLTagResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { TagToParticipantsResolver } from 'definitions'
 
-const resolver: TagToParticipantsResolver = async (
+const resolver: GQLTagResolvers['participants'] = async (
   { id, owner },
   { input },
   { dataSources: { tagService, userService } }
@@ -26,7 +27,7 @@ const resolver: TagToParticipantsResolver = async (
   })
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(userIds.map(({ authorId }) => authorId)),
+    userService.loadByIds(userIds.map(({ authorId }) => authorId)),
     input,
     totalCount
   )

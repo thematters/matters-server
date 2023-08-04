@@ -1,12 +1,10 @@
-import { getViewerFromUser, setCookie } from 'common/utils'
-import {
-  AuthMode,
-  GQLAuthResultType,
-  MutationToUserLoginResolver,
-} from 'definitions'
+import type { AuthMode, GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUserLoginResolver = async (
-  root,
+import { AUTH_RESULT_TYPE } from 'common/enums'
+import { getViewerFromUser, setCookie } from 'common/utils'
+
+const resolver: GQLMutationResolvers['userLogin'] = async (
+  _,
   { input },
   context
 ) => {
@@ -34,7 +32,7 @@ const resolver: MutationToUserLoginResolver = async (
   return {
     token,
     auth: true,
-    type: GQLAuthResultType.Login,
+    type: AUTH_RESULT_TYPE.Login,
     user,
   }
 }

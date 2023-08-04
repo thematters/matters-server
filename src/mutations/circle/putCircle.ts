@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _trim from 'lodash/trim'
 
@@ -33,7 +35,6 @@ import {
 } from 'common/utils'
 import { redis } from 'connectors'
 import { assetQueue } from 'connectors/queue'
-import { MutationToPutCircleResolver } from 'definitions'
 
 const INTERVAL = isProd ? 'month' : 'week'
 
@@ -42,7 +43,7 @@ enum ACTION {
   update = 'update',
 }
 
-const resolver: MutationToPutCircleResolver = async (
+const resolver: GQLMutationResolvers['putCircle'] = async (
   _,
   { input: { id, avatar, cover, name, displayName, description, amount } },
   { viewer, dataSources: { atomService, paymentService, systemService }, knex }

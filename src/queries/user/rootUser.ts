@@ -1,16 +1,18 @@
+import type { GQLQueryResolvers } from 'definitions'
+
 import { cacheControlFromInfo } from '@apollo/cache-control-types'
 
 import { CACHE_TTL } from 'common/enums'
-import { QueryToUserResolver } from 'definitions'
+import { UserInputError } from 'common/errors'
 
-const resolver: QueryToUserResolver = async (
+const resolver: GQLQueryResolvers['user'] = async (
   _,
   { input: { userName, ethAddress } },
   { dataSources: { userService } },
   info
 ) => {
   if (!userName && !ethAddress) {
-    return
+    throw new UserInputError('userName or ethAddress is required')
   }
 
   if (userName) {
@@ -21,6 +23,8 @@ const resolver: QueryToUserResolver = async (
       scope: 'PRIVATE',
     })
     return userService.findByEthAddress(ethAddress)
+  } else {
+    return null
   }
 }
 

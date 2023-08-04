@@ -2,7 +2,6 @@ import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { GQLCommentType } from 'definitions'
 
 import { testClient } from '../utils'
 
@@ -156,7 +155,7 @@ describe('mutations on comment', () => {
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
             articleId: ARTICLE_2_ID,
-            type: GQLCommentType.article,
+            type: 'article',
           },
         },
       },
