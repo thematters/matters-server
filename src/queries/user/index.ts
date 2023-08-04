@@ -115,7 +115,7 @@ const user: {
     // ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
-    status: (root) => root,
+    status: (root) => (root.id ? root : null),
     activity: (root) => root,
     following: (root) => root,
     analytics: (root) => root,
