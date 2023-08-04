@@ -32,7 +32,7 @@
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
     "gen:schema": "tsc -p . && ts-node --files src/common/utils/exportSchema.ts",
-    "gen:types": "graphql-codegen --config codegen.ts",
+    "gen:types": "graphql-codegen --config codegen.json",
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
     "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
