@@ -173,22 +173,41 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Boolean
 
   """Change user email."""
-  changeEmail(input: ChangeEmailInput!): User!
+  changeEmail(input: ChangeEmailInput!): User! @deprecated(reason: "use 'setEmail' instead")
+
+  """Set user email."""
+  setEmail(input: SetEmailInput!): User!
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
 
   """Register user, can only be used on matters.{town,news} website."""
-  userRegister(input: UserRegisterInput!): AuthResult!
+  userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
 
   """Login user."""
-  userLogin(input: UserLoginInput!): AuthResult!
+  userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
+  emailLogin(input: EmailLoginInput!): AuthResult!
 
   """Get signing message."""
   generateSigningMessage(input: GenerateSigningMessageInput!): SigningMessageResult!
 
   """Login/Signup via a wallet."""
   walletLogin(input: WalletLoginInput!): AuthResult!
+
+  """Add a wallet login to current user."""
+  addWalletLogin(input: WalletLoginInput!): User!
+
+  """Remove a wallet login from current user."""
+  removeWalletLogin: User!
+
+  """Login/Signup via social accounts."""
+  socialLogin(input: SocialLoginInput!): AuthResult!
+
+  """Add a social login to current user."""
+  addSocialLogin(input: SocialLoginInput!): User!
+
+  """Remove a social login from current user."""
+  removeSocialLogin(input: RemoveSocialLoginInput!): User!
 
   """Reset crypto wallet."""
   resetWallet(input: ResetWalletInput!): User!
@@ -204,6 +223,12 @@ type Mutation {
 
   """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
+
+  """Set user name."""
+  setUserName(input: SetUserNameInput!): User!
+
+  """Set user email login password."""
+  setPassword(input: SetPasswordInput!): User!
 
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
@@ -2331,6 +2356,12 @@ type UserInfo {
   """User email."""
   email: String
 
+  """Weather user email is verified."""
+  emailVerified: Boolean!
+
+  """User connected social accounts."""
+  socialAccounts: [SocialAccount!]!
+
   """User badges."""
   badges: [Badge!]
 
@@ -2436,6 +2467,9 @@ type UserStatus {
 
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Weather login password is set for email login."""
+  hasEmailLoginPassword: Boolean!
 
   """Whether user already set payment password."""
   hasPaymentPassword: Boolean!
@@ -2782,10 +2816,10 @@ input WalletLoginInput {
   nonce: String!
 
   """required for wallet register"""
-  email: String
+  email: String @deprecated(reason: "No longer in use")
 
   """email verification code, required for wallet register"""
-  codeId: ID
+  codeId: ID @deprecated(reason: "No longer in use")
 }
 
 input ResetLikerIdInput {
@@ -2803,7 +2837,7 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
-  userName: String
+  userName: String @deprecated(reason: "use 'setUserName' instead")
   avatar: ID
   description: String
   language: UserLanguage
@@ -2884,9 +2918,11 @@ enum BadgeType {
 
 enum VerificationCodeType {
   register
-  email_reset
-  email_reset_confirm
-  password_reset
+  email_verification
+  email_otp
+  email_reset @deprecated(reason: "No longer in use")
+  email_reset_confirm @deprecated(reason: "No longer in use")
+  password_reset @deprecated(reason: "No longer in use")
   payment_password_reset
 }
 
@@ -2998,6 +3034,50 @@ enum QuoteCurrency {
   TWD
   HKD
   USD
+}
+
+type SocialAccount {
+  type: SocialAccountType!
+  userName: String
+  email: String
+}
+
+enum SocialAccountType {
+  Google
+  Twitter
+  Facebook
+}
+
+input EmailLoginInput {
+  email: String!
+  type: EmailLoginType!
+  token: String!
+}
+
+enum EmailLoginType {
+  register
+  login
+}
+
+input SocialLoginInput {
+  type: SocialAccountType!
+  token: String!
+}
+
+input SetUserNameInput {
+  userName: String!
+}
+
+input SetEmailInput {
+  email: String!
+}
+
+input SetPasswordInput {
+  password: String!
+}
+
+input RemoveSocialLoginInput {
+  type: SocialAccountType!
 }
 
 union Response = Article | Comment

@@ -14,6 +14,8 @@ export const VERIFICATION_CODE_TYPE = {
   password_reset: 'password_reset',
   payment_password_reset: 'payment_password_reset',
   register: 'register',
+  email_otp: 'email_otp',
+  email_verification: 'email_verification',
 } as const
 
 export const VERIFICATION_CODE_PROTECTED_TYPES = [
