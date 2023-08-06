@@ -223,7 +223,6 @@ export class UserService extends BaseService {
    * return jwt token. Default to expires in 24 * 90 hours
    */
   public genSessionToken = async (userId: string) => {
-    logger.info(`User logged in with id ${userId}.`)
     return jwt.sign({ id: userId }, environment.jwtSecret, {
       expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
     })
@@ -292,9 +291,7 @@ export class UserService extends BaseService {
     // no password; caller of this has verified eth signature
     // await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-    })
+    const token = await this.genSessionToken(user.id)
 
     logger.info(
       `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`

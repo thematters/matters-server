@@ -10,14 +10,12 @@ import { Contract, utils } from 'ethers'
 import { Knex } from 'knex'
 
 import {
-  AUTO_FOLLOW_TAGS,
   BLOCKCHAIN_CHAINID,
   NODE_TYPES,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -27,7 +25,6 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getLogger } from 'common/logger'
 import {
   getAlchemyProvider,
   getViewerFromUser,
@@ -35,8 +32,6 @@ import {
   setCookie,
 } from 'common/utils'
 import { redis } from 'connectors'
-
-const logger = getLogger('mutation-wallet-login')
 
 const resolver: GQLMutationResolvers['walletLogin'] = async (
   _,
@@ -47,13 +42,7 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
     viewer,
     req,
     res,
-    dataSources: {
-      userService,
-      atomService,
-      systemService,
-      tagService,
-      notificationService,
-    },
+    dataSources: { userService, atomService, systemService, tagService },
     knex,
   } = context
 
@@ -122,7 +111,9 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
     }
   }
 
-  isValidSignature()
+  await isValidSignature()
+
+  const user = await userService.findByEthAddress(ethAddress)
 
   /**
    * Link
@@ -138,7 +129,6 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
       },
     })
 
-    const user = await userService.findByEthAddress(ethAddress)
     if (user) {
       throw new CryptoWalletExistsError('eth address already has a user')
     }
@@ -172,7 +162,7 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
     systemService.saveAgentHash(viewer.agentHash || '')
 
   const tryLogin = async (type: GQLAuthResultType) => {
-    const { token, user } = await userService.loginByEthAddress({
+    const { token } = await userService.loginByEthAddress({
       ethAddress,
       archivedCallback,
     })
@@ -198,10 +188,8 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
     return { token, auth: true, type, user }
   }
 
-  /**
-   * Login
-   */
-  if (!email || !codeId) {
+  if (user) {
+    // login
     try {
       return await tryLogin(AUTH_RESULT_TYPE.Login)
     } catch (err) {
@@ -210,70 +198,59 @@ const resolver: GQLMutationResolvers['walletLogin'] = async (
         throw err
       }
     }
+  } else {
+    // signup
+    if (email) {
+      if (!codeId) {
+        throw new UserInputError('email and codeId are required')
+      }
+      // check verification code
+      const codes = await userService.findVerificationCodes({
+        where: {
+          uuid: codeId,
+          email,
+          type: VERIFICATION_CODE_TYPE.register,
+        },
+      })
+      const code = codes?.length > 0 ? codes[0] : {}
+
+      // check code
+      if (code.status === VERIFICATION_CODE_STATUS.expired) {
+        throw new CodeExpiredError('code is expired')
+      }
+      if (code.status === VERIFICATION_CODE_STATUS.inactive) {
+        throw new CodeInactiveError('code is retired')
+      }
+      if (code.status !== VERIFICATION_CODE_STATUS.verified) {
+        throw new CodeInvalidError('code does not exists')
+      }
+
+      // check email
+      const otherUser = await userService.findByEmail(email)
+      if (otherUser) {
+        throw new EmailExistsError('email address has already been registered')
+      }
+
+      const userName = await userService.generateUserName(email)
+      const newUser = await userService.create({
+        email,
+        userName,
+        displayName: userName,
+        ethAddress: ethAddress.toLowerCase(), // save the lower case ones
+      })
+      // mark code status as used
+      await userService.postRegister(newUser, { tagService })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.used,
+      })
+    } else {
+      const newUser = await userService.create({
+        ethAddress: ethAddress.toLowerCase(),
+      })
+      await userService.postRegister(newUser, { tagService })
+    }
   }
-
-  /**
-   * SignUp
-   */
-  if (!email || !codeId) {
-    throw new UserInputError('email and codeId are required')
-  }
-
-  // check verification code
-  const codes = await userService.findVerificationCodes({
-    where: {
-      uuid: codeId,
-      email,
-      type: VERIFICATION_CODE_TYPE.register,
-    },
-  })
-  const code = codes?.length > 0 ? codes[0] : {}
-
-  // check code
-  if (code.status === VERIFICATION_CODE_STATUS.expired) {
-    throw new CodeExpiredError('code is expired')
-  }
-  if (code.status === VERIFICATION_CODE_STATUS.inactive) {
-    throw new CodeInactiveError('code is retired')
-  }
-  if (code.status !== VERIFICATION_CODE_STATUS.verified) {
-    throw new CodeInvalidError('code does not exists')
-  }
-
-  // check email
-  const otherUser = await userService.findByEmail(email)
-  if (otherUser) {
-    throw new EmailExistsError('email address has already been registered')
-  }
-
-  const userName = await userService.generateUserName(email)
-  const newUser = await userService.create({
-    email,
-    userName,
-    displayName: userName,
-    ethAddress: ethAddress.toLowerCase(), // save the lower case ones
-  })
-
-  // auto follow matty
-  await userService
-    .follow(newUser.id, environment.mattyId)
-    .then((err) => logger.warn('follow matty failed:', err))
-
-  // auto follow tags
-  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
-
-  // mark code status as used
-  await userService.markVerificationCodeAs({
-    codeId: code.id,
-    status: VERIFICATION_CODE_STATUS.used,
-  })
-
-  // send email
-  notificationService.mail.sendRegisterSuccess({
-    to: email,
-    recipient: { displayName: userName },
-    language: viewer.language,
-  })
 
   return tryLogin(AUTH_RESULT_TYPE.Signup)
 }
