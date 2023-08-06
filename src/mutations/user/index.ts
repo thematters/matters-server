@@ -35,7 +35,7 @@ import updateUserState from './updateUserState'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
 import userRegister from './userRegister'
-import walletLogin from './walletLogin'
+import { walletLogin, addWalletLogin, removeWalletLogin } from './walletLogin'
 
 export default {
   Mutation: {
@@ -48,6 +48,8 @@ export default {
     emailLogin,
     userLogout,
     walletLogin,
+    addWalletLogin,
+    removeWalletLogin,
     resetWallet,
     generateLikerId,
     generateSigningMessage,

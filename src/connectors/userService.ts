@@ -12,6 +12,8 @@ import type {
 
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
+import { recoverPersonalSignature } from 'eth-sig-util'
+import { Contract, utils } from 'ethers'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -48,10 +50,12 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
+  BLOCKCHAIN_CHAINID,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
+  CryptoWalletExistsError,
   EthAddressNotFoundError,
   NameInvalidError,
   PasswordInvalidError,
@@ -67,6 +71,8 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
+  getAlchemyProvider,
+  IERC1271,
 } from 'common/utils'
 import {
   AtomService,
@@ -2022,6 +2028,110 @@ export class UserService extends BaseService {
       state: USER_STATE.banned,
     })
     return await this.baseUpdate(userId, { state })
+  }
+
+  public verifyWalletSignature = async ({
+    ethAddress,
+    nonce,
+    signedMessage,
+    signature,
+  }: {
+    ethAddress: string
+    nonce: string
+    signedMessage: string
+    signature: string
+  }) => {
+    if (!ethAddress || !utils.isAddress(ethAddress)) {
+      throw new UserInputError('address is invalid')
+    }
+    const sigTable = 'crypto_wallet_signature'
+
+    const atomService = new AtomService()
+    const lastSigning = await atomService.findFirst({
+      table: sigTable,
+      where: (builder: Knex.QueryBuilder) =>
+        builder
+          .where({ address: ethAddress, nonce })
+          .whereNull('signature')
+          .whereRaw('expired_at > CURRENT_TIMESTAMP'),
+      orderBy: [{ column: 'id', order: 'desc' }],
+    })
+
+    if (!lastSigning) {
+      throw new EthAddressNotFoundError(
+        `wallet signing for "${ethAddress}" not found`
+      )
+    }
+
+    // if it's smart contract wallet
+    const isValidSignature = async () => {
+      const MAGICVALUE = '0x1626ba7e'
+
+      const chainType = 'Polygon'
+
+      const chainNetwork = 'PolygonMainnet'
+
+      const provider = getAlchemyProvider(
+        Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
+      )
+
+      const bytecode = await provider.getCode(ethAddress.toLowerCase())
+
+      const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== '0x'
+
+      const hash = utils.hashMessage(signedMessage)
+
+      if (isSmartContract) {
+        // verify the message for a decentralized account (contract wallet)
+        const contractWallet = new Contract(ethAddress, IERC1271, provider)
+        const verification = await contractWallet.isValidSignature(
+          hash,
+          signature
+        )
+
+        const doneVerified = verification === MAGICVALUE
+
+        if (!doneVerified) {
+          throw new UserInputError('signature is not valid')
+        }
+      } else {
+        // verify signature for EOA account
+        const verifiedAddress = recoverPersonalSignature({
+          data: signedMessage,
+          sig: signature,
+        }).toLowerCase()
+
+        if (ethAddress.toLowerCase() !== verifiedAddress) {
+          throw new UserInputError('signature is not valid')
+        }
+      }
+    }
+    await isValidSignature()
+    return lastSigning
+  }
+
+  public addWallet = async (
+    userId: string,
+    ethAddress: string
+  ): Promise<User> => {
+    const user = await this.findByEthAddress(ethAddress)
+    if (user) {
+      throw new CryptoWalletExistsError('eth address already has a user')
+    }
+    const updatedUser = await this.baseUpdate(userId, {
+      updatedAt: this.knex.fn.now(),
+      ethAddress: ethAddress.toLowerCase(), // save the lower case ones
+    })
+
+    // archive crypto_wallet entry
+    const atomService = new AtomService()
+    await atomService.update({
+      table: 'crypto_wallet',
+      where: { userId, archived: false },
+      data: { updatedAt: this.knex.fn.now(), archived: true },
+    })
+
+    return updatedUser
   }
 
   /*********************************
