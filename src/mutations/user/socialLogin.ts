@@ -3,7 +3,7 @@ import type { GQLMutationResolvers } from 'definitions'
 import { AUTH_RESULT_TYPE } from 'common/enums'
 import { setCookie } from 'common/utils'
 
-const resolver: GQLMutationResolvers['socialLogin'] = async (
+export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,
   __,
   { dataSources: { userService }, req, res }
@@ -20,4 +20,15 @@ const resolver: GQLMutationResolvers['socialLogin'] = async (
   }
 }
 
-export default resolver
+export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
+  _,
+  __,
+  { dataSources: { userService }, viewer }
+) => {
+  return userService.loadById(viewer.id)
+}
+
+export const removeSocialLogin: GQLMutationResolvers['removeSocialLogin'] =
+  async (_, __, { dataSources: { userService }, viewer }) => {
+    return userService.loadById(viewer.id)
+  }

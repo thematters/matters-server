@@ -18,6 +18,10 @@ import resetPassword from './resetPassword'
 import resetWallet from './resetWallet'
 import sendVerificationCode from './sendVerificationCode'
 import setCurrency from './setCurrency'
+import setEmail from './setEmail'
+import setPassword from './setPassword'
+import setUserName from './setUserName'
+import { socialLogin, addSocialLogin, removeSocialLogin } from './socialLogin'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
@@ -59,6 +63,9 @@ export default {
     clearSearchHistory,
     updateUserState,
     updateUserRole,
+    setEmail,
+    setUserName,
+    setPassword,
     refreshIPNSFeed,
     migration,
     addCredit,
@@ -69,5 +76,8 @@ export default {
     unbindLikerId,
     claimLogbooks,
     putFeaturedTags,
+    socialLogin,
+    addSocialLogin,
+    removeSocialLogin,
   },
 }
