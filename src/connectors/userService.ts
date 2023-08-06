@@ -57,6 +57,7 @@ import {
   PasswordInvalidError,
   UserInputError,
   PasswordNotAvailableError,
+  NameExistsError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -353,6 +354,21 @@ export class UserService extends BaseService {
       .select()
       .where({ userId })
     return history.length <= 0
+  }
+
+  public setUserName = async (
+    userId: string,
+    userName: string
+  ): Promise<User> => {
+    if (!isValidUserName(userName)) {
+      throw new NameInvalidError('invalid user name')
+    }
+
+    if (await this.checkUserNameExists(userName)) {
+      throw new NameExistsError('user name already exists')
+    }
+
+    return this.baseUpdate(userId, { userName, updatedAt: this.knex.fn.now() })
   }
 
   /**
