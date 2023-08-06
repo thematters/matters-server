@@ -7,6 +7,7 @@ import type {
   User,
   VerficationCode,
   ValueOf,
+  DataSources,
 } from 'definitions'
 
 import { compare } from 'bcrypt'
@@ -43,6 +44,10 @@ import {
   VERIFICATION_CODE_TYPE,
   USER_RESTRICTION_TYPE,
   VIEW,
+  AUTO_FOLLOW_TAGS,
+  CIRCLE_STATE,
+  DB_NOTICE_TYPE,
+  INVITATION_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -50,8 +55,8 @@ import {
   EthAddressNotFoundError,
   NameInvalidError,
   PasswordInvalidError,
-  PasswordNotAvailableError,
   UserInputError,
+  PasswordNotAvailableError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -108,7 +113,7 @@ export class UserService extends BaseService {
     email,
     ethAddress,
   }: {
-    userName: string
+    userName?: string
     displayName?: string
     // description?: string
     password?: string
@@ -149,6 +154,57 @@ export class UserService extends BaseService {
     return user
   }
 
+  public postRegister = async (
+    user: User,
+    { tagService }: Pick<DataSources, 'tagService'>
+  ) => {
+    const notificationService = new NotificationService()
+    const atomService = new AtomService()
+    // auto follow matty
+    await this.follow(user.id, environment.mattyId)
+
+    // auto follow tags
+    await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
+
+    // send email
+    if (user.email && user.displayName) {
+      notificationService.mail.sendRegisterSuccess({
+        to: user.email,
+        recipient: {
+          displayName: user.displayName,
+        },
+        language: user.language,
+      })
+    }
+
+    // send circle invitations' notices if user is invited
+    if (user.email) {
+      const invitations = await atomService.findMany({
+        table: 'circle_invitation',
+        where: { email: user.email, state: INVITATION_STATE.pending },
+      })
+      await Promise.all(
+        invitations.map(async (invitation) => {
+          const circle = await atomService.findFirst({
+            table: 'circle',
+            where: {
+              id: invitation.circleId,
+              state: CIRCLE_STATE.active,
+            },
+          })
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_invitation,
+            actorId: invitation.inviter,
+            recipientId: user.id,
+            entities: [
+              { type: 'target', entityTable: 'circle', entity: circle },
+            ],
+          })
+        })
+      )
+    }
+  }
+
   public verifyPassword = async ({
     password,
     hash: passwordHash,
@@ -161,6 +217,16 @@ export class UserService extends BaseService {
     if (!auth) {
       throw new PasswordInvalidError('Password incorrect, login failed.')
     }
+  }
+
+  /**
+   * return jwt token. Default to expires in 24 * 90 hours
+   */
+  public genSessionToken = async (userId: string) => {
+    logger.info(`User logged in with id ${userId}.`)
+    return jwt.sign({ id: userId }, environment.jwtSecret, {
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+    })
   }
 
   /**
@@ -184,7 +250,6 @@ export class UserService extends BaseService {
       }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
-
     if (!user.passwordHash) {
       throw new PasswordNotAvailableError(
         'Password login not available for this user, login failed.'
@@ -193,9 +258,7 @@ export class UserService extends BaseService {
 
     await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-    })
+    const token = await this.genSessionToken(user.id)
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {

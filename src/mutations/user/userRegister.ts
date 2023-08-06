@@ -1,15 +1,10 @@
 import type { AuthMode, GQLMutationResolvers } from 'definitions'
 
 import {
-  AUTO_FOLLOW_TAGS,
-  CIRCLE_STATE,
-  DB_NOTICE_TYPE,
-  INVITATION_STATE,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -36,8 +31,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
   context
 ) => {
   const {
-    viewer,
-    dataSources: { atomService, tagService, userService, notificationService },
+    dataSources: { tagService, userService },
     req,
     res,
   } = context
@@ -106,50 +100,12 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
     email,
     userName: newUserName.toLowerCase(),
   })
-
-  // auto follow matty
-  await userService.follow(newUser.id, environment.mattyId)
-
-  // auto follow tags
-  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
-
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
-
-  // send email
-  notificationService.mail.sendRegisterSuccess({
-    to: email,
-    recipient: {
-      displayName,
-    },
-    language: viewer.language,
-  })
-
-  // send circle invitations' notices if user is invited
-  const invitations = await atomService.findMany({
-    table: 'circle_invitation',
-    where: { email, state: INVITATION_STATE.pending },
-  })
-  await Promise.all(
-    invitations.map(async (invitation) => {
-      const circle = await atomService.findFirst({
-        table: 'circle',
-        where: {
-          id: invitation.circleId,
-          state: CIRCLE_STATE.active,
-        },
-      })
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_invitation,
-        actorId: invitation.inviter,
-        recipientId: newUser.id,
-        entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
-      })
-    })
-  )
+  await userService.postRegister(newUser, { tagService })
 
   const { token, user } = await userService.loginByEmail({ ...input, email })
 

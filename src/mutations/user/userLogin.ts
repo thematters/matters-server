@@ -5,7 +5,7 @@ import { getViewerFromUser, setCookie } from 'common/utils'
 
 const resolver: GQLMutationResolvers['userLogin'] = async (
   _,
-  { input },
+  { input: { email: rawEmail, password } },
   context
 ) => {
   const {
@@ -14,14 +14,15 @@ const resolver: GQLMutationResolvers['userLogin'] = async (
     res,
   } = context
 
-  const email = input.email.toLowerCase()
+  const email = rawEmail.toLowerCase()
   const archivedCallback = async () =>
     systemService.saveAgentHash(context.viewer.agentHash || '', email)
   const { token, user } = await userService.loginByEmail({
-    ...input,
     email,
+    password,
     archivedCallback,
   })
+  await userService.verifyPassword({ password, hash: user.passwordHash })
 
   setCookie({ req, res, token, user })
 

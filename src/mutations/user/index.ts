@@ -5,6 +5,7 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
+import emailLogin from './emailLogin'
 import generateLikerId from './generateLikerId'
 import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
@@ -40,6 +41,7 @@ export default {
     changeEmail,
     userRegister,
     userLogin,
+    emailLogin,
     userLogout,
     walletLogin,
     resetWallet,
