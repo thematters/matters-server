@@ -63,6 +63,7 @@ import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidUserName,
+  isValidPassword,
   makeUserName,
   getPunishExpiredDate,
 } from 'common/utils'
@@ -348,6 +349,15 @@ export class UserService extends BaseService {
         likerId: likerId.toLowerCase(),
       })
       .first()
+  public setPassword = async (userId: string, password: string) => {
+    // check password
+    if (!isValidPassword(password)) {
+      throw new PasswordInvalidError('invalid user password')
+    }
+    return await this.baseUpdate(userId, {
+      password: generatePasswordhash(password),
+    })
+  }
 
   public isUserNameEditable = async (userId: string) => {
     const history = await this.knex('username_edit_history')
@@ -368,7 +378,7 @@ export class UserService extends BaseService {
       throw new NameExistsError('user name already exists')
     }
 
-    return this.baseUpdate(userId, { userName, updatedAt: this.knex.fn.now() })
+    return await this.baseUpdate(userId, { userName })
   }
 
   /**
