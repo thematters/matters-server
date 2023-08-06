@@ -58,6 +58,7 @@ import {
   UserInputError,
   PasswordNotAvailableError,
   NameExistsError,
+  EmailExistsError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -349,8 +350,19 @@ export class UserService extends BaseService {
         likerId: likerId.toLowerCase(),
       })
       .first()
+
+  public setEmail = async (userId: string, email: string): Promise<User> => {
+    const user = await this.findByEmail(email)
+    if (user && user.id !== userId) {
+      throw new EmailExistsError('email already exists')
+    } else if (user && user.id === userId) {
+      return user
+    } else {
+      return await this.baseUpdate(userId, { email, emailVerified: false })
+    }
+  }
+
   public setPassword = async (userId: string, password: string) => {
-    // check password
     if (!isValidPassword(password)) {
       throw new PasswordInvalidError('invalid user password')
     }
