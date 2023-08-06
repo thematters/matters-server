@@ -77,7 +77,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   setCookie({ req, res, token: sessionToken, user })
 
   return {
-    token,
+    token: sessionToken,
     auth: true,
     type:
       type === 'register' ? AUTH_RESULT_TYPE.Signup : AUTH_RESULT_TYPE.Login,
