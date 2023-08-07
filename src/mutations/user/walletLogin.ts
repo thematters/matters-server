@@ -50,7 +50,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
    */
   if (viewer.id && viewer.token && !viewer.ethAddress) {
     await atomService.update({
-      table: 'crypto_wallet_signature',
+      table: sigTable,
       where: { id: lastSigning.id },
       data: {
         signature,
