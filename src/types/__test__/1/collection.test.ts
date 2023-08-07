@@ -136,7 +136,7 @@ describe('get viewer collections', () => {
     const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_COLLECTIONS,
     })
-    expect(data.viewer).toBe(null)
+    expect(data?.viewer?.collections?.totalCount).toBe(0)
     expect(errors).toBeUndefined()
   })
 
