@@ -377,10 +377,10 @@ export class LikeCoin {
   }: {
     likerId: string
     userId: string
-  }) => {
+  }): Promise<boolean> => {
     const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
     const keys = { id: likerId }
-    const isCivicLiker = await cache.getObject({
+    const isCivicLiker = (await cache.getObject({
       keys,
       getter: async () => {
         this.updateCivicLikerCache({
@@ -392,8 +392,8 @@ export class LikeCoin {
         return false
       },
       expire: CACHE_TTL.MEDIUM,
-    })
-    return isCivicLiker
+    })) as boolean | null
+    return isCivicLiker ?? false
   }
 
   /**
