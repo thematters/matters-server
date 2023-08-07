@@ -290,7 +290,7 @@ export class BaseService {
   ) => {
     const query = this.knex
       .where('id', id)
-      .update(data)
+      .update({ ...data, updatedAt: this.knex.fn.now() })
       .into(table || this.table)
       .returning('*')
 

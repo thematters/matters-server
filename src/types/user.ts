@@ -17,16 +17,21 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
+    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'setEmail' instead")
+
+    "Set user email."
+    setEmail(input: SetEmailInput!): User! @auth(mode: "oauth")
 
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Register user, can only be used on matters.{town,news} website."
-    userRegister(input: UserRegisterInput!): AuthResult!
+    userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
 
     "Login user."
-    userLogin(input: UserLoginInput!): AuthResult!
+    userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
+
+    emailLogin(input: EmailLoginInput!): AuthResult!
 
     "Get signing message."
     generateSigningMessage(input: GenerateSigningMessageInput!): SigningMessageResult!
@@ -34,11 +39,27 @@ export default /* GraphQL */ `
     "Login/Signup via a wallet."
     walletLogin(input: WalletLoginInput!): AuthResult!
 
+    "Add a wallet login to current user."
+    addWalletLogin(input: WalletLoginInput!): User! @auth(mode: "oauth")
+
+    "Remove a wallet login from current user."
+    removeWalletLogin: User! @auth(mode: "oauth")
+
+    "Login/Signup via social accounts."
+    socialLogin(input: SocialLoginInput!): AuthResult!
+
+    "Add a social login to current user."
+    addSocialLogin(input: SocialLoginInput!): User! @auth(mode: "oauth")
+
+    "Remove a social login from current user."
+    removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth")
+
     "Reset crypto wallet."
     resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Logout user."
     userLogout: Boolean!
+
 
     "Generate or claim a Liker ID through LikeCoin"
     generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -48,6 +69,12 @@ export default /* GraphQL */ `
 
     "Update user information."
     updateUserInfo(input: UpdateUserInfoInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
+
+    "Set user name."
+    setUserName(input: SetUserNameInput!): User! @auth(mode: "oauth")
+
+    "Set user email login password."
+    setPassword(input: SetPasswordInput!): User! @auth(mode: "oauth")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
@@ -265,6 +292,12 @@ export default /* GraphQL */ `
     "User email."
     email: String @constraint(format: "email") @auth(mode: "${AUTH_MODE.oauth}")
 
+    "Weather user email is verified."
+    emailVerified: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "User connected social accounts."
+    socialAccounts: [SocialAccount!]!
+
     "User badges."
     badges: [Badge!]
 
@@ -364,12 +397,14 @@ export default /* GraphQL */ `
     "Number of unread notices."
     unreadNoticeCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
-
     "Whether there are unread activities from following."
     unreadFollowing: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Number of total written words."
     totalWordCount: Int!
+
+    "Weather login password is set for email login."
+    hasEmailLoginPassword: Boolean!
   }
 
   type Liker {
@@ -718,10 +753,10 @@ export default /* GraphQL */ `
     nonce: String!
 
     "required for wallet register"
-    email: String @constraint(format: "email")
+    email: String @constraint(format: "email") @deprecated(reason: "No longer in use")
 
     "email verification code, required for wallet register"
-    codeId: ID
+    codeId: ID @deprecated(reason: "No longer in use")
   }
 
   input ResetLikerIdInput {
@@ -739,7 +774,7 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
-    userName: String
+    userName: String @deprecated(reason: "use 'setUserName' instead")
     avatar: ID
     description: String
     language: UserLanguage
@@ -822,9 +857,11 @@ export default /* GraphQL */ `
 
   enum VerificationCodeType {
     register
-    email_reset
-    email_reset_confirm
-    password_reset
+    email_verify
+    email_otp
+    email_reset @deprecated(reason: "No longer in use")
+    email_reset_confirm @deprecated(reason: "No longer in use")
+    password_reset @deprecated(reason: "No longer in use")
     payment_password_reset
   }
 
@@ -933,8 +970,52 @@ export default /* GraphQL */ `
   }
 
   enum QuoteCurrency {
-      TWD
-      HKD
-      USD
+    TWD
+    HKD
+    USD
+  }
+
+  type SocialAccount {
+    type: SocialAccountType!
+    userName: String
+    email: String
+  }
+
+  enum SocialAccountType {
+    Google
+    Twitter
+    Facebook
+  }
+
+  input EmailLoginInput {
+    email: String!
+    type: EmailLoginType!
+    token: String!
+  }
+
+  enum EmailLoginType {
+    register
+    login
+  }
+
+  input SocialLoginInput {
+    type: SocialAccountType!
+    token: String!
+  }
+
+  input SetUserNameInput {
+    userName: String!
+  }
+
+  input SetEmailInput {
+    email: String!
+  }
+
+  input SetPasswordInput {
+    password: String!
+  }
+
+  input RemoveSocialLoginInput {
+    type: SocialAccountType!
   }
 `

@@ -1199,6 +1199,14 @@ export type GQLEditArticleInput = {
   tags?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
+export type GQLEmailLoginInput = {
+  email: Scalars['String']['input']
+  token: Scalars['String']['input']
+  type: GQLEmailLoginType
+}
+
+export type GQLEmailLoginType = 'login' | 'register'
+
 export type GQLEntityType =
   | 'announcement'
   | 'article'
@@ -1469,9 +1477,16 @@ export type GQLMutation = {
   addCollectionsArticles: Array<GQLCollection>
   /** Add Credit to User Wallet */
   addCredit: GQLAddCreditResult
+  /** Add a social login to current user. */
+  addSocialLogin: GQLUser
+  /** Add a wallet login to current user. */
+  addWalletLogin: GQLUser
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
-  /** Change user email. */
+  /**
+   * Change user email.
+   * @deprecated use 'setEmail' instead
+   */
   changeEmail: GQLUser
   /** Let Traveloggers owner claims a Logbook, returns transaction hash */
   claimLogbooks: GQLClaimLogbooksResult
@@ -1500,6 +1515,7 @@ export type GQLMutation = {
   deleteTopics: Scalars['Boolean']['output']
   /** Edit an article. */
   editArticle: GQLArticle
+  emailLogin: GQLAuthResult
   /** Generate or claim a Liker ID through LikeCoin */
   generateLikerId: GQLUser
   /** Get signing message. */
@@ -1551,6 +1567,10 @@ export type GQLMutation = {
   readArticle: GQLArticle
   /** Update state of a user, used in OSS. */
   refreshIPNSFeed: GQLUser
+  /** Remove a social login from current user. */
+  removeSocialLogin: GQLUser
+  /** Remove a wallet login from current user. */
+  removeWalletLogin: GQLUser
   renameTag: GQLTag
   /** Reorder articles in the collection. */
   reorderCollectionArticles: GQLCollection
@@ -1565,9 +1585,17 @@ export type GQLMutation = {
   setBoost: GQLNode
   /** Set user currency preference. */
   setCurrency: GQLUser
+  /** Set user email. */
+  setEmail: GQLUser
   setFeature: GQLFeature
+  /** Set user email login password. */
+  setPassword: GQLUser
+  /** Set user name. */
+  setUserName: GQLUser
   /** Upload a single file. */
   singleFileUpload: GQLAsset
+  /** Login/Signup via social accounts. */
+  socialLogin: GQLAuthResult
   /** Sort topics */
   sortTopics: Array<GQLTopic>
   /** Subscribe a Circle. */
@@ -1616,11 +1644,17 @@ export type GQLMutation = {
   updateUserRole: GQLUser
   /** Update state of a user, used in OSS. */
   updateUserState?: Maybe<Array<GQLUser>>
-  /** Login user. */
+  /**
+   * Login user.
+   * @deprecated use 'emailLogin' instead
+   */
   userLogin: GQLAuthResult
   /** Logout user. */
   userLogout: Scalars['Boolean']['output']
-  /** Register user, can only be used on matters.{town,news} website. */
+  /**
+   * Register user, can only be used on matters.{town,news} website.
+   * @deprecated use 'emailLogin' instead
+   */
   userRegister: GQLAuthResult
   /** Upvote or downvote a comment. */
   voteComment: GQLComment
@@ -1642,6 +1676,14 @@ export type GQLMutationAddCollectionsArticlesArgs = {
 
 export type GQLMutationAddCreditArgs = {
   input: GQLAddCreditInput
+}
+
+export type GQLMutationAddSocialLoginArgs = {
+  input: GQLSocialLoginInput
+}
+
+export type GQLMutationAddWalletLoginArgs = {
+  input: GQLWalletLoginInput
 }
 
 export type GQLMutationAppreciateArticleArgs = {
@@ -1706,6 +1748,10 @@ export type GQLMutationDeleteTopicsArgs = {
 
 export type GQLMutationEditArticleArgs = {
   input: GQLEditArticleInput
+}
+
+export type GQLMutationEmailLoginArgs = {
+  input: GQLEmailLoginInput
 }
 
 export type GQLMutationGenerateSigningMessageArgs = {
@@ -1808,6 +1854,10 @@ export type GQLMutationRefreshIpnsFeedArgs = {
   input: GQLRefreshIpnsFeedInput
 }
 
+export type GQLMutationRemoveSocialLoginArgs = {
+  input: GQLRemoveSocialLoginInput
+}
+
 export type GQLMutationRenameTagArgs = {
   input: GQLRenameTagInput
 }
@@ -1840,12 +1890,28 @@ export type GQLMutationSetCurrencyArgs = {
   input: GQLSetCurrencyInput
 }
 
+export type GQLMutationSetEmailArgs = {
+  input: GQLSetEmailInput
+}
+
 export type GQLMutationSetFeatureArgs = {
   input: GQLSetFeatureInput
 }
 
+export type GQLMutationSetPasswordArgs = {
+  input: GQLSetPasswordInput
+}
+
+export type GQLMutationSetUserNameArgs = {
+  input: GQLSetUserNameInput
+}
+
 export type GQLMutationSingleFileUploadArgs = {
   input: GQLSingleFileUploadInput
+}
+
+export type GQLMutationSocialLoginArgs = {
+  input: GQLSocialLoginInput
 }
 
 export type GQLMutationSortTopicsArgs = {
@@ -2603,6 +2669,10 @@ export type GQLRemarkTypes =
   | 'Tag'
   | 'User'
 
+export type GQLRemoveSocialLoginInput = {
+  type: GQLSocialAccountType
+}
+
 export type GQLRenameTagInput = {
   content: Scalars['String']['input']
   id: Scalars['ID']['input']
@@ -2733,9 +2803,21 @@ export type GQLSetCurrencyInput = {
   currency?: InputMaybe<GQLQuoteCurrency>
 }
 
+export type GQLSetEmailInput = {
+  email: Scalars['String']['input']
+}
+
 export type GQLSetFeatureInput = {
   flag: GQLFeatureFlag
   name: GQLFeatureName
+}
+
+export type GQLSetPasswordInput = {
+  password: Scalars['String']['input']
+}
+
+export type GQLSetUserNameInput = {
+  userName: Scalars['String']['input']
 }
 
 export type GQLSigningMessagePurpose =
@@ -2792,6 +2874,20 @@ export type GQLSkippedListItemsInput = {
   after?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   type?: InputMaybe<GQLSkippedListItemType>
+}
+
+export type GQLSocialAccount = {
+  __typename?: 'SocialAccount'
+  email?: Maybe<Scalars['String']['output']>
+  type: GQLSocialAccountType
+  userName?: Maybe<Scalars['String']['output']>
+}
+
+export type GQLSocialAccountType = 'Facebook' | 'Google' | 'Twitter'
+
+export type GQLSocialLoginInput = {
+  token: Scalars['String']['input']
+  type: GQLSocialAccountType
 }
 
 export type GQLSortTopicsInput = {
@@ -3278,6 +3374,7 @@ export type GQLUpdateUserInfoInput = {
   paymentPassword?: InputMaybe<Scalars['String']['input']>
   paymentPointer?: InputMaybe<Scalars['String']['input']>
   profileCover?: InputMaybe<Scalars['ID']['input']>
+  /** @deprecated use 'setUserName' instead */
   userName?: InputMaybe<Scalars['String']['input']>
 }
 
@@ -3517,6 +3614,8 @@ export type GQLUserInfo = {
   description?: Maybe<Scalars['String']['output']>
   /** User email. */
   email?: Maybe<Scalars['String']['output']>
+  /** Weather user email is verified. */
+  emailVerified: Scalars['Boolean']['output']
   /** Login address */
   ethAddress?: Maybe<Scalars['String']['output']>
   /** saved tags for showing on profile page, API allows up to 100, front-end lock'ed at lower limit */
@@ -3528,6 +3627,8 @@ export type GQLUserInfo = {
   isWalletAuth: Scalars['Boolean']['output']
   /** Cover of profile page. */
   profileCover?: Maybe<Scalars['String']['output']>
+  /** User connected social accounts. */
+  socialAccounts: Array<GQLSocialAccount>
   /** Is user name editable. */
   userNameEditable: Scalars['Boolean']['output']
 }
@@ -3636,6 +3737,8 @@ export type GQLUserStatus = {
   commentCount: Scalars['Int']['output']
   /** Number of articles donated by user */
   donatedArticleCount: Scalars['Int']['output']
+  /** Weather login password is set for email login. */
+  hasEmailLoginPassword: Scalars['Boolean']['output']
   /** Whether user already set payment password. */
   hasPaymentPassword: Scalars['Boolean']['output']
   /** Number of times of donations received by user */
@@ -3653,8 +3756,10 @@ export type GQLUserStatus = {
 }
 
 export type GQLVerificationCodeType =
+  | 'email_otp'
   | 'email_reset'
   | 'email_reset_confirm'
+  | 'email_verify'
   | 'password_reset'
   | 'payment_password_reset'
   | 'register'
@@ -3688,9 +3793,15 @@ export type GQLWalletTransactionsArgs = {
 }
 
 export type GQLWalletLoginInput = {
-  /** email verification code, required for wallet register */
+  /**
+   * email verification code, required for wallet register
+   * @deprecated No longer in use
+   */
   codeId?: InputMaybe<Scalars['ID']['input']>
-  /** required for wallet register */
+  /**
+   * required for wallet register
+   * @deprecated No longer in use
+   */
   email?: InputMaybe<Scalars['String']['input']>
   ethAddress: Scalars['String']['input']
   /** nonce from generateSigningMessage */
@@ -4100,6 +4211,8 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLDraftEdge, 'node'> & { node: GQLResolversTypes['Draft'] }
   >
   EditArticleInput: GQLEditArticleInput
+  EmailLoginInput: GQLEmailLoginInput
+  EmailLoginType: GQLEmailLoginType
   EntityType: GQLEntityType
   ExchangeRate: ResolverTypeWrapper<GQLExchangeRate>
   ExchangeRatesInput: GQLExchangeRatesInput
@@ -4268,6 +4381,7 @@ export type GQLResolversTypes = ResolversObject<{
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
+  RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
@@ -4295,7 +4409,10 @@ export type GQLResolversTypes = ResolversObject<{
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
+  SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
+  SetPasswordInput: GQLSetPasswordInput
+  SetUserNameInput: GQLSetUserNameInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -4304,6 +4421,9 @@ export type GQLResolversTypes = ResolversObject<{
   SkippedListItemType: GQLSkippedListItemType
   SkippedListItemsConnection: ResolverTypeWrapper<GQLSkippedListItemsConnection>
   SkippedListItemsInput: GQLSkippedListItemsInput
+  SocialAccount: ResolverTypeWrapper<GQLSocialAccount>
+  SocialAccountType: GQLSocialAccountType
+  SocialLoginInput: GQLSocialLoginInput
   SortTopicsInput: GQLSortTopicsInput
   String: ResolverTypeWrapper<Scalars['String']['output']>
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
@@ -4585,6 +4705,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Draft']
   }
   EditArticleInput: GQLEditArticleInput
+  EmailLoginInput: GQLEmailLoginInput
   ExchangeRate: GQLExchangeRate
   ExchangeRatesInput: GQLExchangeRatesInput
   Feature: GQLFeature
@@ -4711,6 +4832,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Recommendation: UserModel
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
+  RemoveSocialLoginInput: GQLRemoveSocialLoginInput
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
@@ -4730,13 +4852,18 @@ export type GQLResolversParentTypes = ResolversObject<{
   SendVerificationCodeInput: GQLSendVerificationCodeInput
   SetBoostInput: GQLSetBoostInput
   SetCurrencyInput: GQLSetCurrencyInput
+  SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
+  SetPasswordInput: GQLSetPasswordInput
+  SetUserNameInput: GQLSetUserNameInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
   SkippedListItem: GQLSkippedListItem
   SkippedListItemEdge: GQLSkippedListItemEdge
   SkippedListItemsConnection: GQLSkippedListItemsConnection
   SkippedListItemsInput: GQLSkippedListItemsInput
+  SocialAccount: GQLSocialAccount
+  SocialLoginInput: GQLSocialLoginInput
   SortTopicsInput: GQLSortTopicsInput
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
@@ -6378,6 +6505,18 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationAddCreditArgs, 'input'>
   >
+  addSocialLogin?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationAddSocialLoginArgs, 'input'>
+  >
+  addWalletLogin?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationAddWalletLoginArgs, 'input'>
+  >
   appreciateArticle?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
@@ -6478,6 +6617,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationEditArticleArgs, 'input'>
+  >
+  emailLogin?: Resolver<
+    GQLResolversTypes['AuthResult'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationEmailLoginArgs, 'input'>
   >
   generateLikerId?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   generateSigningMessage?: Resolver<
@@ -6635,6 +6780,17 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationRefreshIpnsFeedArgs, 'input'>
   >
+  removeSocialLogin?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationRemoveSocialLoginArgs, 'input'>
+  >
+  removeWalletLogin?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType
+  >
   renameTag?: Resolver<
     GQLResolversTypes['Tag'],
     ParentType,
@@ -6683,17 +6839,41 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSetCurrencyArgs, 'input'>
   >
+  setEmail?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetEmailArgs, 'input'>
+  >
   setFeature?: Resolver<
     GQLResolversTypes['Feature'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetFeatureArgs, 'input'>
   >
+  setPassword?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetPasswordArgs, 'input'>
+  >
+  setUserName?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetUserNameArgs, 'input'>
+  >
   singleFileUpload?: Resolver<
     GQLResolversTypes['Asset'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationSingleFileUploadArgs, 'input'>
+  >
+  socialLogin?: Resolver<
+    GQLResolversTypes['AuthResult'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSocialLoginArgs, 'input'>
   >
   sortTopics?: Resolver<
     Array<GQLResolversTypes['Topic']>,
@@ -7608,6 +7788,24 @@ export type GQLSkippedListItemsConnectionResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLSocialAccountResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['SocialAccount'] = GQLResolversParentTypes['SocialAccount']
+> = ResolversObject<{
+  email?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  type?: Resolver<
+    GQLResolversTypes['SocialAccountType'],
+    ParentType,
+    ContextType
+  >
+  userName?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLStripeAccountResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['StripeAccount'] = GQLResolversParentTypes['StripeAccount']
@@ -8253,6 +8451,11 @@ export type GQLUserInfoResolvers<
     ContextType
   >
   email?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  emailVerified?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   ethAddress?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
@@ -8272,6 +8475,11 @@ export type GQLUserInfoResolvers<
   isWalletAuth?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   profileCover?: Resolver<
     Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  socialAccounts?: Resolver<
+    Array<GQLResolversTypes['SocialAccount']>,
     ParentType,
     ContextType
   >
@@ -8384,6 +8592,11 @@ export type GQLUserStatusResolvers<
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donatedArticleCount?: Resolver<
     GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
+  hasEmailLoginPassword?: Resolver<
+    GQLResolversTypes['Boolean'],
     ParentType,
     ContextType
   >
@@ -8544,6 +8757,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   SkippedListItem?: GQLSkippedListItemResolvers<ContextType>
   SkippedListItemEdge?: GQLSkippedListItemEdgeResolvers<ContextType>
   SkippedListItemsConnection?: GQLSkippedListItemsConnectionResolvers<ContextType>
+  SocialAccount?: GQLSocialAccountResolvers<ContextType>
   StripeAccount?: GQLStripeAccountResolvers<ContextType>
   SubscribeCircleResult?: GQLSubscribeCircleResultResolvers<ContextType>
   Tag?: GQLTagResolvers<ContextType>

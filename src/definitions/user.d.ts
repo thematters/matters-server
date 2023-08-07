@@ -8,7 +8,7 @@ export interface User {
   description: string
   avatar: string
   email: string
-  emailVerified: string
+  emailVerified: boolean
   likerId?: string
   passwordHash: string
   paymentPointer?: string
@@ -23,7 +23,7 @@ export interface User {
   updatedAt: string
   agreeOn: string
   ethAddress: string
-  currency?: string
+  currency?: 'HKD' | 'TWD' | 'USD'
   profileCover?: string
 }
 

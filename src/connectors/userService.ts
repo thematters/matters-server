@@ -7,10 +7,13 @@ import type {
   User,
   VerficationCode,
   ValueOf,
+  DataSources,
 } from 'definitions'
 
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
+import { recoverPersonalSignature } from 'eth-sig-util'
+import { Contract, utils } from 'ethers'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -43,22 +46,33 @@ import {
   VERIFICATION_CODE_TYPE,
   USER_RESTRICTION_TYPE,
   VIEW,
+  AUTO_FOLLOW_TAGS,
+  CIRCLE_STATE,
+  DB_NOTICE_TYPE,
+  INVITATION_STATE,
+  BLOCKCHAIN_CHAINID,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
+  CryptoWalletExistsError,
   EthAddressNotFoundError,
   NameInvalidError,
   PasswordInvalidError,
-  PasswordNotAvailableError,
   UserInputError,
+  PasswordNotAvailableError,
+  NameExistsError,
+  EmailExistsError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
   generatePasswordhash,
   isValidUserName,
+  isValidPassword,
   makeUserName,
   getPunishExpiredDate,
+  getAlchemyProvider,
+  IERC1271,
 } from 'common/utils'
 import {
   AtomService,
@@ -108,7 +122,7 @@ export class UserService extends BaseService {
     email,
     ethAddress,
   }: {
-    userName: string
+    userName?: string
     displayName?: string
     // description?: string
     password?: string
@@ -149,6 +163,57 @@ export class UserService extends BaseService {
     return user
   }
 
+  public postRegister = async (
+    user: User,
+    { tagService }: Pick<DataSources, 'tagService'>
+  ) => {
+    const notificationService = new NotificationService()
+    const atomService = new AtomService()
+    // auto follow matty
+    await this.follow(user.id, environment.mattyId)
+
+    // auto follow tags
+    await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
+
+    // send email
+    if (user.email && user.displayName) {
+      notificationService.mail.sendRegisterSuccess({
+        to: user.email,
+        recipient: {
+          displayName: user.displayName,
+        },
+        language: user.language,
+      })
+    }
+
+    // send circle invitations' notices if user is invited
+    if (user.email) {
+      const invitations = await atomService.findMany({
+        table: 'circle_invitation',
+        where: { email: user.email, state: INVITATION_STATE.pending },
+      })
+      await Promise.all(
+        invitations.map(async (invitation) => {
+          const circle = await atomService.findFirst({
+            table: 'circle',
+            where: {
+              id: invitation.circleId,
+              state: CIRCLE_STATE.active,
+            },
+          })
+          notificationService.trigger({
+            event: DB_NOTICE_TYPE.circle_invitation,
+            actorId: invitation.inviter,
+            recipientId: user.id,
+            entities: [
+              { type: 'target', entityTable: 'circle', entity: circle },
+            ],
+          })
+        })
+      )
+    }
+  }
+
   public verifyPassword = async ({
     password,
     hash: passwordHash,
@@ -161,6 +226,15 @@ export class UserService extends BaseService {
     if (!auth) {
       throw new PasswordInvalidError('Password incorrect, login failed.')
     }
+  }
+
+  /**
+   * return jwt token. Default to expires in 24 * 90 hours
+   */
+  public genSessionToken = async (userId: string) => {
+    return jwt.sign({ id: userId }, environment.jwtSecret, {
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+    })
   }
 
   /**
@@ -184,7 +258,6 @@ export class UserService extends BaseService {
       }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
-
     if (!user.passwordHash) {
       throw new PasswordNotAvailableError(
         'Password login not available for this user, login failed.'
@@ -193,9 +266,7 @@ export class UserService extends BaseService {
 
     await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-    })
+    const token = await this.genSessionToken(user.id)
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
@@ -229,9 +300,7 @@ export class UserService extends BaseService {
     // no password; caller of this has verified eth signature
     // await this.verifyPassword({ password, hash: user.passwordHash })
 
-    const token = jwt.sign({ id: user.id }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-    })
+    const token = await this.genSessionToken(user.id)
 
     logger.info(
       `User logged in with uuid ${user.uuid} ethAddress ${ethAddress}.`
@@ -288,11 +357,46 @@ export class UserService extends BaseService {
       })
       .first()
 
+  public setEmail = async (userId: string, email: string): Promise<User> => {
+    const user = await this.findByEmail(email)
+    if (user && user.id !== userId) {
+      throw new EmailExistsError('email already exists')
+    } else if (user && user.id === userId) {
+      return user
+    } else {
+      return await this.baseUpdate(userId, { email, emailVerified: false })
+    }
+  }
+
+  public setPassword = async (userId: string, password: string) => {
+    if (!isValidPassword(password)) {
+      throw new PasswordInvalidError('invalid user password')
+    }
+    return await this.baseUpdate(userId, {
+      passwordHash: await generatePasswordhash(password),
+    })
+  }
+
   public isUserNameEditable = async (userId: string) => {
     const history = await this.knex('username_edit_history')
       .select()
       .where({ userId })
     return history.length <= 0
+  }
+
+  public setUserName = async (
+    userId: string,
+    userName: string
+  ): Promise<User> => {
+    if (!isValidUserName(userName)) {
+      throw new NameInvalidError('invalid user name')
+    }
+
+    if (await this.checkUserNameExists(userName)) {
+      throw new NameExistsError('user name already exists')
+    }
+
+    return await this.baseUpdate(userId, { userName })
   }
 
   /**
@@ -1924,6 +2028,110 @@ export class UserService extends BaseService {
       state: USER_STATE.banned,
     })
     return await this.baseUpdate(userId, { state })
+  }
+
+  public verifyWalletSignature = async ({
+    ethAddress,
+    nonce,
+    signedMessage,
+    signature,
+  }: {
+    ethAddress: string
+    nonce: string
+    signedMessage: string
+    signature: string
+  }) => {
+    if (!ethAddress || !utils.isAddress(ethAddress)) {
+      throw new UserInputError('address is invalid')
+    }
+    const sigTable = 'crypto_wallet_signature'
+
+    const atomService = new AtomService()
+    const lastSigning = await atomService.findFirst({
+      table: sigTable,
+      where: (builder: Knex.QueryBuilder) =>
+        builder
+          .where({ address: ethAddress, nonce })
+          .whereNull('signature')
+          .whereRaw('expired_at > CURRENT_TIMESTAMP'),
+      orderBy: [{ column: 'id', order: 'desc' }],
+    })
+
+    if (!lastSigning) {
+      throw new EthAddressNotFoundError(
+        `wallet signing for "${ethAddress}" not found`
+      )
+    }
+
+    // if it's smart contract wallet
+    const isValidSignature = async () => {
+      const MAGICVALUE = '0x1626ba7e'
+
+      const chainType = 'Polygon'
+
+      const chainNetwork = 'PolygonMainnet'
+
+      const provider = getAlchemyProvider(
+        Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
+      )
+
+      const bytecode = await provider.getCode(ethAddress.toLowerCase())
+
+      const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== '0x'
+
+      const hash = utils.hashMessage(signedMessage)
+
+      if (isSmartContract) {
+        // verify the message for a decentralized account (contract wallet)
+        const contractWallet = new Contract(ethAddress, IERC1271, provider)
+        const verification = await contractWallet.isValidSignature(
+          hash,
+          signature
+        )
+
+        const doneVerified = verification === MAGICVALUE
+
+        if (!doneVerified) {
+          throw new UserInputError('signature is not valid')
+        }
+      } else {
+        // verify signature for EOA account
+        const verifiedAddress = recoverPersonalSignature({
+          data: signedMessage,
+          sig: signature,
+        }).toLowerCase()
+
+        if (ethAddress.toLowerCase() !== verifiedAddress) {
+          throw new UserInputError('signature is not valid')
+        }
+      }
+    }
+    await isValidSignature()
+    return lastSigning
+  }
+
+  public addWallet = async (
+    userId: string,
+    ethAddress: string
+  ): Promise<User> => {
+    const user = await this.findByEthAddress(ethAddress)
+    if (user) {
+      throw new CryptoWalletExistsError('eth address already has a user')
+    }
+    const updatedUser = await this.baseUpdate(userId, {
+      updatedAt: this.knex.fn.now(),
+      ethAddress: ethAddress.toLowerCase(), // save the lower case ones
+    })
+
+    // archive crypto_wallet entry
+    const atomService = new AtomService()
+    await atomService.update({
+      table: 'crypto_wallet',
+      where: { userId, archived: false },
+      data: { updatedAt: this.knex.fn.now(), archived: true },
+    })
+
+    return updatedUser
   }
 
   /*********************************

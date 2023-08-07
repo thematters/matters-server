@@ -5,7 +5,6 @@ import type {
   GQLFollowingResolvers,
   GQLLikerResolvers,
   GQLQueryResolvers,
-  GQLQuoteCurrency,
   GQLRecommendationResolvers,
   GQLStripeAccountResolvers,
   GQLTransactionTargetResolvers,
@@ -13,7 +12,6 @@ import type {
   GQLUserActivityResolvers,
   GQLUserAnalyticsResolvers,
   GQLUserInfoResolvers,
-  GQLUserLanguage,
   GQLUserOssResolvers,
   GQLUserSettingsResolvers,
   GQLUserStatusResolvers,
@@ -59,6 +57,7 @@ import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
+import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
@@ -141,26 +140,18 @@ const user: {
     ipnsKey,
     badges,
     userNameEditable,
-    email: (root) => {
-      if (root.id === null) {
-        return null
-      }
-      return root.email && root.email.replace(/#/g, '@')
-    },
+    email: ({ email }) => email && email.replace(/#/g, '@'),
+    emailVerified: ({ emailVerified }) => emailVerified || false,
     profileCover,
     group,
     isWalletAuth,
     cryptoWallet,
     featuredTags,
+    socialAccounts,
   },
   UserSettings: {
-    language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
-    currency: (root) => {
-      if (root.id === null) {
-        return 'USD' as GQLQuoteCurrency
-      }
-      return (root.currency || 'USD') as GQLQuoteCurrency
-    },
+    language: ({ language }) => language || 'zh_hant',
+    currency: ({ currency }) => currency || 'USD',
     notification,
   },
   UserActivity,
@@ -174,6 +165,7 @@ const user: {
     totalWordCount,
     donatedArticleCount,
     receivedDonationCount,
+    hasEmailLoginPassword: ({ passwordHash }) => passwordHash !== null,
   },
   Appreciation,
 
