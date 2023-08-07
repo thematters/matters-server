@@ -373,7 +373,7 @@ export class UserService extends BaseService {
       throw new PasswordInvalidError('invalid user password')
     }
     return await this.baseUpdate(userId, {
-      password: generatePasswordhash(password),
+      passwordHash: await generatePasswordhash(password),
     })
   }
 
