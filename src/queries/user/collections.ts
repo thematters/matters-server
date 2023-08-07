@@ -3,10 +3,15 @@ import type { GQLUserResolvers } from 'definitions'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLUserResolvers['collections'] = async (
-  { id },
+  user,
   { input },
   { dataSources: { collectionService } }
 ) => {
+  const { id } = user
+  // if visitor is not logged in, return empty collections
+  if (!id) {
+    return connectionFromArray([], input)
+  }
   const { take, skip } = fromConnectionArgs(input)
 
   if (take === 0) {

@@ -162,7 +162,9 @@ describe('Anonymous query and mutation', () => {
       query: VIEWER_SCOPED_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
-    expect(data.viewer).toBe(null)
+    expect(data && data.viewer.id).toBe('')
+    expect(data && data.viewer.displayName).toBe(null)
+    expect(data && data.viewer.info.email).toBe(null)
     expect(data && data.user.displayName).toBe(otherUserName)
   })
 

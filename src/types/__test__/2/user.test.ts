@@ -543,7 +543,10 @@ describe('user query fields', () => {
       query: GET_VIEWER_SETTINGS,
     })
     const { data } = res
-    expect(data.viewer).toBeNull()
+    const settings = _get(data, 'viewer.settings')
+    expect(settings.language).toBe('zh_hant')
+    expect(settings.currency).toBe('USD')
+    expect(settings.notification).toBeNull()
   })
 
   test('retrive UserSettings', async () => {
@@ -619,7 +622,8 @@ describe('user query fields', () => {
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: {} },
     })
-    expect(data.viewer).toBeNull()
+    const donators = _get(data, 'viewer.analytics.topDonators')
+    expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
 
   test.skip('retrive topDonators by user', async () => {
