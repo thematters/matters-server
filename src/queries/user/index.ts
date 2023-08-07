@@ -103,7 +103,7 @@ const user: {
   Collection: GQLCollectionResolvers
 } = {
   Query: {
-    viewer: (_, __, { viewer }) => viewer,
+    viewer: (_, __, { viewer }) => (viewer.id ? viewer : null),
     user: rootUser,
   },
   User: {
@@ -115,7 +115,7 @@ const user: {
     // ipnsAddress,
     wallet: (root) => root,
     settings: (root) => root,
-    status: (root) => (root.id ? root : null),
+    status: (root) => root,
     activity: (root) => root,
     following: (root) => root,
     analytics: (root) => root,
