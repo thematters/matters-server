@@ -44,7 +44,8 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   if (
     type === VERIFICATION_CODE_TYPE.payment_password_reset ||
     type === VERIFICATION_CODE_TYPE.password_reset ||
-    type === VERIFICATION_CODE_TYPE.email_reset
+    type === VERIFICATION_CODE_TYPE.email_reset ||
+    type === VERIFICATION_CODE_TYPE.email_verify
   ) {
     user = await userService.findByEmail(email)
     if (!user) {

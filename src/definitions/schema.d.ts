@@ -3759,7 +3759,7 @@ export type GQLVerificationCodeType =
   | 'email_otp'
   | 'email_reset'
   | 'email_reset_confirm'
-  | 'email_verification'
+  | 'email_verify'
   | 'password_reset'
   | 'payment_password_reset'
   | 'register'

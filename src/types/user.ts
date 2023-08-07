@@ -857,7 +857,7 @@ export default /* GraphQL */ `
 
   enum VerificationCodeType {
     register
-    email_verification
+    email_verify
     email_otp
     email_reset @deprecated(reason: "No longer in use")
     email_reset_confirm @deprecated(reason: "No longer in use")
