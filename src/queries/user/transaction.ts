@@ -24,7 +24,7 @@ export const Transaction: GQLTransactionResolvers = {
     trx.recipientId ? userService.loadById(trx.recipientId) : null,
   blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
-      throw new ServerError('transaction is not blockchain type')
+      return null
     }
     const blockchainTx = await paymentService.findBlockchainTransactionById(
       trx.providerTxId
