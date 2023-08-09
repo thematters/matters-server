@@ -1201,7 +1201,7 @@ export type GQLEditArticleInput = {
 
 export type GQLEmailLoginInput = {
   email: Scalars['String']['input']
-  token: Scalars['String']['input']
+  passwordOrCode: Scalars['String']['input']
   type: GQLEmailLoginType
 }
 

@@ -42,6 +42,9 @@ export const adminUser = {
 export const getUserContext = async ({ email }: { email: string }) => {
   const userService = new UserService()
   const user = await userService.findByEmail(email)
+  if (user === undefined) {
+    throw Error('Email not exist')
+  }
   return {
     viewer: user,
   }

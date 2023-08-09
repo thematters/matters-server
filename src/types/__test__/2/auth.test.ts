@@ -1,7 +1,13 @@
 import _ from 'lodash'
 
-import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums'
+import {
+  AUTH_MODE,
+  NODE_TYPES,
+  SCOPE_PREFIX,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { UserService } from 'connectors'
 
 import {
   adminUser,
@@ -576,5 +582,140 @@ describe('Admin viewer query and mutation', () => {
       query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
+  })
+})
+
+describe('emailLogin', () => {
+  const EMAIL_LOGIN = /* GraphQL */ `
+    mutation ($input: EmailLoginInput!) {
+      emailLogin(input: $input) {
+        auth
+        user {
+          userName
+          info {
+            email
+            emailVerified
+          }
+        }
+        token
+      }
+    }
+  `
+  const newEmail = 'new@matters.town'
+  const userService = new UserService()
+
+  describe('register', () => {
+    test('register email of existed user', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            type: 'register',
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_EMAIL_EXISTS')
+
+      const notVerifiedEmail = 'not-verified@matters.town'
+      const user = await userService.create({
+        email: notVerifiedEmail,
+        emailVerified: false,
+      })
+      expect(user.emailVerified).toBe(false)
+
+      const { errors: errors2 } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: notVerifiedEmail,
+            type: 'register',
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors2?.[0].extensions.code).toBe('USER_EMAIL_EXISTS')
+    })
+    test('register with invalid code will fail', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail,
+            type: 'register',
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+    })
+    test('register with expired code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail,
+        type: 'register',
+        expiredAt: new Date(Date.now() - 1000),
+      })
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail,
+            type: 'register',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('register with inactive code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.inactive,
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail,
+            type: 'register',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with used code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.used,
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail,
+            type: 'register',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
   })
 })

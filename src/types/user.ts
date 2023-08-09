@@ -990,7 +990,7 @@ export default /* GraphQL */ `
   input EmailLoginInput {
     email: String!
     type: EmailLoginType!
-    token: String!
+    passwordOrCode: String!
   }
 
   enum EmailLoginType {
