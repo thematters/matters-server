@@ -1205,7 +1205,7 @@ export type GQLEmailLoginInput = {
   type: GQLEmailLoginType
 }
 
-export type GQLEmailLoginType = 'login' | 'register'
+export type GQLEmailLoginType = 'Login' | 'Signup'
 
 export type GQLEntityType =
   | 'announcement'

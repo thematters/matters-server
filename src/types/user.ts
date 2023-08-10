@@ -994,8 +994,8 @@ export default /* GraphQL */ `
   }
 
   enum EmailLoginType {
-    register
-    login
+    Signup
+    Login
   }
 
   input SocialLoginInput {

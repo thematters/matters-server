@@ -1,6 +1,10 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
-import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
+import {
+  VERIFICATION_CODE_TYPE,
+  AUTH_RESULT_TYPE,
+  EMAIL_LOGIN_TYPE,
+} from 'common/enums'
 import {
   EmailExistsError,
   EmailInvalidError,
@@ -31,7 +35,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     await userService.verifyVerificationCode({
       email,
       type:
-        type === 'register'
+        type === EMAIL_LOGIN_TYPE.Signup
           ? VERIFICATION_CODE_TYPE.register
           : VERIFICATION_CODE_TYPE.email_otp,
       code: passwordOrCode,
@@ -58,7 +62,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     }
   } else {
     // user exists, login
-    if (type === 'register') {
+    if (type === EMAIL_LOGIN_TYPE.Signup) {
       throw new EmailExistsError('email address has already been registered')
     }
 

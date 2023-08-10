@@ -3,6 +3,11 @@ export const RESET_PASSWORD_TYPE = {
   payment: 'payment',
 } as const
 
+export const EMAIL_LOGIN_TYPE = {
+  Login: 'Login',
+  Signup: 'Signup',
+} as const
+
 export const AUTH_RESULT_TYPE = {
   Login: 'Login',
   Signup: 'Signup',

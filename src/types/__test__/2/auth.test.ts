@@ -5,6 +5,7 @@ import {
   NODE_TYPES,
   SCOPE_PREFIX,
   VERIFICATION_CODE_STATUS,
+  EMAIL_LOGIN_TYPE,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { UserService } from 'connectors'
@@ -614,7 +615,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: defaultTestUser.email,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: 'fake-code',
           },
         },
@@ -633,7 +634,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: notVerifiedEmail,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: 'fake-code',
           },
         },
@@ -647,7 +648,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail1,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: 'fake-code',
           },
         },
@@ -666,7 +667,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail1,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: code.code,
           },
         },
@@ -689,7 +690,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail1,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: code.code,
           },
         },
@@ -712,7 +713,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail1,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: code.code,
           },
         },
@@ -730,7 +731,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail1,
-            type: 'register',
+            type: EMAIL_LOGIN_TYPE.Signup,
             passwordOrCode: code.code,
           },
         },
@@ -747,7 +748,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: defaultTestUser.email,
-            type: 'login',
+            type: EMAIL_LOGIN_TYPE.Login,
             passwordOrCode: 'wrong-password',
           },
         },
@@ -761,7 +762,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: defaultTestUser.email,
-            type: 'login',
+            type: EMAIL_LOGIN_TYPE.Login,
             passwordOrCode: '12345678',
           },
         },
@@ -783,7 +784,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail2,
-            type: 'login',
+            type: EMAIL_LOGIN_TYPE.Login,
             passwordOrCode: code.code,
           },
         },
@@ -811,7 +812,7 @@ describe('emailLogin', () => {
         variables: {
           input: {
             email: newEmail2,
-            type: 'login',
+            type: EMAIL_LOGIN_TYPE.Login,
             passwordOrCode: code.code,
           },
         },

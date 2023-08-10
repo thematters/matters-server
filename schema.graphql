@@ -3055,8 +3055,8 @@ input EmailLoginInput {
 }
 
 enum EmailLoginType {
-  register
-  login
+  Signup
+  Login
 }
 
 input SocialLoginInput {
