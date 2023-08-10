@@ -1,87 +1,115 @@
-import type { GQLMutationResolvers, User } from 'definitions'
+import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
+import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
 import {
-  VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPE,
-  AUTH_RESULT_TYPE,
-} from 'common/enums'
-import {
-  CodeExpiredError,
-  CodeInactiveError,
-  CodeInvalidError,
-  EmailExistsError,
   EmailInvalidError,
+  PasswordInvalidError,
+  CodeInvalidError,
 } from 'common/errors'
-import { isValidEmail, setCookie } from 'common/utils'
+import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
-  { input: { email: rawEmail, type, token } },
-  { viewer, dataSources: { tagService, userService, systemService }, req, res }
+  { input: { email: rawEmail, passwordOrCode } },
+  context
 ) => {
+  const {
+    viewer,
+    dataSources: { tagService, userService, systemService },
+    req,
+    res,
+  } = context
+
   const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
     throw new EmailInvalidError('invalid email address format')
   }
+  const user = await userService.findByEmail(email)
 
-  let user: User
-  if (type === 'register') {
-    const codes = await userService.findVerificationCodes({
-      where: {
-        uuid: token,
-        email,
-        type: VERIFICATION_CODE_TYPE.register,
-      },
+  if (user === undefined) {
+    // user not exist,  register
+    const verifyOTP = userService.verifyVerificationCode({
+      email,
+      type: VERIFICATION_CODE_TYPE.email_otp,
+      code: passwordOrCode,
     })
-    const code = codes?.length > 0 ? codes[0] : {}
+    const verifyRegister = userService.verifyVerificationCode({
+      email,
+      type: VERIFICATION_CODE_TYPE.register,
+      code: passwordOrCode,
+    })
 
-    // check code
-    if (code.status === VERIFICATION_CODE_STATUS.expired) {
-      throw new CodeExpiredError('code is expired')
-    }
-    if (code.status === VERIFICATION_CODE_STATUS.inactive) {
-      throw new CodeInactiveError('code is retired')
-    }
-    if (code.status !== VERIFICATION_CODE_STATUS.verified) {
-      throw new CodeInvalidError('code does not exists')
-    }
-
-    // check email
-    const otherUser = await userService.findByEmail(email)
-    if (otherUser) {
-      throw new EmailExistsError('email address has already been registered')
+    try {
+      await Promise.any([verifyOTP, verifyRegister])
+    } catch (err: any) {
+      for (const e of err.errors) {
+        // CodeInvalidError is last error to throw
+        if (!(e instanceof CodeInvalidError)) {
+          throw e
+        }
+      }
+      throw err.errors[0]
     }
 
-    user = await userService.create({
+    const newUser = await userService.create({
       email,
     })
-    await userService.postRegister(user, { tagService })
+    await userService.postRegister(newUser, { tagService })
 
-    // mark code status as used
-    await userService.markVerificationCodeAs({
-      codeId: code.id,
-      status: VERIFICATION_CODE_STATUS.used,
-    })
+    // login user
+    const sessionToken = await userService.genSessionToken(newUser.id)
+    setCookie({ req, res, token: sessionToken, user: newUser })
+
+    context.viewer = await getViewerFromUser(newUser)
+    context.viewer.authMode = newUser.role as AuthMode
+    context.viewer.scope = {}
+
+    return {
+      token: sessionToken,
+      auth: true,
+      type: AUTH_RESULT_TYPE.Signup,
+      user: newUser,
+    }
   } else {
-    // login
-    user = await userService.findByEmail(email)
-    await userService.verifyPassword({
-      password: token,
+    // user exists, login
+
+    const verifyPassword = userService.verifyPassword({
+      password: passwordOrCode,
       hash: user.passwordHash,
     })
+    const verifyOTP = userService.verifyVerificationCode({
+      email,
+      type: VERIFICATION_CODE_TYPE.email_otp,
+      code: passwordOrCode,
+    })
+
+    try {
+      await Promise.any([verifyPassword, verifyOTP])
+    } catch (e) {
+      throw new PasswordInvalidError('Password incorrect, login failed.')
+    }
+
     systemService.saveAgentHash(viewer.agentHash || '', email)
-  }
 
-  // login user
-  const sessionToken = await userService.genSessionToken(user.id)
-  setCookie({ req, res, token: sessionToken, user })
+    // set email verfied if not and login user
+    if (user.emailVerified === false) {
+      await userService.baseUpdate(user.id, { emailVerified: true })
+      user.emailVerified = true
+    }
 
-  return {
-    token: sessionToken,
-    auth: true,
-    type:
-      type === 'register' ? AUTH_RESULT_TYPE.Signup : AUTH_RESULT_TYPE.Login,
-    user,
+    const sessionToken = await userService.genSessionToken(user.id)
+    setCookie({ req, res, token: sessionToken, user })
+
+    context.viewer = await getViewerFromUser(user)
+    context.viewer.authMode = user.role as AuthMode
+    context.viewer.scope = {}
+
+    return {
+      token: sessionToken,
+      auth: true,
+      type: AUTH_RESULT_TYPE.Login,
+      user,
+    }
   }
 }
 

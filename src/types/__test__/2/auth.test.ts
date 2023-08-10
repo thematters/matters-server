@@ -1,7 +1,13 @@
 import _ from 'lodash'
 
-import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums'
+import {
+  AUTH_MODE,
+  NODE_TYPES,
+  SCOPE_PREFIX,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { UserService } from 'connectors'
 
 import {
   adminUser,
@@ -576,5 +582,240 @@ describe('Admin viewer query and mutation', () => {
       query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
+  })
+})
+
+describe('emailLogin', () => {
+  const EMAIL_LOGIN = /* GraphQL */ `
+    mutation ($input: EmailLoginInput!) {
+      emailLogin(input: $input) {
+        type
+        auth
+        user {
+          userName
+          info {
+            email
+            emailVerified
+          }
+        }
+        token
+      }
+    }
+  `
+  const newEmail1 = 'new1@matters.town'
+  const newEmail2 = 'new2@matters.town'
+  const userService = new UserService()
+
+  describe('register', () => {
+    test('register email of existed user', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+
+      const notVerifiedEmail = 'not-verified@matters.town'
+      const user = await userService.create({
+        email: notVerifiedEmail,
+        emailVerified: false,
+      })
+      expect(user.emailVerified).toBe(false)
+
+      const { errors: errors2 } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: notVerifiedEmail,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors2?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('register with invalid code will fail', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+    })
+    test('register with expired code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+        expiredAt: new Date(Date.now() - 1000),
+      })
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('register with inactive code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.inactive,
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with used code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.used,
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with valid code will succeed', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+  })
+  describe('passwd login', () => {
+    test('login with wrong password will failed', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: 'wrong-password',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('login with correct password will succeed', async () => {
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: '12345678',
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.token).toBeDefined()
+    })
+  })
+  describe('otp login', () => {
+    test('login not existed user with OTP will register new user', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail2,
+        type: 'email_otp',
+      })
+      expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Signup')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+
+      const codes = await userService.findVerificationCodes({
+        where: { email: newEmail2 },
+      })
+      for (const c of codes) {
+        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
+      }
+    })
+    test('login existed user with OTP will login the user', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail2,
+        type: 'email_otp',
+      })
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Login')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+
+      const codes = await userService.findVerificationCodes({
+        where: { email: newEmail2 },
+      })
+      for (const c of codes) {
+        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
+      }
+    })
   })
 })

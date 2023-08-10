@@ -63,6 +63,9 @@ import {
   PasswordNotAvailableError,
   NameExistsError,
   EmailExistsError,
+  CodeExpiredError,
+  CodeInactiveError,
+  CodeInvalidError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -121,6 +124,7 @@ export class UserService extends BaseService {
     password,
     email,
     ethAddress,
+    emailVerified = true,
   }: {
     userName?: string
     displayName?: string
@@ -128,6 +132,7 @@ export class UserService extends BaseService {
     password?: string
     email?: string
     ethAddress?: string
+    emailVerified?: boolean
   }) => {
     // const avatar = null
     if (!email && !ethAddress) {
@@ -145,7 +150,7 @@ export class UserService extends BaseService {
         {
           uuid,
           email,
-          emailVerified: true,
+          emailVerified,
           userName,
           displayName,
           // description,
@@ -332,7 +337,7 @@ export class UserService extends BaseService {
     return user
   }
 
-  public findByEmail = async (email: string): Promise<User> =>
+  public findByEmail = async (email: string): Promise<User | undefined> =>
     this.knex.select().from(this.table).where({ email }).first()
 
   public findByEmails = async (emails: string[]): Promise<User[]> =>
@@ -1473,6 +1478,58 @@ export class UserService extends BaseService {
       },
       'verification_code'
     )
+  }
+
+  public verifyVerificationCode = async ({
+    email,
+    type,
+    code: codeString,
+  }: {
+    email: string
+    type: keyof typeof VERIFICATION_CODE_TYPE
+    code?: string
+  }) => {
+    const codes = await this.findVerificationCodes({
+      where: {
+        type,
+        email,
+      },
+    })
+    const code = codes.find((c) => c.code === codeString)
+
+    if (codes.length === 0 || !code) {
+      throw new CodeInvalidError('code does not exists')
+    }
+    // check code
+    if (
+      [
+        VERIFICATION_CODE_STATUS.inactive,
+        VERIFICATION_CODE_STATUS.used,
+      ].includes(code.status)
+    ) {
+      throw new CodeInactiveError('code is retired')
+    }
+    if (code.expiredAt < new Date()) {
+      // mark code status as expired
+      await this.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.expired,
+      })
+      throw new CodeExpiredError('code is expired')
+    }
+    const trx = await this.knex.transaction()
+    for (const c of codes) {
+      await (c.code === code.code
+        ? this.markVerificationCodeAs(
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.used },
+            trx
+          )
+        : this.markVerificationCodeAs(
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+            trx
+          ))
+    }
+    await trx.commit()
   }
 
   public confirmVerificationCode = async (code: VerficationCode) => {

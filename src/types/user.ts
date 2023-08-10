@@ -404,7 +404,7 @@ export default /* GraphQL */ `
     totalWordCount: Int!
 
     "Weather login password is set for email login."
-    hasEmailLoginPassword: Boolean!
+    hasEmailLoginPassword: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   type Liker {
@@ -989,13 +989,7 @@ export default /* GraphQL */ `
 
   input EmailLoginInput {
     email: String!
-    type: EmailLoginType!
-    token: String!
-  }
-
-  enum EmailLoginType {
-    register
-    login
+    passwordOrCode: String!
   }
 
   input SocialLoginInput {

@@ -3050,13 +3050,7 @@ enum SocialAccountType {
 
 input EmailLoginInput {
   email: String!
-  type: EmailLoginType!
-  token: String!
-}
-
-enum EmailLoginType {
-  register
-  login
+  passwordOrCode: String!
 }
 
 input SocialLoginInput {
