@@ -989,13 +989,7 @@ export default /* GraphQL */ `
 
   input EmailLoginInput {
     email: String!
-    type: EmailLoginType!
     passwordOrCode: String!
-  }
-
-  enum EmailLoginType {
-    Signup
-    Login
   }
 
   input SocialLoginInput {

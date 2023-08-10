@@ -1202,10 +1202,7 @@ export type GQLEditArticleInput = {
 export type GQLEmailLoginInput = {
   email: Scalars['String']['input']
   passwordOrCode: Scalars['String']['input']
-  type: GQLEmailLoginType
 }
-
-export type GQLEmailLoginType = 'Login' | 'Signup'
 
 export type GQLEntityType =
   | 'announcement'
@@ -4212,7 +4209,6 @@ export type GQLResolversTypes = ResolversObject<{
   >
   EditArticleInput: GQLEditArticleInput
   EmailLoginInput: GQLEmailLoginInput
-  EmailLoginType: GQLEmailLoginType
   EntityType: GQLEntityType
   ExchangeRate: ResolverTypeWrapper<GQLExchangeRate>
   ExchangeRatesInput: GQLExchangeRatesInput
