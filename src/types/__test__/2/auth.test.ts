@@ -16,6 +16,8 @@ import {
   testClient,
 } from '../utils'
 
+const userService = new UserService()
+
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 
 const queryScopes = [
@@ -136,6 +138,23 @@ const CLEAR_SEARCH_HISTORY = /* GraphQL */ `
   }
 `
 
+const EMAIL_LOGIN = /* GraphQL */ `
+  mutation ($input: EmailLoginInput!) {
+    emailLogin(input: $input) {
+      type
+      auth
+      user {
+        userName
+        info {
+          email
+          emailVerified
+        }
+      }
+      token
+    }
+  }
+`
+
 const prepare = async ({
   email,
   mode,
@@ -143,11 +162,14 @@ const prepare = async ({
 }: {
   email: string
   mode?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   scope?: { [key: string]: any }
 }) => {
   const context = await getUserContext({ email })
+  // eslint-disable-next-line
   // @ts-ignore
   context.viewer.authMode = mode || context.viewer.role
+  // eslint-disable-next-line
   // @ts-ignore
   context.viewer.scope = scope || {}
 
@@ -586,25 +608,8 @@ describe('Admin viewer query and mutation', () => {
 })
 
 describe('emailLogin', () => {
-  const EMAIL_LOGIN = /* GraphQL */ `
-    mutation ($input: EmailLoginInput!) {
-      emailLogin(input: $input) {
-        type
-        auth
-        user {
-          userName
-          info {
-            email
-            emailVerified
-          }
-        }
-        token
-      }
-    }
-  `
   const newEmail1 = 'new1@matters.town'
   const newEmail2 = 'new2@matters.town'
-  const userService = new UserService()
 
   describe('register', () => {
     test('register email of existed user', async () => {
@@ -817,5 +822,72 @@ describe('emailLogin', () => {
         expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
       }
     })
+  })
+})
+
+describe.only('setUseName', () => {
+  const SET_USER_NAME = /* GraphQL */ `
+    mutation ($input: SetUserNameInput!) {
+      setUserName(input: $input) {
+        userName
+      }
+    }
+  `
+  let email: string
+  beforeEach(async () => {
+    email = `test-${Date.now()}@example.com`
+    await userService.create({ email })
+  })
+
+  test('visitor can not call setUseName', async () => {
+    const server = await testClient()
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('user having userName can not call setUseName', async () => {
+    const server = await testClient({ isAuth: true, isMatty: true })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('user can not set invalid userName', async () => {
+    const { server } = await prepare({ email })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: '#invalid@' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('NAME_INVALID')
+  })
+  test('user can not set existed userName', async () => {
+    const { server } = await prepare({ email })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'matty' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('NAME_INVALID')
+  })
+  test('succeed', async () => {
+    const userName = 'noone'
+    const { server } = await prepare({ email })
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
   })
 })
