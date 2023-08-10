@@ -589,6 +589,7 @@ describe('emailLogin', () => {
   const EMAIL_LOGIN = /* GraphQL */ `
     mutation ($input: EmailLoginInput!) {
       emailLogin(input: $input) {
+        type
         auth
         user {
           userName
@@ -601,7 +602,8 @@ describe('emailLogin', () => {
       }
     }
   `
-  const newEmail = 'new@matters.town'
+  const newEmail1 = 'new1@matters.town'
+  const newEmail2 = 'new2@matters.town'
   const userService = new UserService()
 
   describe('register', () => {
@@ -644,7 +646,7 @@ describe('emailLogin', () => {
         query: EMAIL_LOGIN,
         variables: {
           input: {
-            email: newEmail,
+            email: newEmail1,
             type: 'register',
             passwordOrCode: 'fake-code',
           },
@@ -654,7 +656,7 @@ describe('emailLogin', () => {
     })
     test('register with expired code will fail', async () => {
       const code = await userService.createVerificationCode({
-        email: newEmail,
+        email: newEmail1,
         type: 'register',
         expiredAt: new Date(Date.now() - 1000),
       })
@@ -663,7 +665,7 @@ describe('emailLogin', () => {
         query: EMAIL_LOGIN,
         variables: {
           input: {
-            email: newEmail,
+            email: newEmail1,
             type: 'register',
             passwordOrCode: code.code,
           },
@@ -673,7 +675,7 @@ describe('emailLogin', () => {
     })
     test('register with inactive code will fail', async () => {
       const code = await userService.createVerificationCode({
-        email: newEmail,
+        email: newEmail1,
         type: 'register',
       })
       await userService.markVerificationCodeAs({
@@ -686,7 +688,7 @@ describe('emailLogin', () => {
         query: EMAIL_LOGIN,
         variables: {
           input: {
-            email: newEmail,
+            email: newEmail1,
             type: 'register',
             passwordOrCode: code.code,
           },
@@ -696,7 +698,7 @@ describe('emailLogin', () => {
     })
     test('register with used code will fail', async () => {
       const code = await userService.createVerificationCode({
-        email: newEmail,
+        email: newEmail1,
         type: 'register',
       })
       await userService.markVerificationCodeAs({
@@ -709,13 +711,122 @@ describe('emailLogin', () => {
         query: EMAIL_LOGIN,
         variables: {
           input: {
-            email: newEmail,
+            email: newEmail1,
             type: 'register',
             passwordOrCode: code.code,
           },
         },
       })
       expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with valid code will succeed', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            type: 'register',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+  })
+  describe('passwd login', () => {
+    test('login with wrong password will failed', async () => {
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            type: 'login',
+            passwordOrCode: 'wrong-password',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('login with correct password will succeed', async () => {
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            type: 'login',
+            passwordOrCode: '12345678',
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.token).toBeDefined()
+    })
+  })
+  describe('otp login', () => {
+    test('login not existed user with OTP will register new user', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail2,
+        type: 'email_otp',
+      })
+      expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            type: 'login',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Signup')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+
+      const codes = await userService.findVerificationCodes({
+        where: { email: newEmail2 },
+      })
+      for (const c of codes) {
+        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
+      }
+    })
+    test('login existed user with OTP will login the user', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail2,
+        type: 'email_otp',
+      })
+      const server = await testClient()
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            type: 'login',
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Login')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+
+      const codes = await userService.findVerificationCodes({
+        where: { email: newEmail2 },
+      })
+      for (const c of codes) {
+        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
+      }
     })
   })
 })

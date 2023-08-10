@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
 import {
@@ -6,13 +6,20 @@ import {
   EmailInvalidError,
   PasswordInvalidError,
 } from 'common/errors'
-import { isValidEmail, setCookie } from 'common/utils'
+import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
   { input: { email: rawEmail, type, passwordOrCode } },
-  { viewer, dataSources: { tagService, userService, systemService }, req, res }
+  context
 ) => {
+  const {
+    viewer,
+    dataSources: { tagService, userService, systemService },
+    req,
+    res,
+  } = context
+
   const email = rawEmail.toLowerCase()
   if (!isValidEmail(email, { allowPlusSign: false })) {
     throw new EmailInvalidError('invalid email address format')
@@ -39,6 +46,10 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     const sessionToken = await userService.genSessionToken(newUser.id)
     setCookie({ req, res, token: sessionToken, user: newUser })
 
+    context.viewer = await getViewerFromUser(newUser)
+    context.viewer.authMode = newUser.role as AuthMode
+    context.viewer.scope = {}
+
     return {
       token: sessionToken,
       auth: true,
@@ -64,7 +75,6 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyPassword, verifyOTP])
     } catch (e) {
-      console.error(e)
       throw new PasswordInvalidError('Password incorrect, login failed.')
     }
 
@@ -78,6 +88,10 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
 
     const sessionToken = await userService.genSessionToken(user.id)
     setCookie({ req, res, token: sessionToken, user })
+
+    context.viewer = await getViewerFromUser(user)
+    context.viewer.authMode = user.role as AuthMode
+    context.viewer.scope = {}
 
     return {
       token: sessionToken,
