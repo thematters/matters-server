@@ -275,8 +275,8 @@ const resolver: MutationToPutDraftResolver = async (
     return draftService.baseUpdate(dbId, {
       ...data,
       // reset fields
-      summary: resetSummary ? null : data.summary || draft.summary,
-      circleId: resetCircle ? null : data.circleId || draft.circleId,
+      summary: resetSummary ? null : data.summary,
+      circleId: resetCircle ? null : data.circleId,
       updatedAt: knex.fn.now(),
     })
   }
