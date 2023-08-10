@@ -1,3 +1,11 @@
+import type {
+  GQLPublishArticleInput,
+  GQLPutDraftInput,
+  GQLSetFeatureInput,
+  GQLUserRegisterInput,
+  User,
+} from 'definitions'
+
 import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
 
 import { authModes, roleAccess } from 'common/utils'
@@ -15,12 +23,6 @@ import {
   UserService,
   CollectionService,
 } from 'connectors'
-import {
-  GQLPublishArticleInput,
-  GQLPutDraftInput,
-  GQLSetFeatureInput,
-  GQLUserRegisterInput,
-} from 'definitions'
 
 import schema from '../../schema'
 
@@ -43,7 +45,7 @@ export const getUserContext = async ({ email }: { email: string }) => {
   const userService = new UserService()
   const user = await userService.findByEmail(email)
   if (user === undefined) {
-    throw Error('Email not exist')
+    return { viewer: { id: null } as any as User }
   }
   return {
     viewer: user,
