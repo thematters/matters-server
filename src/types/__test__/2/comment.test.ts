@@ -143,6 +143,24 @@ describe('query comment list on article', () => {
 describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
+  test('user w/o username can not comment', async () => {
+    const server = await testClient({ noUserName: true })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            parentId: COMMENT_ID,
+            replyTo: COMMENT_ID,
+            articleId: ARTICLE_2_ID,
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('create a article comment', async () => {
     const server = await testClient({ isAuth: true })
 

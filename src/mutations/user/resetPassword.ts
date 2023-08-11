@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { VERIFICATION_CODE_STATUS, VERIFICATION_CODE_TYPE } from 'common/enums'
 import {
   CodeExpiredError,
@@ -8,7 +10,6 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { isValidPassword, isValidPaymentPassword } from 'common/utils'
-import { LANGUAGES, type GQLMutationResolvers } from 'definitions'
 
 const resolver: GQLMutationResolvers['resetPassword'] = async (
   _,
@@ -75,11 +76,11 @@ const resolver: GQLMutationResolvers['resetPassword'] = async (
     notificationService.mail.sendPayment({
       to: user.email,
       recipient: {
-        displayName: user.displayName,
-        userName: user.userName,
+        displayName: user.displayName as string,
+        userName: user.userName as string,
       },
       type: 'passwordChanged',
-      language: user.language as LANGUAGES,
+      language: user.language,
     })
   }
 

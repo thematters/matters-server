@@ -33,7 +33,6 @@ import {
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
-  AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
   ForbiddenByStateError,
@@ -85,8 +84,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (

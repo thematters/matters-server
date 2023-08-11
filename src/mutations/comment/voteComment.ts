@@ -1,11 +1,7 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import { COMMENT_TYPE, USER_STATE } from 'common/enums'
-import {
-  AuthenticationError,
-  ForbiddenByStateError,
-  ForbiddenError,
-} from 'common/errors'
+import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['voteComment'] = async (
@@ -21,8 +17,8 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   const { id: dbId } = fromGlobalId(id)

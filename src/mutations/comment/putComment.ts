@@ -23,7 +23,6 @@ import {
 } from 'common/enums'
 import {
   ArticleNotFoundError,
-  AuthenticationError,
   CircleNotFoundError,
   CommentNotFoundError,
   ForbiddenByStateError,
@@ -61,10 +60,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
-
   if (!content || content.length <= 0) {
     throw new UserInputError(
       `"content" is required and must be at least 1 character`

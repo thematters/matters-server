@@ -18,7 +18,7 @@ export const sendVerificationCode = async ({
   code: string
   redirectUrl?: string
   recipient: {
-    displayName?: string
+    displayName: string | null
   }
   language?: LANGUAGES
 }) => {

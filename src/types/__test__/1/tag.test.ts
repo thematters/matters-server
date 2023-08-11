@@ -208,12 +208,13 @@ describe('put tag', () => {
       isAdmin: true,
       isMatty: true,
     })
-    const queryResult = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: QUERY_TAG,
       variables: { input: { id: createTagId } },
     })
-    expect(_get(queryResult, 'data.node.content')).toBe(expected)
-    expect(_get(queryResult, 'data.node.description')).toBe(description)
+    console.log(errors)
+    expect(data.node.content).toBe(expected)
+    expect(data.node.description).toBe(description)
 
     // update
     const updateContent = 'Update tag #1'
@@ -273,6 +274,14 @@ describe('manage tag', () => {
 })
 
 describe('manage article tag', () => {
+  test('users w/o username can not add tags', async () => {
+    const server = await testClient({ noUserName: true })
+    const { errors } = await server.executeOperation({
+      query: PUT_TAG,
+      variables: { input: { content: 'faketag' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('add and delete article tag', async () => {
     // create
     const createResult = await putTag({ tag: { content: 'Test tag #1' } })

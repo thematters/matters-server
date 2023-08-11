@@ -5,7 +5,7 @@ import getStream from 'get-stream'
 
 import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
 import {
-  AuthenticationError,
+  ForbiddenError,
   MigrationReachLimitError,
   UserInputError,
 } from 'common/errors'
@@ -16,8 +16,8 @@ const resolver: GQLMutationResolvers['migration'] = async (
   { input: { type, files } },
   { viewer }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission.')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (!type) {

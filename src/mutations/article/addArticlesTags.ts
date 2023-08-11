@@ -11,7 +11,6 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
   NotAllowAddOfficialTagError,
@@ -78,8 +77,8 @@ const resolver: GQLMutationResolvers['addArticlesTags'] = async (
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {

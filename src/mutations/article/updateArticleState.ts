@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, UserHasUsername } from 'definitions'
 
 import { ARTICLE_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 // import { environment } from 'common/environment'
@@ -24,7 +24,7 @@ const resolver: GQLMutationResolvers['updateArticleState'] = async (
     updatedAt: new Date(),
   })
 
-  const user = await userService.loadById(article.authorId)
+  const user = (await userService.loadById(article.authorId)) as UserHasUsername
 
   // trigger notification
   if (state === ARTICLE_STATE.banned) {

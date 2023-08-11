@@ -127,16 +127,18 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   })
 
   // send verification email
-  notificationService.mail.sendVerificationCode({
-    to: email,
-    type,
-    code,
-    redirectUrl,
-    recipient: {
-      displayName: user && user.displayName,
-    },
-    language: viewer.language,
-  })
+  if (user) {
+    notificationService.mail.sendVerificationCode({
+      to: email,
+      type,
+      code,
+      redirectUrl,
+      recipient: {
+        displayName: user.displayName ?? null,
+      },
+      language: viewer.language,
+    })
+  }
 
   return true
 }

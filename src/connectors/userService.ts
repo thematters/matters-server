@@ -76,6 +76,7 @@ import {
   getPunishExpiredDate,
   getAlchemyProvider,
   IERC1271,
+  genDisplayName,
 } from 'common/utils'
 import {
   AtomService,
@@ -391,7 +392,8 @@ export class UserService extends BaseService {
 
   public setUserName = async (
     userId: string,
-    userName: string
+    userName: string,
+    fillDisplayName = true
   ): Promise<User> => {
     if (!isValidUserName(userName)) {
       throw new NameInvalidError('invalid user name')
@@ -400,8 +402,12 @@ export class UserService extends BaseService {
     if (await this.checkUserNameExists(userName)) {
       throw new NameExistsError('user name already exists')
     }
-
-    return await this.baseUpdate(userId, { userName })
+    let data: Partial<User> = { userName }
+    if (fillDisplayName) {
+      const user = await this.loadById(userId)
+      data = { ...data, displayName: genDisplayName(user) ?? userName }
+    }
+    return await this.baseUpdate(userId, data)
   }
 
   /**
