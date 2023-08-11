@@ -191,6 +191,9 @@ export class ArticleService extends BaseService {
       userName,
       paymentPointer,
     } = author
+    if (!userName || !displayName) {
+      throw new ServerError('userName or displayName is missing')
+    }
     const [
       // userImg,
       articleCoverImg,

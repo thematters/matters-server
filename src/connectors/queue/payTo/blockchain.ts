@@ -193,7 +193,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    *
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
-    async (job) => {
+    async (_) => {
       let syncedBlocknum: number
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
@@ -375,12 +375,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
         throw error
       }
     }
-    await this.paymentService.notifyDonation({
-      tx,
-      sender: curatorUser,
-      recipient: creatorUser,
-      article,
-    })
+    if (curatorUser.userName && creatorUser.userName) {
+      await this.paymentService.notifyDonation({
+        tx,
+        sender: curatorUser,
+        recipient: creatorUser,
+        article,
+      })
+    }
     await this.invalidCache(tx.targetType, tx.targetId)
   }
 

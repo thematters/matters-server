@@ -1,10 +1,10 @@
 import { LANGUAGES } from './language'
 
-export interface User {
+export type User = UserNoUsername | UserHasUsername
+
+interface UserBase {
   id: string
   uuid: string
-  userName: string
-  displayName: string
   description: string
   avatar: string
   email: string
@@ -25,6 +25,20 @@ export interface User {
   ethAddress: string
   currency?: 'HKD' | 'TWD' | 'USD'
   profileCover?: string
+}
+
+export type UserNoUsername = UserBase & { userName: null; displayName: null }
+export type UserHasUsername = UserBase & {
+  userName: string
+  displayName: string
+}
+
+export interface EmailableUser {
+  id: string
+  displayName: string
+  userName: string
+  email: string
+  language: LANGUAGES
 }
 
 export type UserRole = 'admin' | 'user'

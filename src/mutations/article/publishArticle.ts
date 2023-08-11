@@ -2,7 +2,6 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
-  AuthenticationError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
@@ -16,10 +15,6 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   { input: { id, iscnPublish } },
   { viewer, dataSources: { draftService }, knex }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
       viewer.state
@@ -30,6 +25,9 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!viewer.likerId) {
     throw new ForbiddenError('user has no liker id')
+  }
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // retrive data from draft

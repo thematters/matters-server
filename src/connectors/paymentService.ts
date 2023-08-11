@@ -22,7 +22,13 @@ import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { AtomService, BaseService, NotificationService } from 'connectors'
-import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
+import {
+  CirclePrice,
+  GQLChain,
+  Transaction,
+  EmailableUser,
+  User,
+} from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -1044,8 +1050,8 @@ export class PaymentService extends BaseService {
     article,
   }: {
     tx: Transaction
-    sender: User
-    recipient: User
+    sender: EmailableUser
+    recipient: EmailableUser
     article: {
       title: string
       slug: string

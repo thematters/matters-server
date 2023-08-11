@@ -12,7 +12,7 @@ export const sendUserDeletedByAdmin = async ({
 }: {
   to: string
   recipient: {
-    displayName: string
+    displayName: string | null
   }
   language?: LANGUAGES
 }) => {

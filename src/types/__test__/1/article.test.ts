@@ -147,6 +147,20 @@ const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   }
 `
 
+const PUBLISH_ARTICLE = `
+  mutation($input: PublishArticleInput!) {
+    publishArticle(input: $input) {
+      id
+      publishState
+      title
+      content
+      createdAt
+      iscnPublish
+      article { id iscnId content }
+    }
+  }
+`
+
 const EDIT_ARTICLE = /* GraphQL */ `
   mutation ($input: EditArticleInput!) {
     editArticle(input: $input) {
@@ -273,6 +287,20 @@ describe('query drafts on article', () => {
 })
 
 describe('publish article', () => {
+  test('user w/o username can not publish', async () => {
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+    }
+    const { id } = await putDraft({ draft })
+    const server = await testClient({ noUserName: true })
+
+    const { errors } = await server.executeOperation({
+      query: PUBLISH_ARTICLE,
+      variables: { input: { id } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('create a draft & publish it', async () => {
     jest.setTimeout(10000)
     const draft = {

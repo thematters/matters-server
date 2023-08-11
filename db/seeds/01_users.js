@@ -119,6 +119,13 @@ exports.seed = function (knex, Promise) {
           state: 'banned',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
+        {
+          uuid: '00000000-0000-0000-0000-000000000012',
+          email: 'nousername@matters.town',
+          role: 'user',
+          state: 'active',
+          password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
+        },
       ])
     })
 }
