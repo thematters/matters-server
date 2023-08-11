@@ -297,9 +297,11 @@ describe('circle CRUD', () => {
     const { errors } = await server.executeOperation({
       query: PUT_CIRCLE,
       variables: {
-        name: 'circle_name',
-        displayName: 'circle name',
-        amount: 20,
+        input: {
+          name: 'circle_name',
+          displayName: 'circle name',
+          amount: 20,
+        },
       },
     })
     expect(errors[0].extensions.code).toBe('FORBIDDEN')

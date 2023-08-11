@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS search_index.user AS
     FROM action_user
     GROUP BY 1
   ) t ON target_id=u.id
-  -- WHERE state IN ('active', 'onboarding')
+  WHERE u.user_name IS NOT NULL
   -- ORDER BY last_followed_at DESC NULLS LAST, u.id DESC
   LIMIT 1000 -- 0; not 10000; to create the table only, with 0 rows;
 ;
@@ -34,4 +34,3 @@ CREATE INDEX IF NOT EXISTS search_index_user_display_name_ts_gin_idx ON search_i
 CREATE INDEX IF NOT EXISTS search_index_user_description_ts_gin_idx ON search_index.user USING GIN (description_ts) ;
 CREATE INDEX IF NOT EXISTS search_index_user_display_name_rumidx ON search_index.user USING RUM (display_name_jieba_ts rum_tsvector_ops);
 CREATE INDEX IF NOT EXISTS search_index_user_description_rumidx ON search_index.user USING RUM (description_jieba_ts rum_tsvector_ops);
-
