@@ -8,10 +8,10 @@ import {
   TRANSACTION_PURPOSE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   PaymentAmountInvalidError,
   PaymentAmountTooSmallError,
   ServerError,
+  ForbiddenError,
 } from 'common/errors'
 
 const resolver: GQLMutationResolvers['addCredit'] = async (
@@ -19,8 +19,8 @@ const resolver: GQLMutationResolvers['addCredit'] = async (
   { input: { amount } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.email) {
+    throw new ForbiddenError('user has no email')
   }
 
   const provider = PAYMENT_PROVIDER.stripe
