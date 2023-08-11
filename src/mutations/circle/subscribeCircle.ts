@@ -14,7 +14,6 @@ import {
   SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   CircleNotFoundError,
   DuplicateCircleSubscriptionError,
   EntityNotFoundError,
@@ -41,8 +40,8 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
     knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // check feature is enabled or not

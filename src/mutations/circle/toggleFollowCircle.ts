@@ -8,7 +8,6 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import {
-  AuthenticationError,
   CircleNotFoundError,
   ForbiddenError,
   UserInputError,
@@ -22,13 +21,14 @@ enum ACTION {
 }
 
 const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
-  root,
+  _,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, systemService, notificationService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
+
   if (typeof enabled !== 'boolean') {
     throw new UserInputError('parameter "enabled" is required')
   }

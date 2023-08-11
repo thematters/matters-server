@@ -14,7 +14,6 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
@@ -45,8 +44,8 @@ const resolver: GQLMutationResolvers['payTo'] = async (
   },
   { viewer, dataSources: { articleService, paymentService, userService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // check purpose

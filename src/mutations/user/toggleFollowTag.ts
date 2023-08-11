@@ -1,7 +1,7 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import { CACHE_KEYWORD, NODE_TYPES, TAG_ACTION } from 'common/enums'
-import { AuthenticationError, TagNotFoundError } from 'common/errors'
+import { ForbiddenError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
@@ -10,8 +10,8 @@ const resolver: GQLMutationResolvers['toggleFollowTag'] = async (
   { viewer, dataSources: { tagService } }
 ) => {
   // checks
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   const { id: dbId } = fromGlobalId(id)

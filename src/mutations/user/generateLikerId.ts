@@ -1,14 +1,14 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { AuthenticationError } from 'common/errors'
+import { ForbiddenError } from 'common/errors'
 
 const resolver: GQLMutationResolvers['generateLikerId'] = async (
   _,
   __,
-  { viewer, dataSources: { userService, systemService } }
+  { viewer, dataSources: { userService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   const { ip } = viewer
@@ -35,8 +35,7 @@ const resolver: GQLMutationResolvers['generateLikerId'] = async (
     }
   }
 
-  const user = await userService.baseFindById(viewer.id)
-  return user
+  return userService.baseFindById(viewer.id)
 }
 
 export default resolver

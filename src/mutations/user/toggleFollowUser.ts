@@ -8,7 +8,7 @@ import {
 } from 'common/enums'
 import {
   ActionFailedError,
-  AuthenticationError,
+  ForbiddenError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
   UserNotFoundError,
@@ -21,8 +21,8 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   { viewer, dataSources: { userService, notificationService } }
 ) => {
   // checks
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {

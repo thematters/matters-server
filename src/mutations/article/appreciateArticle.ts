@@ -14,7 +14,6 @@ import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
-  AuthenticationError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
   ForbiddenError,
@@ -39,8 +38,8 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // check viewer

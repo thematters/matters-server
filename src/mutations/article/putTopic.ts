@@ -20,8 +20,8 @@ const resolver: GQLMutationResolvers['putTopic'] = async (
   { viewer, dataSources: { atomService, systemService } }
 ) => {
   // access control
-  if (!viewer.id) {
-    throw new ForbiddenError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {
