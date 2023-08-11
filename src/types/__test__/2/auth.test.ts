@@ -825,11 +825,12 @@ describe('emailLogin', () => {
   })
 })
 
-describe.only('setUseName', () => {
+describe('setUseName', () => {
   const SET_USER_NAME = /* GraphQL */ `
     mutation ($input: SetUserNameInput!) {
       setUserName(input: $input) {
         userName
+        displayName
       }
     }
   `
@@ -889,5 +890,6 @@ describe.only('setUseName', () => {
       },
     })
     expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.displayName).toBeDefined()
   })
 })

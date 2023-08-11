@@ -1,3 +1,11 @@
+import type {
+  CirclePrice,
+  GQLChain,
+  Transaction,
+  EmailableUser,
+  User,
+} from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
@@ -22,13 +30,6 @@ import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { AtomService, BaseService, NotificationService } from 'connectors'
-import {
-  CirclePrice,
-  GQLChain,
-  Transaction,
-  EmailableUser,
-  User,
-} from 'definitions'
 
 import { stripe } from './stripe'
 
