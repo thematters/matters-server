@@ -417,3 +417,33 @@ describe('getOrCreateUserBySocialAccount', () => {
     expect(createdUser.emailVerified).toBe(true)
   })
 })
+
+describe('test setPassword', () => {
+  const user = {
+    id: '1',
+    email: 'test@matters.town',
+    emailVerified: true,
+  }
+  const goodPassword = 'A12345678A'
+  test('invalid password will throw errors', async () => {
+    const invalidPassword = '123'
+    await expect(
+      userService.setPassword(user, invalidPassword)
+    ).rejects.toThrow()
+  })
+  test('user w/o verified email will throw errors', async () => {
+    const invalidUser1 = { ...user, emailVerified: false }
+    await expect(
+      userService.setPassword(invalidUser1, goodPassword)
+    ).rejects.toThrow()
+
+    const invalidUser2 = { ...user, email: null }
+    await expect(
+      userService.setPassword(invalidUser2, goodPassword)
+    ).rejects.toThrow()
+  })
+  test('setPassword succeed', async () => {
+    const updated = await userService.setPassword(user, goodPassword)
+    expect(updated.passwordHash).toBeDefined()
+  })
+})

@@ -5,7 +5,7 @@ const resolver: GQLMutationResolvers['setPassword'] = async (
   { input: { password } },
   { viewer, dataSources: { userService } }
 ) => {
-  return userService.setPassword(viewer.id, password)
+  return userService.setPassword(viewer, password)
 }
 
 export default resolver
