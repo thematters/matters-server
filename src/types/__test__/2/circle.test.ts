@@ -292,6 +292,18 @@ describe('circle CRUD', () => {
 
   const userClient = { isAuth: true, isAdmin: false }
   const adminClient = { isAuth: true, isAdmin: true }
+  test('user w/o username can not create circle', async () => {
+    const server = await testClient({ noUserName: true })
+    const { errors } = await server.executeOperation({
+      query: PUT_CIRCLE,
+      variables: {
+        name: 'circle_name',
+        displayName: 'circle name',
+        amount: 20,
+      },
+    })
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
 
   test('create circle', async () => {
     const path = 'data.putCircle'

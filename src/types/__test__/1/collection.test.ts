@@ -185,6 +185,14 @@ describe('collections CURD', () => {
       '"visitor" isn\'t authorized for "putCollection"'
     )
   })
+  test('users w/o username can not mutate collections', async () => {
+    const server = await testClient({ noUserName: true })
+    const { errors } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: { input: { title: 'test' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('long title/description is not allowed', async () => {
     const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({

@@ -15,7 +15,6 @@ import {
 import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
-  AuthenticationError,
   CircleCreationReachLimitError,
   CircleNotFoundError,
   DisplayNameInvalidError,
@@ -48,8 +47,8 @@ const resolver: GQLMutationResolvers['putCircle'] = async (
   { input: { id, avatar, cover, name, displayName, description, amount } },
   { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no permission')
   }
 
   // check feature is enabled or not
