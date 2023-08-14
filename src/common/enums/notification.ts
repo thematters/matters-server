@@ -66,7 +66,6 @@ export enum BUNDLED_NOTICE_TYPE {
 
 // types act as `official_announcement`
 export enum OFFICIAL_NOTICE_EXTEND_TYPE {
-  user_activated = 'user_activated',
   user_banned = 'user_banned',
   user_banned_payment = 'user_banned_payment',
   user_frozen = 'user_frozen',
