@@ -180,7 +180,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     USER_STATE.frozen,
   ].includes(viewer.state)
 
-  if ((article && !isTargetAuthor) || isInactive) {
+  if (isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
