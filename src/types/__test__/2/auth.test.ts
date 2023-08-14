@@ -1006,7 +1006,6 @@ describe('walletLogin', () => {
   test('wallet login with wrong purpose will throw errors', async () => {
     const wallet = Wallet.createRandom()
     const server = await testClient()
-    // signup
     const {
       data: {
         generateSigningMessage: { nonce, signingMessage },
@@ -1032,6 +1031,36 @@ describe('walletLogin', () => {
         },
       },
     })
-    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('wallet login with wrong nonce will throw errors', async () => {
+    const wallet = Wallet.createRandom()
+    const server = await testClient()
+    const {
+      data: {
+        generateSigningMessage: { nonce, signingMessage },
+      },
+    } = await server.executeOperation({
+      query: GENERATE_SIGNING_MESSAGE,
+      variables: {
+        input: {
+          address: wallet.address,
+          purpose: SIGNING_MESSAGE_PURPOSE.signup,
+        },
+      },
+    })
+    const signature = await wallet.signMessage(signingMessage)
+    const { errors: errors1 } = await server.executeOperation({
+      query: WALLET_LOGIN,
+      variables: {
+        input: {
+          ethAddress: wallet.address,
+          signedMessage: signingMessage,
+          signature,
+          nonce: nonce + 'wrong',
+        },
+      },
+    })
+    expect(errors1?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })

@@ -67,7 +67,6 @@ import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
-  ForbiddenError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -2118,7 +2117,7 @@ export class UserService extends BaseService {
       table: sigTable,
       where: (builder: Knex.QueryBuilder) =>
         builder
-          .where({ address: ethAddress, nonce })
+          .where({ address: ethAddress })
           .whereNull('signature')
           .whereRaw('expired_at > CURRENT_TIMESTAMP'),
       orderBy: [{ column: 'id', order: 'desc' }],
@@ -2131,7 +2130,11 @@ export class UserService extends BaseService {
     }
 
     if (!validPurposes.includes(lastSigning.purpose)) {
-      throw new ForbiddenError('Invalid purpose')
+      throw new UserInputError('Invalid purpose')
+    }
+
+    if (nonce !== lastSigning.nonce) {
+      throw new UserInputError('Invalid nonce')
     }
 
     // if it's smart contract wallet
