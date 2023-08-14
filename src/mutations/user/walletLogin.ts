@@ -2,6 +2,7 @@ import type {
   AuthMode,
   GQLAuthResultType,
   GQLMutationResolvers,
+  User,
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -77,16 +78,15 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
   const archivedCallback = async () =>
     systemService.saveAgentHash(viewer.agentHash || '')
 
-  const tryLogin = async (type: GQLAuthResultType) => {
+  const tryLogin = async (type: GQLAuthResultType, loginUser: User) => {
     const { token } = await userService.loginByEthAddress({
       ethAddress,
       archivedCallback,
     })
+    setCookie({ req, res, token, user: loginUser })
 
-    setCookie({ req, res, token, user })
-
-    context.viewer = await getViewerFromUser(user)
-    context.viewer.authMode = user.role as AuthMode
+    context.viewer = await getViewerFromUser(loginUser)
+    context.viewer.authMode = loginUser.role as AuthMode
     context.viewer.scope = {}
 
     // update crypto_wallet_signature record
@@ -95,21 +95,21 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       where: { id: lastSigning.id },
       data: {
         signature,
-        userId: user.id,
+        userId: loginUser.id,
         updatedAt: new Date(),
         expiredAt: null, // check if expired before reset to null
       },
     })
 
-    return { token, auth: true, type, user }
+    return { token, auth: true, type, user: loginUser }
   }
 
-  const user = await userService.findByEthAddress(ethAddress)
+  let user = await userService.findByEthAddress(ethAddress)
 
   if (user) {
     // login
     try {
-      return await tryLogin(AUTH_RESULT_TYPE.Login)
+      return await tryLogin(AUTH_RESULT_TYPE.Login, user)
     } catch (err) {
       const isNoEthAddress = err instanceof EthAddressNotFoundError
       if (!isNoEthAddress) {
@@ -150,27 +150,26 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       }
 
       const userName = await userService.generateUserName(email)
-      const newUser = await userService.create({
+      user = await userService.create({
         email,
         userName,
         displayName: userName,
         ethAddress: ethAddress.toLowerCase(), // save the lower case ones
       })
       // mark code status as used
-      await userService.postRegister(newUser, { tagService })
+      await userService.postRegister(user, { tagService })
       await userService.markVerificationCodeAs({
         codeId: code.id,
         status: VERIFICATION_CODE_STATUS.used,
       })
     } else {
-      const newUser = await userService.create({
+      user = await userService.create({
         ethAddress: ethAddress.toLowerCase(),
       })
-      await userService.postRegister(newUser, { tagService })
+      await userService.postRegister(user, { tagService })
     }
   }
-
-  return tryLogin(AUTH_RESULT_TYPE.Signup)
+  return await tryLogin(AUTH_RESULT_TYPE.Signup, user)
 }
 
 export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
