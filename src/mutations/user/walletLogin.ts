@@ -12,6 +12,7 @@ import {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
+  SIGNING_MESSAGE_PURPOSE,
 } from 'common/enums'
 import {
   CodeExpiredError,
@@ -44,6 +45,11 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     nonce,
     signedMessage,
     signature,
+    validPurposes: [
+      SIGNING_MESSAGE_PURPOSE.signup,
+      SIGNING_MESSAGE_PURPOSE.login,
+      SIGNING_MESSAGE_PURPOSE.connect,
+    ],
   })
 
   /**
@@ -185,6 +191,7 @@ export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
     nonce,
     signedMessage,
     signature,
+    validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
   })
   return await userService.addWallet(viewer.id, ethAddress)
 }

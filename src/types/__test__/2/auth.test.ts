@@ -1021,7 +1021,7 @@ describe('walletLogin', () => {
       },
     })
     const signature = await wallet.signMessage(signingMessage)
-    const { data } = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: WALLET_LOGIN,
       variables: {
         input: {
@@ -1032,12 +1032,6 @@ describe('walletLogin', () => {
         },
       },
     })
-    expect(data?.walletLogin.auth).toBe(true)
-    expect(data?.walletLogin.token).toBeDefined()
-    expect(data?.walletLogin.type).toBe('Signup')
-    expect(data?.walletLogin.user.userName).toBe(null)
-    expect(data?.walletLogin.user.info.ethAddress).toBe(
-      wallet.address.toLowerCase()
-    )
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
 })

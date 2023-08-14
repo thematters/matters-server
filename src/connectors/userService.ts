@@ -51,6 +51,7 @@ import {
   DB_NOTICE_TYPE,
   INVITATION_STATE,
   BLOCKCHAIN_CHAINID,
+  SIGNING_MESSAGE_PURPOSE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -66,6 +67,7 @@ import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
+  ForbiddenError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -2098,11 +2100,13 @@ export class UserService extends BaseService {
     nonce,
     signedMessage,
     signature,
+    validPurposes,
   }: {
     ethAddress: string
     nonce: string
     signedMessage: string
     signature: string
+    validPurposes: Array<keyof typeof SIGNING_MESSAGE_PURPOSE>
   }) => {
     if (!ethAddress || !utils.isAddress(ethAddress)) {
       throw new UserInputError('address is invalid')
@@ -2124,6 +2128,10 @@ export class UserService extends BaseService {
       throw new EthAddressNotFoundError(
         `wallet signing for "${ethAddress}" not found`
       )
+    }
+
+    if (!validPurposes.includes(lastSigning.purpose)) {
+      throw new ForbiddenError('Invalid purpose')
     }
 
     // if it's smart contract wallet
