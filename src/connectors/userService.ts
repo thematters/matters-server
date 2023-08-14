@@ -158,7 +158,7 @@ export class UserService extends BaseService {
           // avatar,
           passwordHash,
           agreeOn: new Date(),
-          state: USER_STATE.onboarding,
+          state: USER_STATE.active,
           ethAddress,
         },
         _.isNil
@@ -506,45 +506,6 @@ export class UserService extends BaseService {
     return archivedUser
   }
 
-  public findActivatableUsers = () =>
-    this.knexRO
-      .select('user.*', 'total', 'read_count')
-      .from(this.table)
-      .innerJoin(
-        'user_oauth_likecoin',
-        'user_oauth_likecoin.liker_id',
-        'user.liker_id'
-      )
-      .leftJoin(
-        this.knexRO
-          .select('recipient_id')
-          .sum('amount as total')
-          .from('appreciation')
-          .groupBy('recipient_id')
-          .as('tx'),
-        'tx.recipient_id',
-        'user.id'
-      )
-      .leftJoin(
-        this.knexRO
-          .select('user_id')
-          .countDistinct('article_id as read_count')
-          .from('article_read_count')
-          .groupBy('user_id')
-          .as('read'),
-        'read.user_id',
-        'user.id'
-      )
-      .where({
-        state: USER_STATE.onboarding,
-        accountType: 'general',
-      })
-      .andWhere(
-        this.knexRO.raw(
-          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 10'
-        )
-      )
-
   /*********************************
    *                               *
    *           Search              *
@@ -639,7 +600,7 @@ export class UserService extends BaseService {
         this.searchKnex.raw(`plainto_tsquery('jiebacfg', ?) query`, key)
       )
       .where('state', 'NOT IN', [
-        // USER_STATE.active, USER_STATE.onboarding,
+        // USER_STATE.active,
         USER_STATE.archived,
         USER_STATE.banned,
       ])

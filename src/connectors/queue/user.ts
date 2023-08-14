@@ -1,7 +1,6 @@
 import Queue from 'bull'
 
 import {
-  MINUTE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -30,18 +29,6 @@ class UserQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // activate onboarding users every 2 minutes
-    this.q.add(
-      QUEUE_JOB.activateOnboardingUsers,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 20, // every 20 minutes
-        },
-      }
-    )
-
     // unban user every day at 00:00
     this.q.add(
       QUEUE_JOB.unbanUsers,
@@ -66,45 +53,8 @@ class UserQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    // activate onboarding users
-    this.q.process(
-      QUEUE_JOB.activateOnboardingUsers,
-      this.activateOnboardingUsers
-    )
-
     this.q.process(QUEUE_JOB.unbanUsers, this.unbanUsers)
   }
-
-  /**
-   * Activate onboarding users
-   */
-  private activateOnboardingUsers: Queue.ProcessCallbackFunction<unknown> =
-    async (job, done) => {
-      try {
-        const activatableUsers = await this.userService.findActivatableUsers()
-        const activatedUsers: Array<string | number> = []
-
-        await Promise.all(
-          activatableUsers.map(async (user, index) => {
-            try {
-              await this.userService.activate({ id: user.id })
-              this.notificationService.trigger({
-                event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated,
-                recipientId: user.id,
-              })
-              activatedUsers.push(user.id)
-              job.progress(((index + 1) / activatableUsers.length) * 100)
-            } catch (err: any) {
-              logger.error(err)
-            }
-          })
-        )
-
-        done(null, activatedUsers)
-      } catch (err: any) {
-        done(err)
-      }
-    }
 
   /**
    * Unban users.

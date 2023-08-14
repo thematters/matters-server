@@ -51,7 +51,7 @@ exports.seed = function (knex, Promise) {
           email: 'test4@matters.news',
           liker_id: 'test_liker_id_4',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
-          state: 'onboarding',
+          state: 'active',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000005',
@@ -72,15 +72,6 @@ exports.seed = function (knex, Promise) {
           role: 'admin',
           state: 'active',
           liker_id: 'test_liker_id_6',
-          password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000007',
-          user_name: 'onboarding',
-          display_name: 'onboarding_user',
-          email: 'onboarding@matters.news',
-          role: 'user',
-          state: 'onboarding',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
         {

@@ -16,7 +16,6 @@ export const QUEUE_JOB = {
   refreshIPNSFeed: 'refreshIPNSFeed',
 
   // User
-  activateOnboardingUsers: 'activateOnboardingUsers',
   unbanUsers: 'unbanUsers',
 
   // Migration

@@ -137,6 +137,9 @@ const GET_VIEWER_INFO = /* GraphQL */ `
         createdAt
         agreeOn
       }
+      status {
+        state
+      }
     }
   }
 `
@@ -473,6 +476,9 @@ describe('register and login functionarlities', () => {
     const info = newUserResult!.data!.viewer.info
     expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
+
+    const status = newUserResult!.data!.viewer.status
+    expect(status.state).toBe(USER_STATE.active)
   })
 
   test('auth fail when password is incorrect', async () => {

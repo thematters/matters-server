@@ -2977,7 +2977,6 @@ enum NotificationSettingType {
 
 enum UserState {
   active
-  onboarding
   banned
   archived
   frozen

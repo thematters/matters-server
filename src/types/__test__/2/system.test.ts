@@ -449,16 +449,6 @@ describe('manage feature flag', () => {
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
     expect(features6.circle_management).toBe(true)
 
-    const serverOther = await testClient({
-      isAuth: true,
-      isOnboarding: true,
-    })
-    const { data: queryData7 } = await serverOther.executeOperation({
-      query: QUERY_FEATURES,
-    })
-    const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
-    expect(features7.circle_management).toBe(false)
-
     // reset feature as on
     const updateData5 = await serverAdmin.executeOperation({
       query: SET_FEATURE,
