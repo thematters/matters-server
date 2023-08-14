@@ -1050,7 +1050,7 @@ describe('walletLogin', () => {
       },
     })
     const signature = await wallet.signMessage(signingMessage)
-    const { errors: errors1 } = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: WALLET_LOGIN,
       variables: {
         input: {
@@ -1061,6 +1061,38 @@ describe('walletLogin', () => {
         },
       },
     })
-    expect(errors1?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
+  test('wallet login check nonce in signature', async () => {
+    const wallet = Wallet.createRandom()
+    const server = await testClient()
+    const {
+      data: {
+        generateSigningMessage: { nonce: nonce, signingMessage },
+      },
+    } = await server.executeOperation({
+      query: GENERATE_SIGNING_MESSAGE,
+      variables: {
+        input: {
+          address: wallet.address,
+          purpose: SIGNING_MESSAGE_PURPOSE.signup,
+        },
+      },
+    })
+    const signature = await wallet.signMessage(
+      signingMessage.replace(nonce, 'wrongnonce')
+    )
+    const { errors } = await server.executeOperation({
+      query: WALLET_LOGIN,
+      variables: {
+        input: {
+          ethAddress: wallet.address,
+          signedMessage: signingMessage,
+          signature,
+          nonce: nonce,
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })
