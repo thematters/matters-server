@@ -980,7 +980,7 @@ describe('walletLogin', () => {
         },
       })
       const loginSignature = await wallet.signMessage(loginSigningMessage)
-      const { data: loginData } = await server.executeOperation({
+      const { data: loginData, errors } = await server.executeOperation({
         query: WALLET_LOGIN,
         variables: {
           input: {
@@ -991,6 +991,7 @@ describe('walletLogin', () => {
           },
         },
       })
+      console.log(errors)
       expect(loginData?.walletLogin.auth).toBe(true)
       expect(loginData?.walletLogin.token).toBeDefined()
       expect(loginData?.walletLogin.type).toBe('Login')
@@ -1093,6 +1094,7 @@ describe('walletLogin', () => {
         },
       },
     })
+    console.log(errors)
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
 })
