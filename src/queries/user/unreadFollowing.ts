@@ -1,10 +1,11 @@
 import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+import { readonlyKnex as knexRO } from 'connectors'
 import { UserStatusToUnreadFollowingResolver } from 'definitions'
 
 const resolver: UserStatusToUnreadFollowingResolver = async (
   { id: userId },
   _,
-  { dataSources: { systemService }, knex }
+  { dataSources: { systemService } }
 ) => {
   const readFollowingFeedLog = await systemService.findLogRecord({
     userId,
@@ -15,11 +16,11 @@ const resolver: UserStatusToUnreadFollowingResolver = async (
     return true
   }
 
-  const latestActivity = await knex
+  const latestActivity = await knexRO
     .select()
     .from(
       // filter activies based on user's following user
-      knex
+      knexRO
         .as('selected_activities')
         .select('acty.*')
         .from('action_user as au')
@@ -35,7 +36,7 @@ const resolver: UserStatusToUnreadFollowingResolver = async (
         })
         .union([
           // filter activities based on viewer's following tag
-          knex
+          knexRO
             .select('acty.*')
             .from('action_tag as at')
             .join(
@@ -49,7 +50,7 @@ const resolver: UserStatusToUnreadFollowingResolver = async (
               'acty.type': ActivityType.UserAddArticleTagActivity,
             }),
           // filter activities based on viewer's following circle
-          knex
+          knexRO
             .select('acty.*')
             .from('action_circle as ac')
             .join(
