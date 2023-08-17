@@ -1,11 +1,12 @@
 import type { GQLUserStatusResolvers } from 'definitions'
 
 import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+import { readonlyKnex as knexRO } from 'connectors'
 
 const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   { id: userId },
   _,
-  { dataSources: { systemService }, knex }
+  { dataSources: { systemService } }
 ) => {
   if (userId === null) {
     return false
@@ -19,11 +20,11 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
     return true
   }
 
-  const latestActivity = await knex
+  const latestActivity = await knexRO
     .select()
     .from(
       // filter activies based on user's following user
-      knex
+      knexRO
         .as('selected_activities')
         .select('acty.*')
         .from('action_user as au')
@@ -39,7 +40,7 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
         })
         .union([
           // filter activities based on viewer's following tag
-          knex
+          knexRO
             .select('acty.*')
             .from('action_tag as at')
             .join(
@@ -53,7 +54,7 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
               'acty.type': ActivityType.UserAddArticleTagActivity,
             }),
           // filter activities based on viewer's following circle
-          knex
+          knexRO
             .select('acty.*')
             .from('action_circle as ac')
             .join(
