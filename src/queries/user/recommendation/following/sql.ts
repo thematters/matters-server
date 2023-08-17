@@ -8,19 +8,19 @@ import {
   TAG_ACTION,
   USER_ACTION,
 } from 'common/enums'
-import { knex } from 'connectors'
+import { readonlyKnex as knexRO } from 'connectors'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 
 export const withExcludedUsers = ({ userId }: { userId: string }) =>
-  knex.with('excluded_users', (builder) => {
+  knexRO.with('excluded_users', (builder) => {
     // blocked users
     builder
       .select('target_id as user_id')
       .from('action_user')
       .where({ userId, action: USER_ACTION.block })
       // viewer
-      .union(knex.raw(`select '${userId}' as user_id`))
+      .union(knexRO.raw(`select '${userId}' as user_id`))
   })
 
 // retrieve base activities
@@ -29,7 +29,7 @@ export const makeBaseActivityQuery = ({ userId }: { userId: string }) =>
     .select()
     .from(
       // retrieve UserPublishArticleActivity based on user's following user
-      knex
+      knexRO
         .as('selected_activities')
         .select('acty.*')
         .from('action_user as au')
@@ -43,7 +43,7 @@ export const makeBaseActivityQuery = ({ userId }: { userId: string }) =>
         })
         .union([
           // retrieve UserAddArticleTagActivity based on viewer's following tag
-          knex
+          knexRO
             .select('acty.*')
             .from('action_tag as at')
             .join(`${viewName} as acty`, 'acty.target_id', 'at.target_id')
@@ -67,7 +67,7 @@ export const makeCircleActivityQuery = ({ userId }: { userId: string }) =>
     .select()
     .from(
       // retrieve UserCreateCircleActivity based on user's following user
-      knex
+      knexRO
         .as('selected_activities')
         .select('acty.*')
         .from('action_user as au')
@@ -81,7 +81,7 @@ export const makeCircleActivityQuery = ({ userId }: { userId: string }) =>
         })
         .union([
           // retrieve UserBroadcastCircleActivity based on viewer's following circle
-          knex
+          knexRO
             .select('acty.*')
             .from('action_circle as ac')
             .join(`${viewName} as acty`, 'acty.target_id', 'ac.target_id')
@@ -117,7 +117,7 @@ export const makeUserDonateArticleActivityQuery = ({
       .as('activities')
       .select('acty.*')
       .select(
-        knex.raw(
+        knexRO.raw(
           'row_number() over (partition by node_id order by acty.id) as row_number'
         )
       )
@@ -155,7 +155,7 @@ export const makeUserFollowUserActivityQuery = ({
       .as('activities')
       .select('acty.*')
       .select(
-        knex.raw(
+        knexRO.raw(
           'row_number() over (partition by node_id order by acty.id) as row_number'
         )
       )
@@ -205,7 +205,7 @@ export const makeUserSubscribeCircleActivityQuery = ({
       .as('activities')
       .select('acty.*')
       .select(
-        knex.raw(
+        knexRO.raw(
           'row_number() over (partition by node_id order by acty.id) as row_number'
         )
       )
@@ -234,7 +234,7 @@ export const makeUserSubscribeCircleActivityQuery = ({
         .where({ userId, action: CIRCLE_ACTION.follow })
         // viewer own circles
         .union(
-          knex
+          knexRO
             .select('id as circle_id')
             .from('circle')
             .where({ owner: userId, state: CIRCLE_STATE.active })
@@ -258,7 +258,7 @@ export const makeReadArticlesTagsActivityQuery = ({
   withExcludedUsers({ userId })
     .select()
     .from(
-      knex
+      knexRO
         .as('selected_recommendations')
         .select('recommended.*')
         .from('recommended_articles_from_read_tags_materialized as recommended')
