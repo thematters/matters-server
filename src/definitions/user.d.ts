@@ -7,7 +7,7 @@ interface UserBase {
   uuid: string
   description: string
   avatar: string
-  email: string
+  email?: string
   emailVerified: boolean
   likerId?: string
   passwordHash: string

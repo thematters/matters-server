@@ -30,6 +30,7 @@ import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
 import { PaymentService, redis } from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
+import { EmailableUser } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -375,11 +376,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
         throw error
       }
     }
-    if (curatorUser.userName && creatorUser.userName) {
+    if (
+      curatorUser.userName &&
+      creatorUser.userName &&
+      curatorUser.email &&
+      creatorUser.email
+    ) {
       await this.paymentService.notifyDonation({
         tx,
-        sender: curatorUser,
-        recipient: creatorUser,
+        sender: curatorUser as EmailableUser,
+        recipient: creatorUser as EmailableUser,
         article,
       })
     }

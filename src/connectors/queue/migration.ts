@@ -16,6 +16,7 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { UserHasUsername } from 'definitions'
 
 const logger = getLogger('queue-migration')
 
@@ -70,7 +71,9 @@ class MigrationQueue extends BaseQueue {
             htmls: string[]
           }
 
-          const user = await this.userService.baseFindById(userId)
+          const user = (await this.userService.baseFindById(
+            userId
+          )) as UserHasUsername
           if (!user) {
             job.progress(100)
             done(new Error(`can not find user ${userId}`))
@@ -133,14 +136,16 @@ class MigrationQueue extends BaseQueue {
           job.progress(90)
 
           // add email task
-          this.notificationService.mail.sendMigrationSuccess({
-            to: user.email,
-            language: user.language,
-            recipient: {
-              displayName: user.displayName,
-              userName: user.userName,
-            },
-          })
+          if (user.email) {
+            this.notificationService.mail.sendMigrationSuccess({
+              to: user.email,
+              language: user.language,
+              recipient: {
+                displayName: user.displayName,
+                userName: user.userName,
+              },
+            })
+          }
 
           job.progress(100)
           done(null, 'Migration has finished.')

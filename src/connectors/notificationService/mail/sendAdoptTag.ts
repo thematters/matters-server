@@ -1,7 +1,7 @@
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { LANGUAGES } from 'definitions'
+import { LANGUAGES, UserHasUsername } from 'definitions'
 
 import { trans } from './utils'
 
@@ -13,10 +13,7 @@ export const sendAdoptTag = async ({
 }: {
   to: string
   language?: LANGUAGES
-  recipient: {
-    displayName: string
-    userName: string
-  }
+  recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
   tag: {
     id: string
     content: string

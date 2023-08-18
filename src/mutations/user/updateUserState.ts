@@ -37,13 +37,15 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     // async
     userQueue.archiveUser({ userId: id })
 
-    notificationService.mail.sendUserDeletedByAdmin({
-      to: user.email,
-      recipient: {
-        displayName: user.displayName,
-      },
-      language: user.language,
-    })
+    if (user.email) {
+      notificationService.mail.sendUserDeletedByAdmin({
+        to: user.email,
+        recipient: {
+          displayName: user.displayName,
+        },
+        language: user.language,
+      })
+    }
 
     return [archivedUser]
   }

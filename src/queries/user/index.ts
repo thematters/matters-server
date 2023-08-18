@@ -140,7 +140,7 @@ const user: {
     ipnsKey,
     badges,
     userNameEditable,
-    email: ({ email }) => email && email.replace(/#/g, '@'),
+    email: ({ email }) => (email ? email.replace(/#/g, '@') : ''),
     emailVerified: ({ emailVerified }) => emailVerified || false,
     profileCover,
     group,

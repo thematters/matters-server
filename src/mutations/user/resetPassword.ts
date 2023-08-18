@@ -72,7 +72,7 @@ const resolver: GQLMutationResolvers['resetPassword'] = async (
   })
 
   // trigger notifications
-  if (type === 'payment') {
+  if (type === 'payment' && user.email) {
     notificationService.mail.sendPayment({
       to: user.email,
       recipient: {
