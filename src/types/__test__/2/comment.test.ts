@@ -196,56 +196,6 @@ describe('mutations on comment', () => {
     expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
   })
 
-  test('onboarding user vote a comment', async () => {
-    const onboardingCommentId = toGlobalId({ type: NODE_TYPES.Comment, id: 6 })
-    const server = await testClient({
-      isAuth: true,
-      isOnboarding: true,
-    })
-
-    // upvote
-    const upvoteResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'up' },
-      },
-    })
-    expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe(
-      'FORBIDDEN_BY_STATE'
-    )
-
-    // upvote comment that article published by viewer
-    const upvoteSuccuessResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
-    })
-    expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
-
-    // downvote
-    const downvoteResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'down' },
-      },
-    })
-    expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe(
-      'FORBIDDEN_BY_STATE'
-    )
-
-    // downvote comment that article published by viewer
-    const downvoteSuccuessResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
-    })
-    expect(
-      _get(downvoteSuccuessResult, 'data.voteComment.downvotes')
-    ).toBeDefined()
-  })
-
   test('downvote a comment', async () => {
     const server = await testClient({ isAuth: true })
     const { upvotes } = await getCommentVotes(commentId)

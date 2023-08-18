@@ -3719,12 +3719,7 @@ export type GQLUserSettings = {
   notification?: Maybe<GQLNotificationSetting>
 }
 
-export type GQLUserState =
-  | 'active'
-  | 'archived'
-  | 'banned'
-  | 'frozen'
-  | 'onboarding'
+export type GQLUserState = 'active' | 'archived' | 'banned' | 'frozen'
 
 export type GQLUserStatus = {
   __typename?: 'UserStatus'

@@ -104,8 +104,7 @@ const resolver: GQLMutationResolvers['invite'] = async (
       ? (
           await atomService.findFirst({
             table: 'user',
-            where: { email },
-            whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
+            where: { email, state: USER_STATE.active },
           })
         )?.id
       : userId
@@ -171,9 +170,9 @@ const resolver: GQLMutationResolvers['invite'] = async (
     const recipient = await atomService.findFirst({
       table: 'user',
       where: {
+        state: USER_STATE.active,
         ...(userId ? { id: userId } : { email }),
       },
-      whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
     })
 
     // if user not found by id and email, then generate code

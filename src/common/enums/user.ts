@@ -1,6 +1,5 @@
 export const USER_STATE = {
   frozen: 'frozen',
-  onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',
   archived: 'archived',

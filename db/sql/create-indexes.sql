@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.article_read_time_materialized AS
     sum(article_read_count.read_time) AS sum_read_time
    FROM article_read_count
      JOIN "user" ON "user".id = article_read_count.user_id
-  WHERE article_read_count.user_id IS NOT NULL AND ("user".state = ANY (ARRAY['active'::text, 'onboarding'::text]))
+  WHERE article_read_count.user_id IS NOT NULL AND ("user".state = ANY (ARRAY['active'::text]))
   GROUP BY article_read_count.article_id ;
 
 ALTER TABLE public.article_read_time_materialized ADD PRIMARY KEY (article_id) ;

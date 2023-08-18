@@ -38,14 +38,13 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
 
   // check permission
   const isTargetAuthor = targetAuthor === viewer.id
-  const isOnboarding = viewer.state === USER_STATE.onboarding
   const isInactive = [
     USER_STATE.banned,
     USER_STATE.archived,
     USER_STATE.frozen,
   ].includes(viewer.state)
 
-  if ((isOnboarding && !isTargetAuthor) || isInactive) {
+  if (isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
