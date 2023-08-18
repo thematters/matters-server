@@ -78,9 +78,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         editors: _uniq([...tag.editors, viewer.id]),
       })
 
-      // auto follow current tag
-      await tagService.follow({ targetId: tag.id, userId: viewer.id })
-
       // send mails
       notificationService.mail.sendAdoptTag({
         to: viewer.email,
@@ -165,13 +162,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
       updatedTag = await tagService.baseUpdate(tagId, {
         editors: dedupedEditors,
       })
-
-      // auto follow current tag
-      await Promise.all(
-        newEditors.map((editorId) =>
-          tagService.follow({ targetId: tag.id, userId: editorId })
-        )
-      )
 
       // send emails and notices
       const recipients = (await userService.loadByIds(newEditors)) as Array<
