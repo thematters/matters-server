@@ -955,11 +955,11 @@ describe('mutations on User object', () => {
     })
     const { data } = await server.executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
-      variables: { input: { type: 'enable', enabled: false } },
+      variables: { input: { type: 'user_new_follower', enabled: false } },
     })
     const enable = _get(
       data,
-      'updateNotificationSetting.settings.notification.enable'
+      'updateNotificationSetting.settings.notification.user_new_follower'
     )
     expect(enable).toBe(false)
   })

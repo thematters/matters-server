@@ -2095,7 +2095,6 @@ export type GQLNotificationSetting = {
   circleNewSubscriber: Scalars['Boolean']['output']
   circleNewUnsubscriber: Scalars['Boolean']['output']
   email: Scalars['Boolean']['output']
-  enable: Scalars['Boolean']['output']
   /** for circle members & followers */
   inCircleNewArticle: Scalars['Boolean']['output']
   inCircleNewBroadcast: Scalars['Boolean']['output']
@@ -2112,7 +2111,6 @@ export type GQLNotificationSettingType =
   | 'articleNewCollected'
   | 'articleNewComment'
   | 'articleNewSubscription'
-  | 'articleSubscribedNewComment'
   | 'circleMemberBroadcast'
   | 'circleMemberNewBroadcastReply'
   | 'circleMemberNewDiscussion'
@@ -2123,7 +2121,6 @@ export type GQLNotificationSettingType =
   | 'circleNewSubscriber'
   | 'circleNewUnsubscriber'
   | 'email'
-  | 'enable'
   /** for circle members */
   | 'inCircleNewArticle'
   | 'inCircleNewBroadcast'
@@ -7211,7 +7208,6 @@ export type GQLNotificationSettingResolvers<
     ContextType
   >
   email?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  enable?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   inCircleNewArticle?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,

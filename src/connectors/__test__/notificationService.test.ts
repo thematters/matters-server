@@ -32,10 +32,10 @@ describe('user notify setting', () => {
     circle_new_article: true,
 
     // article-article
-    article_new_collected: true,
+    article_new_collected: false,
 
     // comment
-    comment_pinned: true,
+    comment_pinned: false,
     comment_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,

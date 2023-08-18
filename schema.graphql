@@ -2520,7 +2520,6 @@ type Appreciation {
 }
 
 type NotificationSetting {
-  enable: Boolean!
   email: Boolean!
   mention: Boolean!
   userNewFollower: Boolean!
@@ -2946,7 +2945,6 @@ enum UserLanguage {
 }
 
 enum NotificationSettingType {
-  enable
   email
   mention
   userNewFollower
@@ -2954,7 +2952,6 @@ enum NotificationSettingType {
   articleNewAppreciation
   articleNewSubscription
   articleNewCollected
-  articleSubscribedNewComment
   articleCommentPinned
 
   """for circle owners"""

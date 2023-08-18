@@ -459,7 +459,7 @@ class Notice extends BaseService {
     event: NotificationType
     setting: { [key in GQLNotificationSettingType]: boolean }
   }) => {
-    if (!setting || !setting.enable) {
+    if (!setting) {
       return false
     }
 
@@ -483,7 +483,7 @@ class Notice extends BaseService {
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
-      subscribed_article_new_comment: setting.articleSubscribedNewComment,
+      subscribed_article_new_comment: true,
       circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment
