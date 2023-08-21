@@ -623,7 +623,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
 
       const notVerifiedEmail = 'not-verified@matters.town'
       const user = await userService.create({
@@ -641,7 +641,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors2?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+      expect(errors2?.[0].extensions.code).toBe('CODE_INVALID')
     })
     test('register with invalid code will fail', async () => {
       const server = await testClient()
@@ -749,7 +749,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
     })
     test('login with correct password will succeed', async () => {
       const server = await testClient()
