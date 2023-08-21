@@ -3054,7 +3054,8 @@ input EmailLoginInput {
 
 input SocialLoginInput {
   type: SocialAccountType!
-  token: String!
+  authorizationCode: String!
+  codeVerifier: String
 }
 
 input SetUserNameInput {

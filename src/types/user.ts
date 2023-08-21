@@ -993,7 +993,8 @@ export default /* GraphQL */ `
 
   input SocialLoginInput {
     type: SocialAccountType!
-    token: String!
+    authorizationCode: String!
+    codeVerifier: String
   }
 
   input SetUserNameInput {
