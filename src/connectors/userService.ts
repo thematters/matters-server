@@ -7,7 +7,7 @@ import type {
   User,
   VerficationCode,
   ValueOf,
-  DataSources,
+  SocialAccount,
 } from 'definitions'
 
 import axios from 'axios'
@@ -69,7 +69,7 @@ import {
   CodeInactiveError,
   CodeInvalidError,
   ServerError,
-  AuthenticationError,
+  OAuthTokenInvalidError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -86,6 +86,7 @@ import {
   AtomService,
   BaseService,
   CacheService,
+  TagService,
   ipfsServers,
   OAuthService,
   NotificationService,
@@ -122,30 +123,26 @@ export class UserService extends BaseService {
   public loadByIds = async (ids: string[]): Promise<User[]> =>
     this.dataloader.loadMany(ids) as Promise<User[]>
 
-  public create = async ({
-    userName,
-    displayName,
-    // description,
-    password,
-    email,
-    ethAddress,
-    emailVerified = true,
-  }: {
-    userName?: string
-    displayName?: string
-    // description?: string
-    password?: string
-    email?: string
-    ethAddress?: string
-    emailVerified?: boolean
-  }) => {
-    // const avatar = null
-    if (!email && !ethAddress) {
-      throw new UserInputError(
-        'email and ethAddress cannot be both empty to create user'
-      )
-    }
-
+  public create = async (
+    {
+      userName,
+      displayName,
+      // description,
+      password,
+      email,
+      ethAddress,
+      emailVerified = true,
+    }: {
+      userName?: string
+      displayName?: string
+      // description?: string
+      password?: string
+      email?: string
+      ethAddress?: string
+      emailVerified?: boolean
+    },
+    trx?: Knex.Transaction
+  ) => {
     const uuid = v4()
     const passwordHash = password
       ? await generatePasswordhash(password)
@@ -166,23 +163,31 @@ export class UserService extends BaseService {
           ethAddress,
         },
         _.isNil
-      )
+      ),
+      'user',
+      undefined,
+      undefined,
+      trx
     )
-    await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    await this.baseCreate(
+      { userId: user.id },
+      'user_notify_setting',
+      undefined,
+      undefined,
+      trx
+    )
 
     return user
   }
 
-  public postRegister = async (
-    user: User,
-    { tagService }: Pick<DataSources, 'tagService'>
-  ) => {
+  public postRegister = async (user: User) => {
     const notificationService = new NotificationService()
     const atomService = new AtomService()
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
 
     // auto follow tags
+    const tagService = new TagService()
     await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
 
     // send email
@@ -2178,6 +2183,58 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
 
+  public getOrCreateUserBySocialAccount = async ({
+    type,
+    socialAcountId,
+    userName,
+  }: SocialAccount) => {
+    const socialAcount = await this.getSocialAccount({
+      type,
+      socialAcountId,
+      userName,
+    })
+    if (socialAcount) {
+      return this.loadById(socialAcount.userId)
+    }
+
+    let user: User
+    const trx = await this.knex.transaction()
+    try {
+      user = await this.create({})
+      await this.createSocialAccount(
+        { userId: user.id, type, socialAcountId, userName },
+        trx
+      )
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+    await this.postRegister(user)
+    return user
+  }
+
+  private getSocialAccount = async ({
+    type,
+    socialAcountId,
+  }: SocialAccount) => {
+    return await this.knex('social_account')
+      .select()
+      .where({ type, socialAcountId })
+      .first()
+  }
+
+  private createSocialAccount = async (
+    { userId, type, socialAcountId, userName }: SocialAccount,
+    trx: Knex.Transaction
+  ) => {
+    return await this.knex('social_account')
+      .transacting(trx)
+      .insert({ userId, type, socialAcountId, userName })
+      .returning('*')
+      .first()
+  }
+
   /**
    * Fetch the user info from Twitter v2 API.
    * @see {@link https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token}
@@ -2217,7 +2274,7 @@ export class UserService extends BaseService {
         response.status,
         response.data
       )
-      throw new ServerError('fetch twitter access token failed')
+      throw new OAuthTokenInvalidError('fetch twitter access token failed')
     }
     if (response.data.error) {
       logger.error(
@@ -2225,7 +2282,7 @@ export class UserService extends BaseService {
         response.data.error,
         response.data.error_description
       )
-      throw new AuthenticationError('fetch twitter access token failed')
+      throw new OAuthTokenInvalidError('fetch twitter access token failed')
     }
     return response.data.access_token
   }
@@ -2241,7 +2298,7 @@ export class UserService extends BaseService {
     if (response.status !== 200) {
       throw new ServerError('fetch twitter user info failed')
     }
-    return response.data
+    return response.data.data
   }
 
   /*********************************

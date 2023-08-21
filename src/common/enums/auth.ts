@@ -16,3 +16,9 @@ export const SIGNING_MESSAGE_PURPOSE = {
   login: 'login',
   claimLogbook: 'claimLogbook',
 } as const
+
+export const SOCIAL_LOGIN_TYPE = {
+  Google: 'Google',
+  Twitter: 'Twitter',
+  Facebook: 'Facebook',
+} as const

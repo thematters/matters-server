@@ -1,6 +1,6 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { AUTH_RESULT_TYPE } from 'common/enums'
+import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { setCookie } from 'common/utils'
 
@@ -9,7 +9,8 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   { input: { type, authorizationCode, codeVerifier } },
   { dataSources: { userService }, req, res }
 ) => {
-  if (type === 'Twitter') {
+  let user
+  if (type === SOCIAL_LOGIN_TYPE.Twitter) {
     if (codeVerifier === undefined) {
       throw new UserInputError('codeVerifier is required')
     }
@@ -17,9 +18,14 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       authorizationCode,
       codeVerifier
     )
-    console.log(userInfo)
+    user = await userService.getOrCreateUserBySocialAccount({
+      socialAcountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Twitter,
+      userName: userInfo.username,
+    })
+  } else {
+    user = await userService.loadById('1')
   }
-  const user = await userService.loadById('1')
   const sessionToken = await userService.genSessionToken(user.id)
   setCookie({ req, res, token: sessionToken, user })
 

@@ -31,7 +31,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
   context
 ) => {
   const {
-    dataSources: { tagService, userService },
+    dataSources: { userService },
     req,
     res,
   } = context
@@ -105,7 +105,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
     codeId: code.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
-  await userService.postRegister(newUser, { tagService })
+  await userService.postRegister(newUser)
 
   const { token, user } = await userService.loginByEmail({ ...input, email })
 

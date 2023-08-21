@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
 ) => {
   const {
     viewer,
-    dataSources: { tagService, userService, systemService },
+    dataSources: { userService, systemService },
     req,
     res,
   } = context
@@ -54,7 +54,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     const newUser = await userService.create({
       email,
     })
-    await userService.postRegister(newUser, { tagService })
+    await userService.postRegister(newUser)
 
     // login user
     const sessionToken = await userService.genSessionToken(newUser.id)

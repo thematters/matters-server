@@ -1,3 +1,5 @@
+import { SOCIAL_LOGIN_TYPE } from 'common/enums'
+
 import { LANGUAGES } from './language'
 
 export type User = UserNoUsername | UserHasUsername
@@ -132,4 +134,12 @@ export interface Wallet {
   id: string
   userId: string
   address: string
+}
+
+export interface SocialAccount {
+  userId?: string
+  type: keyof typeof SOCIAL_LOGIN_TYPE
+  socialAcountId: string
+  userName: string
+  email?: string
 }

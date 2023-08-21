@@ -36,7 +36,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     viewer,
     req,
     res,
-    dataSources: { userService, atomService, systemService, tagService },
+    dataSources: { userService, atomService, systemService },
     knex,
   } = context
 
@@ -163,7 +163,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         ethAddress: ethAddress.toLowerCase(), // save the lower case ones
       })
       // mark code status as used
-      await userService.postRegister(user, { tagService })
+      await userService.postRegister(user)
       await userService.markVerificationCodeAs({
         codeId: code.id,
         status: VERIFICATION_CODE_STATUS.used,
@@ -172,7 +172,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       user = await userService.create({
         ethAddress: ethAddress.toLowerCase(),
       })
-      await userService.postRegister(user, { tagService })
+      await userService.postRegister(user)
     }
   }
   return await tryLogin(AUTH_RESULT_TYPE.Signup, user)
