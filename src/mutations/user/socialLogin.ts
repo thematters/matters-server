@@ -13,7 +13,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
     if (codeVerifier === undefined) {
       throw new UserInputError('codeVerifier is required')
     }
-    const userInfo = userService.fetchTwitterUserInfo(
+    const userInfo = await userService.fetchTwitterUserInfo(
       authorizationCode,
       codeVerifier
     )
