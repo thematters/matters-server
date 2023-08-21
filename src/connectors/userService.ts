@@ -10,6 +10,7 @@ import type {
   DataSources,
 } from 'definitions'
 
+import axios from 'axios'
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
 import { recoverPersonalSignature } from 'eth-sig-util'
@@ -67,6 +68,8 @@ import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
+  ServerError,
+  AuthenticationError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -2167,6 +2170,78 @@ export class UserService extends BaseService {
     })
 
     return updatedUser
+  }
+
+  /*********************************
+   *                               *
+   *        Social Login           *
+   *                               *
+   *********************************/
+
+  /**
+   * Fetch the user info from Twitter v2 API.
+   * @see {@link https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token}
+   */
+  public fetchTwitterUserInfo = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const accessToken = await this.fetchTwitterAccessToken(
+      authorizationCode,
+      codeVerifier
+    )
+    return await this.fetchTwitterUserInfoByAccessToken(accessToken)
+  }
+
+  private fetchTwitterAccessToken = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const url = 'https://api.twitter.com/2/oauth2/token'
+    const data = {
+      grant_type: 'authorization_code',
+      code: authorizationCode,
+      redirect_uri: environment.twitterRedirectUri,
+      code_verifier: codeVerifier,
+    }
+    const headers = {
+      Authorization: `Basic ${Buffer.from(
+        `${environment.twitterClientId}:${environment.twitterClientSecret}`
+      ).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    const response = await axios.post(url, data, { headers })
+    if (response.status !== 200) {
+      logger.error(
+        'fetch twitter access token got http code',
+        response.status,
+        response.data
+      )
+      throw new ServerError('fetch twitter access token failed')
+    }
+    if (response.data.error) {
+      logger.error(
+        'fetch twitter access token got',
+        response.data.error,
+        response.data.error_description
+      )
+      throw new AuthenticationError('fetch twitter access token failed')
+    }
+    return response.data.access_token
+  }
+
+  private fetchTwitterUserInfoByAccessToken = async (
+    accessToken: string
+  ): Promise<{ id: string; name: string; username: string }> => {
+    const url = 'https://api.twitter.com/2/users/me'
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    }
+    const response = await axios.get(url, { headers })
+    if (response.status !== 200) {
+      throw new ServerError('fetch twitter user info failed')
+    }
+    return response.data
   }
 
   /*********************************
