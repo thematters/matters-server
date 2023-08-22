@@ -177,62 +177,6 @@ export default /* GraphQL */ `
     CommentNewReply
   }
 
-  #################################
-  #                               #
-  #             Tag               #
-  #                               #
-  #################################
-  type ArticleTagNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
-
-    type: ArticleTagNoticeType!
-
-    target: Article! @logCache(type: "${NODE_TYPES.Article}")
-
-    tag: Tag! @logCache(type: "${NODE_TYPES.Tag}")
-  }
-
-  enum ArticleTagNoticeType {
-    ArticleTagAdded
-    ArticleTagRemoved
-    ArticleTagUnselected @deprecated(reason: "No longer in use")
-  }
-
-  type TagNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
-
-    type: TagNoticeType!
-
-    target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
-  }
-
-  enum TagNoticeType {
-    TagAdoption
-    TagLeave
-    TagAddEditor
-    TagLeaveEditor
-  }
-
 
   #################################
   #                               #

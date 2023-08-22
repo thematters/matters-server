@@ -483,22 +483,10 @@ class Notice extends BaseService {
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
-      subscribed_article_new_comment: true,
       circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
-
-      // article-tag
-      article_tag_has_been_added: true,
-      article_tag_has_been_removed: true,
-      article_tag_has_been_unselected: true,
-
-      // tag
-      tag_adoption: true,
-      tag_leave: true,
-      tag_add_editor: true,
-      tag_leave_editor: true,
 
       // transaction
       payment_received_donation: true,

@@ -453,7 +453,6 @@ export default /* GraphQL */ `
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
-    articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
 
     "for circle owners"

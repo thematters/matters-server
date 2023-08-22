@@ -6,7 +6,6 @@ import _uniq from 'lodash/uniq'
 
 import {
   CACHE_KEYWORD,
-  DB_NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
   UPDATE_TAG_SETTING_TYPE,
@@ -25,15 +24,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateTagSetting'] = async (
   _,
   { input: { id, type, editors } },
-  {
-    viewer,
-    dataSources: {
-      notificationService,
-      systemService,
-      tagService,
-      userService,
-    },
-  }
+  { viewer, dataSources: { systemService, tagService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -81,28 +72,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
       // auto follow current tag
       await tagService.follow({ targetId: tag.id, userId: viewer.id })
 
-      // send mails
-      notificationService.mail.sendAdoptTag({
-        to: viewer.email,
-        language: viewer.language,
-        recipient: {
-          displayName: viewer.displayName,
-          userName: viewer.userName,
-        },
-        tag: { id, content: tag.content },
-      })
-
-      // send notices
-      const participants = await tagService.findParticipants({ id: tag.id })
-
-      participants.map(async (participant) => {
-        await notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_adoption,
-          recipientId: participant.authorId,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      })
       break
     }
     case UPDATE_TAG_SETTING_TYPE.leave: {
@@ -122,17 +91,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         editors: newEditors,
       })
 
-      // send notices
-      if (newEditors && newEditors.length > 0) {
-        newEditors.map((editor: string) => {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.tag_leave,
-            recipientId: editor,
-            actorId: viewer.id,
-            entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-          })
-        })
-      }
       break
     }
     case UPDATE_TAG_SETTING_TYPE.add_editor: {
@@ -173,33 +131,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         )
       )
 
-      // send emails and notices
-      const recipients = (await userService.loadByIds(newEditors)) as Array<
-        Record<string, any>
-      >
-
-      recipients.map((recipient) => {
-        notificationService.mail.sendAssignAsTagEditor({
-          to: recipient.email,
-          language: recipient.language,
-          recipient: {
-            displayName: recipient.displayName,
-            userName: recipient.userName,
-          },
-          sender: {
-            displayName: viewer.displayName,
-            userName: viewer.userName,
-          },
-          tag: { id, content: tag.content },
-        })
-
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_add_editor,
-          recipientId: recipient.id,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      })
       break
     }
     case UPDATE_TAG_SETTING_TYPE.remove_editor: {
@@ -243,15 +174,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         editors: _difference(tag.editors, [viewer.id]),
       })
 
-      // send notice
-      if (tag.owner) {
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_leave_editor,
-          recipientId: tag.owner,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      }
       break
     }
     default: {

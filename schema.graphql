@@ -1739,52 +1739,6 @@ enum CommentCommentNoticeType {
   CommentNewReply
 }
 
-type ArticleTagNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: ArticleTagNoticeType!
-  target: Article!
-  tag: Tag!
-}
-
-enum ArticleTagNoticeType {
-  ArticleTagAdded
-  ArticleTagRemoved
-  ArticleTagUnselected @deprecated(reason: "No longer in use")
-}
-
-type TagNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: TagNoticeType!
-  target: Tag!
-}
-
-enum TagNoticeType {
-  TagAdoption
-  TagLeave
-  TagAddEditor
-  TagLeaveEditor
-}
-
 type TransactionNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -2527,7 +2481,6 @@ type NotificationSetting {
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
   articleNewCollected: Boolean!
-  articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
 
   """for circle owners"""

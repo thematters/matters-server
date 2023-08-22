@@ -38,22 +38,10 @@ describe('user notify setting', () => {
     comment_pinned: false,
     comment_mentioned_you: true,
     article_new_comment: true,
-    subscribed_article_new_comment: false,
     circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,
-
-    // article-tag
-    article_tag_has_been_added: true,
-    article_tag_has_been_removed: true,
-    article_tag_has_been_unselected: true,
-
-    // tag
-    tag_adoption: true,
-    tag_leave: true,
-    tag_add_editor: true,
-    tag_leave_editor: true,
 
     // transaction
     payment_received_donation: true,
