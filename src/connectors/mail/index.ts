@@ -11,10 +11,6 @@ class MailService {
   }
 
   send = async (params: MailDataRequired, express = false) => {
-    if (!params.personalizations || !params.personalizations[0].to) {
-      return
-    }
-
     this.aws.sqsSendMessage({
       messageBody: params,
       queueUrl: express ? QUEUE_URL.expressMail : QUEUE_URL.mail,
