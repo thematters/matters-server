@@ -261,11 +261,6 @@ export interface NoticeOfficialAnnouncementParams
   data: { url: string }
 }
 
-export interface NoticeUserActivatedParams extends NotificationRequiredParams {
-  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated
-  recipientId: string
-}
-
 // Punish
 export interface NoticeUserBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
@@ -338,7 +333,6 @@ export type NotificationPrarms =
   | NoticeCircleNewDiscussionCommentsParams
   // Official
   | NoticeOfficialAnnouncementParams
-  | NoticeUserActivatedParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
   | NoticeUserUnbannedParams

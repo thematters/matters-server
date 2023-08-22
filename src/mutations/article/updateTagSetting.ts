@@ -69,9 +69,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         editors: _uniq([...tag.editors, viewer.id]),
       })
 
-      // auto follow current tag
-      await tagService.follow({ targetId: tag.id, userId: viewer.id })
-
       break
     }
     case UPDATE_TAG_SETTING_TYPE.leave: {
@@ -123,13 +120,6 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
       updatedTag = await tagService.baseUpdate(tagId, {
         editors: dedupedEditors,
       })
-
-      // auto follow current tag
-      await Promise.all(
-        newEditors.map((editorId) =>
-          tagService.follow({ targetId: tag.id, userId: editorId })
-        )
-      )
 
       break
     }

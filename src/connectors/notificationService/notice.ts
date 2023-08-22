@@ -513,7 +513,6 @@ class Notice extends BaseService {
 
       // system
       official_announcement: true,
-      user_activated: true,
       user_banned: true,
       user_banned_payment: true,
       user_frozen: true,

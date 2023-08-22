@@ -60,7 +60,6 @@ export const testClient = async (
     isAuth,
     isAdmin,
     isMatty,
-    isOnboarding,
     isFrozen,
     isBanned,
     noUserName,
@@ -70,7 +69,6 @@ export const testClient = async (
     isAuth?: boolean
     isAdmin?: boolean
     isMatty?: boolean
-    isOnboarding?: boolean
     isFrozen?: boolean
     isBanned?: boolean
     context?: any
@@ -81,7 +79,6 @@ export const testClient = async (
     isAdmin: false,
     isMatty: false,
     isBanned: false,
-    isOnboarding: false,
     isFrozen: false,
     noUserName: false,
     context: null,
@@ -94,8 +91,6 @@ export const testClient = async (
     _context = await getUserContext({
       email: isMatty
         ? 'hi@matters.news'
-        : isOnboarding
-        ? 'onboarding@matters.news'
         : isFrozen
         ? 'frozen@matters.news'
         : isBanned

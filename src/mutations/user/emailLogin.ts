@@ -72,10 +72,9 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     }
   } else {
     // user exists, login
-
     const verifyPassword = userService.verifyPassword({
       password: passwordOrCode,
-      hash: user.passwordHash,
+      hash: user.passwordHash || '',
     })
     const verifyOTP = userService.verifyVerificationCode({
       email,
@@ -85,8 +84,14 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
 
     try {
       await Promise.any([verifyPassword, verifyOTP])
-    } catch (e) {
-      throw new PasswordInvalidError('Password incorrect, login failed.')
+    } catch (err: any) {
+      for (const e of err.errors) {
+        // CodeInvalidError is last error to throw
+        if (!(e instanceof PasswordInvalidError)) {
+          throw e
+        }
+      }
+      throw err.errors[0]
     }
 
     systemService.saveAgentHash(viewer.agentHash || '', email)

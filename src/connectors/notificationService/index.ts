@@ -120,12 +120,6 @@ export class NotificationService extends BaseService {
           message: params.message,
           data: params.data,
         }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_activated:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_activiated(language, {}),
-        }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
         return {
           type: DB_NOTICE_TYPE.official_announcement,

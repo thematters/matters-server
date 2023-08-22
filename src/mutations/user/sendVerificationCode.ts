@@ -1,11 +1,14 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import {
+  MINUTE,
+  VERIFICATION_CODE_EXPIRED_AFTER,
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
 } from 'common/enums'
+import { isDev } from 'common/environment'
 import {
   AuthenticationError,
   EmailExistsError,
@@ -119,11 +122,15 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   }
 
   // insert record
+  const emailOtpExpire = new Date(
+    Date.now() + (isDev ? MINUTE : VERIFICATION_CODE_EXPIRED_AFTER)
+  )
   const { code } = await userService.createVerificationCode({
     userId: viewer.id,
     email,
     type,
     strong: !!redirectUrl, // strong random code for link
+    expiredAt: type === 'email_otp' ? emailOtpExpire : undefined,
   })
 
   // send verification email
