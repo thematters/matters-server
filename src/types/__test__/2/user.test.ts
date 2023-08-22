@@ -74,7 +74,7 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
     updateNotificationSetting(input: $input) {
       settings {
         notification {
-          enable
+          userNewFollower
         }
       }
     }
@@ -162,7 +162,7 @@ const GET_VIEWER_SETTINGS = /* GraphQL */ `
         language
         currency
         notification {
-          enable
+          userNewFollower
         }
       }
     }
@@ -955,11 +955,11 @@ describe('mutations on User object', () => {
     })
     const { data } = await server.executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
-      variables: { input: { type: 'user_new_follower', enabled: false } },
+      variables: { input: { type: 'userNewFollower', enabled: false } },
     })
     const enable = _get(
       data,
-      'updateNotificationSetting.settings.notification.user_new_follower'
+      'updateNotificationSetting.settings.notification.userNewFollower'
     )
     expect(enable).toBe(false)
   })
