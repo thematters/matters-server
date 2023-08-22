@@ -4,7 +4,7 @@ import {
   ArticlePageContext,
   makeArticlePage,
 } from '@matters/ipns-site-generator'
-import slugify from '@matters/slugify'
+// import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
@@ -16,7 +16,7 @@ import {
   ARTICLE_STATE,
   CIRCLE_STATE,
   COMMENT_TYPE,
-  DEFAULT_IPNS_LIFETIME,
+  // DEFAULT_IPNS_LIFETIME,
   MINUTE,
   QUEUE_URL,
   TRANSACTION_PURPOSE,
@@ -38,17 +38,12 @@ import { getLogger } from 'common/logger'
 import {
   AtomService,
   BaseService,
-  DraftService,
-  Feed,
-  // ipfs,
   ipfsServers,
   SystemService,
   UserService,
 } from 'connectors'
 
 const logger = getLogger('service-article')
-
-const IPFS_OP_TIMEOUT = 300e3 // increase time-out from 1 minute to 5 minutes
 
 const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
@@ -323,333 +318,13 @@ export class ArticleService extends BaseService {
     forceReplace?: boolean
     updatedDrafts?: Item[]
   }) => {
-    const started = Date.now()
-    const atomService = new AtomService()
     const userService = new UserService()
-    const draftService = new DraftService()
-    const author = (await userService.findByUserName(userName)) as Item
-    if (!author) {
-      return
-    }
 
-    const ipnsKeyRec = await userService.findOrCreateIPNSKey(author.userName)
+    const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
     if (!ipnsKeyRec) {
       // cannot do anything if no ipns key
       logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
       return
-    }
-
-    const ipnsKey = ipnsKeyRec.ipnsKey
-    const kname = `for-${author.userName}-${author.uuid}`
-    let ipfs: any
-    try {
-      // always try import; might be on another new ipfs node, or never has it before
-      // const pem = ipnsKeyRec.privKeyPem
-      ;({ client: ipfs } = (await this.ipfsServers.importKey({
-        name: kname,
-        pem: ipnsKeyRec.privKeyPem,
-      }))!)
-      // ipfs = client
-      // if (!ipnsKey && res) { ipnsKey = res?.Id }
-    } catch (err) {
-      // ignore: key with name 'for-...' already exists
-      if (!ipnsKey && err) {
-        logger.error(`ERROR: no ipnsKey for user: ${author.userName}`, err)
-      }
-    }
-
-    const articles = await this.findByAuthor(author.id, {
-      // columns: ['article.id', 'article.draft_id', 'article.created_at'],
-      columns: [
-        'article.id',
-        'article.draft_id',
-        'article.uuid',
-        'article.slug',
-        'article.created_at',
-      ],
-      take: numArticles, // 10, // most recent 10 articles
-    })
-    const publishedDraftIds = articles.map(
-      ({ draftId }: { draftId: string }) => draftId
-    )
-
-    const publishedDrafts = (
-      (await draftService.dataloader.loadMany(publishedDraftIds)) as Item[]
-    ).filter(Boolean)
-
-    const lastDraft = publishedDrafts[0]
-    if (!lastDraft) {
-      logger.error('fetching published drafts ERROR: %o', {
-        authorId: author.id,
-        publishedDraftIds,
-      })
-      return
-    }
-    const directoryName = `${kname}-with-${lastDraft.articleId}-${slugify(
-      lastDraft.title
-    )}@${new Date().toISOString().substring(0, 13)}`
-
-    let cidToPublish // = entry[0].cid // dirStat1.cid
-    let published
-
-    try {
-      const updatedIPNSRec = await atomService.update({
-        table: 'user_ipns_keys',
-        where: { userId: author.id },
-        data: {
-          // lastDataHash: cidToPublish.toString(),
-          // lastPublished: this.knex.fn.now(),
-          updatedAt: this.knex.fn.now(),
-        },
-        columns: [
-          'id',
-          'user_id',
-          'ipns_key',
-          'last_data_hash',
-          'created_at',
-          'updated_at',
-          'last_published',
-        ],
-      })
-      logger.info('start update IPNSRec: %o', updatedIPNSRec)
-
-      // make a bundle of json+xml+html index
-      const feed = new Feed(author, ipnsKey, publishedDrafts)
-      await feed.loadData()
-      const { html, xml, json } = feed.generate()
-      const contents = [
-        {
-          path: `${directoryName}/index.html`,
-          content: html,
-        },
-        {
-          path: `${directoryName}/rss.xml`,
-          content: xml,
-        },
-        {
-          path: `${directoryName}/feed.json`,
-          content: json,
-        },
-      ]
-
-      const results = []
-      for await (const result of ipfs.addAll(contents)) {
-        results.push(result)
-      }
-      // const entriesMap = new Map(results.map((e: any) => [e.path, e]))
-
-      let entry = results.filter(
-        ({ path }: { path: string }) => path === directoryName
-      )
-
-      if (entry.length === 0) {
-        entry = results.filter(({ path }: { path: string }) =>
-          path.endsWith('index.html')
-        )
-      }
-
-      cidToPublish = entry[0].cid // dirStat1.cid
-
-      // add files (via MFS FILES API)
-      const lastDataHash = ipnsKeyRec.lastDataHash
-      try {
-        // eslint-disable-next-line unicorn/prefer-ternary
-        if (lastDataHash) {
-          await ipfs.files.cp(`/ipfs/${lastDataHash}`, `/${directoryName}`, {
-            timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-          })
-        } else {
-          await ipfs.files.mkdir(`/${directoryName}`) // HTTPError: file already exists
-        }
-      } catch (err) {
-        // ignore HTTPError: file already exists
-      }
-
-      // await Promise.all( // FIX: problematic concurrent writing, change to sequential await
-      for (const { path, content } of contents) {
-        // contents.forEach(async ({ path, content }) =>
-        await ipfs.files.write(`/${path}`, content, {
-          create: true,
-          parents: true, // create parents if not existed;
-          truncate: true,
-          timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-        })
-      }
-
-      const dirStat0 = await ipfs.files.stat(`/${directoryName}`, {
-        withLocal: true,
-        timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-      })
-      cidToPublish = dirStat0.cid
-
-      const attached = []
-      // most article publishing goes incremental mode:
-      // only attach the just published 1 article, at every publihsing time
-      for (const dft of updatedDrafts ??
-        (incremental // to include last one only
-          ? publishedDrafts.slice(0, 3) // retry last 3 articles instead of one [lastDraft]
-          : publishedDrafts)) {
-        let retries = 0
-
-        const newEntry = {
-          ipfsPath: `/ipfs/${dft.dataHash}`,
-          // localPath: `./${arti.articleId}-${slugify(arti.title)}`,
-          mfsPath: `/${directoryName}/${dft.articleId}-${slugify(dft.title)}`,
-        }
-        do {
-          try {
-            await ipfs.files.cp(newEntry.ipfsPath, newEntry.mfsPath, {
-              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-            })
-            attached.push(newEntry)
-            break
-          } catch (err) {
-            // ignore HTTPError: GATEWAY_TIMEOUT
-            logger.error(
-              `publishFeedToIPNS ipfs.files.cp attach'ing '${
-                dft.articleId
-              }-${slugify(dft.title)}-${
-                dft.mediaHash
-              }' failed; delete target and retry ${retries} time, ERROR:`,
-              err
-            )
-            if (forceReplace) {
-              await ipfs.files.rm(newEntry.mfsPath, {
-                recursive: true,
-                timeout: IPFS_OP_TIMEOUT,
-              })
-            }
-          }
-        } while (retries++ <= 1)
-      }
-
-      const dirStat1 = await ipfs.files.stat(`/${directoryName}`, {
-        withLocal: true,
-        timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-      })
-
-      // const cidToPublish = entry[0].cid
-      cidToPublish = dirStat1.cid
-
-      logger.info(
-        'directoryName stat after tried %s, and actually attached %i articles: %o',
-        incremental ? 1 : publishedDrafts.length,
-        attached.length,
-        { dirStat0, dirStat1, attached, cidToPublish: cidToPublish?.toString() }
-      )
-
-      // retry name publish on all IPFS nodes
-      {
-        let retries = 0
-        do {
-          try {
-            // HTTPError: no key by the given name was found
-            published = await ipfs.name.publish(cidToPublish, {
-              lifetime: DEFAULT_IPNS_LIFETIME, // '7200h',
-              key: ipnsKey, // kname,
-              timeout: IPFS_OP_TIMEOUT, // increase time-out from 1 minute to 5 minutes
-            })
-            break
-          } catch (err) {
-            logger.error(
-              `ipfs.name.publish for ${cidToPublish?.toString()} failed ${retries} retries with ERROR, ${
-                retries <= this.ipfsServers.size
-                  ? 'will retry with another ipfs server'
-                  : 'give up.'
-              }`,
-              err
-            )
-            try {
-              // HTTPError: no key by the given name was found
-              ;({ client: ipfs } = (await this.ipfsServers.importKey({
-                name: kname,
-                pem: ipnsKeyRec.privKeyPem,
-                useActive: false,
-              }))!)
-            } catch (error) {
-              // ignore: key with name 'for-...' already exists
-            }
-            ++retries
-            logger.warn(
-              `ipfs.name.publish (for '${userName}') ${retries} retries failed; %o`,
-              {
-                cidToPublish: cidToPublish?.toString(),
-                kname,
-                ipnsKey,
-                ipfsServerId: await ipfs.id(),
-              }
-            )
-          }
-        } while (retries <= this.ipfsServers.size)
-      }
-
-      logger.info('/%s published: %o', directoryName, published)
-
-      this.aws
-        .sqsSendMessage({
-          messageGroupId: `ipfs-articles-${environment.env}:ipns-feed`,
-          messageBody: {
-            articleId: lastDraft.articleId,
-            title: lastDraft.title,
-            dataHash: lastDraft.dataHash,
-            mediaHash: lastDraft.mediaHash,
-
-            // ipns info:
-            ipnsKey,
-            lastDataHash: cidToPublish?.toString(),
-
-            // author info:
-            userName: author.userName,
-            displayName: author.displayName,
-          },
-          queueUrl: QUEUE_URL.ipfsArticles,
-        })
-        // .then(res => {})
-        .catch((err: Error) => logger.error('failed sqs notify:', err))
-
-      return { ipnsKey, lastDataHash: cidToPublish?.toString() }
-    } catch (err) {
-      logger.error(`publishFeedToIPNS failed lastly with ERROR:`, err, {
-        ipnsKey,
-        kname,
-        directoryName,
-        userName: author.userName,
-      })
-    } finally {
-      let updatedRec
-      if (published && cidToPublish?.toString() !== ipnsKeyRec.lastDataHash) {
-        updatedRec = await atomService.update({
-          table: 'user_ipns_keys',
-          where: { userId: author.id },
-          data: {
-            lastDataHash: cidToPublish?.toString(),
-            lastPublished: this.knex.fn.now(),
-            updatedAt: this.knex.fn.now(),
-          },
-          columns: [
-            'id',
-            'user_id',
-            'ipns_key',
-            'last_data_hash',
-            'created_at',
-            'updated_at',
-            'last_published',
-          ],
-        })
-      } else {
-        logger.error('publishFeedToIPNS: not published, or remained same: %j', {
-          published,
-          cidToPublish: cidToPublish?.toString(),
-        })
-      }
-
-      const end = new Date()
-      logger.info(
-        `IPNS published: elapsed ${((+end - started) / 60e3).toFixed(
-          1
-        )} min %o`,
-        updatedRec
-      )
     }
   }
 
