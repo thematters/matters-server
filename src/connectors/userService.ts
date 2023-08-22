@@ -70,6 +70,7 @@ import {
   CodeInvalidError,
   ServerError,
   OAuthTokenInvalidError,
+  UnknownError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -2271,24 +2272,18 @@ export class UserService extends BaseService {
       ).toString('base64')}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     }
-    const response = await axios.post(url, data, { headers })
-    if (response.status !== 200) {
-      logger.error(
-        'fetch twitter access token got http code',
-        response.status,
-        response.data
-      )
-      throw new OAuthTokenInvalidError('fetch twitter access token failed')
+    try {
+      const response = await axios.post(url, data, { headers })
+      return response.data.access_token
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        logger.warn('fetch twitter failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('fetch twitter access token failed')
+      } else {
+        logger.error('fetch twitter error: ', error)
+        throw new UnknownError('fetch twitter access token failed')
+      }
     }
-    if (response.data.error) {
-      logger.error(
-        'fetch twitter access token got',
-        response.data.error,
-        response.data.error_description
-      )
-      throw new OAuthTokenInvalidError('fetch twitter access token failed')
-    }
-    return response.data.access_token
   }
 
   private fetchTwitterUserInfoByAccessToken = async (
