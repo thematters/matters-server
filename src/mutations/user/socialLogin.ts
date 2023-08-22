@@ -23,6 +23,19 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
     })
+  } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
+    if (codeVerifier === undefined) {
+      throw new UserInputError('codeVerifier is required')
+    }
+    const userInfo = await userService.fetchFacebookUserInfo(
+      authorizationCode,
+      codeVerifier
+    )
+    user = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Facebook,
+      userName: userInfo.username,
+    })
   } else {
     user = await userService.loadById('1')
   }

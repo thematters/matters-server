@@ -141,6 +141,8 @@ export const environment = {
   twitterClientId: process.env.MATTERS_TWITTER_CLIENT_ID || '',
   twitterClientSecret: process.env.MATTERS_TWITTER_CLIENT_SECRET || '',
   twitterRedirectUri: process.env.MATTERS_TWITTER_REDIRECT_URI || '',
+  facebookClientId: process.env.MATTERS_FACEBOOK_CLIENT_ID || '',
+  facebookRedirectUri: process.env.MATTERS_FACEBOOK_REDIRECT_URI || '',
 }
 
 export const polygonUSDTContractAddress = isProd

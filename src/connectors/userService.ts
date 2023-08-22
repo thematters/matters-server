@@ -2248,14 +2248,14 @@ export class UserService extends BaseService {
     authorizationCode: string,
     codeVerifier: string
   ) => {
-    const accessToken = await this.fetchTwitterAccessToken(
+    const accessToken = await this.exchangeTwitterAccessToken(
       authorizationCode,
       codeVerifier
     )
     return await this.fetchTwitterUserInfoByAccessToken(accessToken)
   }
 
-  private fetchTwitterAccessToken = async (
+  private exchangeTwitterAccessToken = async (
     authorizationCode: string,
     codeVerifier: string
   ) => {
@@ -2277,11 +2277,11 @@ export class UserService extends BaseService {
       return response.data.access_token
     } catch (error: any) {
       if (error.response.status === 400) {
-        logger.warn('fetch twitter failed: ', error.response.data)
-        throw new OAuthTokenInvalidError('fetch twitter access token failed')
+        logger.warn('exchange twitter failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange twitter access token failed')
       } else {
-        logger.error('fetch twitter error: ', error)
-        throw new UnknownError('fetch twitter access token failed')
+        logger.error('exchange twitter error: ', error)
+        throw new UnknownError('exchange twitter access token failed')
       }
     }
   }
@@ -2298,6 +2298,47 @@ export class UserService extends BaseService {
       throw new ServerError('fetch twitter user info failed')
     }
     return response.data.data
+  }
+
+  public fetchFacebookUserInfo = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const { id_token } = await this.exchangeFacebookToken(
+      authorizationCode,
+      codeVerifier
+    )
+    const data = jwt.decode(id_token) as any
+    if (data.aud !== environment.facebookClientId) {
+      throw new OAuthTokenInvalidError('Facebook token id aud is invalid')
+    }
+    return { id: data.sub, username: data.name }
+  }
+
+  private exchangeFacebookToken = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ): Promise<{ access_token: string; id_token: string }> => {
+    const url = 'https://graph.facebook.com/v17.0/oauth/access_token'
+    try {
+      const response = await axios.get(url, {
+        params: {
+          client_id: environment.facebookClientId,
+          redirect_uri: environment.facebookRedirectUri,
+          code: authorizationCode,
+          code_verifier: codeVerifier,
+        },
+      })
+      return response.data
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn('fetch facebook failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange facebook token failed')
+      }
+      logger.error('fetch facebook error: ', error)
+      throw new UnknownError('exchange facebook tokenfailed')
+    }
   }
 
   /*********************************
