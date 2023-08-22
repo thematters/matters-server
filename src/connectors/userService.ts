@@ -2185,12 +2185,12 @@ export class UserService extends BaseService {
 
   public getOrCreateUserBySocialAccount = async ({
     type,
-    socialAcountId,
+    socialAccountId,
     userName,
   }: SocialAccount) => {
     const socialAcount = await this.getSocialAccount({
       type,
-      socialAcountId,
+      socialAccountId,
       userName,
     })
     if (socialAcount) {
@@ -2202,7 +2202,7 @@ export class UserService extends BaseService {
     try {
       user = await this.create({})
       await this.createSocialAccount(
-        { userId: user.id, type, socialAcountId, userName },
+        { userId: user.id, type, socialAccountId, userName },
         trx
       )
       await trx.commit()
@@ -2216,23 +2216,27 @@ export class UserService extends BaseService {
 
   private getSocialAccount = async ({
     type,
-    socialAcountId,
+    socialAccountId,
   }: SocialAccount) => {
     return await this.knex('social_account')
       .select()
-      .where({ type, socialAcountId })
+      .where({ type, socialAccountId })
       .first()
   }
 
   private createSocialAccount = async (
-    { userId, type, socialAcountId, userName }: SocialAccount,
-    trx: Knex.Transaction
+    { userId, type, socialAccountId, userName }: SocialAccount,
+    trx?: Knex.Transaction
   ) => {
-    return await this.knex('social_account')
-      .transacting(trx)
-      .insert({ userId, type, socialAcountId, userName })
+    const query = this.knex('social_account')
+      .insert({ userId, type, socialAccountId, userName })
       .returning('*')
-      .first()
+
+    if (trx) {
+      query.transacting(trx)
+    }
+
+    return query
   }
 
   /**

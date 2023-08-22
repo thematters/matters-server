@@ -19,7 +19,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       codeVerifier
     )
     user = await userService.getOrCreateUserBySocialAccount({
-      socialAcountId: userInfo.id,
+      socialAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
     })

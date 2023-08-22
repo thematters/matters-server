@@ -347,3 +347,26 @@ describe('totalPinnedWorks', () => {
     expect(res).toBe(1)
   })
 })
+
+describe('getOrCreateUserBySocialAccount', () => {
+  const twitterUserInfo = {
+    id: '1',
+    username: 'testtwitterusername',
+  }
+  test('create and get user by social account', async () => {
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: twitterUserInfo.id,
+      userName: twitterUserInfo.username,
+      type: 'Twitter',
+    })
+    expect(createdUser.id).toBeDefined()
+    expect(createdUser.userName).toBeNull()
+
+    const user = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: twitterUserInfo.id,
+      userName: twitterUserInfo.username,
+      type: 'Twitter',
+    })
+    expect(user.id).toBe(createdUser.id)
+  })
+})
