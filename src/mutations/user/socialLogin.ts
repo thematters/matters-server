@@ -6,7 +6,7 @@ import { setCookie } from 'common/utils'
 
 export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,
-  { input: { type, authorizationCode, codeVerifier } },
+  { input: { type, authorizationCode, codeVerifier, nonce } },
   { dataSources: { userService }, req, res }
 ) => {
   let user
@@ -37,7 +37,19 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       userName: userInfo.username,
     })
   } else {
-    user = await userService.loadById('1')
+    if (nonce === undefined) {
+      throw new UserInputError('nonce is required')
+    }
+    const userInfo = await userService.fetchGoogleUserInfo(
+      authorizationCode,
+      nonce
+    )
+    user = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Facebook,
+      email: userInfo.email,
+      emailVerified: userInfo.emailVerified,
+    })
   }
   const sessionToken = await userService.genSessionToken(user.id)
   setCookie({ req, res, token: sessionToken, user })

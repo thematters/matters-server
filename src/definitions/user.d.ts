@@ -140,6 +140,6 @@ export interface SocialAccount {
   userId?: string
   type: keyof typeof SOCIAL_LOGIN_TYPE
   socialAccountId: string
-  userName: string
+  userName?: string
   email?: string
 }

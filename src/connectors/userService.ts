@@ -2188,7 +2188,9 @@ export class UserService extends BaseService {
     type,
     socialAccountId,
     userName,
-  }: SocialAccount) => {
+    email,
+    emailVerified,
+  }: SocialAccount & { emailVerified?: boolean }) => {
     const socialAcount = await this.getSocialAccount({
       type,
       socialAccountId,
@@ -2198,12 +2200,17 @@ export class UserService extends BaseService {
       return this.loadById(socialAcount.userId)
     }
 
-    let user: User
+    let user
+    if (email) {
+      user = await this.findByEmail(email)
+    }
     const trx = await this.knex.transaction()
     try {
-      user = await this.create({})
+      if (!user) {
+        user = await this.create({ email, emailVerified }, trx)
+      }
       await this.createSocialAccount(
-        { userId: user.id, type, socialAccountId, userName },
+        { userId: user.id, type, socialAccountId, userName, email },
         trx
       )
       await trx.commit()
@@ -2226,11 +2233,11 @@ export class UserService extends BaseService {
   }
 
   private createSocialAccount = async (
-    { userId, type, socialAccountId, userName }: SocialAccount,
+    { userId, type, socialAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {
     const query = this.knex('social_account')
-      .insert({ userId, type, socialAccountId, userName })
+      .insert({ userId, type, socialAccountId, userName, email })
       .returning('*')
 
     if (trx) {
@@ -2241,7 +2248,7 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Fetch the user info from Twitter v2 API.
+   * Fetch the Twitter user info using Twitter v2 API.
    * @see {@link https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token}
    */
   public fetchTwitterUserInfo = async (
@@ -2300,6 +2307,10 @@ export class UserService extends BaseService {
     return response.data.data
   }
 
+  /**
+   * Fetch the Facebook user info using Facebook OIDC.
+   * @see {@link https://developers.facebook.com/docs/facebook-login/guides/advanced/oidc-token}
+   */
   public fetchFacebookUserInfo = async (
     authorizationCode: string,
     codeVerifier: string
@@ -2338,6 +2349,57 @@ export class UserService extends BaseService {
       }
       logger.error('fetch facebook error: ', error)
       throw new UnknownError('exchange facebook tokenfailed')
+    }
+  }
+
+  /**
+   * Fetch the Google user info from Google OIDC.
+   * @see {@link https://developers.google.com/identity/openid-connect/openid-connect}
+   */
+  public fetchGoogleUserInfo = async (
+    authorizationCode: string,
+    nonce: string
+  ) => {
+    const { id_token } = await this.exchangeGoogleToken(authorizationCode)
+    const data = jwt.decode(id_token) as any
+    if (data.aud !== environment.googleClientId) {
+      throw new OAuthTokenInvalidError('Google token id aud is invalid')
+    }
+    if (data.nonce !== nonce) {
+      throw new OAuthTokenInvalidError('Google token id nonce is invalid')
+    }
+    return {
+      id: data.sub,
+      email: data.email,
+      emailVerified: data.email_verified,
+    }
+  }
+
+  private exchangeGoogleToken = async (
+    authorizationCode: string
+  ): Promise<{ access_token: string; id_token: string }> => {
+    const url = 'https://oauth2.googleapis.com/token'
+    const data = {
+      code: authorizationCode,
+      client_id: environment.googleClientId,
+      client_secret: environment.googleClientSecret,
+      redirect_uri: environment.googleRedirectUri,
+      grant_type: 'authorization_code',
+    }
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    try {
+      const response = await axios.post(url, data, { headers })
+      return response.data
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn('fetch google failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange google token failed')
+      }
+      logger.error('fetch google error: ', error)
+      throw new UnknownError('exchange google tokenfailed')
     }
   }
 

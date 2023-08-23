@@ -995,6 +995,7 @@ export default /* GraphQL */ `
     type: SocialAccountType!
     authorizationCode: String!
     codeVerifier: String
+    nonce: String
   }
 
   input SetUserNameInput {
