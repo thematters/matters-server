@@ -14,22 +14,10 @@ export enum DB_NOTICE_TYPE {
   // article-article
   article_new_collected = 'article_new_collected',
 
-  // article-tag
-  article_tag_has_been_added = 'article_tag_has_been_added',
-  article_tag_has_been_removed = 'article_tag_has_been_removed',
-  article_tag_has_been_unselected = 'article_tag_has_been_unselected',
-
-  // tag
-  tag_adoption = 'tag_adoption',
-  tag_leave = 'tag_leave',
-  tag_add_editor = 'tag_add_editor',
-  tag_leave_editor = 'tag_leave_editor',
-
   // comment
   comment_pinned = 'comment_pinned',
   comment_mentioned_you = 'comment_mentioned_you',
   article_new_comment = 'article_new_comment',
-  subscribed_article_new_comment = 'subscribed_article_new_comment',
   circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment

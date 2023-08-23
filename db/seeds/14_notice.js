@@ -106,24 +106,6 @@ exports.seed = async (knex) => {
       ],
       recipient_id: '1',
     },
-    // recipient_id (1)'s subscribed article (2) has a new comment by actor (3)
-    {
-      notice_type: 'subscribed_article_new_comment',
-      actors: ['3'],
-      entities: [
-        {
-          type: 'target',
-          entity_type_id: articleTypeId,
-          entity_id: '2',
-        },
-        {
-          type: 'comment',
-          entity_type_id: commentTypeId,
-          entity_id: '2',
-        },
-      ],
-      recipient_id: '1',
-    },
     // upstream (2) of article (4) was archived
     {
       notice_type: 'upstream_article_archived',

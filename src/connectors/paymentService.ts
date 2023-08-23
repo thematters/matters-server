@@ -3,7 +3,6 @@ import type {
   GQLChain,
   Transaction,
   EmailableUser,
-  User,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -449,7 +448,7 @@ export class PaymentService extends BaseService {
     user,
     provider,
   }: {
-    user: Pick<User, 'id' | 'email'>
+    user: { id: string; email: string }
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {

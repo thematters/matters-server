@@ -475,26 +475,6 @@ export type GQLArticleRecommendationActivitySource =
 /** Enums for an article state. */
 export type GQLArticleState = 'active' | 'archived' | 'banned'
 
-export type GQLArticleTagNotice = GQLNotice & {
-  __typename?: 'ArticleTagNotice'
-  /** List of notice actors. */
-  actors?: Maybe<Array<GQLUser>>
-  /** Time of this notice was created. */
-  createdAt: Scalars['DateTime']['output']
-  /** Unique ID of this notice. */
-  id: Scalars['ID']['output']
-  tag: GQLTag
-  target: GQLArticle
-  type: GQLArticleTagNoticeType
-  /** The value determines if the notice is unread or not. */
-  unread: Scalars['Boolean']['output']
-}
-
-export type GQLArticleTagNoticeType =
-  | 'ArticleTagAdded'
-  | 'ArticleTagRemoved'
-  | 'ArticleTagUnselected'
-
 export type GQLArticleTranslation = {
   __typename?: 'ArticleTranslation'
   content?: Maybe<Scalars['String']['output']>
@@ -2086,7 +2066,6 @@ export type GQLNotificationSetting = {
   articleNewCollected: Scalars['Boolean']['output']
   articleNewComment: Scalars['Boolean']['output']
   articleNewSubscription: Scalars['Boolean']['output']
-  articleSubscribedNewComment: Scalars['Boolean']['output']
   circleMemberNewBroadcastReply: Scalars['Boolean']['output']
   circleMemberNewDiscussion: Scalars['Boolean']['output']
   circleMemberNewDiscussionReply: Scalars['Boolean']['output']
@@ -2095,7 +2074,6 @@ export type GQLNotificationSetting = {
   circleNewSubscriber: Scalars['Boolean']['output']
   circleNewUnsubscriber: Scalars['Boolean']['output']
   email: Scalars['Boolean']['output']
-  enable: Scalars['Boolean']['output']
   /** for circle members & followers */
   inCircleNewArticle: Scalars['Boolean']['output']
   inCircleNewBroadcast: Scalars['Boolean']['output']
@@ -2112,7 +2090,6 @@ export type GQLNotificationSettingType =
   | 'articleNewCollected'
   | 'articleNewComment'
   | 'articleNewSubscription'
-  | 'articleSubscribedNewComment'
   | 'circleMemberBroadcast'
   | 'circleMemberNewBroadcastReply'
   | 'circleMemberNewDiscussion'
@@ -2123,7 +2100,6 @@ export type GQLNotificationSettingType =
   | 'circleNewSubscriber'
   | 'circleNewUnsubscriber'
   | 'email'
-  | 'enable'
   /** for circle members */
   | 'inCircleNewArticle'
   | 'inCircleNewBroadcast'
@@ -3045,26 +3021,6 @@ export type GQLTagEditorsInput = {
   excludeAdmin?: InputMaybe<Scalars['Boolean']['input']>
   excludeOwner?: InputMaybe<Scalars['Boolean']['input']>
 }
-
-export type GQLTagNotice = GQLNotice & {
-  __typename?: 'TagNotice'
-  /** List of notice actors. */
-  actors?: Maybe<Array<GQLUser>>
-  /** Time of this notice was created. */
-  createdAt: Scalars['DateTime']['output']
-  /** Unique ID of this notice. */
-  id: Scalars['ID']['output']
-  target: GQLTag
-  type: GQLTagNoticeType
-  /** The value determines if the notice is unread or not. */
-  unread: Scalars['Boolean']['output']
-}
-
-export type GQLTagNoticeType =
-  | 'TagAddEditor'
-  | 'TagAdoption'
-  | 'TagLeave'
-  | 'TagLeaveEditor'
 
 export type GQLTagOss = {
   __typename?: 'TagOSS'
@@ -4028,8 +3984,6 @@ export type GQLResolversInterfaceTypes<
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
-    | NoticeItemModel
-    | NoticeItemModel
   PinnableWork: DraftModel | CollectionModel
 }>
 
@@ -4085,8 +4039,6 @@ export type GQLResolversTypes = ResolversObject<{
   >
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
-  ArticleTagNotice: ResolverTypeWrapper<NoticeItemModel>
-  ArticleTagNoticeType: GQLArticleTagNoticeType
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
   Asset: ResolverTypeWrapper<AssetModel>
   AssetType: GQLAssetType
@@ -4437,8 +4389,6 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLTagEdge, 'node'> & { node: GQLResolversTypes['Tag'] }
   >
   TagEditorsInput: GQLTagEditorsInput
-  TagNotice: ResolverTypeWrapper<NoticeItemModel>
-  TagNoticeType: GQLTagNoticeType
   TagOSS: ResolverTypeWrapper<TagModel>
   TagSelectedInput: GQLTagSelectedInput
   TagsInput: GQLTagsInput
@@ -4610,7 +4560,6 @@ export type GQLResolversParentTypes = ResolversObject<{
     GQLArticleRecommendationActivity,
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
-  ArticleTagNotice: NoticeItemModel
   ArticleTranslation: GQLArticleTranslation
   Asset: AssetModel
   AuthResult: Omit<GQLAuthResult, 'user'> & {
@@ -4869,7 +4818,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TagEdge: Omit<GQLTagEdge, 'node'> & { node: GQLResolversParentTypes['Tag'] }
   TagEditorsInput: GQLTagEditorsInput
-  TagNotice: NoticeItemModel
   TagOSS: TagModel
   TagSelectedInput: GQLTagSelectedInput
   TagsInput: GQLTagsInput
@@ -5509,28 +5457,6 @@ export type GQLArticleRecommendationActivityResolvers<
     ParentType,
     ContextType
   >
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
-export type GQLArticleTagNoticeResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['ArticleTagNotice'] = GQLResolversParentTypes['ArticleTagNotice']
-> = ResolversObject<{
-  actors?: Resolver<
-    Maybe<Array<GQLResolversTypes['User']>>,
-    ParentType,
-    ContextType
-  >
-  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  tag?: Resolver<GQLResolversTypes['Tag'], ParentType, ContextType>
-  target?: Resolver<GQLResolversTypes['Article'], ParentType, ContextType>
-  type?: Resolver<
-    GQLResolversTypes['ArticleTagNoticeType'],
-    ParentType,
-    ContextType
-  >
-  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7105,12 +7031,10 @@ export type GQLNoticeResolvers<
   __resolveType: TypeResolveFn<
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
-    | 'ArticleTagNotice'
     | 'CircleNotice'
     | 'CommentCommentNotice'
     | 'CommentNotice'
     | 'OfficialAnnouncementNotice'
-    | 'TagNotice'
     | 'TransactionNotice'
     | 'UserNotice',
     ParentType,
@@ -7170,11 +7094,6 @@ export type GQLNotificationSettingResolvers<
     ParentType,
     ContextType
   >
-  articleSubscribedNewComment?: Resolver<
-    GQLResolversTypes['Boolean'],
-    ParentType,
-    ContextType
-  >
   circleMemberNewBroadcastReply?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7206,7 +7125,6 @@ export type GQLNotificationSettingResolvers<
     ContextType
   >
   email?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  enable?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   inCircleNewArticle?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7913,23 +7831,6 @@ export type GQLTagEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Tag'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
-export type GQLTagNoticeResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['TagNotice'] = GQLResolversParentTypes['TagNotice']
-> = ResolversObject<{
-  actors?: Resolver<
-    Maybe<Array<GQLResolversTypes['User']>>,
-    ParentType,
-    ContextType
-  >
-  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  target?: Resolver<GQLResolversTypes['Tag'], ParentType, ContextType>
-  type?: Resolver<GQLResolversTypes['TagNoticeType'], ParentType, ContextType>
-  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8661,7 +8562,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
-  ArticleTagNotice?: GQLArticleTagNoticeResolvers<ContextType>
   ArticleTranslation?: GQLArticleTranslationResolvers<ContextType>
   Asset?: GQLAssetResolvers<ContextType>
   AuthResult?: GQLAuthResultResolvers<ContextType>
@@ -8754,7 +8654,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Tag?: GQLTagResolvers<ContextType>
   TagConnection?: GQLTagConnectionResolvers<ContextType>
   TagEdge?: GQLTagEdgeResolvers<ContextType>
-  TagNotice?: GQLTagNoticeResolvers<ContextType>
   TagOSS?: GQLTagOssResolvers<ContextType>
   TopDonatorConnection?: GQLTopDonatorConnectionResolvers<ContextType>
   TopDonatorEdge?: GQLTopDonatorEdgeResolvers<ContextType>

@@ -1,19 +1,15 @@
 import type {
   GQLArticleArticleNoticeResolvers,
   GQLArticleNoticeResolvers,
-  GQLArticleTagNoticeResolvers,
   GQLCircleNoticeResolvers,
   GQLCommentCommentNoticeResolvers,
   GQLCommentNoticeResolvers,
   GQLOfficialAnnouncementNoticeResolvers,
-  GQLTagNoticeResolvers,
   GQLTransactionNoticeResolvers,
   GQLUserNoticeResolvers,
   GQLNoticeResolvers,
   GQLUserResolvers,
 } from 'definitions'
-
-import _capitalize from 'lodash/capitalize'
 
 import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
 import { ServerError } from 'common/errors'
@@ -26,8 +22,6 @@ const NOTICE_TYPE = {
   ArticleArticleNotice: 'ArticleArticleNotice',
   CommentNotice: 'CommentNotice',
   CommentCommentNotice: 'CommentCommentNotice',
-  ArticleTagNotice: 'ArticleTagNotice',
-  TagNotice: 'TagNotice',
   TransactionNotice: 'TransactionNotice',
   CircleNotice: 'CircleNotice',
   CircleArticleNotice: 'CircleArticleNotice',
@@ -41,8 +35,6 @@ const notice: {
   UserNotice: GQLUserNoticeResolvers
   ArticleNotice: GQLArticleNoticeResolvers
   ArticleArticleNotice: GQLArticleArticleNoticeResolvers
-  ArticleTagNotice: GQLArticleTagNoticeResolvers
-  TagNotice: GQLTagNoticeResolvers
   CommentNotice: GQLCommentNoticeResolvers
   CommentCommentNotice: GQLCommentCommentNoticeResolvers
   TransactionNotice: GQLTransactionNoticeResolvers
@@ -68,22 +60,10 @@ const notice: {
         // article-artilce
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
 
-        // article-tag
-        article_tag_has_been_added: NOTICE_TYPE.ArticleTagNotice,
-        article_tag_has_been_removed: NOTICE_TYPE.ArticleTagNotice,
-        article_tag_has_been_unselected: NOTICE_TYPE.ArticleTagNotice,
-
-        // tag
-        tag_adoption: NOTICE_TYPE.TagNotice,
-        tag_leave: NOTICE_TYPE.TagNotice,
-        tag_add_editor: NOTICE_TYPE.TagNotice,
-        tag_leave_editor: NOTICE_TYPE.TagNotice,
-
         // comment
         comment_pinned: NOTICE_TYPE.CommentNotice,
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
-        subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice,
 
         // comment-comment
@@ -173,50 +153,7 @@ const notice: {
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
   },
-  ArticleTagNotice: {
-    type: ({ type }) => {
-      switch (type) {
-        case DB_NOTICE_TYPE.article_tag_has_been_added:
-          return 'ArticleTagAdded'
-        case DB_NOTICE_TYPE.article_tag_has_been_removed:
-          return 'ArticleTagRemoved'
-      }
-      throw new ServerError(`Unknown ArticleTagNotice type: ${type}`)
-    },
-    target: ({ entities }, _, { dataSources: { draftService } }) => {
-      if (!entities) {
-        throw new ServerError('entities is empty')
-      }
-      return draftService.loadById(entities.target.draftId)
-    },
-    tag: ({ entities }) => {
-      if (!entities) {
-        throw new ServerError('entities is empty')
-      }
-      return entities.tag
-    },
-  },
-  TagNotice: {
-    type: ({ type }) => {
-      switch (type) {
-        case DB_NOTICE_TYPE.tag_adoption:
-          return 'TagAdoption'
-        case DB_NOTICE_TYPE.tag_leave:
-          return 'TagLeave'
-        case DB_NOTICE_TYPE.tag_add_editor:
-          return 'TagAddEditor'
-        case DB_NOTICE_TYPE.tag_leave_editor:
-          return 'TagLeaveEditor'
-      }
-      throw new ServerError(`Unknown TagNotice type: ${type}`)
-    },
-    target: ({ entities }) => {
-      if (!entities) {
-        throw new ServerError('entities is empty')
-      }
-      return entities.target
-    },
-  },
+
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
@@ -226,8 +163,6 @@ const notice: {
           return 'CommentMentionedYou'
         case DB_NOTICE_TYPE.article_new_comment:
           return 'ArticleNewComment'
-        case DB_NOTICE_TYPE.subscribed_article_new_comment:
-          return 'SubscribedArticleNewComment'
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return 'CircleNewBroadcast'
       }
@@ -243,7 +178,6 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target
         case DB_NOTICE_TYPE.article_new_comment:
-        case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return entities.comment
       }
       throw new ServerError(`Unknown CommentNotice type: ${type}`)

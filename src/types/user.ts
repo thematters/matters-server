@@ -446,7 +446,6 @@ export default /* GraphQL */ `
   }
 
   type NotificationSetting {
-    enable: Boolean!
     email: Boolean!
     mention: Boolean!
     userNewFollower: Boolean!
@@ -454,7 +453,6 @@ export default /* GraphQL */ `
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
-    articleSubscribedNewComment: Boolean!
     articleCommentPinned: Boolean!
 
     "for circle owners"
@@ -885,7 +883,6 @@ export default /* GraphQL */ `
   }
 
   enum NotificationSettingType {
-    enable
     email
     mention
     userNewFollower
@@ -893,7 +890,6 @@ export default /* GraphQL */ `
     articleNewAppreciation
     articleNewSubscription
     articleNewCollected
-    articleSubscribedNewComment
     articleCommentPinned
 
     "for circle owners"

@@ -390,28 +390,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       }
     }
 
-    // article: notify article's subscribers
-    if (isArticleType && article) {
-      const articleSubscribers = await articleService.findSubscriptions({
-        id: article.id,
-      })
-      articleSubscribers.forEach((subscriber: any) => {
-        const isMentioned = !!data.mentionedUserIds?.includes(subscriber.id)
-
-        if (!isMentioned) {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.subscribed_article_new_comment,
-            actorId: viewer.id,
-            recipientId: subscriber.id,
-            entities: [
-              { type: 'target', entityTable: 'article', entity: article },
-              { type: 'comment', entityTable: 'comment', entity: newComment },
-            ],
-          })
-        }
-      })
-    }
-
     if (circle && (isCircleBroadcast || isCircleDiscussion)) {
       const recipients = await userService.findCircleRecipients(circle.id)
 

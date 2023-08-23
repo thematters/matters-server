@@ -1,7 +1,7 @@
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { LANGUAGES } from 'definitions'
+import { LANGUAGES, User } from 'definitions'
 
 import { trans } from './utils'
 
@@ -17,9 +17,7 @@ export const sendVerificationCode = async ({
   type: keyof typeof VERIFICATION_CODE_TYPE
   code: string
   redirectUrl?: string
-  recipient: {
-    displayName: string | null
-  }
+  recipient: Pick<User, 'displayName'>
   language?: LANGUAGES
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.verificationCode[language]
