@@ -2884,7 +2884,9 @@ export type GQLSocialAccountType = 'Facebook' | 'Google' | 'Twitter'
 
 export type GQLSocialLoginInput = {
   authorizationCode: Scalars['String']['input']
+  /** OAuth2 PKCE code_verifier for Facebook and Twitter */
   codeVerifier?: InputMaybe<Scalars['String']['input']>
+  /** OIDC nonce for Google */
   nonce?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
 }
