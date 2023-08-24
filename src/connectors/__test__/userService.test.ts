@@ -350,8 +350,12 @@ describe('totalPinnedWorks', () => {
 
 describe('getOrCreateUserBySocialAccount', () => {
   const twitterUserInfo = {
-    id: '1',
+    id: 'twitter1',
     username: 'testtwitterusername',
+  }
+  const googleUserInfo = {
+    id: 'google1',
+    email: 'test@gmail.com',
   }
   test('create and get user by social account', async () => {
     const createdUser = await userService.getOrCreateUserBySocialAccount({
@@ -368,5 +372,48 @@ describe('getOrCreateUserBySocialAccount', () => {
       type: 'Twitter',
     })
     expect(user.id).toBe(createdUser.id)
+  })
+  test('use existed users having same email', async () => {
+    const user = await userService.create({
+      email: googleUserInfo.email,
+      emailVerified: false,
+    })
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: googleUserInfo.id,
+      email: googleUserInfo.email,
+      type: 'Google',
+    })
+    expect(createdUser.id).toBe(user.id)
+    expect(user.emailVerified).toBe(false)
+    expect(createdUser.emailVerified).toBe(false)
+  })
+
+  test('update existed users emailVerified flag', async () => {
+    // update emailVerified flag when social account exists
+    const updatedUser = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: googleUserInfo.id,
+      email: googleUserInfo.email,
+      type: 'Google',
+      emailVerified: true,
+    })
+    expect(updatedUser.emailVerified).toBe(true)
+
+    // update exsited user emailVerified flag when create social account
+    const googleUserInfo2 = {
+      id: 'google2',
+      email: 'test2@gmail.com',
+    }
+    const user = await userService.create({
+      email: googleUserInfo2.email,
+      emailVerified: false,
+    })
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      socialAccountId: googleUserInfo2.id,
+      email: googleUserInfo2.email,
+      type: 'Google',
+      emailVerified: true,
+    })
+    expect(user.emailVerified).toBe(false)
+    expect(createdUser.emailVerified).toBe(true)
   })
 })

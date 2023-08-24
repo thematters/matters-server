@@ -2191,23 +2191,40 @@ export class UserService extends BaseService {
     email,
     emailVerified,
   }: SocialAccount & { emailVerified?: boolean }) => {
+    // check if social account exists, if true, return user directly
     const socialAcount = await this.getSocialAccount({
       type,
       socialAccountId,
       userName,
     })
+    let user
     if (socialAcount) {
-      return this.loadById(socialAcount.userId)
+      user = await this.loadById(socialAcount.userId)
+      if (!user.emailVerified && emailVerified) {
+        return this.baseUpdate(user.id, { emailVerified })
+      }
+      return user
     }
 
-    let user
+    // social account not exists, create social account and user if not exists
     if (email) {
       user = await this.findByEmail(email)
     }
     const trx = await this.knex.transaction()
+    let isCreated = false
     try {
       if (!user) {
         user = await this.create({ email, emailVerified }, trx)
+        isCreated = true
+      } else {
+        if (!user.emailVerified && emailVerified) {
+          user = await this.baseUpdate(
+            user.id,
+            { emailVerified },
+            undefined,
+            trx
+          )
+        }
       }
       await this.createSocialAccount(
         { userId: user.id, type, socialAccountId, userName, email },
@@ -2218,7 +2235,9 @@ export class UserService extends BaseService {
       await trx.rollback()
       throw error
     }
-    await this.postRegister(user)
+    if (isCreated) {
+      await this.postRegister(user)
+    }
     return user
   }
 
