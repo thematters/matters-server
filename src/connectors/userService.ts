@@ -2186,7 +2186,7 @@ export class UserService extends BaseService {
 
   public getOrCreateUserBySocialAccount = async ({
     type,
-    socialAccountId,
+    providerAccountId,
     userName,
     email,
     emailVerified,
@@ -2194,7 +2194,7 @@ export class UserService extends BaseService {
     // check if social account exists, if true, return user directly
     const socialAcount = await this.getSocialAccount({
       type,
-      socialAccountId,
+      providerAccountId,
       userName,
     })
     let user
@@ -2227,7 +2227,7 @@ export class UserService extends BaseService {
         }
       }
       await this.createSocialAccount(
-        { userId: user.id, type, socialAccountId, userName, email },
+        { userId: user.id, type, providerAccountId, userName, email },
         trx
       )
       await trx.commit()
@@ -2243,20 +2243,20 @@ export class UserService extends BaseService {
 
   private getSocialAccount = async ({
     type,
-    socialAccountId,
+    providerAccountId,
   }: SocialAccount) => {
     return await this.knex('social_account')
       .select()
-      .where({ type, socialAccountId })
+      .where({ type, providerAccountId })
       .first()
   }
 
   private createSocialAccount = async (
-    { userId, type, socialAccountId, userName, email }: SocialAccount,
+    { userId, type, providerAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {
     const query = this.knex('social_account')
-      .insert({ userId, type, socialAccountId, userName, email })
+      .insert({ userId, type, providerAccountId, userName, email })
       .returning('*')
 
     if (trx) {

@@ -19,7 +19,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       codeVerifier
     )
     user = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: userInfo.id,
+      providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
     })
@@ -32,7 +32,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       codeVerifier
     )
     user = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: userInfo.id,
+      providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Facebook,
       userName: userInfo.username,
     })
@@ -45,8 +45,8 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       nonce
     )
     user = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: userInfo.id,
-      type: SOCIAL_LOGIN_TYPE.Facebook,
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Google,
       email: userInfo.email,
       emailVerified: userInfo.emailVerified,
     })

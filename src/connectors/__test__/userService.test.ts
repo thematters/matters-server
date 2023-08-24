@@ -359,7 +359,7 @@ describe('getOrCreateUserBySocialAccount', () => {
   }
   test('create and get user by social account', async () => {
     const createdUser = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: twitterUserInfo.id,
+      providerAccountId: twitterUserInfo.id,
       userName: twitterUserInfo.username,
       type: 'Twitter',
     })
@@ -367,7 +367,7 @@ describe('getOrCreateUserBySocialAccount', () => {
     expect(createdUser.userName).toBeNull()
 
     const user = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: twitterUserInfo.id,
+      providerAccountId: twitterUserInfo.id,
       userName: twitterUserInfo.username,
       type: 'Twitter',
     })
@@ -379,7 +379,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       emailVerified: false,
     })
     const createdUser = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: googleUserInfo.id,
+      providerAccountId: googleUserInfo.id,
       email: googleUserInfo.email,
       type: 'Google',
     })
@@ -391,7 +391,7 @@ describe('getOrCreateUserBySocialAccount', () => {
   test('update existed users emailVerified flag', async () => {
     // update emailVerified flag when social account exists
     const updatedUser = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: googleUserInfo.id,
+      providerAccountId: googleUserInfo.id,
       email: googleUserInfo.email,
       type: 'Google',
       emailVerified: true,
@@ -408,7 +408,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       emailVerified: false,
     })
     const createdUser = await userService.getOrCreateUserBySocialAccount({
-      socialAccountId: googleUserInfo2.id,
+      providerAccountId: googleUserInfo2.id,
       email: googleUserInfo2.email,
       type: 'Google',
       emailVerified: true,
