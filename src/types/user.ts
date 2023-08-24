@@ -989,7 +989,11 @@ export default /* GraphQL */ `
 
   input SocialLoginInput {
     type: SocialAccountType!
-    token: String!
+    authorizationCode: String!
+    "OAuth2 PKCE code_verifier for Facebook and Twitter"
+    codeVerifier: String
+    "OIDC nonce for Google"
+    nonce: String
   }
 
   input SetUserNameInput {
@@ -1007,4 +1011,6 @@ export default /* GraphQL */ `
   input RemoveSocialLoginInput {
     type: SocialAccountType!
   }
+
+
 `

@@ -7,9 +7,10 @@ import type {
   User,
   VerficationCode,
   ValueOf,
-  DataSources,
+  SocialAccount,
 } from 'definitions'
 
+import axios from 'axios'
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
 import { recoverPersonalSignature } from 'eth-sig-util'
@@ -67,6 +68,9 @@ import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
+  ServerError,
+  OAuthTokenInvalidError,
+  UnknownError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -83,6 +87,7 @@ import {
   AtomService,
   BaseService,
   CacheService,
+  TagService,
   ipfsServers,
   OAuthService,
   NotificationService,
@@ -119,30 +124,26 @@ export class UserService extends BaseService {
   public loadByIds = async (ids: string[]): Promise<User[]> =>
     this.dataloader.loadMany(ids) as Promise<User[]>
 
-  public create = async ({
-    userName,
-    displayName,
-    // description,
-    password,
-    email,
-    ethAddress,
-    emailVerified = true,
-  }: {
-    userName?: string
-    displayName?: string
-    // description?: string
-    password?: string
-    email?: string
-    ethAddress?: string
-    emailVerified?: boolean
-  }) => {
-    // const avatar = null
-    if (!email && !ethAddress) {
-      throw new UserInputError(
-        'email and ethAddress cannot be both empty to create user'
-      )
-    }
-
+  public create = async (
+    {
+      userName,
+      displayName,
+      // description,
+      password,
+      email,
+      ethAddress,
+      emailVerified = true,
+    }: {
+      userName?: string
+      displayName?: string
+      // description?: string
+      password?: string
+      email?: string
+      ethAddress?: string
+      emailVerified?: boolean
+    },
+    trx?: Knex.Transaction
+  ) => {
     const uuid = v4()
     const passwordHash = password
       ? await generatePasswordhash(password)
@@ -163,23 +164,31 @@ export class UserService extends BaseService {
           ethAddress,
         },
         _.isNil
-      )
+      ),
+      'user',
+      undefined,
+      undefined,
+      trx
     )
-    await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    await this.baseCreate(
+      { userId: user.id },
+      'user_notify_setting',
+      undefined,
+      undefined,
+      trx
+    )
 
     return user
   }
 
-  public postRegister = async (
-    user: User,
-    { tagService }: Pick<DataSources, 'tagService'>
-  ) => {
+  public postRegister = async (user: User) => {
     const notificationService = new NotificationService()
     const atomService = new AtomService()
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
 
     // auto follow tags
+    const tagService = new TagService()
     await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
 
     // send email
@@ -2167,6 +2176,250 @@ export class UserService extends BaseService {
     })
 
     return updatedUser
+  }
+
+  /*********************************
+   *                               *
+   *        Social Login           *
+   *                               *
+   *********************************/
+
+  public getOrCreateUserBySocialAccount = async ({
+    type,
+    providerAccountId,
+    userName,
+    email,
+    emailVerified,
+  }: SocialAccount & { emailVerified?: boolean }) => {
+    // check if social account exists, if true, return user directly
+    const socialAcount = await this.getSocialAccount({
+      type,
+      providerAccountId,
+      userName,
+    })
+    let user
+    if (socialAcount) {
+      user = await this.loadById(socialAcount.userId)
+      if (!user.emailVerified && emailVerified) {
+        return this.baseUpdate(user.id, { emailVerified })
+      }
+      return user
+    }
+
+    // social account not exists, create social account and user if not exists
+    if (email) {
+      user = await this.findByEmail(email)
+    }
+    const trx = await this.knex.transaction()
+    let isCreated = false
+    try {
+      if (!user) {
+        user = await this.create({ email, emailVerified }, trx)
+        isCreated = true
+      } else {
+        if (!user.emailVerified && emailVerified) {
+          user = await this.baseUpdate(
+            user.id,
+            { emailVerified },
+            undefined,
+            trx
+          )
+        }
+      }
+      await this.createSocialAccount(
+        { userId: user.id, type, providerAccountId, userName, email },
+        trx
+      )
+      await trx.commit()
+    } catch (error) {
+      await trx.rollback()
+      throw error
+    }
+    if (isCreated) {
+      await this.postRegister(user)
+    }
+    return user
+  }
+
+  private getSocialAccount = async ({
+    type,
+    providerAccountId,
+  }: SocialAccount) => {
+    return this.knex('social_account')
+      .select()
+      .where({ type, providerAccountId })
+      .first()
+  }
+
+  private createSocialAccount = async (
+    { userId, type, providerAccountId, userName, email }: SocialAccount,
+    trx?: Knex.Transaction
+  ) => {
+    const query = this.knex('social_account')
+      .insert({ userId, type, providerAccountId, userName, email })
+      .returning('*')
+
+    if (trx) {
+      query.transacting(trx)
+    }
+
+    return query
+  }
+
+  /**
+   * Fetch the Twitter user info using Twitter v2 API.
+   * @see {@link https://developer.twitter.com/en/docs/authentication/oauth-2-0/user-access-token}
+   */
+  public fetchTwitterUserInfo = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const accessToken = await this.exchangeTwitterAccessToken(
+      authorizationCode,
+      codeVerifier
+    )
+    return this.fetchTwitterUserInfoByAccessToken(accessToken)
+  }
+
+  private exchangeTwitterAccessToken = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const url = 'https://api.twitter.com/2/oauth2/token'
+    const data = {
+      grant_type: 'authorization_code',
+      code: authorizationCode,
+      redirect_uri: environment.twitterRedirectUri,
+      code_verifier: codeVerifier,
+    }
+    const headers = {
+      Authorization: `Basic ${Buffer.from(
+        `${environment.twitterClientId}:${environment.twitterClientSecret}`
+      ).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    try {
+      const response = await axios.post(url, data, { headers })
+      return response.data.access_token
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        logger.warn('exchange twitter failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange twitter access token failed')
+      } else {
+        logger.error('exchange twitter error: ', error)
+        throw new UnknownError('exchange twitter access token failed')
+      }
+    }
+  }
+
+  private fetchTwitterUserInfoByAccessToken = async (
+    accessToken: string
+  ): Promise<{ id: string; name: string; username: string }> => {
+    const url = 'https://api.twitter.com/2/users/me'
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    }
+    const response = await axios.get(url, { headers })
+    if (response.status !== 200) {
+      throw new ServerError('fetch twitter user info failed')
+    }
+    return response.data.data
+  }
+
+  /**
+   * Fetch the Facebook user info using Facebook OIDC.
+   * @see {@link https://developers.facebook.com/docs/facebook-login/guides/advanced/oidc-token}
+   */
+  public fetchFacebookUserInfo = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ) => {
+    const { id_token } = await this.exchangeFacebookToken(
+      authorizationCode,
+      codeVerifier
+    )
+    const data = jwt.decode(id_token) as any
+    if (data.aud !== environment.facebookClientId) {
+      throw new OAuthTokenInvalidError('Facebook token id aud is invalid')
+    }
+    return { id: data.sub, username: data.name }
+  }
+
+  private exchangeFacebookToken = async (
+    authorizationCode: string,
+    codeVerifier: string
+  ): Promise<{ access_token: string; id_token: string }> => {
+    const url = 'https://graph.facebook.com/v17.0/oauth/access_token'
+    try {
+      const response = await axios.get(url, {
+        params: {
+          client_id: environment.facebookClientId,
+          redirect_uri: environment.facebookRedirectUri,
+          code: authorizationCode,
+          code_verifier: codeVerifier,
+        },
+      })
+      return response.data
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn('fetch facebook failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange facebook token failed')
+      }
+      logger.error('fetch facebook error: ', error)
+      throw new UnknownError('exchange facebook tokenfailed')
+    }
+  }
+
+  /**
+   * Fetch the Google user info from Google OIDC.
+   * @see {@link https://developers.google.com/identity/openid-connect/openid-connect}
+   */
+  public fetchGoogleUserInfo = async (
+    authorizationCode: string,
+    nonce: string
+  ) => {
+    const { id_token } = await this.exchangeGoogleToken(authorizationCode)
+    const data = jwt.decode(id_token) as any
+    if (data.aud !== environment.googleClientId) {
+      throw new OAuthTokenInvalidError('Google token id aud is invalid')
+    }
+    if (data.nonce !== nonce) {
+      throw new OAuthTokenInvalidError('Google token id nonce is invalid')
+    }
+    return {
+      id: data.sub,
+      email: data.email,
+      emailVerified: data.email_verified,
+    }
+  }
+
+  private exchangeGoogleToken = async (
+    authorizationCode: string
+  ): Promise<{ access_token: string; id_token: string }> => {
+    const url = 'https://oauth2.googleapis.com/token'
+    const data = {
+      code: authorizationCode,
+      client_id: environment.googleClientId,
+      client_secret: environment.googleClientSecret,
+      redirect_uri: environment.googleRedirectUri,
+      grant_type: 'authorization_code',
+    }
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    try {
+      const response = await axios.post(url, data, { headers })
+      return response.data
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn('fetch google failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange google token failed')
+      }
+      logger.error('fetch google error: ', error)
+      throw new UnknownError('exchange google tokenfailed')
+    }
   }
 
   /*********************************
