@@ -2245,7 +2245,7 @@ export class UserService extends BaseService {
     type,
     providerAccountId,
   }: SocialAccount) => {
-    return await this.knex('social_account')
+    return this.knex('social_account')
       .select()
       .where({ type, providerAccountId })
       .first()
@@ -2278,7 +2278,7 @@ export class UserService extends BaseService {
       authorizationCode,
       codeVerifier
     )
-    return await this.fetchTwitterUserInfoByAccessToken(accessToken)
+    return this.fetchTwitterUserInfoByAccessToken(accessToken)
   }
 
   private exchangeTwitterAccessToken = async (
