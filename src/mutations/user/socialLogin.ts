@@ -1,14 +1,20 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from 'common/enums'
 import { UserInputError } from 'common/errors'
-import { setCookie } from 'common/utils'
+import { setCookie, getViewerFromUser } from 'common/utils'
 
 export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,
   { input: { type, authorizationCode, codeVerifier, nonce } },
-  { dataSources: { userService }, req, res }
+  context
 ) => {
+  const {
+    dataSources: { userService },
+    req,
+    res,
+  } = context
+
   let user
   if (type === SOCIAL_LOGIN_TYPE.Twitter) {
     if (codeVerifier === undefined) {
@@ -53,6 +59,10 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   }
   const sessionToken = await userService.genSessionToken(user.id)
   setCookie({ req, res, token: sessionToken, user })
+
+  context.viewer = await getViewerFromUser(user)
+  context.viewer.authMode = user.role as AuthMode
+  context.viewer.scope = {}
 
   return {
     token: sessionToken,
