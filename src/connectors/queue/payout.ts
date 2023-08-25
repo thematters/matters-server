@@ -184,25 +184,24 @@ class PayoutQueue extends BaseQueue {
       })
 
       // notifications
-      const user = await this.atomService.findFirst({
-        table: 'user',
-        where: { id: tx.senderId },
-      })
+      const user = await this.userService.loadById(tx.senderId)
 
-      this.notificationService.mail.sendPayment({
-        to: user.email,
-        recipient: {
-          displayName: user.displayName,
-          userName: user.userName,
-        },
-        type: 'payout',
-        tx: {
-          recipient,
-          amount: net,
-          currency: tx.currency,
-        },
-        language: user.language,
-      })
+      if (user.email && user.userName && user.displayName) {
+        this.notificationService.mail.sendPayment({
+          to: user.email,
+          recipient: {
+            displayName: user.displayName,
+            userName: user.userName,
+          },
+          type: 'payout',
+          tx: {
+            recipient,
+            amount: net,
+            currency: tx.currency,
+          },
+          language: user.language,
+        })
+      }
 
       slack.sendPayoutMessage({
         amount,
@@ -214,7 +213,7 @@ class PayoutQueue extends BaseQueue {
         currency: tx.currency,
         state: SLACK_MESSAGE_STATE.successful,
         txId: tx.providerTxId,
-        userName: user.userName,
+        userName: user.userName || '',
       })
 
       job.progress(100)
