@@ -8,6 +8,7 @@ test('publish', async () => {
   // publish article to IPFS
   const publishedDraft = await articleService.draftLoader.load('1')
   const { mediaHash, contentHash: dataHash } =
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await articleService.publishToIPFS(publishedDraft))!
   const articlePublished = await articleService.createArticle({
     draftId: '1',

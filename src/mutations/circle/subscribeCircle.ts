@@ -43,6 +43,9 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }
+  if (!viewer.email) {
+    throw new ForbiddenError('user has no email')
+  }
 
   // check feature is enabled or not
   const feature = await systemService.getFeatureFlag('circle_interact')

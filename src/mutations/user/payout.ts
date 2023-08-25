@@ -12,7 +12,6 @@ import {
   USER_STATE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   ForbiddenByStateError,
   EntityNotFoundError,
   PasswordInvalidError,
@@ -30,10 +29,6 @@ const resolver: GQLMutationResolvers['payout'] = async (
   { input: { amount, password } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')
   }

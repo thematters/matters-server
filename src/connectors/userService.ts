@@ -71,6 +71,7 @@ import {
   ServerError,
   OAuthTokenInvalidError,
   UnknownError,
+  ForbiddenError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -384,11 +385,17 @@ export class UserService extends BaseService {
     }
   }
 
-  public setPassword = async (userId: string, password: string) => {
+  public setPassword = async (
+    user: Pick<User, 'email' | 'emailVerified' | 'id'>,
+    password: string
+  ) => {
     if (!isValidPassword(password)) {
       throw new PasswordInvalidError('invalid user password')
     }
-    return await this.baseUpdate(userId, {
+    if (!user.email || !user.emailVerified) {
+      throw new ForbiddenError('email not verified')
+    }
+    return await this.baseUpdate(user.id, {
       passwordHash: await generatePasswordhash(password),
     })
   }
