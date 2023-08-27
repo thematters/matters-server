@@ -20,7 +20,7 @@ export default /* GraphQL */ `
     changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'setEmail' instead")
 
     "Set user email."
-    setEmail(input: SetEmailInput!): User! @auth(mode: "oauth")
+    setEmail(input: SetEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -40,26 +40,25 @@ export default /* GraphQL */ `
     walletLogin(input: WalletLoginInput!): AuthResult!
 
     "Add a wallet login to current user."
-    addWalletLogin(input: WalletLoginInput!): User! @auth(mode: "oauth")
+    addWalletLogin(input: WalletLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Remove a wallet login from current user."
-    removeWalletLogin: User! @auth(mode: "oauth")
+    removeWalletLogin: User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Login/Signup via social accounts."
     socialLogin(input: SocialLoginInput!): AuthResult!
 
     "Add a social login to current user."
-    addSocialLogin(input: SocialLoginInput!): User! @auth(mode: "oauth")
+    addSocialLogin(input: SocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Remove a social login from current user."
-    removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth")
+    removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Reset crypto wallet."
     resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Logout user."
     userLogout: Boolean!
-
 
     "Generate or claim a Liker ID through LikeCoin"
     generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -71,7 +70,7 @@ export default /* GraphQL */ `
     updateUserInfo(input: UpdateUserInfoInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Set user name."
-    setUserName(input: SetUserNameInput!): User! @auth(mode: "oauth")
+    setUserName(input: SetUserNameInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Set user email login password."
     setPassword(input: SetPasswordInput!): User! @auth(mode: "oauth")

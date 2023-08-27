@@ -134,6 +134,7 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       })
     }
   }
+
   return viewer
 }
 
