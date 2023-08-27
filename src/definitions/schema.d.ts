@@ -1555,7 +1555,10 @@ export type GQLMutation = {
   resetLikerId: GQLUser
   /** Reset user or payment password. */
   resetPassword?: Maybe<Scalars['Boolean']['output']>
-  /** Reset crypto wallet. */
+  /**
+   * Reset crypto wallet.
+   * @deprecated use 'removeWalletLogin' instead
+   */
   resetWallet: GQLUser
   /** Send verification code for email. */
   sendVerificationCode?: Maybe<Scalars['Boolean']['output']>

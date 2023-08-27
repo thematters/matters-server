@@ -55,7 +55,7 @@ export default /* GraphQL */ `
     removeSocialLogin(input: RemoveSocialLoginInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Reset crypto wallet."
-    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+    resetWallet(input: ResetWalletInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "use 'removeWalletLogin' instead")
 
     "Logout user."
     userLogout: Boolean!
