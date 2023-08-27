@@ -113,13 +113,26 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       authorizationCode,
       nonce
     )
-    // TODO: handle user email
     await userService.createSocialAccount({
       userId: viewer.id,
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Google,
       email: userInfo.email,
     })
+    if (viewer.email === null) {
+      await userService.baseUpdate(viewer.id, {
+        email: userInfo.email,
+        emailVerified: userInfo.emailVerified,
+      })
+    } else if (
+      viewer.email === userInfo.email &&
+      !viewer.emailVerified &&
+      userInfo.emailVerified
+    ) {
+      await userService.baseUpdate(viewer.id, {
+        emailVerified: userInfo.emailVerified,
+      })
+    }
   }
   return viewer
 }
