@@ -349,7 +349,7 @@ describe('totalPinnedWorks', () => {
   })
 })
 
-describe.only('createUserSocialAccount', () => {
+describe('createUserSocialAccount', () => {
   const userId1 = '1'
   const userId2 = '2'
   const twitterUserInfo1 = {
@@ -500,5 +500,51 @@ describe('test setPassword', () => {
   test('setPassword succeed', async () => {
     const updated = await userService.setPassword(user, goodPassword)
     expect(updated.passwordHash).toBeDefined()
+  })
+})
+
+describe('test remove login methods', () => {
+  test('cannot remove login methods when no such login methods', async () => {
+    // remove wallet
+    const user = await userService.create({})
+    expect(userService.removeWallet(user.id)).rejects.toThrow(ActionFailedError)
+    expect(userService.removeSocialAccount(user.id, 'Google')).rejects.toThrow(
+      ActionFailedError
+    )
+  })
+  test('cannot remove login methods when no others login methods exist', async () => {
+    // remove wallet
+    const user1 = await userService.create({})
+    await userService.addWallet(user1.id, '0x123')
+    expect(userService.removeWallet(user1.id)).rejects.toThrow(
+      ActionFailedError
+    )
+
+    // remove social accounts
+    const user2 = await userService.create({})
+    await userService.createSocialAccount({
+      userId: user2.id,
+      providerAccountId: '123',
+      type: 'Google',
+    })
+    expect(userService.removeSocialAccount(user2.id, 'Google')).rejects.toThrow(
+      ActionFailedError
+    )
+  })
+  test('remove login methods succeed', async () => {
+    const user = await userService.create({
+      email: 'testremovelogin@matters.town',
+    })
+    await userService.addWallet(user.id, '0x124')
+    const removed = await userService.removeWallet(user.id)
+    expect(removed.ethAddress).toBeNull()
+
+    await userService.createSocialAccount({
+      userId: user.id,
+      providerAccountId: '124',
+      type: 'Google',
+    })
+    await userService.removeSocialAccount(user.id, 'Google')
+    expect(await userService.findSocialAccountsByUserId(user.id)).toEqual([])
   })
 })

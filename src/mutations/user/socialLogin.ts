@@ -139,6 +139,7 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
 }
 
 export const removeSocialLogin: GQLMutationResolvers['removeSocialLogin'] =
-  async (_, __, { dataSources: { userService }, viewer }) => {
-    return userService.loadById(viewer.id)
+  async (_, { input: { type } }, { dataSources: { userService }, viewer }) => {
+    await userService.removeSocialAccount(viewer.id, type)
+    return viewer
   }

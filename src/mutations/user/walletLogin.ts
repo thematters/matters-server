@@ -175,7 +175,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       await userService.postRegister(user)
     }
   }
-  return await tryLogin(AUTH_RESULT_TYPE.Signup, user)
+  return tryLogin(AUTH_RESULT_TYPE.Signup, user)
 }
 
 export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
@@ -193,10 +193,10 @@ export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
     signature,
     validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
   })
-  return await userService.addWallet(viewer.id, ethAddress)
+  return userService.addWallet(viewer.id, ethAddress)
 }
 
 export const removeWalletLogin: GQLMutationResolvers['removeWalletLogin'] =
   async (_, __, { viewer, dataSources: { userService } }) => {
-    return await userService.baseUpdate(viewer.id, { ethAddress: null })
+    return userService.removeWallet(viewer.id)
   }

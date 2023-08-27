@@ -53,6 +53,7 @@ import {
   INVITATION_STATE,
   BLOCKCHAIN_CHAINID,
   SIGNING_MESSAGE_PURPOSE,
+  SOCIAL_LOGIN_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -2186,6 +2187,18 @@ export class UserService extends BaseService {
     return updatedUser
   }
 
+  public removeWallet = async (userId: string): Promise<User> => {
+    const user = await this.loadById(userId)
+    if (!user.ethAddress) {
+      throw new ActionFailedError('user does not have a wallet')
+    }
+    const count = await this.countLoginMethods(userId)
+    if (count === 1) {
+      throw new ActionFailedError('cannot remove last login method')
+    }
+    return this.baseUpdate(userId, { ethAddress: null })
+  }
+
   /*********************************
    *                               *
    *        Social Login           *
@@ -2284,6 +2297,24 @@ export class UserService extends BaseService {
       }
       throw error
     }
+  }
+
+  public removeSocialAccount = async (
+    userId: string,
+    type: keyof typeof SOCIAL_LOGIN_TYPE
+  ) => {
+    const socialAccount = await this.knex('social_account')
+      .select()
+      .where({ type, userId })
+      .first()
+    if (!socialAccount) {
+      throw new ActionFailedError('social account not exists')
+    }
+    const count = await this.countLoginMethods(userId)
+    if (count === 1) {
+      throw new ActionFailedError('cannot remove last login method')
+    }
+    return this.knex('social_account').where({ id: socialAccount.id }).del()
   }
 
   /**
@@ -2440,6 +2471,14 @@ export class UserService extends BaseService {
       logger.error('fetch google error: ', error)
       throw new UnknownError('exchange google tokenfailed')
     }
+  }
+
+  private countLoginMethods = async (userId: string) => {
+    const user = await this.loadById(userId)
+    const email = user.email ? 1 : 0
+    const wallet = user.ethAddress ? 1 : 0
+    const socialAccounts = await this.findSocialAccountsByUserId(userId)
+    return email + wallet + socialAccounts.length
   }
 
   /*********************************
