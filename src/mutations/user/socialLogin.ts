@@ -74,10 +74,54 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
 
 export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
   _,
-  __,
+  { input: { type, authorizationCode, codeVerifier, nonce } },
   { dataSources: { userService }, viewer }
 ) => {
-  return userService.loadById(viewer.id)
+  if (type === SOCIAL_LOGIN_TYPE.Twitter) {
+    if (codeVerifier === undefined) {
+      throw new UserInputError('codeVerifier is required')
+    }
+    const userInfo = await userService.fetchTwitterUserInfo(
+      authorizationCode,
+      codeVerifier
+    )
+    await userService.createSocialAccount({
+      userId: viewer.id,
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Twitter,
+      userName: userInfo.username,
+    })
+  } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
+    if (codeVerifier === undefined) {
+      throw new UserInputError('codeVerifier is required')
+    }
+    const userInfo = await userService.fetchFacebookUserInfo(
+      authorizationCode,
+      codeVerifier
+    )
+    await userService.createSocialAccount({
+      userId: viewer.id,
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Facebook,
+      userName: userInfo.username,
+    })
+  } else {
+    if (nonce === undefined) {
+      throw new UserInputError('nonce is required')
+    }
+    const userInfo = await userService.fetchGoogleUserInfo(
+      authorizationCode,
+      nonce
+    )
+    // TODO: handle user email
+    await userService.createSocialAccount({
+      userId: viewer.id,
+      providerAccountId: userInfo.id,
+      type: SOCIAL_LOGIN_TYPE.Google,
+      email: userInfo.email,
+    })
+  }
+  return viewer
 }
 
 export const removeSocialLogin: GQLMutationResolvers['removeSocialLogin'] =

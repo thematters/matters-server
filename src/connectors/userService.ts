@@ -2258,7 +2258,11 @@ export class UserService extends BaseService {
       .first()
   }
 
-  private createSocialAccount = async (
+  public findSocialAccountsByUserId = async (userId: string) => {
+    return this.knex('social_account').select().where({ userId })
+  }
+
+  public createSocialAccount = async (
     { userId, type, providerAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {

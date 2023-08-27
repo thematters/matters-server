@@ -22,7 +22,7 @@ import {
   updateUserState,
 } from '../utils'
 
-let userService: any
+let userService: UserService
 beforeAll(async () => {
   userService = new UserService()
   // await userService.initSearch()
@@ -1510,5 +1510,92 @@ describe('update user state', () => {
       state: USER_STATE.banned,
     })
     expect(data.updateUserState[0].status.state).toBe('banned')
+  })
+})
+
+describe.only('query social accounts', () => {
+  const GET_VIEWER_SOCIAL_ACCOUNTS = /* GraphQL */ `
+    query {
+      viewer {
+        userName
+        id
+        info {
+          socialAccounts {
+            type
+            userName
+            email
+          }
+        }
+      }
+    }
+  `
+  const GET_USER_SOCIAL_ACCOUNTS = /* GraphQL */ `
+    query getUserSocialAccounts($input: UserInput!) {
+      user(input: $input) {
+        info {
+          socialAccounts {
+            type
+            userName
+            email
+          }
+        }
+      }
+    }
+  `
+  test('visitors do not have social accounts', async () => {
+    const server = await testClient()
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_SOCIAL_ACCOUNTS,
+    })
+    expect(data.viewer.info.socialAccounts).toEqual([])
+  })
+  test('others can not visit social accounts', async () => {
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: GET_USER_SOCIAL_ACCOUNTS,
+      variables: { input: { userName: 'test1' } },
+    })
+    expect(data.user.info.socialAccounts).toEqual([])
+  })
+  test('users social accounts', async () => {
+    const server = await testClient({ isAuth: true })
+    // no social accounts
+    const { data } = await server.executeOperation({
+      query: GET_VIEWER_SOCIAL_ACCOUNTS,
+    })
+    expect(data.viewer.info.socialAccounts).toEqual([])
+    // having social accounts
+    const userId = fromGlobalId(data.viewer.id).id
+    await userService.createSocialAccount({
+      userId,
+      type: 'Facebook',
+      userName: 'test',
+      providerAccountId: 'test1',
+    })
+    await userService.createSocialAccount({
+      userId,
+      type: 'Twitter',
+      userName: 'test',
+      providerAccountId: 'test2',
+    })
+    await userService.createSocialAccount({
+      userId,
+      type: 'Google',
+      email: 'testsocialaccounts@gmail.com',
+      providerAccountId: 'test2',
+    })
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_SOCIAL_ACCOUNTS,
+    })
+    expect(data2.viewer.info.socialAccounts.length).toBe(3)
+
+    // users can not visit others social accounts
+    const userName = data.viewer.userName
+    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const { data: data3 } = await othersServer.executeOperation({
+      query: GET_USER_SOCIAL_ACCOUNTS,
+      variables: { input: { userName } },
+    })
+    expect(data3.user.info.socialAccounts).toEqual([])
   })
 })

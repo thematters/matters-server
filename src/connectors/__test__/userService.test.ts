@@ -348,6 +348,60 @@ describe('totalPinnedWorks', () => {
   })
 })
 
+describe('createUserSocialAccount', () => {
+  const userId1 = '1'
+  const userId2 = '2'
+  const twitterUserInfo1 = {
+    id: 'createUserSocialAccountTwitter1',
+    username: 'testtwitterusername',
+  }
+  const twitterUserInfo2 = {
+    id: 'createUserSocialAccountTwitter2',
+    username: 'testtwitterusername',
+  }
+  const facebookUserInfo1 = {
+    id: 'createUserSocialAccountFacebook1',
+    username: 'testtfacebookusername',
+  }
+  test('user can only have 1 social account per type', async () => {
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: twitterUserInfo1.id,
+      type: 'Twitter',
+    })
+    await expect(
+      userService.createSocialAccount({
+        userId: userId1,
+        providerAccountId: twitterUserInfo2.id,
+        type: 'Twitter',
+      })
+    ).rejects.toThrow()
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: facebookUserInfo1.id,
+      type: 'Facebook',
+    })
+    const socialAccounts = await userService.findSocialAccountsByUserId(userId1)
+    expect(socialAccounts.length).toBe(2)
+  })
+  test('user can not bind binded social accounts', async () => {
+    await expect(
+      userService.createSocialAccount({
+        userId: userId2,
+        providerAccountId: twitterUserInfo1.id,
+        type: 'Twitter',
+      })
+    ).rejects.toThrow()
+    await userService.createSocialAccount({
+      userId: userId2,
+      providerAccountId: twitterUserInfo2.id,
+      type: 'Twitter',
+    })
+    const socialAccounts = await userService.findSocialAccountsByUserId(userId2)
+    expect(socialAccounts.length).toBe(1)
+  })
+})
+
 describe('getOrCreateUserBySocialAccount', () => {
   const twitterUserInfo = {
     id: 'twitter1',

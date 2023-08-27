@@ -296,7 +296,7 @@ export default /* GraphQL */ `
     emailVerified: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
 
     "User connected social accounts."
-    socialAccounts: [SocialAccount!]!
+    socialAccounts: [SocialAccount!]! @auth(mode: "${AUTH_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
