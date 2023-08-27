@@ -72,6 +72,7 @@ import {
   OAuthTokenInvalidError,
   UnknownError,
   ForbiddenError,
+  ActionFailedError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -2274,7 +2275,15 @@ export class UserService extends BaseService {
       query.transacting(trx)
     }
 
-    return query
+    try {
+      return await query
+    } catch (error: any) {
+      // duplicate key error
+      if (error.code === '23505') {
+        throw new ActionFailedError('social account already exists')
+      }
+      throw error
+    }
   }
 
   /**

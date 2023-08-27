@@ -1,4 +1,5 @@
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
+import { ActionFailedError } from 'common/errors'
 import { CacheService, UserService } from 'connectors'
 
 import { createDonationTx } from './utils'
@@ -348,7 +349,7 @@ describe('totalPinnedWorks', () => {
   })
 })
 
-describe('createUserSocialAccount', () => {
+describe.only('createUserSocialAccount', () => {
   const userId1 = '1'
   const userId2 = '2'
   const twitterUserInfo1 = {
@@ -375,7 +376,7 @@ describe('createUserSocialAccount', () => {
         providerAccountId: twitterUserInfo2.id,
         type: 'Twitter',
       })
-    ).rejects.toThrow()
+    ).rejects.toThrow(ActionFailedError)
     await userService.createSocialAccount({
       userId: userId1,
       providerAccountId: facebookUserInfo1.id,
@@ -391,7 +392,7 @@ describe('createUserSocialAccount', () => {
         providerAccountId: twitterUserInfo1.id,
         type: 'Twitter',
       })
-    ).rejects.toThrow()
+    ).rejects.toThrow(ActionFailedError)
     await userService.createSocialAccount({
       userId: userId2,
       providerAccountId: twitterUserInfo2.id,
