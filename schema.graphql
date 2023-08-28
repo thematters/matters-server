@@ -210,7 +210,7 @@ type Mutation {
   removeSocialLogin(input: RemoveSocialLoginInput!): User!
 
   """Reset crypto wallet."""
-  resetWallet(input: ResetWalletInput!): User!
+  resetWallet(input: ResetWalletInput!): User! @deprecated(reason: "use 'removeWalletLogin' instead")
 
   """Logout user."""
   userLogout: Boolean!
