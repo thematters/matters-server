@@ -1513,7 +1513,7 @@ describe('update user state', () => {
   })
 })
 
-describe.only('query social accounts', () => {
+describe('query social accounts', () => {
   const GET_VIEWER_SOCIAL_ACCOUNTS = /* GraphQL */ `
     query {
       viewer {
