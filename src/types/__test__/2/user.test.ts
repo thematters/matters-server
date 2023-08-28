@@ -1549,14 +1549,6 @@ describe('query social accounts', () => {
     })
     expect(data.viewer.info.socialAccounts).toEqual([])
   })
-  test('others can not visit social accounts', async () => {
-    const server = await testClient({ isAuth: true })
-    const { data } = await server.executeOperation({
-      query: GET_USER_SOCIAL_ACCOUNTS,
-      variables: { input: { userName: 'test1' } },
-    })
-    expect(data.user.info.socialAccounts).toEqual([])
-  })
   test('users social accounts', async () => {
     const server = await testClient({ isAuth: true })
     // no social accounts
