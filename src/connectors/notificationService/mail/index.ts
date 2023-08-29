@@ -1,4 +1,5 @@
 import { sendCircleInvitation } from './sendCircleInvitation'
+import { sendEmailChange } from './sendEmailChange'
 import { sendMigrationSuccess } from './sendMigrationSuccess'
 import { sendPayment } from './sendPayment'
 import { sendRegisterSuccess } from './sendRegisterSuccess'
@@ -12,4 +13,5 @@ export const mail = {
   sendUserDeletedByAdmin,
   sendVerificationCode,
   sendPayment,
+  sendEmailChange,
 }

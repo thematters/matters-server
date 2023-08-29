@@ -105,4 +105,8 @@ export const trans = {
       zh_hans: 'Matters | 你已经成功设定加密钱包！',
     }),
   },
+  emailChange: i18n({
+    zh_hant: 'Matters｜郵箱地址已變更',
+    zh_hans: 'Matters｜邮箱地址已变更',
+  }),
 }

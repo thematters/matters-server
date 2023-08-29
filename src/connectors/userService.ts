@@ -377,12 +377,35 @@ export class UserService extends BaseService {
       .first()
 
   public setEmail = async (userId: string, email: string): Promise<User> => {
-    const user = await this.findByEmail(email)
-    if (user && user.id !== userId) {
+    const emailUser = await this.findByEmail(email)
+    if (emailUser && emailUser.id !== userId) {
       throw new EmailExistsError('email already exists')
-    } else if (user && user.id === userId) {
-      return user
+    } else if (emailUser && emailUser.id === userId) {
+      return emailUser
     } else {
+      const notificationService = new NotificationService()
+      const user = await this.loadById(userId)
+      if (user.email) {
+        notificationService.mail.sendEmailChange({
+          to: user.email,
+          newEmail: email,
+          language: user.language,
+        })
+      }
+      const { code } = await this.createVerificationCode({
+        userId,
+        email,
+        type: VERIFICATION_CODE_TYPE.email_verify,
+        strong: true,
+      })
+      notificationService.mail.sendVerificationCode({
+        to: email,
+        code,
+        type: VERIFICATION_CODE_TYPE.email_verify,
+        recipient: user,
+        language: user.language,
+      })
+
       return await this.baseUpdate(userId, { email, emailVerified: false })
     }
   }
