@@ -1920,7 +1920,7 @@ type Asset {
   """Link of this asset."""
   path: String!
   draft: Boolean
-  uploadUrl: String
+  uploadURL: String
 
   """Time of this asset was created."""
   createdAt: DateTime!

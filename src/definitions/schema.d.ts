@@ -495,7 +495,7 @@ export type GQLAsset = {
   path: Scalars['String']['output']
   /** Types of this asset. */
   type: GQLAssetType
-  uploadUrl?: Maybe<Scalars['String']['output']>
+  uploadURL?: Maybe<Scalars['String']['output']>
 }
 
 /** Enums for asset types. */
@@ -5515,7 +5515,7 @@ export type GQLAssetResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   path?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AssetType'], ParentType, ContextType>
-  uploadUrl?: Resolver<
+  uploadURL?: Resolver<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType

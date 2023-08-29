@@ -146,7 +146,7 @@ export default /* GraphQL */ `
     path: String!
 
     draft: Boolean
-    uploadUrl: String
+    uploadURL: String
 
     "Time of this asset was created."
     createdAt: DateTime!
