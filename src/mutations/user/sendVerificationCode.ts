@@ -12,17 +12,19 @@ import { isDev } from 'common/environment'
 import {
   AuthenticationError,
   EmailExistsError,
+  ForbiddenError,
   EmailNotFoundError,
   UserInputError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
+import { GCP } from 'connectors'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
 const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, redirectUrl } },
+  { input: { email: rawEmail, type, token, redirectUrl } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -41,6 +43,13 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     user = await userService.findByEmail(email)
     if (user) {
       throw new EmailExistsError('email has been registered')
+    }
+
+    // check token for Turing test
+    const gcp = new GCP()
+    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    if (!isHuman) {
+      throw new ForbiddenError('registration via scripting is not allowed')
     }
   }
 
