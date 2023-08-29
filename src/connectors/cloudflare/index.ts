@@ -148,7 +148,10 @@ export class CloudflareService {
       const resData = await res.json()
       logger.info('direct upload image: %j', resData)
       if (resData?.success) {
-        return resData.result as { id: string; uploadURL: string }
+        return {
+          key,
+          ...(resData.result as { id: string; uploadURL: string }),
+        }
       }
     } catch (err) {
       logger.error(
