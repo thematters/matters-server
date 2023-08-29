@@ -20,7 +20,7 @@ export class CloudflareService {
   baseUploadFileByUrl = async (
     folder: GQLAssetType,
     url: string,
-    uuid: string
+    uuid?: string
   ): Promise<string | never> => {
     if (url.startsWith(CLOUDFLARE_IMAGE_ENDPOINT)) {
       // handle urls like: 'https://imagedelivery.net/kDRxxxm-pYA/non-prod/cover/uuid-or-path-to-image.jpeg/public' or another variant
@@ -28,33 +28,10 @@ export class CloudflareService {
       // strip /public, /1280w etc.
       const lastIdx = url.lastIndexOf('/')
 
-      // logger.info('get key id from full cloudflare image url: %o', {url, lastIdx, CLOUDFLARE_IMAGE_ENDPOINT,})
-
-      // check & confirm `draft: true` disappear
-      /* {
-  "result": {
-    "id": "non-prod/wiepefkwef-another-2.jpeg",
-    "filename": null,
-    "meta": {
-      ...
-    },
-    "uploaded": "2023-09-05T20:45:32.499Z",
-    "requireSignedURLs": false,
-    "variants": [
-      "https://imagedelivery.net/kDRxxx-pYA/non-prod/wiepefkwef-another-2.jpeg/1280w",
-      // ...
-    ],
-    "draft": true            <= draft flag will exist ephemerally till expired or confirmed
-  },
-  "success": true,
-  "errors": [],
-  "messages": []
-}
- **/
       return url.substring(CLOUDFLARE_IMAGE_ENDPOINT.length + 1, lastIdx)
     }
 
-    const key = this.genKey(folder, uuid, path.extname(url).toLowerCase())
+    const key = this.genKey(folder, uuid!, path.extname(url).toLowerCase())
 
     const formData = new FormData()
     formData.append('url', url)

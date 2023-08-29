@@ -171,6 +171,9 @@ export class SystemService extends BaseService {
   public findAssetByUUID = async (uuid: string) =>
     this.baseFindByUUID(uuid, 'asset')
 
+  public findAssetByPath = async (path: string) =>
+    this.knex('asset').where('path', path).first()
+
   public findAssetOrCreateByPath = async (
     // path: string,
     data: ItemData,

@@ -4,7 +4,7 @@ import type { ItemData, GQLMutationResolvers } from 'definitions'
 import { v4 } from 'uuid'
 
 import { IMAGE_ASSET_TYPE } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { AssetNotFoundError, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
@@ -55,7 +55,12 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
     // if (isImageType) {
     // call cloudflare uploadFileByUrl, handle both direct upload, & any other url upload
     // @ts-ignore
-    key = await systemService.cfsvc.baseUploadFileByUrl(type, url, 'uuid')
+    key = await systemService.cfsvc.baseUploadFileByUrl(type, url)
+
+    const ast = await systemService.findAssetByPath(key)
+    if (!(ast?.authorId === viewer.id)) {
+      throw new AssetNotFoundError(`Asset by given path does not exists`)
+    }
   }
 
   const uuid = v4()
