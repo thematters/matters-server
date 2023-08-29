@@ -27,6 +27,7 @@ export const sendEmailChange = async ({
           subject: trans.emailChange(language, {}),
           siteDomain: environment.siteDomain,
           copyrightYear: new Date().getFullYear(),
+          oldEmail: to,
           newEmail,
         },
       },
