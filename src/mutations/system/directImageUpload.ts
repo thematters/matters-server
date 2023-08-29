@@ -8,7 +8,7 @@ import { AssetNotFoundError, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
-const logger = getLogger('mutation-upload')
+const logger = getLogger('direct-image-upload')
 
 const resolver: GQLMutationResolvers['directImageUpload'] = async (
   _,
@@ -52,8 +52,6 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   let key: string | undefined = undefined
 
   if (url && draft != null) {
-    // if (isImageType) {
-    // call cloudflare uploadFileByUrl, handle both direct upload, & any other url upload
     // @ts-ignore
     key = await systemService.cfsvc.baseUploadFileByUrl(type, url)
 
@@ -69,9 +67,10 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   if (!key) {
     try {
       // @ts-ignore
-      const result = (await systemService.cfsvc.directUploadImage(type, uuid))!
-      logger.info('got cloudflare image uploadURL: %o', result)
-      ;({ key, uploadURL } = result)
+      ;({ key, uploadURL } = (await systemService.cfsvc.directUploadImage(
+        type,
+        uuid
+      ))!)
     } catch (err) {
       logger.error('cloudflare upload image ERROR:', err)
       throw err
@@ -87,13 +86,12 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   }
 
   const newAsset = await systemService.findAssetOrCreateByPath(
-    // createAssetAndAssetMap(
     asset,
     entityTypeId,
     relatedEntityId
   )
 
-  logger.info('return cloudflare image uploadURL: %o', { key, uploadURL })
+  // logger.info('return cloudflare image uploadURL: %o', { key, uploadURL })
 
   return {
     ...newAsset,
