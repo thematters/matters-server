@@ -22,7 +22,10 @@ const resolver: GQLMutationResolvers['verifyEmail'] = async (
     email: viewer.email,
   })
 
-  return userService.baseUpdate(viewer.id, { emailVerified: true })
+  return userService.baseUpdate(viewer.id, {
+    email: viewer.email,
+    emailVerified: true,
+  })
 }
 
 export default resolver
