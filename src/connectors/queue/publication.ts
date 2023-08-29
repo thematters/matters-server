@@ -225,7 +225,7 @@ export class PublicationQueue extends BaseQueue {
           assetType: 'cover',
         })
         await systemService.swapAssetMapEntity(
-          coverAssets.map((ast) => ast.id),
+          coverAssets.map((ast: any) => ast.id),
           articleEntityTypeId,
           article.id
         )
@@ -600,7 +600,7 @@ export class PublicationQueue extends BaseQueue {
       ])
 
       const unusedAssetPaths: { [id: string]: string } = {}
-      assets.forEach((asset) => {
+      assets.forEach((asset: any) => {
         const isCover = draft.cover === asset.assetId
         const isEmbed = uuids && uuids.includes(asset.uuid)
 

@@ -488,12 +488,14 @@ export type GQLAsset = {
   __typename?: 'Asset'
   /** Time of this asset was created. */
   createdAt: Scalars['DateTime']['output']
+  draft?: Maybe<Scalars['Boolean']['output']>
   /** Unique ID of this Asset. */
   id: Scalars['ID']['output']
   /** Link of this asset. */
   path: Scalars['String']['output']
   /** Types of this asset. */
   type: GQLAssetType
+  uploadUrl?: Maybe<Scalars['String']['output']>
 }
 
 /** Enums for asset types. */
@@ -1490,6 +1492,7 @@ export type GQLMutation = {
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   /** Delete topics */
   deleteTopics: Scalars['Boolean']['output']
+  directImageUpload: GQLAsset
   /** Edit an article. */
   editArticle: GQLArticle
   emailLogin: GQLAuthResult
@@ -1726,6 +1729,10 @@ export type GQLMutationDeleteTagsArgs = {
 
 export type GQLMutationDeleteTopicsArgs = {
   input: GQLDeleteTopicsInput
+}
+
+export type GQLMutationDirectImageUploadArgs = {
+  input: GQLSingleFileUploadInput
 }
 
 export type GQLMutationEditArticleArgs = {
@@ -2819,6 +2826,7 @@ export type GQLSigningMessageResult = {
 }
 
 export type GQLSingleFileUploadInput = {
+  draft?: InputMaybe<Scalars['Boolean']['input']>
   entityId?: InputMaybe<Scalars['ID']['input']>
   entityType: GQLEntityType
   file?: InputMaybe<Scalars['Upload']['input']>
@@ -5503,9 +5511,15 @@ export type GQLAssetResolvers<
   ParentType extends GQLResolversParentTypes['Asset'] = GQLResolversParentTypes['Asset']
 > = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  draft?: Resolver<Maybe<GQLResolversTypes['Boolean']>, ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   path?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AssetType'], ParentType, ContextType>
+  uploadUrl?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6543,6 +6557,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationDeleteTopicsArgs, 'input'>
+  >
+  directImageUpload?: Resolver<
+    GQLResolversTypes['Asset'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDirectImageUploadArgs, 'input'>
   >
   editArticle?: Resolver<
     GQLResolversTypes['Article'],

@@ -13,6 +13,7 @@ module.exports = {
     '^@root(.*)$': '<rootDir>/$1',
   },
   testPathIgnorePatterns: ['/node_modules/'],
+  globalSetup: '<rootDir>/db/globalTestSetup.js',
   coverageDirectory: './coverage/',
   collectCoverage: true,
   globals: {

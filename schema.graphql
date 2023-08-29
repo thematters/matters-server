@@ -145,6 +145,7 @@ type Mutation {
 
   """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+  directImageUpload(input: SingleFileUploadInput!): Asset!
 
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
@@ -1918,6 +1919,8 @@ type Asset {
 
   """Link of this asset."""
   path: String!
+  draft: Boolean
+  uploadUrl: String
 
   """Time of this asset was created."""
   createdAt: DateTime!
@@ -2029,6 +2032,7 @@ input SingleFileUploadInput {
   type: AssetType!
   file: Upload
   url: String
+  draft: Boolean
   entityType: EntityType!
   entityId: ID
 }

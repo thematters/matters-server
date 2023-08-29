@@ -5,6 +5,7 @@ import type {
   Connections,
 } from 'definitions'
 
+import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
 import {
@@ -178,7 +179,7 @@ export class SystemService extends BaseService {
   ) =>
     this.knex.transaction(async (trx) => {
       // const [newAsset] = await trx.find(asset).into('asset').returning('*')
-      const { path, type, authorId, uuid } = data
+      const { path, type, authorId, uuid, ...rest } = data
       let asset = await trx('asset')
         .select()
         .where({ path, type, authorId })
@@ -186,13 +187,16 @@ export class SystemService extends BaseService {
       if (!asset) {
         ;[asset] = await trx
           .insert({
-            path,
-            type,
-            authorId,
+            ...data,
             uuid: uuid || v4(),
           })
           .into('asset')
           .returning('*')
+      } else {
+        if (Object.keys(rest).length > 0) {
+          // if rest is not empty
+          asset = this.baseUpdate(asset.id, rest, undefined, trx)
+        }
       }
 
       const assetMData = {
@@ -248,18 +252,23 @@ export class SystemService extends BaseService {
     entityTypeId: string
     entityId: string
     assetType?: keyof typeof ASSET_TYPE
-  }) => {
-    const query = this.knex('asset_map')
-      .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
+  }) =>
+    this.knex('asset_map')
+      .select(
+        'asset_map.*',
+        'uuid',
+        'path',
+        'type',
+        'asset.draft',
+        'created_at'
+      )
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
-
-    if (assetType) {
-      query.andWhere({ type: assetType })
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (assetType) {
+          builder.andWhere({ type: assetType })
+        }
+      })
 
   /**
    * Swap entity of asset map by given ids

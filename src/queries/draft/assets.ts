@@ -20,7 +20,7 @@ const resolver: GQLDraftResolvers['assets'] = async (
     entityId: id,
   })
 
-  return assets.map((asset) => ({
+  return assets.map((asset: any) => ({
     ...asset,
     path: systemService.genAssetUrl(asset),
   }))
