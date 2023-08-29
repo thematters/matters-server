@@ -68,6 +68,7 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
         type,
         uuid
       ))!)
+      logger.info('got cloudflare image uploadURL: %o', { key, uploadURL })
     } catch (err) {
       logger.error('cloudflare upload image ERROR:', err)
       throw err

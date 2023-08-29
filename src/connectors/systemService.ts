@@ -195,7 +195,7 @@ export class SystemService extends BaseService {
       } else {
         if (Object.keys(rest).length > 0) {
           // if rest is not empty
-          asset = this.baseUpdate(asset.id, rest, undefined, trx)
+          asset = this.baseUpdate(asset.id, rest, 'asset', trx)
         }
       }
 
