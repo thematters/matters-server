@@ -64,16 +64,9 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   if (!key) {
     try {
       // @ts-ignore
-      ;({ uploadURL } = (await systemService.cfsvc.directUploadImage(
-        type,
-        uuid
-      ))!)
-      // uploadURL is like:
-      // https://upload.imagedelivery.net/Vi7wixxxRG2Us6Q/path/to/custom-id/2cdc28f0-xxx-87056c83901
-      // return uploadURL
-
-      // @ts-ignore
-      key = await systemService.cfsvc.baseUploadFileByUrl(type, uploadURL, uuid)
+      const result = (await systemService.cfsvc.directUploadImage(type, uuid))!
+      logger.info('got cloudflare image uploadURL: %o', result)
+      ;({ key, uploadURL } = result)
     } catch (err) {
       logger.error('cloudflare upload image ERROR:', err)
       throw err
@@ -94,6 +87,8 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
     entityTypeId,
     relatedEntityId
   )
+
+  logger.info('return cloudflare image uploadURL: %o', { key, uploadURL })
 
   return {
     ...newAsset,
