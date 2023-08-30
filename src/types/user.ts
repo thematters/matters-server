@@ -23,7 +23,7 @@ export default /* GraphQL */ `
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Register user, can only be used on matters.{town,news} website."
-    userRegister(input: UserRegisterInput!): AuthResult!
+    userRegister(input: UserRegisterInput!): AuthResult! @rateLimit(limit:10, period:86400)
 
     "Login user."
     userLogin(input: UserLoginInput!): AuthResult!

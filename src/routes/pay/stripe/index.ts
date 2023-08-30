@@ -90,8 +90,8 @@ stripeRouter.post('/', async (req, res) => {
         // if payment is high risk, ban user and send slack alert
 
         // @ts-ignore
-        const outcome = failed.charges?.data[0].outcome
-        if (outcome.risk_level === 'highest') {
+        const outcome = failed.charges?.data[0]?.outcome
+        if (outcome && outcome.risk_level === 'highest') {
           const tx = (
             await paymentService.findTransactions({
               providerTxId: failed.id,
@@ -101,8 +101,9 @@ stripeRouter.post('/', async (req, res) => {
             remark: USER_BAN_REMARK.paymentHighRisk,
             noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
           })
+          const user = await userService.baseFindById(tx.recipientId)
           slack.sendPaymentAlert({
-            message: `user ${tx.recipientId} banned due to high risk payment`,
+            message: `user ${user.userName} banned due to high risk payment`,
           })
         }
         break
@@ -171,8 +172,9 @@ stripeRouter.post('/', async (req, res) => {
           remark: USER_BAN_REMARK.payoutReversedByAdmin,
           noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
         })
+        const user = await userService.baseFindById(payoutTx.senderId)
         slack.sendPaymentAlert({
-          message: `user ${payoutTx.senderId} banned due to payout reversed`,
+          message: `user ${user.userName} banned due to payout reversed`,
         })
         break
       }
