@@ -54,7 +54,11 @@ export const sendVerificationCode = async ({
               ...recipient,
               email: to,
             },
-            ...(redirectUrl ? { link } : { code }),
+            ...(type === VERIFICATION_CODE_TYPE.email_otp
+              ? { link, code }
+              : redirectUrl
+              ? { link }
+              : { code }),
           },
         },
       ],
