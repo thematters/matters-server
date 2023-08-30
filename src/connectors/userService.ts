@@ -392,21 +392,11 @@ export class UserService extends BaseService {
           language: user.language,
         })
       }
-      const { code } = await this.createVerificationCode({
-        userId,
+      return await this.baseUpdate(userId, {
         email,
-        type: VERIFICATION_CODE_TYPE.email_verify,
-        strong: true,
+        emailVerified: false,
+        passwordHash: null,
       })
-      notificationService.mail.sendVerificationCode({
-        to: email,
-        code,
-        type: VERIFICATION_CODE_TYPE.email_verify,
-        recipient: user,
-        language: user.language,
-      })
-
-      return await this.baseUpdate(userId, { email, emailVerified: false })
     }
   }
 

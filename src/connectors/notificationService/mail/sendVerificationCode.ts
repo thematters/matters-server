@@ -47,6 +47,8 @@ export const sendVerificationCode = async ({
               passwordReset: type === VERIFICATION_CODE_TYPE.password_reset,
               paymentPasswordReset:
                 type === VERIFICATION_CODE_TYPE.payment_password_reset,
+              emailOtp: type === VERIFICATION_CODE_TYPE.email_otp,
+              emailVerify: type === VERIFICATION_CODE_TYPE.email_verify,
             },
             recipient: {
               ...recipient,
