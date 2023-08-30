@@ -90,7 +90,7 @@ stripeRouter.post('/', async (req, res) => {
         // if payment is high risk, ban user and send slack alert
 
         // @ts-ignore
-        const outcome = failed.charges?.data[0].outcome
+        const outcome = failed.charges?.data[0]?.outcome
         if (outcome && outcome.risk_level === 'highest') {
           const tx = (
             await paymentService.findTransactions({
