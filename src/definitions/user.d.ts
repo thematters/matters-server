@@ -47,7 +47,8 @@ export type UserRole = 'admin' | 'user'
 
 export type UserState = 'active' | 'banned' | 'archived'
 
-export type Viewer = (User | { id: null }) & {
+type ViewerBase = {
+  id: undefined
   hasRole: (role: UserRole) => boolean
   hasAuthMode: (mode: string) => boolean
   ip?: string
@@ -61,6 +62,8 @@ export type Viewer = (User | { id: null }) & {
   token?: string
   group: 'a' | 'b'
 }
+
+export type Viewer = (User & ViewerBase) | ViewerBase
 
 export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 

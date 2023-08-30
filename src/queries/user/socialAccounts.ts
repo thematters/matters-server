@@ -5,6 +5,7 @@ const resolver: GQLUserInfoResolvers['socialAccounts'] = async (
   _,
   { dataSources: { userService }, viewer }
 ) => {
+  if (!viewer.id) return []
   if (id !== viewer.id) return []
   return userService.findSocialAccountsByUserId(id)
 }

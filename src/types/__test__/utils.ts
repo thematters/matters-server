@@ -45,7 +45,7 @@ export const getUserContext = async ({ email }: { email: string }) => {
   const userService = new UserService()
   const user = await userService.findByEmail(email)
   if (user === undefined) {
-    return { viewer: { id: null } as any as User }
+    return { viewer: {} as any as User }
   }
   return {
     viewer: user,
@@ -103,7 +103,7 @@ export const testClient = async (
     })
   }
 
-  const viewer = (_context && _context.viewer) || { id: null }
+  const viewer = (_context && _context.viewer) || {}
 
   if (!viewer.role) {
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
