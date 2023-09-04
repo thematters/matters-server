@@ -1591,3 +1591,68 @@ describe('query social accounts', () => {
     expect(data3.user.info.socialAccounts).toEqual([])
   })
 })
+
+describe('verify user email', () => {
+  const VERIFY_EMAIL = /* GraphQL */ `
+    mutation ($input: VerifyEmailInput!) {
+      verifyEmail(input: $input) {
+        userName
+        info {
+          email
+          emailVerified
+        }
+      }
+    }
+  `
+  test('anonymous users can not verify email', async () => {
+    const server = await testClient()
+    const { errors } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { code: 'test' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('users without email can not verify email', async () => {
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user } })
+    const { errors } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { code: 'test' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('users with verified email can not verify email', async () => {
+    const user = await userService.create({
+      email: 'verified@matters.town',
+      emailVerified: true,
+    })
+    const server = await testClient({ context: { viewer: user } })
+    const { errors } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { code: 'test' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('codes are checked', async () => {
+    const email = 'notverified@matters.town'
+    const user = await userService.create({ email, emailVerified: false })
+    const server = await testClient({ context: { viewer: user } })
+    const { errors } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { code: 'test' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+
+    // succeed
+    const { code } = await userService.createVerificationCode({
+      userId: user.id,
+      type: 'email_verify',
+      email,
+    })
+    const { data } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { code } },
+    })
+    expect(data.verifyEmail.info.emailVerified).toBe(true)
+  })
+})
