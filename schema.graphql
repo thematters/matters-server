@@ -178,6 +178,9 @@ type Mutation {
   """Set user email."""
   setEmail(input: SetEmailInput!): User!
 
+  """Verify user email."""
+  verifyEmail(input: VerifyEmailInput!): User!
+
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
 
@@ -2729,7 +2732,7 @@ input ChangeEmailInput {
 }
 
 input VerifyEmailInput {
-  codeId: ID!
+  code: String!
 }
 
 input SetCurrencyInput {

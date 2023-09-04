@@ -35,6 +35,7 @@ import updateUserState from './updateUserState'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
 import userRegister from './userRegister'
+import verifyEmail from './verifyEmail'
 import { walletLogin, addWalletLogin, removeWalletLogin } from './walletLogin'
 
 export default {
@@ -81,5 +82,6 @@ export default {
     socialLogin,
     addSocialLogin,
     removeSocialLogin,
+    verifyEmail,
   },
 }

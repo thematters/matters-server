@@ -1636,6 +1636,8 @@ export type GQLMutation = {
    * @deprecated use 'emailLogin' instead
    */
   userRegister: GQLAuthResult
+  /** Verify user email. */
+  verifyEmail: GQLUser
   /** Upvote or downvote a comment. */
   voteComment: GQLComment
   /** Login/Signup via a wallet. */
@@ -2004,6 +2006,10 @@ export type GQLMutationUserLoginArgs = {
 
 export type GQLMutationUserRegisterArgs = {
   input: GQLUserRegisterInput
+}
+
+export type GQLMutationVerifyEmailArgs = {
+  input: GQLVerifyEmailInput
 }
 
 export type GQLMutationVoteCommentArgs = {
@@ -3720,7 +3726,7 @@ export type GQLVerificationCodeType =
   | 'register'
 
 export type GQLVerifyEmailInput = {
-  codeId: Scalars['ID']['input']
+  code: Scalars['String']['input']
 }
 
 /** Enums for vote types. */
@@ -6967,6 +6973,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUserRegisterArgs, 'input'>
+  >
+  verifyEmail?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationVerifyEmailArgs, 'input'>
   >
   voteComment?: Resolver<
     GQLResolversTypes['Comment'],
