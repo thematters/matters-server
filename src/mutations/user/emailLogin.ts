@@ -1,11 +1,7 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
-import {
-  EmailInvalidError,
-  PasswordInvalidError,
-  CodeInvalidError,
-} from 'common/errors'
+import { EmailInvalidError, PasswordInvalidError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { Passphrases } from 'connectors'
 
@@ -29,8 +25,6 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidpassphrases(passwordOrCode)
 
-  console.log({ user, isEmailOTP })
-
   if (user === undefined) {
     // user not exist, register
     const verifyOTP = isEmailOTP
@@ -48,12 +42,6 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyOTP, verifyRegister].filter(Boolean))
     } catch (err: any) {
-      for (const e of err.errors) {
-        // CodeInvalidError is last error to throw
-        if (!(e instanceof CodeInvalidError)) {
-          throw e
-        }
-      }
       throw err.errors[0]
     }
 
@@ -78,22 +66,22 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     }
   } else {
     // user exists, login
-    const verifyPassword = userService.verifyPassword({
-      password: passwordOrCode,
-      hash: user.passwordHash || '',
-    })
     const verifyOTP = isEmailOTP
       ? passphrases.verify({
           payload: { email, userId: user.id },
           passphrases: passphrases.normalize(passwordOrCode),
         })
       : undefined
+    const verifyPassword = userService.verifyPassword({
+      password: passwordOrCode,
+      hash: user.passwordHash || '',
+    })
 
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
       for (const e of err.errors) {
-        // CodeInvalidError is last error to throw
+        // PasswordInvalidError is last error to throw
         if (!(e instanceof PasswordInvalidError)) {
           throw e
         }
