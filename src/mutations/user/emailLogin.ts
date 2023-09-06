@@ -23,7 +23,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   }
   const user = await userService.findByEmail(email)
   const passphrases = new Passphrases()
-  const isEmailOTP = passphrases.isValidpassphrases(passwordOrCode)
+  const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
 
   if (user === undefined) {
     // user not exist, register

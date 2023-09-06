@@ -87,7 +87,7 @@ export class Passphrases {
     return pass.match(new RegExp(`.{1,${WORD_CHAR_LENGTH}}`, 'g')) || []
   }
 
-  public isValidpassphrases = (pass: string): boolean => {
+  public isValidPassphrases = (pass: string): boolean => {
     const passphrases = this.normalize(pass)
 
     if (passphrases.join('').length !== TAKE * WORD_CHAR_LENGTH) {

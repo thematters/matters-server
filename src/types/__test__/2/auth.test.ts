@@ -19,13 +19,20 @@ import {
 // setup mock
 const mockGenerate = jest.fn()
 const mockVerify = jest.fn()
-jest.mock('connectors/passphrases', () => ({
-  __esModule: true,
-  Passphrases: jest.fn().mockImplementation(() => ({
-    generate: mockGenerate,
-    verify: mockVerify,
-  })),
-}))
+jest.mock('connectors/passphrases', () => {
+  const originalModule = jest.requireActual('connectors/passphrases')
+  const passphrases = new originalModule.Passphrases()
+
+  return {
+    __esModule: true,
+    Passphrases: jest.fn().mockImplementation(() => ({
+      generate: mockGenerate,
+      verify: mockVerify,
+      normalize: passphrases.normalize,
+      isValidpassphrases: passphrases.isValidpassphrases,
+    })),
+  }
+})
 
 const userService = new UserService()
 
