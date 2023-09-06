@@ -7,6 +7,7 @@ import {
   CodeInvalidError,
 } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
+import { Passphrases } from 'connectors'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
@@ -25,14 +26,19 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     throw new EmailInvalidError('invalid email address format')
   }
   const user = await userService.findByEmail(email)
+  const passphrases = new Passphrases()
+  const isEmailOTP = passphrases.isValidpassphrases(passwordOrCode)
+
+  console.log({ user, isEmailOTP })
 
   if (user === undefined) {
-    // user not exist,  register
-    const verifyOTP = userService.verifyVerificationCode({
-      email,
-      type: VERIFICATION_CODE_TYPE.email_otp,
-      code: passwordOrCode,
-    })
+    // user not exist, register
+    const verifyOTP = isEmailOTP
+      ? passphrases.verify({
+          payload: { email },
+          passphrases: passphrases.normalize(passwordOrCode),
+        })
+      : undefined
     const verifyRegister = userService.verifyVerificationCode({
       email,
       type: VERIFICATION_CODE_TYPE.register,
@@ -40,7 +46,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     })
 
     try {
-      await Promise.any([verifyOTP, verifyRegister])
+      await Promise.any([verifyOTP, verifyRegister].filter(Boolean))
     } catch (err: any) {
       for (const e of err.errors) {
         // CodeInvalidError is last error to throw
@@ -76,14 +82,15 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       password: passwordOrCode,
       hash: user.passwordHash || '',
     })
-    const verifyOTP = userService.verifyVerificationCode({
-      email,
-      type: VERIFICATION_CODE_TYPE.email_otp,
-      code: passwordOrCode,
-    })
+    const verifyOTP = isEmailOTP
+      ? passphrases.verify({
+          payload: { email, userId: user.id },
+          passphrases: passphrases.normalize(passwordOrCode),
+        })
+      : undefined
 
     try {
-      await Promise.any([verifyPassword, verifyOTP])
+      await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
       for (const e of err.errors) {
         // CodeInvalidError is last error to throw

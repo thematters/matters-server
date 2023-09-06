@@ -8,7 +8,7 @@ import {
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
 } from 'common/enums'
-import { isDev } from 'common/environment'
+import { isProd } from 'common/environment'
 import {
   AuthenticationError,
   EmailExistsError,
@@ -18,7 +18,7 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
-import { GCP } from 'connectors'
+import { GCP, Passphrases } from 'connectors'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
@@ -35,12 +35,11 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     )
   }
 
-  let user
+  const user = await userService.findByEmail(email)
 
   // register check
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
-    user = await userService.findByEmail(email)
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
@@ -59,7 +58,6 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     type === VERIFICATION_CODE_TYPE.email_reset ||
     type === VERIFICATION_CODE_TYPE.email_verify
   ) {
-    user = await userService.findByEmail(email)
     if (!user) {
       throw new EmailNotFoundError('cannot find email')
     }
@@ -131,16 +129,33 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   }
 
   // insert record
-  const emailOtpExpire = new Date(
-    Date.now() + (isDev ? MINUTE : VERIFICATION_CODE_EXPIRED_AFTER)
-  )
-  const { code } = await userService.createVerificationCode({
-    userId: viewer.id,
-    email,
-    type,
-    strong: !!redirectUrl, // strong random code for link
-    expiredAt: type === 'email_otp' ? emailOtpExpire : undefined,
-  })
+  let code = ''
+  const isEmailOTP = type === 'email_otp'
+
+  if (isEmailOTP) {
+    // generate passpharse for email OTP
+    const passphrases = new Passphrases()
+    code = (
+      await passphrases.generate({
+        payload: {
+          email,
+          // include userId to prevent login to other user's account
+          // if email is changed
+          ...(user ? { userId: user.id } : {}),
+        },
+        expiresInMinutes:
+          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE) / MINUTE,
+      })
+    ).join('-')
+  } else {
+    const result = await userService.createVerificationCode({
+      userId: viewer.id,
+      email,
+      type,
+      strong: !!redirectUrl, // strong random code for link
+    })
+    code = result.code
+  }
 
   // send verification email
   notificationService.mail.sendVerificationCode({

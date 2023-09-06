@@ -4,7 +4,7 @@ import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
-import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
+import { alchemy, AlchemyNetwork } from 'connectors/alchemy'
 interface OpenSeaNFTAsset {
   id: any
   token_id: string
