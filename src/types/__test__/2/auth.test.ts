@@ -1,3 +1,4 @@
+import axios from 'axios'
 import _ from 'lodash'
 
 import {
@@ -16,23 +17,7 @@ import {
   testClient,
 } from '../utils'
 
-// setup mock
-const mockGenerate = jest.fn()
-const mockVerify = jest.fn()
-jest.mock('connectors/passphrases', () => {
-  const originalModule = jest.requireActual('connectors/passphrases')
-  const passphrases = new originalModule.Passphrases()
-
-  return {
-    __esModule: true,
-    Passphrases: jest.fn().mockImplementation(() => ({
-      generate: mockGenerate,
-      verify: mockVerify,
-      normalize: passphrases.normalize,
-      isValidpassphrases: passphrases.isValidpassphrases,
-    })),
-  }
-})
+jest.mock('axios')
 
 const userService = new UserService()
 
@@ -659,7 +644,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors2?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors2?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
     })
     test('register with invalid code will fail', async () => {
       const server = await testClient()
@@ -787,10 +772,17 @@ describe('emailLogin', () => {
   })
 
   describe('otp login', () => {
+    const passphrases = ['loena', 'loenb', 'loenc', 'loend', 'loene', 'loenf']
+
     test('login not existed user with OTP will register new user', async () => {
-      const passphrases = ['loent', 'loent', 'loent', 'loent', 'loent', 'loent']
-      mockGenerate.mockReturnValue(passphrases)
-      mockVerify.mockRejectedValue(true)
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
 
       const server = await testClient()
       const { data } = await server.executeOperation({
@@ -808,9 +800,14 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
     test('login existed user with OTP will login the user', async () => {
-      const passphrases = ['loent', 'loent', 'loent', 'loent', 'loent', 'loent']
-      mockGenerate.mockReturnValue(passphrases)
-      mockVerify.mockRejectedValue(true)
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
 
       const server = await testClient()
       const { data } = await server.executeOperation({
@@ -826,6 +823,66 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.type).toBe('Login')
       expect(data?.emailLogin.token).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+    test('login with expired OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesExpiredError',
+                message: '',
+              },
+            },
+          })
+        }
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('login with invalid OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesMismatchError',
+                message: '',
+              },
+            },
+          })
+        }
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
     })
   })
 })
