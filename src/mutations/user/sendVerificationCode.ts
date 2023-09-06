@@ -18,7 +18,8 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain } from 'common/utils'
-import { GCP, Passphrases } from 'connectors'
+import { GCP } from 'connectors'
+import { Passphrases } from 'connectors/passphrases'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 

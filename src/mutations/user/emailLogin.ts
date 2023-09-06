@@ -3,7 +3,7 @@ import type { GQLMutationResolvers, AuthMode } from 'definitions'
 import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
 import { EmailInvalidError, PasswordInvalidError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
-import { Passphrases } from 'connectors'
+import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,

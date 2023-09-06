@@ -16,6 +16,17 @@ import {
   testClient,
 } from '../utils'
 
+// setup mock
+const mockGenerate = jest.fn()
+const mockVerify = jest.fn()
+jest.mock('connectors/passphrases', () => ({
+  __esModule: true,
+  Passphrases: jest.fn().mockImplementation(() => ({
+    generate: mockGenerate,
+    verify: mockVerify,
+  })),
+}))
+
 const userService = new UserService()
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
@@ -623,7 +634,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
 
       const notVerifiedEmail = 'not-verified@matters.town'
       const user = await userService.create({
@@ -737,6 +748,7 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
   })
+
   describe('passwd login', () => {
     test('login with wrong password will failed', async () => {
       const server = await testClient()
@@ -749,7 +761,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
     })
     test('login with correct password will succeed', async () => {
       const server = await testClient()
@@ -766,20 +778,20 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.token).toBeDefined()
     })
   })
+
   describe('otp login', () => {
     test('login not existed user with OTP will register new user', async () => {
-      const code = await userService.createVerificationCode({
-        email: newEmail2,
-        type: 'email_otp',
-      })
-      expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+      const passphrases = ['loent', 'loent', 'loent', 'loent', 'loent', 'loent']
+      mockGenerate.mockReturnValue(passphrases)
+      mockVerify.mockRejectedValue(true)
+
       const server = await testClient()
       const { data } = await server.executeOperation({
         query: EMAIL_LOGIN,
         variables: {
           input: {
             email: newEmail2,
-            passwordOrCode: code.code,
+            passwordOrCode: passphrases.join('-'),
           },
         },
       })
@@ -787,26 +799,19 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.type).toBe('Signup')
       expect(data?.emailLogin.token).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
-
-      const codes = await userService.findVerificationCodes({
-        where: { email: newEmail2 },
-      })
-      for (const c of codes) {
-        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
-      }
     })
     test('login existed user with OTP will login the user', async () => {
-      const code = await userService.createVerificationCode({
-        email: newEmail2,
-        type: 'email_otp',
-      })
+      const passphrases = ['loent', 'loent', 'loent', 'loent', 'loent', 'loent']
+      mockGenerate.mockReturnValue(passphrases)
+      mockVerify.mockRejectedValue(true)
+
       const server = await testClient()
       const { data } = await server.executeOperation({
         query: EMAIL_LOGIN,
         variables: {
           input: {
             email: newEmail2,
-            passwordOrCode: code.code,
+            passwordOrCode: passphrases.join('-'),
           },
         },
       })
@@ -814,13 +819,6 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.type).toBe('Login')
       expect(data?.emailLogin.token).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
-
-      const codes = await userService.findVerificationCodes({
-        where: { email: newEmail2 },
-      })
-      for (const c of codes) {
-        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
-      }
     })
   })
 })
