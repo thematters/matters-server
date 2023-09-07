@@ -1,3 +1,4 @@
+import axios from 'axios'
 import _ from 'lodash'
 
 import {
@@ -15,6 +16,8 @@ import {
   getUserContext,
   testClient,
 } from '../utils'
+
+jest.mock('axios')
 
 const userService = new UserService()
 
@@ -623,7 +626,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
 
       const notVerifiedEmail = 'not-verified@matters.town'
       const user = await userService.create({
@@ -641,7 +644,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors2?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors2?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
     })
     test('register with invalid code will fail', async () => {
       const server = await testClient()
@@ -737,6 +740,7 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
   })
+
   describe('passwd login', () => {
     test('login with wrong password will failed', async () => {
       const server = await testClient()
@@ -749,7 +753,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
     })
     test('login with correct password will succeed', async () => {
       const server = await testClient()
@@ -766,20 +770,27 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.token).toBeDefined()
     })
   })
+
   describe('otp login', () => {
+    const passphrases = ['loena', 'loenb', 'loenc', 'loend', 'loene', 'loenf']
+
     test('login not existed user with OTP will register new user', async () => {
-      const code = await userService.createVerificationCode({
-        email: newEmail2,
-        type: 'email_otp',
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
       })
-      expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+
       const server = await testClient()
       const { data } = await server.executeOperation({
         query: EMAIL_LOGIN,
         variables: {
           input: {
             email: newEmail2,
-            passwordOrCode: code.code,
+            passwordOrCode: passphrases.join('-'),
           },
         },
       })
@@ -787,26 +798,24 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.type).toBe('Signup')
       expect(data?.emailLogin.token).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
-
-      const codes = await userService.findVerificationCodes({
-        where: { email: newEmail2 },
-      })
-      for (const c of codes) {
-        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
-      }
     })
     test('login existed user with OTP will login the user', async () => {
-      const code = await userService.createVerificationCode({
-        email: newEmail2,
-        type: 'email_otp',
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
       })
+
       const server = await testClient()
       const { data } = await server.executeOperation({
         query: EMAIL_LOGIN,
         variables: {
           input: {
             email: newEmail2,
-            passwordOrCode: code.code,
+            passwordOrCode: passphrases.join('-'),
           },
         },
       })
@@ -814,13 +823,66 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.type).toBe('Login')
       expect(data?.emailLogin.token).toBeDefined()
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
-
-      const codes = await userService.findVerificationCodes({
-        where: { email: newEmail2 },
+    })
+    test('login with expired OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesExpiredError',
+                message: '',
+              },
+            },
+          })
+        }
       })
-      for (const c of codes) {
-        expect(c.status).not.toBe(VERIFICATION_CODE_STATUS.active)
-      }
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('login with invalid OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesMismatchError',
+                message: '',
+              },
+            },
+          })
+        }
+      })
+
+      const server = await testClient()
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
     })
   })
 })

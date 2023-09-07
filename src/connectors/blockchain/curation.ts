@@ -125,6 +125,7 @@ export class CurationContract extends BaseContract {
         })),
     }
   }
+
   private _fetchLogs = async (
     fromBlock: number,
     toBlock: number,

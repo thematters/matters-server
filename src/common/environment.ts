@@ -146,6 +146,9 @@ export const environment = {
   googleClientId: process.env.MATTERS_GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.MATTERS_GOOGLE_CLIENT_SECRET || '',
   googleRedirectUri: process.env.MATTERS_GOOGLE_REDIRECT_URI || '',
+
+  passphrasesApiUrl: process.env.MATTERS_PASSPHRASES_API_URL || '',
+  passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 }
 
 export const polygonUSDTContractAddress = isProd
