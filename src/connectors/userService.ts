@@ -397,6 +397,8 @@ export class UserService extends BaseService {
     }
   }
 
+  public changeEmailTimes = async (userId: string) => 3
+
   public setPassword = async (
     user: Pick<User, 'email' | 'emailVerified' | 'id'>,
     password: string
