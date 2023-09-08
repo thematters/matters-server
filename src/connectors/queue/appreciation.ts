@@ -19,6 +19,7 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { likecoin, redis } from 'connectors'
+import { User } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -33,7 +34,7 @@ interface AppreciationParams {
 }
 
 class AppreciationQueue extends BaseQueue {
-  constructor() {
+  public constructor() {
     // make it a bit slower on handling jobs in order to reduce courrent operations
     super(QUEUE_NAME.appreciation, { limiter: { max: 1, duration: 500 } })
     this.addConsumers()
@@ -43,7 +44,7 @@ class AppreciationQueue extends BaseQueue {
    * Producer for appreciation.
    *
    */
-  appreciate = ({
+  public appreciate = ({
     amount,
     articleId,
     senderId,
@@ -107,17 +108,13 @@ class AppreciationQueue extends BaseQueue {
       // check if amount exceeded limit. if yes, then use the left amount.
       const validAmount = Math.min(amount, appreciateLeft)
 
-      const [author, sender] = await Promise.all([
+      const [author, sender] = (await Promise.all([
         this.userService.baseFindById(article.authorId),
         this.userService.baseFindById(senderId),
-      ])
+      ])) as [User, User]
 
       if (!author || !sender) {
         throw new UserNotFoundError('user not found')
-      }
-
-      if (!author.likerId || !sender.likerId) {
-        throw new ForbiddenError('user has no liker id')
       }
 
       // insert appreciation record
@@ -130,14 +127,16 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // insert record to LikeCoin
-      likecoin.like({
-        likerId: sender.likerId,
-        likerIp: senderIP,
-        userAgent,
-        authorLikerId: author.likerId,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-        amount: validAmount,
-      })
+      if (author.likerId && sender.likerId) {
+        likecoin.like({
+          likerId: sender.likerId,
+          likerIp: senderIP,
+          userAgent,
+          authorLikerId: author.likerId,
+          url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+          amount: validAmount,
+        })
+      }
 
       // trigger notifications
       this.notificationService.trigger({

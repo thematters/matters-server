@@ -93,11 +93,11 @@ const ENDPOINTS = {
  * @see {@url https://documenter.getpostman.com/view/6879252/SVzxZfwH?version=latest}
  */
 export class LikeCoin {
-  knex: Knex
-  cache: CacheService
-  aws: typeof aws
+  private knex: Knex
+  private cache: CacheService
+  private aws: typeof aws
 
-  constructor() {
+  public constructor() {
     this.knex = knex
     this.cache = new CacheService(CACHE_PREFIX.LIKECOIN)
     this.aws = aws
@@ -106,7 +106,7 @@ export class LikeCoin {
   /**
    * Base Request
    */
-  request = async ({
+  private request = async ({
     endpoint,
     liker,
     withClientCredential,
@@ -201,7 +201,7 @@ export class LikeCoin {
     }
   }
 
-  refreshToken = async ({
+  public refreshToken = async ({
     liker,
   }: {
     liker: UserOAuthLikeCoin
@@ -237,7 +237,7 @@ export class LikeCoin {
   /**
    * Register
    */
-  check = async ({ user, email }: { user: string; email?: string }) => {
+  public check = async ({ user, email }: { user: string; email?: string }) => {
     try {
       const res = await this.request({
         endpoint: ENDPOINTS.check,
@@ -266,7 +266,7 @@ export class LikeCoin {
     }
   }
 
-  register = async ({
+  public register = async ({
     user,
     token,
     displayName,
@@ -309,7 +309,7 @@ export class LikeCoin {
   /**
    * Claim, Transfer or Bind
    */
-  edit = async ({
+  public edit = async ({
     action,
     payload,
     ip,
@@ -340,7 +340,7 @@ export class LikeCoin {
   /**
    * Info
    */
-  total = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+  public total = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
     const res = await this.request({
       endpoint: ENDPOINTS.total,
       method: 'GET',
@@ -355,7 +355,7 @@ export class LikeCoin {
     return data.cosmosLIKE || data.walletLIKE
   }
 
-  rate = async (currency: 'usd' | 'twd' = 'usd') => {
+  public rate = async (currency: 'usd' | 'twd' = 'usd') => {
     const res = await this.request({
       endpoint: ENDPOINTS.rate,
       method: 'GET',
@@ -371,7 +371,7 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  isCivicLiker = async ({
+  public isCivicLiker = async ({
     likerId,
     userId,
   }: {
@@ -399,7 +399,7 @@ export class LikeCoin {
   /**
    * Check if user is a civic liker
    */
-  getCosmosWallet = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+  public getCosmosWallet = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
     const res = await this.request({
       endpoint: `/users/id/${liker.likerId}/min`,
       method: 'GET',
@@ -411,7 +411,7 @@ export class LikeCoin {
   /**
    * Send page view to likecoin
    */
-  sendPV = async (data: SendPVData) =>
+  public sendPV = async (data: SendPVData) =>
     this.aws.sqsSendMessage({
       messageBody: data,
       queueUrl: QUEUE_URL.likecoinSendPV,
@@ -420,7 +420,7 @@ export class LikeCoin {
   /**
    * Like a content.
    */
-  like = async (data: LikeData) =>
+  public like = async (data: LikeData) =>
     this.aws.sqsSendMessage({
       messageBody: data,
       queueUrl: QUEUE_URL.likecoinLike,
@@ -431,7 +431,7 @@ export class LikeCoin {
   /**
    * Super Like
    */
-  superlike = async ({
+  public superlike = async ({
     authorLikerId,
     liker,
     iscn_id,
@@ -470,7 +470,7 @@ export class LikeCoin {
     }
   }
 
-  canSuperLike = async ({
+  public canSuperLike = async ({
     liker,
     iscn_id,
     url,
@@ -509,7 +509,7 @@ export class LikeCoin {
     return data.canSuperLike
   }
 
-  iscnPublish = async ({
+  public iscnPublish = async ({
     mediaHash,
     ipfsHash,
     cosmosWallet,
@@ -620,7 +620,7 @@ export class LikeCoin {
     return data.iscnId
   }
 
-  getCosmosTxData = async ({ hash }: { hash: string }) => {
+  public getCosmosTxData = async ({ hash }: { hash: string }) => {
     const endpoint = `${ENDPOINTS.cosmosTx}/${hash}`
     const result = await this.request({
       endpoint,

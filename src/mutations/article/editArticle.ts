@@ -96,10 +96,6 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  if (!viewer.likerId) {
-    throw new ForbiddenError('user has no liker id')
-  }
-
   // checks
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.baseFindById(dbId)

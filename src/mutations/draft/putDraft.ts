@@ -81,10 +81,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  if (!viewer.likerId) {
-    throw new ForbiddenError('user has no liker id')
-  }
-
   // check tags
   if (tags) {
     await validateTags({
