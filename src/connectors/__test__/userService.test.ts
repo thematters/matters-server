@@ -2,18 +2,24 @@ import type { Connections } from 'definitions'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { ActionFailedError } from 'common/errors'
-import { CacheService, UserService } from 'connectors'
+import { CacheService, UserService, PaymentService } from 'connectors'
 
 import { createDonationTx } from './utils'
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
 let connections: Connections
 let userService: UserService
+let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
+  paymentService = new PaymentService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 describe('countDonators', () => {
@@ -30,15 +36,15 @@ describe('countDonators', () => {
   })
   test('only one donator', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([{ senderId: '2', count: 1 }])
   })
   test('donators is ordered', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     // 1st ordered by donations count desc
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([
@@ -46,7 +52,7 @@ describe('countDonators', () => {
       { senderId: '3', count: 1 },
     ])
     // 2rd ordered by donations time desc
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     const result2 = await userService.topDonators(recipientId)
     expect(result2).toEqual([
       { senderId: '3', count: 2 },
@@ -55,8 +61,14 @@ describe('countDonators', () => {
   })
   test('call with range', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    const tx1 = await createDonationTx({ recipientId, senderId: '2' })
-    const tx2 = await createDonationTx({ recipientId, senderId: '2' })
+    const tx1 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
+    const tx2 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
     const result = await userService.topDonators(recipientId, {
       start: tx1.createdAt,
       end: tx2.createdAt,
@@ -65,9 +77,9 @@ describe('countDonators', () => {
   })
   test('call with pagination', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
-    await createDonationTx({ recipientId, senderId: '4' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '4' }, paymentService)
     const result1 = await userService.topDonators(recipientId, undefined, {
       skip: 1,
     })
@@ -116,21 +128,27 @@ describe('countDonators', () => {
   test('count donators', async () => {
     const recipientId = TEST_RECIPIENT_ID
 
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
 
     const count1 = await userService.countDonators(recipientId)
     expect(count1).toBe(1)
 
     // distinct donators
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const count2 = await userService.countDonators(recipientId)
     expect(count2).toBe(1)
-    const tx3 = await createDonationTx({ recipientId, senderId: '3' })
+    const tx3 = await createDonationTx(
+      { recipientId, senderId: '3' },
+      paymentService
+    )
     const count3 = await userService.countDonators(recipientId)
     expect(count3).toBe(2)
 
     // count with range
-    const tx4 = await createDonationTx({ recipientId, senderId: '4' })
+    const tx4 = await createDonationTx(
+      { recipientId, senderId: '4' },
+      paymentService
+    )
     const count4 = await userService.countDonators(recipientId)
     expect(count4).toBe(3)
     const count5 = await userService.countDonators(recipientId, {

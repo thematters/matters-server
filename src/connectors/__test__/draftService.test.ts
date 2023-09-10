@@ -1,11 +1,19 @@
+import type { Connections } from 'definitions'
+
 import { DraftService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
+let connections: Connections
 let draftService: DraftService
 
 beforeAll(async () => {
-  draftService = new DraftService(await genConnections())
+  connections = await genConnections()
+  draftService = new DraftService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 test('countByAuthor', async () => {

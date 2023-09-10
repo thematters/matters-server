@@ -4,7 +4,7 @@ import { v4 } from 'uuid'
 
 import { SystemService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 const assetValidation = {
   id: expect.any(String),
@@ -22,6 +22,10 @@ let systemService: SystemService
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 test('findAssetUrl', async () => {

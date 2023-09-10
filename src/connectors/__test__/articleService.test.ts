@@ -2,7 +2,7 @@ import type { Connections } from 'definitions'
 
 import { ArticleService, UserService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let articleId: string
 let connections: Connections
@@ -11,6 +11,10 @@ let articleService: ArticleService
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 test('publish', async () => {

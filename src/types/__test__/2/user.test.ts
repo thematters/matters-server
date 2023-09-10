@@ -13,7 +13,7 @@ import {
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { refreshView, UserService } from 'connectors'
+import { refreshView, UserService, PaymentService } from 'connectors'
 
 import { createDonationTx, createTx } from '../../../connectors/__test__/utils'
 import {
@@ -27,11 +27,12 @@ import {
 
 let connections: Connections
 let userService: UserService
+let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
-  // await userService.initSearch()
+  paymentService = new PaymentService(connections)
 })
 
 const USER_LOGIN = /* GraphQL */ `
@@ -652,7 +653,7 @@ describe('user query fields', () => {
     expect(donators1).toEqual({ edges: [], totalCount: 0 })
 
     // test having donators
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const res2 = await server.executeOperation({
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: {} },
@@ -664,7 +665,7 @@ describe('user query fields', () => {
     })
 
     // test pagination
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     const res3 = await server.executeOperation({
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: { first: 1 } },
@@ -681,27 +682,36 @@ describe('user query fields', () => {
     })
     const recipientId = '1'
     const senderId = '2'
-    const succeededHKDSubscriptionSplitTx = await createTx({
-      senderId,
-      recipientId,
-      purpose: TRANSACTION_PURPOSE.subscriptionSplit,
-      currency: PAYMENT_CURRENCY.HKD,
-      state: TRANSACTION_STATE.succeeded,
-    })
-    const failedUSDTdonationTx = await createTx({
-      senderId,
-      recipientId,
-      purpose: TRANSACTION_PURPOSE.donation,
-      currency: PAYMENT_CURRENCY.USDT,
-      state: TRANSACTION_STATE.failed,
-    })
-    const canceledLIKEdonationTx = await createTx({
-      senderId,
-      recipientId,
-      purpose: TRANSACTION_PURPOSE.donation,
-      currency: PAYMENT_CURRENCY.LIKE,
-      state: TRANSACTION_STATE.canceled,
-    })
+    const succeededHKDSubscriptionSplitTx = await createTx(
+      {
+        senderId,
+        recipientId,
+        purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+        currency: PAYMENT_CURRENCY.HKD,
+        state: TRANSACTION_STATE.succeeded,
+      },
+      paymentService
+    )
+    const failedUSDTdonationTx = await createTx(
+      {
+        senderId,
+        recipientId,
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.USDT,
+        state: TRANSACTION_STATE.failed,
+      },
+      paymentService
+    )
+    const canceledLIKEdonationTx = await createTx(
+      {
+        senderId,
+        recipientId,
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.LIKE,
+        state: TRANSACTION_STATE.canceled,
+      },
+      paymentService
+    )
 
     const toGlobalTxId = (id: string) =>
       toGlobalId({ type: NODE_TYPES.Transaction, id })

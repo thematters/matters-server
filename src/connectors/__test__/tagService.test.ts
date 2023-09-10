@@ -2,7 +2,7 @@ import type { Connections } from 'definitions'
 
 import { TagService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let tagService: TagService
@@ -10,6 +10,10 @@ let tagService: TagService
 beforeAll(async () => {
   connections = await genConnections()
   tagService = new TagService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 test('countArticles', async () => {

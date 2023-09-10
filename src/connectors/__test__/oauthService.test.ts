@@ -5,16 +5,21 @@ import _ from 'lodash'
 import { SCOPE_PREFIX } from 'common/enums'
 import { OAuthService, UserService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
+let oauthService: OAuthService
 
 beforeAll(async () => {
   connections = await genConnections()
+  oauthService = new OAuthService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 const getClient = () => {
-  const oauthService = new OAuthService(connections)
   return oauthService.getClient('test-client-id')
 }
 const getUser = () => {
@@ -31,7 +36,6 @@ describe('client', () => {
 
 describe('scope', () => {
   test('validateScope', async () => {
-    const oauthService = new OAuthService(connections)
     const client = await getClient()
     const user = await getUser()
 
@@ -51,7 +55,6 @@ describe('scope', () => {
 })
 
 describe('token', () => {
-  const oauthService = new OAuthService(connections)
   let accessToken: string
   let refreshToken: string
 

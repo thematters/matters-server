@@ -1,11 +1,19 @@
+import type { Connections } from 'definitions'
+
 import { CollectionService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let collectionService: CollectionService
+let connections: Connections
 
 beforeAll(async () => {
-  collectionService = new CollectionService(await genConnections())
+  connections = await genConnections()
+  collectionService = new CollectionService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 test('createCollection', async () => {

@@ -3,7 +3,7 @@ import type { NotificationType, Connections } from 'definitions'
 import { MONTH, NOTIFICATION_TYPES } from 'common/enums'
 import { NotificationService, UserService } from 'connectors'
 
-import { genConnections } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let userService: UserService
@@ -14,6 +14,10 @@ beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   notificationService = new NotificationService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 /**
