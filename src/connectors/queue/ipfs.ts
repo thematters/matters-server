@@ -1,3 +1,6 @@
+import type { Connections } from 'definitions'
+import type { Redis } from 'ioredis'
+
 import Queue from 'bull'
 import _ from 'lodash'
 
@@ -12,19 +15,19 @@ import {
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { timeout } from 'common/utils'
-import { ipfsServers } from 'connectors'
+import { ipfsServers, AtomService } from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
 
 const logger = getLogger('queue-ipfs')
 
-class IPFSQueue extends BaseQueue {
+export class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>
   ipfs: typeof ipfsServers
 
-  constructor() {
-    super(QUEUE_NAME.ipfs)
+  constructor(queueRedis: Redis, connections: Connections) {
+    super(QUEUE_NAME.ipfs, queueRedis, connections)
 
     this.ipfs = ipfsServers
     this.slackService = new SlackService()
@@ -58,11 +61,13 @@ class IPFSQueue extends BaseQueue {
     job,
     done
   ) => {
+    const atomService = new AtomService(this.connections)
+
     try {
       logger.info('[schedule job] verify IPFS pinning hashes')
 
       // obtain first 500 pinning drafts
-      const pinningDrafts = await this.atomService.findMany({
+      const pinningDrafts = await atomService.findMany({
         table: 'draft',
         where: { pinState: PIN_STATE.pinning },
         take: 500,
@@ -80,10 +85,13 @@ class IPFSQueue extends BaseQueue {
         await this.ipfs.client.get(draft.dataHash)
 
         // mark as pin state as `pinned`
-        await this.markDraftPinStateAs({
-          draftId: draft.id,
-          pinState: PIN_STATE.pinned,
-        })
+        await this.markDraftPinStateAs(
+          {
+            draftId: draft.id,
+            pinState: PIN_STATE.pinned,
+          },
+          atomService
+        )
 
         succeedIds.push(draft.id)
         logger.info(
@@ -98,10 +106,13 @@ class IPFSQueue extends BaseQueue {
               await timeout(5000, verifyHash(draft))
             } catch (error) {
               // mark as pin state as `failed`
-              await this.markDraftPinStateAs({
-                draftId: draft.id,
-                pinState: PIN_STATE.failed,
-              })
+              await this.markDraftPinStateAs(
+                {
+                  draftId: draft.id,
+                  pinState: PIN_STATE.failed,
+                },
+                atomService
+              )
 
               failedIds.push(draft.id)
               logger.error(error)
@@ -131,19 +142,20 @@ class IPFSQueue extends BaseQueue {
     }
   }
 
-  private markDraftPinStateAs = async ({
-    draftId,
-    pinState,
-  }: {
-    draftId: string
-    pinState: PIN_STATE
-  }) => {
-    await this.atomService.update({
+  private markDraftPinStateAs = async (
+    {
+      draftId,
+      pinState,
+    }: {
+      draftId: string
+      pinState: PIN_STATE
+    },
+    atomService: AtomService
+  ) => {
+    await atomService.update({
       table: 'draft',
       where: { id: draftId },
       data: { pinState },
     })
   }
 }
-
-export const ipfsQueue = new IPFSQueue()

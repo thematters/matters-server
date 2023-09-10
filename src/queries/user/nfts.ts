@@ -5,6 +5,7 @@ import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { alchemy, AlchemyNetwork } from 'connectors/alchemy'
+
 interface OpenSeaNFTAsset {
   id: any
   token_id: string
@@ -17,9 +18,14 @@ interface OpenSeaNFTAsset {
 export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   { userId, address },
   _,
-  { dataSources: { userService } }
+  {
+    dataSources: {
+      userService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
@@ -39,9 +45,14 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
 export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   { userId, address },
   _,
-  { dataSources: { userService } }
+  {
+    dataSources: {
+      userService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address

@@ -8,6 +8,7 @@ import type {
   VerficationCode,
   ValueOf,
   SocialAccount,
+  Connections,
 } from 'definitions'
 
 import axios from 'axios'
@@ -99,7 +100,7 @@ import {
   redis,
 } from 'connectors'
 
-import { likecoin } from './likecoin'
+import { LikeCoin } from './likecoin'
 import { medium } from './medium'
 
 const logger = getLogger('service-user')
@@ -108,14 +109,14 @@ const logger = getLogger('service-user')
 
 export class UserService extends BaseService {
   ipfs: typeof ipfsServers
-  likecoin: typeof likecoin
+  likecoin: LikeCoin
   medium: typeof medium
 
-  constructor() {
-    super('user')
+  constructor(connections: Connections) {
+    super('user', connections)
 
     this.ipfs = ipfsServers
-    this.likecoin = likecoin
+    this.likecoin = new LikeCoin(connections)
     this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
@@ -188,13 +189,13 @@ export class UserService extends BaseService {
   }
 
   public postRegister = async (user: User) => {
-    const notificationService = new NotificationService()
-    const atomService = new AtomService()
+    const notificationService = new NotificationService(this.connections)
+    const atomService = new AtomService(this.connections)
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
 
     // auto follow tags
-    const tagService = new TagService()
+    const tagService = new TagService(this.connections)
     await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
 
     // send email
@@ -384,7 +385,7 @@ export class UserService extends BaseService {
     } else if (emailUser && emailUser.id === userId) {
       return emailUser
     } else {
-      const notificationService = new NotificationService()
+      const notificationService = new NotificationService(this.connections)
       const user = await this.loadById(userId)
       if (user.email) {
         const counter = new RatelimitCounter(redis)
@@ -1825,7 +1826,7 @@ export class UserService extends BaseService {
     const likerId = await this.likecoin.check({ user: userName })
 
     // register
-    const oAuthService = new OAuthService()
+    const oAuthService = new OAuthService(this.connections)
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
@@ -1854,7 +1855,7 @@ export class UserService extends BaseService {
     liker: UserOAuthLikeCoin
     ip?: string
   }) => {
-    const oAuthService = new OAuthService()
+    const oAuthService = new OAuthService(this.connections)
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
 
     await this.likecoin.edit({
@@ -1892,7 +1893,7 @@ export class UserService extends BaseService {
     userId: string
     userToken: string
   }) => {
-    const oAuthService = new OAuthService()
+    const oAuthService = new OAuthService(this.connections)
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
 
     return this.likecoin.edit({
@@ -1942,7 +1943,7 @@ export class UserService extends BaseService {
     if (!user) {
       return
     }
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
 
     const ipnsKeyRec = await atomService.findFirst({
       table: 'user_ipns_keys',
@@ -1985,7 +1986,7 @@ export class UserService extends BaseService {
     id: string
   ): Promise<GQLUserRestriction[]> => {
     const table = 'user_restriction'
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     return atomService.findMany({
       table,
       select: ['type', 'created_at'],
@@ -2012,7 +2013,7 @@ export class UserService extends BaseService {
     type: keyof typeof USER_RESTRICTION_TYPE
   ) => {
     const table = 'user_restriction'
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     await atomService.create({ table, data: { userId: id, type } })
   }
 
@@ -2021,7 +2022,7 @@ export class UserService extends BaseService {
     type: keyof typeof USER_RESTRICTION_TYPE
   ) => {
     const table = 'user_restriction'
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     await atomService.deleteMany({ table, where: { userId: id, type } })
   }
 
@@ -2059,7 +2060,7 @@ export class UserService extends BaseService {
       remark?: ValueOf<typeof USER_BAN_REMARK>
     } = {}
   ) => {
-    const notificationService = new NotificationService()
+    const notificationService = new NotificationService(this.connections)
     // trigger notification
     notificationService.trigger({
       event: noticeType ?? OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
@@ -2117,7 +2118,7 @@ export class UserService extends BaseService {
     }
     const sigTable = 'crypto_wallet_signature'
 
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     const lastSigning = await atomService.findFirst({
       table: sigTable,
       where: (builder: Knex.QueryBuilder) =>
@@ -2203,7 +2204,7 @@ export class UserService extends BaseService {
     })
 
     // archive crypto_wallet entry
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     await atomService.update({
       table: 'crypto_wallet',
       where: { userId, archived: false },
@@ -2513,7 +2514,10 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   public updateLastSeen = async (id: string, threshold = HOUR) => {
-    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const cacheService = new CacheService(
+      CACHE_PREFIX.USER_LAST_SEEN,
+      this.connections.redis
+    )
     const _lastSeen = (await cacheService.getObject({
       keys: { id },
       getter: async () => {

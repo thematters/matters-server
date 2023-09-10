@@ -1,6 +1,5 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
-import { Knex } from 'knex'
 import pThrottle from 'p-throttle'
 import { v4 } from 'uuid'
 
@@ -10,8 +9,7 @@ import {
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { getFileName } from 'common/utils'
-import { aws, cfsvc, knex } from 'connectors'
-import { AWSService } from 'connectors/aws'
+import { cfsvc } from 'connectors'
 import { GQLAssetType } from 'definitions'
 
 const logger = getLogger('service-medium')
@@ -22,16 +20,12 @@ const throttle = pThrottle({
 })
 
 export class Medium {
-  aws: AWSService
-  cfsvc: typeof cfsvc
-  knex: Knex
+  private cfsvc: typeof cfsvc
 
   private section = 'section.section--body'
 
   constructor() {
-    this.aws = aws
     this.cfsvc = cfsvc
-    this.knex = knex
     // this.cfThrottledUpload = throttle(async (...args) => cfsvc.baseUploadFile(...args))
   }
 

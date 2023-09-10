@@ -1,20 +1,31 @@
+import type { AtomService } from 'connectors'
+import type SlackService from 'connectors/slack'
+import type { Redis } from 'ioredis'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _ from 'lodash'
 import Stripe from 'stripe'
 
 import { METADATA_KEY, NODE_TYPES } from 'common/enums'
-import { AtomService, redis } from 'connectors'
-import SlackService from 'connectors/slack'
 
-export const updateAccount = async ({
-  account,
-  event,
-}: {
-  account: Stripe.Account
-  event: Stripe.Event
-}) => {
-  const atomService = new AtomService()
-  const slack = new SlackService()
+export const updateAccount = async (
+  {
+    account,
+    event,
+  }: {
+    account: Stripe.Account
+    event: Stripe.Event
+  },
+  {
+    atomService,
+    slack,
+    redis,
+  }: {
+    atomService: AtomService
+    slack: SlackService
+    redis: Redis
+  }
+) => {
   const slackEventData = {
     id: event.id,
     type: event.type,

@@ -14,7 +14,6 @@ import {
   AtomService,
   CommentService,
   DraftService,
-  knex,
   NotificationService,
   OAuthService,
   PaymentService,
@@ -23,8 +22,23 @@ import {
   UserService,
   CollectionService,
 } from 'connectors'
+import {
+  PublicationQueue,
+  RevisionQueue,
+  AssetQueue,
+  AppreciationQueue,
+  IPFSQueue,
+  MigrationQueue,
+  PayToByBlockchainQueue,
+  PayToByMattersQueue,
+  PayoutQueue,
+  UserQueue,
+} from 'connectors/queue'
 
+import { genConnections } from '../../connectors/__test__/utils'
 import schema from '../../schema'
+
+export { genConnections }
 
 interface BaseInput {
   isAdmin?: boolean
@@ -42,7 +56,7 @@ export const adminUser = {
 }
 
 export const getUserContext = async ({ email }: { email: string }) => {
-  const userService = new UserService()
+  const userService = new UserService(await genConnections())
   const user = await userService.findByEmail(email)
   if (user === undefined) {
     return { viewer: {} as any as User }
@@ -130,22 +144,51 @@ export const testClient = async (
   const server = new ApolloServer({
     schema,
   })
+  const connections = await genConnections()
+  const queueRedis = connections.redis
+
+  const publicationQueue = new PublicationQueue(queueRedis, connections)
+  const revisionQueue = new RevisionQueue(queueRedis, connections)
+  const assetQueue = new AssetQueue(queueRedis, connections)
+  const appreciationQueue = new AppreciationQueue(queueRedis, connections)
+  const migrationQueue = new MigrationQueue(queueRedis, connections)
+  const payToByBlockchainQueue = new PayToByBlockchainQueue(
+    queueRedis,
+    connections
+  )
+  const payToByMattersQueue = new PayToByMattersQueue(queueRedis, connections)
+  const payoutQueue = new PayoutQueue(queueRedis, connections)
+  const userQueue = new UserQueue(queueRedis, connections)
+  const ipfsQueue = new IPFSQueue(queueRedis, connections)
+  const queues = {
+    publicationQueue,
+    revisionQueue,
+    assetQueue,
+    appreciationQueue,
+    migrationQueue,
+    payToByBlockchainQueue,
+    payToByMattersQueue,
+    payoutQueue,
+    userQueue,
+    ipfsQueue,
+  }
 
   const genContext = () => ({
     ..._context,
-    knex,
+    connections,
+    queues,
     dataSources: {
-      atomService: new AtomService(),
-      userService: new UserService(),
-      articleService: new ArticleService(),
-      commentService: new CommentService(),
-      draftService: new DraftService(),
-      systemService: new SystemService(),
-      tagService: new TagService(),
-      notificationService: new NotificationService(),
-      oauthService: new OAuthService(),
-      paymentService: new PaymentService(),
-      collectionService: new CollectionService(),
+      atomService: new AtomService(connections),
+      userService: new UserService(connections),
+      articleService: new ArticleService(connections),
+      commentService: new CommentService(connections),
+      draftService: new DraftService(connections),
+      systemService: new SystemService(connections),
+      tagService: new TagService(connections),
+      notificationService: new NotificationService(connections),
+      oauthService: new OAuthService(connections),
+      paymentService: new PaymentService(connections),
+      collectionService: new CollectionService(connections),
       ...dataSources,
     },
   })

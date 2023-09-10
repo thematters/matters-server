@@ -1,3 +1,6 @@
+import type { Connections } from 'definitions'
+import type { Redis } from 'ioredis'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
@@ -12,7 +15,7 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { PaymentService, redis } from 'connectors'
+import { PaymentService, UserService, AtomService } from 'connectors'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -22,12 +25,9 @@ interface PaymentParams {
   txId: string
 }
 
-class PayToByMattersQueue extends BaseQueue {
-  paymentService: InstanceType<typeof PaymentService>
-
-  constructor() {
-    super(QUEUE_NAME.payTo)
-    this.paymentService = new PaymentService()
+export class PayToByMattersQueue extends BaseQueue {
+  constructor(queueRedis: Redis, connections: Connections) {
+    super(QUEUE_NAME.payTo, queueRedis, connections)
     this.addConsumers()
   }
 
@@ -58,8 +58,8 @@ class PayToByMattersQueue extends BaseQueue {
    * Wrapper of db service function makes transaction canceled.
    *
    */
-  private cancelTx = async (txId: string) =>
-    this.paymentService.markTransactionStateAs({
+  private cancelTx = async (txId: string, paymentService: PaymentService) =>
+    paymentService.markTransactionStateAs({
       id: txId,
       state: TRANSACTION_STATE.canceled,
     })
@@ -68,8 +68,8 @@ class PayToByMattersQueue extends BaseQueue {
    * Wrapper of db service function makes transaction failed.
    *
    */
-  private failTx = async (txId: string) =>
-    this.paymentService.markTransactionStateAs({
+  private failTx = async (txId: string, paymentService: PaymentService) =>
+    paymentService.markTransactionStateAs({
       id: txId,
       state: TRANSACTION_STATE.failed,
     })
@@ -82,6 +82,10 @@ class PayToByMattersQueue extends BaseQueue {
     job,
     done
   ) => {
+    const paymentService = new PaymentService(this.connections)
+    const userService = new UserService(this.connections)
+    const atomService = new AtomService(this.connections)
+
     let txId
     try {
       const data = job.data as PaymentParams
@@ -92,24 +96,24 @@ class PayToByMattersQueue extends BaseQueue {
           `pay-to job has no required txId: ${txId}`
         )
       }
-      const tx = await this.paymentService.baseFindById(txId)
+      const tx = await paymentService.baseFindById(txId)
       if (!tx) {
         throw new PaymentQueueJobDataError('pay-to pending tx not found')
       }
 
       // cancel pay-to if recipientId or senderId is not specified
       if (!tx.recipientId || !tx.senderId) {
-        await this.cancelTx(txId)
+        await this.cancelTx(txId, paymentService)
         return done(null, job.data)
       }
 
       const [balance, hasPaid, recipient, sender] = await Promise.all([
-        this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
-        this.paymentService.sumTodayDonationTransactions({
+        paymentService.calculateHKDBalance({ userId: tx.senderId }),
+        paymentService.sumTodayDonationTransactions({
           senderId: tx.senderId,
         }),
-        this.userService.baseFindById(tx.recipientId),
-        this.userService.baseFindById(tx.senderId),
+        userService.baseFindById(tx.recipientId),
+        userService.baseFindById(tx.senderId),
       ])
 
       // cancel pay-to if:
@@ -124,22 +128,22 @@ class PayToByMattersQueue extends BaseQueue {
         !recipient ||
         !sender
       ) {
-        await this.cancelTx(txId)
+        await this.cancelTx(txId, paymentService)
         return done(null, job.data)
       }
 
       // update pending tx
-      await this.paymentService.baseUpdate(tx.id, {
+      await paymentService.baseUpdate(tx.id, {
         state: TRANSACTION_STATE.succeeded,
         updatedAt: new Date(),
       })
-      const article = await this.atomService.findFirst({
+      const article = await atomService.findFirst({
         table: 'article',
         where: { id: tx.targetId },
       })
 
       // notification
-      await this.paymentService.notifyDonation({
+      await paymentService.notifyDonation({
         tx,
         sender,
         recipient,
@@ -148,17 +152,15 @@ class PayToByMattersQueue extends BaseQueue {
 
       // manaully invalidate cache
       if (tx.targetType) {
-        const entity = await this.userService.baseFindEntityTypeTable(
-          tx.targetType
-        )
+        const entity = await userService.baseFindEntityTypeTable(tx.targetType)
         const entityType =
           NODE_TYPES[
             (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
           ]
-        if (entityType && this.cacheService) {
+        if (entityType) {
           invalidateFQC({
             node: { type: entityType, id: tx.targetId },
-            redis,
+            redis: this.connections.redis,
           })
         }
       }
@@ -168,7 +170,7 @@ class PayToByMattersQueue extends BaseQueue {
     } catch (err: any) {
       if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
-          await this.failTx(txId)
+          await this.failTx(txId, paymentService)
         } catch (error) {
           logger.error(error)
         }
@@ -178,5 +180,3 @@ class PayToByMattersQueue extends BaseQueue {
     }
   }
 }
-
-export const payToByMattersQueue = new PayToByMattersQueue()

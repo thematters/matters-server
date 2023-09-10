@@ -15,12 +15,18 @@ import {
   PaymentPayoutAccountExistsError,
   ServerError,
 } from 'common/errors'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['connectStripeAccount'] = async (
   _,
   { input: { country } },
-  { viewer, dataSources: { atomService, paymentService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      connections: { redis },
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')

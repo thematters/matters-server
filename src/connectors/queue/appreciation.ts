@@ -1,3 +1,6 @@
+import type { Connections } from 'definitions'
+import type { Redis } from 'ioredis'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
@@ -18,7 +21,13 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { likecoin, redis } from 'connectors'
+import {
+  LikeCoin,
+  AtomService,
+  ArticleService,
+  UserService,
+  NotificationService,
+} from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -32,10 +41,12 @@ interface AppreciationParams {
   userAgent: string
 }
 
-class AppreciationQueue extends BaseQueue {
-  constructor() {
+export class AppreciationQueue extends BaseQueue {
+  constructor(queueRedis: Redis, connections: Connections) {
     // make it a bit slower on handling jobs in order to reduce courrent operations
-    super(QUEUE_NAME.appreciation, { limiter: { max: 1, duration: 500 } })
+    super(QUEUE_NAME.appreciation, queueRedis, connections, {
+      limiter: { max: 1, duration: 500 },
+    })
     this.addConsumers()
   }
 
@@ -43,7 +54,7 @@ class AppreciationQueue extends BaseQueue {
    * Producer for appreciation.
    *
    */
-  appreciate = ({
+  public appreciate = ({
     amount,
     articleId,
     senderId,
@@ -76,6 +87,10 @@ class AppreciationQueue extends BaseQueue {
     job,
     done
   ) => {
+    const articleService = new ArticleService(this.connections)
+    const userService = new UserService(this.connections)
+    const notificationService = new NotificationService(this.connections)
+    const atomService = new AtomService(this.connections)
     try {
       const { amount, articleId, senderId, senderIP, userAgent } =
         job.data as AppreciationParams
@@ -84,7 +99,7 @@ class AppreciationQueue extends BaseQueue {
         throw new Error('appreciation job has no required data')
       }
 
-      const article = await this.atomService.findFirst({
+      const article = await atomService.findFirst({
         table: 'article',
         where: { id: articleId, state: ARTICLE_STATE.active },
       })
@@ -96,7 +111,7 @@ class AppreciationQueue extends BaseQueue {
       }
 
       // check appreciate left
-      const appreciateLeft = await this.articleService.appreciateLeftByUser({
+      const appreciateLeft = await articleService.appreciateLeftByUser({
         articleId,
         userId: senderId,
       })
@@ -108,8 +123,8 @@ class AppreciationQueue extends BaseQueue {
       const validAmount = Math.min(amount, appreciateLeft)
 
       const [author, sender] = await Promise.all([
-        this.userService.baseFindById(article.authorId),
-        this.userService.baseFindById(senderId),
+        userService.baseFindById(article.authorId),
+        userService.baseFindById(senderId),
       ])
 
       if (!author || !sender) {
@@ -121,7 +136,7 @@ class AppreciationQueue extends BaseQueue {
       }
 
       // insert appreciation record
-      await this.articleService.appreciate({
+      await articleService.appreciate({
         articleId: article.id,
         senderId,
         recipientId: article.authorId,
@@ -130,6 +145,7 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // insert record to LikeCoin
+      const likecoin = new LikeCoin(this.connections)
       likecoin.like({
         likerId: sender.likerId,
         likerIp: senderIP,
@@ -140,7 +156,7 @@ class AppreciationQueue extends BaseQueue {
       })
 
       // trigger notifications
-      this.notificationService.trigger({
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.article_new_appreciation,
         actorId: sender.id,
         recipientId: author.id,
@@ -150,11 +166,11 @@ class AppreciationQueue extends BaseQueue {
       // invalidate cache
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: article.id },
-        redis,
+        redis: this.connections.redis,
       })
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: article.authorId },
-        redis,
+        redis: this.connections.redis,
       })
 
       job.progress(100)
@@ -165,5 +181,3 @@ class AppreciationQueue extends BaseQueue {
     }
   }
 }
-
-export const appreciationQueue = new AppreciationQueue()

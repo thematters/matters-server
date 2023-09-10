@@ -1,4 +1,6 @@
 /* eslint @typescript-eslint/ban-ts-comment: 0 */
+import type { Connections } from 'definitions'
+
 import { Knex } from 'knex'
 
 import {
@@ -14,9 +16,12 @@ import {
 } from 'common/enums'
 import { environment, polygonUSDTContractAddress } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
+import { PaymentService } from 'connectors'
 import { CurationContract } from 'connectors/blockchain'
 import { PayToByBlockchainQueue } from 'connectors/queue'
 import { GQLChain } from 'definitions'
+
+import { genConnections } from '../../__test__/utils'
 
 // setup mock
 
@@ -98,10 +103,13 @@ const txReceipt = {
 // tests
 
 describe('payToByBlockchainQueue.payTo', () => {
+  let connections: Connections
   let queue: PayToByBlockchainQueue
-  beforeAll(() => {
-    queue = new PayToByBlockchainQueue()
-    queue.delay = 1
+  let paymentService: PaymentService
+  beforeAll(async () => {
+    connections = await genConnections()
+    paymentService = new PaymentService(connections)
+    queue = new PayToByBlockchainQueue(connections.redis, connections, 1)
     mockFetchTxReceipt.mockClear()
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
@@ -129,7 +137,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('tx with wrong provier will fail', async () => {
-    const tx = await queue.paymentService.createTransaction({
+    const tx = await paymentService.createTransaction({
       amount,
       state,
       purpose,
@@ -149,7 +157,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('tx with wrong providerTxId will fail', async () => {
-    const tx = await queue.paymentService.createTransaction({
+    const tx = await paymentService.createTransaction({
       amount,
       state,
       purpose,
@@ -169,19 +177,18 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('not mined tx will fail and retry', async () => {
-    const tx =
-      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
-        chain,
-        txHash: notMinedHash,
-        amount,
-        state,
-        purpose,
-        currency,
-        recipientId,
-        senderId,
-        targetId,
-        targetType,
-      })
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chain,
+      txHash: notMinedHash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+    })
     const job = await queue.payTo({ txId: tx.id })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not mined')
@@ -190,24 +197,23 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('failed blockchain transation will mark transaction and blockchainTx as failed', async () => {
-    const tx =
-      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
-        chain,
-        txHash: failedTxhash,
-        amount,
-        state,
-        purpose,
-        currency,
-        recipientId,
-        senderId,
-        targetId,
-        targetType,
-      })
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chain,
+      txHash: failedTxhash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+    })
     const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
-    const ret = await queue.paymentService.baseFindById(tx.id)
+    const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.failed)
-    const blockchainTx = await queue.paymentService.baseFindById(
+    const blockchainTx = await paymentService.baseFindById(
       tx.providerTxId,
       'blockchain_transaction'
     )
@@ -215,25 +221,24 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('succeeded invalid blockchain transaction will mark transaction as canceled', async () => {
-    const tx =
-      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
-        chain,
-        txHash: invalidTxhash,
-        amount,
-        state,
-        purpose,
-        currency,
-        recipientId,
-        senderId,
-        targetId,
-        targetType,
-      })
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chain,
+      txHash: invalidTxhash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+    })
     const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
-    const ret = await queue.paymentService.baseFindById(tx.id)
+    const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.canceled)
     expect(ret.remark).toBe(TRANSACTION_REMARK.INVALID)
-    const blockchainTx = await queue.paymentService.baseFindById(
+    const blockchainTx = await paymentService.baseFindById(
       tx.providerTxId,
       'blockchain_transaction'
     )
@@ -241,24 +246,23 @@ describe('payToByBlockchainQueue.payTo', () => {
   })
 
   test('succeeded valid blockchain transaction will mark transaction and blockchainTx as succeeded', async () => {
-    const tx =
-      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
-        chain,
-        txHash,
-        amount,
-        state,
-        purpose,
-        currency,
-        recipientId,
-        senderId: '10',
-        targetId,
-        targetType,
-      })
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chain,
+      txHash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
     const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
-    const ret = await queue.paymentService.baseFindById(tx.id)
+    const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
-    const blockchainTx = await queue.paymentService.baseFindById(
+    const blockchainTx = await paymentService.baseFindById(
       tx.providerTxId,
       'blockchain_transaction'
     )
@@ -273,12 +277,16 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
   const syncRecordTable = 'blockchain_sync_record'
-  let knex: Knex
+  let connections: Connections
   let queue: PayToByBlockchainQueue
+  let paymentService: PaymentService
+  let knex: Knex
 
-  beforeAll(() => {
-    queue = new PayToByBlockchainQueue()
-    knex = queue.knex
+  beforeAll(async () => {
+    connections = await genConnections()
+    paymentService = new PaymentService(connections)
+    queue = new PayToByBlockchainQueue(connections.redis, connections)
+    knex = connections.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
         return invalidTxReceipt
@@ -492,37 +500,36 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   test('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
     const mockNotify = jest.fn()
     // @ts-ignore
-    queue.paymentService.notifyDonation = mockNotify
+    paymentService.notifyDonation = mockNotify
 
     expect(mockNotify).not.toHaveBeenCalled()
 
-    const tx =
-      await queue.paymentService.findOrCreateTransactionByBlockchainTxHash({
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chain,
+      txHash: txHash3,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId,
+      targetId,
+      targetType,
+    })
+    const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
+      {
         chain,
         txHash: txHash3,
-        amount,
-        state,
-        purpose,
-        currency,
-        recipientId,
-        senderId,
-        targetId,
-        targetType,
-      })
-    const blockchainTx =
-      await queue.paymentService.findOrCreateBlockchainTransaction({
-        chain,
-        txHash: txHash3,
-      })
+      }
+    )
     expect(blockchainTx.transactionId).toBe(tx.id)
     await knex(blockchainTxTable)
       .where({ id: blockchainTx.id })
       .update({ transactionId: null })
-    const updated =
-      await queue.paymentService.findOrCreateBlockchainTransaction({
-        chain,
-        txHash: txHash3,
-      })
+    const updated = await paymentService.findOrCreateBlockchainTransaction({
+      chain,
+      txHash: txHash3,
+    })
     expect(updated.transactionId).toBe(null)
 
     const logs = [
@@ -540,7 +547,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     await queue.syncCurationEvents(logs)
 
     const updatedBlockchainTx =
-      await queue.paymentService.findOrCreateBlockchainTransaction({
+      await paymentService.findOrCreateBlockchainTransaction({
         chain,
         txHash: txHash3,
       })

@@ -16,7 +16,10 @@ export const objectCacheDirective = (directiveName = 'objectCache') => ({
           const { maxAge } = directive
           fieldConfig.resolve = async (root, args, context, info) => {
             const { id } = root
-            const cacheService = new CacheService(CACHE_PREFIX.OBJECTS)
+            const cacheService = new CacheService(
+              CACHE_PREFIX.OBJECTS,
+              context.connections.redis
+            )
             return cacheService.getObject({
               keys: {
                 type: typeName,

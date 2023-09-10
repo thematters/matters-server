@@ -19,7 +19,7 @@ import {
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
-  root,
+  _,
   { input: { id } },
   {
     viewer,
@@ -29,7 +29,6 @@ const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
       systemService,
       notificationService,
     },
-    knex,
   }
 ) => {
   if (!viewer.id) {

@@ -1,3 +1,5 @@
+import type { GQLNodeInput, Connections } from 'definitions'
+
 import _get from 'lodash/get'
 import _omit from 'lodash/omit'
 import { v4 } from 'uuid'
@@ -14,7 +16,6 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleService, AtomService, PaymentService } from 'connectors'
-import { GQLNodeInput } from 'definitions'
 
 import {
   getUserContext,
@@ -22,6 +23,7 @@ import {
   putDraft,
   testClient,
   updateUserState,
+  genConnections,
 } from '../utils'
 
 declare global {
@@ -287,6 +289,10 @@ describe('query drafts on article', () => {
 })
 
 describe('publish article', () => {
+  let connections: Connections
+  beforeAll(async () => {
+    connections = await genConnections()
+  })
   test('user w/o username can not publish', async () => {
     const draft = {
       title: Math.random().toString(),
@@ -331,7 +337,7 @@ describe('publish article', () => {
 
   test('publish published draft', async () => {
     const draftId = '4'
-    const atomService = new AtomService()
+    const atomService = new AtomService(connections)
     await atomService.update({
       table: 'draft',
       where: { id: draftId },
@@ -445,6 +451,10 @@ describe('frozen user do muations to article', () => {
 })
 
 describe('edit article', () => {
+  let connections: Connections
+  beforeAll(async () => {
+    connections = await genConnections()
+  })
   test('edit article summary', async () => {
     const summary = 'my customized summary'
     const server = await testClient({
@@ -980,7 +990,7 @@ describe('edit article', () => {
     expect(_get(result4, 'data.article.replyToDonator')).toBe(null)
 
     // donators can view replyToDonator
-    const paymentService = new PaymentService()
+    const paymentService = new PaymentService(connections)
     await paymentService.createTransaction({
       amount: 1,
       state: TRANSACTION_STATE.succeeded,
@@ -1033,7 +1043,7 @@ describe('edit article', () => {
     expect(result2.errors).not.toBeUndefined()
 
     // can turn on
-    const atomService = new AtomService()
+    const atomService = new AtomService(connections)
     await atomService.update({
       table: 'draft',
       where: { id: 1 },
@@ -1118,7 +1128,7 @@ describe('edit article', () => {
     const articleDbId = fromGlobalId(articleId).id
 
     // create duplicate article with same draft
-    const articleService = new ArticleService()
+    const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById(articleDbId)
     const article2 = await articleService.baseCreate({
       ..._omit(article, ['id', 'updatedAt', 'createdAt']),

@@ -1,12 +1,14 @@
-// import { UserNotFoundError } from 'common/errors'
 import type { GQLMutationResolvers } from 'definitions'
-
-import { publicationQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['refreshIPNSFeed'] = async (
   _,
   { input: { userName, numArticles = 50 } },
-  { dataSources: { userService } }
+  {
+    dataSources: {
+      userService,
+      queues: { publicationQueue },
+    },
+  }
 ) => {
   // const ipnsKeyRec =
   await userService.findOrCreateIPNSKey(userName)

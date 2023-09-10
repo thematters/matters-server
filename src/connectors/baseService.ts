@@ -1,9 +1,11 @@
+import type { Connections } from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
 import { getLogger } from 'common/logger'
-import { aws, cfsvc, knex, readonlyKnex, searchKnexDB } from 'connectors'
+import { aws, cfsvc } from 'connectors'
 import { Item, ItemData, TableName } from 'definitions'
 
 const logger = getLogger('service-base')
@@ -11,17 +13,19 @@ const logger = getLogger('service-base')
 export class BaseService {
   aws: typeof aws
   cfsvc: typeof cfsvc
+  connections: Connections
   knex: Knex
   knexRO: Knex
   searchKnex: Knex
   dataloader: DataLoader<string, Item>
   table: TableName
 
-  constructor(table: TableName) {
-    this.knex = knex
-    this.knexRO = readonlyKnex
-    this.searchKnex = searchKnexDB
+  public constructor(table: TableName, connections: Connections) {
     this.table = table
+    this.connections = connections
+    this.knex = connections.knex
+    this.knexRO = connections.knexRO
+    this.searchKnex = connections.knexSearch
     this.aws = aws
     this.cfsvc = cfsvc
   }
@@ -234,7 +238,7 @@ export class BaseService {
       .where(where)
       .update({
         ...data,
-        ...(updateUpdatedAt ? { updatedAt: knex.fn.now() } : null),
+        ...(updateUpdatedAt ? { updatedAt: this.knex.fn.now() } : null),
       })
       .returning('*')
 

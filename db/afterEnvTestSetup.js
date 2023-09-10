@@ -1,14 +1,8 @@
-const Redis = require('ioredis')
 const Knex = require('knex')
-const { RedisMemoryServer } = require('redis-memory-server')
-
-const { sharedQueueOpts } = require('connectors/queue/utils')
 
 const knexConfig = require('../knexfile')
 
 const knex = Knex(knexConfig.test)
-
-const redisServer = new RedisMemoryServer()
 
 beforeAll(async () => {
   // reset database between tests
@@ -33,15 +27,4 @@ beforeAll(async () => {
     }
     await knex.seed.run()
   }
-
-  // isolate redis server between tests
-
-  const redisPort = await redisServer.getPort()
-  const redisHost = await redisServer.getHost()
-  jest.spyOn(sharedQueueOpts, 'createClient').mockImplementation(() => {
-    return new Redis(redisPort, redisHost, {
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-    })
-  })
 }, 10000)

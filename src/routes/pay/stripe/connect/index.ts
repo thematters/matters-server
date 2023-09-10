@@ -4,8 +4,10 @@ import Stripe from 'stripe'
 
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { PaymentService } from 'connectors'
+import { PaymentService, AtomService } from 'connectors'
 import SlackService from 'connectors/slack'
+
+import { connections } from '../../../connections'
 
 import { updateAccount } from './account'
 
@@ -21,7 +23,8 @@ const stripeRouter = Router()
 stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 
 stripeRouter.post('/', async (req, res) => {
-  const paymentService = new PaymentService()
+  const paymentService = new PaymentService(connections)
+  const atomService = new AtomService(connections)
   const slack = new SlackService()
   const stripe = paymentService.stripe.stripeAPI
 
@@ -62,7 +65,10 @@ stripeRouter.post('/', async (req, res) => {
     switch (event.type) {
       case 'account.updated':
         const account = event.data.object as Stripe.Account
-        await updateAccount({ account, event })
+        await updateAccount(
+          { account, event },
+          { atomService, slack, redis: connections.redis }
+        )
         break
       default:
         logger.error('[Connect] Unexpected event type', event.type)

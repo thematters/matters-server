@@ -21,12 +21,13 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { GCP } from 'connectors'
-import { appreciationQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
   { input: { id, amount, token, superLike } },
-  {
+  context
+) => {
+  const {
     viewer,
     dataSources: {
       atomService,
@@ -35,9 +36,10 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       draftService,
       paymentService,
       systemService,
+      queues: { appreciationQueue },
     },
-  }
-) => {
+  } = context
+
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }
@@ -190,13 +192,16 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   }
 
   // insert appreciation job
-  appreciationQueue.appreciate({
-    amount: validAmount,
-    articleId: article.id,
-    senderId: viewer.id,
-    senderIP: viewer.ip,
-    userAgent: viewer.userAgent,
-  })
+  appreciationQueue.appreciate(
+    {
+      amount: validAmount,
+      articleId: article.id,
+      senderId: viewer.id,
+      senderIP: viewer.ip,
+      userAgent: viewer.userAgent,
+    },
+    context
+  )
 
   return node
 }

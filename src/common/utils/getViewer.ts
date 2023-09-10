@@ -1,3 +1,5 @@
+import type { Viewer, Connections } from 'definitions'
+
 import cookie from 'cookie'
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
@@ -14,7 +16,6 @@ import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
-import { Viewer } from 'definitions'
 
 const logger = getLogger('utils-auth')
 
@@ -75,9 +76,13 @@ export const getViewerFromUser = async (
   return viewer
 }
 
-const getUser = async (token: string, agentHash: string) => {
-  const userService = new UserService()
-  const systemService = new SystemService()
+const getUser = async (
+  token: string,
+  agentHash: string,
+  connections: Connections
+) => {
+  const userService = new UserService(connections)
+  const systemService = new SystemService(connections)
 
   try {
     // get general user
@@ -98,7 +103,7 @@ const getUser = async (token: string, agentHash: string) => {
     return { ...user, authMode: user.role }
   } catch (error) {
     // get oauth user
-    const oAuthService = new OAuthService()
+    const oAuthService = new OAuthService(connections)
     const data = await oAuthService.getAccessToken(token)
 
     if (data && data.accessTokenExpiresAt) {
@@ -125,13 +130,16 @@ const getUser = async (token: string, agentHash: string) => {
   }
 }
 
-export const getViewerFromReq = async ({
-  req,
-  res,
-}: {
-  req?: Request
-  res?: Response
-}): Promise<Viewer> => {
+export const getViewerFromReq = async (
+  {
+    req,
+    res,
+  }: {
+    req?: Request
+    res?: Response
+  },
+  connections: Connections
+): Promise<Viewer> => {
   const headers = req ? req.headers : {}
   // const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(
@@ -165,7 +173,7 @@ export const getViewerFromReq = async ({
   }
 
   try {
-    const userDB = await getUser(token, agentHash)
+    const userDB = await getUser(token, agentHash, connections)
 
     // overwrite request by user settings
     user = { ...user, ...userDB }

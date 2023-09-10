@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import {
   BUNDLED_NOTICE_TYPE,
   DB_NOTICE_TYPE,
@@ -13,19 +15,19 @@ import {
 } from 'definitions'
 
 import { mail } from './mail'
-import { notice } from './notice'
+import { Notice } from './notice'
 import trans from './translations'
 
 const logger = getLogger('service-notification')
 
 export class NotificationService extends BaseService {
   mail: typeof mail
-  notice: typeof notice
+  notice: Notice
 
-  constructor() {
-    super('noop')
+  constructor(connections: Connections) {
+    super('noop', connections)
     this.mail = mail
-    this.notice = notice
+    this.notice = new Notice(connections)
   }
 
   trigger = async (params: NotificationPrarms) => {
@@ -186,7 +188,7 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const recipient = (await userService.dataloader.load(
       params.recipientId
     )) as User

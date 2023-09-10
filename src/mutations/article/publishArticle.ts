@@ -8,12 +8,17 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id, iscnPublish } },
-  { viewer, dataSources: { draftService }, knex }
+  {
+    viewer,
+    dataSources: {
+      draftService,
+      queues: { publicationQueue },
+    },
+  }
 ) => {
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
@@ -57,7 +62,6 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
     iscnPublish,
-    updatedAt: knex.fn.now(),
   })
 
   // add job to queue

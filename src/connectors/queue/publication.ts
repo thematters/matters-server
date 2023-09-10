@@ -1,3 +1,6 @@
+import type { Connections } from 'definitions'
+import type { Redis } from 'ioredis'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 import { html2md } from '@matters/matters-editor/transformers'
@@ -25,15 +28,23 @@ import {
   normalizeTagInput,
   // stripAllPunct,
 } from 'common/utils'
-import { redis } from 'connectors'
+import {
+  TagService,
+  DraftService,
+  ArticleService,
+  UserService,
+  SystemService,
+  NotificationService,
+  AtomService,
+} from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
 const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
-  constructor() {
-    super(QUEUE_NAME.publication)
+  constructor(queueRedis: Redis, connections: Connections) {
+    super(QUEUE_NAME.publication, queueRedis, connections)
     this.addConsumers()
   }
 
@@ -93,11 +104,18 @@ export class PublicationQueue extends BaseQueue {
     job,
     done
   ) => {
+    const draftService = new DraftService(this.connections)
+    const articleService = new ArticleService(this.connections)
+    const userService = new UserService(this.connections)
+    const systemService = new SystemService(this.connections)
+    const notificationService = new NotificationService(this.connections)
+    const atomService = new AtomService(this.connections)
+
     const { draftId, iscnPublish } = job.data as {
       draftId: string
       iscnPublish?: boolean
     }
-    let draft = await this.draftService.baseFindById(draftId)
+    let draft = await draftService.baseFindById(draftId)
     let article
 
     // Step 1: checks
@@ -123,8 +141,8 @@ export class PublicationQueue extends BaseQueue {
         slug: slugify(draft.title),
       }
       article = await (draft.articleId
-        ? this.articleService.baseUpdate(draft.articleId, articleData)
-        : this.articleService.createArticle(articleData))
+        ? articleService.baseUpdate(draft.articleId, articleData)
+        : articleService.createArticle(articleData))
 
       await job.progress(20)
 
@@ -136,7 +154,7 @@ export class PublicationQueue extends BaseQueue {
         logger.warn('draft %s failed to convert HTML to Markdown', draft.id)
       }
       const [publishedDraft, _] = await Promise.all([
-        this.draftService.baseUpdate(draft.id, {
+        draftService.baseUpdate(draft.id, {
           articleId: article.id,
           summary,
           wordCount,
@@ -147,17 +165,16 @@ export class PublicationQueue extends BaseQueue {
           // iscnId,
           publishState: PUBLISH_STATE.published,
           pinState: PIN_STATE.pinned,
-          updatedAt: this.knex.fn.now(), // new Date(),
         }),
         // this.articleService.baseUpdate(article.id, { iscnId }),
-        this.articleService.baseUpdate(article.id, {
+        articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.active,
         }),
       ])
 
       await job.progress(30)
 
-      const author = await this.userService.baseFindById(draft.authorId)
+      const author = await userService.baseFindById(draft.authorId)
       const { userName, displayName } = author
       let tags = draft.tags as string[]
 
@@ -193,8 +210,8 @@ export class PublicationQueue extends BaseQueue {
          */
         const [{ id: draftEntityTypeId }, { id: articleEntityTypeId }] =
           await Promise.all([
-            this.systemService.baseFindEntityTypeId('draft'),
-            this.systemService.baseFindEntityTypeId('article'),
+            systemService.baseFindEntityTypeId('draft'),
+            systemService.baseFindEntityTypeId('article'),
           ])
 
         // Remove unused assets
@@ -202,12 +219,12 @@ export class PublicationQueue extends BaseQueue {
         await job.progress(70)
 
         // Swap cover assets from draft to article
-        const coverAssets = await this.systemService.findAssetAndAssetMap({
+        const coverAssets = await systemService.findAssetAndAssetMap({
           entityTypeId: draftEntityTypeId,
           entityId: draft.id,
           assetType: 'cover',
         })
-        await this.systemService.swapAssetMapEntity(
+        await systemService.swapAssetMapEntity(
           coverAssets.map((ast) => ast.id),
           articleEntityTypeId,
           article.id
@@ -219,7 +236,7 @@ export class PublicationQueue extends BaseQueue {
       }
 
       // Step 7: trigger notifications
-      this.notificationService.trigger({
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.article_published,
         recipientId: article.authorId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
@@ -228,7 +245,7 @@ export class PublicationQueue extends BaseQueue {
       // Step 8: invalidate user cache
       invalidateFQC({
         node: { type: NODE_TYPES.User, id: article.authorId },
-        redis,
+        redis: this.connections.redis,
       })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
@@ -239,18 +256,16 @@ export class PublicationQueue extends BaseQueue {
           contentHash: dataHash,
           mediaHash,
           key,
-        } = (await this.articleService.publishToIPFS(draft))!
+        } = (await articleService.publishToIPFS(draft))!
         await job.progress(80)
         ;[article, draft] = await Promise.all([
-          this.articleService.baseUpdate(article.id, {
+          articleService.baseUpdate(article.id, {
             dataHash,
             mediaHash,
-            updatedAt: this.knex.fn.now(),
           }),
-          this.draftService.baseUpdate(draft.id, {
+          draftService.baseUpdate(draft.id, {
             dataHash,
             mediaHash,
-            updatedAt: this.knex.fn.now(),
           }),
         ])
 
@@ -261,14 +276,14 @@ export class PublicationQueue extends BaseQueue {
             // secret: key,
           }
 
-          await this.atomService.update({
+          await atomService.update({
             table: 'article_circle',
             where: data,
             data: {
               ...data,
               secret: key,
               access: draft.access,
-              updatedAt: this.knex.fn.now(),
+              updatedAt: this.connections.knex.fn.now(),
             },
           })
         }
@@ -276,14 +291,14 @@ export class PublicationQueue extends BaseQueue {
         // Step: iscn publishing
         // handling both cases of set to true or false, but not omit (undefined)
         if (iscnPublish || draft.iscnPublish != null) {
-          const liker = (await this.userService.findLiker({
+          const liker = (await userService.findLiker({
             userId: author.id,
           }))! // as NonNullable<UserOAuthLikeCoin>
-          const cosmosWallet = await this.userService.likecoin.getCosmosWallet({
+          const cosmosWallet = await userService.likecoin.getCosmosWallet({
             liker,
           })
 
-          const iscnId = await this.userService.likecoin.iscnPublish({
+          const iscnId = await userService.likecoin.iscnPublish({
             mediaHash: `hash://sha256/${mediaHash}`,
             ipfsHash: `ipfs://${dataHash}`,
             cosmosWallet,
@@ -297,20 +312,18 @@ export class PublicationQueue extends BaseQueue {
           })
 
           ;[article, draft] = await Promise.all([
-            this.articleService.baseUpdate(article.id, {
+            articleService.baseUpdate(article.id, {
               iscnId,
-              updatedAt: this.knex.fn.now(),
             }),
-            this.draftService.baseUpdate(draft.id, {
+            draftService.baseUpdate(draft.id, {
               iscnId,
               iscnPublish: iscnPublish || draft.iscnPublish,
-              updatedAt: this.knex.fn.now(),
             }),
           ])
         }
         await job.progress(90)
 
-        ipnsRes = await this.articleService.publishFeedToIPNS({
+        ipnsRes = await articleService.publishFeedToIPNS({
           userName,
           // incremental: true, // attach the last just published article
           updatedDrafts: [draft],
@@ -330,18 +343,18 @@ export class PublicationQueue extends BaseQueue {
       // invalidate article cache
       invalidateFQC({
         node: { type: NODE_TYPES.Article, id: article.id },
-        redis,
+        redis: this.connections.redis,
       })
 
       await job.progress(100)
 
       // no await to notify async
-      this.articleService
+      articleService
         .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
         .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       // no await to notify async
-      this.atomService.aws
+      atomService.aws
         .snsPublishMessage({
           // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
           MessageBody: {
@@ -373,10 +386,10 @@ export class PublicationQueue extends BaseQueue {
       })
     } catch (err: any) {
       await Promise.all([
-        this.articleService.baseUpdate(article.id, {
+        articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.error,
         }),
-        this.draftService.baseUpdate(draft.id, {
+        draftService.baseUpdate(draft.id, {
           publishState: PUBLISH_STATE.error,
         }),
       ])
@@ -395,6 +408,9 @@ export class PublicationQueue extends BaseQueue {
       return
     }
 
+    const articleService = new ArticleService(this.connections)
+    const notificationService = new NotificationService(this.connections)
+
     const items = draft.collection.map((articleId: string, index: number) => ({
       entranceId: article.id,
       articleId,
@@ -402,12 +418,12 @@ export class PublicationQueue extends BaseQueue {
       // createdAt: new Date(), // default to CURRENT_TIMESTAMP
       // updatedAt: new Date(), // default to CURRENT_TIMESTAMP
     }))
-    await this.articleService.baseBatchCreate(items, 'article_connection')
+    await articleService.baseBatchCreate(items, 'article_connection')
 
     // trigger notifications
     draft.collection.forEach(async (id: string) => {
-      const collection = await this.articleService.baseFindById(id)
-      this.notificationService.trigger({
+      const collection = await articleService.baseFindById(id)
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.article_new_collected,
         recipientId: collection.authorId,
         actorId: article.authorId,
@@ -436,6 +452,10 @@ export class PublicationQueue extends BaseQueue {
       return
     }
 
+    const userService = new UserService(this.connections)
+    const atomService = new AtomService(this.connections)
+    const notificationService = new NotificationService(this.connections)
+
     if (draft.access) {
       const data = {
         articleId: article.id,
@@ -443,25 +463,23 @@ export class PublicationQueue extends BaseQueue {
         ...(secret ? { secret } : {}),
       }
 
-      await this.atomService.upsert({
+      await atomService.upsert({
         table: 'article_circle',
         where: data,
         create: { ...data, access: draft.access },
         update: {
           ...data,
           access: draft.access,
-          updatedAt: this.knex.fn.now(),
+          updatedAt: this.connections.knex.fn.now(),
         },
       })
     }
 
     // handle 'circle_new_article' notification
-    const recipients = await this.userService.findCircleRecipients(
-      draft.circleId
-    )
+    const recipients = await userService.findCircleRecipients(draft.circleId)
 
     recipients.forEach((recipientId: any) => {
-      this.notificationService.trigger({
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.circle_new_article,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
@@ -470,7 +488,7 @@ export class PublicationQueue extends BaseQueue {
 
     await invalidateFQC({
       node: { type: NODE_TYPES.Circle, id: draft.circleId },
-      redis,
+      redis: this.connections.redis,
     })
   }
 
@@ -481,6 +499,7 @@ export class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
+    const tagService = new TagService(this.connections)
     let tags = draft.tags as string[]
 
     if (tags && tags.length > 0) {
@@ -495,7 +514,7 @@ export class PublicationQueue extends BaseQueue {
       const dbTags = (
         (await Promise.all(
           tags.filter(Boolean).map((content: string) =>
-            this.tagService.create(
+            tagService.create(
               {
                 content,
                 creator: article.authorId,
@@ -514,7 +533,7 @@ export class PublicationQueue extends BaseQueue {
       ).filter(Boolean)
 
       // create article_tag record
-      await this.tagService.createArticleTags({
+      await tagService.createArticleTags({
         articleIds: [article.id],
         creator: article.authorId,
         tagIds: dbTags.map(({ id }) => id),
@@ -543,6 +562,7 @@ export class PublicationQueue extends BaseQueue {
       })
       .get()
 
+    const notificationService = new NotificationService(this.connections)
     mentionIds.forEach((id: string) => {
       const { id: recipientId } = fromGlobalId(id)
 
@@ -550,7 +570,7 @@ export class PublicationQueue extends BaseQueue {
         return false
       }
 
-      this.notificationService.trigger({
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
@@ -569,9 +589,10 @@ export class PublicationQueue extends BaseQueue {
     draftEntityTypeId: string
     draft: any
   }) => {
+    const systemService = new SystemService(this.connections)
     try {
       const [assets, uuids] = await Promise.all([
-        this.systemService.findAssetAndAssetMap({
+        systemService.findAssetAndAssetMap({
           entityTypeId: draftEntityTypeId,
           entityId: draft.id,
         }),
@@ -589,7 +610,7 @@ export class PublicationQueue extends BaseQueue {
       })
 
       if (Object.keys(unusedAssetPaths).length > 0) {
-        await this.systemService.deleteAssetAndAssetMap(unusedAssetPaths)
+        await systemService.deleteAssetAndAssetMap(unusedAssetPaths)
       }
     } catch (e) {
       logger.error(e)
@@ -599,14 +620,14 @@ export class PublicationQueue extends BaseQueue {
   private handleRefreshIPNSFeed: Queue.ProcessCallbackFunction<unknown> =
     async (
       job // use Promise based job processing instead of `done`
-    ) =>
-      this.articleService.publishFeedToIPNS(
+    ) => {
+      const articleService = new ArticleService(this.connections)
+      return articleService.publishFeedToIPNS(
         job.data as {
           userName: string
           numArticles: number
           forceReplace?: boolean
         }
       )
+    }
 }
-
-export const publicationQueue = new PublicationQueue()

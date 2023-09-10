@@ -5,7 +5,7 @@ import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { redis, GCP } from 'connectors'
+import { GCP } from 'connectors'
 
 const logger = getLogger('query-translations')
 
@@ -21,7 +21,13 @@ const resolver: GQLArticleResolvers['translation'] = async (
   { input },
   {
     viewer,
-    dataSources: { atomService, articleService, paymentService, tagService },
+    dataSources: {
+      atomService,
+      articleService,
+      paymentService,
+      tagService,
+      connections: { redis },
+    },
   }
 ) => {
   const language = input && input.language ? input.language : viewer.language

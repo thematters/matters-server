@@ -5,7 +5,12 @@ import { PAYMENT_PROVIDER, PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 const resolver: GQLWalletResolvers['customerPortal'] = async (
   { id },
   _,
-  { dataSources: { paymentService }, knex }
+  {
+    dataSources: {
+      paymentService,
+      connections: { knex },
+    },
+  }
 ) => {
   const where = {
     'csi.user_id': id,

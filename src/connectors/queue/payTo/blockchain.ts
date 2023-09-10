@@ -1,3 +1,6 @@
+import type { EmailableUser, Connections } from 'definitions'
+import type { Redis } from 'ioredis'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
@@ -27,10 +30,14 @@ import {
 } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
 import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
-import { PaymentService, redis } from 'connectors'
+import {
+  PaymentService,
+  UserService,
+  AtomService,
+  ArticleService,
+} from 'connectors'
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
-import { EmailableUser } from 'definitions'
 
 import { BaseQueue } from '../baseQueue'
 
@@ -39,23 +46,25 @@ interface PaymentParams {
 }
 
 export class PayToByBlockchainQueue extends BaseQueue {
-  paymentService: InstanceType<typeof PaymentService>
-  slackService: InstanceType<typeof SlackService>
-  delay: number
+  private slackService: InstanceType<typeof SlackService>
+  private delay: number
 
-  constructor() {
-    super(QUEUE_NAME.payToByBlockchain)
-    this.paymentService = new PaymentService()
+  public constructor(
+    queueRedis: Redis,
+    connections: Connections,
+    delay?: number
+  ) {
+    super(QUEUE_NAME.payToByBlockchain, queueRedis, connections)
     this.slackService = new SlackService()
     this.addConsumers()
-    this.delay = 5000 // 5s
+    this.delay = delay ?? 5000 // 5s
   }
 
   /**
    * Producers
    *
    */
-  payTo = ({ txId }: PaymentParams) =>
+  public payTo = ({ txId }: PaymentParams) =>
     this.q.add(
       QUEUE_JOB.payTo,
       { txId },
@@ -70,7 +79,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }
     )
 
-  addRepeatJobs = async () => {
+  public addRepeatJobs = async () => {
     this.q.add(
       QUEUE_JOB.syncCurationEvents,
       {},
@@ -106,7 +115,11 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const data = job.data as PaymentParams
     const txId = data.txId
 
-    const tx = await this.paymentService.baseFindById(txId)
+    const paymentService = new PaymentService(this.connections)
+    const userService = new UserService(this.connections)
+    const atomService = new AtomService(this.connections)
+
+    const tx = await paymentService.baseFindById(txId)
     if (!tx) {
       job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
@@ -117,8 +130,9 @@ export class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('wrong pay-to queue')
     }
 
-    const blockchainTx =
-      await this.paymentService.findBlockchainTransactionById(tx.providerTxId)
+    const blockchainTx = await paymentService.findBlockchainTransactionById(
+      tx.providerTxId
+    )
 
     if (!blockchainTx) {
       job.discard()
@@ -133,13 +147,17 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     if (txReceipt.reverted) {
-      await this.failBothTxAndBlockchainTx(txId, blockchainTx.id)
+      await this.failBothTxAndBlockchainTx(
+        txId,
+        blockchainTx.id,
+        paymentService
+      )
       return data
     }
     const [recipient, sender, article] = await Promise.all([
-      this.userService.baseFindById(tx.recipientId),
-      this.userService.baseFindById(tx.senderId),
-      this.atomService.findFirst({
+      userService.baseFindById(tx.recipientId),
+      userService.baseFindById(tx.senderId),
+      atomService.findFirst({
         table: 'article',
         where: { id: tx.targetId },
       }),
@@ -172,18 +190,23 @@ export class PayToByBlockchainQueue extends BaseQueue {
         {
           blockchainTxId: blockchainTx.id,
           blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
-        }
+        },
+        paymentService
       )
       return data
     }
 
     // update pending tx
-    await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
+    await this.succeedBothTxAndBlockchainTx(
+      txId,
+      blockchainTx.id,
+      paymentService
+    )
 
     // notification
-    await this.paymentService.notifyDonation({ tx, sender, recipient, article })
+    await paymentService.notifyDonation({ tx, sender, recipient, article })
 
-    await this.invalidCache(tx.targetType, tx.targetId)
+    await this.invalidCache(tx.targetType, tx.targetId, userService)
     job.progress(100)
 
     return data
@@ -211,12 +234,13 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
   private _handleSyncCurationEvents = async () => {
+    const atomService = new AtomService(this.connections)
     // fetch events
     const syncRecordTable = 'blockchain_sync_record'
     const curation = new CurationContract()
     const chainId = curation.chainId
     const contractAddress = curation.address
-    const record = await this.atomService.findFirst({
+    const record = await atomService.findFirst({
       table: syncRecordTable,
       where: { chainId, contractAddress },
     })
@@ -232,7 +256,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     await this.syncCurationEvents(logs)
 
     // save progress
-    await this.atomService.upsert({
+    await atomService.upsert({
       table: syncRecordTable,
       where: { chainId, contractAddress },
       update: { chainId, contractAddress, blockNumber: newSavepoint },
@@ -248,8 +272,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
       id: string
       transactionId: string
       state: BLOCKCHAIN_TRANSACTION_STATE
+    },
+    services: {
+      paymentService: PaymentService
+      userService: UserService
+      articleService: ArticleService
+      atomService: AtomService
     }
   ) => {
+    const { paymentService, userService, articleService, atomService } =
+      services
     const event = log.event
     // related tx record has resolved
     if (
@@ -266,20 +298,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
     ) {
       return
     }
-    const curatorUser = await this.userService.findByEthAddress(
-      event.curatorAddress
-    )
+    const curatorUser = await userService.findByEthAddress(event.curatorAddress)
     if (!curatorUser) {
       return
     }
-    const creatorUser = await this.userService.findByEthAddress(
-      event.creatorAddress
-    )
+    const creatorUser = await userService.findByEthAddress(event.creatorAddress)
     if (!creatorUser) {
       return
     }
     const cid = extractCid(event.uri)
-    const articles = await this.articleService.baseFind({
+    const articles = await articleService.baseFind({
       where: { author_id: creatorUser.id, data_hash: cid },
     })
     if (articles.length === 0) {
@@ -295,9 +323,9 @@ export class PayToByBlockchainQueue extends BaseQueue {
     let tx
     // find related tx
     if (blockchainTx.transactionId) {
-      tx = await this.paymentService.baseFindById(blockchainTx.transactionId)
+      tx = await paymentService.baseFindById(blockchainTx.transactionId)
     } else {
-      tx = await this.atomService.findFirst({
+      tx = await atomService.findFirst({
         table: 'transaction',
         where: {
           provider: PAYMENT_PROVIDER.blockchain,
@@ -306,7 +334,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       })
       if (tx) {
         // this blockchainTx data is broken, fix it
-        await this.atomService.update({
+        await atomService.update({
           table: 'blockchain_transaction',
           where: { id: blockchainTx.id },
           data: {
@@ -328,10 +356,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
         toTokenBaseUnit(tx.amount, polygonUSDTContractDecimals) === event.amount
       ) {
         // related tx record is valid, update its state
-        await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
+        await this.succeedBothTxAndBlockchainTx(
+          tx.id,
+          blockchainTx.id,
+          paymentService
+        )
       } else {
         // related tx record is invalid, correct it and update state
-        await this.atomService.update({
+        await atomService.update({
           table: 'transaction',
           where: { id: tx.id },
           data: {
@@ -344,13 +376,17 @@ export class PayToByBlockchainQueue extends BaseQueue {
             providerTxId: blockchainTx.id,
           },
         })
-        await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
+        await this.succeedBothTxAndBlockchainTx(
+          tx.id,
+          blockchainTx.id,
+          paymentService
+        )
       }
     } else {
       // no related tx record, create one
-      const trx = await this.knex.transaction()
+      const trx = await this.connections.knex.transaction()
       try {
-        tx = await this.paymentService.createTransaction(
+        tx = await paymentService.createTransaction(
           {
             amount,
             state: TRANSACTION_STATE.succeeded,
@@ -364,7 +400,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
           },
           trx
         )
-        await this.paymentService.baseUpdate(
+        await paymentService.baseUpdate(
           blockchainTx.id,
           { transactionId: tx.id },
           'blockchain_transaction',
@@ -382,14 +418,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
       curatorUser.email &&
       creatorUser.email
     ) {
-      await this.paymentService.notifyDonation({
+      await paymentService.notifyDonation({
         tx,
         sender: curatorUser as EmailableUser,
         recipient: creatorUser as EmailableUser,
         article,
       })
     }
-    await this.invalidCache(tx.targetType, tx.targetId)
+    await this.invalidCache(tx.targetType, tx.targetId, userService)
   }
 
   private fetchCurationLogs = async (
@@ -408,6 +444,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
   }
 
   private syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
+    const paymentService = new PaymentService(this.connections)
+    const userService = new UserService(this.connections)
+    const articleService = new ArticleService(this.connections)
+    const atomService = new AtomService(this.connections)
     const events = []
     for (const log of logs) {
       if (log.removed) {
@@ -416,21 +456,23 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }
       const data: any = { ...log.event }
       const blockchainTx =
-        await this.paymentService.findOrCreateBlockchainTransaction(
+        await paymentService.findOrCreateBlockchainTransaction(
           { chain: BLOCKCHAIN.Polygon, txHash: log.txHash },
           { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
         )
       data.blockchainTransactionId = blockchainTx.id
       data.contractAddress = log.address
-      await this.handleNewEvent(log, blockchainTx)
+      await this.handleNewEvent(log, blockchainTx, {
+        paymentService,
+        userService,
+        articleService,
+        atomService,
+      })
 
       events.push(data)
     }
     if (events.length >= 0) {
-      await this.paymentService.baseBatchCreate(
-        events,
-        'blockchain_curation_event'
-      )
+      await paymentService.baseBatchCreate(events, 'blockchain_curation_event')
     }
   }
 
@@ -450,11 +492,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }: {
       blockchainTxId: string
       blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
-    }
+    },
+    paymentService: PaymentService
   ) => {
-    const trx = await this.knex.transaction()
+    const trx = await this.connections.knex.transaction()
     try {
-      await this.paymentService.markTransactionStateAs(
+      await paymentService.markTransactionStateAs(
         {
           id: txId,
           state: txState,
@@ -462,7 +505,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         },
         trx
       )
-      await this.paymentService.markBlockchainTransactionStateAs(
+      await paymentService.markBlockchainTransactionStateAs(
         {
           id: blockchainTxId,
           state: blockchainTxState,
@@ -478,27 +521,31 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private failBothTxAndBlockchainTx = async (
     txId: string,
-    blockchainTxId: string
+    blockchainTxId: string,
+    paymentService: PaymentService
   ) => {
     await this.updateTxAndBlockchainTxState(
       { txId, txState: TRANSACTION_STATE.failed },
       {
         blockchainTxId,
         blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
-      }
+      },
+      paymentService
     )
   }
 
   private succeedBothTxAndBlockchainTx = async (
     txId: string,
-    blockchainTxId: string
+    blockchainTxId: string,
+    paymentService: PaymentService
   ) => {
     await this.updateTxAndBlockchainTxState(
       { txId, txState: TRANSACTION_STATE.succeeded },
       {
         blockchainTxId,
         blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
-      }
+      },
+      paymentService
     )
   }
 
@@ -544,10 +591,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
     return false
   }
 
-  private invalidCache = async (targetType: string, targetId: string) => {
+  private invalidCache = async (
+    targetType: string,
+    targetId: string,
+    userService: UserService
+  ) => {
     // manaully invalidate cache
     if (targetType) {
-      const entity = await this.userService.baseFindEntityTypeTable(targetType)
+      const entity = await userService.baseFindEntityTypeTable(targetType)
       const entityType =
         NODE_TYPES[
           (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
@@ -555,7 +606,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       if (entityType) {
         invalidateFQC({
           node: { type: entityType, id: targetId },
-          redis,
+          redis: this.connections.redis,
         })
       }
     }
@@ -568,5 +619,3 @@ const ignoreCaseMatch = (a: string, b: string) =>
 const isValidUri = (uri: string): boolean => /^ipfs:\/\//.test(uri)
 
 const extractCid = (uri: string): string => uri.replace('ipfs://', '')
-
-export const payToByBlockchainQueue = new PayToByBlockchainQueue()

@@ -47,8 +47,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       draftService,
       systemService,
       userService,
+      connections: { knex },
     },
-    knex,
   }
 ) => {
   const {

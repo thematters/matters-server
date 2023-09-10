@@ -7,7 +7,11 @@ import { CIRCLE_ACTION } from 'common/enums'
 const resolver: GQLCircleFollowerAnalyticsResolvers['history'] = async (
   { id },
   _,
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+  }
 ) => {
   const take = 4
 

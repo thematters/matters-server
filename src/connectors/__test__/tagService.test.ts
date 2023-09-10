@@ -1,6 +1,16 @@
+import type { Connections } from 'definitions'
+
 import { TagService } from 'connectors'
 
-const tagService = new TagService()
+import { genConnections } from './utils'
+
+let connections: Connections
+let tagService: TagService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  tagService = new TagService(connections)
+})
 
 test('countArticles', async () => {
   const count = await tagService.countArticles({ id: '2' })

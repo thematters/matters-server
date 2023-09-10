@@ -1,11 +1,20 @@
+import type { Connections } from 'definitions'
+
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { ActionFailedError } from 'common/errors'
 import { CacheService, UserService } from 'connectors'
 
 import { createDonationTx } from './utils'
+import { genConnections } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
-const userService = new UserService()
+let connections: Connections
+let userService: UserService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+})
 
 describe('countDonators', () => {
   beforeEach(async () => {
@@ -246,7 +255,10 @@ describe('updateLastSeen', () => {
     expect(now).not.toStrictEqual(last)
   })
   test('caching', async () => {
-    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const cacheService = new CacheService(
+      CACHE_PREFIX.USER_LAST_SEEN,
+      connections.redis
+    )
     const cacheGet = async (_id: string) =>
       // @ts-ignore
       cacheService.redis.get(cacheService.genKey({ id: _id }))

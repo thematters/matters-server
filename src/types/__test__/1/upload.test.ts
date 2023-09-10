@@ -1,9 +1,12 @@
+import type { Connections } from 'definitions'
+
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
 
 import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE } from 'common/enums'
 import { SystemService } from 'connectors'
 
+import { genConnections } from '../utils'
 import { testClient } from '../utils'
 
 const SINGLE_FILE_UPLOAD = /* GraphQL */ `
@@ -35,6 +38,10 @@ const createUpload = (mimetype: string) => {
 }
 
 describe('singleFileUpload', () => {
+  let connections: Connections
+  beforeAll(async () => {
+    connections = await genConnections()
+  })
   test('upload files with wrong type', async () => {
     const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({
@@ -52,7 +59,7 @@ describe('singleFileUpload', () => {
   test('upload images to cloudflare succeeded', async () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
-    const systemService = new SystemService()
+    const systemService = new SystemService(connections)
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
     systemService.aws.baseUploadFile = uploadS3 as any
 
@@ -77,7 +84,7 @@ describe('singleFileUpload', () => {
   test('upload not-image files to s3 succeeded', async () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
-    const systemService = new SystemService()
+    const systemService = new SystemService(connections)
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
     systemService.aws.baseUploadFile = uploadS3 as any
 

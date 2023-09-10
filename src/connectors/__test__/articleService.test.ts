@@ -1,8 +1,17 @@
+import type { Connections } from 'definitions'
+
 import { ArticleService, UserService } from 'connectors'
 
-const articleService = new ArticleService()
+import { genConnections } from './utils'
 
 let articleId: string
+let connections: Connections
+let articleService: ArticleService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  articleService = new ArticleService(connections)
+})
 
 test('publish', async () => {
   // publish article to IPFS
@@ -91,10 +100,14 @@ describe('updatePinned', () => {
     )
   })
   test('success', async () => {
-    let article = await new ArticleService().updatePinned('1', '1', true)
+    let article = await new ArticleService(connections).updatePinned(
+      '1',
+      '1',
+      true
+    )
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
-    article = await new ArticleService().updatePinned('1', '1', true)
+    article = await new ArticleService(connections).updatePinned('1', '1', true)
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
   })
@@ -102,7 +115,7 @@ describe('updatePinned', () => {
     await articleService.updatePinned('4', '1', true)
     await articleService.updatePinned('6', '1', true)
 
-    const userService = new UserService()
+    const userService = new UserService(connections)
     const total = await userService.totalPinnedWorks('1')
     expect(total).toBe(3)
     await expect(

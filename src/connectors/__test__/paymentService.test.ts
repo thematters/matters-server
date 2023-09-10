@@ -1,3 +1,5 @@
+import type { GQLChain, Connections } from 'definitions'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -13,9 +15,14 @@ import {
   PaymentService,
   UserService,
 } from 'connectors'
-import { GQLChain } from 'definitions'
 
-import { createDonationTx } from './utils'
+import { createDonationTx, genConnections } from './utils'
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+})
 
 // helpers
 
@@ -24,7 +31,7 @@ const genRandomProviderTxId = () => 'testProviderTxId' + Math.random()
 // tests
 
 describe('Transaction CRUD', () => {
-  const paymentService = new PaymentService()
+  const paymentService = new PaymentService(connections)
 
   const amount = 1
   const fee = 0.1
@@ -281,8 +288,8 @@ describe('Transaction CRUD', () => {
 })
 
 describe('notifyDonation', () => {
-  const paymentService = new PaymentService()
-  const userService = new UserService()
+  const paymentService = new PaymentService(connections)
+  const userService = new UserService(connections)
   mailService.send = jest.fn()
   test('donationCount value is correct', async () => {
     const getDonationCount = () =>
@@ -290,7 +297,7 @@ describe('notifyDonation', () => {
       mailService.send.mock.calls[0][0].personalizations[0]
         .dynamic_template_data.tx.donationCount
 
-    const articleService = new ArticleService()
+    const articleService = new ArticleService(connections)
     const sender = await userService.create({
       userName: 'sender',
       email: 'sender@example.com',
@@ -328,7 +335,7 @@ describe('calculateBalance', () => {
   const providerTxId = genRandomProviderTxId()
   const senderId = '1'
   test('pending dispute affect balance', async () => {
-    const paymentService = new PaymentService()
+    const paymentService = new PaymentService(connections)
     const prev = await paymentService.calculateBalance({
       userId: senderId,
       currency,

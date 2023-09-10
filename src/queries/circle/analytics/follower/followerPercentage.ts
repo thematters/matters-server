@@ -4,7 +4,16 @@ import { CIRCLE_ACTION } from 'common/enums'
 import { numRound } from 'common/utils'
 
 const resolver: GQLCircleFollowerAnalyticsResolvers['followerPercentage'] =
-  async ({ id }, _, { dataSources: { atomService }, knex }) => {
+  async (
+    { id },
+    _,
+    {
+      dataSources: {
+        atomService,
+        connections: { knex },
+      },
+    }
+  ) => {
     const [followerCount, readerCountResult] = await Promise.all([
       atomService.count({
         table: 'action_circle',

@@ -1,6 +1,12 @@
 import { CollectionService } from 'connectors'
 
-const collectionService = new CollectionService()
+import { genConnections } from './utils'
+
+let collectionService: CollectionService
+
+beforeAll(async () => {
+  collectionService = new CollectionService(await genConnections())
+})
 
 test('createCollection', async () => {
   await collectionService.createCollection({

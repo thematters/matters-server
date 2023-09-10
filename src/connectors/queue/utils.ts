@@ -2,7 +2,6 @@ import Queue, { RateLimiter } from 'bull'
 import Redis from 'ioredis'
 
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
-import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('queue-base')
@@ -11,28 +10,18 @@ export interface CustomQueueOpts {
   limiter?: RateLimiter
 }
 
-export const sharedQueueOpts = {
-  // Reusing Redis Connections
-  // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-  createClient() {
-    return new Redis({
-      host: environment.queueHost,
-      port: environment.queuePort,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-    })
-  },
-  defaultJobOptions: {
-    removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
-  },
-}
-
 export const createQueue = (
   queueName: string,
+  redis: Redis,
   customOpts?: CustomQueueOpts
 ) => {
   const queue = new Queue(queueName, {
-    ...sharedQueueOpts,
+    createClient() {
+      return redis
+    },
+    defaultJobOptions: {
+      removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
+    },
     ...(customOpts || {}),
   })
 

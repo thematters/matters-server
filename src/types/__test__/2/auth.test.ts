@@ -1,4 +1,6 @@
 import axios from 'axios'
+import type { Connections } from 'definitions'
+
 import _ from 'lodash'
 
 import {
@@ -15,11 +17,17 @@ import {
   defaultTestUser,
   getUserContext,
   testClient,
+  genConnections,
 } from '../utils'
 
 jest.mock('axios')
 
-const userService = new UserService()
+let connections: Connections
+let userService: UserService
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+})
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 

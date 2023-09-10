@@ -11,7 +11,13 @@ import {
 const resolver: GQLCircleIncomeAnalyticsResolvers['total'] = async (
   { id, owner },
   _,
-  { dataSources: { atomService, systemService }, knex }
+  {
+    dataSources: {
+      atomService,
+      systemService,
+      connections: { knex },
+    },
+  }
 ) => {
   const [{ id: entityTypeId }, price] = await Promise.all([
     systemService.baseFindEntityTypeId(TRANSACTION_TARGET_TYPE.circlePrice),

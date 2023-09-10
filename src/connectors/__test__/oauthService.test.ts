@@ -1,15 +1,24 @@
+import type { User, Connections } from 'definitions'
+
 import _ from 'lodash'
 
 import { SCOPE_PREFIX } from 'common/enums'
 import { OAuthService, UserService } from 'connectors'
-import { User } from 'definitions'
+
+import { genConnections } from './utils'
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+})
 
 const getClient = () => {
-  const oauthService = new OAuthService()
+  const oauthService = new OAuthService(connections)
   return oauthService.getClient('test-client-id')
 }
 const getUser = () => {
-  const userService = new UserService()
+  const userService = new UserService(connections)
   return userService.dataloader.load('1') as Promise<User>
 }
 
@@ -22,7 +31,7 @@ describe('client', () => {
 
 describe('scope', () => {
   test('validateScope', async () => {
-    const oauthService = new OAuthService()
+    const oauthService = new OAuthService(connections)
     const client = await getClient()
     const user = await getUser()
 
@@ -42,7 +51,7 @@ describe('scope', () => {
 })
 
 describe('token', () => {
-  const oauthService = new OAuthService()
+  const oauthService = new OAuthService(connections)
   let accessToken: string
   let refreshToken: string
 

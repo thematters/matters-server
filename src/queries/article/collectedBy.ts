@@ -10,7 +10,14 @@ import {
 const resolver: GQLArticleResolvers['collectedBy'] = async (
   { articleId },
   { input },
-  { dataSources: { atomService, articleService, draftService }, knex }
+  {
+    dataSources: {
+      atomService,
+      articleService,
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

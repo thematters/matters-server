@@ -13,13 +13,15 @@ import { getLogger } from 'common/logger'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { OAuthService } from 'connectors'
 
+import { connections } from '../connections'
+
 import OAuthServer from './express-oauth-server'
 import initPassportStrategies from './strategies'
 
 const logger = getLogger('route-oauth')
 
 const oAuthRouter = Router()
-const oAuthService = new OAuthService()
+const oAuthService = new OAuthService(connections)
 const oAuthServer = new OAuthServer({
   model: {
     generateAccessToken: oAuthService.generateAccessToken,
@@ -39,7 +41,7 @@ const oAuthServer = new OAuthServer({
   allowExtendedTokenAttributes: true,
   authenticateHandler: {
     handle: async (req: Request, res: Response) => {
-      const viewer = await getViewerFromReq({ req, res })
+      const viewer = await getViewerFromReq({ req, res }, connections)
 
       if (!viewer.id) {
         return false
@@ -61,7 +63,7 @@ oAuthRouter.use(bodyParser.json() as RequestHandler)
 oAuthRouter.use(bodyParser.urlencoded({ extended: false }) as RequestHandler)
 oAuthRouter.use(async (req, res, next) => {
   try {
-    const viewer = await getViewerFromReq({ req, res })
+    const viewer = await getViewerFromReq({ req, res }, connections)
     req.app.locals.viewer = viewer
   } catch (error) {
     // FIXME: current code is to avoid request hanging up

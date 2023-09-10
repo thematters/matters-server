@@ -1,18 +1,20 @@
+import type { NotificationType, Connections } from 'definitions'
+
 import { MONTH, NOTIFICATION_TYPES } from 'common/enums'
-import { knex, NotificationService, UserService } from 'connectors'
-import { sharedQueueOpts } from 'connectors/queue/utils'
-import { NotificationType } from 'definitions'
+import { NotificationService, UserService } from 'connectors'
 
-afterAll(async () => {
-  await knex.destroy()
-  const redisClient = sharedQueueOpts.createClient()
-  // TODO: still have asynchronous operations running
-  redisClient.disconnect()
-})
+import { genConnections } from './utils'
 
-const notificationService = new NotificationService()
-const userService = new UserService()
+let connections: Connections
+let userService: UserService
+let notificationService: NotificationService
 const recipientId = '1'
+
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+  notificationService = new NotificationService(connections)
+})
 
 /**
  * Notification Service

@@ -1,4 +1,4 @@
-import { CacheService, ExchangeRate } from 'connectors'
+import { ExchangeRate } from 'connectors'
 
 // stub data
 
@@ -86,12 +86,14 @@ const rates = [
   },
 ]
 
+// @ts-ignore
+const redis = global.redis
+
 describe('exchangeRate', () => {
-  const exchangeRate = new ExchangeRate()
+  const exchangeRate = new ExchangeRate(redis)
   beforeEach(() => {
     // mock
     exchangeRate.expire = 3 // 3 seconds
-    exchangeRate.cache = new CacheService('TestExchangeRate' + Math.random())
     // @ts-ignore
     exchangeRate.requestCoingeckoAPI = async () => coingeckoAPIData
     // @ts-ignore

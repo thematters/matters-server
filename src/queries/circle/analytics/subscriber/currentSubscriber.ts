@@ -3,7 +3,15 @@ import type { GQLCircleSubscriberAnalyticsResolvers } from 'definitions'
 import { PAYMENT_PROVIDER, PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 
 const resolver: GQLCircleSubscriberAnalyticsResolvers['currentSubscriber'] =
-  async ({ id }, _, { knex }) => {
+  async (
+    { id },
+    _,
+    {
+      dataSources: {
+        connections: { knex },
+      },
+    }
+  ) => {
     const record = await knex
       .count()
       .from('circle_subscription_item as csi')

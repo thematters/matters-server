@@ -1,9 +1,10 @@
+import type { Item, TableName, Connections } from 'definitions'
+import type { Knex } from 'knex'
+
 import DataLoader from 'dataloader'
-import { Knex } from 'knex'
 
 import { EntityNotFoundError } from 'common/errors'
-import { aws, cfsvc, knex } from 'connectors'
-import { Item, TableName } from 'definitions'
+import { aws, cfsvc } from 'connectors'
 
 interface InitLoaderInput {
   table: TableName
@@ -85,10 +86,10 @@ export class AtomService {
   topicIdLoader: DataLoader<string, Item>
   chapterIdLoader: DataLoader<string, Item>
 
-  constructor() {
+  constructor(connections: Connections) {
     this.aws = aws
     this.cfsvc = cfsvc
-    this.knex = knex
+    this.knex = connections.knex
 
     this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
     this.draftIdLoader = this.initLoader({ table: 'draft', mode: 'id' })

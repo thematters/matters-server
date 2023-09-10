@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import _get from 'lodash/get'
 
 import {
@@ -20,11 +22,15 @@ import {
   registerUser,
   testClient,
   updateUserState,
+  genConnections,
 } from '../utils'
 
+let connections: Connections
 let userService: UserService
+
 beforeAll(async () => {
-  userService = new UserService()
+  connections = await genConnections()
+  userService = new UserService(connections)
   // await userService.initSearch()
 })
 
@@ -1013,8 +1019,9 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
+  const knex = connections.knex
   test('retrieve articles from hottest, newest and icymi', async () => {
-    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
 
     const lists = ['hottest', 'newest', 'icymi']
     for (const list of lists) {
@@ -1035,8 +1042,8 @@ describe('user recommendations', () => {
   })
 
   test('retrieve tags from tags', async () => {
-    await refreshView(MATERIALIZED_VIEW.curation_tag_materialized)
-    await refreshView(MATERIALIZED_VIEW.tag_count_materialized)
+    await refreshView(MATERIALIZED_VIEW.curation_tag_materialized, knex)
+    await refreshView(MATERIALIZED_VIEW.tag_count_materialized, knex)
 
     const serverNew = await testClient({
       isAuth: true,
@@ -1052,7 +1059,7 @@ describe('user recommendations', () => {
   })
 
   test('retrive users from authors', async () => {
-    await refreshView(MATERIALIZED_VIEW.user_reader_materialized)
+    await refreshView(MATERIALIZED_VIEW.user_reader_materialized, knex)
 
     const server = await testClient({
       isAuth: true,
@@ -1079,7 +1086,7 @@ describe('user recommendations', () => {
         )
         .map((id: string) => fromGlobalId(id).id)
 
-    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized)
+    await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
     // before restricted
     const server = await testClient({
       isAuth: true,

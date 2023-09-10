@@ -3,7 +3,12 @@ import type { GQLTopicResolvers } from 'definitions'
 const resolver: GQLTopicResolvers['latestArticle'] = async (
   { id: topicId },
   _,
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const latestArticle = await knex
     .select('article.*')
