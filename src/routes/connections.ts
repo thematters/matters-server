@@ -5,7 +5,7 @@ import { knexSnakeCaseMappers } from 'objection'
 import { environment } from 'common/environment'
 
 // @ts-ignore
-import knexConfig from '../knexfile'
+import knexConfig from '../../knexfile'
 
 // init connections
 const mainKnex = knex({

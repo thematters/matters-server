@@ -24,13 +24,13 @@ export class NotificationService extends BaseService {
   mail: typeof mail
   notice: Notice
 
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super('noop', connections)
     this.mail = mail
     this.notice = new Notice(connections)
   }
 
-  trigger = async (params: NotificationPrarms) => {
+  public trigger = async (params: NotificationPrarms) => {
     try {
       await this.__trigger(params)
     } catch (e) {

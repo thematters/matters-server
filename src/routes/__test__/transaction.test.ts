@@ -9,7 +9,10 @@ import {
 } from 'common/enums'
 import { PaymentService } from 'connectors'
 
-import { genConnections } from '../../connectors/__test__/utils'
+import {
+  genConnections,
+  closeConnections,
+} from '../../connectors/__test__/utils'
 import {
   createOrUpdateFailedRefundTx,
   createDisputeTx,
@@ -23,6 +26,10 @@ let paymentServce: PaymentService
 beforeAll(async () => {
   connections = await genConnections()
   paymentServce = new PaymentService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 // helpers

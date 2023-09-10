@@ -7,7 +7,7 @@ import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
 import { DraftService, ArticleService, UserService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
-import { genConnections } from '../../__test__/utils'
+import { genConnections, closeConnections } from '../../__test__/utils'
 
 describe('publicationQueue.publishArticle', () => {
   let connections: Connections
@@ -23,6 +23,10 @@ describe('publicationQueue.publishArticle', () => {
     articleService = new ArticleService(connections)
     userService = new UserService(connections)
     queue = new PublicationQueue(connections.redis, connections)
+  }, 30000)
+
+  afterAll(async () => {
+    await closeConnections(connections)
   })
 
   test('publish not pending draft', async () => {
