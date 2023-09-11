@@ -1,9 +1,24 @@
-import _get from 'lodash/get'
+import type { Connections } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const USER_ID = toGlobalId({ type: NODE_TYPES.User, id: 1 })
 const GET_NOTICES = /* GraphQL */ `
@@ -33,6 +48,6 @@ test('query notices', async () => {
       nodeInput: { id: USER_ID },
     },
   })
-  const notices = _get(data, 'node.notices.edges')
+  const notices = data.node.notices.edges
   expect(notices.length).toBeGreaterThan(0)
 })

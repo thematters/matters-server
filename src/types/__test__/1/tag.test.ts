@@ -1,4 +1,8 @@
-import type { GQLPutTagInput, GQLUpdateTagSettingInput } from 'definitions'
+import type {
+  GQLPutTagInput,
+  GQLUpdateTagSettingInput,
+  Connections,
+} from 'definitions'
 
 import _difference from 'lodash/difference'
 import _get from 'lodash/get'
@@ -11,7 +15,27 @@ import {
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { setFeature, testClient } from '../utils'
+import {
+  setFeature,
+  testClient,
+  genConnections,
+  closeConnections,
+} from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const QUERY_TAG = /* GraphQL */ `
   query ($input: NodeInput!) {

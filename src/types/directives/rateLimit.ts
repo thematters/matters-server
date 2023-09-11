@@ -87,7 +87,7 @@ directive @${directiveName}(period: Int!, limit: Int!) on FIELD_DEFINITION`,
               operation: fieldName,
               limit,
               period,
-              redis: context.connections.redis,
+              redis: context.dataSources.connections.redis,
             })
 
             if (!pass) {

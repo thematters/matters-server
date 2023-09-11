@@ -24,12 +24,25 @@ import {
   testClient,
   updateUserState,
   genConnections,
+  closeConnections,
 } from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var
   var mockEnums: any
+  // eslint-disable-next-line no-var
+  var connections: Connections
 }
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 jest.mock('common/enums', () => {
   const originalModule = jest.requireActual('common/enums')
@@ -289,10 +302,6 @@ describe('query drafts on article', () => {
 })
 
 describe('publish article', () => {
-  let connections: Connections
-  beforeAll(async () => {
-    connections = await genConnections()
-  })
   test('user w/o username can not publish', async () => {
     const draft = {
       title: Math.random().toString(),
@@ -305,6 +314,7 @@ describe('publish article', () => {
       query: PUBLISH_ARTICLE,
       variables: { input: { id } },
     })
+    console.dir(errors, { depth: null })
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('create a draft & publish it', async () => {
@@ -451,10 +461,6 @@ describe('frozen user do muations to article', () => {
 })
 
 describe('edit article', () => {
-  let connections: Connections
-  beforeAll(async () => {
-    connections = await genConnections()
-  })
   test('edit article summary', async () => {
     const summary = 'my customized summary'
     const server = await testClient({
@@ -1137,7 +1143,7 @@ describe('edit article', () => {
     const article2Id = toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
 
     // archive
-    const archiveResult = await server.executeOperation({
+    const { data: archivedData } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -1146,9 +1152,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(archiveResult, 'data.editArticle.state')).toBe(
-      ARTICLE_STATE.archived
-    )
+    expect(archivedData.editArticle.state).toBe(ARTICLE_STATE.archived)
 
     // refetch & expect de-duplicated
     const { data: data2 } = await server.executeOperation({

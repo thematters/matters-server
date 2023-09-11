@@ -6,8 +6,22 @@ import { FileUpload, Upload } from 'graphql-upload'
 import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE } from 'common/enums'
 import { SystemService } from 'connectors'
 
-import { genConnections } from '../utils'
-import { testClient } from '../utils'
+import { genConnections, closeConnections, testClient } from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const SINGLE_FILE_UPLOAD = /* GraphQL */ `
   fragment Asset on Asset {
@@ -38,10 +52,6 @@ const createUpload = (mimetype: string) => {
 }
 
 describe('singleFileUpload', () => {
-  let connections: Connections
-  beforeAll(async () => {
-    connections = await genConnections()
-  })
   test('upload files with wrong type', async () => {
     const server = await testClient({ isAuth: true })
     const { errors } = await server.executeOperation({

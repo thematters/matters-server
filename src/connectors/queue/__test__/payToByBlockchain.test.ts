@@ -53,7 +53,6 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-
 // test data
 
 const polygonCurationContractAddress =

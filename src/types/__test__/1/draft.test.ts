@@ -1,14 +1,28 @@
+import type { Connections } from 'definitions'
+
 import _get from 'lodash/get'
 
 import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { putDraft } from '../utils'
+import { putDraft, genConnections, closeConnections } from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var
   var mockEnums: any
+  // eslint-disable-next-line no-var
+  var connections: Connections
 }
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 jest.mock('common/enums', () => {
   const originalModule = jest.requireActual('common/enums')

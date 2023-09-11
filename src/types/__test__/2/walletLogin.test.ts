@@ -1,14 +1,31 @@
+import type { Connections } from 'definitions'
+
 import { Wallet } from 'ethers'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
 
 jest.mock('common/utils', () => ({
   __esModule: true,
   ...jest.requireActual('common/utils'),
   getAlchemyProvider: () => ({ getCode: jest.fn(() => '0x') }),
 }))
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 describe('walletLogin', () => {
   const GENERATE_SIGNING_MESSAGE = /* GraphQL */ `

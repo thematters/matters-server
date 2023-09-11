@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import _get from 'lodash/get'
 
 import {
@@ -7,7 +9,29 @@ import {
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { delay, publishArticle, putDraft, testClient } from '../utils'
+import {
+  delay,
+  publishArticle,
+  putDraft,
+  testClient,
+  genConnections,
+  closeConnections,
+} from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
   query {

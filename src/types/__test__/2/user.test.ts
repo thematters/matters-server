@@ -1,4 +1,5 @@
 import type { Connections } from 'definitions'
+import type { Knex } from 'knex'
 
 import _get from 'lodash/get'
 
@@ -23,7 +24,13 @@ import {
   testClient,
   updateUserState,
   genConnections,
+  closeConnections,
 } from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
 
 let connections: Connections
 let userService: UserService
@@ -31,8 +38,13 @@ let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
+  globalThis.connections = connections
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 const USER_LOGIN = /* GraphQL */ `
@@ -1029,7 +1041,10 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  const knex = connections.knex
+  let knex: Knex
+  beforeAll(async () => {
+    knex = connections.knex
+  })
   test('retrieve articles from hottest, newest and icymi', async () => {
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
 

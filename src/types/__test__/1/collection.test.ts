@@ -1,7 +1,24 @@
+import type { Connections } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })

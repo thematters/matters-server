@@ -4,6 +4,7 @@ import type {
   GQLSetFeatureInput,
   GQLUserRegisterInput,
   User,
+  Connections,
 } from 'definitions'
 
 import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
@@ -35,10 +36,18 @@ import {
   UserQueue,
 } from 'connectors/queue'
 
-import { genConnections } from '../../connectors/__test__/utils'
+import {
+  genConnections,
+  closeConnections,
+} from '../../connectors/__test__/utils'
 import schema from '../../schema'
 
-export { genConnections }
+export { genConnections, closeConnections }
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
 
 interface BaseInput {
   isAdmin?: boolean
@@ -56,7 +65,10 @@ export const adminUser = {
 }
 
 export const getUserContext = async ({ email }: { email: string }) => {
-  const userService = new UserService(await genConnections())
+  if (!globalThis.connections) {
+    throw new Error('please provide globalThis.connections')
+  }
+  const userService = new UserService(globalThis.connections)
   const user = await userService.findByEmail(email)
   if (user === undefined) {
     return { viewer: {} as any as User }
@@ -98,6 +110,10 @@ export const testClient = async (
     context: null,
   }
 ) => {
+  if (!globalThis.connections) {
+    throw new Error('please provide globalThis.connections')
+  }
+
   let _context: any = {}
   if (context) {
     _context = context
@@ -143,9 +159,9 @@ export const testClient = async (
 
   const server = new ApolloServer({
     schema,
+    includeStacktraceInErrorResponses: true,
   })
-  const connections = await genConnections()
-
+  const connections = globalThis.connections
   const publicationQueue = new PublicationQueue(connections)
   const revisionQueue = new RevisionQueue(connections)
   const assetQueue = new AssetQueue(connections)
@@ -171,8 +187,6 @@ export const testClient = async (
 
   const genContext = () => ({
     ..._context,
-    connections,
-    queues,
     dataSources: {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
@@ -185,6 +199,8 @@ export const testClient = async (
       oauthService: new OAuthService(connections),
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
+      connections,
+      queues,
       ...dataSources,
     },
   })

@@ -1,6 +1,6 @@
-import axios from 'axios'
 import type { Connections } from 'definitions'
 
+import axios from 'axios'
 import _ from 'lodash'
 
 import {
@@ -18,15 +18,27 @@ import {
   getUserContext,
   testClient,
   genConnections,
+  closeConnections,
 } from '../utils'
 
 jest.mock('axios')
 
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
 let connections: Connections
 let userService: UserService
+
 beforeAll(async () => {
   connections = await genConnections()
+  globalThis.connections = connections
   userService = new UserService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })

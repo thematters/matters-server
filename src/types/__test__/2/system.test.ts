@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
@@ -11,7 +13,24 @@ import {
   registerUser,
   testClient,
   updateUserDescription,
+  genConnections,
+  closeConnections,
 } from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
