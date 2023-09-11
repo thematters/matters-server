@@ -1,6 +1,6 @@
 import type { GQLUserStatusResolvers } from 'definitions'
 
-const CHANGE_EMAIL_TIMES_LIMIT_PER_DAY = 3
+import { CHANGE_EMAIL_TIMES_LIMIT_PER_DAY } from 'common/enums'
 
 const resolver: GQLUserStatusResolvers['changeEmailTimesLeft'] = async (
   { id },

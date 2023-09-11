@@ -1656,3 +1656,26 @@ describe('verify user email', () => {
     expect(data.verifyEmail.info.emailVerified).toBe(true)
   })
 })
+
+describe('update user email', () => {
+  const QUERY_VIEWER_CHANGE_EMAIL_TIMES_LEFT = /* GraphQL */ `
+    query {
+      viewer {
+        id
+        info {
+          email
+        }
+        status {
+          changeEmailTimesLeft
+        }
+      }
+    }
+  `
+  test('query user email change times left', async () => {
+    const server = await testClient({ isAuth: true })
+    const { data } = await server.executeOperation({
+      query: QUERY_VIEWER_CHANGE_EMAIL_TIMES_LEFT,
+    })
+    expect(data.viewer.status.changeEmailTimesLeft).toBe(3)
+  })
+})

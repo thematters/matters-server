@@ -1,5 +1,8 @@
 import { isProd } from 'common/environment'
 
+export const CHANGE_EMAIL_TIMES_LIMIT_PER_DAY = 3
+export const CHANGE_EMAIL_COUNTER_KEY_PREFIX = 'change-email-counter'
+
 const DEV_EMAIL_TEMPLATE_ID = {
   verificationCode: {
     zh_hant: 'd-250ba94c759948cbb2bd9f94089d13b8',

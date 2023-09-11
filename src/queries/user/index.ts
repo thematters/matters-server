@@ -30,6 +30,7 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
 import collections from './collections'
 import commentCount from './commentCount'
@@ -165,6 +166,7 @@ const user: {
     totalWordCount,
     donatedArticleCount,
     receivedDonationCount,
+    changeEmailTimesLeft,
     hasEmailLoginPassword: ({ passwordHash }) => passwordHash !== null,
   },
   Appreciation,
