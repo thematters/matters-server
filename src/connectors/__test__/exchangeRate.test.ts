@@ -1,4 +1,18 @@
+import type { Connections } from 'definitions'
+
 import { ExchangeRate } from 'connectors'
+
+import { genConnections, closeConnections } from './utils'
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 // stub data
 
@@ -86,12 +100,10 @@ const rates = [
   },
 ]
 
-// @ts-ignore
-const redis = global.redis
-
 describe('exchangeRate', () => {
-  const exchangeRate = new ExchangeRate(redis)
+  let exchangeRate: ExchangeRate
   beforeEach(() => {
+    exchangeRate = new ExchangeRate(connections.redis)
     // mock
     exchangeRate.expire = 3 // 3 seconds
     // @ts-ignore

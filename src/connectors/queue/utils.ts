@@ -9,6 +9,8 @@ const logger = getLogger('queue-base')
 
 export interface CustomQueueOpts {
   limiter?: RateLimiter
+  // for testing to mock redis connection
+  createClient?: () => Redis
 }
 
 export const createQueue = (

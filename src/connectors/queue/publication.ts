@@ -1,3 +1,4 @@
+import type { CustomQueueOpts } from './utils'
 import type { Connections } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
@@ -42,8 +43,8 @@ import { BaseQueue } from './baseQueue'
 const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
-  constructor(connections: Connections) {
-    super(QUEUE_NAME.publication, connections)
+  constructor(connections: Connections, customOpts?: CustomQueueOpts) {
+    super(QUEUE_NAME.publication, connections, customOpts)
     this.addConsumers()
   }
 
@@ -103,6 +104,7 @@ export class PublicationQueue extends BaseQueue {
     job,
     done
   ) => {
+    console.log('handlePublishArticle not running ?')
     const draftService = new DraftService(this.connections)
     const articleService = new ArticleService(this.connections)
     const userService = new UserService(this.connections)

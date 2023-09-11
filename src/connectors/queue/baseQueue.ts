@@ -5,7 +5,7 @@ import Queue from 'bull'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 
-import { createQueue, CustomQueueOpts } from './utils'
+import { createQueue, type CustomQueueOpts } from './utils'
 
 const logger = getLogger('queue-base')
 
