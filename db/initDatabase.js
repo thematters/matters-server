@@ -79,7 +79,11 @@ module.exports = async (database) => {
   await knex.destroy()
 
   // return a new knex instance with snake_case_mappers
-  return Knex({ ...knexConfig, ...knexSnakeCaseMappers() })
+  return Knex({
+    ...knexConfig,
+    ...knexSnakeCaseMappers(),
+    pool: { min: 1, max: 2 },
+  })
 }
 
 async function runShellDBRollup(connection) {

@@ -104,7 +104,6 @@ export class PublicationQueue extends BaseQueue {
     job,
     done
   ) => {
-    console.log('handlePublishArticle not running ?')
     const draftService = new DraftService(this.connections)
     const articleService = new ArticleService(this.connections)
     const userService = new UserService(this.connections)
