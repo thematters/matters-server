@@ -18,7 +18,7 @@ export const objectCacheDirective = (directiveName = 'objectCache') => ({
             const { id } = root
             const cacheService = new CacheService(
               CACHE_PREFIX.OBJECTS,
-              context.connections.redis
+              context.dataSources.connections.redis
             )
             return cacheService.getObject({
               keys: {
