@@ -22,7 +22,7 @@ describe('publicationQueue.publishArticle', () => {
     draftService = new DraftService(connections)
     articleService = new ArticleService(connections)
     userService = new UserService(connections)
-    queue = new PublicationQueue(connections.redis, connections)
+    queue = new PublicationQueue(connections)
   }, 30000)
 
   afterAll(async () => {

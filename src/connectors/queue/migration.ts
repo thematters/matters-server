@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { makeSummary } from '@matters/ipns-site-generator'
 import {
@@ -32,8 +31,8 @@ import { BaseQueue } from './baseQueue'
 const logger = getLogger('queue-migration')
 
 export class MigrationQueue extends BaseQueue {
-  public constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.migration, queueRedis, connections)
+  public constructor(connections: Connections) {
+    super(QUEUE_NAME.migration, connections)
     this.addConsumers()
   }
 

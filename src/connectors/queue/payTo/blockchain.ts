@@ -1,5 +1,4 @@
 import type { EmailableUser, Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
@@ -49,12 +48,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
   private slackService: InstanceType<typeof SlackService>
   private delay: number
 
-  public constructor(
-    queueRedis: Redis,
-    connections: Connections,
-    delay?: number
-  ) {
-    super(QUEUE_NAME.payToByBlockchain, queueRedis, connections)
+  public constructor(connections: Connections, delay?: number) {
+    super(QUEUE_NAME.payToByBlockchain, connections)
     this.slackService = new SlackService()
     this.addConsumers()
     this.delay = delay ?? 5000 // 5s

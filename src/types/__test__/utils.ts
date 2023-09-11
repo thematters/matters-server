@@ -145,21 +145,17 @@ export const testClient = async (
     schema,
   })
   const connections = await genConnections()
-  const queueRedis = connections.redis
 
-  const publicationQueue = new PublicationQueue(queueRedis, connections)
-  const revisionQueue = new RevisionQueue(queueRedis, connections)
-  const assetQueue = new AssetQueue(queueRedis, connections)
-  const appreciationQueue = new AppreciationQueue(queueRedis, connections)
-  const migrationQueue = new MigrationQueue(queueRedis, connections)
-  const payToByBlockchainQueue = new PayToByBlockchainQueue(
-    queueRedis,
-    connections
-  )
-  const payToByMattersQueue = new PayToByMattersQueue(queueRedis, connections)
-  const payoutQueue = new PayoutQueue(queueRedis, connections)
-  const userQueue = new UserQueue(queueRedis, connections)
-  const ipfsQueue = new IPFSQueue(queueRedis, connections)
+  const publicationQueue = new PublicationQueue(connections)
+  const revisionQueue = new RevisionQueue(connections)
+  const assetQueue = new AssetQueue(connections)
+  const appreciationQueue = new AppreciationQueue(connections)
+  const migrationQueue = new MigrationQueue(connections)
+  const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
+  const payToByMattersQueue = new PayToByMattersQueue(connections)
+  const payoutQueue = new PayoutQueue(connections)
+  const userQueue = new UserQueue(connections)
+  const ipfsQueue = new IPFSQueue(connections)
   const queues = {
     publicationQueue,
     revisionQueue,

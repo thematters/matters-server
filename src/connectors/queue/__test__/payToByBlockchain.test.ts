@@ -109,7 +109,7 @@ describe('payToByBlockchainQueue.payTo', () => {
   beforeAll(async () => {
     connections = await genConnections()
     paymentService = new PaymentService(connections)
-    queue = new PayToByBlockchainQueue(connections.redis, connections, 1)
+    queue = new PayToByBlockchainQueue(connections, 1)
     mockFetchTxReceipt.mockClear()
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
@@ -285,7 +285,7 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   beforeAll(async () => {
     connections = await genConnections()
     paymentService = new PaymentService(connections)
-    queue = new PayToByBlockchainQueue(connections.redis, connections)
+    queue = new PayToByBlockchainQueue(connections)
     knex = connections.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {

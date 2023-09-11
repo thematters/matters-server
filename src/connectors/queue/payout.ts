@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import Queue from 'bull'
 
@@ -34,8 +33,8 @@ interface PaymentParams {
 export class PayoutQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
 
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.payout, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.payout, connections)
     this.addConsumers()
   }
 

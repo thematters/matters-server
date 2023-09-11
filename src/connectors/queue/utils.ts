@@ -2,6 +2,7 @@ import Queue, { RateLimiter } from 'bull'
 import Redis from 'ioredis'
 
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
+import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('queue-base')
@@ -12,12 +13,17 @@ export interface CustomQueueOpts {
 
 export const createQueue = (
   queueName: string,
-  redis: Redis,
   customOpts?: CustomQueueOpts
 ) => {
   const queue = new Queue(queueName, {
     createClient() {
-      return redis
+      // do not reuse the same redis connection without considering client type see https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#custom-or-shared-ioredis-connections
+      return new Redis({
+        host: environment.queueHost,
+        port: environment.queuePort,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+      })
     },
     defaultJobOptions: {
       removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,

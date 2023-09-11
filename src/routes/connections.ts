@@ -27,13 +27,6 @@ const searchKnexDB = knex({
 
 const cacheRedis = new Redis(environment.cachePort, environment.cacheHost)
 
-export const queueRedis = new Redis({
-  host: environment.queueHost,
-  port: environment.queuePort,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-})
-
 export const connections = {
   knex: mainKnex,
   knexRO: readonlyKnex,

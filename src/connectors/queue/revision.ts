@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
@@ -42,8 +41,8 @@ interface RevisedArticleData {
 }
 
 export class RevisionQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.revision, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.revision, connections)
     this.addConsumers()
   }
 

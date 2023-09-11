@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
@@ -43,8 +42,8 @@ import { BaseQueue } from './baseQueue'
 const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.publication, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.publication, connections)
     this.addConsumers()
   }
 

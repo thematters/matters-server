@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import Queue from 'bull'
 
@@ -23,8 +22,8 @@ interface ArchiveUserData {
 }
 
 export class UserQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.user, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.user, connections)
     this.addConsumers()
   }
 

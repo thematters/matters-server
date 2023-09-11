@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
@@ -26,8 +25,8 @@ interface PaymentParams {
 }
 
 export class PayToByMattersQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.payTo, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.payTo, connections)
     this.addConsumers()
   }
 

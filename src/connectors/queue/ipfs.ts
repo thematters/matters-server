@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import Queue from 'bull'
 import _ from 'lodash'
@@ -26,8 +25,8 @@ export class IPFSQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>
   ipfs: typeof ipfsServers
 
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.ipfs, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.ipfs, connections)
 
     this.ipfs = ipfsServers
     this.slackService = new SlackService()

@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
@@ -42,9 +41,9 @@ interface AppreciationParams {
 }
 
 export class AppreciationQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
+  constructor(connections: Connections) {
     // make it a bit slower on handling jobs in order to reduce courrent operations
-    super(QUEUE_NAME.appreciation, queueRedis, connections, {
+    super(QUEUE_NAME.appreciation, connections, {
       limiter: { max: 1, duration: 500 },
     })
     this.addConsumers()

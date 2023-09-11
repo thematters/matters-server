@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import Queue from 'bull'
 
@@ -17,8 +16,8 @@ interface AssetParams {
 }
 
 export class AssetQueue extends BaseQueue {
-  constructor(queueRedis: Redis, connections: Connections) {
-    super(QUEUE_NAME.asset, queueRedis, connections)
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.asset, connections)
     this.addConsumers()
   }
 

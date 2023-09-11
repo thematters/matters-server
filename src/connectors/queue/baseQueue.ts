@@ -1,5 +1,4 @@
 import type { Connections } from 'definitions'
-import type { Redis } from 'ioredis'
 
 import Queue from 'bull'
 
@@ -16,11 +15,10 @@ export class BaseQueue {
 
   public constructor(
     queueName: string,
-    queueRedis: Redis,
     connections: Connections,
     customOpts?: CustomQueueOpts
   ) {
-    this.q = createQueue(queueName, queueRedis, customOpts)
+    this.q = createQueue(queueName, customOpts)
     this.connections = connections
     this.startScheduledJobs()
   }
