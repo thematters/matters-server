@@ -22,16 +22,6 @@ declare global {
   var connections: Connections
 }
 
-let connections: Connections
-beforeAll(async () => {
-  connections = await genConnections()
-  globalThis.connections = connections
-}, 30000)
-
-afterAll(async () => {
-  await closeConnections(connections)
-})
-
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
   content: `test-${Math.floor(Math.random() * 100)}`,
@@ -47,7 +37,11 @@ const user = {
   codeId: '123',
 }
 
+let connections: Connections
+
 beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
   const { id } = await putDraft({ draft })
   await publishArticle({ id })
   await registerUser(user)
@@ -55,6 +49,10 @@ beforeAll(async () => {
     email: user.email,
     description: userDescription,
   })
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 const GET_USER = /* GraphQL */ `
