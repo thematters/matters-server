@@ -8,7 +8,6 @@ import { environment } from 'common/environment'
 import {
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TagNotFoundError,
   TooManyTagsForArticleError,
   UserInputError,
@@ -49,7 +48,7 @@ const resolver: GQLMutationResolvers['addArticlesTags'] = async (
   }
 
   if (!isMatty && tag.id === environment.mattyChoiceTagId) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    throw new ForbiddenError('not allow to add official tag')
   }
 
   // compare new and old article ids that have this tag (dedupe)
