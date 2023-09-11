@@ -37,7 +37,6 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
@@ -515,7 +514,7 @@ const handleTags = async ({
   const isMatty = environment.mattyId === viewerId
   const addIds = difference(newIds, oldIds)
   if (addIds.includes(mattyTagId) && !isMatty) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    throw new ForbiddenError('not allow to add official tag')
   }
 
   // add

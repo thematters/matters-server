@@ -63,7 +63,6 @@ import {
   NameInvalidError,
   PasswordInvalidError,
   UserInputError,
-  PasswordNotAvailableError,
   NameExistsError,
   EmailExistsError,
   CodeExpiredError,
@@ -278,9 +277,7 @@ export class UserService extends BaseService {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
     if (!user.passwordHash) {
-      throw new PasswordNotAvailableError(
-        'Password login not available for this user, login failed.'
-      )
+      throw new PasswordInvalidError('Password incorrect, login failed.')
     }
 
     await this.verifyPassword({ password, hash: user.passwordHash })
