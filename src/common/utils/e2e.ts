@@ -1,9 +1,11 @@
+import { SOCIAL_LOGIN_TYPE } from 'common/enums'
 import { isProd } from 'common/environment'
 import {
   CodeExpiredError,
   CodeInvalidError,
   UnknownError,
   CodeInactiveError,
+  OAuthTokenInvalidError,
 } from 'common/errors'
 
 const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
@@ -19,7 +21,7 @@ export const checkIfE2ETest = (emailOrAuthCode: string) => {
     return false
   }
   const isE2ETestEmail = /e2etest.*@matters.town/.test(emailOrAuthCode)
-  const isE2ETestOauthCode = /e2etestcode.*/.test(emailOrAuthCode)
+  const isE2ETestOauthCode = /e2etestcode-.*/.test(emailOrAuthCode)
 
   return isE2ETestEmail || isE2ETestOauthCode
 }
@@ -37,5 +39,33 @@ export const throwIfE2EMagicToken = (token: string) => {
     throw new CodeInactiveError('code is retired')
   } else if (token === CODE_EXPIRED) {
     throw new CodeExpiredError('code is expired')
+  }
+}
+
+export const throwOrReturnUserInfo = (
+  code: string,
+  type: keyof typeof SOCIAL_LOGIN_TYPE
+) => {
+  if (code === 'e2etestcode-unknown') {
+    throw new UnknownError(`exchange ${type} token failed`)
+  } else if (code === 'e2etestcode-invalid') {
+    throw new OAuthTokenInvalidError(`exchange ${type} token failed`)
+  }
+  if (type === SOCIAL_LOGIN_TYPE.Google) {
+    return {
+      id: code,
+      email: `${code}@gmail.com`,
+      emailVerified: true,
+    }
+  } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
+    return {
+      id: code,
+      username: code,
+    }
+  } else if (type === SOCIAL_LOGIN_TYPE.Twitter) {
+    return {
+      id: code,
+      username: code,
+    }
   }
 }
