@@ -20,15 +20,15 @@ set `passwordOrCode` to `e2ets-loent-loent-loent-loent-unkno`
 
 ### register code `CODE_INVALID` error
 
-set `passwordOrCode` to `e2etest_code_not_exists`
+set `passwordOrCode` to `e2etest-code-not-exists`
 
 ### register code `CODE_RETIRED` error
 
-set `passwordOrCode` to `e2etest_code_retired`
+set `passwordOrCode` to `e2etest-code-retired`
 
 ### register code `CODE_EXPIRED` error
 
-set `passwordOrCode` to `e2etest_code_expired`
+set `passwordOrCode` to `e2etest-code-expired`
 
 ### login / register successfully
 
@@ -41,15 +41,15 @@ logined users with emails matching the 'e2etest.*@matters.town' format will trig
 
 ### `CODE_INVALID` error
 
-set `code` to `e2etest_code_not_exists`
+set `code` to `e2etest-code-not-exists`
 
 ### `CODE_RETIRED` error
 
-set `code` to `e2etest_code_retired`
+set `code` to `e2etest-code-retired`
 
 ### `CODE_EXPIRED` error
 
-set `code` to `e2etest_code_expired`
+set `code` to `e2etest-code-expired`
 
 ### verify successfully
 
