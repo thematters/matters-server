@@ -24,16 +24,6 @@ export const isDev = process.env.MATTERS_ENV === 'development'
 export const isStage = process.env.MATTERS_ENV === 'stage'
 export const isProd = process.env.MATTERS_ENV === 'production'
 
-export const checkIfE2ETest = (emailOrAuthCode: string) => {
-  if (isProd) {
-    return false
-  }
-  const isE2ETestEmail = /e2etest.*@matters.town/.test(emailOrAuthCode)
-  const isE2ETestOauthCode = /e2etestcode.*/.test(emailOrAuthCode)
-
-  return isE2ETestEmail || isE2ETestOauthCode
-}
-
 /**
  * Here are all environment variables that server needs. Please add prefix
  * `MATTERS_` before environment variables.

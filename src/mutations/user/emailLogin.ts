@@ -1,24 +1,12 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { AUTH_RESULT_TYPE, VERIFICATION_CODE_TYPE } from 'common/enums'
-import { checkIfE2ETest } from 'common/environment'
 import {
   EmailInvalidError,
-  PasswordInvalidError,
-  CodeExpiredError,
-  CodeInvalidError,
-  UnknownError,
-  CodeInactiveError,
 } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
+import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
-
-const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
-const PASSPHREASE_MISMATCH = 'e2ets-loent-loent-loent-loent-misma'
-const PASSPHREASE_UNKNOWN = 'e2ets-loent-loent-loent-loent-unkno'
-const REGISTER_CODE_NOT_EXIST = 'e2etest_code_not_exists'
-const REGISTER_CODE_RETIRED = 'e2etest_code_retired'
-const REGISTER_CODE_EXPIRED = 'e2etest_code_expired'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
@@ -124,22 +112,6 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       type: AUTH_RESULT_TYPE.Login,
       user,
     }
-  }
-}
-
-const throwIfE2EMagicToken = (token: string) => {
-  if (token === PASSPHREASE_EXPIRED) {
-    throw new CodeExpiredError('passphrases expired')
-  } else if (token === PASSPHREASE_MISMATCH) {
-    throw new CodeInvalidError('passphrases mismatch')
-  } else if (token === PASSPHREASE_UNKNOWN) {
-    throw new UnknownError('unknown error')
-  } else if (token === REGISTER_CODE_NOT_EXIST) {
-    throw new CodeInvalidError('code does not exists')
-  } else if (token === REGISTER_CODE_RETIRED) {
-    throw new CodeInactiveError('code is retired')
-  } else if (token === REGISTER_CODE_EXPIRED) {
-    throw new CodeExpiredError('code is expired')
   }
 }
 
