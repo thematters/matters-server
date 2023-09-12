@@ -41,15 +41,15 @@ logined users with emails matching the 'e2etest.*@matters.town' format will trig
 
 ### `CODE_INVALID` error
 
-set `passwordOrCode` to `e2etest_code_not_exists`
+set `code` to `e2etest_code_not_exists`
 
 ### `CODE_RETIRED` error
 
-set `passwordOrCode` to `e2etest_code_retired`
+set `code` to `e2etest_code_retired`
 
 ### `CODE_EXPIRED` error
 
-set `passwordOrCode` to `e2etest_code_expired`
+set `code` to `e2etest_code_expired`
 
 ### verify successfully
 
