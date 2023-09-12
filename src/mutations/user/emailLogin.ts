@@ -1,9 +1,24 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { AUTH_RESULT_TYPE, VERIFICATION_CODE_TYPE } from 'common/enums'
-import { EmailInvalidError } from 'common/errors'
+import { checkIfE2ETest } from 'common/environment'
+import {
+  EmailInvalidError,
+  PasswordInvalidError,
+  CodeExpiredError,
+  CodeInvalidError,
+  UnknownError,
+  CodeInactiveError,
+} from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { Passphrases } from 'connectors/passphrases'
+
+const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
+const PASSPHREASE_MISMATCH = 'e2ets-loent-loent-loent-loent-misma'
+const PASSPHREASE_UNKNOWN = 'e2ets-loent-loent-loent-loent-unkno'
+const REGISTER_CODE_NOT_EXIST = 'e2etest_code_not_exists'
+const REGISTER_CODE_RETIRED = 'e2etest_code_retired'
+const REGISTER_CODE_EXPIRED = 'e2etest_code_expired'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
@@ -25,19 +40,27 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
 
+  const isE2ETest = checkIfE2ETest(email)
+
+  if (isE2ETest) {
+    throwIfE2EMagicToken(passwordOrCode)
+  }
+
   if (user === undefined) {
     // user not exist, register
-    if (isEmailOTP) {
-      await passphrases.verify({
-        payload: { email },
-        passphrases: passphrases.normalize(passwordOrCode),
-      })
-    } else {
-      await userService.verifyVerificationCode({
-        email,
-        type: VERIFICATION_CODE_TYPE.register,
-        code: passwordOrCode,
-      })
+    if (!isE2ETest) {
+      if (isEmailOTP) {
+        await passphrases.verify({
+          payload: { email },
+          passphrases: passphrases.normalize(passwordOrCode),
+        })
+      } else {
+        await userService.verifyVerificationCode({
+          email,
+          type: VERIFICATION_CODE_TYPE.register,
+          code: passwordOrCode,
+        })
+      }
     }
 
     const newUser = await userService.create({
@@ -75,7 +98,9 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
-      throw err.errors[0]
+      if (!isE2ETest) {
+        throw err.errors[0]
+      }
     }
 
     systemService.saveAgentHash(viewer.agentHash || '', email)
@@ -99,6 +124,22 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       type: AUTH_RESULT_TYPE.Login,
       user,
     }
+  }
+}
+
+const throwIfE2EMagicToken = (token: string) => {
+  if (token === PASSPHREASE_EXPIRED) {
+    throw new CodeExpiredError('passphrases expired')
+  } else if (token === PASSPHREASE_MISMATCH) {
+    throw new CodeInvalidError('passphrases mismatch')
+  } else if (token === PASSPHREASE_UNKNOWN) {
+    throw new UnknownError('unknown error')
+  } else if (token === REGISTER_CODE_NOT_EXIST) {
+    throw new CodeInvalidError('code does not exists')
+  } else if (token === REGISTER_CODE_RETIRED) {
+    throw new CodeInactiveError('code is retired')
+  } else if (token === REGISTER_CODE_EXPIRED) {
+    throw new CodeExpiredError('code is expired')
   }
 }
 
