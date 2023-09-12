@@ -12,16 +12,16 @@ const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
 const PASSPHREASE_MISMATCH = 'e2ets-loent-loent-loent-loent-misma'
 const PASSPHREASE_UNKNOWN = 'e2ets-loent-loent-loent-loent-unkno'
 
-const CODE_NOT_EXIST = 'e2etest_code_not_exists'
-const CODE_RETIRED = 'e2etest_code_retired'
-const CODE_EXPIRED = 'e2etest_code_expired'
+const CODE_NOT_EXIST = 'e2etest-code-not-exists'
+const CODE_RETIRED = 'e2etest-code-retired'
+const CODE_EXPIRED = 'e2etest-code-expired'
 
 export const checkIfE2ETest = (emailOrAuthCode: string) => {
   if (isProd) {
     return false
   }
   const isE2ETestEmail = /e2etest.*@matters.town/.test(emailOrAuthCode)
-  const isE2ETestOauthCode = /e2etestcode-.*/.test(emailOrAuthCode)
+  const isE2ETestOauthCode = /e2etest-.*/.test(emailOrAuthCode)
 
   return isE2ETestEmail || isE2ETestOauthCode
 }
@@ -46,9 +46,9 @@ export const throwOrReturnUserInfo = (
   code: string,
   type: keyof typeof SOCIAL_LOGIN_TYPE
 ) => {
-  if (code === 'e2etestcode-unknown') {
+  if (code === 'e2etest-unknown') {
     throw new UnknownError(`exchange ${type} token failed`)
-  } else if (code === 'e2etestcode-invalid') {
+  } else if (code === 'e2etest-invalid') {
     throw new OAuthTokenInvalidError(`exchange ${type} token failed`)
   }
   if (type === SOCIAL_LOGIN_TYPE.Google) {
