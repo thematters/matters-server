@@ -6,6 +6,7 @@ import {
   UnknownError,
   CodeInactiveError,
   OAuthTokenInvalidError,
+  PasswordInvalidError,
 } from 'common/errors'
 
 const PASSPHREASE_EXPIRED = 'e2ets-loent-loent-loent-loent-expir'
@@ -30,7 +31,7 @@ export const throwIfE2EMagicToken = (token: string) => {
   if (token === PASSPHREASE_EXPIRED) {
     throw new CodeExpiredError('passphrases expired')
   } else if (token === PASSPHREASE_MISMATCH) {
-    throw new CodeInvalidError('passphrases mismatch')
+    throw new PasswordInvalidError('passphrases mismatch')
   } else if (token === PASSPHREASE_UNKNOWN) {
     throw new UnknownError('unknown error')
   } else if (token === CODE_NOT_EXIST) {

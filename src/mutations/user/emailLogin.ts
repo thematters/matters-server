@@ -1,9 +1,7 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { AUTH_RESULT_TYPE, VERIFICATION_CODE_TYPE } from 'common/enums'
-import {
-  EmailInvalidError,
-} from 'common/errors'
+import { EmailInvalidError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'

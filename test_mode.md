@@ -10,7 +10,7 @@ Emails matching the 'e2etest.*@matters.town' format will trigger test mode.
 
 set `passwordOrCode` to `e2ets-loent-loent-loent-loent-expir`
 
-### OTP `CODE_INVALID` error
+### OTP `USER_PASSWORD_INVALID` error
 
 set `passwordOrCode` to `e2ets-loent-loent-loent-loent-misma`
 
