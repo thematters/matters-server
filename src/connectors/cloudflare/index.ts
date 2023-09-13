@@ -3,7 +3,8 @@ import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
 
-import { environment, isProd } from 'common/environment'
+import { environment, isProd, isTest } from 'common/environment'
+import { ActionFailedError, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { GQLAssetType } from 'definitions'
 
@@ -27,11 +28,7 @@ export class CloudflareService {
       // strip /public, /1280w etc.
       const lastIdx = url.lastIndexOf('/')
 
-      logger.info('get key id from full cloudflare image url: %o', {
-        url,
-        lastIdx,
-        CLOUDFLARE_IMAGE_ENDPOINT,
-      })
+      // logger.info('get key id from full cloudflare image url: %o', {url, lastIdx, CLOUDFLARE_IMAGE_ENDPOINT,})
 
       // check & confirm `draft: true` disappear
       /* {
@@ -191,6 +188,50 @@ export class CloudflareService {
 
   private genKey = (folder: string, uuid: string, extension: string): string =>
     `${folder}/${uuid}${extension ? '.' + extension : extension}`
+
+  public turnstileVerify = async ({
+    token,
+    ip,
+  }: {
+    token?: string
+    ip?: string
+  }) => {
+    // skip test
+    if (isTest) {
+      return true
+    }
+
+    if (!token) {
+      throw new UserInputError(
+        'operation is only allowed on matters.{town,news}'
+      )
+    }
+
+    // Turing test with recaptcha
+    const formData = new FormData()
+    // formData.append('url', url)
+    formData.append('secret', environment.cloudflareTurnstileSecretKey)
+    formData.append('response', token)
+    formData.append('remoteip', ip)
+
+    const res = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        body: formData,
+      }
+    )
+    logger.info('cloudflare turnstile res: %o', res.ok, res.headers)
+
+    const data = await res.json()
+    logger.info('cloudflare turnstile res data: %o', data)
+    if (!data?.success) {
+      // logger.warn('cloudflare turnstile no success: %o', data)
+      throw new ActionFailedError(`please try again: ${data['error-codes']}`)
+    }
+
+    return true
+  }
 }
 
 export const cfsvc = new CloudflareService()
