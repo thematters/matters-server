@@ -882,7 +882,7 @@ describe('emailLogin', () => {
           },
         },
       })
-      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
     })
   })
 })
