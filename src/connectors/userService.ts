@@ -97,7 +97,6 @@ import {
   ipfsServers,
   OAuthService,
   NotificationService,
-  redis,
 } from 'connectors'
 
 import { LikeCoin } from './likecoin'
@@ -388,7 +387,7 @@ export class UserService extends BaseService {
       const notificationService = new NotificationService(this.connections)
       const user = await this.loadById(userId)
       if (user.email) {
-        const counter = new RatelimitCounter(redis)
+        const counter = new RatelimitCounter(this.redis)
         const count = await counter.increment(
           `${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${user.id}`
         )
@@ -410,7 +409,7 @@ export class UserService extends BaseService {
   }
 
   public changeEmailTimes = async (userId: string) => {
-    const counter = new RatelimitCounter(redis)
+    const counter = new RatelimitCounter(this.redis)
     return counter.get(`${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${userId}`)
   }
 

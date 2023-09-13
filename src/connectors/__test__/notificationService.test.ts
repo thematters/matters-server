@@ -209,7 +209,7 @@ describe('bundle notices', () => {
 
 describe('update notices', () => {
   test('markAllNoticesAsRead', async () => {
-    const notices = await notificationService.notice.knex
+    const notices = await connections.knex
       .select()
       .where({ recipientId, unread: true })
       .from('notice')
@@ -217,7 +217,7 @@ describe('update notices', () => {
 
     await notificationService.notice.markAllNoticesAsRead(recipientId)
 
-    const readNotices = await notificationService.notice.knex
+    const readNotices = await connections.knex
       .select()
       .where({ recipientId, unread: true })
       .from('notice')
@@ -232,12 +232,12 @@ describe('query notices with onlyRecent flag', () => {
     })
     const oldNoticeId = notices[0].id
     const recentNoticeId = notices[1].id
-    await notificationService.notice.knex
+    await connections.knex
       .update({ createdAt: '2019-01-01', updatedAt: '2019-01-01' })
       .where({ id: oldNoticeId })
       .from('notice')
     const fiveMonthAgo = new Date(Date.now() - MONTH * 5)
-    await notificationService.notice.knex
+    await connections.knex
       .update({ createdAt: fiveMonthAgo, updatedAt: fiveMonthAgo })
       .where({ id: recentNoticeId })
       .from('notice')

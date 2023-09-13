@@ -35,6 +35,7 @@ test('findAssetUrl', async () => {
 
   // not-image assets return s3 url
   const notImageUrl = await systemService.findAssetUrl('7')
+  // @ts-ignore
   expect(notImageUrl).toContain(systemService.aws.s3Endpoint)
 })
 

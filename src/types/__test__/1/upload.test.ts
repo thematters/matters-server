@@ -64,7 +64,9 @@ describe('singleFileUpload', () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const systemService = new SystemService(connections)
+    // @ts-ignore
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
+    // @ts-ignore
     systemService.aws.baseUploadFile = uploadS3 as any
 
     const server = await testClient({
@@ -90,7 +92,9 @@ describe('singleFileUpload', () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const systemService = new SystemService(connections)
+    // @ts-ignore
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
+    // @ts-ignore
     systemService.aws.baseUploadFile = uploadS3 as any
 
     const server = await testClient({

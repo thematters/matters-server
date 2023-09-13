@@ -24,7 +24,7 @@ afterAll(async () => {
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -110,7 +110,7 @@ describe('countDonators', () => {
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -176,7 +176,7 @@ describe('search', () => {
   test('prefer more num_followers', async () => {
     const getNumFollowers = async (id: string) =>
       (
-        await userService
+        await connections
           .knex('search_index.user')
           .where({ id })
           .select('num_followers')
@@ -208,7 +208,7 @@ describe('search', () => {
     expect(res2.totalCount).toBe(0)
   })
   test('handle blocked', async () => {
-    await userService
+    await connections
       .knex('action_user')
       .insert({ userId: '2', action: USER_ACTION.block, targetId: '1' })
 
@@ -239,7 +239,7 @@ describe('search', () => {
 
 describe('updateLastSeen', () => {
   const getLastseen = async (id: string) => {
-    const { lastSeen } = await userService
+    const { lastSeen } = await connections
       .knex('public.user')
       .select('last_seen')
       .where({ id })
@@ -371,7 +371,7 @@ describe('totalPinnedWorks', () => {
     expect(res).toBe(0)
   })
   test('get 1 pinned works', async () => {
-    await userService
+    await connections
       .knex('collection')
       .insert({ authorId: '1', title: 'test', pinned: true })
     const res = await userService.totalPinnedWorks('1')
@@ -588,16 +588,28 @@ describe('test update email', () => {
     await userService.setEmail(user.id, 'testchangeemail0@matters.town')
     expect(await userService.changeEmailTimes(user.id)).toBe(0)
 
-    await new UserService().setEmail(user.id, 'testchangeemail1@matters.town')
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail1@matters.town'
+    )
     expect(await userService.changeEmailTimes(user.id)).toBe(1)
 
-    await new UserService().setEmail(user.id, 'testchangeemail2@matters.town')
-    await new UserService().setEmail(user.id, 'testchangeemail3@matters.town')
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail2@matters.town'
+    )
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail3@matters.town'
+    )
 
     expect(await userService.changeEmailTimes(user.id)).toBe(3)
 
     expect(
-      new UserService().setEmail(user.id, 'testchangeemail4@matters.town')
+      new UserService(connections).setEmail(
+        user.id,
+        'testchangeemail4@matters.town'
+      )
     ).rejects.toThrow()
   })
 })

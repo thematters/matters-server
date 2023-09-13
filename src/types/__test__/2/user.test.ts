@@ -1753,7 +1753,7 @@ describe('update user email', () => {
     }
   `
   test('query user email change times left', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: QUERY_VIEWER_CHANGE_EMAIL_TIMES_LEFT,
     })
