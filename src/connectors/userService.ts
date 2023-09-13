@@ -54,6 +54,8 @@ import {
   BLOCKCHAIN_CHAINID,
   SIGNING_MESSAGE_PURPOSE,
   SOCIAL_LOGIN_TYPE,
+  CHANGE_EMAIL_TIMES_LIMIT_PER_DAY,
+  CHANGE_EMAIL_COUNTER_KEY_PREFIX,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -84,6 +86,7 @@ import {
   getAlchemyProvider,
   IERC1271,
   genDisplayName,
+  RatelimitCounter,
 } from 'common/utils'
 import {
   AtomService,
@@ -93,6 +96,7 @@ import {
   ipfsServers,
   OAuthService,
   NotificationService,
+  redis,
 } from 'connectors'
 
 import { likecoin } from './likecoin'
@@ -383,18 +387,30 @@ export class UserService extends BaseService {
       const notificationService = new NotificationService()
       const user = await this.loadById(userId)
       if (user.email) {
+        const counter = new RatelimitCounter(redis)
+        const count = await counter.increment(
+          `${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${user.id}`
+        )
+        if (count > CHANGE_EMAIL_TIMES_LIMIT_PER_DAY) {
+          throw new ActionFailedError('email change too frequent')
+        }
         notificationService.mail.sendEmailChange({
           to: user.email,
           newEmail: email,
           language: user.language,
         })
       }
-      return await this.baseUpdate(userId, {
+      return this.baseUpdate(userId, {
         email,
         emailVerified: false,
         passwordHash: null,
       })
     }
+  }
+
+  public changeEmailTimes = async (userId: string) => {
+    const counter = new RatelimitCounter(redis)
+    return counter.get(`${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${userId}`)
   }
 
   public setPassword = async (

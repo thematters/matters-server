@@ -407,6 +407,9 @@ export default /* GraphQL */ `
 
     "Weather login password is set for email login."
     hasEmailLoginPassword: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "Number of chances for the user to change email in a nature day. Reset in UTC+8 0:00"
+    changeEmailTimesLeft: Int! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   type Liker {

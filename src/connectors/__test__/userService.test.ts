@@ -548,3 +548,26 @@ describe('test remove login methods', () => {
     expect(await userService.findSocialAccountsByUserId(user.id)).toEqual([])
   })
 })
+
+describe('test update email', () => {
+  test('user can only change email limit times per day', async () => {
+    const user = await userService.create({})
+    expect(await userService.changeEmailTimes(user.id)).toBe(0)
+
+    // set email first time will not increase counter
+    await userService.setEmail(user.id, 'testchangeemail0@matters.town')
+    expect(await userService.changeEmailTimes(user.id)).toBe(0)
+
+    await new UserService().setEmail(user.id, 'testchangeemail1@matters.town')
+    expect(await userService.changeEmailTimes(user.id)).toBe(1)
+
+    await new UserService().setEmail(user.id, 'testchangeemail2@matters.town')
+    await new UserService().setEmail(user.id, 'testchangeemail3@matters.town')
+
+    expect(await userService.changeEmailTimes(user.id)).toBe(3)
+
+    expect(
+      new UserService().setEmail(user.id, 'testchangeemail4@matters.town')
+    ).rejects.toThrow()
+  })
+})

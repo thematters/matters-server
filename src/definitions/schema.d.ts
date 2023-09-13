@@ -3694,6 +3694,8 @@ export type GQLUserStatus = {
   __typename?: 'UserStatus'
   /** Number of articles published by user */
   articleCount: Scalars['Int']['output']
+  /** Number of chances for the user to change email in a nature day. Reset in UTC+8 0:00 */
+  changeEmailTimesLeft: Scalars['Int']['output']
   /** Number of comments posted by user. */
   commentCount: Scalars['Int']['output']
   /** Number of articles donated by user */
@@ -8500,6 +8502,11 @@ export type GQLUserStatusResolvers<
   ParentType extends GQLResolversParentTypes['UserStatus'] = GQLResolversParentTypes['UserStatus']
 > = ResolversObject<{
   articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  changeEmailTimesLeft?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donatedArticleCount?: Resolver<
     GQLResolversTypes['Int'],
