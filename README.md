@@ -41,6 +41,12 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
 Please refer to the repo [matters-email](https://github.com/thematters/matters-email) for details.
 
+## Test Mode
+
+To make the login flow testing easier, the login-related mutations have hardcoded input values with respective behaviors in the non-production environment.
+
+see [test_mode.md](./test_mode.md) for detail
+
 ## NOTE
 
 AWS resources that we need to put in the same VPC

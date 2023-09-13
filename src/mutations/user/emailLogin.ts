@@ -3,6 +3,7 @@ import type { GQLMutationResolvers, AuthMode } from 'definitions'
 import { AUTH_RESULT_TYPE, VERIFICATION_CODE_TYPE } from 'common/enums'
 import { EmailInvalidError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
+import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
@@ -25,19 +26,27 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
 
+  const isE2ETest = checkIfE2ETest(email)
+
+  if (isE2ETest) {
+    throwIfE2EMagicToken(passwordOrCode)
+  }
+
   if (user === undefined) {
     // user not exist, register
-    if (isEmailOTP) {
-      await passphrases.verify({
-        payload: { email },
-        passphrases: passphrases.normalize(passwordOrCode),
-      })
-    } else {
-      await userService.verifyVerificationCode({
-        email,
-        type: VERIFICATION_CODE_TYPE.register,
-        code: passwordOrCode,
-      })
+    if (!isE2ETest) {
+      if (isEmailOTP) {
+        await passphrases.verify({
+          payload: { email },
+          passphrases: passphrases.normalize(passwordOrCode),
+        })
+      } else {
+        await userService.verifyVerificationCode({
+          email,
+          type: VERIFICATION_CODE_TYPE.register,
+          code: passwordOrCode,
+        })
+      }
     }
 
     const newUser = await userService.create({
@@ -75,7 +84,9 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
-      throw err.errors[0]
+      if (!isE2ETest) {
+        throw err.errors[0]
+      }
     }
 
     systemService.saveAgentHash(viewer.agentHash || '', email)

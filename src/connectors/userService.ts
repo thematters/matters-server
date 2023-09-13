@@ -2444,7 +2444,7 @@ export class UserService extends BaseService {
         throw new OAuthTokenInvalidError('exchange facebook token failed')
       }
       logger.error('fetch facebook error: ', error)
-      throw new UnknownError('exchange facebook tokenfailed')
+      throw new UnknownError('exchange facebook token failed')
     }
   }
 
