@@ -1,4 +1,4 @@
-import type { GQLNodeInput, Connections } from 'definitions'
+import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 import _omit from 'lodash/omit'
@@ -30,14 +30,11 @@ import {
 declare global {
   // eslint-disable-next-line no-var
   var mockEnums: any
-  // eslint-disable-next-line no-var
-  var connections: Connections
 }
 
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -144,16 +141,6 @@ const GET_ARTICLE_DRAFTS = /* GraphQL */ `
   }
 `
 
-const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: $input) {
-      ... on Article {
-        appreciationsReceivedTotal
-      }
-    }
-  }
-`
-
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation ($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -227,22 +214,11 @@ const GET_RELATED_ARTICLES = /* GraphQL */ `
   }
 `
 
-export const getArticleAppreciationsReceivedTotal = async (
-  input: GQLNodeInput
-) => {
-  const server = await testClient()
-  const { data } = await server.executeOperation({
-    query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
-    variables: { input },
-  })
-  const { appreciationsReceivedTotal } = data && data.node && data.node
-  return appreciationsReceivedTotal
-}
-
 describe('query article', () => {
   test('query articles', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: true,
     })
     const { data } = await server.executeOperation({
@@ -253,7 +229,7 @@ describe('query article', () => {
   })
 
   test('query related articles', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: GET_RELATED_ARTICLES,
       variables: { input: { mediaHash } },
@@ -265,7 +241,7 @@ describe('query article', () => {
 describe('query tag on article', () => {
   test('query tag on article', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_ARTICLE_TAGS,
       variables: { input: { id } },
@@ -280,7 +256,7 @@ describe('query tag on article', () => {
 describe('query drafts on article', () => {
   test('query drafts on article', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_ARTICLE_DRAFTS,
       variables: { input: { id } },
@@ -307,14 +283,13 @@ describe('publish article', () => {
       title: Math.random().toString(),
       content: Math.random().toString(),
     }
-    const { id } = await putDraft({ draft })
-    const server = await testClient({ noUserName: true })
+    const { id } = await putDraft({ draft }, connections)
+    const server = await testClient({ noUserName: true, connections })
 
     const { errors } = await server.executeOperation({
       query: PUBLISH_ARTICLE,
       variables: { input: { id } },
     })
-    console.dir(errors, { depth: null })
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('create a draft & publish it', async () => {
@@ -323,25 +298,28 @@ describe('publish article', () => {
       title: Math.random().toString(),
       content: Math.random().toString(),
     }
-    const { id } = await putDraft({ draft })
-    const { publishState, article } = await publishArticle({ id })
+    const { id } = await putDraft({ draft }, connections)
+    const { publishState, article } = await publishArticle({ id }, connections)
     expect(publishState).toBe(PUBLISH_STATE.pending)
     expect(article).toBeNull()
   })
 
   test('create a draft & publish with iscn', async () => {
     jest.setTimeout(10000)
-    const draft = await putDraft({
-      draft: {
-        title: Math.random().toString(),
-        content: Math.random().toString(),
-        iscnPublish: true,
+    const draft = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          iscnPublish: true,
+        },
       },
-    })
+      connections
+    )
     expect(_get(draft, 'id')).not.toBeNull()
     expect(_get(draft, 'iscnPublish')).toBe(true)
 
-    const { publishState } = await publishArticle({ id: draft.id })
+    const { publishState } = await publishArticle({ id: draft.id }, connections)
     expect(publishState).toBe(PUBLISH_STATE.pending)
   })
 
@@ -354,9 +332,12 @@ describe('publish article', () => {
       data: { articleId: '4', archived: true },
     })
     const publishedDraftId = toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
-    const { publishState, article } = await publishArticle({
-      id: publishedDraftId,
-    })
+    const { publishState, article } = await publishArticle(
+      {
+        id: publishedDraftId,
+      },
+      connections
+    )
     expect(publishState).toBe(PUBLISH_STATE.published)
     expect(article.content).not.toBeNull()
   })
@@ -366,6 +347,7 @@ describe('toggle article state', () => {
   test('subscribe an article', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: true,
     })
     const { data } = await server.executeOperation({
@@ -383,6 +365,7 @@ describe('toggle article state', () => {
   test('unsubscribe an article ', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: true,
     })
     const { data } = await server.executeOperation({
@@ -404,19 +387,25 @@ describe('frozen user do muations to article', () => {
   const errorPath = 'errors.0.extensions.code'
 
   const frozeUser = async () =>
-    updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'frozen',
-    })
+    updateUserState(
+      {
+        id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
+        state: 'frozen',
+      },
+      connections
+    )
   const activateUser = async () =>
-    updateUserState({
-      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
-      state: 'active',
-    })
+    updateUserState(
+      {
+        id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
+        state: 'active',
+      },
+      connections
+    )
 
   test('subscribe article', async () => {
     await frozeUser()
-    const server = await testClient(frozenUser)
+    const server = await testClient({ ...frozenUser, connections })
     const result = await server.executeOperation({
       query: TOGGLE_SUBSCRIBE_ARTICLE,
       variables: {
@@ -432,7 +421,7 @@ describe('frozen user do muations to article', () => {
 
   test('unsubscribe article', async () => {
     await frozeUser()
-    const server = await testClient(frozenUser)
+    const server = await testClient({ ...frozenUser, connections })
     const result = await server.executeOperation({
       query: TOGGLE_SUBSCRIBE_ARTICLE,
       variables: {
@@ -448,13 +437,16 @@ describe('frozen user do muations to article', () => {
 
   test('create draft', async () => {
     await frozeUser()
-    const result = await putDraft({
-      draft: {
-        title: Math.random().toString(),
-        content: Math.random().toString(),
+    const result = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+        client: { isFrozen: true },
       },
-      client: { isFrozen: true },
-    })
+      connections
+    )
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
     await activateUser()
   })
@@ -465,6 +457,7 @@ describe('edit article', () => {
     const summary = 'my customized summary'
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const result = await server.executeOperation({
@@ -510,6 +503,7 @@ describe('edit article', () => {
     const tags = ['abc', '123', 'tag3', 'tag4', 'tag5']
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const limit = 3
@@ -654,6 +648,7 @@ describe('edit article', () => {
   test('edit article collection', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const collection = [
@@ -846,6 +841,7 @@ describe('edit article', () => {
   test('toggle article sticky', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const enableResult = await server.executeOperation({
@@ -874,6 +870,7 @@ describe('edit article', () => {
   test('edit license', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const result = await server.executeOperation({
@@ -929,6 +926,7 @@ describe('edit article', () => {
     const replyToDonator = 'test support reply'
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const result = await server.executeOperation({
@@ -966,7 +964,7 @@ describe('edit article', () => {
     )
 
     // non-donators can not view replyToDonator
-    const anonymousServer = await testClient()
+    const anonymousServer = await testClient({ connections })
     const result3 = await anonymousServer.executeOperation({
       query: GET_ARTICLE,
       variables: {
@@ -980,8 +978,11 @@ describe('edit article', () => {
     )
     expect(_get(result3, 'data.article.replyToDonator')).toBe(null)
 
-    const context = await getUserContext({ email: 'test2@matters.news' })
-    const donatorServer = await testClient({ context })
+    const context = await getUserContext(
+      { email: 'test2@matters.news' },
+      connections
+    )
+    const donatorServer = await testClient({ context, connections })
     const result4 = await donatorServer.executeOperation({
       query: GET_ARTICLE,
       variables: {
@@ -1024,6 +1025,7 @@ describe('edit article', () => {
   test('edit comment settings', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const result = await server.executeOperation({
@@ -1070,6 +1072,7 @@ describe('edit article', () => {
   test('edit sensitive settings', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
       isAdmin: false,
     })
     const result = await server.executeOperation({
@@ -1098,6 +1101,7 @@ describe('edit article', () => {
     // turn on by admin
     const adminServer = await testClient({
       isAuth: true,
+      connections,
       isAdmin: true,
     })
     const UPDATE_ARTICLE_SENSITIVE = `
@@ -1125,6 +1129,7 @@ describe('edit article', () => {
   test('archive article', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     const { data } = await server.executeOperation({

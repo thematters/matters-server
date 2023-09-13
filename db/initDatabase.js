@@ -82,7 +82,8 @@ module.exports = async (database) => {
   return Knex({
     ...knexConfig,
     ...knexSnakeCaseMappers(),
-    pool: { min: 1, max: 2 },
+    pool: { min: 1, max: 6 },
+    // debug: true
   })
 }
 

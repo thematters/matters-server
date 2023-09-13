@@ -3,7 +3,6 @@ import type { Connections } from 'definitions'
 import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { AtomService } from 'connectors'
 
@@ -38,10 +37,6 @@ export class AssetQueue extends BaseQueue {
    * Consumer
    */
   private addConsumers = () => {
-    if (isTest) {
-      return
-    }
-
     this.q.process(QUEUE_JOB.deleteAsset, this.deleteAsset)
   }
 

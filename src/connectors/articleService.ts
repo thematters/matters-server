@@ -326,10 +326,15 @@ export class ArticleService extends BaseService {
   }) => {
     const userService = new UserService(this.connections)
 
-    const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
-    if (!ipnsKeyRec) {
-      // cannot do anything if no ipns key
-      logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+    try {
+      const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
+      if (!ipnsKeyRec) {
+        // cannot do anything if no ipns key
+        logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+        return
+      }
+    } catch (error) {
+      logger.error('create IPNS key ERROR: %o', error)
       return
     }
   }

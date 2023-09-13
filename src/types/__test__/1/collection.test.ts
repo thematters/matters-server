@@ -5,15 +5,9 @@ import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -149,7 +143,7 @@ const GET_PINNED_WORKS = /* GraphQL */ `
 
 describe('get viewer collections', () => {
   test('not logged-in user', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_COLLECTIONS,
     })
@@ -158,7 +152,7 @@ describe('get viewer collections', () => {
   })
 
   test('logged-in user', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_COLLECTIONS,
     })
@@ -193,7 +187,7 @@ describe('get viewer collections', () => {
 
 describe('collections CURD', () => {
   test('not logged-in users can not mutate collections', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { errors } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
@@ -203,7 +197,7 @@ describe('collections CURD', () => {
     )
   })
   test('users w/o username can not mutate collections', async () => {
-    const server = await testClient({ noUserName: true })
+    const server = await testClient({ noUserName: true, connections })
     const { errors } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
@@ -211,7 +205,7 @@ describe('collections CURD', () => {
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('long title/description is not allowed', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { errors } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'a'.repeat(41) } },
@@ -226,7 +220,7 @@ describe('collections CURD', () => {
   })
   describe('cover is checked', () => {
     test('invalid cover input', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const { errors } = await server.executeOperation({
         query: PUT_COLLECTION,
         variables: { input: { title: 'test', cover: 'invalid cover' } },
@@ -235,7 +229,7 @@ describe('collections CURD', () => {
     })
 
     test('assset not exists in db', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const { errors } = await server.executeOperation({
         query: PUT_COLLECTION,
         variables: {
@@ -249,7 +243,7 @@ describe('collections CURD', () => {
     })
 
     test('asset not cover type', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const { errors } = await server.executeOperation({
         query: PUT_COLLECTION,
         variables: {
@@ -263,7 +257,7 @@ describe('collections CURD', () => {
     })
 
     test('success', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const { data } = await server.executeOperation({
         query: PUT_COLLECTION,
         variables: {
@@ -278,7 +272,7 @@ describe('collections CURD', () => {
   })
   describe('update collection', () => {
     test('id is checked', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const { errors } = await server.executeOperation({
         query: PUT_COLLECTION,
         variables: { input: { id: 'invalid id', title: 'test' } },
@@ -308,7 +302,11 @@ describe('collections CURD', () => {
       expect(errors3?.[0]?.message).toBe('Collection not found')
 
       // can not update others users' collections
-      const server2 = await testClient({ isAuth: true, isMatty: true })
+      const server2 = await testClient({
+        isAuth: true,
+        isMatty: true,
+        connections,
+      })
       const {
         data: {
           putCollection: { id },
@@ -324,7 +322,7 @@ describe('collections CURD', () => {
       expect(errors4?.[0]?.message).toBe('Viewer has no permission')
     })
     test('success', async () => {
-      const server = await testClient({ isAuth: true })
+      const server = await testClient({ isAuth: true, connections })
       const {
         data: {
           putCollection: { id },
@@ -351,13 +349,17 @@ describe('delete collections', () => {
   let id: string
   let othersId: string
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
     })
     id = data?.putCollection?.id
-    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const othersServer = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
     const { data: data2 } = await othersServer.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },
@@ -365,7 +367,7 @@ describe('delete collections', () => {
     othersId = data2?.putCollection?.id
   })
   test('not logged-in users can not mutate collections', async () => {
-    const server2 = await testClient()
+    const server2 = await testClient({ connections })
     const { errors } = await server2.executeOperation({
       query: DEL_COLLECTIONS,
       variables: { input: { ids: [id] } },
@@ -417,7 +419,7 @@ describe('add articles to collections', () => {
   let collectionId1: string
   let collectionId2: string
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'collection 1' } },
@@ -430,7 +432,7 @@ describe('add articles to collections', () => {
     collectionId2 = data2?.putCollection?.id
   })
   test('not logged-in users can not mutate collections', async () => {
-    const visitorServer = await testClient()
+    const visitorServer = await testClient({ connections })
     const { errors } = await visitorServer.executeOperation({
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
@@ -494,7 +496,11 @@ describe('add articles to collections', () => {
   })
   test('can not add to others collections', async () => {
     // get others collection
-    const server2 = await testClient({ isAuth: true, isMatty: true })
+    const server2 = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
     const {
       data: {
         putCollection: { id: othersCollectionId },
@@ -578,13 +584,17 @@ describe('delete articles in collections', () => {
   let collectionId: string
   let othersCollectionId: string
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
     })
     collectionId = data?.putCollection?.id
-    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const othersServer = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
     const { data: data2 } = await othersServer.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'others collection' } },
@@ -592,7 +602,7 @@ describe('delete articles in collections', () => {
     othersCollectionId = data2?.putCollection?.id
   })
   test('not logged-in users can not mutate collections', async () => {
-    const visitorServer = await testClient()
+    const visitorServer = await testClient({ connections })
     const { errors } = await visitorServer.executeOperation({
       query: DEL_COLLECTION_ARTICLES,
       variables: {
@@ -661,7 +671,7 @@ describe('reorder articles in collections', () => {
   let server: any
   let collectionId: string
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'my collection' } },
@@ -699,7 +709,7 @@ describe('update pinned', () => {
   let collectionId: string
   const title = 'my collection'
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title } },
@@ -764,7 +774,7 @@ describe('check article if in collections', () => {
   let server: any
   let collectionId: string
   beforeAll(async () => {
-    server = await testClient({ isAuth: true })
+    server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: PUT_COLLECTION,
       variables: { input: { title: 'test' } },

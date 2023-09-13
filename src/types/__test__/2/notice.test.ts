@@ -5,15 +5,10 @@ import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
+
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -41,7 +36,7 @@ const GET_NOTICES = /* GraphQL */ `
 `
 
 test('query notices', async () => {
-  const server = await testClient({ isAuth: true })
+  const server = await testClient({ isAuth: true, connections })
   const { data } = await server.executeOperation({
     query: GET_NOTICES,
     variables: {

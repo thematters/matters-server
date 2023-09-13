@@ -19,7 +19,7 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
 import {
@@ -55,10 +55,6 @@ export class RevisionQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    if (isTest) {
-      return
-    }
-
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,

@@ -27,18 +27,12 @@ import {
   closeConnections,
 } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
 let userService: UserService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
 }, 30000)
@@ -481,12 +475,13 @@ describe('register and login functionarlities', () => {
       password: 'Abcd1234',
       codeId: code.uuid,
     }
-    const registerResult = await registerUser(user)
+    const registerResult = await registerUser(user, connections)
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
-    const context = await getUserContext({ email: user.email })
+    const context = await getUserContext({ email: user.email }, connections)
     const server = await testClient({
       context,
+      connections,
     })
     const newUserResult = await server.executeOperation({
       query: GET_VIEWER_INFO,
@@ -503,7 +498,7 @@ describe('register and login functionarlities', () => {
   test('auth fail when password is incorrect', async () => {
     const email = 'test1@matters.news'
     const password = 'wrongPassword'
-    const server = await testClient()
+    const server = await testClient({ connections })
 
     const result = await server.executeOperation({
       query: USER_LOGIN,
@@ -518,7 +513,7 @@ describe('register and login functionarlities', () => {
     const email = 'test1@matters.news'
     const password = '12345678'
 
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: USER_LOGIN,
       variables: { input: { email, password } },
@@ -529,6 +524,7 @@ describe('register and login functionarlities', () => {
   test('retrive user info after login', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_INFO,
@@ -541,7 +537,7 @@ describe('register and login functionarlities', () => {
 describe('user query fields', () => {
   test('get user by username', async () => {
     const userName = 'test1'
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_USER_BY_USERNAME,
       variables: { input: { userName } },
@@ -551,6 +547,7 @@ describe('user query fields', () => {
   test('retrive user articles', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const result = await server.executeOperation({
       query: GET_VIEW_ARTICLES,
@@ -563,7 +560,7 @@ describe('user query fields', () => {
   })
 
   test('retrive UserSettings by visitors', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
@@ -577,6 +574,7 @@ describe('user query fields', () => {
   test('retrive UserSettings', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
@@ -592,6 +590,7 @@ describe('user query fields', () => {
   test('retrive subscriptions', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_SUBSCRIPTIONS,
@@ -604,6 +603,7 @@ describe('user query fields', () => {
   test('retrive followers', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWERS,
@@ -616,6 +616,7 @@ describe('user query fields', () => {
   test('retrive followees', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWEES,
@@ -628,6 +629,7 @@ describe('user query fields', () => {
   test('retrive following', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_FOLLOWINGS,
@@ -642,7 +644,7 @@ describe('user query fields', () => {
   })
 
   test('retrive topDonators by visitor', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: {} },
@@ -654,6 +656,7 @@ describe('user query fields', () => {
   test.skip('retrive topDonators by user', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const recipientId = '1'
     // test no donators
@@ -691,6 +694,7 @@ describe('user query fields', () => {
   test('retrive wallet transactions', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const recipientId = '1'
     const senderId = '2'
@@ -839,7 +843,7 @@ describe('user query fields', () => {
 describe('mutations on User object', () => {
   test('follow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const result = await server.executeOperation({
       query: TOGGLE_FOLLOW_USER,
       variables: {
@@ -854,7 +858,7 @@ describe('mutations on User object', () => {
 
   test('unfollow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: TOGGLE_FOLLOW_USER,
       variables: {
@@ -869,7 +873,7 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const result = await server.executeOperation({
       query: TOGGLE_BLOCK_USER,
       variables: {
@@ -884,7 +888,7 @@ describe('mutations on User object', () => {
 
   test('block a user with `toggleBlockUser`', async () => {
     const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const result = await server.executeOperation({
       query: TOGGLE_BLOCK_USER,
       variables: {
@@ -902,6 +906,7 @@ describe('mutations on User object', () => {
     const displayName = 'abc2244'
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: UPDATE_USER_INFO,
@@ -922,6 +927,7 @@ describe('mutations on User object', () => {
     const adminServer = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
     const { data: adminReservedNameData } = await adminServer.executeOperation({
       query: UPDATE_USER_INFO,
@@ -935,7 +941,7 @@ describe('mutations on User object', () => {
   })
 
   test('updateUserInfoUserName', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
 
     // user cannnot use reserved name
     const userName = 'Test1'
@@ -961,6 +967,7 @@ describe('mutations on User object', () => {
     const description = 'foo bar'
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: UPDATE_USER_INFO,
@@ -974,6 +981,7 @@ describe('mutations on User object', () => {
     const avatarAssetUUID = '00000000-0000-0000-0000-000000000001'
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: UPDATE_USER_INFO,
@@ -986,6 +994,7 @@ describe('mutations on User object', () => {
   test('updateNotificationSetting', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
@@ -1000,7 +1009,7 @@ describe('mutations on User object', () => {
 
   test('setCurrency', async () => {
     // visitor can not set currency
-    const visitorServer = await testClient()
+    const visitorServer = await testClient({ connections })
     const { errors } = await visitorServer.executeOperation({
       query: SET_CURRENCY,
       variables: { input: { currency: 'USD' } },
@@ -1010,6 +1019,7 @@ describe('mutations on User object', () => {
     // user can set currency
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: SET_CURRENCY,
@@ -1021,6 +1031,7 @@ describe('mutations on User object', () => {
   test('read history', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     // check read history
@@ -1052,6 +1063,7 @@ describe('user recommendations', () => {
     for (const list of lists) {
       const serverNew = await testClient({
         isAuth: true,
+        connections,
       })
 
       const result = await serverNew.executeOperation({
@@ -1072,6 +1084,7 @@ describe('user recommendations', () => {
 
     const serverNew = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await serverNew.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_TAGS,
@@ -1088,6 +1101,7 @@ describe('user recommendations', () => {
 
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
@@ -1115,6 +1129,7 @@ describe('user recommendations', () => {
     // before restricted
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('hottest'),
@@ -1153,6 +1168,7 @@ describe('user recommendations', () => {
     // before restricted
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION('newest'),
@@ -1179,6 +1195,7 @@ describe('badges', () => {
   test('get user badges', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_BADGES,
@@ -1194,7 +1211,7 @@ describe('verification code', () => {
 
   test('verified code', async () => {
     // get multi active codes
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data: data1 } = await server.executeOperation({
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
@@ -1214,7 +1231,7 @@ describe('verification code', () => {
     expect(codes[0].code !== codes[1].code).toBeTruthy()
 
     // confirm
-    const serverMutate = await testClient()
+    const serverMutate = await testClient({ connections })
     const confirmedResult = await serverMutate.executeOperation({
       query: CONFIRM_VERIFICATION_CODE,
       variables: { input: { type, email, code: codes[0].code } },
@@ -1232,7 +1249,7 @@ describe('verification code', () => {
 
   test('inactive code', async () => {
     // send
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
@@ -1250,7 +1267,7 @@ describe('verification code', () => {
     })
 
     // confirm
-    const serverMutate = await testClient()
+    const serverMutate = await testClient({ connections })
     const confirmedResult = await serverMutate.executeOperation({
       query: CONFIRM_VERIFICATION_CODE,
       variables: { input: { type, email, code: code.code } },
@@ -1262,7 +1279,7 @@ describe('verification code', () => {
 
   test('expired code', async () => {
     // send
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email, token: 'some-test-token' } },
@@ -1280,7 +1297,7 @@ describe('verification code', () => {
     })
 
     // confirm
-    const serverMutate = await testClient()
+    const serverMutate = await testClient({ connections })
     const confirmedResult = await serverMutate.executeOperation({
       query: CONFIRM_VERIFICATION_CODE,
       variables: { input: { type, email, code: code.code } },
@@ -1298,6 +1315,7 @@ describe('topics & chapters', () => {
   test('get user topics', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_TOPICS,
@@ -1319,6 +1337,7 @@ describe('topics & chapters', () => {
   test('create topic', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     // create
@@ -1334,6 +1353,7 @@ describe('topics & chapters', () => {
   test('update topic', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     const title = 'topic 345'
@@ -1360,6 +1380,7 @@ describe('topics & chapters', () => {
   test('create chapter', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     // create
@@ -1377,6 +1398,7 @@ describe('topics & chapters', () => {
   test('update chapter', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     const title = 'chapter 345'
@@ -1399,6 +1421,7 @@ describe('topics & chapters', () => {
   test('sort topics', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     const { data } = await server.executeOperation({
@@ -1415,6 +1438,7 @@ describe('topics & chapters', () => {
   test('delete topics', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
 
     const { data } = await server.executeOperation({
@@ -1433,6 +1457,7 @@ describe('likecoin', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
 
     // check if exists
@@ -1458,6 +1483,7 @@ describe('crypto wallet', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
 
     // check if exists
@@ -1479,6 +1505,7 @@ describe('crypto wallet', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
 
     // check if exists
@@ -1507,40 +1534,58 @@ describe('update user state', () => {
   const activeUser2Email = 'test3@matters.news'
 
   test('archive user should provide viewer passwd', async () => {
-    const { errors } = await updateUserState({ id, state: USER_STATE.archived })
+    const { errors } = await updateUserState(
+      { id, state: USER_STATE.archived },
+      connections
+    )
     expect(errors[0].message).toBe('`password` is required for archiving user')
-    const { data } = await updateUserState({
-      id,
-      state: USER_STATE.archived,
-      password: '12345678',
-    })
+    const { data } = await updateUserState(
+      {
+        id,
+        state: USER_STATE.archived,
+        password: '12345678',
+      },
+      connections
+    )
     expect(data.updateUserState[0].status.state).toBe('archived')
 
     archivedUserEmail = data.updateUserState[0].info.email
   })
 
   test('archived user can not change to other state', async () => {
-    const { errors } = await updateUserState({ id, state: USER_STATE.banned })
+    const { errors } = await updateUserState(
+      { id, state: USER_STATE.banned },
+      connections
+    )
     expect(errors[0].message).toBe('user has already been archived')
 
-    const { errors: errors2 } = await updateUserState({
-      emails: [archivedUserEmail, activeUser1Email],
-      state: USER_STATE.banned,
-    })
+    const { errors: errors2 } = await updateUserState(
+      {
+        emails: [archivedUserEmail, activeUser1Email],
+        state: USER_STATE.banned,
+      },
+      connections
+    )
     expect(errors2[0].message).toBe('user has already been archived')
   })
   test('ban user by id', async () => {
-    const { data } = await updateUserState({
-      id: activeUser1Id,
-      state: USER_STATE.banned,
-    })
+    const { data } = await updateUserState(
+      {
+        id: activeUser1Id,
+        state: USER_STATE.banned,
+      },
+      connections
+    )
     expect(data.updateUserState[0].status.state).toBe('banned')
   })
   test('ban users by emails', async () => {
-    const { data } = await updateUserState({
-      emails: [activeUser2Email],
-      state: USER_STATE.banned,
-    })
+    const { data } = await updateUserState(
+      {
+        emails: [activeUser2Email],
+        state: USER_STATE.banned,
+      },
+      connections
+    )
     expect(data.updateUserState[0].status.state).toBe('banned')
   })
 })
@@ -1575,14 +1620,14 @@ describe('query social accounts', () => {
     }
   `
   test('visitors do not have social accounts', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_VIEWER_SOCIAL_ACCOUNTS,
     })
     expect(data.viewer.info.socialAccounts).toEqual([])
   })
   test('users social accounts', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     // no social accounts
     const { data } = await server.executeOperation({
       query: GET_VIEWER_SOCIAL_ACCOUNTS,
@@ -1615,7 +1660,11 @@ describe('query social accounts', () => {
 
     // users can not visit others social accounts
     const userName = data.viewer.userName
-    const othersServer = await testClient({ isAuth: true, isMatty: true })
+    const othersServer = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
     const { data: data3 } = await othersServer.executeOperation({
       query: GET_USER_SOCIAL_ACCOUNTS,
       variables: { input: { userName } },
@@ -1637,7 +1686,7 @@ describe('verify user email', () => {
     }
   `
   test('anonymous users can not verify email', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { errors } = await server.executeOperation({
       query: VERIFY_EMAIL,
       variables: { input: { code: 'test' } },
@@ -1646,7 +1695,7 @@ describe('verify user email', () => {
   })
   test('users without email can not verify email', async () => {
     const user = await userService.create({})
-    const server = await testClient({ context: { viewer: user } })
+    const server = await testClient({ context: { viewer: user }, connections })
     const { errors } = await server.executeOperation({
       query: VERIFY_EMAIL,
       variables: { input: { code: 'test' } },
@@ -1658,7 +1707,7 @@ describe('verify user email', () => {
       email: 'verified@matters.town',
       emailVerified: true,
     })
-    const server = await testClient({ context: { viewer: user } })
+    const server = await testClient({ context: { viewer: user }, connections })
     const { errors } = await server.executeOperation({
       query: VERIFY_EMAIL,
       variables: { input: { code: 'test' } },
@@ -1668,7 +1717,7 @@ describe('verify user email', () => {
   test('codes are checked', async () => {
     const email = 'notverified@matters.town'
     const user = await userService.create({ email, emailVerified: false })
-    const server = await testClient({ context: { viewer: user } })
+    const server = await testClient({ context: { viewer: user }, connections })
     const { errors } = await server.executeOperation({
       query: VERIFY_EMAIL,
       variables: { input: { code: 'test' } },

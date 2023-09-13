@@ -12,15 +12,10 @@ jest.mock('common/utils', () => ({
   getAlchemyProvider: () => ({ getCode: jest.fn(() => '0x') }),
 }))
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
+
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -59,7 +54,7 @@ describe('walletLogin', () => {
       purpose: keyof typeof SIGNING_MESSAGE_PURPOSE
     ) => {
       const wallet = Wallet.createRandom()
-      const server = await testClient()
+      const server = await testClient({ connections })
       // signup
       const {
         data: {
@@ -136,7 +131,7 @@ describe('walletLogin', () => {
   }, 100000)
   test('wallet login with wrong purpose will throw errors', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce, signingMessage },
@@ -166,7 +161,7 @@ describe('walletLogin', () => {
   })
   test('wallet login with wrong nonce will throw errors', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce, signingMessage },
@@ -196,7 +191,7 @@ describe('walletLogin', () => {
   })
   test('wallet login check nonce in signature', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce: nonce, signingMessage },

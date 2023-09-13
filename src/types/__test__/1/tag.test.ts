@@ -183,7 +183,7 @@ export const putTag = async ({
   isMatty = true,
   tag,
 }: PutTagInput) => {
-  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const server = await testClient({ isAdmin, isAuth, isMatty, connections })
   const result = await server.executeOperation({
     query: PUT_TAG,
     variables: { input: tag },
@@ -202,7 +202,7 @@ export const updateTagSetting = async ({
   type,
   editors,
 }: UpdateTagSettingInput) => {
-  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const server = await testClient({ isAdmin, isAuth, isMatty, connections })
   const result = await server.executeOperation({
     query: UPDATE_TAG_SETTING,
     variables: { input: { id, type, editors } },
@@ -231,6 +231,7 @@ describe('put tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
     const { data, errors } = await server.executeOperation({
       query: QUERY_TAG,
@@ -267,6 +268,7 @@ describe('manage tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
     // rename
     const renameContent = 'Rename tag'
@@ -299,7 +301,7 @@ describe('manage tag', () => {
 
 describe('manage article tag', () => {
   test('users w/o username can not add tags', async () => {
-    const server = await testClient({ noUserName: true })
+    const server = await testClient({ noUserName: true, connections })
     const { errors } = await server.executeOperation({
       query: PUT_TAG,
       variables: { input: { content: 'faketag' } },
@@ -316,6 +318,7 @@ describe('manage article tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
 
     const articleIds = [
@@ -375,14 +378,17 @@ describe('manage settings of a tag', () => {
     const mattyId = toGlobalId({ type: NODE_TYPES.User, id: 6 })
 
     // matty enable user can adopt tag
-    await setFeature({
-      isAdmin: true,
-      isMatty: true,
-      input: {
-        name: FEATURE_NAME.tag_adoption,
-        flag: FEATURE_FLAG.on,
+    await setFeature(
+      {
+        isAdmin: true,
+        isMatty: true,
+        input: {
+          name: FEATURE_NAME.tag_adoption,
+          flag: FEATURE_FLAG.on,
+        },
       },
-    })
+      connections
+    )
 
     // matty create tag
     const tag = await putTag({ tag: { content: 'Tag adoption #1' } })
@@ -672,7 +678,7 @@ describe('manage settings of a tag', () => {
 
 describe('query tag', () => {
   test('tag recommended', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: QUERY_TAG,
       variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },

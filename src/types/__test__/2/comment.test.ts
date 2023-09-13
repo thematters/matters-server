@@ -7,15 +7,10 @@ import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
+
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -111,7 +106,7 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const getCommentVotes = async (commentId: string) => {
-  const server = await testClient()
+  const server = await testClient({ connections })
   const { data } = await server.executeOperation({
     query: GET_COMMENT,
     variables: {
@@ -124,7 +119,7 @@ const getCommentVotes = async (commentId: string) => {
 describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
@@ -139,7 +134,7 @@ describe('query comment list on article', () => {
   })
 
   test('sort comments by newest', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
@@ -161,7 +156,7 @@ describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
   test('user w/o username can not comment', async () => {
-    const server = await testClient({ noUserName: true })
+    const server = await testClient({ noUserName: true, connections })
     const { errors } = await server.executeOperation({
       query: PUT_COMMENT,
       variables: {
@@ -179,7 +174,7 @@ describe('mutations on comment', () => {
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('create a article comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
 
     const result = await server.executeOperation({
       query: PUT_COMMENT,
@@ -200,7 +195,7 @@ describe('mutations on comment', () => {
   })
 
   test('upvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
@@ -214,7 +209,7 @@ describe('mutations on comment', () => {
   })
 
   test('downvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await server.executeOperation({
       query: VOTE_COMMENT,
@@ -227,7 +222,7 @@ describe('mutations on comment', () => {
   })
 
   test('unvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
@@ -240,7 +235,7 @@ describe('mutations on comment', () => {
   })
 
   test('delete comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: DELETE_COMMENT,
       variables: {
@@ -251,7 +246,7 @@ describe('mutations on comment', () => {
   })
 
   test('pin a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const result = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {
@@ -265,7 +260,7 @@ describe('mutations on comment', () => {
   })
 
   test('unpin a comment ', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {

@@ -6,15 +6,9 @@ import { GQLAppreciateArticleInput } from 'definitions'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -32,6 +26,7 @@ const APPRECIATE_ARTICLE = /* GraphQL */ `
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   const server = await testClient({
     isAuth: true,
+    connections,
   })
   return await server.executeOperation({
     query: APPRECIATE_ARTICLE,
@@ -52,7 +47,7 @@ describe('ratelimit', () => {
       }
     }
     expect(result.length).toBe(0)
-  })
+  }, 30000)
 
   test('should return ratelimit error', async () => {
     const { errors } = await appreciateArticle({

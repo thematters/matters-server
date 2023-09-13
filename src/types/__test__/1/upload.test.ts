@@ -8,15 +8,9 @@ import { SystemService } from 'connectors'
 
 import { genConnections, closeConnections, testClient } from '../utils'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var connections: Connections
-}
-
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-  globalThis.connections = connections
 }, 30000)
 
 afterAll(async () => {
@@ -53,7 +47,7 @@ const createUpload = (mimetype: string) => {
 
 describe('singleFileUpload', () => {
   test('upload files with wrong type', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,
       variables: {
@@ -76,6 +70,7 @@ describe('singleFileUpload', () => {
     const server = await testClient({
       isAuth: true,
       dataSources: { systemService },
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,
@@ -101,6 +96,7 @@ describe('singleFileUpload', () => {
     const server = await testClient({
       isAuth: true,
       dataSources: { systemService },
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,
