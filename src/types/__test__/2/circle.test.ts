@@ -499,6 +499,9 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
+    // wait for queue job done
+    await new Promise(process.nextTick)
+
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
     )
@@ -523,6 +526,9 @@ describe('circle CRUD', () => {
         },
       },
     })
+    // wait for queue job done
+    await new Promise(process.nextTick)
+
     expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
   })
 
@@ -569,6 +575,9 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
+    // wait for queue job done
+    await new Promise(process.nextTick)
+
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
     )
@@ -595,6 +604,9 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
+    // wait for queue job done
+    await new Promise(process.nextTick)
+
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
     )
@@ -619,6 +631,7 @@ describe('circle CRUD', () => {
         },
       },
     })
+    await new Promise(process.nextTick)
     expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
   })
 
@@ -644,6 +657,8 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
+    await new Promise(process.nextTick)
+
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
     )
@@ -661,21 +676,23 @@ describe('circle CRUD', () => {
     // TODO: fix this test. It is broken because of revision queue job do not be commented out in test env now
     //
     // turns to public access
-    // const publicInput: Record<string, any> = {
-    //   id: circle.id,
-    //   articles: [article.id],
-    //   type: 'add',
-    //   accessType: ARTICLE_ACCESS_TYPE.public,
-    //   license: ARTICLE_LICENSE_TYPE.cc_0,
-    // }
+    const publicInput: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.public,
+      license: ARTICLE_LICENSE_TYPE.cc_0,
+    }
 
-    // const addedPublicData = await server.executeOperation({
-    //   query: PUT_CIRCLE_ARTICLES,
-    //   variables: { input: publicInput },
-    // })
-    // expect(addedPublicData.errors[0].extensions.code).toBe(
-    //   'ARTICLE_REVISION_REACH_LIMIT'
-    // )
+    const addedPublicData = await server.executeOperation({
+      query: PUT_CIRCLE_ARTICLES,
+      variables: { input: publicInput },
+    })
+    await new Promise(process.nextTick)
+
+    expect(addedPublicData.errors[0].extensions.code).toBe(
+      'ARTICLE_REVISION_REACH_LIMIT'
+    )
     // expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
     // expect(
     //   _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
