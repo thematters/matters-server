@@ -1,4 +1,4 @@
-import type { Collection, CollectionArticle } from 'definitions'
+import type { Collection, CollectionArticle, Connections } from 'definitions'
 
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -17,8 +17,8 @@ import { BaseService, UserService } from 'connectors'
 // const logger = getLogger('service-collection')
 
 export class CollectionService extends BaseService {
-  public constructor() {
-    super('collection')
+  public constructor(connections: Connections) {
+    super('collection', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
@@ -266,7 +266,7 @@ export class CollectionService extends BaseService {
     if (collection.authorId !== userId) {
       throw new ForbiddenError('Only author can pin the article')
     }
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const totalPinned = await userService.totalPinnedWorks(userId)
     if (pinned === collection.pinned) {
       return collection

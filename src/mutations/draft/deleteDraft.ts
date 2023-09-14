@@ -9,12 +9,17 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['deleteDraft'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      connections: { redis },
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')

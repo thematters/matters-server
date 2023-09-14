@@ -1,3 +1,6 @@
+import type { CirclePrice, CircleSubscription, Customer } from 'definitions'
+import type { Connections } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _ from 'lodash'
 import Stripe from 'stripe'
@@ -16,14 +19,8 @@ import {
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { toDBAmount } from 'common/utils'
-import {
-  AtomService,
-  redis,
-  NotificationService,
-  PaymentService,
-} from 'connectors'
+import { AtomService, NotificationService, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
-import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 const logger = getLogger('route-stripe-circle')
 
@@ -35,18 +32,21 @@ const logger = getLogger('route-stripe-circle')
  * @param setupIntent
  * @param dbCustomer
  */
-export const completeCircleSubscription = async ({
-  setupIntent,
-  dbCustomer,
-  event,
-}: {
-  setupIntent: Stripe.SetupIntent
-  dbCustomer: Customer
-  event: Stripe.Event
-}) => {
-  const atomService = new AtomService()
-  const paymentService = new PaymentService()
-  const notificationService = new NotificationService()
+export const completeCircleSubscription = async (
+  {
+    setupIntent,
+    dbCustomer,
+    event,
+  }: {
+    setupIntent: Stripe.SetupIntent
+    dbCustomer: Customer
+    event: Stripe.Event
+  },
+  connections: Connections
+) => {
+  const atomService = new AtomService(connections)
+  const paymentService = new PaymentService(connections)
+  const notificationService = new NotificationService(connections)
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -131,11 +131,11 @@ export const completeCircleSubscription = async ({
   // invalidate user & circle
   invalidateFQC({
     node: { type: NODE_TYPES.Circle, id: circle.id },
-    redis,
+    redis: connections.redis,
   })
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
-    redis,
+    redis: connections.redis,
   })
 }
 
@@ -144,14 +144,17 @@ export const completeCircleSubscription = async ({
  *
  * @param subscription
  */
-export const updateSubscription = async ({
-  subscription,
-  event,
-}: {
-  subscription: Stripe.Subscription
-  event: Stripe.Event
-}) => {
-  const atomService = new AtomService()
+export const updateSubscription = async (
+  {
+    subscription,
+    event,
+  }: {
+    subscription: Stripe.Subscription
+    event: Stripe.Event
+  },
+  connections: Connections
+) => {
+  const atomService = new AtomService(connections)
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -229,7 +232,7 @@ export const updateSubscription = async ({
   // invalidate user
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: dbSub.userId },
-    redis,
+    redis: connections.redis,
   })
 
   // invalidatecircle
@@ -242,7 +245,7 @@ export const updateSubscription = async ({
       dbDiffPrices.map((price) => {
         invalidateFQC({
           node: { type: NODE_TYPES.Circle, id: price.circleId },
-          redis,
+          redis: connections.redis,
         })
       })
     } catch (error) {
@@ -256,13 +259,16 @@ export const updateSubscription = async ({
 /**
  * handle circle invoice
  */
-export const completeCircleInvoice = async ({
-  invoice,
-  event,
-}: {
-  invoice: Stripe.Invoice
-  event: Stripe.Event
-}) => {
+export const completeCircleInvoice = async (
+  {
+    invoice,
+    event,
+  }: {
+    invoice: Stripe.Invoice
+    event: Stripe.Event
+  },
+  connections: Connections
+) => {
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -270,8 +276,8 @@ export const completeCircleInvoice = async ({
   }
   logger.info(`proceeding ${event.type} event...`)
   try {
-    const atomService = new AtomService()
-    const paymentService = new PaymentService()
+    const atomService = new AtomService(connections)
+    const paymentService = new PaymentService(connections)
     const providerInvoiceId = invoice.id as string
     const providerTxId = invoice.payment_intent as string
     const amount = toDBAmount({ amount: invoice.amount_paid })

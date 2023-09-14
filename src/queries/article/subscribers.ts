@@ -6,7 +6,13 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLArticleResolvers['subscribers'] = async (
   { articleId },
   { input },
-  { dataSources: { articleService, userService }, knex }
+  {
+    dataSources: {
+      articleService,
+      userService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

@@ -42,7 +42,6 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
-import { publicationQueue, revisionQueue } from 'connectors/queue'
 
 const logger = getLogger('mutation-edit-article')
 
@@ -79,8 +78,9 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       systemService,
       tagService,
       userService,
+      connections: { knex },
+      queues: { publicationQueue, revisionQueue },
     },
-    knex,
   }
 ) => {
   if (!viewer.userName) {

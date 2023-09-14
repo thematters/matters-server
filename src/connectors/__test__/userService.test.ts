@@ -1,15 +1,30 @@
+import type { Connections } from 'definitions'
+
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { ActionFailedError } from 'common/errors'
-import { CacheService, UserService } from 'connectors'
+import { CacheService, UserService, PaymentService } from 'connectors'
 
 import { createDonationTx } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
-const userService = new UserService()
+let connections: Connections
+let userService: UserService
+let paymentService: PaymentService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+  paymentService = new PaymentService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -21,15 +36,15 @@ describe('countDonators', () => {
   })
   test('only one donator', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([{ senderId: '2', count: 1 }])
   })
   test('donators is ordered', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     // 1st ordered by donations count desc
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([
@@ -37,7 +52,7 @@ describe('countDonators', () => {
       { senderId: '3', count: 1 },
     ])
     // 2rd ordered by donations time desc
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     const result2 = await userService.topDonators(recipientId)
     expect(result2).toEqual([
       { senderId: '3', count: 2 },
@@ -46,8 +61,14 @@ describe('countDonators', () => {
   })
   test('call with range', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    const tx1 = await createDonationTx({ recipientId, senderId: '2' })
-    const tx2 = await createDonationTx({ recipientId, senderId: '2' })
+    const tx1 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
+    const tx2 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
     const result = await userService.topDonators(recipientId, {
       start: tx1.createdAt,
       end: tx2.createdAt,
@@ -56,9 +77,9 @@ describe('countDonators', () => {
   })
   test('call with pagination', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
-    await createDonationTx({ recipientId, senderId: '4' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '4' }, paymentService)
     const result1 = await userService.topDonators(recipientId, undefined, {
       skip: 1,
     })
@@ -89,7 +110,7 @@ describe('countDonators', () => {
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -107,21 +128,27 @@ describe('countDonators', () => {
   test('count donators', async () => {
     const recipientId = TEST_RECIPIENT_ID
 
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
 
     const count1 = await userService.countDonators(recipientId)
     expect(count1).toBe(1)
 
     // distinct donators
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const count2 = await userService.countDonators(recipientId)
     expect(count2).toBe(1)
-    const tx3 = await createDonationTx({ recipientId, senderId: '3' })
+    const tx3 = await createDonationTx(
+      { recipientId, senderId: '3' },
+      paymentService
+    )
     const count3 = await userService.countDonators(recipientId)
     expect(count3).toBe(2)
 
     // count with range
-    const tx4 = await createDonationTx({ recipientId, senderId: '4' })
+    const tx4 = await createDonationTx(
+      { recipientId, senderId: '4' },
+      paymentService
+    )
     const count4 = await userService.countDonators(recipientId)
     expect(count4).toBe(3)
     const count5 = await userService.countDonators(recipientId, {
@@ -149,7 +176,7 @@ describe('search', () => {
   test('prefer more num_followers', async () => {
     const getNumFollowers = async (id: string) =>
       (
-        await userService
+        await connections
           .knex('search_index.user')
           .where({ id })
           .select('num_followers')
@@ -181,7 +208,7 @@ describe('search', () => {
     expect(res2.totalCount).toBe(0)
   })
   test('handle blocked', async () => {
-    await userService
+    await connections
       .knex('action_user')
       .insert({ userId: '2', action: USER_ACTION.block, targetId: '1' })
 
@@ -212,7 +239,7 @@ describe('search', () => {
 
 describe('updateLastSeen', () => {
   const getLastseen = async (id: string) => {
-    const { lastSeen } = await userService
+    const { lastSeen } = await connections
       .knex('public.user')
       .select('last_seen')
       .where({ id })
@@ -246,7 +273,10 @@ describe('updateLastSeen', () => {
     expect(now).not.toStrictEqual(last)
   })
   test('caching', async () => {
-    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const cacheService = new CacheService(
+      CACHE_PREFIX.USER_LAST_SEEN,
+      connections.redis
+    )
     const cacheGet = async (_id: string) =>
       // @ts-ignore
       cacheService.redis.get(cacheService.genKey({ id: _id }))
@@ -341,7 +371,7 @@ describe('totalPinnedWorks', () => {
     expect(res).toBe(0)
   })
   test('get 1 pinned works', async () => {
-    await userService
+    await connections
       .knex('collection')
       .insert({ authorId: '1', title: 'test', pinned: true })
     const res = await userService.totalPinnedWorks('1')
@@ -558,16 +588,28 @@ describe('test update email', () => {
     await userService.setEmail(user.id, 'testchangeemail0@matters.town')
     expect(await userService.changeEmailTimes(user.id)).toBe(0)
 
-    await new UserService().setEmail(user.id, 'testchangeemail1@matters.town')
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail1@matters.town'
+    )
     expect(await userService.changeEmailTimes(user.id)).toBe(1)
 
-    await new UserService().setEmail(user.id, 'testchangeemail2@matters.town')
-    await new UserService().setEmail(user.id, 'testchangeemail3@matters.town')
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail2@matters.town'
+    )
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail3@matters.town'
+    )
 
     expect(await userService.changeEmailTimes(user.id)).toBe(3)
 
     expect(
-      new UserService().setEmail(user.id, 'testchangeemail4@matters.town')
+      new UserService(connections).setEmail(
+        user.id,
+        'testchangeemail4@matters.town'
+      )
     ).rejects.toThrow()
   })
 })

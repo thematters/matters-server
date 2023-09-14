@@ -3,7 +3,15 @@ import type { GQLCircleSubscriberAnalyticsResolvers } from 'definitions'
 import { PAYMENT_PROVIDER } from 'common/enums'
 
 const resolver: GQLCircleSubscriberAnalyticsResolvers['subscriberHistory'] =
-  async ({ id }, _, { knex }) => {
+  async (
+    { id },
+    _,
+    {
+      dataSources: {
+        connections: { knex },
+      },
+    }
+  ) => {
     const selectPastMonth = (month: number) =>
       knex.raw(
         `select date_trunc('month', current_date - interval '${month}' month) as date`

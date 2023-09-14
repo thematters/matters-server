@@ -1,26 +1,37 @@
 const { exec, spawn, spawnSync } = require('child_process')
+const { knexSnakeCaseMappers } = require('objection')
 
 require('dotenv').config()
 
-// MATTERS_ENV must be 'test' in order to run test cases
-if (process.env['MATTERS_ENV'] !== 'test')
-  throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
+const debug = process.env.MATTERS_LOGGING_LEVEL === 'debug'
 
-const { Client } = require('pg')
-const Knex = require('knex')
-const knexConfig = require('../knexfile')
-const knex = Knex(knexConfig.test)
-const database = knexConfig.test.connection.database
-const host = process.env['MATTERS_PG_HOST']
-const user = process.env['MATTERS_PG_USER']
-const password = process.env['MATTERS_PG_PASSWORD']
+module.exports = async (database) => {
+  if (process.env.MATTERS_ENV !== 'test')
+    throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
 
-// https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
-const debug = process.env['MATTERS_LOGGING_LEVEL'] === 'debug'
+  const { Client } = require('pg')
+  const Knex = require('knex')
 
-global.knex = knex
+  const connection = {
+    host: process.env.MATTERS_PG_HOST,
+    user: process.env.MATTERS_PG_USER,
+    password: process.env.MATTERS_PG_PASSWORD,
+    database,
+  }
 
-module.exports = async () => {
+  const knexConfig = {
+    client: 'postgresql',
+    connection,
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: __dirname + '/migrations',
+    },
+    seeds: {
+      directory: __dirname + '/seeds',
+    },
+  }
+  const knex = Knex(knexConfig)
+
   const rollbackAllMigrations = async () => {
     const migration = await knex.migrate.currentVersion()
     if (migration !== 'none') {
@@ -32,9 +43,7 @@ module.exports = async () => {
   }
 
   const client = new Client({
-    host,
-    user,
-    password,
+    ...connection,
     database: 'postgres',
   })
 
@@ -42,6 +51,7 @@ module.exports = async () => {
   client.connect()
   await client.query('DROP DATABASE IF EXISTS "' + database + '"')
   await client.query('CREATE DATABASE "' + database + '"')
+  if (debug) console.log(`created database "${database}"`)
   client.end()
 
   await rollbackAllMigrations()
@@ -59,16 +69,27 @@ module.exports = async () => {
   }
 
   // connect postgres container to run PSQL scripts
-  await runShellDBRollup()
+  await runShellDBRollup(connection)
 
   // grant read-only right to all users
   await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA public TO PUBLIC;')
   // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA mat_views TO PUBLIC;')
   // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA search_index TO PUBLIC;')
+  //
+  await knex.destroy()
+
+  // return a new knex instance with snake_case_mappers
+  return Knex({
+    ...knexConfig,
+    ...knexSnakeCaseMappers(),
+    pool: { min: 1, max: 6 },
+    // debug: true
+  })
 }
 
-async function runShellDBRollup() {
-  const cwd = __dirname // '{project-root}/db'
+async function runShellDBRollup(connection) {
+  const { host, user, password, database } = connection
+  const cwd = __dirname
   const env = {
     PGPASSWORD: password,
     PSQL: `psql -h ${host} -U ${user} -d ${database} -w`,

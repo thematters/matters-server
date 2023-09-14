@@ -3,6 +3,7 @@ import type {
   GQLCommentsInput,
   GQLVote,
   Comment,
+  Connections,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -25,8 +26,8 @@ interface CommentFilter {
 }
 
 export class CommentService extends BaseService {
-  public constructor() {
-    super('comment')
+  public constructor(connections: Connections) {
+    super('comment', connections)
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {
       const result = await this.baseFindByIds(ids)
 

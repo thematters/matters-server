@@ -1,12 +1,16 @@
 import type { GQLUserStatusResolvers } from 'definitions'
 
 import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
-import { readonlyKnex as knexRO } from 'connectors'
 
 const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   { id: userId },
   _,
-  { dataSources: { systemService } }
+  {
+    dataSources: {
+      systemService,
+      connections: { knexRO },
+    },
+  }
 ) => {
   if (userId === null) {
     return false

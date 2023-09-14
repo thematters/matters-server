@@ -1,4 +1,10 @@
-import type { GQLSearchExclude, Item, Article, Draft } from 'definitions'
+import type {
+  GQLSearchExclude,
+  Item,
+  Article,
+  Draft,
+  Connections,
+} from 'definitions'
 
 import {
   ArticlePageContext,
@@ -52,8 +58,8 @@ export class ArticleService extends BaseService {
   private ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
 
-  public constructor() {
-    super('article')
+  public constructor(connections: Connections) {
+    super('article', connections)
     this.ipfsServers = ipfsServers
 
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {
@@ -139,7 +145,7 @@ export class ArticleService extends BaseService {
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const totalPinned = await userService.totalPinnedWorks(userId)
     if (pinned === article.pinned) {
       return article
@@ -162,9 +168,9 @@ export class ArticleService extends BaseService {
    * Publish draft data to IPFS
    */
   public publishToIPFS = async (draft: any) => {
-    const userService = new UserService()
-    const systemService = new SystemService()
-    const atomService = new AtomService()
+    const userService = new UserService(this.connections)
+    const systemService = new SystemService(this.connections)
+    const atomService = new AtomService(this.connections)
 
     // prepare metadata
     const {
@@ -318,12 +324,17 @@ export class ArticleService extends BaseService {
     forceReplace?: boolean
     updatedDrafts?: Item[]
   }) => {
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
 
-    const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
-    if (!ipnsKeyRec) {
-      // cannot do anything if no ipns key
-      logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+    try {
+      const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
+      if (!ipnsKeyRec) {
+        // cannot do anything if no ipns key
+        logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+        return
+      }
+    } catch (error) {
+      logger.error('create IPNS key ERROR: %o', error)
       return
     }
   }
@@ -373,7 +384,7 @@ export class ArticleService extends BaseService {
    * Archive article
    */
   public archive = async (id: string) => {
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     const targetArticle = await atomService.findFirst({
       table: 'article',
       where: { id },

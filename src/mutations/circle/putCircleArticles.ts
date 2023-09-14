@@ -31,7 +31,6 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { revisionQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,
@@ -45,8 +44,9 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
       tagService,
       articleService,
       notificationService,
+      connections: { knex },
+      queues: { revisionQueue },
     },
-    knex,
   }
 ) => {
   if (!viewer.id) {

@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
@@ -17,10 +19,17 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
-import { AtomService, NotificationService, redis } from 'connectors'
+import {
+  AtomService,
+  NotificationService,
+  DraftService,
+  ArticleService,
+  UserService,
+  SystemService,
+} from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -31,14 +40,9 @@ interface RevisedArticleData {
   iscnPublish?: boolean
 }
 
-class RevisionQueue extends BaseQueue {
-  atomService: InstanceType<typeof AtomService>
-  notificationService: InstanceType<typeof NotificationService>
-
-  constructor() {
-    super(QUEUE_NAME.revision)
-    this.atomService = new AtomService()
-    this.notificationService = new NotificationService()
+export class RevisionQueue extends BaseQueue {
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.revision, connections)
     this.addConsumers()
   }
 
@@ -51,10 +55,6 @@ class RevisionQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    if (isTest) {
-      return
-    }
-
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,
@@ -70,7 +70,14 @@ class RevisionQueue extends BaseQueue {
     async (job, done) => {
       const { draftId, iscnPublish } = job.data as RevisedArticleData
 
-      let draft = await this.draftService.baseFindById(draftId)
+      const draftService = new DraftService(this.connections)
+      const articleService = new ArticleService(this.connections)
+      const userService = new UserService(this.connections)
+      const systemService = new SystemService(this.connections)
+      const notificationService = new NotificationService(this.connections)
+      const atomService = new AtomService(this.connections)
+
+      let draft = await draftService.baseFindById(draftId)
 
       // Step 1: checks
       if (!draft) {
@@ -83,7 +90,7 @@ class RevisionQueue extends BaseQueue {
         done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
-      let article = await this.articleService.baseFindById(draft.articleId)
+      let article = await articleService.baseFindById(draft.articleId)
       if (!article) {
         job.progress(100)
         done(null, `Revised article ${draft.articleId} not found`)
@@ -94,7 +101,7 @@ class RevisionQueue extends BaseQueue {
         done(null, `Revised article ${draft.articleId} is not active`)
         return
       }
-      const preDraft = await this.draftService.baseFindById(article.draftId)
+      const preDraft = await draftService.baseFindById(article.draftId)
       job.progress(10)
 
       try {
@@ -106,7 +113,7 @@ class RevisionQueue extends BaseQueue {
 
         // Step 3: update draft
         ;[draft] = await Promise.all([
-          this.draftService.baseUpdate(draft.id, {
+          draftService.baseUpdate(draft.id, {
             // dataHash,
             // mediaHash,
             wordCount,
@@ -114,7 +121,6 @@ class RevisionQueue extends BaseQueue {
             // iscnId,
             publishState: PUBLISH_STATE.published,
             pinState: PIN_STATE.pinned,
-            updatedAt: this.knex.fn.now(),
           }),
           // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
@@ -124,22 +130,18 @@ class RevisionQueue extends BaseQueue {
         // Step 4: update back to article
         const revisionCount =
           (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
-        const updatedArticle = await this.articleService.baseUpdate(
-          article.id,
-          {
-            draftId: draft.id,
-            dataHash: null, // TBD in Section2
-            mediaHash: null,
-            summary,
-            wordCount,
-            revisionCount,
-            slug: slugify(draft.title),
-            updatedAt: this.knex.fn.now(),
-          }
-        )
+        const updatedArticle = await articleService.baseUpdate(article.id, {
+          draftId: draft.id,
+          dataHash: null, // TBD in Section2
+          mediaHash: null,
+          summary,
+          wordCount,
+          revisionCount,
+          slug: slugify(draft.title),
+        })
         job.progress(50)
 
-        const author = await this.userService.baseFindById(article.authorId)
+        const author = await userService.baseFindById(article.authorId)
         const { userName, displayName } = author
 
         // Note: the following steps won't affect the publication.
@@ -148,20 +150,24 @@ class RevisionQueue extends BaseQueue {
           // Step 5: copy previous draft asset maps for current draft
           // Note: collection and tags are handled in edit resolver.
           // @see src/mutations/article/editArticle.ts
-          const { id: entityTypeId } =
-            await this.systemService.baseFindEntityTypeId('draft')
-          await this.systemService.copyAssetMapEntities({
+          const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
+            'draft'
+          )
+          await systemService.copyAssetMapEntities({
             source: preDraft.id,
             target: draft.id,
             entityTypeId,
           })
 
           // Step 7: handle newly added mentions
-          await this.handleMentions({
-            article: updatedArticle,
-            preDraftContent: preDraft.content,
-            content: draft.content,
-          })
+          await this.handleMentions(
+            {
+              article: updatedArticle,
+              preDraftContent: preDraft.content,
+              content: draft.content,
+            },
+            notificationService
+          )
 
           job.progress(70)
         } catch (err) {
@@ -174,7 +180,7 @@ class RevisionQueue extends BaseQueue {
         }
 
         // Step 8: trigger notifications
-        this.notificationService.trigger({
+        notificationService.trigger({
           event: DB_NOTICE_TYPE.revised_article_published,
           recipientId: article.authorId,
           entities: [
@@ -186,11 +192,11 @@ class RevisionQueue extends BaseQueue {
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
-            redis,
+            redis: this.connections.redis,
           }),
           invalidateFQC({
             node: { type: NODE_TYPES.Article, id: article.id },
-            redis,
+            redis: this.connections.redis,
           }),
         ])
 
@@ -201,41 +207,41 @@ class RevisionQueue extends BaseQueue {
             contentHash: dataHash,
             mediaHash,
             key,
-          } = (await this.articleService.publishToIPFS(revised))!
+          } = (await articleService.publishToIPFS(revised))!
 
           ;[draft, article] = await Promise.all([
-            this.draftService.baseUpdate(draft.id, {
+            draftService.baseUpdate(draft.id, {
               dataHash,
               mediaHash,
-              updatedAt: this.knex.fn.now(),
             }),
-            this.articleService.baseUpdate(article.id, {
+            articleService.baseUpdate(article.id, {
               dataHash,
               mediaHash,
-              updatedAt: this.knex.fn.now(),
             }),
           ])
 
           // update secret
           if (key) {
-            await this.handleCircle({
-              article,
-              circleId: draft.circleId,
-              secret: key,
-            })
+            await this.handleCircle(
+              {
+                article,
+                circleId: draft.circleId,
+                secret: key,
+              },
+              atomService
+            )
           }
 
           // Step: iscn publishing
           if (iscnPublish) {
-            const liker = (await this.userService.findLiker({
+            const liker = (await userService.findLiker({
               userId: author.id,
             }))!
-            const cosmosWallet =
-              await this.userService.likecoin.getCosmosWallet({
-                liker,
-              })
+            const cosmosWallet = await userService.likecoin.getCosmosWallet({
+              liker,
+            })
 
-            const iscnId = await this.userService.likecoin.iscnPublish({
+            const iscnId = await userService.likecoin.iscnPublish({
               mediaHash: `hash://sha256/${mediaHash}`,
               ipfsHash: `ipfs://${dataHash}`,
               cosmosWallet, // 'TBD',
@@ -254,19 +260,17 @@ class RevisionQueue extends BaseQueue {
 
             // handling both cases of set to true or false, but not omit (undefined)
             ;[draft, article] = await Promise.all([
-              this.draftService.baseUpdate(draft.id, {
+              draftService.baseUpdate(draft.id, {
                 iscnId,
                 iscnPublish, // : iscnPublish || draft.iscnPublish,
-                updatedAt: this.knex.fn.now(),
               }),
-              this.articleService.baseUpdate(article.id, {
+              articleService.baseUpdate(article.id, {
                 iscnId,
-                updatedAt: this.knex.fn.now(),
               }),
             ])
           }
 
-          ipnsRes = await this.articleService.publishFeedToIPNS({
+          ipnsRes = await articleService.publishFeedToIPNS({
             userName,
             // incremental: true, // attach the last just published article
             updatedDrafts: [draft],
@@ -283,12 +287,12 @@ class RevisionQueue extends BaseQueue {
         job.progress(100)
 
         // no await to notify async
-        this.articleService
+        articleService
           .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
           .catch((err: Error) => logger.error('failed sqs notify:', err))
 
         // no await to notify async
-        this.atomService.aws
+        atomService.aws
           ?.snsPublishMessage({
             // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
             MessageBody: {
@@ -318,11 +322,11 @@ class RevisionQueue extends BaseQueue {
           iscnId: draft.iscnId,
         })
       } catch (err: any) {
-        await this.draftService.baseUpdate(draft.id, {
+        await draftService.baseUpdate(draft.id, {
           publishState: PUBLISH_STATE.error,
         })
 
-        this.notificationService.trigger({
+        notificationService.trigger({
           event: DB_NOTICE_TYPE.revised_article_not_published,
           recipientId: article.authorId,
           entities: [
@@ -334,34 +338,40 @@ class RevisionQueue extends BaseQueue {
       }
     }
 
-  private handleCircle = async ({
-    article,
-    circleId,
-    secret,
-  }: {
-    article: any
-    circleId: string
-    secret: string
-  }) => {
-    await this.atomService.update({
+  private handleCircle = async (
+    {
+      article,
+      circleId,
+      secret,
+    }: {
+      article: any
+      circleId: string
+      secret: string
+    },
+    atomService: AtomService
+  ) => {
+    await atomService.update({
       table: 'article_circle',
       where: { articleId: article.id, circleId },
       data: {
         secret,
-        updatedAt: this.knex.fn.now(),
+        updatedAt: this.connections.knex.fn.now(),
       },
     })
   }
 
-  private handleMentions = async ({
-    article,
-    preDraftContent,
-    content,
-  }: {
-    article: any
-    preDraftContent: string
-    content: string
-  }) => {
+  private handleMentions = async (
+    {
+      article,
+      preDraftContent,
+      content,
+    }: {
+      article: any
+      preDraftContent: string
+      content: string
+    },
+    notificationService: NotificationService
+  ) => {
     // gather pre-draft ids
     let $ = cheerio.load(preDraftContent)
     const filter = (index: number, node: any) => {
@@ -384,7 +394,7 @@ class RevisionQueue extends BaseQueue {
         return false
       }
 
-      this.notificationService.trigger({
+      notificationService.trigger({
         event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
@@ -393,5 +403,3 @@ class RevisionQueue extends BaseQueue {
     })
   }
 }
-
-export const revisionQueue = new RevisionQueue()

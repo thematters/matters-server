@@ -23,7 +23,6 @@ import {
   UserInputError,
 } from 'common/errors'
 import { getViewerFromUser, setCookie } from 'common/utils'
-import { redis } from 'connectors'
 
 const sigTable = 'crypto_wallet_signature'
 
@@ -36,8 +35,12 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     viewer,
     req,
     res,
-    dataSources: { userService, atomService, systemService },
-    knex,
+    dataSources: {
+      userService,
+      atomService,
+      systemService,
+      connections: { knex, redis },
+    },
   } = context
 
   const lastSigning = await userService.verifyWalletSignature({

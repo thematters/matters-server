@@ -10,7 +10,12 @@ import {
 const resolver: GQLCircleResolvers['works'] = async (
   { id },
   { input },
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   if (!id) {
     return connectionFromArray([], input)

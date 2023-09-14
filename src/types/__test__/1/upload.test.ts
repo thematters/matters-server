@@ -1,10 +1,21 @@
+import type { Connections } from 'definitions'
+
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
 
 import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE } from 'common/enums'
 import { SystemService } from 'connectors'
 
-import { testClient } from '../utils'
+import { genConnections, closeConnections, testClient } from '../utils'
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const SINGLE_FILE_UPLOAD = /* GraphQL */ `
   fragment Asset on Asset {
@@ -36,7 +47,7 @@ const createUpload = (mimetype: string) => {
 
 describe('singleFileUpload', () => {
   test('upload files with wrong type', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,
       variables: {
@@ -52,13 +63,16 @@ describe('singleFileUpload', () => {
   test('upload images to cloudflare succeeded', async () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
-    const systemService = new SystemService()
+    const systemService = new SystemService(connections)
+    // @ts-ignore
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
+    // @ts-ignore
     systemService.aws.baseUploadFile = uploadS3 as any
 
     const server = await testClient({
       isAuth: true,
       dataSources: { systemService },
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,
@@ -77,13 +91,16 @@ describe('singleFileUpload', () => {
   test('upload not-image files to s3 succeeded', async () => {
     const uploadCfsvc = jest.fn((type, _, uuid) => `${type}/${uuid}`)
     const uploadS3 = jest.fn((type, _, uuid) => `${type}/${uuid}`)
-    const systemService = new SystemService()
+    const systemService = new SystemService(connections)
+    // @ts-ignore
     systemService.cfsvc.baseUploadFile = uploadCfsvc as any
+    // @ts-ignore
     systemService.aws.baseUploadFile = uploadS3 as any
 
     const server = await testClient({
       isAuth: true,
       dataSources: { systemService },
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: SINGLE_FILE_UPLOAD,

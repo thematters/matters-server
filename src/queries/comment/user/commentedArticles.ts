@@ -6,7 +6,12 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLUserResolvers['commentedArticles'] = async (
   { id },
   { input },
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

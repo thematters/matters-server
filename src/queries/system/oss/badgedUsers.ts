@@ -5,7 +5,12 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
   _,
   { input },
-  { dataSources: { userService }, knex }
+  {
+    dataSources: {
+      userService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { type } = input
   const { take, skip } = fromConnectionArgs(input)

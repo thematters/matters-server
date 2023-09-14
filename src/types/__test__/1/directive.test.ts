@@ -1,8 +1,19 @@
+import type { Connections } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLAppreciateArticleInput } from 'definitions'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const APPRECIATE_ARTICLE = /* GraphQL */ `
   mutation ($input: AppreciateArticleInput!) {
@@ -15,6 +26,7 @@ const APPRECIATE_ARTICLE = /* GraphQL */ `
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   const server = await testClient({
     isAuth: true,
+    connections,
   })
   return await server.executeOperation({
     query: APPRECIATE_ARTICLE,
@@ -35,7 +47,7 @@ describe('ratelimit', () => {
       }
     }
     expect(result.length).toBe(0)
-  })
+  }, 30000)
 
   test('should return ratelimit error', async () => {
     const { errors } = await appreciateArticle({

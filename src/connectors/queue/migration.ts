@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import { makeSummary } from '@matters/ipns-site-generator'
 import {
   normalizeArticleHTML,
@@ -16,22 +18,28 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
+import {
+  UserService,
+  NotificationService,
+  SystemService,
+  DraftService,
+} from 'connectors'
 import { UserHasUsername } from 'definitions'
-
-const logger = getLogger('queue-migration')
 
 import { BaseQueue } from './baseQueue'
 
-class MigrationQueue extends BaseQueue {
-  constructor() {
-    super(QUEUE_NAME.migration)
+const logger = getLogger('queue-migration')
+
+export class MigrationQueue extends BaseQueue {
+  public constructor(connections: Connections) {
+    super(QUEUE_NAME.migration, connections)
     this.addConsumers()
   }
 
   /**
    * Producers
    */
-  migrate = ({
+  public migrate = ({
     type,
     userId,
     htmls,
@@ -59,6 +67,10 @@ class MigrationQueue extends BaseQueue {
     if (isTest) {
       return
     }
+    const draftService = new DraftService(this.connections)
+    const userService = new UserService(this.connections)
+    const systemService = new SystemService(this.connections)
+    const notificationService = new NotificationService(this.connections)
 
     this.q.process(
       QUEUE_JOB.migration,
@@ -71,7 +83,7 @@ class MigrationQueue extends BaseQueue {
             htmls: string[]
           }
 
-          const user = (await this.userService.baseFindById(
+          const user = (await userService.baseFindById(
             userId
           )) as UserHasUsername
           if (!user) {
@@ -80,8 +92,9 @@ class MigrationQueue extends BaseQueue {
             return
           }
 
-          const { id: entityTypeId } =
-            await this.systemService.baseFindEntityTypeId('draft')
+          const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
+            'draft'
+          )
           if (!entityTypeId) {
             job.progress(100)
             throw new Error('entity type is incorrect.')
@@ -102,10 +115,10 @@ class MigrationQueue extends BaseQueue {
 
                 // process raw html
                 const { title, content, assets } =
-                  await this.userService.medium.convertRawHTML(html)
+                  await userService.medium.convertRawHTML(html)
 
                 // put draft
-                const draft = await this.draftService.baseCreate({
+                const draft = await draftService.baseCreate({
                   authorId: userId,
                   uuid: v4(),
                   title,
@@ -117,7 +130,7 @@ class MigrationQueue extends BaseQueue {
                 // add asset and assetmap
                 await Promise.all(
                   assets.map((asset) =>
-                    this.systemService.createAssetAndAssetMap(
+                    systemService.createAssetAndAssetMap(
                       {
                         uuid: asset.uuid,
                         authorId: userId,
@@ -137,7 +150,7 @@ class MigrationQueue extends BaseQueue {
 
           // add email task
           if (user.email) {
-            this.notificationService.mail.sendMigrationSuccess({
+            notificationService.mail.sendMigrationSuccess({
               to: user.email,
               language: user.language,
               recipient: {
@@ -157,5 +170,3 @@ class MigrationQueue extends BaseQueue {
     )
   }
 }
-
-export const migrationQueue = new MigrationQueue()

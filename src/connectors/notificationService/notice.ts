@@ -10,6 +10,7 @@ import type {
   NotificationType,
   PutNoticeParams,
   User,
+  Connections,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -31,9 +32,9 @@ const mergeDataCustomizer = (objValue: any, srcValue: any) => {
 const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
-class Notice extends BaseService {
-  public constructor() {
-    super('notice')
+export class Notice extends BaseService {
+  public constructor(connections: Connections) {
+    super('notice', connections)
     this.dataloader = new DataLoader(this.findByIds)
   }
 
@@ -557,5 +558,3 @@ class Notice extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 }
-
-export const notice = new Notice()

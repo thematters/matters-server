@@ -5,7 +5,12 @@ import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 const resolver: GQLCircleContentAnalyticsResolvers['public'] = async (
   { id },
   _,
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      atomService,
+      connections: { knex },
+    },
+  }
 ) => {
   const records = await knex
     .select('ac.article_id as article_id')

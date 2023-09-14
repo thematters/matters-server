@@ -5,12 +5,17 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { NODE_TYPES } from 'common/enums'
 import { ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['deleteCollections'] = async (
   _,
   { input: { ids } },
-  { dataSources: { collectionService }, viewer }
+  {
+    dataSources: {
+      collectionService,
+      connections: { redis },
+    },
+    viewer,
+  }
 ) => {
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')

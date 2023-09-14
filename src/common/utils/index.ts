@@ -4,7 +4,6 @@ import * as cheerio from 'cheerio'
 import { BCRYPT_ROUNDS } from 'common/enums'
 import { environment } from 'common/environment'
 
-export * from './makeContext'
 export * from './getFileName'
 export * from './getLanguage'
 export * from './getViewer'

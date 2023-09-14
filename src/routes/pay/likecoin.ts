@@ -13,7 +13,9 @@ import {
 import { environment } from 'common/environment'
 import { LikeCoinWebhookError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { AtomService, PaymentService, UserService, redis } from 'connectors'
+import { AtomService, PaymentService, UserService } from 'connectors'
+
+import { connections } from '../connections'
 
 const logger = getLogger('route-likecoin')
 
@@ -34,7 +36,7 @@ const invalidateCache = async ({
     if (type) {
       await invalidateFQC({
         node: { type, id },
-        redis,
+        redis: connections.redis,
       })
     }
   }
@@ -46,9 +48,9 @@ likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `https://${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `https://${environment.siteDomain}/pay/likecoin/failure`
 
-  const paymentService = new PaymentService()
+  const paymentService = new PaymentService(connections)
 
-  const userService = new UserService()
+  const userService = new UserService(connections)
 
   try {
     const { tx_hash, state, success } = req.query
@@ -146,9 +148,9 @@ likecoinRouter.use(async (req, res, next) => {
  * @see {@url https://docs.like.co/developer/like-pay/web-widget/webhook}
  */
 likecoinRouter.post('/', async (req, res, next) => {
-  const atomService = new AtomService()
-  const userService = new UserService()
-  const paymentService = new PaymentService()
+  const atomService = new AtomService(connections)
+  const userService = new UserService(connections)
+  const paymentService = new PaymentService(connections)
   let txHash = ''
 
   try {

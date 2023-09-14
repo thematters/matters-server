@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import Queue from 'bull'
 
 import {
@@ -9,7 +11,7 @@ import {
   USER_STATE,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { aws } from 'connectors'
+import { aws, UserService, AtomService, NotificationService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -19,16 +21,16 @@ interface ArchiveUserData {
   userId: string
 }
 
-class UserQueue extends BaseQueue {
-  constructor() {
-    super(QUEUE_NAME.user)
+export class UserQueue extends BaseQueue {
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.user, connections)
     this.addConsumers()
   }
 
   /**
    * Producers
    */
-  addRepeatJobs = async () => {
+  public addRepeatJobs = async () => {
     // unban user every day at 00:00
     this.q.add(
       QUEUE_JOB.unbanUsers,
@@ -43,7 +45,7 @@ class UserQueue extends BaseQueue {
   /**
    * Producers
    */
-  archiveUser = (data: ArchiveUserData) =>
+  public archiveUser = (data: ArchiveUserData) =>
     aws.sqsSendMessage({
       messageBody: data,
       queueUrl: QUEUE_URL.archiveUser,
@@ -63,8 +65,11 @@ class UserQueue extends BaseQueue {
     job,
     done
   ) => {
+    const userService = new UserService(this.connections)
+    const atomService = new AtomService(this.connections)
+    const notificationService = new NotificationService(this.connections)
     try {
-      const records = await this.userService.findPunishRecordsByTime({
+      const records = await userService.findPunishRecordsByTime({
         state: USER_STATE.banned,
         archived: false,
         expiredAt: new Date(Date.now()).toISOString(),
@@ -78,18 +83,18 @@ class UserQueue extends BaseQueue {
               state: USER_STATE.active,
             }
 
-            await this.atomService.update({
+            await atomService.update({
               table: 'user',
               where: { id: record.userId },
               data,
             })
 
-            await this.userService.baseUpdate(
+            await userService.baseUpdate(
               record.id,
               { archived: true },
               'punish_record'
             )
-            this.notificationService.trigger({
+            notificationService.trigger({
               event: OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned,
               recipientId: record.userId,
             })
@@ -107,5 +112,3 @@ class UserQueue extends BaseQueue {
     }
   }
 }
-
-export const userQueue = new UserQueue()

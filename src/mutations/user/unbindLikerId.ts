@@ -5,7 +5,12 @@ import { GQLMutationResolvers } from 'definitions'
 const resolver: GQLMutationResolvers['unbindLikerId'] = async (
   _,
   { input: { id, likerId } },
-  { dataSources: { userService }, knex }
+  {
+    dataSources: {
+      userService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.loadById(dbId)

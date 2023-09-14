@@ -32,8 +32,6 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
-import { redis } from 'connectors'
-import { assetQueue } from 'connectors/queue'
 
 const INTERVAL = isProd ? 'month' : 'week'
 
@@ -45,7 +43,16 @@ enum ACTION {
 const resolver: GQLMutationResolvers['putCircle'] = async (
   _,
   { input: { id, avatar, cover, name, displayName, description, amount } },
-  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      systemService,
+      connections: { redis, knex },
+      queues: { assetQueue },
+    },
+  }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no permission')

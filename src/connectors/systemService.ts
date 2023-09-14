@@ -1,4 +1,9 @@
-import type { ItemData, SkippedListItemType, Viewer } from 'definitions'
+import type {
+  ItemData,
+  SkippedListItemType,
+  Viewer,
+  Connections,
+} from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -19,8 +24,8 @@ const logger = getLogger('service-system')
 export class SystemService extends BaseService {
   featureFlagTable: string
 
-  public constructor() {
-    super('noop')
+  public constructor(connections: Connections) {
+    super('noop', connections)
 
     this.featureFlagTable = 'feature_flag'
   }

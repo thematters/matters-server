@@ -26,7 +26,6 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId, isValidTransactionHash } from 'common/utils'
-import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['payTo'] = async (
   _,
@@ -42,7 +41,15 @@ const resolver: GQLMutationResolvers['payTo'] = async (
       txHash,
     },
   },
-  { viewer, dataSources: { articleService, paymentService, userService } }
+  {
+    viewer,
+    dataSources: {
+      articleService,
+      paymentService,
+      userService,
+      queues: { payToByMattersQueue, payToByBlockchainQueue },
+    },
+  }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')

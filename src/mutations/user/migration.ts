@@ -9,12 +9,16 @@ import {
   MigrationReachLimitError,
   UserInputError,
 } from 'common/errors'
-import { migrationQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['migration'] = async (
   _,
   { input: { type, files } },
-  { viewer }
+  {
+    viewer,
+    dataSources: {
+      queues: { migrationQueue },
+    },
+  }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')

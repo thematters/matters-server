@@ -2,7 +2,6 @@ import Redis from 'ioredis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
 import { UnknownError } from 'common/errors'
 
 /**
@@ -18,13 +17,25 @@ interface KeyInfo {
   field?: string
 }
 
-export const redis = new Redis(environment.cachePort, environment.cacheHost)
+export const genCacheKey = ({
+  type,
+  id,
+  field,
+  args,
+  prefix,
+}: KeyInfo & { prefix: string }): string => {
+  const keys = [type, id, field, JSON.stringify(args)].filter((el) => el)
+  if (keys.length === 0) {
+    throw new UnknownError('cache key not specified')
+  }
+  return [prefix, ...keys].join(':')
+}
 
 export class CacheService {
   private prefix: string
   private redis: Redis
 
-  constructor(prefix = '') {
+  constructor(prefix: string, redis: Redis) {
     this.prefix = prefix
     this.redis = redis
   }
@@ -34,13 +45,8 @@ export class CacheService {
    *
    * e.g. cache-objects:Article:1510
    */
-  public genKey = ({ type, id, field, args }: KeyInfo): string => {
-    const keys = [type, id, field, JSON.stringify(args)].filter((el) => el)
-    if (keys.length === 0) {
-      throw new UnknownError('cache key not specified')
-    }
-    return [this.prefix, ...keys].join(':')
-  }
+  public genKey = ({ type, id, field, args }: KeyInfo): string =>
+    genCacheKey({ type, id, field, args, prefix: this.prefix })
 
   /**
    * Store gql returned object in cache.

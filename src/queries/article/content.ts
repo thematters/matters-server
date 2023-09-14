@@ -6,7 +6,7 @@ import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
 const resolver: GQLArticleResolvers['content'] = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, paymentService }, knex }
+  { viewer, dataSources: { articleService, paymentService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 

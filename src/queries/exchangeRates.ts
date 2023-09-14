@@ -1,16 +1,15 @@
-import { ExchangeRate } from 'connectors'
-import { GQLQuoteCurrency, GQLTransactionCurrency } from 'definitions'
+import type { GQLResolvers } from 'definitions'
 
-export default {
+const exchangeRates: GQLResolvers = {
   Query: {
-    exchangeRates: (
-      _: any,
-      {
-        input: { to, from },
-      }: { input: { to?: GQLQuoteCurrency; from?: GQLTransactionCurrency } }
-    ) => {
-      const exchangeRate = new ExchangeRate()
-      return exchangeRate.getRates(from, to)
+    exchangeRates: (_, { input }, { dataSources: { exchangeRate } }) => {
+      if (input) {
+        return exchangeRate.getRates(input.from, input.to)
+      } else {
+        return exchangeRate.getRates()
+      }
     },
   },
 }
+
+export default exchangeRates
