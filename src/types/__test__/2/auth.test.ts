@@ -957,6 +957,34 @@ describe('setUseName', () => {
     })
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
+  test('existing user can call setUseName with same userName', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
+
+    // same userName
+    const userName = 'matty'
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.info.userNameEditable).toBe(false)
+    expect(data?.setUserName.displayName).toBeDefined()
+
+    // second try
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('user can not set invalid userName', async () => {
     const { server } = await prepare({ email })
     const { errors } = await server.executeOperation({
