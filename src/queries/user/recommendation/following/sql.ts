@@ -118,7 +118,7 @@ export const makeUserDonateArticleActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
@@ -156,7 +156,7 @@ export const makeUserFollowUserActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
@@ -206,7 +206,7 @@ export const makeUserSubscribeCircleActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
