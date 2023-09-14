@@ -452,6 +452,16 @@ export class UserService extends BaseService {
       const user = await this.loadById(userId)
       data = { ...data, displayName: genDisplayName(user) ?? userName }
     }
+
+    const atomService = new AtomService(this.connections)
+    await atomService.create({
+      table: 'username_edit_history',
+      data: {
+        userId: userId,
+        previous: '',
+      },
+    })
+
     return await this.baseUpdate(userId, data)
   }
 
