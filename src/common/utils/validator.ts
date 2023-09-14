@@ -53,7 +53,7 @@ export const isValidUserName = (name: string): boolean => {
     return false
   }
 
-  return /^[a-zA-Z0-9_]*$/i.test(name)
+  return /^[a-z0-9_]*$/.test(name)
 }
 
 /**

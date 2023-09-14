@@ -82,7 +82,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
 
   let newUserName
   if (userName) {
-    if (!isValidUserName(userName)) {
+    if (!isValidUserName(userName.toLowerCase())) {
       throw new NameInvalidError('invalid user name')
     }
 
