@@ -132,7 +132,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
     if (!isUserNameEditable) {
       throw new ForbiddenError('userName is not allow to edit')
     }
-    if (!isValidUserName(input.userName)) {
+    if (!isValidUserName(input.userName.toLowerCase())) {
       throw new NameInvalidError('invalid user name')
     }
 
