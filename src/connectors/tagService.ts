@@ -864,7 +864,7 @@ export class TagService extends BaseService {
       result = await this.knex(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
-          this.where('tag_id', tagId)
+          this.where('id', '=', tagId)
           if (withSynonyms) {
             this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
           } // else { this.where('id', tagId) // exactly }
