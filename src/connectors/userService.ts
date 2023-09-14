@@ -473,7 +473,7 @@ export class UserService extends BaseService {
   public checkUserNameExists = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('userName', 'ILIKE', `%${userName}%`)
+      .where('userName', 'ILIKE', userName)
       .first()
 
     const count = parseInt(result ? (result.count as string) : '0', 10)
