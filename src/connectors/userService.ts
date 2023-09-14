@@ -429,10 +429,12 @@ export class UserService extends BaseService {
   }
 
   public isUserNameEditable = async (userId: string) => {
-    const history = await this.knex('username_edit_history')
+    const result = await this.knex('username_edit_history')
       .select()
       .where({ userId })
-    return history.length <= 0
+      .count()
+      .first()
+    return (Number(result?.count) || 0) <= 0
   }
 
   public setUserName = async (
