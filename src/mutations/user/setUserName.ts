@@ -7,9 +7,11 @@ const resolver: GQLMutationResolvers['setUserName'] = async (
   { input: { userName } },
   { viewer, dataSources: { userService } }
 ) => {
-  if (viewer.userName) {
+  const userNameEditable = await userService.isUserNameEditable(viewer.id)
+  if (!userNameEditable) {
     throw new ForbiddenError('userName is not allow to edit')
   }
+
   return userService.setUserName(viewer.id, userName)
 }
 

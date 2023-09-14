@@ -907,6 +907,9 @@ describe('setUseName', () => {
       setUserName(input: $input) {
         userName
         displayName
+        info {
+          userNameEditable
+        }
       }
     }
   `
@@ -926,12 +929,26 @@ describe('setUseName', () => {
     })
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
-  test('user having userName can not call setUseName', async () => {
+  test('existing user can call setUseName once', async () => {
     const server = await testClient({
       isAuth: true,
       isMatty: true,
       connections,
     })
+
+    // first try
+    const userName = 'noone1'
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.info.userNameEditable).toBe(false)
+    expect(data?.setUserName.displayName).toBeDefined()
+
+    // second try
     const { errors } = await server.executeOperation({
       query: SET_USER_NAME,
       variables: {

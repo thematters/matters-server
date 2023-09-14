@@ -429,10 +429,12 @@ export class UserService extends BaseService {
   }
 
   public isUserNameEditable = async (userId: string) => {
-    const history = await this.knex('username_edit_history')
+    const result = await this.knex('username_edit_history')
       .select()
       .where({ userId })
-    return history.length <= 0
+      .count()
+      .first()
+    return (Number(result?.count) || 0) <= 0
   }
 
   public setUserName = async (
@@ -452,6 +454,16 @@ export class UserService extends BaseService {
       const user = await this.loadById(userId)
       data = { ...data, displayName: genDisplayName(user) ?? userName }
     }
+
+    const atomService = new AtomService(this.connections)
+    await atomService.create({
+      table: 'username_edit_history',
+      data: {
+        userId: userId,
+        previous: '',
+      },
+    })
+
     return await this.baseUpdate(userId, data)
   }
 
@@ -461,7 +473,7 @@ export class UserService extends BaseService {
   public checkUserNameExists = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('userName', 'ILIKE', `%${userName}%`)
+      .where('userName', 'ILIKE', userName)
       .first()
 
     const count = parseInt(result ? (result.count as string) : '0', 10)
