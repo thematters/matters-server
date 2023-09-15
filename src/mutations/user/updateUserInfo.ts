@@ -136,7 +136,13 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
       throw new NameInvalidError('invalid user name')
     }
 
-    if (await userService.checkUserNameExists(input.userName)) {
+    // allows user to set the same userName
+    const isSameUserName =
+      viewer.userName.toLowerCase() === input.userName.toLowerCase()
+    const isUserNameExists = await userService.checkUserNameExists(
+      input.userName
+    )
+    if (!isSameUserName && isUserNameExists) {
       throw new NameExistsError('user name already exists')
     }
     updateParams.userName = input.userName.toLowerCase()

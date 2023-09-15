@@ -439,6 +439,7 @@ export class UserService extends BaseService {
 
   public setUserName = async (
     userId: string,
+    oldUserName: string,
     userName: string,
     fillDisplayName = true
   ): Promise<User> => {
@@ -446,9 +447,13 @@ export class UserService extends BaseService {
       throw new NameInvalidError('invalid user name')
     }
 
-    if (await this.checkUserNameExists(userName)) {
+    // allows user to set the same userName
+    const isSameUserName = oldUserName.toLowerCase() === userName
+    const isUserNameExists = await this.checkUserNameExists(userName)
+    if (!isSameUserName && isUserNameExists) {
       throw new NameExistsError('user name already exists')
     }
+
     let data: Partial<User> = { userName }
     if (fillDisplayName) {
       const user = await this.loadById(userId)
@@ -460,7 +465,7 @@ export class UserService extends BaseService {
       table: 'username_edit_history',
       data: {
         userId: userId,
-        previous: '',
+        previous: oldUserName,
       },
     })
 
