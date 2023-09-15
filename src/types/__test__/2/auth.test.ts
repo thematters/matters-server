@@ -958,14 +958,15 @@ describe('setUseName', () => {
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('existing user can call setUseName with same userName', async () => {
-    const server = await testClient({
-      isAuth: true,
-      isMatty: true,
-      connections,
-    })
+    // prepare an "existing user"
+    const userName = 'exist007'
+    let user = await userService.findByEmail(email)
+    if (user) {
+      user = await userService.baseUpdate(user.id, { userName })
+    }
 
     // same userName
-    const userName = 'matty'
+    const { server } = await prepare({ email })
     const { data } = await server.executeOperation({
       query: SET_USER_NAME,
       variables: {
