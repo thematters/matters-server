@@ -22,7 +22,7 @@ let connections: Connections
 
 beforeAll(async () => {
   connections = await genConnections()
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -37,6 +37,22 @@ const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
         name
         members(input: { first: null }) {
           totalCount
+        }
+        works(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              id
+              access {
+                type
+                circle {
+                  id
+                }
+              }
+              revisionCount
+              license
+            }
+          }
         }
       }
       articles(input: { first: null }) {
@@ -499,8 +515,6 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-    // wait for queue job done
-    await new Promise(process.nextTick)
 
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
@@ -526,8 +540,6 @@ describe('circle CRUD', () => {
         },
       },
     })
-    // wait for queue job done
-    await new Promise(process.nextTick)
 
     expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
   })
@@ -571,12 +583,13 @@ describe('circle CRUD', () => {
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
     }
+
+    await delay(500)
+
     const addedPublicData = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-    // wait for queue job done
-    await new Promise(process.nextTick)
 
     expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
@@ -600,24 +613,26 @@ describe('circle CRUD', () => {
       accessType: ARTICLE_ACCESS_TYPE.paywall,
       license: ARTICLE_LICENSE_TYPE.arr,
     }
-    const addedPaywallData = await server.executeOperation({
+    await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
-    // wait for queue job done
-    await new Promise(process.nextTick)
 
-    expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
-      article.id
-    )
-    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(1)
+    await delay(500)
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+
+    expect(data2.viewer.ownCircles[0].works.edges[0].node.id).toBe(article.id)
+    expect(data2.viewer.ownCircles[0].works.totalCount).toBe(1)
     expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.circle.id`)
+      data2.viewer.ownCircles[0].works.edges[0].node.access.circle.id
     ).toBe(circle.id)
-    expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
-    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
+    expect(data2.viewer.ownCircles[0].works.edges[0].node.access.type).toBe(
+      ARTICLE_ACCESS_TYPE.paywall
+    )
+    expect(data2.viewer.ownCircles[0].works.edges[0].node.license).toBe(
       ARTICLE_LICENSE_TYPE.arr
     )
 
@@ -631,19 +646,33 @@ describe('circle CRUD', () => {
         },
       },
     })
-    await new Promise(process.nextTick)
     expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
   })
 
   test('add article to circle with paywall access, then turns to public access', async () => {
     const path = 'data.putCircleArticles'
     const server = await testClient({ ...userClient, connections })
+
+    const draft = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+          // iscnPublish: true,
+        },
+      },
+      connections
+    )
+    const publishedDraftId = draft.id // toGlobalId({ type: NODE_TYPES.Draft, id: draftId })
+    await publishArticle({ id: publishedDraftId }, connections)
+    await delay(500)
+
     const { data } = await server.executeOperation({
       query: GET_VIEWER_OWN_CIRCLES,
     })
 
     const circle = _get(data, 'viewer.ownCircles[0]')
-    const article = _get(data, 'viewer.articles.edges[1].node')
+    const article = _get(data, 'viewer.articles.edges[2].node')
 
     // add to circle with paywall access
     const paywallInput: Record<string, any> = {
@@ -657,7 +686,6 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: paywallInput },
     })
-    await new Promise(process.nextTick)
 
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
@@ -673,8 +701,6 @@ describe('circle CRUD', () => {
       ARTICLE_LICENSE_TYPE.arr
     )
 
-    // TODO: fix this test. It is broken because of revision queue job do not be commented out in test env now
-    //
     // turns to public access
     const publicInput: Record<string, any> = {
       id: circle.id,
@@ -688,15 +714,11 @@ describe('circle CRUD', () => {
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-    await new Promise(process.nextTick)
 
-    expect(addedPublicData.errors[0].extensions.code).toBe(
-      'ARTICLE_REVISION_REACH_LIMIT'
-    )
-    // expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
-    // expect(
-    //   _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
-    // ).toBe(ARTICLE_ACCESS_TYPE.public)
+    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.public)
   })
 
   test('add and retrieve discussion', async () => {
