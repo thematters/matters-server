@@ -710,15 +710,17 @@ describe('circle CRUD', () => {
       license: ARTICLE_LICENSE_TYPE.cc_0,
     }
 
-    const addedPublicData = await server.executeOperation({
+    const { data: data2, errors } = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
 
-    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.public)
+    console.log(errors)
+
+    expect(data2.putCircleArticles.works.totalCount).toBe(1)
+    expect(data2.putCircleArticles.works.edges[0].node.access.type).toBe(
+      ARTICLE_ACCESS_TYPE.public
+    )
   })
 
   test('add and retrieve discussion', async () => {
