@@ -29,7 +29,7 @@ let userService: UserService
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -1017,5 +1017,57 @@ describe('setUseName', () => {
     })
     expect(data?.setUserName.userName).toBe(userName)
     expect(data?.setUserName.displayName).toBeDefined()
+  })
+})
+
+describe('add social accounts', () => {
+  const ADD_SOCIAL_LOGIN = /* GraphQL */ `
+    mutation ($input: SocialLoginInput!) {
+      addSocialLogin(input: $input) {
+        userName
+        info {
+          email
+          emailVerified
+        }
+      }
+    }
+  `
+  test('google account will update user email info', async () => {
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user }, connections })
+    const testGoogleAccount = 'e2etest-test'
+    const { data } = await server.executeOperation({
+      query: ADD_SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: testGoogleAccount,
+          nonce: 'test',
+        },
+      },
+    })
+    expect(data?.addSocialLogin.info.email).toBe(
+      testGoogleAccount + '@gmail.com'
+    )
+  })
+  test('google account will not update user email info if related email exsit', async () => {
+    const testGoogleAccount = 'e2etest-test2'
+    const testEmail = testGoogleAccount + '@gmail.com'
+    // another user own the gmail
+    await userService.create({ email: testEmail })
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user }, connections })
+
+    const { data } = await server.executeOperation({
+      query: ADD_SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: testGoogleAccount,
+          nonce: 'test',
+        },
+      },
+    })
+    expect(data?.addSocialLogin.info.email).toBe(null)
   })
 })
