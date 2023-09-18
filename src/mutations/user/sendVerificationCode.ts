@@ -145,7 +145,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
           ...(user ? { userId: user.id } : {}),
         },
         expiresInMinutes:
-          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE) / MINUTE,
+          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE * 3) / MINUTE,
       })
     ).join('-')
   } else {
