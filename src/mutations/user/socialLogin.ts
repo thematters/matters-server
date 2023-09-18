@@ -150,6 +150,7 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       userName: userInfo.username,
     })
   } else {
+    // Google
     if (nonce === undefined) {
       throw new UserInputError('nonce is required')
     }
@@ -170,16 +171,19 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       email: userInfo.email,
     })
     if (viewer.email === null) {
-      await userService.baseUpdate(viewer.id, {
-        email: userInfo.email,
-        emailVerified: userInfo.emailVerified,
-      })
+      const user = await userService.findByEmail(userInfo.email)
+      if (!user) {
+        return await userService.baseUpdate(viewer.id, {
+          email: userInfo.email,
+          emailVerified: userInfo.emailVerified,
+        })
+      }
     } else if (
       viewer.email === userInfo.email &&
       !viewer.emailVerified &&
       userInfo.emailVerified
     ) {
-      await userService.baseUpdate(viewer.id, {
+      return await userService.baseUpdate(viewer.id, {
         emailVerified: userInfo.emailVerified,
       })
     }
