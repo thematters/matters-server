@@ -2741,6 +2741,7 @@ input ChangeEmailInput {
 }
 
 input VerifyEmailInput {
+  email: String!
   code: String!
 }
 
