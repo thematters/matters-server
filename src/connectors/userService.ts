@@ -1160,6 +1160,7 @@ export class UserService extends BaseService {
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
           .where({ state: USER_STATE.active })
+          .whereNot({ userName: null })
           .whereNotIn('id', notIn)
 
         if (skip) {

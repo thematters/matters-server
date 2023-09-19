@@ -615,12 +615,17 @@ describe('test update email', () => {
 })
 
 describe('recommendAuthors', () => {
-  test('recommend authors return totalCount', async () => {
+  test('return totalCount', async () => {
     const authors = await userService.recommendAuthors({
       count: true,
       oss: true,
     })
-    console.log(authors)
     expect(authors[0].totalCount).toBeDefined()
+  })
+  test('do not return user w/o user_name', async () => {
+    const authors = await userService.recommendAuthors({ oss: true })
+    for (const author of authors) {
+      expect(author.userName).not.toBe(null)
+    }
   })
 })
