@@ -135,12 +135,12 @@ test('update', async () => {
   expect(article.state).toEqual('archived')
 })
 
-test('quickSearch', async () => {
+test('quicksearch', async () => {
   const { nodes, totalCount } = await articleService.searchV3({
     key: 'test',
     take: 1,
     skip: 0,
-    quickSearch: true,
+    quicksearch: true,
   })
   expect(nodes.length).toBe(1)
   expect(totalCount).toBeGreaterThan(0)
@@ -150,7 +150,7 @@ test('quickSearch', async () => {
       key: 'test',
       take: 1,
       skip: 0,
-      quickSearch: true,
+      quicksearch: true,
       filter: { authorId: '1' },
     })
   expect(nodes2.length).toBe(1)

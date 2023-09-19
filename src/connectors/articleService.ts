@@ -575,7 +575,7 @@ export class ArticleService extends BaseService {
     exclude,
     viewerId,
     coefficients,
-    quickSearch,
+    quicksearch,
   }: {
     key: string
     keyOriginal?: string
@@ -586,10 +586,10 @@ export class ArticleService extends BaseService {
     filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
-    quickSearch?: boolean
+    quicksearch?: boolean
   }) => {
-    if (quickSearch) {
-      return this.quickSearch({ key, take, skip, filter })
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
     }
     let coeffs = [1, 1, 1, 1]
     try {
@@ -727,7 +727,7 @@ export class ArticleService extends BaseService {
     // keyOriginal,
     take = 10,
     skip = 0,
-    quickSearch,
+    quicksearch,
     filter,
   }: {
     key: string
@@ -739,10 +739,10 @@ export class ArticleService extends BaseService {
     filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
-    quickSearch?: boolean
+    quicksearch?: boolean
   }) => {
-    if (quickSearch) {
-      return this.quickSearch({ key, take, skip, filter })
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
     }
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
@@ -776,7 +776,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  private quickSearch = async ({
+  private quicksearch = async ({
     key,
     take,
     skip,
