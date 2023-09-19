@@ -1640,7 +1640,7 @@ export type GQLMutation = {
    */
   userRegister: GQLAuthResult
   /** Verify user email. */
-  verifyEmail: GQLUser
+  verifyEmail: GQLAuthResult
   /** Upvote or downvote a comment. */
   voteComment: GQLComment
   /** Login/Signup via a wallet. */
@@ -6998,7 +6998,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationUserRegisterArgs, 'input'>
   >
   verifyEmail?: Resolver<
-    GQLResolversTypes['User'],
+    GQLResolversTypes['AuthResult'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationVerifyEmailArgs, 'input'>

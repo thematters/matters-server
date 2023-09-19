@@ -180,7 +180,7 @@ type Mutation {
   setEmail(input: SetEmailInput!): User!
 
   """Verify user email."""
-  verifyEmail(input: VerifyEmailInput!): User!
+  verifyEmail(input: VerifyEmailInput!): AuthResult!
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!

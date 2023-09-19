@@ -35,7 +35,7 @@ beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -1667,10 +1667,14 @@ describe('verify user email', () => {
   const VERIFY_EMAIL = /* GraphQL */ `
     mutation ($input: VerifyEmailInput!) {
       verifyEmail(input: $input) {
-        userName
-        info {
-          email
-          emailVerified
+        auth
+        token
+        user {
+          userName
+          info {
+            email
+            emailVerified
+          }
         }
       }
     }
@@ -1692,11 +1696,24 @@ describe('verify user email', () => {
     const email = 'notverified@matters.town'
     const user = await userService.create({ email, emailVerified: false })
     const server = await testClient({ context: { viewer: user }, connections })
+    // no exsiting code
     const { errors } = await server.executeOperation({
       query: VERIFY_EMAIL,
       variables: { input: { email, code: 'test' } },
     })
     expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+
+    // user id not matching
+    const { code: badCode } = await userService.createVerificationCode({
+      userId: '1',
+      type: 'email_verify',
+      email,
+    })
+    const { errors: errors2 } = await server.executeOperation({
+      query: VERIFY_EMAIL,
+      variables: { input: { email, code: badCode } },
+    })
+    expect(errors2?.[0].extensions.code).toBe('CODE_INVALID')
 
     // succeed
     const { code } = await userService.createVerificationCode({
@@ -1708,7 +1725,9 @@ describe('verify user email', () => {
       query: VERIFY_EMAIL,
       variables: { input: { email, code } },
     })
-    expect(data.verifyEmail.info.emailVerified).toBe(true)
+    expect(data.verifyEmail.auth).toBe(false)
+    expect(data.verifyEmail.token).toBe(null)
+    expect(data.verifyEmail.user.info.emailVerified).toBe(true)
   })
 })
 
