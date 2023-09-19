@@ -3737,6 +3737,7 @@ export type GQLVerificationCodeType =
 
 export type GQLVerifyEmailInput = {
   code: Scalars['String']['input']
+  email: Scalars['String']['input']
 }
 
 /** Enums for vote types. */

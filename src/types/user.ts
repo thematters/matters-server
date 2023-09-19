@@ -23,7 +23,7 @@ export default /* GraphQL */ `
     setEmail(input: SetEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
+    verifyEmail(input: VerifyEmailInput!): User! @purgeCache(type: "${NODE_TYPES.User}")
 
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -717,6 +717,7 @@ export default /* GraphQL */ `
   }
 
   input VerifyEmailInput {
+    email: String!
     code: String!
   }
 
