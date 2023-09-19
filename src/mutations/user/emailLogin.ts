@@ -1,6 +1,12 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
-import { AUTH_RESULT_TYPE, VERIFICATION_CODE_TYPE } from 'common/enums'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import {
+  AUTH_RESULT_TYPE,
+  VERIFICATION_CODE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import { EmailInvalidError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
@@ -13,7 +19,11 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
 ) => {
   const {
     viewer,
-    dataSources: { userService, systemService },
+    dataSources: {
+      userService,
+      systemService,
+      connections: { redis },
+    },
     req,
     res,
   } = context
@@ -95,6 +105,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     if (user.emailVerified === false) {
       await userService.baseUpdate(user.id, { emailVerified: true })
       user.emailVerified = true
+      invalidateFQC({ node: { type: NODE_TYPES.User, id: user.id }, redis })
     }
 
     const sessionToken = await userService.genSessionToken(user.id)

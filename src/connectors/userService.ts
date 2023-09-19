@@ -1488,10 +1488,12 @@ export class UserService extends BaseService {
     email,
     type,
     code: codeString,
+    userId,
   }: {
     email: string
     type: keyof typeof VERIFICATION_CODE_TYPE
-    code?: string
+    code: string
+    userId?: string
   }) => {
     const codes = await this.findVerificationCodes({
       where: {
@@ -1520,6 +1522,9 @@ export class UserService extends BaseService {
         status: VERIFICATION_CODE_STATUS.expired,
       })
       throw new CodeExpiredError('code is expired')
+    }
+    if (userId && code.userId !== userId) {
+      throw new CodeInvalidError('code does not match user')
     }
     const trx = await this.knex.transaction()
     for (const c of codes) {
