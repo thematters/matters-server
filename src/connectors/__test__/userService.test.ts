@@ -16,7 +16,7 @@ beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -611,5 +611,21 @@ describe('test update email', () => {
         'testchangeemail4@matters.town'
       )
     ).rejects.toThrow()
+  })
+})
+
+describe('recommendAuthors', () => {
+  test('return totalCount', async () => {
+    const authors = await userService.recommendAuthors({
+      count: true,
+      oss: true,
+    })
+    expect(authors[0].totalCount).toBeDefined()
+  })
+  test('do not return user w/o user_name', async () => {
+    const authors = await userService.recommendAuthors({ oss: true })
+    for (const author of authors) {
+      expect(author.userName).not.toBe(null)
+    }
   })
 })

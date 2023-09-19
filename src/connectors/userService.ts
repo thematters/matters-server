@@ -1136,60 +1136,20 @@ export class UserService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  public countAuthor = async ({
-    notIn = [],
-    oss = false,
-    type = AUTHOR_TYPE.default,
-  }: {
-    notIn?: string[]
-    oss?: boolean
-    type: keyof typeof AUTHOR_TYPE
-  }) => {
-    switch (type) {
-      case AUTHOR_TYPE.default: {
-        const table = oss
-          ? VIEW.user_reader_view
-          : MATERIALIZED_VIEW.user_reader_materialized
-        const result = await this.knex(table)
-          .where({ state: USER_STATE.active })
-          .whereNotIn('id', notIn)
-          .count()
-          .first()
-        return parseInt(result ? (result.count as string) : '0', 10)
-      }
-      case AUTHOR_TYPE.active:
-      case AUTHOR_TYPE.appreciated:
-      case AUTHOR_TYPE.trendy: {
-        const view =
-          type === AUTHOR_TYPE.active
-            ? 'most_active_author_materialized'
-            : type === AUTHOR_TYPE.appreciated
-            ? 'most_appreciated_author_materialized'
-            : 'most_trendy_author_materialized'
-        const result = await this.knex
-          .from({ view })
-          .innerJoin('user', 'view.id', 'user.id')
-          .where({ state: USER_STATE.active })
-          .whereNotIn('view.id', notIn)
-          .count()
-          .first()
-        return parseInt(result ? (result.count as string) : '0', 10)
-      }
-    }
-  }
-
-  public recommendAuthor = async ({
+  public recommendAuthors = async ({
     take,
     skip,
     notIn = [],
     oss = false,
     type = AUTHOR_TYPE.default,
+    count = false,
   }: {
     take?: number
     skip?: number
     notIn?: string[]
     oss?: boolean
     type?: keyof typeof AUTHOR_TYPE
+    count?: boolean
   }) => {
     switch (type) {
       case AUTHOR_TYPE.default: {
@@ -1197,10 +1157,10 @@ export class UserService extends BaseService {
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
         const query = this.knexRO(table)
-          .select()
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
           .where({ state: USER_STATE.active })
+          .whereNot({ userName: null })
           .whereNotIn('id', notIn)
 
         if (skip) {
@@ -1208,6 +1168,14 @@ export class UserService extends BaseService {
         }
         if (take || take === 0) {
           query.limit(take)
+        }
+        if (count) {
+          query.select(
+            '*',
+            this.knexRO.raw('COUNT(id) OVER() ::int AS total_count')
+          )
+        } else {
+          query.select('*')
         }
 
         return query
@@ -1223,7 +1191,6 @@ export class UserService extends BaseService {
             : 'most_trendy_author_materialized'
 
         const query = this.knexRO
-          .select()
           .from({ view })
           .innerJoin('user', 'view.id', 'user.id')
           .where({ state: USER_STATE.active })
@@ -1234,6 +1201,14 @@ export class UserService extends BaseService {
         }
         if (take || take === 0) {
           query.limit(take)
+        }
+        if (count) {
+          query.select(
+            '*',
+            this.knexRO.raw('COUNT(id) OVER() ::int AS total_count')
+          )
+        } else {
+          query.select('*')
         }
 
         return query

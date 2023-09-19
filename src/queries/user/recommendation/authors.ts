@@ -44,7 +44,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
    * Filter out top 60 trendy authors if type is most appreciated
    */
   if (isAppreciated) {
-    const trendyAuthors = await userService.recommendAuthor({ take: 60, type })
+    const trendyAuthors = await userService.recommendAuthors({ take: 60, type })
     notIn = [...notIn, ...trendyAuthors.map((author) => author.id)]
   }
 
@@ -55,7 +55,7 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     const MAX_RANDOM_INDEX = isDefault ? 50 : 12
     const randomDraw = isDefault ? input.first || 5 : 5
 
-    const authorPool = await userService.recommendAuthor({
+    const authorPool = await userService.recommendAuthors({
       take: MAX_RANDOM_INDEX * randomDraw,
       notIn,
       oss,
@@ -69,14 +69,14 @@ export const authors: GQLRecommendationResolvers['authors'] = async (
     return connectionFromArray(filteredAuthors, input, authorPool.length)
   }
 
-  const totalCount = await userService.countAuthor({
+  const users = await userService.recommendAuthors({
+    skip,
+    take,
     notIn,
     type,
+    count: true,
   })
+  const totalCount = +users[0]?.totalCount || users.length
 
-  return connectionFromPromisedArray(
-    userService.recommendAuthor({ skip, take, notIn, type }),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(users, input, totalCount)
 }
