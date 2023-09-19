@@ -776,7 +776,7 @@ export class ArticleService extends BaseService {
     }
   }
 
-  public quickSearch = async ({
+  private quickSearch = async ({
     key,
     take,
     skip,
