@@ -807,7 +807,7 @@ export class ArticleService extends BaseService {
     const nodes = (await this.draftLoader.loadMany(
       records.map((item: { id: string }) => item.id).filter(Boolean)
     )) as Draft[]
-    const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    const totalCount = +(records?.[0]?.totalCount ?? 0)
     return { nodes, totalCount }
   }
 
