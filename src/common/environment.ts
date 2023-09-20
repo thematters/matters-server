@@ -57,7 +57,8 @@ export const environment = {
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
   cloudflareAccountHash: process.env.MATTERS_CLOUDFLARE_ACCOUNT_HASH,
   cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
-  cloudflareTurnstileSecretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY,
+  cloudflareTurnstileSecretKey:
+    process.env.MATTERS_CLOUDFLARE_TURNSTILE_SECRET_KEY,
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
