@@ -51,10 +51,12 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     // for a transition period, we may check both, and pass if any one pass siteverify
     // after the transition period, can turn off the one no longer in use
     const isHuman = (
-      await Promise.all([
-        gcp.recaptcha({ token, ip: viewer.ip }),
-        cfsvc.turnstileVerify({ token, ip: viewer.ip }),
-      ])
+      await Promise.all(
+        [
+          gcp.recaptcha({ token, ip: viewer.ip }),
+          cfsvc.turnstileVerify({ token, ip: viewer.ip }),
+        ].map((p) => p.catch((e) => e))
+      )
     ).includes(true)
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
