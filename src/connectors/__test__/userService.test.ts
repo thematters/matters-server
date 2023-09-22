@@ -1,11 +1,10 @@
 import type { Connections } from 'definitions'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
-import { ActionFailedError } from 'common/errors'
+import { ActionFailedError, EmailExistsError } from 'common/errors'
 import { CacheService, UserService, PaymentService } from 'connectors'
 
-import { createDonationTx } from './utils'
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections, createDonationTx } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
 let connections: Connections
@@ -20,6 +19,24 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeConnections(connections)
+})
+
+describe('create', () => {
+  test('check emails exsitence before create user', async () => {
+    const email1 = 'testcreate1@matters.town'
+    const email2 = 'testcreate2@matters.town'
+    const user = await userService.create({ email: email1 })
+    await userService.createSocialAccount({
+      email: email2,
+      providerAccountId: 'testcreate1',
+      type: 'Google',
+      userId: user.id,
+    })
+    await expect(userService.create({ email: email1 })).rejects.toThrow()
+    await expect(userService.create({ email: email2 })).rejects.toThrow(
+      EmailExistsError
+    )
+  })
 })
 
 describe('countDonators', () => {
@@ -580,6 +597,35 @@ describe('test remove login methods', () => {
 })
 
 describe('test update email', () => {
+  test('check email existence before update email', async () => {
+    const user1SocialAccountEmail = 'test-update-email-1@gmail.com'
+    const user1 = await userService.create({})
+    await userService.createSocialAccount({
+      email: user1SocialAccountEmail,
+      providerAccountId: 'testupdate1',
+      type: 'Google',
+      userId: user1.id,
+    })
+
+    const user2SocialAccountEmail = 'test-update-email-2-1@gmail.com'
+    const user2Email = 'test-update-email-2-2@matters.town'
+    const user2 = await userService.create({ email: user2Email })
+    await userService.createSocialAccount({
+      email: user2SocialAccountEmail,
+      providerAccountId: 'testupdate2',
+      type: 'Google',
+      userId: user2.id,
+    })
+
+    // user can not update email to an existed email
+    await expect(userService.setEmail(user1.id, user2Email)).rejects.toThrow()
+    await expect(
+      userService.setEmail(user1.id, user2SocialAccountEmail)
+    ).rejects.toThrow(EmailExistsError)
+
+    // user can update email to an existed email if it's user's own emails or social account emails
+    await userService.setEmail(user1.id, user1SocialAccountEmail)
+  })
   test('user can only change email limit times per day', async () => {
     const user = await userService.create({})
     expect(await userService.changeEmailTimes(user.id)).toBe(0)
