@@ -2,6 +2,7 @@ import FormData from 'form-data'
 import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
+import { v4 } from 'uuid'
 
 import { environment, isProd, isTest } from 'common/environment'
 import { ActionFailedError, UserInputError } from 'common/errors'
@@ -190,21 +191,30 @@ export class CloudflareService {
     formData.append('secret', environment.cloudflareTurnstileSecretKey)
     formData.append('response', token)
     formData.append('remoteip', ip)
+    formData.append('idempotency_key', v4())
+    const formHeaders = formData.getHeaders()
 
     const res = await fetch(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       {
         method: 'POST',
         body: formData,
+        headers: {
+          ...formHeaders,
+        },
       }
     )
     logger.info('cloudflare turnstile res: %o', res.ok, res.headers)
 
-    const data = await res.json()
-    logger.info('cloudflare turnstile res data: %o', data)
-    if (!data?.success) {
-      // logger.warn('cloudflare turnstile no success: %o', data)
-      throw new ActionFailedError(`please try again: ${data['error-codes']}`)
+    const resData = await res.json()
+    logger.info('cloudflare turnstile res data: %o', resData)
+    if (!resData?.success) {
+      logger.warn(
+        `cloudflare turnstile no success, res: %j, input: %s`,
+        resData,
+        formData.getBuffer().toString()
+      )
+      throw new ActionFailedError(`please try again: ${resData['error-codes']}`)
     }
 
     return true
