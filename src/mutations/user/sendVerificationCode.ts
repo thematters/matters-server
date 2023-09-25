@@ -17,8 +17,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { extractRootDomain } from 'common/utils'
-import { GCP, cfsvc } from 'connectors'
+import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
+// import { GCP, cfsvc } from 'connectors'
 import { Passphrases } from 'connectors/passphrases'
 
 const logger = getLogger('mutation-send-verificaiton-code')
@@ -46,19 +46,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new EmailExistsError('email has been registered')
     }
 
-    // check token for Turing test
-    const gcp = new GCP()
-
-    // for a transition period, we may check both, and pass if any one pass siteverify
-    // after the transition period, can turn off the one no longer in use
-    const isHuman = (
-      await Promise.all(
-        [
-          gcp.recaptcha({ token, ip: viewer.ip }),
-          cfsvc.turnstileVerify({ token, ip: viewer.ip }),
-        ].map((p) => p.catch((e) => e))
-      )
-    ).includes(true)
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
     }

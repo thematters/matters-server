@@ -24,6 +24,7 @@ export * from './ipfs'
 export * from './IERC1271'
 export * from './genDisplayName'
 export * from './counter'
+export * from './verify'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.

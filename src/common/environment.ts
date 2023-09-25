@@ -59,6 +59,9 @@ export const environment = {
   cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
   cloudflareTurnstileSecretKey:
     process.env.MATTERS_CLOUDFLARE_TURNSTILE_SECRET_KEY,
+  verifyCaptchaTokenThresholds: JSON.parse(
+    process.env.MATTERS_VERIFY_CAPTCHA_TOKENS_THRESHOLDS || '[0.5, 1.0]'
+  ),
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,

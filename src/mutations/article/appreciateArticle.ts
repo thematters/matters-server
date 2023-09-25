@@ -19,8 +19,8 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { GCP, cfsvc } from 'connectors'
+import { fromGlobalId, verifyCaptchaToken } from 'common/utils'
+// import { GCP, cfsvc } from 'connectors'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
@@ -184,18 +184,9 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
   if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
-    const gcp = new GCP()
-
     // for a transition period, we may check both, and pass if any one pass siteverify
     // after the transition period, can turn off the one no longer in use
-    const isHuman = (
-      await Promise.all(
-        [
-          gcp.recaptcha({ token, ip: viewer.ip }),
-          cfsvc.turnstileVerify({ token, ip: viewer.ip }),
-        ].map((p) => p.catch((e) => e))
-      )
-    ).includes(true)
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')
     }
