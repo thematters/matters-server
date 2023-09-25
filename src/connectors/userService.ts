@@ -76,6 +76,7 @@ import {
   UnknownError,
   ForbiddenError,
   ActionFailedError,
+  SocialAccountExistsError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -391,7 +392,7 @@ export class UserService extends BaseService {
       socialAccounts.length > 0 &&
       socialAccounts.every((acct) => acct.userId !== userId)
     ) {
-      throw new EmailExistsError('email already exists')
+      throw new SocialAccountExistsError('email already exists')
     }
 
     const emailUser = await this.findByEmail(email)
