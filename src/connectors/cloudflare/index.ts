@@ -1,4 +1,5 @@
 import FormData from 'form-data'
+// import _ from 'lodash'
 import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
@@ -186,22 +187,29 @@ export class CloudflareService {
     }
 
     // Turing test with recaptcha
-    const formData = new FormData()
-    // formData.append('url', url)
-    formData.append('secret', environment.cloudflareTurnstileSecretKey)
-    formData.append('response', token)
-    formData.append('remoteip', ip)
-    formData.append('idempotency_key', v4())
-    const formHeaders = formData.getHeaders()
+    // const formData = new URLSearchParams()
+    // formData.append('secret', environment.cloudflareTurnstileSecretKey)
+    // formData.append('response', token)
+    // formData.append('remoteip', ip)
+    // formData.append('idempotency_key', v4())
 
+    const postData =
+      // _.omitBy(
+      {
+        secret: environment.cloudflareTurnstileSecretKey,
+        response: token,
+        remoteip: ip,
+        idempotency_key: v4(),
+      } // , _.isNil)
     const res = await fetch(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       {
         method: 'POST',
-        body: formData,
         headers: {
-          ...formHeaders,
+          'content-type': 'application/json',
+          // ...formHeaders,
         },
+        body: JSON.stringify(postData), // formData.toString(),
       }
     )
     logger.info('cloudflare turnstile res: %o', res.ok, res.headers)
@@ -210,9 +218,10 @@ export class CloudflareService {
     logger.info('cloudflare turnstile res data: %o', resData)
     if (!resData?.success) {
       logger.warn(
-        `cloudflare turnstile no success, res: %j, input: %s`,
+        `cloudflare turnstile no success, res: %j, input: %o`,
         resData,
-        formData.getBuffer().toString()
+        postData // formData // this contains secret, need to turn off after debugging
+        // formData.getBuffer().toString()
       )
       throw new ActionFailedError(`please try again: ${resData['error-codes']}`)
     }
