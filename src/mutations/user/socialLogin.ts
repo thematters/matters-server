@@ -1,7 +1,7 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { AUTH_RESULT_TYPE, SOCIAL_LOGIN_TYPE } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { UserInputError, ActionFailedError } from 'common/errors'
 import { setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwOrReturnUserInfo } from 'common/utils/e2e'
 
@@ -164,6 +164,10 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
     } else {
       userInfo = await userService.fetchGoogleUserInfo(authorizationCode, nonce)
     }
+    const user = await userService.findByEmail(userInfo.email)
+    if (user) {
+      throw new ActionFailedError('email already exists')
+    }
     await userService.createSocialAccount({
       userId: viewer.id,
       providerAccountId: userInfo.id,
@@ -171,14 +175,13 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       email: userInfo.email,
     })
     if (viewer.email === null) {
-      const user = await userService.findByEmail(userInfo.email)
-      if (!user) {
-        return await userService.baseUpdate(viewer.id, {
-          email: userInfo.email,
-          emailVerified: userInfo.emailVerified,
-        })
-      }
+      // update email if it's null
+      return await userService.baseUpdate(viewer.id, {
+        email: userInfo.email,
+        emailVerified: userInfo.emailVerified,
+      })
     } else if (
+      // update emailVerified if it's not verified before
       viewer.email === userInfo.email &&
       !viewer.emailVerified &&
       userInfo.emailVerified

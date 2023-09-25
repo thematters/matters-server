@@ -37,11 +37,12 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   }
 
   const user = await userService.findByEmail(email)
+  const socialAccounts = await userService.findSocialAccountsByEmail(email)
 
   // register check
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
-    if (user) {
+    if (user || socialAccounts.length > 0) {
       throw new EmailExistsError('email has been registered')
     }
 
