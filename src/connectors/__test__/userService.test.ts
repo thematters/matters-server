@@ -1,7 +1,11 @@
 import type { Connections } from 'definitions'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
-import { ActionFailedError, EmailExistsError } from 'common/errors'
+import {
+  ActionFailedError,
+  EmailExistsError,
+  SocialAccountExistsError,
+} from 'common/errors'
 import { CacheService, UserService, PaymentService } from 'connectors'
 
 import { genConnections, closeConnections, createDonationTx } from './utils'
@@ -621,7 +625,7 @@ describe('test update email', () => {
     await expect(userService.setEmail(user1.id, user2Email)).rejects.toThrow()
     await expect(
       userService.setEmail(user1.id, user2SocialAccountEmail)
-    ).rejects.toThrow(EmailExistsError)
+    ).rejects.toThrow(SocialAccountExistsError)
 
     // user can update email to an existed email if it's user's own emails or social account emails
     await userService.setEmail(user1.id, user1SocialAccountEmail)

@@ -250,6 +250,12 @@ export class CryptoWalletExistsError extends GraphQLError {
   }
 }
 
+export class SocialAccountExistsError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'USER_SOCIAL_ACCOUNT_EXISTS' } })
+  }
+}
+
 /*********************************
  *                               *
  *      Verification Code        *
