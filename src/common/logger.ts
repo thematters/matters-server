@@ -63,6 +63,20 @@ export const getLogger = (name: string) => {
   return newLogger
 }
 
+// audit logs helper. note that there is a lambda function load audit logs into RDS for analytis usage
+
+const auditLogger = getLogger('auditLog')
+
+export const auditLog = (data: {
+  actorId: string
+  action: string
+  entity?: string
+  entityId?: string
+  oldValue?: string
+  newValue?: string
+  status?: 'succeeded' | 'failed' | 'pending'
+}) => auditLogger.info(data)
+
 // print environment
 
 getLogger('env').debug('environment %s', environment)
