@@ -181,6 +181,7 @@ export type BasicTableName =
   | 'blockchain_sync_record'
   | 'collection'
   | 'collection_article'
+  | 'social_account'
 
 export type View =
   | 'tag_count_view'

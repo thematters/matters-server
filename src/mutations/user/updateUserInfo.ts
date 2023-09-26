@@ -14,7 +14,7 @@ import {
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
-import { getLogger } from 'common/logger'
+import { getLogger, auditLog } from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -209,6 +209,21 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
         userId: viewer.id,
         previous: viewer.userName,
       },
+    })
+    auditLog({
+      actorId: viewer.id,
+      action: 'update_username',
+      oldValue: viewer.userName,
+      newValue: input.userName,
+    })
+  }
+
+  if (input.displayName) {
+    auditLog({
+      actorId: viewer.id,
+      action: 'update_displayname',
+      oldValue: viewer.displayName,
+      newValue: input.displayName,
     })
   }
 

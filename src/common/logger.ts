@@ -1,4 +1,4 @@
-import type { ValueOf } from 'definitions'
+import type { ValueOf, TableName } from 'definitions'
 
 import { AsyncLocalStorage } from 'async_hooks'
 import util from 'node:util'
@@ -68,14 +68,15 @@ export const getLogger = (name: string) => {
 const auditLogger = getLogger('auditLog')
 
 export const auditLog = (data: {
-  actorId: string
+  actorId: string | null
   action: string
-  entity?: string
+  entity?: TableName
   entityId?: string
-  oldValue?: string
+  oldValue?: string | null
   newValue?: string
   status?: 'succeeded' | 'failed' | 'pending'
-}) => auditLogger.info(data)
+  remark?: string
+}) => auditLogger.info('%j', data)
 
 // print environment
 

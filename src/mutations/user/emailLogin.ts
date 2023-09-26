@@ -8,6 +8,7 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
@@ -50,10 +51,20 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     // user not exist, register
     if (!isE2ETest) {
       if (isEmailOTP) {
-        await passphrases.verify({
-          payload: { email },
-          passphrases: passphrases.normalize(passwordOrCode),
-        })
+        try {
+          await passphrases.verify({
+            payload: { email },
+            passphrases: passphrases.normalize(passwordOrCode),
+          })
+        } catch (err: any) {
+          auditLog({
+            actorId: null,
+            action: 'email_register_otp',
+            status: 'failed',
+            remark: err.message,
+          })
+          throw err
+        }
       } else {
         await userService.verifyVerificationCode({
           email,
@@ -77,6 +88,11 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer.authMode = newUser.role as AuthMode
     context.viewer.scope = {}
 
+    auditLog({ actorId: newUser.id, action: 'email_register' })
+    if (isEmailOTP) {
+      auditLog({ actorId: newUser.id, action: 'email_register_otp' })
+    }
+
     return {
       token: sessionToken,
       auth: true,
@@ -99,6 +115,14 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
+      if (isEmailOTP) {
+        auditLog({
+          actorId: user.id,
+          action: 'email_login_otp',
+          status: 'failed',
+          remark: err.errors[0].message,
+        })
+      }
       if (!isE2ETest) {
         throw err.errors[0]
       }
@@ -119,6 +143,11 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer = await getViewerFromUser(user)
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
+
+    auditLog({ actorId: user.id, action: 'email_login' })
+    if (isEmailOTP) {
+      auditLog({ actorId: user.id, action: 'email_login_otp' })
+    }
 
     return {
       token: sessionToken,

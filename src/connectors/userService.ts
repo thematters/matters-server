@@ -79,7 +79,7 @@ import {
   ActionFailedError,
   ForbiddenByStateError,
 } from 'common/errors'
-import { getLogger } from 'common/logger'
+import { getLogger, auditLog } from 'common/logger'
 import {
   generatePasswordhash,
   isValidUserName,
@@ -411,6 +411,12 @@ export class UserService extends BaseService {
           language: user.language,
         })
       }
+      auditLog({
+        actorId: userId,
+        action: 'update_email',
+        oldValue: user.email,
+        newValue: email,
+      })
       return this.baseUpdate(userId, {
         email,
         emailVerified: false,
@@ -434,6 +440,7 @@ export class UserService extends BaseService {
     if (!user.email || !user.emailVerified) {
       throw new ForbiddenError('email not verified')
     }
+    auditLog({ actorId: user.id, action: 'update_password' })
     return await this.baseUpdate(user.id, {
       passwordHash: await generatePasswordhash(password),
     })
@@ -479,7 +486,12 @@ export class UserService extends BaseService {
         previous: oldUserName,
       },
     })
-
+    auditLog({
+      actorId: userId,
+      action: 'update_username',
+      oldValue: oldUserName,
+      newValue: userName,
+    })
     return await this.baseUpdate(userId, data)
   }
 
@@ -2221,6 +2233,8 @@ export class UserService extends BaseService {
       data: { updatedAt: this.knex.fn.now(), archived: true },
     })
 
+    auditLog({ actorId: userId, action: 'add_wallet' })
+
     return updatedUser
   }
 
@@ -2233,6 +2247,7 @@ export class UserService extends BaseService {
     if (count === 1) {
       throw new ActionFailedError('cannot remove last login method')
     }
+    auditLog({ actorId: userId, action: 'remove_wallet' })
     return this.baseUpdate(userId, { ethAddress: null })
   }
 
@@ -2299,6 +2314,9 @@ export class UserService extends BaseService {
     }
     if (isCreated) {
       await this.postRegister(user)
+      auditLog({ actorId: user.id, action: `social_account_register_${type}` })
+    } else {
+      auditLog({ actorId: user.id, action: `social_account_login_${type}` })
     }
     return user
   }
@@ -2330,7 +2348,14 @@ export class UserService extends BaseService {
     }
 
     try {
-      return await query
+      const result = await query
+      auditLog({
+        actorId: userId as string,
+        action: `add_social_account_${type}`,
+        entity: 'social_account',
+        entityId: result[0].id,
+      })
+      return result
     } catch (error: any) {
       // duplicate key error
       if (error.code === '23505') {
@@ -2365,6 +2390,12 @@ export class UserService extends BaseService {
     if (count === 1) {
       throw new ActionFailedError('cannot remove last login method')
     }
+    auditLog({
+      actorId: userId,
+      action: `remove_social_account_${type}`,
+      entity: 'social_account',
+      entityId: socialAccount.id,
+    })
     return this.knex('social_account').where({ id: socialAccount.id }).del()
   }
 

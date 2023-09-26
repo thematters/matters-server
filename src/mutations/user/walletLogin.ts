@@ -22,6 +22,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { getViewerFromUser, setCookie } from 'common/utils'
 
 const sigTable = 'crypto_wallet_signature'
@@ -120,6 +121,8 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       },
     })
 
+    auditLog({ actorId: loginUser.id, action: 'wallet_login' })
+
     return { token, auth: true, type, user: loginUser }
   }
 
@@ -188,6 +191,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         language: language || viewer.language,
       })
       await userService.postRegister(user)
+      auditLog({ actorId: user.id, action: 'wallet_register' })
     }
   }
   return tryLogin(AUTH_RESULT_TYPE.Signup, user)
