@@ -146,7 +146,7 @@ export class AWSService {
       MessageDeduplicationId: messageDeduplicationId,
     }
     const res = (await this.sqs?.sendMessage(payload).promise()) as any
-    logger.info(
+    logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
       res.ResponseMetadata.RequestId
