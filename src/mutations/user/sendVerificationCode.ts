@@ -16,7 +16,7 @@ import {
   ForbiddenError,
   EmailNotFoundError,
   UserInputError,
-  ActionFailedError,
+  ForbiddenByStateError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
@@ -40,13 +40,14 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
 
   const user = await userService.findByEmail(email)
 
+  if (user && user.state === USER_STATE.archived) {
+    throw new ForbiddenByStateError('email has been archived')
+  }
+
   // register check
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
-    if (user && user.state === USER_STATE.archived) {
-      throw new ActionFailedError('email has been archived')
-    }
-    if (user ) {
+    if (user) {
       throw new EmailExistsError('email has been registered')
     }
 

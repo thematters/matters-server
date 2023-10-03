@@ -76,6 +76,7 @@ import {
   UnknownError,
   ForbiddenError,
   ActionFailedError,
+  ForbiddenByStateError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -309,8 +310,11 @@ export class UserService extends BaseService {
 
     if (!user || user.state === USER_STATE.archived) {
       // record agent hash if state is archived
-      if (user && user.state === USER_STATE.archived && archivedCallback) {
-        await archivedCallback().catch((error) => logger.error(error))
+      if (user && user.state === USER_STATE.archived) {
+        if (archivedCallback) {
+          await archivedCallback().catch((error) => logger.error(error))
+        }
+        throw new ForbiddenByStateError('eth address is archived')
       }
       throw new EthAddressNotFoundError(
         'Cannot find user with such ethAddress, login failed.'
@@ -380,6 +384,9 @@ export class UserService extends BaseService {
   public setEmail = async (userId: string, email: string): Promise<User> => {
     const emailUser = await this.findByEmail(email)
     if (emailUser && emailUser.id !== userId) {
+      if (emailUser.state === USER_STATE.archived) {
+        throw new ForbiddenByStateError('email is archived')
+      }
       throw new EmailExistsError('email already exists')
     } else if (emailUser && emailUser.id === userId) {
       return emailUser
@@ -2192,6 +2199,9 @@ export class UserService extends BaseService {
   ): Promise<User> => {
     const user = await this.findByEthAddress(ethAddress)
     if (user) {
+      if (user.state === USER_STATE.archived) {
+        throw new ForbiddenByStateError('eth address is archived')
+      }
       throw new CryptoWalletExistsError('eth address already has a user')
     }
     const updatedUser = await this.baseUpdate(userId, {
@@ -2244,6 +2254,9 @@ export class UserService extends BaseService {
     let user
     if (socialAcount) {
       user = await this.loadById(socialAcount.userId)
+      if (user && user.state === USER_STATE.archived) {
+        throw new ForbiddenByStateError('social account is archived')
+      }
       if (!user.emailVerified && emailVerified) {
         return this.baseUpdate(user.id, { emailVerified })
       }
@@ -2303,6 +2316,18 @@ export class UserService extends BaseService {
     { userId, type, providerAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {
+    const socialAccount = await this.getSocialAccount({
+      type,
+      providerAccountId,
+    })
+    const user = await this.loadById(socialAccount.userId)
+    if (user) {
+      if (user.state === USER_STATE.archived) {
+        throw new ForbiddenByStateError('social account is archived')
+      }
+      throw new ActionFailedError('social account already exists')
+    }
+
     const query = this.knex('social_account')
       .insert({ userId, type, providerAccountId, userName, email })
       .returning('*')

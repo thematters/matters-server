@@ -1317,7 +1317,7 @@ describe('verification code', () => {
       query: SEND_VERIFICATION_CODE,
       variables: { input: { type, email: archivedEmail } },
     })
-    expect(errors[0].extensions.code).toBe('ACTION_FAILED')
+    expect(errors[0].extensions.code).toBe('FORBIDDEN_BY_STATE')
   })
 })
 
