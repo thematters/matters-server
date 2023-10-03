@@ -7,6 +7,7 @@ import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
+  USER_STATE,
 } from 'common/enums'
 import { isProd } from 'common/environment'
 import {
@@ -15,6 +16,7 @@ import {
   ForbiddenError,
   EmailNotFoundError,
   UserInputError,
+  ActionFailedError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
@@ -41,7 +43,10 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   // register check
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
-    if (user) {
+    if (user && user.state === USER_STATE.archived) {
+      throw new ActionFailedError('email has been archived')
+    }
+    if (user ) {
       throw new EmailExistsError('email has been registered')
     }
 

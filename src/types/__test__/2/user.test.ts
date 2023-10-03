@@ -1296,6 +1296,29 @@ describe('verification code', () => {
       'CODE_EXPIRED'
     )
   })
+  test('check email if belong to arhived users', async () => {
+    const archivedEmail = 'arhcived@matters.town'
+    const archivedUser = await userService.create({
+      email: archivedEmail,
+      password: '12345678',
+    })
+    const { data } = await updateUserState(
+      {
+        id: toGlobalId({ type: NODE_TYPES.User, id: archivedUser.id }),
+        state: USER_STATE.archived,
+        password: '12345678',
+      },
+      connections
+    )
+    expect(data.updateUserState[0].status.state).toBe('archived')
+
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SEND_VERIFICATION_CODE,
+      variables: { input: { type, email: archivedEmail } },
+    })
+    expect(errors[0].extensions.code).toBe('ACTION_FAILED')
+  })
 })
 
 const TOPIC_ID_1 = toGlobalId({ type: NODE_TYPES.Topic, id: 1 })
