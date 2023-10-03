@@ -98,6 +98,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
   const newUser = await userService.create({
     ...input,
     email,
+    emailVerified: true,
     userName: newUserName.toLowerCase(),
   })
   // mark code status as used
