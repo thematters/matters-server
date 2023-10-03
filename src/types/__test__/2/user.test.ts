@@ -1296,8 +1296,8 @@ describe('verification code', () => {
       'CODE_EXPIRED'
     )
   })
-  test('check email if belong to arhived users', async () => {
-    const archivedEmail = 'arhcived@matters.town'
+  test('check email if belong to archived users', async () => {
+    const archivedEmail = 'archived@matters.town'
     const archivedUser = await userService.create({
       email: archivedEmail,
       password: '12345678',
