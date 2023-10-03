@@ -2316,18 +2316,6 @@ export class UserService extends BaseService {
     { userId, type, providerAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {
-    const socialAccount = await this.getSocialAccount({
-      type,
-      providerAccountId,
-    })
-    const user = await this.loadById(socialAccount.userId)
-    if (user) {
-      if (user.state === USER_STATE.archived) {
-        throw new ForbiddenByStateError('social account is archived')
-      }
-      throw new ActionFailedError('social account already exists')
-    }
-
     const query = this.knex('social_account')
       .insert({ userId, type, providerAccountId, userName, email })
       .returning('*')
@@ -2341,6 +2329,16 @@ export class UserService extends BaseService {
     } catch (error: any) {
       // duplicate key error
       if (error.code === '23505') {
+        const socialAccount = await this.getSocialAccount({
+          type,
+          providerAccountId,
+        })
+        if (socialAccount) {
+          const user = await this.loadById(socialAccount.userId)
+          if (user.state === USER_STATE.archived) {
+            throw new ForbiddenByStateError('social account is archived')
+          }
+        }
         throw new ActionFailedError('social account already exists')
       }
       throw error
