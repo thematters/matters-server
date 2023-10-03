@@ -138,7 +138,7 @@ export class UserService extends BaseService {
       password,
       email,
       ethAddress,
-      emailVerified = true,
+      emailVerified = false,
     }: {
       userName?: string
       displayName?: string
@@ -2258,11 +2258,12 @@ export class UserService extends BaseService {
     let isCreated = false
     try {
       if (!user) {
-        // create user with verfied email
+        // social account email not used by existing users, create new user
         user = await this.create({ email, emailVerified }, trx)
         isCreated = true
-      } else if (user && !user.emailVerified) {
-        // social account email have been used by existing user but not verified, create new user w/o email
+      } else if (user && (!user.emailVerified || !emailVerified)) {
+        // social account have email but not verified, create new user
+        // or social account email have been used by existing user but not verified, create new user w/o email
         user = await this.create({}, trx)
         isCreated = true
       } else {
