@@ -7,7 +7,7 @@ import {
   VERIFICATION_CODE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
-import { EmailInvalidError } from 'common/errors'
+import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
@@ -33,6 +33,10 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     throw new EmailInvalidError('invalid email address format')
   }
   const user = await userService.findByEmail(email)
+  if (user?.state === 'archived') {
+    throw new ForbiddenByStateError('email is archived')
+  }
+
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
 
