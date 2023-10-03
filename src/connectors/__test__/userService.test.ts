@@ -514,7 +514,6 @@ describe('getOrCreateUserBySocialAccount', () => {
       type: 'Google',
       emailVerified: true,
     })
-    console.log(createdUser)
     expect(user.emailVerified).toBe(false)
     expect(createdUser.email).toBe(null)
   })
