@@ -1058,7 +1058,7 @@ describe('add social accounts', () => {
     const user = await userService.create({})
     const server = await testClient({ context: { viewer: user }, connections })
 
-    const { errors } = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: ADD_SOCIAL_LOGIN,
       variables: {
         input: {
@@ -1068,6 +1068,6 @@ describe('add social accounts', () => {
         },
       },
     })
-    expect(errors?.[0].extensions.code).toBe('ACTION_FAILED')
+    expect(data?.addSocialLogin.info.email).toBe(null)
   })
 })

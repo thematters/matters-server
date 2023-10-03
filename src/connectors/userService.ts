@@ -76,7 +76,6 @@ import {
   UnknownError,
   ForbiddenError,
   ActionFailedError,
-  SocialAccountExistsError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import {
@@ -155,13 +154,6 @@ export class UserService extends BaseService {
     const passwordHash = password
       ? await generatePasswordhash(password)
       : undefined
-
-    if (email) {
-      const socialAccounts = await this.findSocialAccountsByEmail(email)
-      if (socialAccounts.length > 0) {
-        throw new EmailExistsError('email already exists')
-      }
-    }
     const user = await this.baseCreate(
       _.omitBy(
         {
@@ -386,15 +378,6 @@ export class UserService extends BaseService {
       .first()
 
   public setEmail = async (userId: string, email: string): Promise<User> => {
-    const socialAccounts = await this.findSocialAccountsByEmail(email)
-    // check if email exists in social accounts
-    if (
-      socialAccounts.length > 0 &&
-      socialAccounts.every((acct) => acct.userId !== userId)
-    ) {
-      throw new SocialAccountExistsError('email already exists')
-    }
-
     const emailUser = await this.findByEmail(email)
     if (emailUser && emailUser.id !== userId) {
       throw new EmailExistsError('email already exists')
@@ -2314,12 +2297,6 @@ export class UserService extends BaseService {
 
   public findSocialAccountsByUserId = async (userId: string) => {
     return this.knex('social_account').select().where({ userId })
-  }
-
-  public findSocialAccountsByEmail = async (
-    email: string
-  ): Promise<SocialAccount[]> => {
-    return this.knexRO('social_account').select().where({ email })
   }
 
   public createSocialAccount = async (
