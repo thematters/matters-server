@@ -458,7 +458,7 @@ describe('getOrCreateUserBySocialAccount', () => {
     })
     expect(user.id).toBe(createdUser.id)
   })
-  test('use existed users having same email', async () => {
+  test('create new user w/o email when social account email have been used by other user but not verified', async () => {
     const user = await userService.create({
       email: googleUserInfo.email,
       emailVerified: false,
@@ -468,12 +468,11 @@ describe('getOrCreateUserBySocialAccount', () => {
       email: googleUserInfo.email,
       type: 'Google',
     })
-    expect(createdUser.id).toBe(user.id)
-    expect(user.emailVerified).toBe(false)
-    expect(createdUser.emailVerified).toBe(false)
+    expect(createdUser.id).not.toBe(user.id)
+    expect(createdUser.email).toBe(null)
   })
 
-  test('update existed users emailVerified flag', async () => {
+  test('update existing users emailVerified flag', async () => {
     // update emailVerified flag when social account exists
     const updatedUser = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: googleUserInfo.id,
@@ -483,7 +482,7 @@ describe('getOrCreateUserBySocialAccount', () => {
     })
     expect(updatedUser.emailVerified).toBe(true)
 
-    // update exsited user emailVerified flag when create social account
+    // update exsiting user emailVerified flag when create social account
     const googleUserInfo2 = {
       id: 'google2',
       email: 'test2@gmail.com',
