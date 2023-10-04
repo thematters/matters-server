@@ -2248,7 +2248,8 @@ export class UserService extends BaseService {
     userName,
     email,
     emailVerified,
-  }: SocialAccount & { emailVerified?: boolean }) => {
+    language,
+  }: SocialAccount & { emailVerified?: boolean; language: LANGUAGES }) => {
     // check if social account exists, if true, return user directly
     const socialAcount = await this.getSocialAccount({
       type,
@@ -2276,12 +2277,12 @@ export class UserService extends BaseService {
     try {
       if (!user) {
         // social account email not used by existing users, create new user
-        user = await this.create({ email, emailVerified }, trx)
+        user = await this.create({ email, emailVerified, language }, trx)
         isCreated = true
       } else if (user && (!user.emailVerified || !emailVerified)) {
         // social account have email but not verified, create new user
         // or social account email have been used by existing user but not verified, create new user w/o email
-        user = await this.create({}, trx)
+        user = await this.create({ language }, trx)
         isCreated = true
       } else {
         // verified, update user
