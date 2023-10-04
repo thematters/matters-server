@@ -28,7 +28,17 @@ const sigTable = 'crypto_wallet_signature'
 
 export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
   _,
-  { input: { ethAddress, nonce, signedMessage, signature, email, codeId } },
+  {
+    input: {
+      ethAddress,
+      nonce,
+      signedMessage,
+      signature,
+      email,
+      codeId,
+      language,
+    },
+  },
   context
 ) => {
   const {
@@ -164,7 +174,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         userName,
         displayName: userName,
         ethAddress: ethAddress.toLowerCase(), // save the lower case ones
-        language: viewer.language,
+        language: language || viewer.language,
       })
       // mark code status as used
       await userService.postRegister(user)
@@ -175,7 +185,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     } else {
       user = await userService.create({
         ethAddress: ethAddress.toLowerCase(),
-        language: viewer.language,
+        language: language || viewer.language,
       })
       await userService.postRegister(user)
     }

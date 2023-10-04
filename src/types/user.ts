@@ -761,6 +761,9 @@ export default /* GraphQL */ `
 
     "email verification code, required for wallet register"
     codeId: ID @deprecated(reason: "No longer in use")
+
+    "used in register"
+    language: UserLanguage
   }
 
   input ResetLikerIdInput {
@@ -991,6 +994,8 @@ export default /* GraphQL */ `
   input EmailLoginInput {
     email: String!
     passwordOrCode: String!
+    "used in register"
+    language: UserLanguage
   }
 
   input SocialLoginInput {
@@ -1000,6 +1005,8 @@ export default /* GraphQL */ `
     codeVerifier: String
     "OIDC nonce for Google"
     nonce: String
+    "used in register"
+    language: UserLanguage
   }
 
   input SetUserNameInput {
