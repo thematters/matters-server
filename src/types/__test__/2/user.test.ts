@@ -566,7 +566,7 @@ describe('user query fields', () => {
     })
     const { data } = res
     const settings = _get(data, 'viewer.settings')
-    expect(settings.language).toBe('zh_hant')
+    expect(settings.language).toBe('en')
     expect(settings.currency).toBe('USD')
     expect(settings.notification).toBeNull()
   })
