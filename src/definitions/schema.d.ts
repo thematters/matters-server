@@ -1183,6 +1183,8 @@ export type GQLEditArticleInput = {
 
 export type GQLEmailLoginInput = {
   email: Scalars['String']['input']
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   passwordOrCode: Scalars['String']['input']
 }
 
@@ -2879,6 +2881,8 @@ export type GQLSocialLoginInput = {
   authorizationCode: Scalars['String']['input']
   /** OAuth2 PKCE code_verifier for Facebook and Twitter */
   codeVerifier?: InputMaybe<Scalars['String']['input']>
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   /** OIDC nonce for Google */
   nonce?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
@@ -3776,6 +3780,8 @@ export type GQLWalletLoginInput = {
    */
   email?: InputMaybe<Scalars['String']['input']>
   ethAddress: Scalars['String']['input']
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   /** nonce from generateSigningMessage */
   nonce: Scalars['String']['input']
   /** sign'ed by wallet */

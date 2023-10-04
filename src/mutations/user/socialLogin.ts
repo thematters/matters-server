@@ -7,7 +7,7 @@ import { checkIfE2ETest, throwOrReturnUserInfo } from 'common/utils/e2e'
 
 export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,
-  { input: { type, authorizationCode, codeVerifier, nonce } },
+  { input: { type, authorizationCode, codeVerifier, nonce, language } },
   context
 ) => {
   const {
@@ -40,7 +40,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
-      language: viewer.language,
+      language: language || viewer.language,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
     if (codeVerifier === undefined) {
@@ -62,7 +62,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Facebook,
       userName: userInfo.username,
-      language: viewer.language,
+      language: language || viewer.language,
     })
   } else {
     if (nonce === undefined) {
@@ -83,7 +83,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       type: SOCIAL_LOGIN_TYPE.Google,
       email: userInfo.email,
       emailVerified: userInfo.emailVerified,
-      language: viewer.language,
+      language: language || viewer.language,
     })
   }
   const sessionToken = await userService.genSessionToken(user.id)

@@ -14,7 +14,7 @@ import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
   _,
-  { input: { email: rawEmail, passwordOrCode } },
+  { input: { email: rawEmail, passwordOrCode, language } },
   context
 ) => {
   const {
@@ -65,7 +65,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     const newUser = await userService.create({
       email,
       emailVerified: true,
-      language: viewer.language,
+      language: language || viewer.language,
     })
     await userService.postRegister(newUser)
 

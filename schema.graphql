@@ -2785,6 +2785,9 @@ input WalletLoginInput {
 
   """email verification code, required for wallet register"""
   codeId: ID @deprecated(reason: "No longer in use")
+
+  """used in register"""
+  language: UserLanguage
 }
 
 input ResetLikerIdInput {
@@ -3013,6 +3016,9 @@ enum SocialAccountType {
 input EmailLoginInput {
   email: String!
   passwordOrCode: String!
+
+  """used in register"""
+  language: UserLanguage
 }
 
 input SocialLoginInput {
@@ -3024,6 +3030,9 @@ input SocialLoginInput {
 
   """OIDC nonce for Google"""
   nonce: String
+
+  """used in register"""
+  language: UserLanguage
 }
 
 input SetUserNameInput {
