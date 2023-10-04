@@ -9,6 +9,7 @@ import type {
   ValueOf,
   SocialAccount,
   Connections,
+  LANGUAGES,
 } from 'definitions'
 
 import axios from 'axios'
@@ -140,6 +141,7 @@ export class UserService extends BaseService {
       email,
       ethAddress,
       emailVerified = false,
+      language,
     }: {
       userName?: string
       displayName?: string
@@ -148,6 +150,7 @@ export class UserService extends BaseService {
       email?: string
       ethAddress?: string
       emailVerified?: boolean
+      language?: LANGUAGES
     },
     trx?: Knex.Transaction
   ) => {
@@ -169,6 +172,7 @@ export class UserService extends BaseService {
           agreeOn: new Date(),
           state: USER_STATE.active,
           ethAddress,
+          language,
         },
         _.isNil
       ),
