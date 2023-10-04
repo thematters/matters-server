@@ -174,6 +174,10 @@ export const testClient = async ({
     viewer.scope = {}
   }
 
+  if (!viewer.language) {
+    viewer.language = 'en'
+  }
+
   _context.viewer = {
     ...viewer,
     hasRole: (requires: string) =>

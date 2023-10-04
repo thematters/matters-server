@@ -62,10 +62,10 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
         })
       }
     }
-
     const newUser = await userService.create({
       email,
       emailVerified: true,
+      language: viewer.language,
     })
     await userService.postRegister(newUser)
 

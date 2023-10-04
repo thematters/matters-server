@@ -1,4 +1,4 @@
-import type { Viewer, Connections } from 'definitions'
+import type { Viewer, Connections, LANGUAGES } from 'definitions'
 
 import cookie from 'cookie'
 import { Request, Response } from 'express'
@@ -8,6 +8,7 @@ import {
   AUTH_MODE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
+  COOKIE_LANGUAGE,
   USER_ROLE,
   USER_STATE,
 } from 'common/enums'
@@ -135,16 +136,20 @@ export const getViewerFromReq = async (
     req,
     res,
   }: {
-    req?: Request
+    req: Request
     res?: Response
   },
   connections: Connections
 ): Promise<Viewer> => {
   const headers = req ? req.headers : {}
+  const cookies = req ? cookie.parse(headers.cookie || '') : {}
   // const isWeb = headers['x-client-name'] === 'web'
-  const language = getLanguage(
-    (headers['Accept-Language'] || headers['accept-language']) as string
-  )
+
+  const language =
+    (cookies[COOKIE_LANGUAGE] as LANGUAGES) ||
+    getLanguage(
+      (headers['Accept-Language'] || headers['accept-language']) as LANGUAGES
+    )
   const agentHash = headers['x-user-agent-hash'] as string
   const userGroup = headers['x-user-group'] as string
   const userAgent = headers['user-agent'] as string
@@ -161,11 +166,8 @@ export const getViewerFromReq = async (
 
   // get user from token, use cookie first then 'x-access-token'
   const token: string =
-    cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
-    (headers['x-access-token'] as string) ||
-    ''
-  const group =
-    userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''
+    cookies[COOKIE_TOKEN_NAME] || (headers['x-access-token'] as string) || ''
+  const group = userGroup || cookies[COOKIE_USER_GROUP] || ''
 
   if (!token) {
     // logger.info('User is not logged in, viewing as guest')

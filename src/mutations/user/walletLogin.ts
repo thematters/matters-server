@@ -164,6 +164,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         userName,
         displayName: userName,
         ethAddress: ethAddress.toLowerCase(), // save the lower case ones
+        language: viewer.language,
       })
       // mark code status as used
       await userService.postRegister(user)
@@ -174,6 +175,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     } else {
       user = await userService.create({
         ethAddress: ethAddress.toLowerCase(),
+        language: viewer.language,
       })
       await userService.postRegister(user)
     }

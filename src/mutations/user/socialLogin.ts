@@ -14,6 +14,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
     dataSources: { userService },
     req,
     res,
+    viewer,
   } = context
 
   const isE2ETest = checkIfE2ETest(authorizationCode)
@@ -39,6 +40,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
+      language: viewer.language,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
     if (codeVerifier === undefined) {
@@ -60,6 +62,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       providerAccountId: userInfo.id,
       type: SOCIAL_LOGIN_TYPE.Facebook,
       userName: userInfo.username,
+      language: viewer.language,
     })
   } else {
     if (nonce === undefined) {
@@ -80,6 +83,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       type: SOCIAL_LOGIN_TYPE.Google,
       email: userInfo.email,
       emailVerified: userInfo.emailVerified,
+      language: viewer.language,
     })
   }
   const sessionToken = await userService.genSessionToken(user.id)

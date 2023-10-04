@@ -455,14 +455,17 @@ describe('getOrCreateUserBySocialAccount', () => {
       providerAccountId: twitterUserInfo.id,
       userName: twitterUserInfo.username,
       type: 'Twitter',
+      language: 'en',
     })
     expect(createdUser.id).toBeDefined()
     expect(createdUser.userName).toBeNull()
+    expect(createdUser.language).toBe('en')
 
     const user = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: twitterUserInfo.id,
       userName: twitterUserInfo.username,
       type: 'Twitter',
+      language: 'en',
     })
     expect(user.id).toBe(createdUser.id)
   })
@@ -476,6 +479,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       email: googleUserInfo.email,
       type: 'Google',
       emailVerified: true,
+      language: 'en',
     })
     expect(createdUser.id).not.toBe(user.id)
     expect(createdUser.email).toBe(null)
@@ -489,6 +493,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       providerAccountId: googleUserInfo2.id,
       email: googleUserInfo2.email,
       type: 'Google',
+      language: 'en',
     })
     expect(createdUser.id).not.toBe(user.id)
     expect(createdUser.email).toBe(null)
@@ -500,6 +505,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       email: googleUserInfo.email,
       type: 'Google',
       emailVerified: true,
+      language: 'en',
     })
     expect(updatedUser.emailVerified).toBe(true)
 
@@ -513,6 +519,7 @@ describe('getOrCreateUserBySocialAccount', () => {
       email: googleUserInfo3.email,
       type: 'Google',
       emailVerified: true,
+      language: 'en',
     })
     expect(user.emailVerified).toBe(false)
     expect(createdUser.email).toBe(null)
