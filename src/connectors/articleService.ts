@@ -1,5 +1,6 @@
 import type {
   GQLSearchExclude,
+  GQLSearchFilter,
   Item,
   Article,
   Draft,
@@ -570,9 +571,11 @@ export class ArticleService extends BaseService {
     keyOriginal,
     take = 10,
     skip = 0,
+    filter,
     exclude,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     keyOriginal?: string
@@ -580,9 +583,14 @@ export class ArticleService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
+    filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
+    }
     let coeffs = [1, 1, 1, 1]
     try {
       coeffs = JSON.parse(coefficients || '[]')
@@ -719,6 +727,8 @@ export class ArticleService extends BaseService {
     // keyOriginal,
     take = 10,
     skip = 0,
+    quicksearch,
+    filter,
   }: {
     key: string
     // keyOriginal?: string
@@ -726,9 +736,14 @@ export class ArticleService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
+    filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
+    }
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
       u.searchParams.set('q', key?.trim())
@@ -759,6 +774,41 @@ export class ArticleService extends BaseService {
       logger.error(`searchV3 ERROR:`, err)
       return { nodes: [], totalCount: 0 }
     }
+  }
+
+  private quicksearch = async ({
+    key,
+    take,
+    skip,
+    filter,
+  }: {
+    key: string
+    take?: number
+    skip?: number
+    filter?: GQLSearchFilter
+  }) => {
+    const records = await this.knexRO
+      .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .whereLike('title', `%${key}%`)
+      .from('article')
+      .orderBy('id', 'desc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (filter && filter.authorId) {
+          builder.where({ authorId: filter.authorId })
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
+
+    const nodes = (await this.draftLoader.loadMany(
+      records.map((item: { id: string }) => item.id).filter(Boolean)
+    )) as Draft[]
+    const totalCount = +(records?.[0]?.totalCount ?? 0)
+    return { nodes, totalCount }
   }
 
   /**

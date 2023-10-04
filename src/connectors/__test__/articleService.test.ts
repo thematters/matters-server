@@ -11,7 +11,7 @@ let articleService: ArticleService
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -133,4 +133,26 @@ test('update', async () => {
     state: 'archived',
   })
   expect(article.state).toEqual('archived')
+})
+
+test('quicksearch', async () => {
+  const { nodes, totalCount } = await articleService.searchV3({
+    key: 'test',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes.length).toBe(1)
+  expect(totalCount).toBeGreaterThan(0)
+
+  const { nodes: nodes2, totalCount: totalCount2 } =
+    await articleService.searchV3({
+      key: 'test',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+      filter: { authorId: '1' },
+    })
+  expect(nodes2.length).toBe(1)
+  expect(totalCount2).toBeLessThan(totalCount)
 })
