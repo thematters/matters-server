@@ -63,10 +63,13 @@ export const getLogger = (name: string) => {
   return newLogger
 }
 
-// audit logs helper. note that there is a lambda function load audit logs into RDS for analytis usage
-
 const auditLogger = getLogger('audit-log')
 
+/**
+ * Audit logging helper.
+ * Note that audit log entries stored in s3 will be sent to Google bigquery for analytis usage
+ * @see {@url https://www.notion.so/matterslab/Audit-Logs-9cdbede5196b4043962954cab108e893}
+ */
 export const auditLog = (data: {
   actorId: string | null
   action: string
