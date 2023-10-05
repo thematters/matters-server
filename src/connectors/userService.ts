@@ -2242,6 +2242,12 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
 
+  /**
+   * Social login / signup logic
+   *
+   * PRD:
+   * @see {@url https://www.notion.so/matterslab/147392419ea24b74ac939ebbcf6a3f0e#ffc068c50209465faf1e155395dc55f2}
+   */
   public getOrCreateUserBySocialAccount = async ({
     type,
     providerAccountId,
@@ -2285,8 +2291,16 @@ export class UserService extends BaseService {
         user = await this.create({ language }, trx)
         isCreated = true
       } else {
-        // verified, update user
-        // and bind the social account to the existing user.
+        // social account email have been used by existing user and verified.
+        // check if this user have social account already, if true, create new user
+        const socialAccounts = await this.findSocialAccountsByUserId(
+          user.id,
+          type
+        )
+        if (socialAccounts.length > 0) {
+          user = await this.create({ language }, trx)
+          isCreated = true
+        }
       }
       await this.createSocialAccount(
         { userId: user.id, type, providerAccountId, userName, email },
@@ -2313,8 +2327,15 @@ export class UserService extends BaseService {
       .first()
   }
 
-  public findSocialAccountsByUserId = async (userId: string) => {
-    return this.knex('social_account').select().where({ userId })
+  public findSocialAccountsByUserId = async (
+    userId: string,
+    type?: keyof typeof SOCIAL_LOGIN_TYPE
+  ) => {
+    const query = this.knex('social_account').select().where({ userId })
+    if (type) {
+      query.andWhere({ type })
+    }
+    return query
   }
 
   public createSocialAccount = async (
