@@ -695,6 +695,9 @@ export default /* GraphQL */ `
     use code instead if not provided.
     """
     redirectUrl: String @constraint(format: "uri")
+
+    "email content language"
+    language: UserLanguage
   }
 
   input ConfirmVerificationCodeInput {

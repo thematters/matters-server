@@ -27,7 +27,7 @@ const logger = getLogger('mutation-send-verificaiton-code')
 
 const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl } },
+  { input: { email: rawEmail, type, token, redirectUrl, language } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -171,7 +171,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     recipient: {
       displayName: (user && user.displayName) ?? null,
     },
-    language: viewer.language,
+    language: language || viewer.language,
   })
 
   return true

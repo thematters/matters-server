@@ -2719,6 +2719,9 @@ input SendVerificationCodeInput {
   use code instead if not provided.
   """
   redirectUrl: String
+
+  """email content language"""
+  language: UserLanguage
 }
 
 input ConfirmVerificationCodeInput {
