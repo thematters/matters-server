@@ -65,7 +65,7 @@ export const getLogger = (name: string) => {
 
 // audit logs helper. note that there is a lambda function load audit logs into RDS for analytis usage
 
-const auditLogger = getLogger('auditLog')
+const auditLogger = getLogger('audit-log')
 
 export const auditLog = (data: {
   actorId: string | null
