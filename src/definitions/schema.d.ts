@@ -2775,6 +2775,8 @@ export type GQLSearchTypes = 'Article' | 'Tag' | 'User'
 
 export type GQLSendVerificationCodeInput = {
   email: Scalars['String']['input']
+  /** email content language */
+  language?: InputMaybe<GQLUserLanguage>
   /**
    * Redirect URL embedded in the verification email,
    * use code instead if not provided.
