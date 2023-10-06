@@ -450,6 +450,10 @@ describe('getOrCreateUserBySocialAccount', () => {
     id: 'google3',
     email: 'test3@gmail.com',
   }
+  const googleUserInfo4 = {
+    id: 'google4',
+    email: 'test4@gmail.com',
+  }
   test('create and get user by social account', async () => {
     const createdUser = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: twitterUserInfo.id,
@@ -498,22 +502,17 @@ describe('getOrCreateUserBySocialAccount', () => {
     expect(createdUser.id).not.toBe(user.id)
     expect(createdUser.email).toBe(null)
   })
-  test('update existing users emailVerified flag', async () => {
-    // update emailVerified flag when social account exists
-    const updatedUser = await userService.getOrCreateUserBySocialAccount({
-      providerAccountId: googleUserInfo.id,
-      email: googleUserInfo.email,
-      type: 'Google',
-      emailVerified: true,
-      language: 'en',
-    })
-    expect(updatedUser.emailVerified).toBe(true)
-
-    // update exsiting user emailVerified flag when create social account
-    const user = await userService.create({
+  test('create new user when email user already have same type social account', async () => {
+    const emailUser = await userService.create({
       email: googleUserInfo3.email,
-      emailVerified: false,
+      emailVerified: true,
     })
+    await userService.createSocialAccount({
+      userId: emailUser.id,
+      providerAccountId: 'someGoogleId',
+      type: 'Google',
+    })
+
     const createdUser = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: googleUserInfo3.id,
       email: googleUserInfo3.email,
@@ -521,8 +520,28 @@ describe('getOrCreateUserBySocialAccount', () => {
       emailVerified: true,
       language: 'en',
     })
-    expect(user.emailVerified).toBe(false)
+    expect(createdUser.id).not.toBe(emailUser.id)
     expect(createdUser.email).toBe(null)
+  })
+  test('bind email user when email user do not have same type social account', async () => {
+    const emailUser = await userService.create({
+      email: googleUserInfo4.email,
+      emailVerified: true,
+    })
+    await userService.createSocialAccount({
+      userId: emailUser.id,
+      providerAccountId: 'someFacebookid',
+      type: 'Facebook',
+    })
+
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: googleUserInfo4.id,
+      email: googleUserInfo4.email,
+      type: 'Google',
+      emailVerified: true,
+      language: 'en',
+    })
+    expect(createdUser.id).toBe(emailUser.id)
   })
 })
 
