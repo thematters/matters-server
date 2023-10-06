@@ -13,6 +13,7 @@ import {
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
   SIGNING_MESSAGE_PURPOSE,
+  AUDIT_LOG_ACTION,
 } from 'common/enums'
 import {
   CodeExpiredError,
@@ -121,7 +122,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       },
     })
 
-    auditLog({ actorId: loginUser.id, action: 'wallet_login' })
+    auditLog({ actorId: loginUser.id, action: AUDIT_LOG_ACTION.walletLogin })
 
     return { token, auth: true, type, user: loginUser }
   }
@@ -191,7 +192,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         language: language || viewer.language,
       })
       await userService.postRegister(user)
-      auditLog({ actorId: user.id, action: 'wallet_register' })
+      auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.walletSignup })
     }
   }
   return tryLogin(AUTH_RESULT_TYPE.Signup, user)

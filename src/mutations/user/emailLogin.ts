@@ -6,6 +6,7 @@ import {
   AUTH_RESULT_TYPE,
   VERIFICATION_CODE_TYPE,
   NODE_TYPES,
+  AUDIT_LOG_ACTION,
 } from 'common/enums'
 import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
 import { auditLog } from 'common/logger'
@@ -59,7 +60,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
         } catch (err: any) {
           auditLog({
             actorId: null,
-            action: 'email_register_otp',
+            action: AUDIT_LOG_ACTION.emailSignupOTP,
             status: 'failed',
             remark: err.message,
           })
@@ -88,9 +89,9 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer.authMode = newUser.role as AuthMode
     context.viewer.scope = {}
 
-    auditLog({ actorId: newUser.id, action: 'email_register' })
+    auditLog({ actorId: newUser.id, action: AUDIT_LOG_ACTION.emailSignup })
     if (isEmailOTP) {
-      auditLog({ actorId: newUser.id, action: 'email_register_otp' })
+      auditLog({ actorId: newUser.id, action: AUDIT_LOG_ACTION.emailSignupOTP })
     }
 
     return {
@@ -118,7 +119,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       if (isEmailOTP) {
         auditLog({
           actorId: user.id,
-          action: 'email_login_otp',
+          action: AUDIT_LOG_ACTION.emailLoginOTP,
           status: 'failed',
           remark: err.errors[0].message,
         })
@@ -144,9 +145,9 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
 
-    auditLog({ actorId: user.id, action: 'email_login' })
+    auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.emailLogin })
     if (isEmailOTP) {
-      auditLog({ actorId: user.id, action: 'email_login_otp' })
+      auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.emailLoginOTP })
     }
 
     return {

@@ -58,6 +58,7 @@ import {
   SOCIAL_LOGIN_TYPE,
   CHANGE_EMAIL_TIMES_LIMIT_PER_DAY,
   CHANGE_EMAIL_COUNTER_KEY_PREFIX,
+  AUDIT_LOG_ACTION,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -413,7 +414,7 @@ export class UserService extends BaseService {
       }
       auditLog({
         actorId: userId,
-        action: 'update_email',
+        action: AUDIT_LOG_ACTION.updateEmail,
         oldValue: user.email,
         newValue: email,
       })
@@ -440,7 +441,7 @@ export class UserService extends BaseService {
     if (!user.email || !user.emailVerified) {
       throw new ForbiddenError('email not verified')
     }
-    auditLog({ actorId: user.id, action: 'update_password' })
+    auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.updatePassword })
     return await this.baseUpdate(user.id, {
       passwordHash: await generatePasswordhash(password),
     })
@@ -488,7 +489,7 @@ export class UserService extends BaseService {
     })
     auditLog({
       actorId: userId,
-      action: 'update_username',
+      action: AUDIT_LOG_ACTION.updateUsername,
       oldValue: oldUserName,
       newValue: userName,
     })
@@ -2233,7 +2234,11 @@ export class UserService extends BaseService {
       data: { updatedAt: this.knex.fn.now(), archived: true },
     })
 
-    auditLog({ actorId: userId, action: 'add_wallet' })
+    auditLog({
+      actorId: userId,
+      action: AUDIT_LOG_ACTION.addWallet,
+      newValue: ethAddress,
+    })
 
     return updatedUser
   }
@@ -2247,7 +2252,7 @@ export class UserService extends BaseService {
     if (count === 1) {
       throw new ActionFailedError('cannot remove last login method')
     }
-    auditLog({ actorId: userId, action: 'remove_wallet' })
+    auditLog({ actorId: userId, action: AUDIT_LOG_ACTION.removeWallet })
     return this.baseUpdate(userId, { ethAddress: null })
   }
 
@@ -2314,9 +2319,17 @@ export class UserService extends BaseService {
     }
     if (isCreated) {
       await this.postRegister(user)
-      auditLog({ actorId: user.id, action: `social_account_register_${type}` })
+      auditLog({
+        actorId: user.id,
+        action: AUDIT_LOG_ACTION.socialSignup,
+        remark: type,
+      })
     } else {
-      auditLog({ actorId: user.id, action: `social_account_login_${type}` })
+      auditLog({
+        actorId: user.id,
+        action: AUDIT_LOG_ACTION.socialLogin,
+        remark: type,
+      })
     }
     return user
   }
@@ -2351,9 +2364,10 @@ export class UserService extends BaseService {
       const result = await query
       auditLog({
         actorId: userId as string,
-        action: `add_social_account_${type}`,
+        action: AUDIT_LOG_ACTION.addSocialAccount,
         entity: 'social_account',
         entityId: result[0].id,
+        remark: type,
       })
       return result
     } catch (error: any) {
@@ -2392,9 +2406,10 @@ export class UserService extends BaseService {
     }
     auditLog({
       actorId: userId,
-      action: `remove_social_account_${type}`,
+      action: AUDIT_LOG_ACTION.removeSocialAccount,
       entity: 'social_account',
       entityId: socialAccount.id,
+      remark: type,
     })
     return this.knex('social_account').where({ id: socialAccount.id }).del()
   }

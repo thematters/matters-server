@@ -3,7 +3,7 @@ import type { ItemData, GQLMutationResolvers } from 'definitions'
 import { has, isEmpty } from 'lodash'
 import { v4 } from 'uuid'
 
-import { ASSET_TYPE } from 'common/enums'
+import { ASSET_TYPE, AUDIT_LOG_ACTION } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -212,7 +212,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
     })
     auditLog({
       actorId: viewer.id,
-      action: 'update_username',
+      action: AUDIT_LOG_ACTION.updateUsername,
       oldValue: viewer.userName,
       newValue: input.userName,
     })
@@ -221,7 +221,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   if (input.displayName) {
     auditLog({
       actorId: viewer.id,
-      action: 'update_displayname',
+      action: AUDIT_LOG_ACTION.updateDisplayName,
       oldValue: viewer.displayName,
       newValue: input.displayName,
     })

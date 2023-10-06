@@ -4,7 +4,11 @@ import { AsyncLocalStorage } from 'async_hooks'
 import util from 'node:util'
 import { createLogger, format, transports } from 'winston'
 
-import { LOGGING_CONTEXT_KEY, LOGGING_LEVEL } from 'common/enums'
+import {
+  LOGGING_CONTEXT_KEY,
+  LOGGING_LEVEL,
+  AUDIT_LOG_ACTION,
+} from 'common/enums'
 import { environment } from 'common/environment'
 
 export type LoggingLevel = ValueOf<typeof LOGGING_LEVEL>
@@ -72,7 +76,7 @@ const auditLogger = getLogger('audit-log')
  */
 export const auditLog = (data: {
   actorId: string | null
-  action: string
+  action: ValueOf<typeof AUDIT_LOG_ACTION>
   entity?: TableName
   entityId?: string
   oldValue?: string | null
