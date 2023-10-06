@@ -14,6 +14,7 @@ import {
   AUTH_RESULT_TYPE,
   SIGNING_MESSAGE_PURPOSE,
   AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import {
   CodeExpiredError,
@@ -29,6 +30,40 @@ import { getViewerFromUser, setCookie } from 'common/utils'
 const sigTable = 'crypto_wallet_signature'
 
 export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  let result
+  const getAction = (res: any) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? AUDIT_LOG_ACTION.walletSignup
+      : AUDIT_LOG_ACTION.walletLogin
+  try {
+    result = await _walletLogin(root, args, context, info)
+    return result
+  } catch (err: any) {
+    auditLog({
+      actorId: null,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.failed,
+      remark: err.message,
+    })
+    throw err
+  } finally {
+    auditLog({
+      actorId: null,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+  }
+}
+
+const _walletLogin: Exclude<
+  GQLMutationResolvers['walletLogin'],
+  undefined
+> = async (
   _,
   {
     input: {
@@ -122,8 +157,6 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       },
     })
 
-    auditLog({ actorId: loginUser.id, action: AUDIT_LOG_ACTION.walletLogin })
-
     return { token, auth: true, type, user: loginUser }
   }
 
@@ -192,7 +225,6 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         language: language || viewer.language,
       })
       await userService.postRegister(user)
-      auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.walletSignup })
     }
   }
   return tryLogin(AUTH_RESULT_TYPE.Signup, user)

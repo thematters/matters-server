@@ -59,6 +59,7 @@ import {
   CHANGE_EMAIL_TIMES_LIMIT_PER_DAY,
   CHANGE_EMAIL_COUNTER_KEY_PREFIX,
   AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -387,17 +388,41 @@ export class UserService extends BaseService {
       .first()
 
   public setEmail = async (userId: string, email: string): Promise<User> => {
+    const user = await this.loadById(userId)
+    try {
+      return await this._setEmail(user, email)
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateEmail,
+        oldValue: user.email,
+        newValue: email,
+        status: 'failed',
+        remark: err.message,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateEmail,
+        oldValue: user.email,
+        newValue: email,
+        status: 'succeeded',
+      })
+    }
+  }
+
+  private _setEmail = async (user: User, email: string): Promise<User> => {
     const emailUser = await this.findByEmail(email)
-    if (emailUser && emailUser.id !== userId) {
+    if (emailUser && emailUser.id !== user.id) {
       if (emailUser.state === USER_STATE.archived) {
         throw new ForbiddenByStateError('email is archived')
       }
       throw new EmailExistsError('email already exists')
-    } else if (emailUser && emailUser.id === userId) {
+    } else if (emailUser && emailUser.id === user.id) {
       return emailUser
     } else {
       const notificationService = new NotificationService(this.connections)
-      const user = await this.loadById(userId)
       if (user.email) {
         const counter = new RatelimitCounter(this.redis)
         const count = await counter.increment(
@@ -412,13 +437,7 @@ export class UserService extends BaseService {
           language: user.language,
         })
       }
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION.updateEmail,
-        oldValue: user.email,
-        newValue: email,
-      })
-      return this.baseUpdate(userId, {
+      return this.baseUpdate(user.id, {
         email,
         emailVerified: false,
         passwordHash: null,
@@ -431,7 +450,7 @@ export class UserService extends BaseService {
     return counter.get(`${CHANGE_EMAIL_COUNTER_KEY_PREFIX}:${userId}`)
   }
 
-  public setPassword = async (
+  private _setPassword = async (
     user: Pick<User, 'email' | 'emailVerified' | 'id'>,
     password: string
   ) => {
@@ -441,10 +460,32 @@ export class UserService extends BaseService {
     if (!user.email || !user.emailVerified) {
       throw new ForbiddenError('email not verified')
     }
-    auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.updatePassword })
     return await this.baseUpdate(user.id, {
       passwordHash: await generatePasswordhash(password),
     })
+  }
+
+  public setPassword = async (
+    user: Pick<User, 'email' | 'emailVerified' | 'id'>,
+    password: string
+  ) => {
+    try {
+      return await this._setPassword(user, password)
+    } catch (err: any) {
+      auditLog({
+        actorId: user.id,
+        action: AUDIT_LOG_ACTION.updatePassword,
+        status: 'failed',
+        remark: err.message,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: user.id,
+        action: AUDIT_LOG_ACTION.updatePassword,
+        status: 'succeeded',
+      })
+    }
   }
 
   public isUserNameEditable = async (userId: string) => {
@@ -457,6 +498,40 @@ export class UserService extends BaseService {
   }
 
   public setUserName = async (
+    userId: string,
+    oldUserName: string,
+    userName: string,
+    fillDisplayName = true
+  ): Promise<User | never> => {
+    try {
+      return await this._setUserName(
+        userId,
+        oldUserName,
+        userName,
+        fillDisplayName
+      )
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateUsername,
+        oldValue: oldUserName,
+        newValue: userName,
+        status: 'failed',
+        remark: err.message,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateUsername,
+        oldValue: oldUserName,
+        newValue: userName,
+        status: 'succeeded',
+      })
+    }
+  }
+
+  private _setUserName = async (
     userId: string,
     oldUserName: string,
     userName: string,
@@ -486,12 +561,6 @@ export class UserService extends BaseService {
         userId: userId,
         previous: oldUserName,
       },
-    })
-    auditLog({
-      actorId: userId,
-      action: AUDIT_LOG_ACTION.updateUsername,
-      oldValue: oldUserName,
-      newValue: userName,
     })
     return await this.baseUpdate(userId, data)
   }
@@ -2214,6 +2283,31 @@ export class UserService extends BaseService {
     userId: string,
     ethAddress: string
   ): Promise<User> => {
+    try {
+      return await this._addWallet(userId, ethAddress)
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.addWallet,
+        newValue: ethAddress,
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.addWallet,
+        newValue: ethAddress,
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+    }
+  }
+
+  private _addWallet = async (
+    userId: string,
+    ethAddress: string
+  ): Promise<User> => {
     const user = await this.findByEthAddress(ethAddress)
     if (user) {
       if (user.state === USER_STATE.archived) {
@@ -2234,16 +2328,30 @@ export class UserService extends BaseService {
       data: { updatedAt: this.knex.fn.now(), archived: true },
     })
 
-    auditLog({
-      actorId: userId,
-      action: AUDIT_LOG_ACTION.addWallet,
-      newValue: ethAddress,
-    })
-
     return updatedUser
   }
 
   public removeWallet = async (userId: string): Promise<User> => {
+    try {
+      return await this._removeWallet(userId)
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.removeWallet,
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.removeWallet,
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+    }
+  }
+
+  private _removeWallet = async (userId: string): Promise<User> => {
     const user = await this.loadById(userId)
     if (!user.ethAddress) {
       throw new ActionFailedError('user does not have a wallet')
@@ -2252,7 +2360,6 @@ export class UserService extends BaseService {
     if (count === 1) {
       throw new ActionFailedError('cannot remove last login method')
     }
-    auditLog({ actorId: userId, action: AUDIT_LOG_ACTION.removeWallet })
     return this.baseUpdate(userId, { ethAddress: null })
   }
 
@@ -2261,7 +2368,6 @@ export class UserService extends BaseService {
    *        Social Login           *
    *                               *
    *********************************/
-
   public getOrCreateUserBySocialAccount = async ({
     type,
     providerAccountId,
@@ -2269,12 +2375,63 @@ export class UserService extends BaseService {
     email,
     emailVerified,
     language,
-  }: SocialAccount & { emailVerified?: boolean; language: LANGUAGES }) => {
+  }: Omit<SocialAccount, 'userId'> & {
+    emailVerified?: boolean
+    language: LANGUAGES
+  }) => {
+    let userCreated = false
+    try {
+      const [user, created] = await this._getOrCreateUserBySocialAccount({
+        type,
+        providerAccountId,
+        userName,
+        email,
+        emailVerified,
+        language,
+      })
+      userCreated = created
+      return user
+    } catch (err: any) {
+      auditLog({
+        actorId: providerAccountId,
+        action: AUDIT_LOG_ACTION[`socialLogin${type}`],
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
+    } finally {
+      if (userCreated) {
+        auditLog({
+          actorId: providerAccountId,
+          action: AUDIT_LOG_ACTION[`socialSignup${type}`],
+          status: AUDIT_LOG_STATUS.succeeded,
+        })
+      } else {
+        auditLog({
+          actorId: providerAccountId,
+          action: AUDIT_LOG_ACTION[`socialLogin${type}`],
+          status: AUDIT_LOG_STATUS.succeeded,
+        })
+      }
+    }
+  }
+
+  private _getOrCreateUserBySocialAccount = async ({
+    type,
+    providerAccountId,
+    userName,
+    email,
+    emailVerified,
+    language,
+  }: Omit<SocialAccount, 'userId'> & {
+    emailVerified?: boolean
+    language: LANGUAGES
+  }): Promise<[User, boolean]> => {
+    let isCreated = false
     // check if social account exists, if true, return user directly
     const socialAcount = await this.getSocialAccount({
       type,
       providerAccountId,
-      userName,
     })
     let user
     if (socialAcount) {
@@ -2285,7 +2442,7 @@ export class UserService extends BaseService {
       if (!user.emailVerified && emailVerified) {
         return this.baseUpdate(user.id, { emailVerified })
       }
-      return user
+      return [user, isCreated]
     }
 
     // social account not exists, create social account and user
@@ -2293,7 +2450,6 @@ export class UserService extends BaseService {
       user = await this.findByEmail(email)
     }
     const trx = await this.knex.transaction()
-    let isCreated = false
     try {
       if (!user) {
         // social account email not used by existing users, create new user
@@ -2317,27 +2473,13 @@ export class UserService extends BaseService {
       await trx.rollback()
       throw error
     }
-    if (isCreated) {
-      await this.postRegister(user)
-      auditLog({
-        actorId: user.id,
-        action: AUDIT_LOG_ACTION.socialSignup,
-        remark: type,
-      })
-    } else {
-      auditLog({
-        actorId: user.id,
-        action: AUDIT_LOG_ACTION.socialLogin,
-        remark: type,
-      })
-    }
-    return user
+    return [user, isCreated]
   }
 
   private getSocialAccount = async ({
     type,
     providerAccountId,
-  }: SocialAccount) => {
+  }: Pick<SocialAccount, 'type' | 'providerAccountId'>) => {
     return this.knex('social_account')
       .select()
       .where({ type, providerAccountId })
@@ -2352,6 +2494,34 @@ export class UserService extends BaseService {
     { userId, type, providerAccountId, userName, email }: SocialAccount,
     trx?: Knex.Transaction
   ) => {
+    try {
+      return await this._createSocialAccount(
+        { userId, type, providerAccountId, userName, email },
+        trx
+      )
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`addSocialAccount${type}`],
+        entity: 'social_account',
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`addSocialAccount${type}`],
+        entity: 'social_account',
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+    }
+  }
+
+  private _createSocialAccount = async (
+    { userId, type, providerAccountId, userName, email }: SocialAccount,
+    trx?: Knex.Transaction
+  ) => {
     const query = this.knex('social_account')
       .insert({ userId, type, providerAccountId, userName, email })
       .returning('*')
@@ -2362,17 +2532,10 @@ export class UserService extends BaseService {
 
     try {
       const result = await query
-      auditLog({
-        actorId: userId as string,
-        action: AUDIT_LOG_ACTION.addSocialAccount,
-        entity: 'social_account',
-        entityId: result[0].id,
-        remark: type,
-      })
       return result
-    } catch (error: any) {
+    } catch (err: any) {
       // duplicate key error
-      if (error.code === '23505') {
+      if (err.code === '23505') {
         const socialAccount = await this.getSocialAccount({
           type,
           providerAccountId,
@@ -2385,11 +2548,34 @@ export class UserService extends BaseService {
         }
         throw new ActionFailedError('social account already exists')
       }
-      throw error
+      throw err
     }
   }
 
   public removeSocialAccount = async (
+    userId: string,
+    type: keyof typeof SOCIAL_LOGIN_TYPE
+  ) => {
+    try {
+      return await this._removeSocialAccount(userId, type)
+    } catch (err: any) {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`removeSocialAccount${type}`],
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
+    } finally {
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`removeSocialAccount${type}`],
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+    }
+  }
+
+  private _removeSocialAccount = async (
     userId: string,
     type: keyof typeof SOCIAL_LOGIN_TYPE
   ) => {
@@ -2404,13 +2590,6 @@ export class UserService extends BaseService {
     if (count === 1) {
       throw new ActionFailedError('cannot remove last login method')
     }
-    auditLog({
-      actorId: userId,
-      action: AUDIT_LOG_ACTION.removeSocialAccount,
-      entity: 'social_account',
-      entityId: socialAccount.id,
-      remark: type,
-    })
     return this.knex('social_account').where({ id: socialAccount.id }).del()
   }
 

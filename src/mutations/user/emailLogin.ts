@@ -7,6 +7,7 @@ import {
   VERIFICATION_CODE_TYPE,
   NODE_TYPES,
   AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
 import { auditLog } from 'common/logger'
@@ -15,6 +16,44 @@ import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  let result
+  const getAction = (res: any) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? (res as any).isEmailOTP
+        ? AUDIT_LOG_ACTION.emailSignupOTP
+        : AUDIT_LOG_ACTION.emailSignup
+      : (res as any).isEmailOTP
+      ? AUDIT_LOG_ACTION.emailLoginOTP
+      : AUDIT_LOG_ACTION.emailLogin
+  try {
+    result = await _resolver(root, args, context, info)
+    return result
+  } catch (err: any) {
+    auditLog({
+      actorId: null,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.failed,
+      remark: err.message,
+    })
+    throw err
+  } finally {
+    auditLog({
+      actorId: null,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+  }
+}
+
+const _resolver: Exclude<
+  GQLMutationResolvers['emailLogin'],
+  undefined
+> = async (
   _,
   { input: { email: rawEmail, passwordOrCode, language } },
   context
@@ -89,16 +128,12 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer.authMode = newUser.role as AuthMode
     context.viewer.scope = {}
 
-    auditLog({ actorId: newUser.id, action: AUDIT_LOG_ACTION.emailSignup })
-    if (isEmailOTP) {
-      auditLog({ actorId: newUser.id, action: AUDIT_LOG_ACTION.emailSignupOTP })
-    }
-
     return {
       token: sessionToken,
       auth: true,
       type: AUTH_RESULT_TYPE.Signup,
       user: newUser,
+      isEmailOTP,
     }
   } else {
     // user exists, login
@@ -145,16 +180,12 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     context.viewer.authMode = user.role as AuthMode
     context.viewer.scope = {}
 
-    auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.emailLogin })
-    if (isEmailOTP) {
-      auditLog({ actorId: user.id, action: AUDIT_LOG_ACTION.emailLoginOTP })
-    }
-
     return {
       token: sessionToken,
       auth: true,
       type: AUTH_RESULT_TYPE.Login,
       user,
+      isEmailOTP,
     }
   }
 }

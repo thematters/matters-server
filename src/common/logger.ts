@@ -8,6 +8,7 @@ import {
   LOGGING_CONTEXT_KEY,
   LOGGING_LEVEL,
   AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import { environment } from 'common/environment'
 
@@ -77,11 +78,11 @@ const auditLogger = getLogger('audit-log')
 export const auditLog = (data: {
   actorId: string | null
   action: ValueOf<typeof AUDIT_LOG_ACTION>
+  status: ValueOf<typeof AUDIT_LOG_STATUS>
   entity?: TableName
   entityId?: string
   oldValue?: string | null
   newValue?: string
-  status?: 'succeeded' | 'failed' | 'pending'
   remark?: string
 }) => auditLogger.info('%j', data)
 
