@@ -7,6 +7,8 @@ export const LOGGING_LEVEL = {
 
 export const LOGGING_CONTEXT_KEY = {
   requestId: 'requestId',
+  ip: 'ip',
+  userAgent: 'userAgent',
 } as const
 
 export const AUDIT_LOG_ACTION = {

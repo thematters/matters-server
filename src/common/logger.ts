@@ -20,11 +20,8 @@ export const contextStorage = new AsyncLocalStorage<
 >()
 
 const setContext = format((info, _) => {
-  const context = contextStorage.getStore()
-  if (context) {
-    info.requestId = context!.get('requestId')
-    // info.jobId = context!.get('jobId')
-  }
+  const context = contextStorage.getStore() || new Map()
+  info.requestId = context.get('requestId')
   return info
 })
 
@@ -84,7 +81,14 @@ export const auditLog = (data: {
   oldValue?: string | null
   newValue?: string
   remark?: string
-}) => auditLogger.info('%j', data)
+}) => {
+  const context = contextStorage.getStore() || new Map()
+  auditLogger.info('%j', {
+    ...data,
+    ip: context.get('ip'),
+    userAgent: context.get('userAgent'),
+  })
+}
 
 // print environment
 

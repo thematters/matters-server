@@ -53,7 +53,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     throw err
   } finally {
     auditLog({
-      actorId: null,
+      actorId: context.viewer.id,
       action: getAction(result),
       status: AUDIT_LOG_STATUS.succeeded,
     })
