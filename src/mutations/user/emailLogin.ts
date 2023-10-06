@@ -34,6 +34,11 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   let result
   try {
     result = await _resolver(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
     return result
   } catch (err: any) {
     const email = args.input.email.toLowerCase()
@@ -51,12 +56,6 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       remark: `email: ${email} error message: ${err.message}`,
     })
     throw err
-  } finally {
-    auditLog({
-      actorId: context.viewer.id,
-      action: getAction(result),
-      status: AUDIT_LOG_STATUS.succeeded,
-    })
   }
 }
 

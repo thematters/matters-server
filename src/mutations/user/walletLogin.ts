@@ -42,6 +42,11 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       : AUDIT_LOG_ACTION.walletLogin
   try {
     result = await _walletLogin(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
     return result
   } catch (err: any) {
     const user = await context.dataSources.userService.findByEthAddress(
@@ -56,12 +61,6 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       remark: `eth address: ${args.input.ethAddress} error message: ${err.message}`,
     })
     throw err
-  } finally {
-    auditLog({
-      actorId: context.viewer.id,
-      action: getAction(result),
-      status: AUDIT_LOG_STATUS.succeeded,
-    })
   }
 }
 

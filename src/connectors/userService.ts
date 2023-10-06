@@ -390,7 +390,15 @@ export class UserService extends BaseService {
   public setEmail = async (userId: string, email: string): Promise<User> => {
     const user = await this.loadById(userId)
     try {
-      return await this._setEmail(user, email)
+      const res = await this._setEmail(user, email)
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateEmail,
+        oldValue: user.email,
+        newValue: email,
+        status: 'succeeded',
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -401,14 +409,6 @@ export class UserService extends BaseService {
         remark: err.message,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION.updateEmail,
-        oldValue: user.email,
-        newValue: email,
-        status: 'succeeded',
-      })
     }
   }
 
@@ -470,7 +470,13 @@ export class UserService extends BaseService {
     password: string
   ) => {
     try {
-      return await this._setPassword(user, password)
+      const res = await this._setPassword(user, password)
+      auditLog({
+        actorId: user.id,
+        action: AUDIT_LOG_ACTION.updatePassword,
+        status: 'succeeded',
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: user.id,
@@ -479,12 +485,6 @@ export class UserService extends BaseService {
         remark: err.message,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: user.id,
-        action: AUDIT_LOG_ACTION.updatePassword,
-        status: 'succeeded',
-      })
     }
   }
 
@@ -504,12 +504,20 @@ export class UserService extends BaseService {
     fillDisplayName = true
   ): Promise<User | never> => {
     try {
-      return await this._setUserName(
+      const res = await this._setUserName(
         userId,
         oldUserName,
         userName,
         fillDisplayName
       )
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.updateUsername,
+        oldValue: oldUserName,
+        newValue: userName,
+        status: 'succeeded',
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -520,14 +528,6 @@ export class UserService extends BaseService {
         remark: err.message,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION.updateUsername,
-        oldValue: oldUserName,
-        newValue: userName,
-        status: 'succeeded',
-      })
     }
   }
 
@@ -2284,7 +2284,14 @@ export class UserService extends BaseService {
     ethAddress: string
   ): Promise<User> => {
     try {
-      return await this._addWallet(userId, ethAddress)
+      const res = await this._addWallet(userId, ethAddress)
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.addWallet,
+        newValue: ethAddress,
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2294,13 +2301,6 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.failed,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION.addWallet,
-        newValue: ethAddress,
-        status: AUDIT_LOG_STATUS.succeeded,
-      })
     }
   }
 
@@ -2333,7 +2333,13 @@ export class UserService extends BaseService {
 
   public removeWallet = async (userId: string): Promise<User> => {
     try {
-      return await this._removeWallet(userId)
+      const res = await this._removeWallet(userId)
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION.removeWallet,
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2342,12 +2348,6 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.failed,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION.removeWallet,
-        status: AUDIT_LOG_STATUS.succeeded,
-      })
     }
   }
 
@@ -2385,7 +2385,6 @@ export class UserService extends BaseService {
     emailVerified?: boolean
     language: LANGUAGES
   }) => {
-    let userCreated = false
     try {
       const [user, created] = await this._getOrCreateUserBySocialAccount({
         type,
@@ -2395,18 +2394,7 @@ export class UserService extends BaseService {
         emailVerified,
         language,
       })
-      userCreated = created
-      return user
-    } catch (err: any) {
-      auditLog({
-        actorId: providerAccountId,
-        action: AUDIT_LOG_ACTION[`socialLogin${type}`],
-        remark: err.message,
-        status: AUDIT_LOG_STATUS.failed,
-      })
-      throw err
-    } finally {
-      if (userCreated) {
+      if (created) {
         auditLog({
           actorId: providerAccountId,
           action: AUDIT_LOG_ACTION[`socialSignup${type}`],
@@ -2419,6 +2407,15 @@ export class UserService extends BaseService {
           status: AUDIT_LOG_STATUS.succeeded,
         })
       }
+      return user
+    } catch (err: any) {
+      auditLog({
+        actorId: providerAccountId,
+        action: AUDIT_LOG_ACTION[`socialLogin${type}`],
+        remark: err.message,
+        status: AUDIT_LOG_STATUS.failed,
+      })
+      throw err
     }
   }
 
@@ -2516,10 +2513,17 @@ export class UserService extends BaseService {
     trx?: Knex.Transaction
   ) => {
     try {
-      return await this._createSocialAccount(
+      const res = await this._createSocialAccount(
         { userId, type, providerAccountId, userName, email },
         trx
       )
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`addSocialAccount${type}`],
+        entity: 'social_account',
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2529,13 +2533,6 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.failed,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION[`addSocialAccount${type}`],
-        entity: 'social_account',
-        status: AUDIT_LOG_STATUS.succeeded,
-      })
     }
   }
 
@@ -2578,7 +2575,13 @@ export class UserService extends BaseService {
     type: keyof typeof SOCIAL_LOGIN_TYPE
   ) => {
     try {
-      return await this._removeSocialAccount(userId, type)
+      const res = await this._removeSocialAccount(userId, type)
+      auditLog({
+        actorId: userId,
+        action: AUDIT_LOG_ACTION[`removeSocialAccount${type}`],
+        status: AUDIT_LOG_STATUS.succeeded,
+      })
+      return res
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2587,12 +2590,6 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.failed,
       })
       throw err
-    } finally {
-      auditLog({
-        actorId: userId,
-        action: AUDIT_LOG_ACTION[`removeSocialAccount${type}`],
-        status: AUDIT_LOG_STATUS.succeeded,
-      })
     }
   }
 
