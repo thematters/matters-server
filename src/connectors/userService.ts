@@ -2440,7 +2440,7 @@ export class UserService extends BaseService {
         throw new ForbiddenByStateError('social account is archived')
       }
       if (!user.emailVerified && emailVerified) {
-        return this.baseUpdate(user.id, { emailVerified })
+        return [await this.baseUpdate(user.id, { emailVerified }), isCreated]
       }
       return [user, isCreated]
     }
