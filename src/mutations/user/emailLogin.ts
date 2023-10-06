@@ -21,24 +21,34 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
   context,
   info
 ) => {
-  let result
+  const passphrases = new Passphrases()
+  const isEmailOTP = passphrases.isValidPassphrases(args.input.passwordOrCode)
   const getAction = (res: any) =>
     res?.type === AUTH_RESULT_TYPE.Signup
-      ? (res as any).isEmailOTP
+      ? isEmailOTP
         ? AUDIT_LOG_ACTION.emailSignupOTP
         : AUDIT_LOG_ACTION.emailSignup
-      : (res as any).isEmailOTP
+      : isEmailOTP
       ? AUDIT_LOG_ACTION.emailLoginOTP
       : AUDIT_LOG_ACTION.emailLogin
+  let result
   try {
     result = await _resolver(root, args, context, info)
     return result
   } catch (err: any) {
+    const email = args.input.email.toLowerCase()
+    const user = await context.dataSources.userService.findByEmail(email)
     auditLog({
-      actorId: null,
-      action: getAction(result),
+      actorId: user?.id || null,
+      action: isEmailOTP
+        ? user?.id
+          ? AUDIT_LOG_ACTION.emailLoginOTP
+          : AUDIT_LOG_ACTION.emailSignupOTP
+        : user?.id
+        ? AUDIT_LOG_ACTION.emailLogin
+        : AUDIT_LOG_ACTION.emailSignup,
       status: AUDIT_LOG_STATUS.failed,
-      remark: err.message,
+      remark: `email: ${email} error message: ${err.message}`,
     })
     throw err
   } finally {
@@ -91,20 +101,10 @@ const _resolver: Exclude<
     // user not exist, register
     if (!isE2ETest) {
       if (isEmailOTP) {
-        try {
-          await passphrases.verify({
-            payload: { email },
-            passphrases: passphrases.normalize(passwordOrCode),
-          })
-        } catch (err: any) {
-          auditLog({
-            actorId: null,
-            action: AUDIT_LOG_ACTION.emailSignupOTP,
-            status: 'failed',
-            remark: err.message,
-          })
-          throw err
-        }
+        await passphrases.verify({
+          payload: { email },
+          passphrases: passphrases.normalize(passwordOrCode),
+        })
       } else {
         await userService.verifyVerificationCode({
           email,
@@ -133,7 +133,6 @@ const _resolver: Exclude<
       auth: true,
       type: AUTH_RESULT_TYPE.Signup,
       user: newUser,
-      isEmailOTP,
     }
   } else {
     // user exists, login
@@ -151,14 +150,6 @@ const _resolver: Exclude<
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
-      if (isEmailOTP) {
-        auditLog({
-          actorId: user.id,
-          action: AUDIT_LOG_ACTION.emailLoginOTP,
-          status: 'failed',
-          remark: err.errors[0].message,
-        })
-      }
       if (!isE2ETest) {
         throw err.errors[0]
       }
@@ -185,7 +176,6 @@ const _resolver: Exclude<
       auth: true,
       type: AUTH_RESULT_TYPE.Login,
       user,
-      isEmailOTP,
     }
   }
 }
