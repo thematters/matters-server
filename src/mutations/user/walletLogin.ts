@@ -50,8 +50,8 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
     auditLog({
       actorId: user?.id || null,
       action: user?.id
-        ? AUDIT_LOG_ACTION.walletSignup
-        : AUDIT_LOG_ACTION.walletLogin,
+        ? AUDIT_LOG_ACTION.walletLogin
+        : AUDIT_LOG_ACTION.walletSignup,
       status: AUDIT_LOG_STATUS.failed,
       remark: `eth address: ${args.input.ethAddress} error message: ${err.message}`,
     })

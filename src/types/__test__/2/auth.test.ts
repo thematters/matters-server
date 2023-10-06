@@ -640,7 +640,6 @@ describe('emailLogin', () => {
           },
         },
       })
-      console.dir(errors, { depth: null })
       expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
 
       const notVerifiedEmail = 'not-verified@matters.town'
