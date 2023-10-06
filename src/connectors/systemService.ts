@@ -6,6 +6,7 @@ import type {
 } from 'definitions'
 
 import { Knex } from 'knex'
+// import _isEmpty from 'lodash/isEmpty'
 import { v4 } from 'uuid'
 
 import {
@@ -199,7 +200,7 @@ export class SystemService extends BaseService {
       } else {
         if (Object.keys(rest).length > 0) {
           // if rest is not empty
-          updatedAsset = this.baseUpdate(asset.id, rest, 'asset', trx)
+          updatedAsset = await this.baseUpdate(asset.id, rest, 'asset', trx)
         }
       }
 
