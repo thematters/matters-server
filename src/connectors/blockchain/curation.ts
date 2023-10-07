@@ -1,4 +1,5 @@
-import type { Log as EthersLog } from '@ethersproject/abstract-provider'
+// import type { Log as EthersLog } from '@ethersproject/abstract-provider'
+import { Log as EthersLog } from 'viem'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -96,7 +97,7 @@ export class CurationContract extends BaseContract {
     }))
   }
 
-  fetchTxReceipt = async (
+  public fetchTxReceipt = async (
     txHash: string
   ): Promise<CurationTxReceipt | null> => {
     const txReceipt = await this.provider.getTransactionReceipt(txHash)
