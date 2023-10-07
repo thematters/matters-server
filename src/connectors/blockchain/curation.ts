@@ -1,5 +1,6 @@
 // import type { Log as EthersLog } from '@ethersproject/abstract-provider'
-import { Log as EthersLog } from 'viem'
+import { Contract } from 'ethers'
+import { Log as EthersLog, decodeEventLog } from 'viem'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -49,10 +50,10 @@ const chainId = isProd
 // CurationContract
 
 export class CurationContract extends BaseContract {
-  erc20TokenCurationEventTopic: string
-  nativeTokenCurationEventTopic: string
+  public erc20TokenCurationEventTopic: string
+  public nativeTokenCurationEventTopic: string
 
-  constructor() {
+  public constructor() {
     super(parseInt(chainId, 10), contractAddress, [
       erc20TokenCurationEventABI,
       nativeTokenCurationEventABI,
@@ -65,7 +66,7 @@ export class CurationContract extends BaseContract {
     )
   }
 
-  fetchLogs = async (
+  public fetchLogs = async (
     fromBlock: number,
     toBlock: number
   ): Promise<Array<Log<CurationEvent>>> => {
@@ -73,7 +74,7 @@ export class CurationContract extends BaseContract {
       this._fetchLogs(
         fromBlock,
         toBlock,
-        this.contract.filters[erc20TokenCurationEventIdentifier]()
+        (this.contract as unknown as Contract).filters[erc20TokenCurationEventIdentifier]()
       ),
       this._fetchLogs(
         fromBlock,
@@ -110,12 +111,13 @@ export class CurationContract extends BaseContract {
         (log.topics[0] === this.erc20TokenCurationEventTopic ||
           log.topics[0] === this.nativeTokenCurationEventTopic)
     )
-    const iface = this.contract.interface
+    const iface = this.contract.interface as unknown as Contract["interface"]
     return {
       txHash,
       reverted: txReceipt.status === 0,
       events: targets
-        .map((log) => iface.parseLog(log))
+        // .map(log => iface.parseLog(log))
+        .map((log) => decodeEventLog(log))
         .map((e) => ({
           curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
           creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
