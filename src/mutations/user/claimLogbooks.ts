@@ -4,6 +4,7 @@ import axios from 'axios'
 import { recoverPersonalSignature } from 'eth-sig-util'
 import { ethers } from 'ethers'
 import { Knex } from 'knex'
+import { encodeFunctionData, parseUnits } from 'viem'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -58,7 +59,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
   const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
-    ethers.BigNumber.from(item.id.tokenId).toString()
+    BigInt(item.id.tokenId).toString()
   )
 
   if (tokenIds.length <= 0) {
@@ -96,8 +97,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   }
 
   // get max gas from gas station
-  let maxFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
-  let maxPriorityFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
+  let maxFeePerGas = BigInt(40000000000) // 40 gwei
+  let maxPriorityFeePerGas = BigInt(40000000000) // 40 gwei
   try {
     const { data } = await axios({
       method: 'get',
@@ -105,22 +106,25 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
         ? 'https://gasstation-mainnet.matic.network/v2'
         : 'https://gasstation-mumbai.matic.today/v2',
     })
-    maxFeePerGas = ethers.utils.parseUnits(
+    maxFeePerGas = parseUnits(
       Math.ceil(data.fast.maxFee) + '',
-      'gwei'
+      9, // 'gwei'
     )
-    maxPriorityFeePerGas = ethers.utils.parseUnits(
+    maxPriorityFeePerGas = parseUnits(
       Math.ceil(data.fast.maxPriorityFee) + '',
-      'gwei'
+      9, // 'gwei'
     )
   } catch {
     // ignore
   }
 
   // send tx to claim tokens
-  const iface = new ethers.utils.Interface(abi)
   const calldata = unclaimedTokenIds.map((tokenId) =>
-    iface.encodeFunctionData('claim', [ethAddress, tokenId])
+    encodeFunctionData({
+      abi,
+      functionName: 'claim',
+      args: [ethAddress, tokenId]
+    })
   )
 
   const tx = await contract.multicall(calldata, {
