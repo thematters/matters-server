@@ -1,6 +1,6 @@
 import { PublicClient, getContract } from 'viem'
 
-import { getAlchemyProvider } from 'common/utils'
+import { getAlchemyClient } from 'common/utils'
 
 export class BaseContract {
   public chainId: number
@@ -12,7 +12,7 @@ export class BaseContract {
     this.chainId = chainId
     this.address = address
     this.abi = abi
-    this.provider = getAlchemyProvider(chainId)
+    this.provider = getAlchemyClient(chainId)
     this.contract = getContract({ abi, address, publicClient: this.provider })
   }
 

@@ -16,12 +16,12 @@ import axios from 'axios'
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
 import { recoverPersonalSignature } from 'eth-sig-util'
-import { Contract, utils } from 'ethers'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
+import { getContract, hashMessage, isAddress, trim } from 'viem'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -88,7 +88,7 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  getAlchemyProvider,
+  getAlchemyClient,
   IERC1271,
   genDisplayName,
   RatelimitCounter,
@@ -2203,7 +2203,7 @@ export class UserService extends BaseService {
     signature: string
     validPurposes: Array<keyof typeof SIGNING_MESSAGE_PURPOSE>
   }) => {
-    if (!ethAddress || !utils.isAddress(ethAddress)) {
+    if (!ethAddress || !isAddress(ethAddress)) {
       throw new UserInputError('address is invalid')
     }
     const sigTable = 'crypto_wallet_signature'
@@ -2241,19 +2241,24 @@ export class UserService extends BaseService {
 
       const chainNetwork = 'PolygonMainnet'
 
-      const provider = getAlchemyProvider(
+      const client = getAlchemyClient(
         Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
       )
 
-      const bytecode = await provider.getCode(ethAddress.toLowerCase())
+      const bytecode = await client.getBytecode({ address: ethAddress })
 
-      const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== '0x'
+      const isSmartContract = bytecode && trim(bytecode) !== '0x'
 
-      const hash = utils.hashMessage(signedMessage)
+      const hash = hashMessage(signedMessage)
 
       if (isSmartContract) {
         // verify the message for a decentralized account (contract wallet)
-        const contractWallet = new Contract(ethAddress, IERC1271, provider)
+        const contractWallet = getContract({
+          publicClient: client,
+          abi: IERC1271,
+          address: ethAddress
+        })
+        // TODO: validsignature has no replacement
         const verification = await contractWallet.isValidSignature(
           hash,
           signature
