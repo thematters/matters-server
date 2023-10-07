@@ -1318,8 +1318,8 @@ export class UserService extends BaseService {
           type === AUTHOR_TYPE.active
             ? 'most_active_author_materialized'
             : type === AUTHOR_TYPE.appreciated
-            ? 'most_appreciated_author_materialized'
-            : 'most_trendy_author_materialized'
+              ? 'most_appreciated_author_materialized'
+              : 'most_trendy_author_materialized'
 
         const query = this.knexRO
           .from({ view })
@@ -1595,10 +1595,10 @@ export class UserService extends BaseService {
     const code = strong
       ? nanoid(40)
       : customAlphabet(
-          // alphanumeric
-          '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-          8
-        )()
+        // alphanumeric
+        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        8
+      )()
 
     return this.baseCreate(
       {
@@ -1661,13 +1661,13 @@ export class UserService extends BaseService {
     for (const c of codes) {
       await (c.code === code.code
         ? this.markVerificationCodeAs(
-            { codeId: c.id, status: VERIFICATION_CODE_STATUS.used },
-            trx
-          )
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.used },
+          trx
+        )
         : this.markVerificationCodeAs(
-            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
-            trx
-          ))
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+          trx
+        ))
     }
     await trx.commit()
   }
@@ -1687,13 +1687,13 @@ export class UserService extends BaseService {
     for (const c of codes) {
       await (c.code === code.code
         ? this.markVerificationCodeAs(
-            { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
-            trx
-          )
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
+          trx
+        )
         : this.markVerificationCodeAs(
-            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
-            trx
-          ))
+          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+          trx
+        ))
     }
     await trx.commit()
   }

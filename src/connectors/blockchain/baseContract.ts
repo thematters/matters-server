@@ -3,12 +3,12 @@ import { Contract, providers } from 'ethers'
 import { getAlchemyProvider } from 'common/utils'
 
 export class BaseContract {
-  chainId: number
-  address: string
-  abi: string[]
+  public chainId: number
+  public address: string
+  public abi: string[]
   protected provider: providers.Provider
   protected contract: Contract
-  constructor(chainId: number, address: string, abi: string[]) {
+  public constructor(chainId: number, address: string, abi: string[]) {
     this.chainId = chainId
     this.address = address
     this.abi = abi
@@ -16,5 +16,5 @@ export class BaseContract {
     this.contract = new Contract(address, abi, this.provider)
   }
 
-  fetchBlockNumber = async (): Promise<number> => this.provider.getBlockNumber()
+  public fetchBlockNumber = async (): Promise<number> => this.provider.getBlockNumber()
 }

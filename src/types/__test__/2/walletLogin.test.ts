@@ -1,6 +1,8 @@
 import type { Connections } from 'definitions'
 
-import { Wallet } from 'ethers'
+import { createWalletClient, http } from 'viem'
+import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
+import { mainnet } from 'viem/chains'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 
@@ -53,7 +55,10 @@ describe('walletLogin', () => {
     const testWalletLoginPurpose = async (
       purpose: keyof typeof SIGNING_MESSAGE_PURPOSE
     ) => {
-      const wallet = Wallet.createRandom()
+      const account = privateKeyToAccount(generatePrivateKey())
+      const wallet = createWalletClient(
+        { account, chain: mainnet, transport: http() }
+      )
       const server = await testClient({ connections })
       // signup
       const {
@@ -64,7 +69,7 @@ describe('walletLogin', () => {
         query: GENERATE_SIGNING_MESSAGE,
         variables: {
           input: {
-            address: wallet.address,
+            address: (await wallet.getAddresses()).shift(),
             purpose,
           },
         },
@@ -74,7 +79,7 @@ describe('walletLogin', () => {
         query: WALLET_LOGIN,
         variables: {
           input: {
-            ethAddress: wallet.address,
+            ethAddress: (await wallet.getAddresses()).shift(),
             signedMessage: signingMessage,
             signature,
             nonce,
@@ -86,7 +91,7 @@ describe('walletLogin', () => {
       expect(data?.walletLogin.type).toBe('Signup')
       expect(data?.walletLogin.user.userName).toBe(null)
       expect(data?.walletLogin.user.info.ethAddress).toBe(
-        wallet.address.toLowerCase()
+        (await wallet.getAddresses()).shift()?.toLowerCase()
       )
       // login
       const {
@@ -100,7 +105,7 @@ describe('walletLogin', () => {
         query: GENERATE_SIGNING_MESSAGE,
         variables: {
           input: {
-            address: wallet.address,
+            address: (await wallet.getAddresses()).shift(),
             purpose,
           },
         },
@@ -110,7 +115,7 @@ describe('walletLogin', () => {
         query: WALLET_LOGIN,
         variables: {
           input: {
-            ethAddress: wallet.address,
+            ethAddress: (await wallet.getAddresses()).shift(),
             signedMessage: loginSigningMessage,
             signature: loginSignature,
             nonce: loginNonce,
@@ -122,7 +127,7 @@ describe('walletLogin', () => {
       expect(loginData?.walletLogin.type).toBe('Login')
       expect(loginData?.walletLogin.user.userName).toBe(null)
       expect(loginData?.walletLogin.user.info.ethAddress).toBe(
-        wallet.address.toLowerCase()
+        (await wallet.getAddresses()).shift()?.toLowerCase()
       )
     }
 
@@ -130,7 +135,10 @@ describe('walletLogin', () => {
     await testWalletLoginPurpose(SIGNING_MESSAGE_PURPOSE.login)
   }, 100000)
   test('wallet login with wrong purpose will throw errors', async () => {
-    const wallet = Wallet.createRandom()
+    const account = privateKeyToAccount(generatePrivateKey())
+    const wallet = createWalletClient(
+      { account, chain: mainnet, transport: http() }
+    )
     const server = await testClient({ connections })
     const {
       data: {
@@ -140,7 +148,7 @@ describe('walletLogin', () => {
       query: GENERATE_SIGNING_MESSAGE,
       variables: {
         input: {
-          address: wallet.address,
+          address: (await wallet.getAddresses()).shift(),
           purpose: SIGNING_MESSAGE_PURPOSE.airdrop,
         },
       },
@@ -150,7 +158,7 @@ describe('walletLogin', () => {
       query: WALLET_LOGIN,
       variables: {
         input: {
-          ethAddress: wallet.address,
+          ethAddress: (await wallet.getAddresses()).shift(),
           signedMessage: signingMessage,
           signature,
           nonce,
@@ -160,7 +168,10 @@ describe('walletLogin', () => {
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
   test('wallet login with wrong nonce will throw errors', async () => {
-    const wallet = Wallet.createRandom()
+    const account = privateKeyToAccount(generatePrivateKey())
+    const wallet = createWalletClient(
+      { account, chain: mainnet, transport: http() }
+    )
     const server = await testClient({ connections })
     const {
       data: {
@@ -170,7 +181,7 @@ describe('walletLogin', () => {
       query: GENERATE_SIGNING_MESSAGE,
       variables: {
         input: {
-          address: wallet.address,
+          address: (await wallet.getAddresses()).shift(),
           purpose: SIGNING_MESSAGE_PURPOSE.signup,
         },
       },
@@ -180,7 +191,7 @@ describe('walletLogin', () => {
       query: WALLET_LOGIN,
       variables: {
         input: {
-          ethAddress: wallet.address,
+          ethAddress: (await wallet.getAddresses()).shift(),
           signedMessage: signingMessage,
           signature,
           nonce: nonce + 'wrong',
@@ -190,7 +201,10 @@ describe('walletLogin', () => {
     expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
   })
   test('wallet login check nonce in signature', async () => {
-    const wallet = Wallet.createRandom()
+    const account = privateKeyToAccount(generatePrivateKey())
+    const wallet = createWalletClient(
+      { account, chain: mainnet, transport: http() }
+    )
     const server = await testClient({ connections })
     const {
       data: {
@@ -200,7 +214,7 @@ describe('walletLogin', () => {
       query: GENERATE_SIGNING_MESSAGE,
       variables: {
         input: {
-          address: wallet.address,
+          address: (await wallet.getAddresses()).shift(),
           purpose: SIGNING_MESSAGE_PURPOSE.signup,
         },
       },
@@ -212,7 +226,7 @@ describe('walletLogin', () => {
       query: WALLET_LOGIN,
       variables: {
         input: {
-          ethAddress: wallet.address,
+          ethAddress: (await wallet.getAddresses()).shift(),
           signedMessage: signingMessage,
           signature,
           nonce: nonce,

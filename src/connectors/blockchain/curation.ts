@@ -1,5 +1,4 @@
 import type { Log as EthersLog } from '@ethersproject/abstract-provider'
-// import { ethers } from 'ethers'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
