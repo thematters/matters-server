@@ -140,7 +140,7 @@ export interface Wallet {
 }
 
 export interface SocialAccount {
-  userId?: string
+  userId: string
   type: keyof typeof SOCIAL_LOGIN_TYPE
   providerAccountId: string
   userName?: string

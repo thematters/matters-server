@@ -13,6 +13,8 @@ import {
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
   SIGNING_MESSAGE_PURPOSE,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import {
   CodeExpiredError,
@@ -22,11 +24,50 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { getViewerFromUser, setCookie } from 'common/utils'
 
 const sigTable = 'crypto_wallet_signature'
 
 export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  let result
+  const getAction = (res: any) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? AUDIT_LOG_ACTION.walletSignup
+      : AUDIT_LOG_ACTION.walletLogin
+  try {
+    result = await _walletLogin(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+    return result
+  } catch (err: any) {
+    const user = await context.dataSources.userService.findByEthAddress(
+      args.input.ethAddress
+    )
+    auditLog({
+      actorId: user?.id || null,
+      action: user?.id
+        ? AUDIT_LOG_ACTION.walletLogin
+        : AUDIT_LOG_ACTION.walletSignup,
+      status: AUDIT_LOG_STATUS.failed,
+      remark: `eth address: ${args.input.ethAddress} error message: ${err.message}`,
+    })
+    throw err
+  }
+}
+
+const _walletLogin: Exclude<
+  GQLMutationResolvers['walletLogin'],
+  undefined
+> = async (
   _,
   {
     input: {

@@ -27,6 +27,8 @@ import * as routes from './routes'
     const traceId = req.header('x-trace-id')
     const context = new Map<LoggingContextKey, string>()
     context.set(LOGGING_CONTEXT_KEY.requestId, traceId ?? v4())
+    context.set(LOGGING_CONTEXT_KEY.ip, requestIp.getClientIp(req) ?? '')
+    context.set(LOGGING_CONTEXT_KEY.userAgent, req.header('user-agent') ?? '')
     contextStorage.enterWith(context)
     next()
   })

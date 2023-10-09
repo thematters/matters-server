@@ -6,13 +6,63 @@ import {
   AUTH_RESULT_TYPE,
   VERIFICATION_CODE_TYPE,
   NODE_TYPES,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  const passphrases = new Passphrases()
+  const isEmailOTP = passphrases.isValidPassphrases(args.input.passwordOrCode)
+  const getAction = (res: any) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? isEmailOTP
+        ? AUDIT_LOG_ACTION.emailSignupOTP
+        : AUDIT_LOG_ACTION.emailSignup
+      : isEmailOTP
+      ? AUDIT_LOG_ACTION.emailLoginOTP
+      : AUDIT_LOG_ACTION.emailLogin
+  let result
+  try {
+    result = await _resolver(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+    return result
+  } catch (err: any) {
+    const email = args.input.email.toLowerCase()
+    const user = await context.dataSources.userService.findByEmail(email)
+    auditLog({
+      actorId: user?.id || null,
+      action: isEmailOTP
+        ? user?.id
+          ? AUDIT_LOG_ACTION.emailLoginOTP
+          : AUDIT_LOG_ACTION.emailSignupOTP
+        : user?.id
+        ? AUDIT_LOG_ACTION.emailLogin
+        : AUDIT_LOG_ACTION.emailSignup,
+      status: AUDIT_LOG_STATUS.failed,
+      remark: `email: ${email} error message: ${err.message}`,
+    })
+    throw err
+  }
+}
+
+const _resolver: Exclude<
+  GQLMutationResolvers['emailLogin'],
+  undefined
+> = async (
   _,
   { input: { email: rawEmail, passwordOrCode, language } },
   context
