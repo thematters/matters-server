@@ -1,5 +1,5 @@
 //  some articles isn't pointed by any draft, so we need to fix it
-//  those articles are caused by a bug in the past, which is fixed now, see PR #3293
+//  these articles are caused by a bug in the past, which is fixed now, see PR #3293
 //  more context see https://matterslab.slack.com/archives/GA0R09FHN/p1696837812767929?thread_ts=1693292579.598729&cid=GA0R09FHN
 //  SQL "(select id from article where state='active') EXCEPT (select article_id from draft)" returns those articles
 const badArticles = [
@@ -18,16 +18,22 @@ const badArticles = [
   379639,
 ]
 
+const isProd = process.env['MATTERS_ENV'] === 'production'
+
 exports.up = async (knex) => {
-  await knex.raw(
-    /*sql*/ "UPDATE article SET state = 'archived' WHERE id = ANY(?) ;",
-    [badArticles]
-  )
+  if (isProd) {
+    await knex.raw(
+      /*sql*/ "UPDATE article SET state = 'archived' WHERE id = ANY(?) ;",
+      [badArticles]
+    )
+  }
 }
 
 exports.down = async (knex) => {
-  await knex.raw(
-    /*sql*/ "UPDATE article SET state = 'active' WHERE id = ANY(?) ;",
-    [badArticles]
-  )
+  if (isProd) {
+    await knex.raw(
+      /*sql*/ "UPDATE article SET state = 'active' WHERE id = ANY(?) ;",
+      [badArticles]
+    )
+  }
 }
