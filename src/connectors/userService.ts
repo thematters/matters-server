@@ -2396,13 +2396,13 @@ export class UserService extends BaseService {
       })
       if (created) {
         auditLog({
-          actorId: providerAccountId,
+          actorId: user.id,
           action: AUDIT_LOG_ACTION[`socialSignup${type}`],
           status: AUDIT_LOG_STATUS.succeeded,
         })
       } else {
         auditLog({
-          actorId: providerAccountId,
+          actorId: user.id,
           action: AUDIT_LOG_ACTION[`socialLogin${type}`],
           status: AUDIT_LOG_STATUS.succeeded,
         })
@@ -2410,7 +2410,7 @@ export class UserService extends BaseService {
       return user
     } catch (err: any) {
       auditLog({
-        actorId: providerAccountId,
+        actorId: null,
         action: AUDIT_LOG_ACTION[`socialLogin${type}`],
         remark: err.message,
         status: AUDIT_LOG_STATUS.failed,
