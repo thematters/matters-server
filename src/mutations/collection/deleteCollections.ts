@@ -40,6 +40,10 @@ const resolver: GQLMutationResolvers['deleteCollections'] = async (
   for (const id of collectionIds) {
     invalidateFQC({ node: { type: NODE_TYPES.Collection, id }, redis })
   }
+  await invalidateFQC({
+    node: { type: NODE_TYPES.User, id: viewer.id },
+    redis,
+  })
   return result
 }
 
