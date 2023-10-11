@@ -1,5 +1,4 @@
-import { Contract } from 'ethers'
-import { Address, decodeEventLog } from 'viem'
+import { Address, decodeEventLog, encodeEventTopics, parseAbi, parseAbiItem } from 'viem'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -33,7 +32,7 @@ export interface CurationTxReceipt {
 // constants
 // erc20 token
 const erc20TokenCurationEventIdentifier =
-  'Curation(address,address,address,string,uint256)'
+  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)'
 const erc20TokenCurationEventABI = [{
   name: erc20TokenCurationEventIdentifier,
   type: 'event',
@@ -48,7 +47,7 @@ const erc20TokenCurationEventABI = [{
 type Erc20Params = { from: `0x${string}`; to: `0x${string}`; uri: string; amount: bigint; }
 // native token
 const nativeTokenCurationEventIdentifier =
-  'Curation(address,address,string,uint256)'
+  'event Curation(address indexed from, address indexed to, string uri, uint256 amount)'
 const nativeTokenCurationEventABI = [{
   name: nativeTokenCurationEventIdentifier,
   type: 'event',
@@ -74,14 +73,14 @@ const chainId = isProd
 // CurationContract
 
 export class CurationContract extends BaseContract {
-  public erc20TokenCurationEventTopic: string
+  public erc20TokenCurationEventTopic: string[]
   public nativeTokenCurationEventTopic: string
 
   public constructor() {
     super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
-    this.erc20TokenCurationEventTopic = this.contract.interface.getEventTopic(
-      erc20TokenCurationEventIdentifier
-    )
+    const a = encodeEventTopics({
+      abi: erc20TokenCurationEventABI
+    })
     this.nativeTokenCurationEventTopic = this.contract.interface.getEventTopic(
       nativeTokenCurationEventIdentifier
     )
@@ -95,28 +94,32 @@ export class CurationContract extends BaseContract {
       this._fetchLogs(
         fromBlock,
         toBlock,
-        (this.contract as unknown as Contract).filters[erc20TokenCurationEventIdentifier]()
+        erc20TokenCurationEventIdentifier as never // leaving viem to parse
       ),
       this._fetchLogs(
         fromBlock,
         toBlock,
-        this.contract.filters[nativeTokenCurationEventIdentifier]()
+        nativeTokenCurationEventIdentifier as never // leaving viem to parse
       ),
     ])
     const logs = erc20Logs.concat(nativeLogs)
-    return logs.map((e) => ({
-      event: {
-        curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
-        creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
-        uri: e.args!.uri,
-        tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
-        amount: e.args!.amount!.toString(),
-      },
-      txHash: e.transactionHash,
-      address: contractAddress,
-      blockNumber: e.blockNumber,
-      removed: e.removed,
-    }))
+    return logs
+      .map((e) => {
+        const decodedLog = decodeEventLog({ abi: this.contract.abi, ...e })
+        return {
+          event: {
+            curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
+            creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
+            uri: e.args!.uri,
+            tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
+            amount: e.args!.amount!.toString(),
+          },
+          txHash: e.transactionHash,
+          address: contractAddress,
+          blockNumber: e.blockNumber,
+          removed: e.removed,
+        }
+      })
   }
 
   public fetchTxReceipt = async (
@@ -155,6 +158,13 @@ export class CurationContract extends BaseContract {
   private _fetchLogs = async (
     fromBlock: number,
     toBlock: number,
-    filter: any
-  ) => this.contract.queryFilter(filter, fromBlock, toBlock)
+    eventFilterAbi: Parameters<typeof parseAbiItem>
+  ) => {
+    const filter = await this.client.createEventFilter({
+      event: parseAbiItem(eventFilterAbi),
+      fromBlock: BigInt(fromBlock),
+      toBlock: BigInt(toBlock)
+    })
+    return this.client.getFilterLogs({ filter })
+  }
 }
