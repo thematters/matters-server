@@ -1,12 +1,12 @@
 import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 import { isProd } from 'common/environment'
 
-const PUT_COMMENT_RATE_LIMIT = isProd ? 3 : 1000
+const PUT_COMMENT_RATE_LIMIT = isProd ? 6 : 1000
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish or update a comment."
-    putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}") @rateLimit(limit:${PUT_COMMENT_RATE_LIMIT}, period:120)
+    putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}") @rateLimit(limit:${PUT_COMMENT_RATE_LIMIT}, period:60)
 
     "Remove a comment."
     deleteComment(input: DeleteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")

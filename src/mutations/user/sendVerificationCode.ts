@@ -20,7 +20,6 @@ import {
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
-// import { GCP, cfsvc } from 'connectors'
 import { Passphrases } from 'connectors/passphrases'
 
 const logger = getLogger('mutation-send-verificaiton-code')
