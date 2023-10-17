@@ -1,10 +1,10 @@
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutRemarkResolver, TableName } from 'definitions'
+import { GQLMutationResolvers, TableName } from 'definitions'
 
-const resolver: MutationToPutRemarkResolver = async (
-  root,
+const resolver: GQLMutationResolvers['putRemark'] = async (
+  _,
   { input: { id, remark, type } },
-  { viewer, dataSources: { systemService } }
+  { dataSources: { systemService } }
 ) => {
   const tableMap: { [key: string]: TableName } = {
     Article: 'article',

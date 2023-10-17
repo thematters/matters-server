@@ -1,7 +1,8 @@
-import { ARTICLE_STATE } from 'common/enums'
-import { UserStatusToArticleCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToArticleCountResolver = async (
+import { ARTICLE_STATE } from 'common/enums'
+
+const resolver: GQLUserStatusResolvers['articleCount'] = async (
   { id },
   _,
   { dataSources: { atomService } }

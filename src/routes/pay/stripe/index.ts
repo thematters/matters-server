@@ -9,6 +9,8 @@ import { toDBAmount } from 'common/utils'
 import { PaymentService, UserService } from 'connectors'
 import SlackService from 'connectors/slack'
 
+import { connections } from '../../connections'
+
 import {
   completeCircleInvoice,
   completeCircleSubscription,
@@ -36,8 +38,8 @@ const stripeRouter = Router()
 stripeRouter.use(bodyParser.raw({ type: 'application/json' }) as RequestHandler)
 
 stripeRouter.post('/', async (req, res) => {
-  const paymentService = new PaymentService()
-  const userService = new UserService()
+  const paymentService = new PaymentService(connections)
+  const userService = new UserService(connections)
   const slack = new SlackService()
   const stripe = paymentService.stripe.stripeAPI
 
@@ -62,7 +64,6 @@ stripeRouter.post('/', async (req, res) => {
     })
     res.status(400).send(`Webhook Error: ${err.message}`)
   }
-
   logger.info('Received event', event)
 
   if (!event) {
@@ -80,12 +81,26 @@ stripeRouter.post('/', async (req, res) => {
     switch (event.type) {
       case 'payment_intent.canceled': {
         const canceled = event.data.object as Stripe.PaymentIntent
-        await updateTxState(canceled, event.type, canceled.cancellation_reason)
+        await updateTxState(
+          {
+            paymentIntent: canceled,
+            eventType: event.type,
+            remark: canceled.cancellation_reason,
+          },
+          connections
+        )
         break
       }
       case 'payment_intent.payment_failed': {
         const failed = event.data.object as Stripe.PaymentIntent
-        await updateTxState(failed, event.type, failed.last_payment_error?.code)
+        await updateTxState(
+          {
+            paymentIntent: failed,
+            eventType: event.type,
+            remark: failed.last_payment_error?.code,
+          },
+          connections
+        )
 
         // if payment is high risk, ban user and send slack alert
 
@@ -101,7 +116,7 @@ stripeRouter.post('/', async (req, res) => {
             remark: USER_BAN_REMARK.paymentHighRisk,
             noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
           })
-          const user = await userService.baseFindById(tx.recipientId)
+          const user = await userService.loadById(tx.recipientId)
           slack.sendPaymentAlert({
             message: `user ${user.userName} banned due to high risk payment`,
           })
@@ -111,12 +126,15 @@ stripeRouter.post('/', async (req, res) => {
       case 'payment_intent.processing':
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        await updateTxState(paymentIntent, event.type)
+        await updateTxState(
+          { paymentIntent: paymentIntent, eventType: event.type },
+          connections
+        )
         break
       }
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        await completeCircleInvoice({ invoice, event })
+        await completeCircleInvoice({ invoice, event }, connections)
         break
       }
       case 'charge.refunded': {
@@ -124,7 +142,7 @@ stripeRouter.post('/', async (req, res) => {
         if (charge.refunds === null) {
           throw new Error('No refunds found in charge.refunded event')
         }
-        await createRefundTxs(charge.refunds)
+        await createRefundTxs(charge.refunds, paymentService)
         slack.sendStripeAlert({
           message: `Refund created for ${toDBAmount({
             amount: charge.amount,
@@ -134,7 +152,7 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.refund.updated': {
         const refund = event.data.object as Stripe.Refund
-        await createOrUpdateFailedRefundTx(refund)
+        await createOrUpdateFailedRefundTx(refund, paymentService)
         slack.sendStripeAlert({
           message: `Refund for ${toDBAmount({ amount: refund.amount })} ${
             refund.currency
@@ -144,7 +162,7 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.dispute.created': {
         const dispute = event.data.object as Stripe.Dispute
-        await createDisputeTx(dispute)
+        await createDisputeTx(dispute, paymentService)
         slack.sendStripeAlert({
           message: `Dispute created for ${toDBAmount({
             amount: dispute.amount,
@@ -154,12 +172,12 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.dispute.closed': {
         const dispute = event.data.object as Stripe.Dispute
-        await updateDisputeTx(dispute)
+        await updateDisputeTx(dispute, paymentService)
         break
       }
       case 'transfer.reversed': {
         const transfer = event.data.object as Stripe.Transfer
-        await createPayoutReversalTx(transfer)
+        await createPayoutReversalTx(transfer, paymentService)
 
         // if payout is reversed, ban user and send slack alert
 
@@ -172,7 +190,7 @@ stripeRouter.post('/', async (req, res) => {
           remark: USER_BAN_REMARK.payoutReversedByAdmin,
           noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
         })
-        const user = await userService.baseFindById(payoutTx.senderId)
+        const user = await userService.loadById(payoutTx.senderId)
         slack.sendPaymentAlert({
           message: `user ${user.userName} banned due to payout reversed`,
         })
@@ -189,15 +207,21 @@ stripeRouter.post('/', async (req, res) => {
       case 'customer.subscription.pending_update_applied':
       case 'customer.subscription.pending_update_expired': {
         const subscription = event.data.object as Stripe.Subscription
-        await updateSubscription({ subscription, event })
+        await updateSubscription({ subscription, event }, connections)
         break
       }
       case 'setup_intent.succeeded': {
         const setupIntent = event.data.object as Stripe.SetupIntent
-        const dbCustomer = await updateCustomerCard({ setupIntent, event })
+        const dbCustomer = await updateCustomerCard(
+          { setupIntent, event },
+          connections
+        )
 
         if (dbCustomer) {
-          await completeCircleSubscription({ setupIntent, dbCustomer, event })
+          await completeCircleSubscription(
+            { setupIntent, dbCustomer, event },
+            connections
+          )
         }
 
         break

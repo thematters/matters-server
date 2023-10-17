@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _trim from 'lodash/trim'
 
@@ -13,7 +15,6 @@ import {
 import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
-  AuthenticationError,
   CircleCreationReachLimitError,
   CircleNotFoundError,
   DisplayNameInvalidError,
@@ -31,9 +32,6 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
-import { redis } from 'connectors'
-import { assetQueue } from 'connectors/queue'
-import { MutationToPutCircleResolver } from 'definitions'
 
 const INTERVAL = isProd ? 'month' : 'week'
 
@@ -42,13 +40,22 @@ enum ACTION {
   update = 'update',
 }
 
-const resolver: MutationToPutCircleResolver = async (
+const resolver: GQLMutationResolvers['putCircle'] = async (
   _,
   { input: { id, avatar, cover, name, displayName, description, amount } },
-  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      systemService,
+      connections: { redis, knex },
+      queues: { assetQueue },
+    },
+  }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no permission')
   }
 
   // check feature is enabled or not

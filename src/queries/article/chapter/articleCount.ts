@@ -1,6 +1,6 @@
-import { ChapterToArticleCountResolver } from 'definitions'
+import type { GQLChapterResolvers } from 'definitions'
 
-const resolver: ChapterToArticleCountResolver = async (
+const resolver: GQLChapterResolvers['articleCount'] = async (
   { id: chapterId },
   _,
   { dataSources: { atomService } }

@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import _ from 'lodash'
 import Stripe from 'stripe'
 
@@ -21,17 +23,24 @@ const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
 }
 
 export const updateTxState = async (
-  paymentIntent: Stripe.PaymentIntent,
-  eventType:
-    | 'payment_intent.canceled'
-    | 'payment_intent.payment_failed'
-    | 'payment_intent.processing'
-    | 'payment_intent.succeeded',
-  remark?: string | null
+  {
+    paymentIntent,
+    eventType,
+    remark,
+  }: {
+    paymentIntent: Stripe.PaymentIntent
+    eventType:
+      | 'payment_intent.canceled'
+      | 'payment_intent.payment_failed'
+      | 'payment_intent.processing'
+      | 'payment_intent.succeeded'
+    remark?: string | null
+  },
+  connections: Connections
 ) => {
-  const userService = new UserService()
-  const paymentService = new PaymentService()
-  const notificationService = new NotificationService()
+  const userService = new UserService(connections)
+  const paymentService = new PaymentService(connections)
+  const notificationService = new NotificationService(connections)
 
   // find transaction by payment intent id
   const transaction = (
@@ -80,10 +89,9 @@ export const updateTxState = async (
 }
 
 export const createRefundTxs = async (
-  refunds: Stripe.ApiList<Stripe.Refund>
+  refunds: Stripe.ApiList<Stripe.Refund>,
+  paymentService: PaymentService
 ) => {
-  const paymentService = new PaymentService()
-
   await Promise.all(
     refunds.data.map(async (refund) => {
       const refundTx = (
@@ -114,7 +122,7 @@ export const createRefundTxs = async (
         amount: toDBAmount({ amount: refund.amount }),
 
         state: TRANSACTION_STATE.succeeded,
-        currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+        currency: _.upperCase(refund.currency) as keyof typeof PAYMENT_CURRENCY,
         purpose: TRANSACTION_PURPOSE.refund,
 
         provider: PAYMENT_PROVIDER.stripe,
@@ -130,11 +138,13 @@ export const createRefundTxs = async (
   )
 }
 
-export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
+export const createOrUpdateFailedRefundTx = async (
+  refund: Stripe.Refund,
+  paymentService: PaymentService
+) => {
   if (refund.status !== 'failed') {
     throw new Error('Expect updated refund status to be failed')
   }
-  const paymentService = new PaymentService()
   const refundTx = (
     await paymentService.findTransactions({
       providerTxId: refund.id,
@@ -164,7 +174,7 @@ export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
       amount: toDBAmount({ amount: refund.amount }),
 
       state: TRANSACTION_STATE.failed,
-      currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
+      currency: _.upperCase(refund.currency) as keyof typeof PAYMENT_CURRENCY,
       purpose: TRANSACTION_PURPOSE.refund,
 
       provider: PAYMENT_PROVIDER.stripe,
@@ -180,9 +190,10 @@ export const createOrUpdateFailedRefundTx = async (refund: Stripe.Refund) => {
   }
 }
 
-export const createDisputeTx = async (dispute: Stripe.Dispute) => {
-  const paymentService = new PaymentService()
-
+export const createDisputeTx = async (
+  dispute: Stripe.Dispute,
+  paymentService: PaymentService
+) => {
   const disputeTx = (
     await paymentService.findTransactions({
       providerTxId: dispute.id,
@@ -231,8 +242,10 @@ export const createDisputeTx = async (dispute: Stripe.Dispute) => {
   }
 }
 
-export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
-  const paymentService = new PaymentService()
+export const updateDisputeTx = async (
+  dispute: Stripe.Dispute,
+  paymentService: PaymentService
+) => {
   const disputeTx = (
     await paymentService.findTransactions({
       providerTxId: dispute.id,
@@ -258,14 +271,16 @@ export const updateDisputeTx = async (dispute: Stripe.Dispute) => {
   })
 }
 
-export const createPayoutReversalTx = async (transfer: Stripe.Transfer) => {
+export const createPayoutReversalTx = async (
+  transfer: Stripe.Transfer,
+  paymentService: PaymentService
+) => {
   if (transfer.amount !== transfer.amount_reversed) {
     throw new Error('Expect transfer amount to be equal to reversed amount')
   }
   if (transfer.reversals.data.length !== 1) {
     throw new Error('Expect transfer to have only one reversal')
   }
-  const paymentService = new PaymentService()
   const payoutTx = (
     await paymentService.findTransactions({
       providerTxId: transfer.id,

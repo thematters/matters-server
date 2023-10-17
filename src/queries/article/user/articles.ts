@@ -1,11 +1,12 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromGlobalId,
 } from 'common/utils'
-import { UserToArticlesResolver } from 'definitions'
 
-const resolver: UserToArticlesResolver = async (
+const resolver: GQLUserResolvers['articles'] = async (
   { id },
   { input },
   { dataSources: { articleService, draftService }, viewer }
@@ -28,9 +29,7 @@ const resolver: UserToArticlesResolver = async (
   })
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article: any) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article: any) => article.draftId)),
     input
   )
 }

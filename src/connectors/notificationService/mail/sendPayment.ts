@@ -1,7 +1,7 @@
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { LANGUAGES } from 'definitions'
+import { LANGUAGES, UserHasUsername } from 'definitions'
 
 import { trans } from './utils'
 
@@ -22,19 +22,10 @@ export const sendPayment = async ({
     | 'receivedDonation'
     | 'receivedDonationLikeCoin'
     | 'payout'
-  recipient: {
-    displayName: string
-    userName: string
-  }
+  recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
   tx?: {
-    recipient: {
-      displayName: string
-      userName: string
-    }
-    sender?: {
-      displayName: string
-      userName: string
-    }
+    recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
+    sender?: Pick<UserHasUsername, 'displayName' | 'userName'>
     amount: number
     currency: string
     donationCount?: number
@@ -44,10 +35,7 @@ export const sendPayment = async ({
     title: string
     slug: string
     mediaHash: string
-    author: {
-      displayName: string
-      userName: string
-    }
+    author: Pick<UserHasUsername, 'displayName' | 'userName'>
     hasReplyToDonator?: boolean
   }
   language: LANGUAGES

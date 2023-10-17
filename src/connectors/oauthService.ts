@@ -1,3 +1,13 @@
+import type {
+  Falsey,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthRefreshToken,
+  OAuthToken,
+  User,
+  Connections,
+} from 'definitions'
+
 import jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
 
@@ -10,20 +20,12 @@ import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { isScopeAllowed, toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
-import {
-  Falsey,
-  OAuthAuthorizationCode,
-  OAuthClient,
-  OAuthRefreshToken,
-  OAuthToken,
-  User,
-} from 'definitions'
 
 const logger = getLogger('service-oauth')
 
 export class OAuthService extends BaseService {
-  constructor() {
-    super('oauth_client')
+  public constructor(connections: Connections) {
+    super('oauth_client', connections)
   }
 
   /*********************************
@@ -31,13 +33,13 @@ export class OAuthService extends BaseService {
    *             Client            *
    *                               *
    *********************************/
-  findClient = async ({ clientId }: { clientId: string }) =>
+  public findClient = async ({ clientId }: { clientId: string }) =>
     this.knex('oauth_client').select().where({ clientId }).first()
 
-  findClientByName = async ({ name }: { name: string }) =>
+  public findClientByName = async ({ name }: { name: string }) =>
     this.knex('oauth_client').select().where({ name }).first()
 
-  updateOrCreateClient = async (params: {
+  public updateOrCreateClient = async (params: {
     clientId: string
     clientSecret?: string
     name?: string
@@ -58,7 +60,7 @@ export class OAuthService extends BaseService {
       table: 'oauth_client',
     })
 
-  getClient = async (
+  public getClient = async (
     clientId: string,
     clientSecret?: string
   ): Promise<OAuthClient | Falsey> => {
@@ -70,7 +72,7 @@ export class OAuthService extends BaseService {
     return this.toOAuthClient(client)
   }
 
-  toOAuthClient = (dbClient: any) => {
+  private toOAuthClient = (dbClient: any) => {
     if (!dbClient) {
       return
     }
@@ -86,7 +88,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  getClientById = async (id: string) => {
+  private getClientById = async (id: string) => {
     const client = await this.knex('oauth_client')
       .select()
       .where({ id })
@@ -100,13 +102,13 @@ export class OAuthService extends BaseService {
    *          Access Token         *
    *                               *
    *********************************/
-  generateAccessToken = async (
+  public generateAccessToken = async (
     client: OAuthClient,
     user: User,
     scope: string | string[]
   ): Promise<string> => nanoid(40)
 
-  getAccessToken = async (
+  public getAccessToken = async (
     accessToken: string
   ): Promise<OAuthToken | Falsey> => {
     const token = await this.knex('oauth_access_token')
@@ -119,8 +121,8 @@ export class OAuthService extends BaseService {
     }
 
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService()
-    const user = (await userService.dataloader.load(token.userId)) as User
+    const userService = new UserService(this.connections)
+    const user = (await userService.loadById(token.userId)) as User
 
     return {
       accessToken: token.token,
@@ -131,7 +133,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  saveToken = async (
+  public saveToken = async (
     token: OAuthToken,
     client: OAuthClient,
     user: User
@@ -189,7 +191,7 @@ export class OAuthService extends BaseService {
    *       Authorization Code      *
    *                               *
    *********************************/
-  getAuthorizationCode = async (
+  public getAuthorizationCode = async (
     authorizationCode: string
   ): Promise<OAuthAuthorizationCode | Falsey> => {
     const code = await this.knex('oauth_authorization_code')
@@ -197,8 +199,8 @@ export class OAuthService extends BaseService {
       .where({ code: authorizationCode })
       .first()
     const client = (await this.getClientById(code.clientId)) as OAuthClient
-    const userService = new UserService()
-    const user = (await userService.dataloader.load(code.userId)) as User
+    const userService = new UserService(this.connections)
+    const user = (await userService.loadById(code.userId)) as User
 
     if (!code) {
       return
@@ -214,7 +216,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  saveAuthorizationCode = async (
+  public saveAuthorizationCode = async (
     code: OAuthAuthorizationCode,
     client: OAuthClient,
     user: User
@@ -245,7 +247,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  revokeAuthorizationCode = async (code: OAuthAuthorizationCode) => {
+  public revokeAuthorizationCode = async (code: OAuthAuthorizationCode) => {
     try {
       await this.knex('oauth_authorization_code')
         .select()
@@ -263,13 +265,13 @@ export class OAuthService extends BaseService {
    *         Refresh Token         *
    *                               *
    *********************************/
-  generateRefreshToken = async (
+  public generateRefreshToken = async (
     client: OAuthClient,
     user: User,
     scope: string | string[]
   ): Promise<string> => nanoid(40)
 
-  getRefreshToken = async (
+  public getRefreshToken = async (
     refreshToken: string
   ): Promise<OAuthRefreshToken | Falsey> => {
     const token = await this.knex('oauth_refresh_token')
@@ -277,8 +279,8 @@ export class OAuthService extends BaseService {
       .where({ token: refreshToken })
       .first()
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService()
-    const user = (await userService.dataloader.load(token.userId)) as User
+    const userService = new UserService(this.connections)
+    const user = (await userService.loadById(token.userId)) as User
 
     if (!token) {
       return
@@ -293,7 +295,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  revokeToken = async (token: OAuthRefreshToken) => {
+  public revokeToken = async (token: OAuthRefreshToken) => {
     try {
       await this.knex('oauth_refresh_token')
         .select()
@@ -311,11 +313,11 @@ export class OAuthService extends BaseService {
    *             Scope             *
    *                               *
    *********************************/
-  scopeStr2Arr = (scope: string): string[] =>
+  private scopeStr2Arr = (scope: string): string[] =>
     // split by a space or a comma
     scope.split(/[,\s]/).filter((s) => !!s)
 
-  validateScope = async (
+  public validateScope = async (
     user: User,
     client: OAuthClient,
     scope: string | string[]
@@ -349,7 +351,10 @@ export class OAuthService extends BaseService {
     return scopes
   }
 
-  verifyScope = async (accessToken: OAuthToken, scope: string | string[]) =>
+  public verifyScope = async (
+    accessToken: OAuthToken,
+    scope: string | string[]
+  ) =>
     // TODO: Maybe we don't have to implement this?
     true
 
@@ -358,9 +363,9 @@ export class OAuthService extends BaseService {
    *           LikeCoin            *
    *                               *
    *********************************/
-  generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
-    const userService = new UserService()
-    const user = (await userService.dataloader.load(userId)) as User
+  public generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
+    const userService = new UserService(this.connections)
+    const user = (await userService.loadById(userId)) as User
     const name = environment.likecoinOAuthClientName
     const client = await this.findClientByName({ name })
     const oauthClient = this.toOAuthClient(client)

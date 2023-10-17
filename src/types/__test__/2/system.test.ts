@@ -1,8 +1,9 @@
+import type { Connections, GQLUserRestrictionType } from 'definitions'
+
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { GQLUserRestrictionType } from 'definitions'
 
 import {
   delay,
@@ -11,6 +12,8 @@ import {
   registerUser,
   testClient,
   updateUserDescription,
+  genConnections,
+  closeConnections,
 } from '../utils'
 
 const draft = {
@@ -28,14 +31,24 @@ const user = {
   codeId: '123',
 }
 
+let connections: Connections
+
 beforeAll(async () => {
-  const { id } = await putDraft({ draft })
-  await publishArticle({ id })
-  await registerUser(user)
-  await updateUserDescription({
-    email: user.email,
-    description: userDescription,
-  })
+  connections = await genConnections()
+  const { id } = await putDraft({ draft }, connections)
+  await publishArticle({ id }, connections)
+  await registerUser(user, connections)
+  await updateUserDescription(
+    {
+      email: user.email,
+      description: userDescription,
+    },
+    connections
+  )
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
 })
 
 const GET_USER = /* GraphQL */ `
@@ -239,7 +252,7 @@ const PUT_USER_RESTRICTIONS = /* GraphQL */ `
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: GET_USER,
       variables: { input: { id } },
@@ -251,7 +264,7 @@ describe('query nodes of different type', () => {
 
   test('query article node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_ARTICLE,
       variables: { input: { id } },
@@ -262,7 +275,7 @@ describe('query nodes of different type', () => {
 
   test('query comment node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_COMMENT,
       variables: { input: { id } },
@@ -275,7 +288,7 @@ describe('query nodes of different type', () => {
     const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
     const articleId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
     const articleId2 = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_NODES,
       variables: {
@@ -297,7 +310,7 @@ describe('query nodes of different type', () => {
 // TODO: fix search tests
 describe.skip('Search', () => {
   test('search article', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
 
     const result = await server.executeOperation({
       query: SEARCH,
@@ -315,7 +328,7 @@ describe.skip('Search', () => {
   })
 
   test('search tag', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
 
     const result = await server.executeOperation({
       query: SEARCH,
@@ -334,7 +347,7 @@ describe.skip('Search', () => {
 
   test('search user', async () => {
     await delay(1000)
-    const server = await testClient()
+    const server = await testClient({ connections })
 
     const result = await server.executeOperation({
       query: SEARCH,
@@ -368,7 +381,7 @@ describe('manage feature flag', () => {
   })
 
   test('query feature flag', async () => {
-    const server = await testClient(userClient)
+    const server = await testClient({ ...userClient, connections })
     const { data } = await server.executeOperation({ query: QUERY_FEATURES })
 
     const features = (data?.official?.features || []).reduce(reducer, {})
@@ -383,7 +396,7 @@ describe('manage feature flag', () => {
   })
 
   test('update feature flag', async () => {
-    const server = await testClient(userClient)
+    const server = await testClient({ ...userClient, connections })
 
     const updateData = await server.executeOperation({
       query: SET_FEATURE,
@@ -392,7 +405,7 @@ describe('manage feature flag', () => {
     expect(_get(updateData, errorPath)).toBe('FORBIDDEN')
 
     // set feature off
-    const serverAdmin = await testClient(adminClient)
+    const serverAdmin = await testClient({ ...adminClient, connections })
     const updateData2 = await serverAdmin.executeOperation({
       query: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'off' } },
@@ -449,16 +462,6 @@ describe('manage feature flag', () => {
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
     expect(features6.circle_management).toBe(true)
 
-    const serverOther = await testClient({
-      isAuth: true,
-      isOnboarding: true,
-    })
-    const { data: queryData7 } = await serverOther.executeOperation({
-      query: QUERY_FEATURES,
-    })
-    const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
-    expect(features7.circle_management).toBe(false)
-
     // reset feature as on
     const updateData5 = await serverAdmin.executeOperation({
       query: SET_FEATURE,
@@ -468,7 +471,7 @@ describe('manage feature flag', () => {
   })
 
   test('manage seeding user', async () => {
-    const serverAdmin = await testClient(adminClient)
+    const serverAdmin = await testClient({ ...adminClient, connections })
     const { data } = await serverAdmin.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
@@ -499,7 +502,7 @@ describe('manage feature flag', () => {
     expect(_get(data3, 'oss.seedingUsers.totalCount')).toBe(1)
 
     // check user couldn't query and mutate
-    const serverUser = await testClient(userClient)
+    const serverUser = await testClient({ ...userClient, connections })
     const result = await serverUser.executeOperation({
       query: QUERY_SEEDING_USERS,
       variables: { input: { first: null } },
@@ -517,8 +520,8 @@ describe('manage feature flag', () => {
 describe('manage user badges', () => {
   test('toggle user badge', async () => {
     const errorPath = 'errors.0.extensions.code'
-    const adminClient = { isAuth: true, isAdmin: true }
-    const userClient = { isAuth: true, isAdmin: false }
+    const adminClient = { isAuth: true, isAdmin: true, connections }
+    const userClient = { isAuth: true, isAdmin: false, connections }
 
     const badgeType = 'golden_motor'
     const userId = toGlobalId({ type: NODE_TYPES.User, id: '1' })
@@ -580,6 +583,7 @@ describe('manage user restrictions', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
 
     // query this single user
@@ -600,6 +604,7 @@ describe('manage user restrictions', () => {
     const notAdminServer = await testClient({
       isAuth: true,
       isAdmin: false,
+      connections,
     })
     const { errors } = await notAdminServer.executeOperation({
       query: PUT_USER_RESTRICTIONS,
@@ -612,6 +617,7 @@ describe('manage user restrictions', () => {
     const adminServer = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
     const { data } = await adminServer.executeOperation({
       query: PUT_USER_RESTRICTIONS,
@@ -636,6 +642,7 @@ describe('manage user restrictions', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: PUT_USER_RESTRICTIONS,
@@ -647,6 +654,7 @@ describe('manage user restrictions', () => {
     const server = await testClient({
       isAuth: true,
       isAdmin: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: PUT_USER_RESTRICTIONS,

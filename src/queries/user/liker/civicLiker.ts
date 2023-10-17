@@ -1,10 +1,9 @@
-import { likecoin } from 'connectors'
-import { LikerToCivicLikerResolver } from 'definitions'
+import type { GQLLikerResolvers } from 'definitions'
 
-const resolver: LikerToCivicLikerResolver = async (
+const resolver: GQLLikerResolvers['civicLiker'] = async (
   { id },
-  _: any,
-  { dataSources: { userService } }
+  _,
+  { dataSources: { userService, likecoin } }
 ) => {
   const liker = await userService.findLiker({ userId: id })
 
@@ -12,7 +11,10 @@ const resolver: LikerToCivicLikerResolver = async (
     return false
   }
 
-  return likecoin.isCivicLiker({ likerId: liker.likerId, userId: id })
+  return likecoin.isCivicLiker({
+    likerId: liker.likerId,
+    userId: id,
+  })
 }
 
 export default resolver

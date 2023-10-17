@@ -17,7 +17,6 @@ import {
   toProviderAmount,
 } from 'common/utils'
 import SlackService from 'connectors/slack'
-import { User } from 'definitions'
 
 const logger = getLogger('service-stripe')
 
@@ -74,7 +73,7 @@ class StripeService {
   public createCustomer = async ({
     user,
   }: {
-    user: Pick<User, 'id' | 'email'>
+    user: { id: string; email: string }
   }) => {
     logger.info('create customer for user %s', user.id)
     try {
@@ -129,7 +128,7 @@ class StripeService {
   }: {
     customerId: string
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
   }) => {
     logger.info('create payment intent for customer %s', customerId)
     try {
@@ -181,7 +180,7 @@ class StripeService {
     user,
   }: {
     country: keyof typeof COUNTRY_CODE
-    user: Pick<User, 'id' | 'email'>
+    user: { id: string; email: string }
   }) => {
     const isUS = country === 'UnitedStates'
     const returnUrlPrefix = `https://${environment.siteDomain}/oauth/stripe-connect`
@@ -230,7 +229,7 @@ class StripeService {
     txId,
   }: {
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     recipientStripeConnectedId: string
     txId: string
   }) => {
@@ -290,7 +289,7 @@ class StripeService {
     productId,
   }: {
     amount: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     interval: 'month' | 'week'
     productId: string
   }) => {

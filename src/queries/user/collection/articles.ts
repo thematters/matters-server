@@ -1,4 +1,4 @@
-import type { CollectionToArticlesResolver } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions'
 
 import {
   connectionFromArray,
@@ -6,7 +6,7 @@ import {
   fromConnectionArgs,
 } from 'common/utils'
 
-const resolver: CollectionToArticlesResolver = async (
+const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
   { input: { first, after, reversed } },
   { dataSources: { draftService, collectionService } }
@@ -37,7 +37,7 @@ const resolver: CollectionToArticlesResolver = async (
     })
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     { first, after },
     totalCount
   )

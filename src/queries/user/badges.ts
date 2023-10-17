@@ -1,6 +1,6 @@
-import { UserInfoToBadgesResolver } from 'definitions'
+import { GQLUserInfoResolvers } from 'definitions'
 
-const resolver: UserInfoToBadgesResolver = async (
+const resolver: GQLUserInfoResolvers['badges'] = async (
   { id },
   _,
   { dataSources: { atomService } }

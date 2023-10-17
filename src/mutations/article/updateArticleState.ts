@@ -1,10 +1,10 @@
+import type { GQLMutationResolvers, UserHasUsername } from 'definitions'
+
 import { ARTICLE_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 // import { environment } from 'common/environment'
 import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue'
-import { MutationToUpdateArticleStateResolver } from 'definitions'
 
-const resolver: MutationToUpdateArticleStateResolver = async (
+const resolver: GQLMutationResolvers['updateArticleState'] = async (
   _,
   { input: { id, state } },
   {
@@ -13,6 +13,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
       articleService,
       draftService,
       notificationService,
+      queues: { publicationQueue },
     },
   }
 ) => {
@@ -23,7 +24,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
     updatedAt: new Date(),
   })
 
-  const user = await userService.dataloader.load(article.authorId)
+  const user = (await userService.loadById(article.authorId)) as UserHasUsername
 
   // trigger notification
   if (state === ARTICLE_STATE.banned) {

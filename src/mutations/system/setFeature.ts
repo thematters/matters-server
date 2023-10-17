@@ -1,6 +1,6 @@
-import { MutationToSetFeatureResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToSetFeatureResolver = async (
+const resolver: GQLMutationResolvers['setFeature'] = async (
   root,
   { input: { name, flag } },
   { dataSources: { systemService }, viewer }

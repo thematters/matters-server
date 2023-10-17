@@ -1,13 +1,11 @@
-import { getViewerFromUser, setCookie } from 'common/utils'
-import {
-  AuthMode,
-  GQLAuthResultType,
-  MutationToUserLoginResolver,
-} from 'definitions'
+import type { AuthMode, GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUserLoginResolver = async (
-  root,
-  { input },
+import { AUTH_RESULT_TYPE } from 'common/enums'
+import { getViewerFromUser, setCookie } from 'common/utils'
+
+const resolver: GQLMutationResolvers['userLogin'] = async (
+  _,
+  { input: { email: rawEmail, password } },
   context
 ) => {
   const {
@@ -16,14 +14,15 @@ const resolver: MutationToUserLoginResolver = async (
     res,
   } = context
 
-  const email = input.email.toLowerCase()
+  const email = rawEmail.toLowerCase()
   const archivedCallback = async () =>
     systemService.saveAgentHash(context.viewer.agentHash || '', email)
   const { token, user } = await userService.loginByEmail({
-    ...input,
     email,
+    password,
     archivedCallback,
   })
+  await userService.verifyPassword({ password, hash: user.passwordHash })
 
   setCookie({ req, res, token, user })
 
@@ -34,7 +33,7 @@ const resolver: MutationToUserLoginResolver = async (
   return {
     token,
     auth: true,
-    type: GQLAuthResultType.Login,
+    type: AUTH_RESULT_TYPE.Login,
     user,
   }
 }

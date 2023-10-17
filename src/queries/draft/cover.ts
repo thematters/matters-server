@@ -1,6 +1,6 @@
-import { DraftToCoverResolver } from 'definitions'
+import type { GQLDraftResolvers } from 'definitions'
 
-const resolver: DraftToCoverResolver = async (
+const resolver: GQLDraftResolvers['cover'] = async (
   { cover, authorId },
   _,
   { viewer, dataSources: { systemService } }

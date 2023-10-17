@@ -1,4 +1,6 @@
-import { VERIFICATION_CODE_STATUS } from 'common/enums'
+import type { GQLMutationResolvers } from 'definitions'
+
+import { VERIFICATION_CODE_STATUS, VERIFICATION_CODE_TYPE } from 'common/enums'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -8,13 +10,8 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { isValidPassword, isValidPaymentPassword } from 'common/utils'
-import {
-  GQLVerificationCodeType,
-  LANGUAGES,
-  MutationToResetPasswordResolver,
-} from 'definitions'
 
-const resolver: MutationToResetPasswordResolver = async (
+const resolver: GQLMutationResolvers['resetPassword'] = async (
   _,
   { input: { password, codeId: uuid, type } },
   { dataSources: { userService, notificationService } }
@@ -24,8 +21,8 @@ const resolver: MutationToResetPasswordResolver = async (
       uuid,
       type:
         type === 'payment'
-          ? GQLVerificationCodeType.payment_password_reset
-          : GQLVerificationCodeType.password_reset,
+          ? VERIFICATION_CODE_TYPE.payment_password_reset
+          : VERIFICATION_CODE_TYPE.password_reset,
     },
   })
   const code = codes?.length > 0 ? codes[0] : {}
@@ -75,15 +72,15 @@ const resolver: MutationToResetPasswordResolver = async (
   })
 
   // trigger notifications
-  if (type === 'payment') {
+  if (type === 'payment' && user.email) {
     notificationService.mail.sendPayment({
       to: user.email,
       recipient: {
-        displayName: user.displayName,
-        userName: user.userName,
+        displayName: user.displayName as string,
+        userName: user.userName as string,
       },
       type: 'passwordChanged',
-      language: user.language as LANGUAGES,
+      language: user.language,
     })
   }
 

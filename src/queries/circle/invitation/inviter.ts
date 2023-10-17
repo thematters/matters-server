@@ -1,9 +1,8 @@
-import { InvitationToInviterResolver } from 'definitions'
+import type { GQLInvitationResolvers } from 'definitions'
 
-const resolver: InvitationToInviterResolver = async (
+const resolver: GQLInvitationResolvers['inviter'] = async (
   { inviter },
   _,
-  { dataSources: { atomService } }
-) => (inviter ? atomService.userIdLoader.load(inviter) : null)
-
+  { dataSources: { userService } }
+) => userService.loadById(inviter)
 export default resolver

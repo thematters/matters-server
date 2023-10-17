@@ -1,10 +1,15 @@
-import { PRICE_STATE } from 'common/enums'
-import { MemberToPriceResolver } from 'definitions'
+import type { GQLMemberResolvers } from 'definitions'
 
-const resolver: MemberToPriceResolver = async (
+import { PRICE_STATE } from 'common/enums'
+
+const resolver: GQLMemberResolvers['price'] = async (
   { id, circleId },
   _,
-  { knex }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+  }
 ) => {
   if (!id || !circleId) {
     return null

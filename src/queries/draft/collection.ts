@@ -1,7 +1,8 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
-import { DraftToCollectionResolver } from 'definitions'
+import type { GQLDraftResolvers } from 'definitions'
 
-const resolver: DraftToCollectionResolver = (
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+
+const resolver: GQLDraftResolvers['collection'] = (
   { collection },
   { input },
   { dataSources: { articleService } }
@@ -11,7 +12,7 @@ const resolver: DraftToCollectionResolver = (
   }
 
   return connectionFromPromisedArray(
-    articleService.draftLoader.loadMany(collection),
+    articleService.loadDraftsByArticles(collection),
     input
   )
 }

@@ -1,8 +1,9 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { ArticleToCommentsResolver } from 'definitions'
 
-const resolver: ArticleToCommentsResolver = async (
+const resolver: GQLArticleResolvers['comments'] = async (
   { articleId },
   { input: { sort, first, ...rest } },
   { dataSources: { atomService, commentService } }
@@ -68,7 +69,7 @@ const resolver: ArticleToCommentsResolver = async (
     commentService.range(where),
   ])
 
-  const edges = comments.map((comment: { [key: string]: string }) => ({
+  const edges = comments.map((comment) => ({
     cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     node: comment,
   }))

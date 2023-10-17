@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
@@ -10,20 +12,25 @@ import {
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
-import { Item, ItemData } from 'definitions'
+import { Item, ItemData, Tag } from 'definitions'
 
 const logger = getLogger('service-tag')
 
 export class TagService extends BaseService {
-  constructor() {
-    super('tag')
+  public constructor(connections: Connections) {
+    super('tag', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
+
+  public loadById = async (id: string): Promise<Tag> =>
+    this.dataloader.load(id) as Promise<Tag>
+  public loadByIds = async (ids: string[]): Promise<Tag[]> =>
+    this.dataloader.loadMany(ids) as Promise<Tag[]>
 
   /**
    * Find tags
    */
-  find = async ({
+  public find = async ({
     skip,
     take,
     sort,
@@ -67,24 +74,24 @@ export class TagService extends BaseService {
    * Find tags by a given content.
    *
    */
-  findByContent = async ({ content }: { content: string }) =>
+  public findByContent = async ({ content }: { content: string }) =>
     this.knex.select().from(this.table).where({ content })
 
-  findByContentIn = async (contentIn: string[]) =>
+  public findByContentIn = async (contentIn: string[]) =>
     this.knex.select().from(this.table).whereIn('content', contentIn)
 
   /**
    * Find tags by a given article id.
    *
    */
-  findByArticleId = async ({ articleId }: { articleId: string }) =>
+  public findByArticleId = async ({ articleId }: { articleId: string }) =>
     this.knex
       .select('tag.*')
       .from('article_tag')
       .join(this.table, 'tag.id', 'article_tag.tag_id')
       .where({ articleId })
 
-  findByArticleIds = async ({ articleIds }: { articleIds: string[] }) =>
+  public findByArticleIds = async ({ articleIds }: { articleIds: string[] }) =>
     this.knex
       .select('tag_id', 'article_id')
       .from('article_tag')
@@ -94,7 +101,7 @@ export class TagService extends BaseService {
   /**
    *  Find tags by a given creator id (user).
    */
-  findByCreator = async (userId: string) => {
+  public findByCreator = async (userId: string) => {
     const query = this.knex
       .select()
       .from(this.table)
@@ -107,7 +114,7 @@ export class TagService extends BaseService {
   /**
    *  Find tags by a given editor id (user).
    */
-  findByEditor = async (userId: string) => {
+  public findByEditor = async (userId: string) => {
     const query = this.knex
       .select()
       .from(this.table)
@@ -120,7 +127,7 @@ export class TagService extends BaseService {
   /**
    * Find tags by a given owner id (user).
    */
-  findByOwner = async (userId: string) =>
+  public findByOwner = async (userId: string) =>
     this.knex
       .select()
       .from(this.table)
@@ -131,7 +138,7 @@ export class TagService extends BaseService {
    * Find tags by a given maintainer id (user).
    *
    */
-  findByMaintainer = async (userId: string) =>
+  public findByMaintainer = async (userId: string) =>
     this.knex
       .select()
       .from(this.table)
@@ -139,7 +146,7 @@ export class TagService extends BaseService {
       .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
       .orderBy('id', 'desc')
 
-  findTotalTagsByAuthorUsage = async (userId: string) =>
+  public findTotalTagsByAuthorUsage = async (userId: string) =>
     // Math.min(100 // the authors_lasts table is only populating the top 100 tags for each author
     (
       await this.knex
@@ -149,7 +156,7 @@ export class TagService extends BaseService {
         .first()
     )?.numTags ?? 0
 
-  findByAuthorUsage = async ({
+  public findByAuthorUsage = async ({
     userId,
     skip,
     take,
@@ -186,7 +193,7 @@ export class TagService extends BaseService {
         }
       })
 
-  findPinnedTagsByUserId = async ({
+  public findPinnedTagsByUserId = async ({
     userId,
     skip,
     take,
@@ -214,7 +221,7 @@ export class TagService extends BaseService {
    * find one existing tag, or create it if not existed before
    * this create may return null if skipCreate
    */
-  create = async (
+  public create = async (
     {
       content,
       cover,
@@ -262,7 +269,7 @@ export class TagService extends BaseService {
    * Count of a tag's participants.
    *
    */
-  countParticipants = async ({
+  public countParticipants = async ({
     id,
     exclude,
   }: {
@@ -304,7 +311,7 @@ export class TagService extends BaseService {
    * Find a tag's participants.
    *
    */
-  findParticipants = async ({
+  public findParticipants = async ({
     id,
     skip,
     take,
@@ -356,7 +363,7 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
   // superceded / deprecated by isActionEnabled / setActionEnabled
-  follow = async ({
+  public follow = async ({
     targetId,
     userId,
   }: {
@@ -376,7 +383,7 @@ export class TagService extends BaseService {
   }
 
   // superceded / deprecated by isActionEnabled / setActionEnabled
-  unfollow = async ({
+  public unfollow = async ({
     targetId,
     userId,
   }: {
@@ -396,7 +403,7 @@ export class TagService extends BaseService {
    * Find followers of a tag using id as pagination index.
    *
    */
-  findFollowers = async ({
+  public findFollowers = async ({
     targetId,
     skip,
     take,
@@ -421,7 +428,7 @@ export class TagService extends BaseService {
     return query
   }
 
-  isActionEnabled = async ({
+  public isActionEnabled = async ({
     userId,
     action,
     targetId,
@@ -438,7 +445,7 @@ export class TagService extends BaseService {
     return !!result
   }
 
-  setActionEnabled = async ({
+  public setActionEnabled = async ({
     userId,
     action,
     targetId,
@@ -464,7 +471,7 @@ export class TagService extends BaseService {
       : this.knex.from('action_tag').where(data).del()
   }
 
-  countFollowers = async (targetId: string) => {
+  public countFollowers = async (targetId: string) => {
     const result = await this.knex('action_tag')
       .where({ targetId, action: TAG_ACTION.follow })
       .count()
@@ -478,7 +485,7 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
-  search = async ({
+  public search = async ({
     key,
     keyOriginal,
     take,
@@ -596,7 +603,7 @@ export class TagService extends BaseService {
     return { nodes, totalCount }
   }
 
-  searchV3 = async ({
+  public searchV3 = async ({
     key,
     // keyOriginal,
     take,
@@ -658,7 +665,7 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
-  findBoost = async (tagId: string) => {
+  public findBoost = async (tagId: string) => {
     const tagBoost = await this.knex('tag_boost')
       .select()
       .where({ tagId })
@@ -671,14 +678,14 @@ export class TagService extends BaseService {
     return tagBoost.boost
   }
 
-  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+  public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { tagId: id },
       data: { tagId: id, boost, updatedAt: new Date() },
       table: 'tag_boost',
     })
 
-  findScore = async (tagId: string) => {
+  public findScore = async (tagId: string) => {
     const tag = await this.knex('tag_count_view')
       .select()
       .where({ id: tagId })
@@ -686,7 +693,7 @@ export class TagService extends BaseService {
     return tag.tagScore || 0
   }
 
-  findTopTags = ({
+  public findTopTags = ({
     take = 50,
     skip,
     top = 'r3m',
@@ -752,7 +759,13 @@ export class TagService extends BaseService {
    *
    * query, add and remove tag recommendation
    */
-  selected = async ({ take, skip }: { take?: number; skip?: number }) => {
+  public selected = async ({
+    take,
+    skip,
+  }: {
+    take?: number
+    skip?: number
+  }) => {
     const query = this.knex('tag')
       .select('tag.*', 'c.updated_at as chose_at')
       .join('matters_choice_tag as c', 'c.tag_id', 'tag.id')
@@ -768,19 +781,19 @@ export class TagService extends BaseService {
     return query
   }
 
-  countSelectedTags = async () => {
+  public countSelectedTags = async () => {
     const result = await this.knex('matters_choice_tag').count().first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  addTagRecommendation = (tagId: string) =>
+  public addTagRecommendation = (tagId: string) =>
     this.baseFindOrCreate({
       where: { tagId },
       data: { tagId },
       table: 'matters_choice_tag',
     })
 
-  removeTagRecommendation = (tagId: string) =>
+  public removeTagRecommendation = (tagId: string) =>
     this.knex('matters_choice_tag').where({ tagId }).del()
 
   /*********************************
@@ -788,7 +801,7 @@ export class TagService extends BaseService {
    *            Article            *
    *                               *
    *********************************/
-  createArticleTags = async ({
+  public createArticleTags = async ({
     articleIds,
     creator,
     tagIds,
@@ -818,7 +831,7 @@ export class TagService extends BaseService {
   /**
    * Update article tag.
    */
-  putArticleTag = async ({
+  public putArticleTag = async ({
     articleId,
     tagId,
     data,
@@ -835,7 +848,7 @@ export class TagService extends BaseService {
   /**
    * Count article authors by a given tag id.
    */
-  countAuthors = async ({
+  public countAuthors = async ({
     id: tagId,
     selected,
     withSynonyms = true,
@@ -851,7 +864,7 @@ export class TagService extends BaseService {
       result = await this.knex(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
-          this.where('tag_id', tagId)
+          this.where('id', '=', tagId)
           if (withSynonyms) {
             this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
           } // else { this.where('id', tagId) // exactly }
@@ -881,7 +894,7 @@ export class TagService extends BaseService {
   /**
    * Count articles by a given tag id.
    */
-  countArticles = async ({
+  public countArticles = async ({
     id: tagId,
     selected,
     withSynonyms = true,
@@ -929,7 +942,7 @@ export class TagService extends BaseService {
   /**
    * Find article ids by tag id with offset/limit
    */
-  findArticleIds = async ({
+  public findArticleIds = async ({
     id: tagId,
     selected,
     sortBy,
@@ -994,7 +1007,7 @@ export class TagService extends BaseService {
   /**
    * Find article ids by tag ids
    */
-  findArticleIdsByTagIds = async (tagIds: string[]) => {
+  public findArticleIdsByTagIds = async (tagIds: string[]) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
@@ -1003,7 +1016,7 @@ export class TagService extends BaseService {
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }
 
-  deleteArticleTagsByArticleIds = async ({
+  public deleteArticleTagsByArticleIds = async ({
     articleIds,
     tagId,
   }: {
@@ -1015,7 +1028,7 @@ export class TagService extends BaseService {
       .andWhere({ tagId })
       .del()
 
-  deleteArticleTagsByTagIds = async ({
+  public deleteArticleTagsByTagIds = async ({
     articleId,
     tagIds,
   }: {
@@ -1027,7 +1040,7 @@ export class TagService extends BaseService {
       .andWhere({ articleId })
       .del()
 
-  isArticleSelected = async ({
+  public isArticleSelected = async ({
     articleId,
     tagId,
   }: {
@@ -1045,7 +1058,7 @@ export class TagService extends BaseService {
   /**
    * Find article covers by tag id.
    */
-  findArticleCovers = async ({ id }: { id: string }) =>
+  public findArticleCovers = async ({ id }: { id: string }) =>
     this.knexRO
       .select('article.cover')
       .from('article_tag')
@@ -1063,10 +1076,15 @@ export class TagService extends BaseService {
    *              OSS              *
    *                               *
    *********************************/
-  renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
-    this.baseUpdate(tagId, { content, updatedAt: this.knex.fn.now() })
+  public renameTag = async ({
+    tagId,
+    content,
+  }: {
+    tagId: string
+    content: string
+  }) => this.baseUpdate(tagId, { content, updatedAt: this.knex.fn.now() })
 
-  mergeTags = async ({
+  public mergeTags = async ({
     tagIds,
     content,
     creator,
@@ -1110,7 +1128,7 @@ export class TagService extends BaseService {
   }
 
   // follow tags by content
-  followTags = async (userId: string, tags: string[]) => {
+  public followTags = async (userId: string, tags: string[]) => {
     const items = await this.findByContentIn(tags)
 
     await Promise.all(
@@ -1133,7 +1151,7 @@ export class TagService extends BaseService {
    * top100 at most
    *
    */
-  findRelatedTags = async ({ id }: { id: string; content?: string }) =>
+  public findRelatedTags = async ({ id }: { id: string; content?: string }) =>
     this.knex
       .from(VIEW.tags_lasts_view)
       .joinRaw(

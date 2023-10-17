@@ -1,12 +1,11 @@
+import type { GQLCryptoWalletResolvers } from 'definitions'
+
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
-import { alchemy, AlchemyNetwork } from 'connectors/alchemy/index'
-import {
-  CryptoWalletToHasNFTsResolver,
-  CryptoWalletToNftsResolver,
-} from 'definitions'
+import { alchemy, AlchemyNetwork } from 'connectors/alchemy'
+
 interface OpenSeaNFTAsset {
   id: any
   token_id: string
@@ -16,12 +15,17 @@ interface OpenSeaNFTAsset {
   media: any
 }
 
-export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
+export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
   { userId, address },
   _,
-  { dataSources: { userService } }
+  {
+    dataSources: {
+      userService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
@@ -38,12 +42,17 @@ export const hasNFTs: CryptoWalletToHasNFTsResolver = async (
   return Array.isArray(assets?.ownedNfts) && assets.ownedNfts.length > 0
 }
 
-export const nfts: CryptoWalletToNftsResolver = async (
+export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
   { userId, address },
   _,
-  { dataSources: { userService } }
+  {
+    dataSources: {
+      userService,
+      connections: { redis },
+    },
+  }
 ) => {
-  const cacheService = new CacheService(CACHE_PREFIX.NFTS)
+  const cacheService = new CacheService(CACHE_PREFIX.NFTS, redis)
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address

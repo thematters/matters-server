@@ -1,8 +1,9 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToPutRestrictedUsersResolver } from 'definitions'
 
-const resolver: MutationToPutRestrictedUsersResolver = async (
+const resolver: GQLMutationResolvers['putRestrictedUsers'] = async (
   _,
   { input: { ids, restrictions } },
   { dataSources: { userService } }

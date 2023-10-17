@@ -1,26 +1,29 @@
+import type { Redis } from 'ioredis'
+
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { defaultFieldResolver, GraphQLSchema } from 'graphql'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { ActionLimitExceededError } from 'common/errors'
-import { CacheService, redis } from 'connectors'
+import { genCacheKey } from 'connectors'
 
 const checkOperationLimit = async ({
   user,
   operation,
   limit,
   period,
+  redis,
 }: {
   user: string
   operation: string
   limit: number
   period: number
+  redis: Redis
 }) => {
-  const cacheService = new CacheService(CACHE_PREFIX.OPERATION_LOG)
-
-  const cacheKey = cacheService.genKey({
+  const cacheKey = genCacheKey({
     id: user,
     field: operation,
+    prefix: CACHE_PREFIX.OPERATION_LOG,
   })
 
   const operationLog = await redis.lrange(cacheKey, 0, -1)
@@ -84,6 +87,7 @@ directive @${directiveName}(period: Int!, limit: Int!) on FIELD_DEFINITION`,
               operation: fieldName,
               limit,
               period,
+              redis: context.dataSources.connections.redis,
             })
 
             if (!pass) {

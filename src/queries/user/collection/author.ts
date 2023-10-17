@@ -1,9 +1,9 @@
-import type { CollectionToAuthorResolver } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions'
 
-const resolver: CollectionToAuthorResolver = (
+const resolver: GQLCollectionResolvers['author'] = (
   { authorId },
   _,
   { dataSources: { userService } }
-) => userService.dataloader.load(authorId)
+) => userService.loadById(authorId)
 
 export default resolver

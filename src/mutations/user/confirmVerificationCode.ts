@@ -1,12 +1,13 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { VERIFICATION_CODE_STATUS } from 'common/enums'
 import {
   CodeExpiredError,
   CodeInactiveError,
   CodeInvalidError,
 } from 'common/errors'
-import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
-const resolver: MutationToConfirmVerificationCodeResolver = async (
+const resolver: GQLMutationResolvers['confirmVerificationCode'] = async (
   _,
   { input },
   { dataSources: { userService } }

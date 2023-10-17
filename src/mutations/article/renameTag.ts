@@ -1,10 +1,11 @@
-import { fromGlobalId } from 'common/utils'
-import { MutationToRenameTagResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToRenameTagResolver = async (
-  root,
+import { fromGlobalId } from 'common/utils'
+
+const resolver: GQLMutationResolvers['renameTag'] = async (
+  _,
   { input: { id, content } },
-  { viewer, dataSources: { tagService } }
+  { dataSources: { tagService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const newTag = await tagService.renameTag({ tagId: dbId, content })

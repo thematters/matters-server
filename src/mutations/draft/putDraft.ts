@@ -1,3 +1,5 @@
+import type { DataSources, ItemData, GQLMutationResolvers } from 'definitions'
+
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -29,14 +31,12 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
-import { DataSources, ItemData, MutationToPutDraftResolver } from 'definitions'
 
-const resolver: MutationToPutDraftResolver = async (
+const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
   { input },
   {
@@ -47,8 +47,8 @@ const resolver: MutationToPutDraftResolver = async (
       draftService,
       systemService,
       userService,
+      connections: { knex },
     },
-    knex,
   }
 ) => {
   const {
@@ -192,7 +192,7 @@ const resolver: MutationToPutDraftResolver = async (
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.dataloader.load(dbId)
+    const draft = await draftService.loadById(dbId)
 
     // check for draft existence
     if (!draft) {
@@ -323,7 +323,7 @@ const validateTags = async ({
       where: { id: mattyTagId },
     })
     if (mattyTag && tags.includes(mattyTag.content)) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
+      throw new ForbiddenError('not allow to add official tag')
     }
   }
 }

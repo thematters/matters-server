@@ -1,11 +1,17 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToCommentedArticlesResolver } from 'definitions'
 
-const resolver: UserToCommentedArticlesResolver = async (
+const resolver: GQLUserResolvers['commentedArticles'] = async (
   { id },
   { input },
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
@@ -29,9 +35,7 @@ const resolver: UserToCommentedArticlesResolver = async (
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article) => article.draftId)),
     input,
     totalCount
   )

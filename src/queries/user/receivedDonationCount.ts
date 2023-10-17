@@ -1,9 +1,14 @@
-import { UserStatusToReceivedDonationCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToReceivedDonationCountResolver = (
+const resolver: GQLUserStatusResolvers['receivedDonationCount'] = (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.countReceivedDonation(id)
+) => {
+  if (id === null) {
+    return 0
+  }
+  return userService.countReceivedDonation(id)
+}
 
 export default resolver

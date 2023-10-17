@@ -1,22 +1,27 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
 import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
 import {
-  AuthenticationError,
+  ForbiddenError,
   MigrationReachLimitError,
   UserInputError,
 } from 'common/errors'
-import { migrationQueue } from 'connectors/queue'
-import { MutationToMigrationResolver } from 'definitions'
 
-const resolver: MutationToMigrationResolver = async (
+const resolver: GQLMutationResolvers['migration'] = async (
   _,
   { input: { type, files } },
-  { viewer, dataSources: { userService } }
+  {
+    viewer,
+    dataSources: {
+      queues: { migrationQueue },
+    },
+  }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission.')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (!type) {
@@ -37,7 +42,7 @@ const resolver: MutationToMigrationResolver = async (
       const { createReadStream, mimetype } = upload.file
 
       if (!createReadStream || mimetype !== 'text/html') {
-        return ''
+        return false
       }
 
       const stream = createReadStream()
@@ -66,7 +71,6 @@ const resolver: MutationToMigrationResolver = async (
           ? new MigrationReachLimitError('migration file size reaches limit.')
           : err
       throw error
-      break
     }
   }
 

@@ -6,6 +6,14 @@ export const trans = {
       zh_hant: 'Matters | 註冊驗證',
       zh_hans: 'Matters | 注册验证',
     }),
+    email_otp: i18n({
+      zh_hant: 'Matters | 臨時密碼',
+      zh_hans: 'Matters | 临时密码',
+    }),
+    email_verify: i18n({
+      zh_hant: 'Matters | 電子信箱驗證',
+      zh_hans: 'Matters | 邮箱验证',
+    }),
     email_reset: i18n({
       zh_hant: 'Matters | 修改電子信箱驗證',
       zh_hans: 'Matters | 修改邮箱验证',
@@ -97,4 +105,8 @@ export const trans = {
       zh_hans: 'Matters | 你已经成功设定加密钱包！',
     }),
   },
+  emailChange: i18n({
+    zh_hant: 'Matters｜郵箱地址已變更',
+    zh_hans: 'Matters｜邮箱地址已变更',
+  }),
 }

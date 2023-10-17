@@ -1,9 +1,10 @@
+import type { GQLLikerResolvers } from 'definitions'
+
 import { getLogger } from 'common/logger'
-import { LikerToRateUSDResolver } from 'definitions'
 
 const logger = getLogger('query-rate-usd')
 
-const resolver: LikerToRateUSDResolver = async (
+const resolver: GQLLikerResolvers['rateUSD'] = async (
   _,
   __: any,
   { dataSources: { userService } }

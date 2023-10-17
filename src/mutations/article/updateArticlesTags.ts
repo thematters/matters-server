@@ -1,7 +1,8 @@
-import _some from 'lodash/some'
-import _uniqBy from 'lodash/uniqBy'
+import type { GQLMutationResolvers } from 'definitions'
 
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
+import _some from 'lodash/some'
+
+import { USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -11,64 +12,11 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { ArticleService, NotificationService } from 'connectors'
-import { MutationToUpdateArticlesTagsResolver } from 'definitions'
 
-const triggerNotice = async ({
-  articleId,
-  articleService,
-  notificationService,
-  tag,
-  viewerId,
-  isOwner,
-}: {
-  articleId: string
-  articleService: InstanceType<typeof ArticleService>
-  notificationService: InstanceType<typeof NotificationService>
-  tag: any
-  viewerId: string
-  isOwner: boolean
-}) => {
-  const { mattyId } = environment
-  const article = await articleService.baseFindById(articleId)
-  const editors = (tag.editors || []).filter((id: string) => id !== mattyId)
-  const owner = tag.owner ? [`${tag.owner}`] : []
-  const users = _uniqBy(
-    [article.authorId, ...(isOwner ? editors : owner)].filter(
-      (user) => user !== viewerId
-    ),
-    'id'
-  )
-
-  users.map((user) => {
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_tag_has_been_added,
-      recipientId: user,
-      actorId: viewerId,
-      entities: [
-        { type: 'target', entityTable: 'article', entity: article },
-        {
-          type: 'tag',
-          entityTable: 'tag',
-          entity: tag,
-        },
-      ],
-    })
-  })
-}
-
-const resolver: MutationToUpdateArticlesTagsResolver = async (
+const resolver: GQLMutationResolvers['updateArticlesTags'] = async (
   root,
   { input: { id, articles, isSelected } },
-  {
-    viewer,
-    dataSources: {
-      articleService,
-      notificationService,
-      tagService,
-      userService,
-    },
-  }
+  { viewer, dataSources: { tagService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -105,18 +53,6 @@ const resolver: MutationToUpdateArticlesTagsResolver = async (
     tagId: dbId,
     data: { selected: isSelected },
   })
-
-  // trigger notification for adding article tag
-  if (isSelected) {
-    await triggerNotice({
-      articleId,
-      articleService,
-      notificationService,
-      tag,
-      viewerId: viewer.id,
-      isOwner,
-    })
-  }
 
   return tag
 }

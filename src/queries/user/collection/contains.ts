@@ -1,10 +1,10 @@
-import type { CollectionToContainsResolver } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: CollectionToContainsResolver = async (
+const resolver: GQLCollectionResolvers['contains'] = async (
   { id: collectionId },
   { input: { id: articleGlobalId } },
   { dataSources: { collectionService } }

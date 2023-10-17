@@ -1,42 +1,45 @@
+import type {
+  GQLTransactionResolvers,
+  TransactionTargetType,
+  GQLTransactionPurpose,
+} from 'definitions'
+
 import { camelCase } from 'lodash'
 
-import { BLOCKCHAIN_CHAINID, NODE_TYPES, PAYMENT_PROVIDER } from 'common/enums'
+import {
+  BLOCKCHAIN_CHAINNAME,
+  NODE_TYPES,
+  PAYMENT_PROVIDER,
+} from 'common/enums'
+import { ServerError } from 'common/errors'
 import { toGlobalId } from 'common/utils'
-import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
-export const Transaction: GQLTransactionTypeResolver = {
+export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
-  fee: ({ fee }) => fee || 0,
-  purpose: ({ purpose }) => camelCase(purpose),
+  fee: ({ fee }) => +fee || 0,
+  purpose: ({ purpose }) => camelCase(purpose) as GQLTransactionPurpose,
   sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.dataloader.load(trx.senderId) : null,
+    trx.senderId ? userService.loadById(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+    trx.recipientId ? userService.loadById(trx.recipientId) : null,
   blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
-    if (trx.provider === PAYMENT_PROVIDER.blockchain) {
-      const blockchainTx = await paymentService.findBlockchainTransactionById(
-        trx.providerTxId
-      )
-      const getChain = (chainId: string) => {
-        for (const chain in BLOCKCHAIN_CHAINID) {
-          // eslint-disable-next-line no-prototype-builtins
-          if (BLOCKCHAIN_CHAINID.hasOwnProperty(chain)) {
-            if (
-              Object.values(
-                BLOCKCHAIN_CHAINID[chain as keyof typeof BLOCKCHAIN_CHAINID]
-              ).includes(chainId)
-            ) {
-              return chain
-            }
-          }
-        }
-      }
-      return {
-        chain: getChain(blockchainTx.chainId),
-        txHash: blockchainTx.txHash,
-      }
+    if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
+      return null
     }
-    return null
+    const blockchainTx = await paymentService.findBlockchainTransactionById(
+      trx.providerTxId
+    )
+    const chain =
+      BLOCKCHAIN_CHAINNAME[
+        blockchainTx.chainId as keyof typeof BLOCKCHAIN_CHAINNAME
+      ]
+    if (!chain) {
+      throw new ServerError('chain is not supported')
+    }
+    return {
+      chain,
+      txHash: blockchainTx.txHash,
+    }
   },
   target: async (
     trx,

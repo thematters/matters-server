@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -6,13 +8,11 @@ import {
   NODE_TYPES,
 } from 'common/enums'
 import {
-  AuthenticationError,
   CircleNotFoundError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleFollowCircleResolver } from 'definitions'
 
 // local enums
 enum ACTION {
@@ -20,14 +20,15 @@ enum ACTION {
   unfollow = 'unfollow',
 }
 
-const resolver: MutationToToggleFollowCircleResolver = async (
-  root,
+const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
+  _,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, systemService, notificationService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
+
   if (typeof enabled !== 'boolean') {
     throw new UserInputError('parameter "enabled" is required')
   }

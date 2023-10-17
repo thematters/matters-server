@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   ARTICLE_STATE,
   DB_NOTICE_TYPE,
@@ -6,20 +8,19 @@ import {
 } from 'common/enums'
 import {
   ArticleNotFoundError,
-  AuthenticationError,
+  ForbiddenError,
   ForbiddenByStateError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 
-const resolver: MutationToToggleSubscribeArticleResolver = async (
-  root,
+const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
+  _,
   { input: { id, enabled } },
   { viewer, dataSources: { atomService, draftService, notificationService } }
 ) => {
   // checks
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {

@@ -1,7 +1,8 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { UserToTopicsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToTopicsResolver = async (
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+
+const resolver: GQLUserResolvers['topics'] = async (
   { id },
   { input },
   { dataSources: { atomService }, viewer }

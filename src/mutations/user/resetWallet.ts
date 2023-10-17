@@ -1,14 +1,15 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToResetWalletResolver } from 'definitions'
 
-const resolver: MutationToResetWalletResolver = async (
-  root,
+const resolver: GQLMutationResolvers['resetWallet'] = async (
+  _,
   { input: { id } },
-  { viewer, dataSources: { atomService, userService } }
+  { dataSources: { atomService, userService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.dataloader.load(dbId)
+  const user = await userService.loadById(dbId)
 
   if (!user || !user.ethAddress) {
     throw new ForbiddenError("user doesn't exist or have a crypto wallet")

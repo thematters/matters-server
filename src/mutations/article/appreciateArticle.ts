@@ -1,4 +1,6 @@
 // import slugify from '@matters/slugify'
+import type { GQLMutationResolvers } from 'definitions'
+
 import { v4 } from 'uuid'
 
 import {
@@ -12,21 +14,20 @@ import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
-  AuthenticationError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { GCP } from 'connectors'
-import { appreciationQueue } from 'connectors/queue'
-import { MutationToAppreciateArticleResolver } from 'definitions'
+import { fromGlobalId, verifyCaptchaToken } from 'common/utils'
+// import { GCP, cfsvc } from 'connectors'
 
-const resolver: MutationToAppreciateArticleResolver = async (
+const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
   { input: { id, amount, token, superLike } },
-  {
+  context
+) => {
+  const {
     viewer,
     dataSources: {
       atomService,
@@ -35,11 +36,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
       draftService,
       paymentService,
       systemService,
+      queues: { appreciationQueue },
     },
-  }
-) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  } = context
+
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // check viewer
@@ -82,8 +84,11 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
-  const author = await userService.dataloader.load(article.authorId)
+  const author = await userService.loadById(article.authorId)
   if (!author) {
+    throw new ForbiddenError('author has no liker id')
+  }
+  if (!author.likerId) {
     throw new ForbiddenError('author has no liker id')
   }
 
@@ -179,21 +184,25 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
   if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
-    const gcp = new GCP()
-    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    // for a transition period, we may check both, and pass if any one pass siteverify
+    // after the transition period, can turn off the one no longer in use
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')
     }
   }
 
   // insert appreciation job
-  appreciationQueue.appreciate({
-    amount: validAmount,
-    articleId: article.id,
-    senderId: viewer.id,
-    senderIP: viewer.ip,
-    userAgent: viewer.userAgent,
-  })
+  appreciationQueue.appreciate(
+    {
+      amount: validAmount,
+      articleId: article.id,
+      senderId: viewer.id,
+      senderIP: viewer.ip,
+      userAgent: viewer.userAgent,
+    },
+    context
+  )
 
   return node
 }

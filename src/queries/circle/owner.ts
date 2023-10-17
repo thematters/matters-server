@@ -1,9 +1,9 @@
-import { CircleToOwnerResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToOwnerResolver = async (
+const resolver: GQLCircleResolvers['owner'] = async (
   { owner },
   _,
-  { dataSources: { atomService } }
-) => atomService.userIdLoader.load(owner)
+  { dataSources: { userService } }
+) => userService.loadById(owner)
 
 export default resolver

@@ -1,15 +1,30 @@
+import type { Connections } from 'definitions'
+
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
-import { CacheService, UserService } from 'connectors'
-import { GQLSearchExclude, GQLUserRestrictionType } from 'definitions'
+import { ActionFailedError } from 'common/errors'
+import { CacheService, UserService, PaymentService } from 'connectors'
 
 import { createDonationTx } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
-const userService = new UserService()
+let connections: Connections
+let userService: UserService
+let paymentService: PaymentService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+  paymentService = new PaymentService(connections)
+}, 50000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -21,15 +36,15 @@ describe('countDonators', () => {
   })
   test('only one donator', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([{ senderId: '2', count: 1 }])
   })
   test('donators is ordered', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     // 1st ordered by donations count desc
     const result = await userService.topDonators(recipientId)
     expect(result).toEqual([
@@ -37,7 +52,7 @@ describe('countDonators', () => {
       { senderId: '3', count: 1 },
     ])
     // 2rd ordered by donations time desc
-    await createDonationTx({ recipientId, senderId: '3' })
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
     const result2 = await userService.topDonators(recipientId)
     expect(result2).toEqual([
       { senderId: '3', count: 2 },
@@ -46,8 +61,14 @@ describe('countDonators', () => {
   })
   test('call with range', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    const tx1 = await createDonationTx({ recipientId, senderId: '2' })
-    const tx2 = await createDonationTx({ recipientId, senderId: '2' })
+    const tx1 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
+    const tx2 = await createDonationTx(
+      { recipientId, senderId: '2' },
+      paymentService
+    )
     const result = await userService.topDonators(recipientId, {
       start: tx1.createdAt,
       end: tx2.createdAt,
@@ -56,9 +77,9 @@ describe('countDonators', () => {
   })
   test('call with pagination', async () => {
     const recipientId = TEST_RECIPIENT_ID
-    await createDonationTx({ recipientId, senderId: '2' })
-    await createDonationTx({ recipientId, senderId: '3' })
-    await createDonationTx({ recipientId, senderId: '4' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '3' }, paymentService)
+    await createDonationTx({ recipientId, senderId: '4' }, paymentService)
     const result1 = await userService.topDonators(recipientId, undefined, {
       skip: 1,
     })
@@ -89,7 +110,7 @@ describe('countDonators', () => {
 
 describe('countDonators', () => {
   beforeEach(async () => {
-    await userService
+    await connections
       .knex('transaction')
       .where({ recipientId: TEST_RECIPIENT_ID })
       .del()
@@ -107,21 +128,27 @@ describe('countDonators', () => {
   test('count donators', async () => {
     const recipientId = TEST_RECIPIENT_ID
 
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
 
     const count1 = await userService.countDonators(recipientId)
     expect(count1).toBe(1)
 
     // distinct donators
-    await createDonationTx({ recipientId, senderId: '2' })
+    await createDonationTx({ recipientId, senderId: '2' }, paymentService)
     const count2 = await userService.countDonators(recipientId)
     expect(count2).toBe(1)
-    const tx3 = await createDonationTx({ recipientId, senderId: '3' })
+    const tx3 = await createDonationTx(
+      { recipientId, senderId: '3' },
+      paymentService
+    )
     const count3 = await userService.countDonators(recipientId)
     expect(count3).toBe(2)
 
     // count with range
-    const tx4 = await createDonationTx({ recipientId, senderId: '4' })
+    const tx4 = await createDonationTx(
+      { recipientId, senderId: '4' },
+      paymentService
+    )
     const count4 = await userService.countDonators(recipientId)
     expect(count4).toBe(3)
     const count5 = await userService.countDonators(recipientId, {
@@ -149,7 +176,7 @@ describe('search', () => {
   test('prefer more num_followers', async () => {
     const getNumFollowers = async (id: string) =>
       (
-        await userService
+        await connections
           .knex('search_index.user')
           .where({ id })
           .select('num_followers')
@@ -181,7 +208,7 @@ describe('search', () => {
     expect(res2.totalCount).toBe(0)
   })
   test('handle blocked', async () => {
-    await userService
+    await connections
       .knex('action_user')
       .insert({ userId: '2', action: USER_ACTION.block, targetId: '1' })
 
@@ -192,7 +219,7 @@ describe('search', () => {
       key: 'test2',
       take: 3,
       skip: 0,
-      exclude: GQLSearchExclude.blocked,
+      exclude: 'blocked',
       viewerId: '1',
     })
     expect(res2.totalCount).toBe(0)
@@ -212,7 +239,7 @@ describe('search', () => {
 
 describe('updateLastSeen', () => {
   const getLastseen = async (id: string) => {
-    const { lastSeen } = await userService
+    const { lastSeen } = await connections
       .knex('public.user')
       .select('last_seen')
       .where({ id })
@@ -246,7 +273,10 @@ describe('updateLastSeen', () => {
     expect(now).not.toStrictEqual(last)
   })
   test('caching', async () => {
-    const cacheService = new CacheService(CACHE_PREFIX.USER_LAST_SEEN)
+    const cacheService = new CacheService(
+      CACHE_PREFIX.USER_LAST_SEEN,
+      connections.redis
+    )
     const cacheGet = async (_id: string) =>
       // @ts-ignore
       cacheService.redis.get(cacheService.genKey({ id: _id }))
@@ -264,8 +294,8 @@ describe('updateLastSeen', () => {
 
 describe('restrictions CRUD', () => {
   const userId = '1'
-  const restriction1 = 'articleHottest' as GQLUserRestrictionType
-  const restriction2 = 'articleNewest' as GQLUserRestrictionType
+  const restriction1 = 'articleHottest'
+  const restriction2 = 'articleNewest'
 
   test('get empty result', async () => {
     expect(await userService.findRestrictions(userId)).toEqual([])
@@ -341,10 +371,303 @@ describe('totalPinnedWorks', () => {
     expect(res).toBe(0)
   })
   test('get 1 pinned works', async () => {
-    await userService
+    await connections
       .knex('collection')
       .insert({ authorId: '1', title: 'test', pinned: true })
     const res = await userService.totalPinnedWorks('1')
     expect(res).toBe(1)
+  })
+})
+
+describe('createUserSocialAccount', () => {
+  const userId1 = '1'
+  const userId2 = '2'
+  const twitterUserInfo1 = {
+    id: 'createUserSocialAccountTwitter1',
+    username: 'testtwitterusername',
+  }
+  const twitterUserInfo2 = {
+    id: 'createUserSocialAccountTwitter2',
+    username: 'testtwitterusername',
+  }
+  const facebookUserInfo1 = {
+    id: 'createUserSocialAccountFacebook1',
+    username: 'testtfacebookusername',
+  }
+  test('user can only have 1 social account per type', async () => {
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: twitterUserInfo1.id,
+      type: 'Twitter',
+    })
+    await expect(
+      userService.createSocialAccount({
+        userId: userId1,
+        providerAccountId: twitterUserInfo2.id,
+        type: 'Twitter',
+      })
+    ).rejects.toThrow(ActionFailedError)
+    await userService.createSocialAccount({
+      userId: userId1,
+      providerAccountId: facebookUserInfo1.id,
+      type: 'Facebook',
+    })
+    const socialAccounts = await userService.findSocialAccountsByUserId(userId1)
+    expect(socialAccounts.length).toBe(2)
+  })
+  test('user can not bind binded social accounts', async () => {
+    await expect(
+      userService.createSocialAccount({
+        userId: userId2,
+        providerAccountId: twitterUserInfo1.id,
+        type: 'Twitter',
+      })
+    ).rejects.toThrow(ActionFailedError)
+    await userService.createSocialAccount({
+      userId: userId2,
+      providerAccountId: twitterUserInfo2.id,
+      type: 'Twitter',
+    })
+    const socialAccounts = await userService.findSocialAccountsByUserId(userId2)
+    expect(socialAccounts.length).toBe(1)
+  })
+})
+
+describe('getOrCreateUserBySocialAccount', () => {
+  const twitterUserInfo = {
+    id: 'twitter1',
+    username: 'testtwitterusername',
+  }
+  const googleUserInfo = {
+    id: 'google1',
+    email: 'test1@gmail.com',
+  }
+  const googleUserInfo2 = {
+    id: 'google2',
+    email: 'test2@gmail.com',
+  }
+  const googleUserInfo3 = {
+    id: 'google3',
+    email: 'test3@gmail.com',
+  }
+  const googleUserInfo4 = {
+    id: 'google4',
+    email: 'test4@gmail.com',
+  }
+  test('create and get user by social account', async () => {
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: twitterUserInfo.id,
+      userName: twitterUserInfo.username,
+      type: 'Twitter',
+      language: 'en',
+    })
+    expect(createdUser.id).toBeDefined()
+    expect(createdUser.userName).toBeNull()
+    expect(createdUser.language).toBe('en')
+
+    const user = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: twitterUserInfo.id,
+      userName: twitterUserInfo.username,
+      type: 'Twitter',
+      language: 'en',
+    })
+    expect(user.id).toBe(createdUser.id)
+  })
+  test('create new user w/o email when social account email have been used by other user but not verified', async () => {
+    const user = await userService.create({
+      email: googleUserInfo.email,
+      emailVerified: false,
+    })
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: googleUserInfo.id,
+      email: googleUserInfo.email,
+      type: 'Google',
+      emailVerified: true,
+      language: 'en',
+    })
+    expect(createdUser.id).not.toBe(user.id)
+    expect(createdUser.email).toBe(null)
+  })
+  test('create new user w/o email when social account email not verified', async () => {
+    const user = await userService.create({
+      email: googleUserInfo2.email,
+      emailVerified: true,
+    })
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: googleUserInfo2.id,
+      email: googleUserInfo2.email,
+      type: 'Google',
+      language: 'en',
+    })
+    expect(createdUser.id).not.toBe(user.id)
+    expect(createdUser.email).toBe(null)
+  })
+  test('create new user when email user already have same type social account', async () => {
+    const emailUser = await userService.create({
+      email: googleUserInfo3.email,
+      emailVerified: true,
+    })
+    await userService.createSocialAccount({
+      userId: emailUser.id,
+      providerAccountId: 'someGoogleId',
+      type: 'Google',
+    })
+
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: googleUserInfo3.id,
+      email: googleUserInfo3.email,
+      type: 'Google',
+      emailVerified: true,
+      language: 'en',
+    })
+    expect(createdUser.id).not.toBe(emailUser.id)
+    expect(createdUser.email).toBe(null)
+  })
+  test('bind email user when email user do not have same type social account', async () => {
+    const emailUser = await userService.create({
+      email: googleUserInfo4.email,
+      emailVerified: true,
+    })
+    await userService.createSocialAccount({
+      userId: emailUser.id,
+      providerAccountId: 'someFacebookid',
+      type: 'Facebook',
+    })
+
+    const createdUser = await userService.getOrCreateUserBySocialAccount({
+      providerAccountId: googleUserInfo4.id,
+      email: googleUserInfo4.email,
+      type: 'Google',
+      emailVerified: true,
+      language: 'en',
+    })
+    expect(createdUser.id).toBe(emailUser.id)
+  })
+})
+
+describe('test setPassword', () => {
+  const user = {
+    id: '1',
+    email: 'test@matters.town',
+    emailVerified: true,
+  }
+  const goodPassword = 'A12345678A'
+  test('invalid password will throw errors', async () => {
+    const invalidPassword = '123'
+    await expect(
+      userService.setPassword(user, invalidPassword)
+    ).rejects.toThrow()
+  })
+  test('user w/o verified email will throw errors', async () => {
+    const invalidUser1 = { ...user, emailVerified: false }
+    await expect(
+      userService.setPassword(invalidUser1, goodPassword)
+    ).rejects.toThrow()
+
+    const invalidUser2 = { ...user, email: null }
+    await expect(
+      userService.setPassword(invalidUser2, goodPassword)
+    ).rejects.toThrow()
+  })
+  test('setPassword succeed', async () => {
+    const updated = await userService.setPassword(user, goodPassword)
+    expect(updated.passwordHash).toBeDefined()
+  })
+})
+
+describe('test remove login methods', () => {
+  test('cannot remove login methods when no such login methods', async () => {
+    // remove wallet
+    const user = await userService.create({})
+    expect(userService.removeWallet(user.id)).rejects.toThrow(ActionFailedError)
+    expect(userService.removeSocialAccount(user.id, 'Google')).rejects.toThrow(
+      ActionFailedError
+    )
+  })
+  test('cannot remove login methods when no others login methods exist', async () => {
+    // remove wallet
+    const user1 = await userService.create({})
+    await userService.addWallet(user1.id, '0x123')
+    expect(userService.removeWallet(user1.id)).rejects.toThrow(
+      ActionFailedError
+    )
+
+    // remove social accounts
+    const user2 = await userService.create({})
+    await userService.createSocialAccount({
+      userId: user2.id,
+      providerAccountId: '123',
+      type: 'Google',
+    })
+    expect(userService.removeSocialAccount(user2.id, 'Google')).rejects.toThrow(
+      ActionFailedError
+    )
+  })
+  test('remove login methods succeed', async () => {
+    const user = await userService.create({
+      email: 'testremovelogin@matters.town',
+    })
+    await userService.addWallet(user.id, '0x124')
+    const removed = await userService.removeWallet(user.id)
+    expect(removed.ethAddress).toBeNull()
+
+    await userService.createSocialAccount({
+      userId: user.id,
+      providerAccountId: '124',
+      type: 'Google',
+    })
+    await userService.removeSocialAccount(user.id, 'Google')
+    expect(await userService.findSocialAccountsByUserId(user.id)).toEqual([])
+  })
+})
+
+describe('test update email', () => {
+  test('user can only change email limit times per day', async () => {
+    const user = await userService.create({})
+    expect(await userService.changeEmailTimes(user.id)).toBe(0)
+
+    // set email first time will not increase counter
+    await userService.setEmail(user.id, 'testchangeemail0@matters.town')
+    expect(await userService.changeEmailTimes(user.id)).toBe(0)
+
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail1@matters.town'
+    )
+    expect(await userService.changeEmailTimes(user.id)).toBe(1)
+
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail2@matters.town'
+    )
+    await new UserService(connections).setEmail(
+      user.id,
+      'testchangeemail3@matters.town'
+    )
+
+    expect(await userService.changeEmailTimes(user.id)).toBe(3)
+
+    expect(
+      new UserService(connections).setEmail(
+        user.id,
+        'testchangeemail4@matters.town'
+      )
+    ).rejects.toThrow()
+  })
+})
+
+describe('recommendAuthors', () => {
+  test('return totalCount', async () => {
+    const authors = await userService.recommendAuthors({
+      count: true,
+      oss: true,
+    })
+    expect(authors[0].totalCount).toBeDefined()
+  })
+  test('do not return user w/o user_name', async () => {
+    const authors = await userService.recommendAuthors({ oss: true })
+    for (const author of authors) {
+      expect(author.userName).not.toBe(null)
+    }
   })
 })

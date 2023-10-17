@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import {
@@ -13,13 +15,18 @@ import {
   PaymentPayoutAccountExistsError,
   ServerError,
 } from 'common/errors'
-import { redis } from 'connectors'
-import { MutationToConnectStripeAccountResolver } from 'definitions'
 
-const resolver: MutationToConnectStripeAccountResolver = async (
+const resolver: GQLMutationResolvers['connectStripeAccount'] = async (
   _,
   { input: { country } },
-  { viewer, dataSources: { atomService, paymentService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      connections: { redis },
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')

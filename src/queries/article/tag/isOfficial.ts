@@ -1,7 +1,8 @@
-import { environment } from 'common/environment'
-import { TagToIsOfficialResolver } from 'definitions'
+import type { GQLTagResolvers } from 'definitions'
 
-const resolver: TagToIsOfficialResolver = async ({ id }) => {
+import { environment } from 'common/environment'
+
+const resolver: GQLTagResolvers['isOfficial'] = async ({ id }) => {
   const { mattyChoiceTagId } = environment
   return id === mattyChoiceTagId
 }

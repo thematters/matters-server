@@ -1,13 +1,10 @@
-import { COMMENT_TYPE, USER_STATE } from 'common/enums'
-import {
-  AuthenticationError,
-  ForbiddenByStateError,
-  ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { MutationToVoteCommentResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToVoteCommentResolver = async (
+import { COMMENT_TYPE, USER_STATE } from 'common/enums'
+import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+
+const resolver: GQLMutationResolvers['voteComment'] = async (
   _,
   { input: { id, vote } },
   {
@@ -20,12 +17,12 @@ const resolver: MutationToVoteCommentResolver = async (
     },
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any
@@ -41,14 +38,13 @@ const resolver: MutationToVoteCommentResolver = async (
 
   // check permission
   const isTargetAuthor = targetAuthor === viewer.id
-  const isOnboarding = viewer.state === USER_STATE.onboarding
   const isInactive = [
     USER_STATE.banned,
     USER_STATE.archived,
     USER_STATE.frozen,
   ].includes(viewer.state)
 
-  if ((isOnboarding && !isTargetAuthor) || isInactive) {
+  if (isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 

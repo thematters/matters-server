@@ -1,3 +1,5 @@
+import type { Customer, GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
 
@@ -12,7 +14,6 @@ import {
   SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   CircleNotFoundError,
   DuplicateCircleSubscriptionError,
   EntityNotFoundError,
@@ -22,10 +23,8 @@ import {
   ServerError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
-import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 
-const resolver: MutationToSubscribeCircleResolver = async (
+const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,
   { input: { id, password } },
   {
@@ -36,12 +35,15 @@ const resolver: MutationToSubscribeCircleResolver = async (
       paymentService,
       systemService,
       userService,
+      connections: { redis, knex },
     },
-    knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
+  }
+  if (!viewer.email) {
+    throw new ForbiddenError('user has no email')
   }
 
   // check feature is enabled or not

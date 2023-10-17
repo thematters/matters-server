@@ -19,14 +19,6 @@ const baseConfig = {
 }
 
 module.exports = {
-  test: {
-    ...baseConfig,
-    connection: {
-      ...baseConfig.connection,
-      database: 'test_' + process.env.MATTERS_PG_DATABASE, // always prefix test db with 'test_'
-    },
-  },
-
   local: baseConfig,
 
   development: baseConfig,

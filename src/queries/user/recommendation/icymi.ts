@@ -1,11 +1,17 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToIcymiResolver } from 'definitions'
 
-export const icymi: RecommendationToIcymiResolver = async (
-  { id },
+export const icymi: GQLRecommendationResolvers['icymi'] = async (
+  _,
   { input },
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
@@ -39,7 +45,7 @@ export const icymi: RecommendationToIcymiResolver = async (
   )
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

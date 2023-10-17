@@ -1,4 +1,4 @@
-import { GQLRecommendationTypeResolver } from 'definitions/schema'
+import { GQLRecommendationResolvers } from 'definitions'
 
 import { authors } from './authors'
 import following from './following'
@@ -12,7 +12,7 @@ import readTagsArticles from './readTagsArticles'
 import { selectedTags } from './selectedTags'
 import { tags } from './tags'
 
-const resolvers: GQLRecommendationTypeResolver = {
+const resolvers: GQLRecommendationResolvers = {
   authors,
   following,
   readTagsArticles,

@@ -19,7 +19,7 @@ export interface ConnectionHelpers {
 }
 
 export interface Connection<T> {
-  totalCount?: number
+  totalCount: number
   edges: Array<Edge<T>>
   pageInfo: PageInfo
 }
@@ -32,8 +32,8 @@ export interface Edge<T> {
 export interface PageInfo {
   startCursor?: ConnectionCursor | null
   endCursor?: ConnectionCursor | null
-  hasPreviousPage?: boolean | null
-  hasNextPage?: boolean | null
+  hasPreviousPage: boolean
+  hasNextPage: boolean
 }
 
 const PREFIX = 'arrayconnection'
@@ -133,22 +133,25 @@ export const keysToCursor = (
 ): ConnectionCursor => Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
 
 /**
- * Construct a GQL connection using qeury keys mechanism. Query keys are
+ * Construct a GQL connection using query keys mechanism. Query keys are
  * composed of `offset` and `idCursor`. `offset` is for managing connection
  * like `merge`, and `idCursor` is for SQL querying.
  *
  */
-export const connectionFromArrayWithKeys = (
-  data: Array<Record<string, any>>,
+export const connectionFromArrayWithKeys = <T extends { id: string }>(
+  data: T[],
   args: ConnectionArguments,
   totalCount?: number
-): Connection<Record<string, any>> => {
+): Connection<T> => {
   if (totalCount) {
     const { after } = args
     const keys = cursorToKeys(after)
 
     const edges = data.map((value, index) => ({
-      cursor: keysToCursor(index + keys.offset + 1, value.__cursor || value.id),
+      cursor: keysToCursor(
+        index + keys.offset + 1,
+        (value as any).__cursor || value.id
+      ),
       node: value,
     }))
 

@@ -1,6 +1,6 @@
-import { DraftToAssetsResolver } from 'definitions'
+import type { GQLDraftResolvers } from 'definitions'
 
-const resolver: DraftToAssetsResolver = async (
+const resolver: GQLDraftResolvers['assets'] = async (
   { id, authorId },
   _,
   { viewer, dataSources: { systemService } }
@@ -20,7 +20,7 @@ const resolver: DraftToAssetsResolver = async (
     entityId: id,
   })
 
-  return assets.map((asset) => ({
+  return assets.map((asset: any) => ({
     ...asset,
     path: systemService.genAssetUrl(asset),
   }))

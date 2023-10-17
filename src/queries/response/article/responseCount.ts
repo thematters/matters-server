@@ -1,6 +1,6 @@
-import { ArticleToResponseCountResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToResponseCountResolver = async (
+const resolver: GQLArticleResolvers['responseCount'] = async (
   { articleId },
   _,
   { dataSources: { articleService, commentService } }

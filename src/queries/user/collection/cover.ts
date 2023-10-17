@@ -1,6 +1,6 @@
-import type { CollectionToCoverResolver } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions'
 
-const resolver: CollectionToCoverResolver = async (
+const resolver: GQLCollectionResolvers['cover'] = async (
   { cover },
   _,
   { dataSources: { systemService } }

@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
@@ -12,7 +14,6 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
@@ -25,10 +26,8 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId, isValidTransactionHash } from 'common/utils'
-import { payToByBlockchainQueue, payToByMattersQueue } from 'connectors/queue'
-import { MutationToPayToResolver } from 'definitions'
 
-const resolver: MutationToPayToResolver = async (
+const resolver: GQLMutationResolvers['payTo'] = async (
   _,
   {
     input: {
@@ -42,10 +41,18 @@ const resolver: MutationToPayToResolver = async (
       txHash,
     },
   },
-  { viewer, dataSources: { articleService, paymentService, userService } }
+  {
+    viewer,
+    dataSources: {
+      articleService,
+      paymentService,
+      userService,
+      queues: { payToByMattersQueue, payToByBlockchainQueue },
+    },
+  }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   // check purpose

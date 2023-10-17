@@ -57,6 +57,11 @@ export const environment = {
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
   cloudflareAccountHash: process.env.MATTERS_CLOUDFLARE_ACCOUNT_HASH,
   cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
+  cloudflareTurnstileSecretKey:
+    process.env.MATTERS_CLOUDFLARE_TURNSTILE_SECRET_KEY,
+  verifyCaptchaTokenThresholds: JSON.parse(
+    process.env.MATTERS_VERIFY_CAPTCHA_TOKENS_THRESHOLDS || '[0.5, 1.0]'
+  ),
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
@@ -138,6 +143,17 @@ export const environment = {
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
+  twitterClientId: process.env.MATTERS_TWITTER_CLIENT_ID || '',
+  twitterClientSecret: process.env.MATTERS_TWITTER_CLIENT_SECRET || '',
+  twitterRedirectUri: process.env.MATTERS_TWITTER_REDIRECT_URI || '',
+  facebookClientId: process.env.MATTERS_FACEBOOK_CLIENT_ID || '',
+  facebookRedirectUri: process.env.MATTERS_FACEBOOK_REDIRECT_URI || '',
+  googleClientId: process.env.MATTERS_GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.MATTERS_GOOGLE_CLIENT_SECRET || '',
+  googleRedirectUri: process.env.MATTERS_GOOGLE_REDIRECT_URI || '',
+
+  passphrasesApiUrl: process.env.MATTERS_PASSPHRASES_API_URL || '',
+  passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 }
 
 export const polygonUSDTContractAddress = isProd

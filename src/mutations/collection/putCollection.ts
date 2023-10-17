@@ -1,4 +1,4 @@
-import type { MutationToPutCollectionResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { validate as validateUUID } from 'uuid'
@@ -16,15 +16,21 @@ import {
   AssetNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
-const resolver: MutationToPutCollectionResolver = async (
+const resolver: GQLMutationResolvers['putCollection'] = async (
   _,
   { input: { id, title, description, cover, pinned } },
-  { dataSources: { collectionService, systemService }, viewer }
+  {
+    dataSources: {
+      collectionService,
+      systemService,
+      connections: { redis },
+    },
+    viewer,
+  }
 ) => {
-  if (!viewer.id) {
-    throw new ForbiddenError('Viewer has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('User has no permission')
   }
 
   if (title && title.length > MAX_COLLECTION_TITLE_LENGTH) {

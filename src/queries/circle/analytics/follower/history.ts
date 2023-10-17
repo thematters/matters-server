@@ -1,12 +1,17 @@
+import type { GQLCircleFollowerAnalyticsResolvers } from 'definitions'
+
 import { Knex } from 'knex'
 
 import { CIRCLE_ACTION } from 'common/enums'
-import { CircleFollowerAnalyticsToHistoryResolver } from 'definitions'
 
-const resolver: CircleFollowerAnalyticsToHistoryResolver = async (
+const resolver: GQLCircleFollowerAnalyticsResolvers['history'] = async (
   { id },
   _,
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+  }
 ) => {
   const take = 4
 

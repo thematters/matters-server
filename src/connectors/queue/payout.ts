@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import Queue from 'bull'
 
 import {
@@ -11,7 +13,13 @@ import {
 import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { numMinus, numRound, numTimes } from 'common/utils'
-import { AtomService, ExchangeRate, PaymentService } from 'connectors'
+import {
+  AtomService,
+  ExchangeRate,
+  PaymentService,
+  UserService,
+  NotificationService,
+} from 'connectors'
 import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
@@ -22,13 +30,11 @@ interface PaymentParams {
   txId: string
 }
 
-class PayoutQueue extends BaseQueue {
+export class PayoutQueue extends BaseQueue {
   paymentService: InstanceType<typeof PaymentService>
 
-  constructor() {
-    super(QUEUE_NAME.payout)
-    this.atomService = new AtomService()
-    this.paymentService = new PaymentService()
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.payout, connections)
     this.addConsumers()
   }
 
@@ -84,6 +90,11 @@ class PayoutQueue extends BaseQueue {
     done
   ) => {
     const slack = new SlackService()
+    const atomService = new AtomService(this.connections)
+    const paymentService = new PaymentService(this.connections)
+    const userService = new UserService(this.connections)
+    const notificationService = new NotificationService(this.connections)
+
     const data = job.data as PaymentParams
 
     let txId
@@ -95,7 +106,7 @@ class PayoutQueue extends BaseQueue {
           `payout job has no required txId: ${txId}`
         )
       }
-      const tx = await this.paymentService.baseFindById(txId)
+      const tx = await paymentService.baseFindById(txId)
       if (!tx) {
         throw new PaymentQueueJobDataError('payout pending tx not found')
       }
@@ -107,8 +118,8 @@ class PayoutQueue extends BaseQueue {
       }
 
       const [balance, payoutAccount, pending] = await Promise.all([
-        this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
-        this.atomService.findFirst({
+        paymentService.calculateHKDBalance({ userId: tx.senderId }),
+        atomService.findFirst({
           table: 'payout_account',
           where: {
             userId: tx.senderId,
@@ -137,7 +148,7 @@ class PayoutQueue extends BaseQueue {
 
       // transfer to recipient's account in USD
       let HKDtoUSD: number
-      const exchangeRate = new ExchangeRate()
+      const exchangeRate = new ExchangeRate(this.connections.redis)
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
       } catch (err: any) {
@@ -184,25 +195,24 @@ class PayoutQueue extends BaseQueue {
       })
 
       // notifications
-      const user = await this.atomService.findFirst({
-        table: 'user',
-        where: { id: tx.senderId },
-      })
+      const user = await userService.loadById(tx.senderId)
 
-      this.notificationService.mail.sendPayment({
-        to: user.email,
-        recipient: {
-          displayName: user.displayName,
-          userName: user.userName,
-        },
-        type: 'payout',
-        tx: {
-          recipient,
-          amount: net,
-          currency: tx.currency,
-        },
-        language: user.language,
-      })
+      if (user.email && user.userName && user.displayName) {
+        notificationService.mail.sendPayment({
+          to: user.email,
+          recipient: {
+            displayName: user.displayName,
+            userName: user.userName,
+          },
+          type: 'payout',
+          tx: {
+            recipient,
+            amount: net,
+            currency: tx.currency,
+          },
+          language: user.language,
+        })
+      }
 
       slack.sendPayoutMessage({
         amount,
@@ -214,7 +224,7 @@ class PayoutQueue extends BaseQueue {
         currency: tx.currency,
         state: SLACK_MESSAGE_STATE.successful,
         txId: tx.providerTxId,
-        userName: user.userName,
+        userName: user.userName || '',
       })
 
       job.progress(100)
@@ -238,5 +248,3 @@ class PayoutQueue extends BaseQueue {
     }
   }
 }
-
-export const payoutQueue = new PayoutQueue()

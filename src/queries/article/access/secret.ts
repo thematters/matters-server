@@ -1,7 +1,8 @@
-import { ForbiddenError } from 'common/errors'
-import { ArticleAccessToSecretResolver } from 'definitions'
+import type { GQLArticleAccessResolvers } from 'definitions'
 
-export const secret: ArticleAccessToSecretResolver = async (
+import { ForbiddenError } from 'common/errors'
+
+export const secret: GQLArticleAccessResolvers['secret'] = async (
   { articleId, authorId },
   _,
   { viewer, dataSources: { articleService } }

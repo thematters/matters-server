@@ -1,7 +1,8 @@
+import type { LANGUAGES, User, UserHasUsername } from 'definitions'
+
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { GQLVerificationCodeType, LANGUAGES } from 'definitions'
 
 import { trans } from './utils'
 
@@ -21,21 +22,15 @@ export const sendCircleInvitation = async ({
     name: string
   }
   language?: LANGUAGES
-  recipient: {
-    displayName?: string
-  }
+  recipient: Pick<User, 'displayName'>
   redirectUrl?: string
-  sender: {
-    displayName: string
-  }
+  sender: Pick<UserHasUsername, 'displayName'>
   to: string
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.circleInvitation[language]
   const urlHasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
   const registerLink = code
-    ? `${redirectUrl}${urlHasQs ? '&' : '?'}code=${code}&type=${
-        GQLVerificationCodeType.register
-      }`
+    ? `${redirectUrl}${urlHasQs ? '&' : '?'}code=${code}&type=${'register'}`
     : undefined
   const circleLink = code
     ? undefined

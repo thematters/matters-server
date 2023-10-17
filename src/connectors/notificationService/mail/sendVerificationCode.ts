@@ -1,7 +1,7 @@
-import { EMAIL_TEMPLATE_ID } from 'common/enums'
+import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { GQLVerificationCodeType, LANGUAGES } from 'definitions'
+import { LANGUAGES, User } from 'definitions'
 
 import { trans } from './utils'
 
@@ -14,12 +14,10 @@ export const sendVerificationCode = async ({
   language = 'zh_hant',
 }: {
   to: string
-  type: GQLVerificationCodeType
+  type: keyof typeof VERIFICATION_CODE_TYPE
   code: string
   redirectUrl?: string
-  recipient: {
-    displayName?: string
-  }
+  recipient: Pick<User, 'displayName'>
   language?: LANGUAGES
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.verificationCode[language]
@@ -42,19 +40,25 @@ export const sendVerificationCode = async ({
             siteDomain: environment.siteDomain,
             copyrightYear: new Date().getFullYear(),
             type: {
-              register: type === GQLVerificationCodeType.register,
-              emailReset: type === GQLVerificationCodeType.email_reset,
+              register: type === VERIFICATION_CODE_TYPE.register,
+              emailReset: type === VERIFICATION_CODE_TYPE.email_reset,
               emailResetConfirm:
-                type === GQLVerificationCodeType.email_reset_confirm,
-              passwordReset: type === GQLVerificationCodeType.password_reset,
+                type === VERIFICATION_CODE_TYPE.email_reset_confirm,
+              passwordReset: type === VERIFICATION_CODE_TYPE.password_reset,
               paymentPasswordReset:
-                type === GQLVerificationCodeType.payment_password_reset,
+                type === VERIFICATION_CODE_TYPE.payment_password_reset,
+              emailOtp: type === VERIFICATION_CODE_TYPE.email_otp,
+              emailVerify: type === VERIFICATION_CODE_TYPE.email_verify,
             },
             recipient: {
               ...recipient,
               email: to,
             },
-            ...(redirectUrl ? { link } : { code }),
+            ...(type === VERIFICATION_CODE_TYPE.email_otp
+              ? { link, code }
+              : redirectUrl
+              ? { link }
+              : { code }),
           },
         },
       ],

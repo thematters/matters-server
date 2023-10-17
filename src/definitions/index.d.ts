@@ -1,16 +1,5 @@
 import type { BasedContext } from '@apollo/server'
-import type { Request, Response } from 'express'
-import type { Redis } from 'ioredis'
-import type { Knex } from 'knex'
-
-import {
-  PAYMENT_CURRENCY,
-  PAYMENT_PROVIDER,
-  TRANSACTION_STATE,
-  TRANSACTION_PURPOSE,
-  VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import {
+import type {
   Alchemy,
   ArticleService,
   AtomService,
@@ -24,78 +13,89 @@ import {
   TagService,
   UserService,
   CollectionService,
+  LikeCoin,
+  ExchangeRate,
 } from 'connectors'
+import type {
+  PublicationQueue,
+  RevisionQueue,
+  AssetQueue,
+  AppreciationQueue,
+  MigrationQueue,
+  PayToByBlockchainQueue,
+  PayToByMattersQueue,
+  PayoutQueue,
+  UserQueue,
+} from 'connectors/queues'
+import type { Request, Response } from 'express'
+import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
 
+import {
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_STATE,
+  TRANSACTION_PURPOSE,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
+
+export * from './user'
 export * from './article'
+export * from './draft'
+export * from './tag'
+export * from './circle'
+export * from './collection'
+export * from './comment'
 export * from './language'
 export * from './schema'
 export * from './notification'
 export * from './generic'
-
-export interface User {
-  id: string
-  uuid: string
-  userName: string
-  displayName: string
-  description: string
-  avatar: string
-  email: string
-  emailVerified: string
-  likerId?: string
-  passwordHash: string
-  paymentPasswordHash?: string
-  baseGravity: number
-  currGravity: number
-  language: LANGUAGES
-  // oauthType: any
-  role: UserRole
-  state: UserState
-  createdAt: string
-  updatedAt: string
-  agreeOn: string
-  ethAddress: string
-}
-
-export type UserRole = 'admin' | 'user'
-
-export type UserState = 'active' | 'banned' | 'archived'
-
-export type Viewer = (User | { id: null }) & {
-  hasRole: (role: UserRole) => boolean
-  hasAuthMode: (mode: string) => boolean
-  ip?: string
-  userAgent: string
-  role: string
-  language: LANGUAGES
-  scope: { [key: string]: any }
-  authMode: AuthMode
-  oauthClient?: OAuthClient
-  agentHash?: string
-  token?: string
-  group: 'a' | 'b'
-}
+export * from './payment'
+export * from './appreciation'
+export * from './asset'
+export * from './topic'
 
 export interface Context extends BasedContext {
   viewer: Viewer
   req: Request
   res: Response
-  knex: Knex
   dataSources: DataSources
 }
 
+export interface Connections {
+  knex: Knex
+  knexRO: Knex
+  knexSearch: Knex
+  redis: Redis
+}
+
 export interface DataSources {
-  atomService: InstanceType<typeof AtomService>
-  articleService: InstanceType<typeof ArticleService>
-  commentService: InstanceType<typeof CommentService>
-  draftService: InstanceType<typeof DraftService>
-  userService: InstanceType<typeof UserService>
-  systemService: InstanceType<typeof SystemService>
-  tagService: InstanceType<typeof TagService>
-  notificationService: InstanceType<typeof NotificationService>
-  oauthService: InstanceType<typeof OAuthService>
-  paymentService: InstanceType<typeof PaymentService>
-  openseaService: InstanceType<typeof OpenSeaService>
-  collectionService: InstanceType<typeof CollectionService>
+  atomService: AtomService
+  articleService: ArticleService
+  commentService: CommentService
+  draftService: DraftService
+  userService: UserService
+  systemService: SystemService
+  tagService: TagService
+  notificationService: NotificationService
+  oauthService: OAuthService
+  paymentService: PaymentService
+  openseaService: OpenSeaService
+  collectionService: CollectionService
+  likecoin: LikeCoin
+  exchangeRate: ExchangeRate
+  connections: Connections
+  queues: {
+    publicationQueue: PublicationQueue
+    revisionQueue: RevisionQueue
+    assetQueue: AssetQueue
+    appreciationQueue: AppreciationQueue
+    migrationQueue: MigrationQueue
+    payToByBlockchainQueue: PayToByBlockchainQueue
+    payToByMattersQueue: PayToByMattersQueue
+    payoutQueue: PayoutQueue
+    userQueue: UserQueue
+  }
 }
 
 export type BasicTableName =
@@ -181,6 +181,7 @@ export type BasicTableName =
   | 'blockchain_sync_record'
   | 'collection'
   | 'collection_article'
+  | 'social_account'
 
 export type View =
   | 'tag_count_view'
@@ -239,69 +240,7 @@ export type ResponseType = 'Article' | 'Comment'
 
 export type TransactionTargetType = 'Article' | 'Transaction'
 
-export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
-
-export interface UserOAuthLikeCoin {
-  likerId: string
-  accountType: UserOAuthLikeCoinAccountType
-  accessToken: string
-  refreshToken: string
-  expires: Date
-  scope: string | string[]
-}
-
-export interface OAuthClient {
-  [key: string]: any
-  id: string
-  redirectUris?: string | string[]
-  grants: string | string[]
-  accessTokenLifetime?: number
-  refreshTokenLifetime?: number
-}
-
-export interface OAuthAuthorizationCode {
-  [key: string]: any
-  authorizationCode: string
-  expiresAt: Date
-  redirectUri: string
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthToken {
-  [key: string]: any
-  accessToken: string
-  accessTokenExpiresAt?: Date
-  refreshToken?: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthRefreshToken {
-  [key: string]: any
-  refreshToken: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface VerficationCode {
-  id: string
-  uuid: string
-  expiredAt: Date
-  code: string
-  type: GQLVerificationCodeType
-  status: VERIFICATION_CODE_STATUS
-  email: string
-}
-
 export type Falsey = '' | 0 | false | null | undefined
-
-export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 

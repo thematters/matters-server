@@ -10,24 +10,24 @@ export const IMAGE_ASSET_TYPE = {
   collectionCover: 'collectionCover',
   announcementCover: 'announcementCover',
   topicCover: 'topicCover',
-}
+} as const
 
 export const AUDIO_ASSET_TYPE = {
   embedaudio: 'embedaudio',
-}
+} as const
 
 export const ASSET_TYPE = {
   ...IMAGE_ASSET_TYPE,
   ...AUDIO_ASSET_TYPE,
-}
+} as const
 
-export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
+export const ACCEPTED_UPLOAD_IMAGE_TYPES = [
   'image/gif',
   'image/png',
   'image/jpeg',
   'image/webp',
-]
+] as const
 
-export const ACCEPTED_UPLOAD_AUDIO_TYPES: string[] = ['audio/mpeg', 'audio/aac']
+export const ACCEPTED_UPLOAD_AUDIO_TYPES = ['audio/mpeg', 'audio/aac'] as const
 
-export const ACCEPTED_UPLOAD_MIGRATION_TYPES: string[] = ['text/html']
+export const ACCEPTED_UPLOAD_MIGRATION_TYPES = ['text/html'] as const

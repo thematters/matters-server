@@ -1,9 +1,9 @@
-import { MemberToUserResolver } from 'definitions'
+import type { GQLMemberResolvers } from 'definitions'
 
-const resolver: MemberToUserResolver = async (
+const resolver: GQLMemberResolvers['user'] = async (
   { id },
   _,
-  { dataSources: { atomService } }
-) => (id ? atomService.userIdLoader.load(id) : null)
+  { dataSources: { userService } }
+) => userService.loadById(id)
 
 export default resolver

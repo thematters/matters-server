@@ -1,13 +1,17 @@
-import { UserSettingsToNotificationResolver } from 'definitions'
+import type { GQLUserSettingsResolvers } from 'definitions'
 
-const resolver: UserSettingsToNotificationResolver = (
-  { id },
+const resolver: GQLUserSettingsResolvers['notification'] = async (
+  { id, email },
   _,
   { dataSources: { userService } }
 ) => {
   if (!id) {
     return null
   }
-  return userService.findNotifySetting(id)
+
+  const settings = await userService.findNotifySetting(id)
+
+  return { ...settings, email: settings.email && !!email }
 }
+
 export default resolver

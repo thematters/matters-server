@@ -1,8 +1,9 @@
+import type { GQLTagResolvers } from 'definitions'
+
 import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { TagToSelectedResolver } from 'definitions'
 
-const resolver: TagToSelectedResolver = async (
+const resolver: GQLTagResolvers['selected'] = async (
   { id },
   { input },
   { dataSources: { tagService, articleService, draftService } }

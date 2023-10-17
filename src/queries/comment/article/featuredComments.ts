@@ -1,8 +1,9 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromArray } from 'common/utils'
-import { ArticleToFeaturedCommentsResolver } from 'definitions'
 
-const resolver: ArticleToFeaturedCommentsResolver = async (
+const resolver: GQLArticleResolvers['featuredComments'] = async (
   { articleId },
   { input: { first, after } },
   { dataSources: { atomService } }

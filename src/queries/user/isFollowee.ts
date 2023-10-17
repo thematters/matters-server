@@ -1,6 +1,6 @@
-import { UserToIsFolloweeResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToIsFolloweeResolver = async (
+const resolver: GQLUserResolvers['isFollowee'] = async (
   { id },
   _,
   { viewer, dataSources: { userService } }

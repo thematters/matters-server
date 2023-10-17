@@ -1,3 +1,4 @@
+import type { Article, DataSources, GQLMutationResolvers } from 'definitions'
 import type { Knex } from 'knex'
 
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -32,27 +33,19 @@ import {
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
-  AuthenticationError,
   CircleNotFoundError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
-import { publicationQueue, revisionQueue } from 'connectors/queue'
-import {
-  Article,
-  DataSources,
-  MutationToEditArticleResolver,
-} from 'definitions'
 
 const logger = getLogger('mutation-edit-article')
 
-const resolver: MutationToEditArticleResolver = async (
+const resolver: GQLMutationResolvers['editArticle'] = async (
   _,
   {
     input: {
@@ -85,12 +78,13 @@ const resolver: MutationToEditArticleResolver = async (
       systemService,
       tagService,
       userService,
+      connections: { knex },
+      queues: { publicationQueue, revisionQueue },
     },
-    knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (
@@ -520,7 +514,7 @@ const handleTags = async ({
   const isMatty = environment.mattyId === viewerId
   const addIds = difference(newIds, oldIds)
   if (addIds.includes(mattyTagId) && !isMatty) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    throw new ForbiddenError('not allow to add official tag')
   }
 
   // add

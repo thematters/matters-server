@@ -1,10 +1,11 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import _last from 'lodash/last'
 
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { ArticleToResponsesResolver } from 'definitions'
 
-const resolver: ArticleToResponsesResolver = async (
+const resolver: GQLArticleResolvers['responses'] = async (
   { articleId },
   { input: { sort, first, ...restParams } },
   { dataSources: { articleService, commentService } }
@@ -69,7 +70,7 @@ const resolver: ArticleToResponsesResolver = async (
     return {
       cursor: toGlobalId({ type, id }),
       node: { __type: type, ...item },
-    }
+    } as any
   })
 
   // handle page info

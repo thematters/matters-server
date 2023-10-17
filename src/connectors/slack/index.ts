@@ -42,7 +42,7 @@ class SlackService {
     feeInUSD: number
     net: number
     netInUSD: number
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     state: SLACK_MESSAGE_STATE
     txId: string
     userName: string

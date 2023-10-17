@@ -1,15 +1,21 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { Knex } from 'knex'
 
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { readonlyKnex as knexRO } from 'connectors'
-import { RecommendationToNewestResolver } from 'definitions'
 
-export const newest: RecommendationToNewestResolver = async (
+export const newest: GQLRecommendationResolvers['newest'] = async (
   _,
   { input },
-  { viewer, dataSources: { draftService } }
+  {
+    viewer,
+    dataSources: {
+      draftService,
+      connections: { knexRO },
+    },
+  }
 ) => {
   const { oss = false } = input
 
@@ -63,7 +69,7 @@ export const newest: RecommendationToNewestResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     MAX_ITEM_COUNT // totalCount
   )

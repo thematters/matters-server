@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
@@ -10,7 +12,6 @@ import {
   USER_STATE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   ForbiddenByStateError,
   EntityNotFoundError,
   PasswordInvalidError,
@@ -21,18 +22,19 @@ import {
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
-import { payoutQueue } from 'connectors/queue'
-import { MutationToPayoutResolver } from 'definitions'
 
-const resolver: MutationToPayoutResolver = async (
+const resolver: GQLMutationResolvers['payout'] = async (
   _,
   { input: { amount, password } },
-  { viewer, dataSources: { atomService, paymentService } }
-) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      queues: { payoutQueue },
+    },
   }
-
+) => {
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')
   }

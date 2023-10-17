@@ -1,3 +1,11 @@
+import type {
+  CirclePrice,
+  GQLChain,
+  Transaction,
+  EmailableUser,
+  Connections,
+} from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
@@ -22,7 +30,6 @@ import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { AtomService, BaseService, NotificationService } from 'connectors'
-import { CirclePrice, GQLChain, Transaction, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -31,8 +38,8 @@ const logger = getLogger('service-payment')
 export class PaymentService extends BaseService {
   stripe: typeof stripe
 
-  public constructor() {
-    super('transaction')
+  public constructor(connections: Connections) {
+    super('transaction', connections)
 
     this.stripe = stripe
 
@@ -49,7 +56,7 @@ export class PaymentService extends BaseService {
     currency,
   }: {
     userId: string
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
   }) => {
     const result = await this.knex('transaction_delta_view')
       .where({
@@ -81,7 +88,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId?: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -135,7 +142,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -156,7 +163,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     userId?: string
     purpose?: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
     notIn?: [string, string[]]
@@ -199,7 +206,7 @@ export class PaymentService extends BaseService {
 
       state: TRANSACTION_STATE
       purpose: TRANSACTION_PURPOSE
-      currency?: PAYMENT_CURRENCY
+      currency?: keyof typeof PAYMENT_CURRENCY
 
       provider: PAYMENT_PROVIDER
       providerTxId: string
@@ -298,7 +305,7 @@ export class PaymentService extends BaseService {
 
     state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
 
     recipientId?: string
     senderId?: string
@@ -412,7 +419,7 @@ export class PaymentService extends BaseService {
     currency = PAYMENT_CURRENCY.HKD,
     senderId,
   }: {
-    currency?: PAYMENT_CURRENCY
+    currency?: keyof typeof PAYMENT_CURRENCY
     senderId: string
   }) => {
     const todayMidnight = getUTC8Midnight()
@@ -442,7 +449,7 @@ export class PaymentService extends BaseService {
     user,
     provider,
   }: {
-    user: Pick<User, 'id' | 'email'>
+    user: { id: string; email: string }
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
@@ -506,7 +513,7 @@ export class PaymentService extends BaseService {
     customerId: string
     amount: number
     purpose: TRANSACTION_PURPOSE
-    currency: PAYMENT_CURRENCY
+    currency: keyof typeof PAYMENT_CURRENCY
     provider: PAYMENT_PROVIDER
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
@@ -1044,8 +1051,8 @@ export class PaymentService extends BaseService {
     article,
   }: {
     tx: Transaction
-    sender: User
-    recipient: User
+    sender: EmailableUser
+    recipient: EmailableUser
     article: {
       title: string
       slug: string
@@ -1054,8 +1061,8 @@ export class PaymentService extends BaseService {
       draftId: string
     }
   }) => {
-    const atomService = new AtomService()
-    const notificationService = new NotificationService()
+    const atomService = new AtomService(this.connections)
+    const notificationService = new NotificationService(this.connections)
     const amount = parseFloat(tx.amount)
     // send email to sender
     const author = await atomService.findFirst({

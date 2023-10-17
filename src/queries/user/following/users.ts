@@ -1,11 +1,12 @@
+import type { GQLFollowingResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { FollowingToUsersResolver } from 'definitions'
 
-const resolver: FollowingToUsersResolver = async (
+const resolver: GQLFollowingResolvers['users'] = async (
   { id },
   { input },
   { dataSources: { userService } }
@@ -20,7 +21,7 @@ const resolver: FollowingToUsersResolver = async (
   const actions = await userService.findFollowees({ userId: id, skip, take })
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(
+    userService.loadByIds(
       actions.map(({ targetId }: { targetId: string }) => targetId)
     ),
     input,

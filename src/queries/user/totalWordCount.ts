@@ -1,10 +1,15 @@
-import { ARTICLE_STATE } from 'common/enums'
-import { UserStatusToTotalWordCountResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToTotalWordCountResolver = async (
+import { ARTICLE_STATE } from 'common/enums'
+
+const resolver: GQLUserStatusResolvers['totalWordCount'] = async (
   { id },
   _,
-  { knex }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+  }
 ) => {
   const record = await knex('article')
     .sum('word_count')

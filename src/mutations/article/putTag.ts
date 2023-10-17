@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   ASSET_TYPE,
   MAX_TAG_CONTENT_LENGTH,
@@ -7,7 +9,6 @@ import {
 import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
-  AuthenticationError,
   DuplicateTagError,
   ForbiddenByStateError,
   ForbiddenError,
@@ -19,15 +20,14 @@ import {
   fromGlobalId,
   normalizeTagInput, // stripAllPunct,
 } from 'common/utils'
-import { MutationToPutTagResolver } from 'definitions'
 
-const resolver: MutationToPutTagResolver = async (
-  root,
+const resolver: GQLMutationResolvers['putTag'] = async (
+  _,
   { input: { id, content, cover, description } },
-  { viewer, dataSources: { systemService, tagService, userService } }
+  { viewer, dataSources: { systemService, tagService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {

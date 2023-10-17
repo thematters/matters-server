@@ -1,14 +1,15 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToToggleTagRecommendResolver } from 'definitions'
 
-const resolver: MutationToToggleTagRecommendResolver = async (
+const resolver: GQLMutationResolvers['toggleTagRecommend'] = async (
   _,
   { input: { id, enabled } },
   { dataSources: { tagService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const tag = await tagService.dataloader.load(dbId)
+  const tag = await tagService.loadById(dbId)
   if (!tag) {
     throw new TagNotFoundError('target tag does not exists')
   }

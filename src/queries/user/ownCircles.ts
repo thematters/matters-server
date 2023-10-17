@@ -1,7 +1,8 @@
-import { CIRCLE_STATE } from 'common/enums'
-import { UserToOwnCirclesResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToOwnCirclesResolver = async (
+import { CIRCLE_STATE } from 'common/enums'
+
+const resolver: GQLUserResolvers['ownCircles'] = async (
   { id },
   _,
   { dataSources: { atomService } }

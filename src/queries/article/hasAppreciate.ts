@@ -1,7 +1,8 @@
-import { APPRECIATION_PURPOSE } from 'common/enums'
-import { ArticleToHasAppreciateResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToHasAppreciateResolver = async (
+import { APPRECIATION_PURPOSE } from 'common/enums'
+
+const resolver: GQLArticleResolvers['hasAppreciate'] = async (
   { articleId },
   _,
   { viewer, dataSources: { atomService } }

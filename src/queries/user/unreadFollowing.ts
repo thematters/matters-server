@@ -1,12 +1,20 @@
-import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
-import { readonlyKnex as knexRO } from 'connectors'
-import { UserStatusToUnreadFollowingResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToUnreadFollowingResolver = async (
+import { ActivityType, LOG_RECORD_TYPES, MATERIALIZED_VIEW } from 'common/enums'
+
+const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
   { id: userId },
   _,
-  { dataSources: { systemService } }
+  {
+    dataSources: {
+      systemService,
+      connections: { knexRO },
+    },
+  }
 ) => {
+  if (userId === null) {
+    return false
+  }
   const readFollowingFeedLog = await systemService.findLogRecord({
     userId,
     type: LOG_RECORD_TYPES.ReadFollowingFeed,

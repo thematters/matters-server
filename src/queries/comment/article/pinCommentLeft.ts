@@ -1,6 +1,6 @@
-import { ArticleToPinCommentLeftResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToPinCommentLeftResolver = (
+const resolver: GQLArticleResolvers['pinCommentLeft'] = (
   { articleId },
   _,
   { dataSources: { commentService } }

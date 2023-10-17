@@ -1,3 +1,5 @@
+import type { Collection, CollectionArticle, Connections } from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
@@ -13,31 +15,18 @@ import { BaseService, UserService } from 'connectors'
 // import { getLogger } from 'common/logger'
 
 // const logger = getLogger('service-collection')
-//
-interface Collection {
-  id: string
-  title: string
-  authorId: string
-  description?: string
-  cover?: string
-}
-
-interface CollectionArticle {
-  articleId: string
-  draftId: string
-  order: string
-}
 
 export class CollectionService extends BaseService {
-  public constructor() {
-    super('collection')
+  public constructor(connections: Connections) {
+    super('collection', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  public loadById = async (id: string) => await this.dataloader.load(id)
+  public loadById = async (id: string): Promise<Collection> =>
+    this.dataloader.load(id) as Promise<Collection>
 
-  public loadByIds = async (ids: readonly string[]) =>
-    await this.dataloader.loadMany(ids)
+  public loadByIds = async (ids: readonly string[]): Promise<Collection[]> =>
+    this.dataloader.loadMany(ids) as Promise<Collection[]>
 
   public addArticles = async (
     collectionId: string,
@@ -277,7 +266,7 @@ export class CollectionService extends BaseService {
     if (collection.authorId !== userId) {
       throw new ForbiddenError('Only author can pin the article')
     }
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const totalPinned = await userService.totalPinnedWorks(userId)
     if (pinned === collection.pinned) {
       return collection

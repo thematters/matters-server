@@ -1,6 +1,6 @@
-import { QueryToArticleResolver } from 'definitions'
+import type { GQLQueryResolvers } from 'definitions'
 
-const resolver: QueryToArticleResolver = async (
+const resolver: GQLQueryResolvers['article'] = async (
   root,
   { input: { mediaHash } },
   { viewer, dataSources: { draftService } }

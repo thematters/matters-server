@@ -1,12 +1,14 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
 import {
   CACHE_KEYWORD,
-  DB_NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
+  UPDATE_TAG_SETTING_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -18,23 +20,11 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import {
-  GQLUpdateTagSettingType as UpdateType,
-  MutationToUpdateTagSettingResolver,
-} from 'definitions'
 
-const resolver: MutationToUpdateTagSettingResolver = async (
+const resolver: GQLMutationResolvers['updateTagSetting'] = async (
   _,
   { input: { id, type, editors } },
-  {
-    viewer,
-    dataSources: {
-      notificationService,
-      systemService,
-      tagService,
-      userService,
-    },
-  }
+  { viewer, dataSources: { systemService, tagService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -58,7 +48,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   let updatedTag
 
   switch (type) {
-    case UpdateType.adopt: {
+    case UPDATE_TAG_SETTING_TYPE.adopt: {
       // check feature is enabled
       const feature = await systemService.getFeatureFlag('tag_adoption')
       if (
@@ -79,34 +69,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: _uniq([...tag.editors, viewer.id]),
       })
 
-      // auto follow current tag
-      await tagService.follow({ targetId: tag.id, userId: viewer.id })
-
-      // send mails
-      notificationService.mail.sendAdoptTag({
-        to: viewer.email,
-        language: viewer.language,
-        recipient: {
-          displayName: viewer.displayName,
-          userName: viewer.userName,
-        },
-        tag: { id, content: tag.content },
-      })
-
-      // send notices
-      const participants = await tagService.findParticipants({ id: tag.id })
-
-      participants.map(async (participant) => {
-        await notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_adoption,
-          recipientId: participant.authorId,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      })
       break
     }
-    case UpdateType.leave: {
+    case UPDATE_TAG_SETTING_TYPE.leave: {
       // if tag has no owner or owner is not viewer, throw error
       if (!tag.owner || (tag.owner && !isOwner)) {
         throw new ForbiddenError('viewer has no permission')
@@ -123,20 +88,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: newEditors,
       })
 
-      // send notices
-      if (newEditors && newEditors.length > 0) {
-        newEditors.map((editor: string) => {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.tag_leave,
-            recipientId: editor,
-            actorId: viewer.id,
-            entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-          })
-        })
-      }
       break
     }
-    case UpdateType.add_editor: {
+    case UPDATE_TAG_SETTING_TYPE.add_editor: {
       // only owner can add editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -167,43 +121,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: dedupedEditors,
       })
 
-      // auto follow current tag
-      await Promise.all(
-        newEditors.map((editorId) =>
-          tagService.follow({ targetId: tag.id, userId: editorId })
-        )
-      )
-
-      // send emails and notices
-      const recipients = (await userService.dataloader.loadMany(
-        newEditors
-      )) as Array<Record<string, any>>
-
-      recipients.map((recipient) => {
-        notificationService.mail.sendAssignAsTagEditor({
-          to: recipient.email,
-          language: recipient.language,
-          recipient: {
-            displayName: recipient.displayName,
-            userName: recipient.userName,
-          },
-          sender: {
-            displayName: viewer.displayName,
-            userName: viewer.userName,
-          },
-          tag: { id, content: tag.content },
-        })
-
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_add_editor,
-          recipientId: recipient.id,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      })
       break
     }
-    case UpdateType.remove_editor: {
+    case UPDATE_TAG_SETTING_TYPE.remove_editor: {
       // only owner can remove editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -230,7 +150,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       })
       break
     }
-    case UpdateType.leave_editor: {
+    case UPDATE_TAG_SETTING_TYPE.leave_editor: {
       const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
       if (!isEditor) {
         throw new ForbiddenError('viewer has no permission')
@@ -244,15 +164,6 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: _difference(tag.editors, [viewer.id]),
       })
 
-      // send notice
-      if (tag.owner) {
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.tag_leave_editor,
-          recipientId: tag.owner,
-          actorId: viewer.id,
-          entities: [{ type: 'target', entityTable: 'tag', entity: tag }],
-        })
-      }
       break
     }
     default: {

@@ -145,6 +145,7 @@ type Mutation {
 
   """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+  directImageUpload(input: SingleFileUploadInput!): Asset!
 
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
@@ -173,16 +174,23 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Boolean
 
   """Change user email."""
-  changeEmail(input: ChangeEmailInput!): User!
+  changeEmail(input: ChangeEmailInput!): User! @deprecated(reason: "use 'setEmail' instead")
+
+  """Set user email."""
+  setEmail(input: SetEmailInput!): User!
+
+  """Verify user email."""
+  verifyEmail(input: VerifyEmailInput!): AuthResult!
 
   """Set user currency preference."""
   setCurrency(input: SetCurrencyInput!): User!
 
   """Register user, can only be used on matters.{town,news} website."""
-  userRegister(input: UserRegisterInput!): AuthResult!
+  userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
 
   """Login user."""
-  userLogin(input: UserLoginInput!): AuthResult!
+  userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
+  emailLogin(input: EmailLoginInput!): AuthResult!
 
   """Get signing message."""
   generateSigningMessage(input: GenerateSigningMessageInput!): SigningMessageResult!
@@ -190,8 +198,23 @@ type Mutation {
   """Login/Signup via a wallet."""
   walletLogin(input: WalletLoginInput!): AuthResult!
 
+  """Add a wallet login to current user."""
+  addWalletLogin(input: WalletLoginInput!): User!
+
+  """Remove a wallet login from current user."""
+  removeWalletLogin: User!
+
+  """Login/Signup via social accounts."""
+  socialLogin(input: SocialLoginInput!): AuthResult!
+
+  """Add a social login to current user."""
+  addSocialLogin(input: SocialLoginInput!): User!
+
+  """Remove a social login from current user."""
+  removeSocialLogin(input: RemoveSocialLoginInput!): User!
+
   """Reset crypto wallet."""
-  resetWallet(input: ResetWalletInput!): User!
+  resetWallet(input: ResetWalletInput!): User! @deprecated(reason: "use 'removeWalletLogin' instead")
 
   """Logout user."""
   userLogout: Boolean!
@@ -204,6 +227,12 @@ type Mutation {
 
   """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
+
+  """Set user name."""
+  setUserName(input: SetUserNameInput!): User!
+
+  """Set user email login password."""
+  setPassword(input: SetPasswordInput!): User!
 
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
@@ -1714,52 +1743,6 @@ enum CommentCommentNoticeType {
   CommentNewReply
 }
 
-type ArticleTagNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: ArticleTagNoticeType!
-  target: Article!
-  tag: Tag!
-}
-
-enum ArticleTagNoticeType {
-  ArticleTagAdded
-  ArticleTagRemoved
-  ArticleTagUnselected @deprecated(reason: "No longer in use")
-}
-
-type TagNotice implements Notice {
-  """Unique ID of this notice."""
-  id: ID!
-
-  """The value determines if the notice is unread or not."""
-  unread: Boolean!
-
-  """Time of this notice was created."""
-  createdAt: DateTime!
-
-  """List of notice actors."""
-  actors: [User!]
-  type: TagNoticeType!
-  target: Tag!
-}
-
-enum TagNoticeType {
-  TagAdoption
-  TagLeave
-  TagAddEditor
-  TagLeaveEditor
-}
-
 type TransactionNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1936,6 +1919,8 @@ type Asset {
 
   """Link of this asset."""
   path: String!
+  draft: Boolean
+  uploadURL: String
 
   """Time of this asset was created."""
   createdAt: DateTime!
@@ -2047,6 +2032,7 @@ input SingleFileUploadInput {
   type: AssetType!
   file: Upload
   url: String
+  draft: Boolean
   entityType: EntityType!
   entityId: ID
 }
@@ -2331,6 +2317,12 @@ type UserInfo {
   """User email."""
   email: String
 
+  """Weather user email is verified."""
+  emailVerified: Boolean!
+
+  """User connected social accounts."""
+  socialAccounts: [SocialAccount!]!
+
   """User badges."""
   badges: [Badge!]
 
@@ -2437,6 +2429,14 @@ type UserStatus {
   """Number of total written words."""
   totalWordCount: Int!
 
+  """Weather login password is set for email login."""
+  hasEmailLoginPassword: Boolean!
+
+  """
+  Number of chances for the user to change email in a nature day. Reset in UTC+8 0:00
+  """
+  changeEmailTimesLeft: Int!
+
   """Whether user already set payment password."""
   hasPaymentPassword: Boolean!
 
@@ -2486,7 +2486,6 @@ type Appreciation {
 }
 
 type NotificationSetting {
-  enable: Boolean!
   email: Boolean!
   mention: Boolean!
   userNewFollower: Boolean!
@@ -2494,7 +2493,6 @@ type NotificationSetting {
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
   articleNewCollected: Boolean!
-  articleSubscribedNewComment: Boolean!
   articleCommentPinned: Boolean!
 
   """for circle owners"""
@@ -2721,6 +2719,9 @@ input SendVerificationCodeInput {
   use code instead if not provided.
   """
   redirectUrl: String
+
+  """email content language"""
+  language: UserLanguage
 }
 
 input ConfirmVerificationCodeInput {
@@ -2743,7 +2744,8 @@ input ChangeEmailInput {
 }
 
 input VerifyEmailInput {
-  codeId: ID!
+  email: String!
+  code: String!
 }
 
 input SetCurrencyInput {
@@ -2782,10 +2784,13 @@ input WalletLoginInput {
   nonce: String!
 
   """required for wallet register"""
-  email: String
+  email: String @deprecated(reason: "No longer in use")
 
   """email verification code, required for wallet register"""
-  codeId: ID
+  codeId: ID @deprecated(reason: "No longer in use")
+
+  """used in register"""
+  language: UserLanguage
 }
 
 input ResetLikerIdInput {
@@ -2803,7 +2808,7 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
-  userName: String
+  userName: String @deprecated(reason: "use 'setUserName' instead")
   avatar: ID
   description: String
   language: UserLanguage
@@ -2884,9 +2889,11 @@ enum BadgeType {
 
 enum VerificationCodeType {
   register
-  email_reset
-  email_reset_confirm
-  password_reset
+  email_verify
+  email_otp
+  email_reset @deprecated(reason: "No longer in use")
+  email_reset_confirm @deprecated(reason: "No longer in use")
+  password_reset @deprecated(reason: "No longer in use")
   payment_password_reset
 }
 
@@ -2910,7 +2917,6 @@ enum UserLanguage {
 }
 
 enum NotificationSettingType {
-  enable
   email
   mention
   userNewFollower
@@ -2918,7 +2924,6 @@ enum NotificationSettingType {
   articleNewAppreciation
   articleNewSubscription
   articleNewCollected
-  articleSubscribedNewComment
   articleCommentPinned
 
   """for circle owners"""
@@ -2941,7 +2946,6 @@ enum NotificationSettingType {
 
 enum UserState {
   active
-  onboarding
   banned
   archived
   frozen
@@ -2998,6 +3002,56 @@ enum QuoteCurrency {
   TWD
   HKD
   USD
+}
+
+type SocialAccount {
+  type: SocialAccountType!
+  userName: String
+  email: String
+}
+
+enum SocialAccountType {
+  Google
+  Twitter
+  Facebook
+}
+
+input EmailLoginInput {
+  email: String!
+  passwordOrCode: String!
+
+  """used in register"""
+  language: UserLanguage
+}
+
+input SocialLoginInput {
+  type: SocialAccountType!
+  authorizationCode: String!
+
+  """OAuth2 PKCE code_verifier for Facebook and Twitter"""
+  codeVerifier: String
+
+  """OIDC nonce for Google"""
+  nonce: String
+
+  """used in register"""
+  language: UserLanguage
+}
+
+input SetUserNameInput {
+  userName: String!
+}
+
+input SetEmailInput {
+  email: String!
+}
+
+input SetPasswordInput {
+  password: String!
+}
+
+input RemoveSocialLoginInput {
+  type: SocialAccountType!
 }
 
 union Response = Article | Comment

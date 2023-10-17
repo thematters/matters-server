@@ -21,6 +21,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     "Upload a single file."
     singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    directImageUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
@@ -43,7 +44,6 @@ export default /* GraphQL */ `
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
   }
-
 
   input KeywordsInput {
     keywords: [String!]
@@ -75,7 +75,6 @@ export default /* GraphQL */ `
     totalCount: Int!
     pageInfo: PageInfo!
   }
-
 
   type BlockedSearchKeyword {
     "Unique ID of bloked search keyword."
@@ -145,6 +144,9 @@ export default /* GraphQL */ `
 
     "Link of this asset."
     path: String!
+
+    draft: Boolean
+    uploadURL: String
 
     "Time of this asset was created."
     createdAt: DateTime!
@@ -256,6 +258,7 @@ export default /* GraphQL */ `
     type: AssetType!
     file: Upload
     url: String @constraint(format: "uri")
+    draft: Boolean
     entityType: EntityType!
     entityId: ID
   }

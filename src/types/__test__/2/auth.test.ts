@@ -1,14 +1,39 @@
+import type { Connections } from 'definitions'
+
+import axios from 'axios'
 import _ from 'lodash'
 
-import { AUTH_MODE, NODE_TYPES, SCOPE_PREFIX } from 'common/enums'
+import {
+  AUTH_MODE,
+  NODE_TYPES,
+  SCOPE_PREFIX,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { UserService } from 'connectors'
 
 import {
   adminUser,
   defaultTestUser,
   getUserContext,
   testClient,
+  genConnections,
+  closeConnections,
 } from '../utils'
+
+jest.mock('axios')
+
+let connections: Connections
+let userService: UserService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  userService = new UserService(connections)
+}, 50000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 
@@ -130,6 +155,23 @@ const CLEAR_SEARCH_HISTORY = /* GraphQL */ `
   }
 `
 
+const EMAIL_LOGIN = /* GraphQL */ `
+  mutation ($input: EmailLoginInput!) {
+    emailLogin(input: $input) {
+      type
+      auth
+      user {
+        userName
+        info {
+          email
+          emailVerified
+        }
+      }
+      token
+    }
+  }
+`
+
 const prepare = async ({
   email,
   mode,
@@ -137,15 +179,18 @@ const prepare = async ({
 }: {
   email: string
   mode?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   scope?: { [key: string]: any }
 }) => {
-  const context = await getUserContext({ email })
+  const context = await getUserContext({ email }, connections)
+  // eslint-disable-next-line
   // @ts-ignore
   context.viewer.authMode = mode || context.viewer.role
+  // eslint-disable-next-line
   // @ts-ignore
   context.viewer.scope = scope || {}
 
-  const server = await testClient({ context })
+  const server = await testClient({ context, connections })
   return { context, server }
 }
 
@@ -156,7 +201,7 @@ const prepare = async ({
  */
 describe('Anonymous query and mutation', () => {
   test('query with public and private fields', async () => {
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const otherUserName = 'test2'
     const { data } = await server.executeOperation({
       query: VIEWER_SCOPED_PRIVATE,
@@ -169,7 +214,7 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const otherUserName = 'test2'
     const error_case = await server.executeOperation({
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
@@ -180,7 +225,7 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const errorCase1 = await server.executeOperation({
       query: VIEWER_NESTED_OTHER_PARIVATE,
     })
@@ -202,7 +247,7 @@ describe('Anonymous query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const { errors } = await server.executeOperation({
       query: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
@@ -213,7 +258,7 @@ describe('Anonymous query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = '<p>test comment content</p>'
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const { errors } = await server.executeOperation({
       query: CREATE_COMMENT,
       variables: { content },
@@ -223,7 +268,7 @@ describe('Anonymous query and mutation', () => {
   })
 
   test('level3 mutation', async () => {
-    const server = await testClient({ isAuth: false })
+    const server = await testClient({ isAuth: false, connections })
     const { errors } = await server.executeOperation({
       query: CLEAR_SEARCH_HISTORY,
     })
@@ -576,5 +621,453 @@ describe('Admin viewer query and mutation', () => {
       query: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
+  })
+})
+
+describe('emailLogin', () => {
+  const newEmail1 = 'new1@matters.town'
+  const newEmail2 = 'new2@matters.town'
+
+  describe('register', () => {
+    test('register email of existed user', async () => {
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+
+      const notVerifiedEmail = 'not-verified@matters.town'
+      const user = await userService.create({
+        email: notVerifiedEmail,
+        emailVerified: false,
+      })
+      expect(user.emailVerified).toBe(false)
+
+      const { errors: errors2 } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: notVerifiedEmail,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors2?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('register with invalid code will fail', async () => {
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: 'fake-code',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INVALID')
+    })
+    test('register with expired code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+        expiredAt: new Date(Date.now() - 1000),
+      })
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('register with inactive code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.inactive,
+      })
+
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with used code will fail', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      await userService.markVerificationCodeAs({
+        codeId: code.id,
+        status: VERIFICATION_CODE_STATUS.used,
+      })
+
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_INACTIVE')
+    })
+    test('register with valid code will succeed', async () => {
+      const code = await userService.createVerificationCode({
+        email: newEmail1,
+        type: 'register',
+      })
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail1,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+  })
+
+  describe('passwd login', () => {
+    test('login with wrong password will failed', async () => {
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: 'wrong-password',
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('login with correct password will succeed', async () => {
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: '12345678',
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.token).toBeDefined()
+    })
+  })
+
+  describe('otp login', () => {
+    const passphrases = ['loena', 'loenb', 'loenc', 'loend', 'loene', 'loenf']
+
+    test('login not existed user with OTP will register new user', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
+
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Signup')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+    test('login existed user with OTP will login the user', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
+
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: newEmail2,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Login')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
+    test('login with expired OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesExpiredError',
+                message: '',
+              },
+            },
+          })
+        }
+      })
+
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('CODE_EXPIRED')
+    })
+    test('login with invalid OTP will throw error', async () => {
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.reject({
+            status: 400,
+            response: {
+              data: {
+                code: 'PassphrasesMismatchError',
+                message: '',
+              },
+            },
+          })
+        }
+      })
+
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: defaultTestUser.email,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+  })
+})
+
+describe('setUseName', () => {
+  const SET_USER_NAME = /* GraphQL */ `
+    mutation ($input: SetUserNameInput!) {
+      setUserName(input: $input) {
+        userName
+        displayName
+        info {
+          userNameEditable
+        }
+      }
+    }
+  `
+  let email: string
+  beforeEach(async () => {
+    email = `test-${Date.now()}@example.com`
+    await userService.create({ email })
+  })
+
+  test('visitor can not call setUseName', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('existing user can call setUseName once', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isMatty: true,
+      connections,
+    })
+
+    // first try
+    const userName = 'noone1'
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.info.userNameEditable).toBe(false)
+    expect(data?.setUserName.displayName).toBeDefined()
+
+    // second try
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('existing user can call setUseName with same userName', async () => {
+    // prepare an "existing user"
+    const userName = 'exist007'
+    let user = await userService.findByEmail(email)
+    if (user) {
+      user = await userService.baseUpdate(user.id, { userName })
+    }
+
+    // same userName
+    const { server } = await prepare({ email })
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.info.userNameEditable).toBe(false)
+    expect(data?.setUserName.displayName).toBeDefined()
+
+    // second try
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'test' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
+  test('user can not set invalid userName', async () => {
+    const { server } = await prepare({ email })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: '#invalid@' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('NAME_INVALID')
+  })
+  test('user can not set existed userName', async () => {
+    const { server } = await prepare({ email })
+    const { errors } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName: 'matty' },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('NAME_INVALID')
+  })
+  test('succeed', async () => {
+    const userName = 'noone'
+    const { server } = await prepare({ email })
+    const { data } = await server.executeOperation({
+      query: SET_USER_NAME,
+      variables: {
+        input: { userName },
+      },
+    })
+    expect(data?.setUserName.userName).toBe(userName)
+    expect(data?.setUserName.displayName).toBeDefined()
+  })
+})
+
+describe('add social accounts', () => {
+  const ADD_SOCIAL_LOGIN = /* GraphQL */ `
+    mutation ($input: SocialLoginInput!) {
+      addSocialLogin(input: $input) {
+        userName
+        info {
+          email
+          emailVerified
+        }
+      }
+    }
+  `
+  test('google account will update user email info', async () => {
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user }, connections })
+    const testGoogleAccount = 'e2etest-test'
+    const { data } = await server.executeOperation({
+      query: ADD_SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: testGoogleAccount,
+          nonce: 'test',
+        },
+      },
+    })
+    expect(data?.addSocialLogin.info.email).toBe(
+      testGoogleAccount + '@gmail.com'
+    )
+  })
+  test('google account will not update user email info if related email exsit', async () => {
+    const testGoogleAccount = 'e2etest-test2'
+    const testEmail = testGoogleAccount + '@gmail.com'
+    // another user own the gmail
+    await userService.create({ email: testEmail })
+    const user = await userService.create({})
+    const server = await testClient({ context: { viewer: user }, connections })
+
+    const { data } = await server.executeOperation({
+      query: ADD_SOCIAL_LOGIN,
+      variables: {
+        input: {
+          type: 'Google',
+          authorizationCode: testGoogleAccount,
+          nonce: 'test',
+        },
+      },
+    })
+    expect(data?.addSocialLogin.info.email).toBe(null)
   })
 })

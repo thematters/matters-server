@@ -1,13 +1,10 @@
-import { COMMENT_TYPE, USER_STATE } from 'common/enums'
-import {
-  AuthenticationError,
-  ForbiddenByStateError,
-  ForbiddenError,
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { MutationToUnvoteCommentResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUnvoteCommentResolver = async (
+import { COMMENT_TYPE, USER_STATE } from 'common/enums'
+import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+
+const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,
   { input: { id } },
   {
@@ -18,22 +15,21 @@ const resolver: MutationToUnvoteCommentResolver = async (
       paymentService,
       commentService,
     },
-    knex,
   }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
+  const comment = await commentService.loadById(dbId)
 
   // check target
   let article: any
   let circle: any
   let targetAuthor: any
   if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.dataloader.load(comment.targetId)
+    article = await articleService.loadById(comment.targetId)
     targetAuthor = article.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
@@ -42,14 +38,13 @@ const resolver: MutationToUnvoteCommentResolver = async (
 
   // check permission
   const isTargetAuthor = targetAuthor === viewer.id
-  const isOnboarding = viewer.state === USER_STATE.onboarding
   const isInactive = [
     USER_STATE.banned,
     USER_STATE.archived,
     USER_STATE.frozen,
   ].includes(viewer.state)
 
-  if ((isOnboarding && !isTargetAuthor) || isInactive) {
+  if (isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 

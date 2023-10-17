@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import {
   BUNDLED_NOTICE_TYPE,
   DB_NOTICE_TYPE,
@@ -13,22 +15,22 @@ import {
 } from 'definitions'
 
 import { mail } from './mail'
-import { notice } from './notice'
+import { Notice } from './notice'
 import trans from './translations'
 
 const logger = getLogger('service-notification')
 
 export class NotificationService extends BaseService {
   mail: typeof mail
-  notice: typeof notice
+  notice: Notice
 
-  constructor() {
-    super('noop')
+  public constructor(connections: Connections) {
+    super('noop', connections)
     this.mail = mail
-    this.notice = notice
+    this.notice = new Notice(connections)
   }
 
-  trigger = async (params: NotificationPrarms) => {
+  public trigger = async (params: NotificationPrarms) => {
     try {
       await this.__trigger(params)
     } catch (e) {
@@ -66,15 +68,8 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.comment_mentioned_you:
       case DB_NOTICE_TYPE.comment_pinned:
       case DB_NOTICE_TYPE.article_new_comment:
-      case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
-      case DB_NOTICE_TYPE.article_tag_has_been_added:
-      case DB_NOTICE_TYPE.article_tag_has_been_removed:
       case DB_NOTICE_TYPE.payment_received_donation:
-      case DB_NOTICE_TYPE.tag_adoption:
-      case DB_NOTICE_TYPE.tag_leave:
-      case DB_NOTICE_TYPE.tag_add_editor:
-      case DB_NOTICE_TYPE.tag_leave_editor:
       case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_follower:
@@ -126,12 +121,6 @@ export class NotificationService extends BaseService {
           recipientId: params.recipientId,
           message: params.message,
           data: params.data,
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_activated:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_activiated(language, {}),
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
         return {
@@ -199,7 +188,7 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const recipient = (await userService.dataloader.load(
       params.recipientId
     )) as User

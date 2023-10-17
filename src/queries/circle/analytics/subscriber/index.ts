@@ -1,11 +1,11 @@
-import { GQLCircleSubscriberAnalyticsTypeResolver } from 'definitions/schema'
+import type { GQLCircleSubscriberAnalyticsResolvers } from 'definitions/schema'
 
 import currentInvitee from './currentInvitee'
 import currentSubscriber from './currentSubscriber'
 import inviteeHistory from './inviteeHistory'
 import subscriberHistory from './subscriberHistory'
 
-const resolvers: GQLCircleSubscriberAnalyticsTypeResolver = {
+const resolvers: GQLCircleSubscriberAnalyticsResolvers = {
   subscriberHistory,
   inviteeHistory,
   currentSubscriber,

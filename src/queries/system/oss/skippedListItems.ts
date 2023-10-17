@@ -1,12 +1,13 @@
+import type { GQLOssResolvers } from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import {
   connectionFromArray,
   fromConnectionArgs,
   toGlobalId,
 } from 'common/utils'
-import { OSSToSkippedListItemsResolver } from 'definitions'
 
-export const skippedListItems: OSSToSkippedListItemsResolver = async (
+export const skippedListItems: GQLOssResolvers['skippedListItems'] = async (
   _,
   { input },
   { dataSources: { systemService } }

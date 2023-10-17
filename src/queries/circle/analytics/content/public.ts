@@ -1,12 +1,16 @@
-import {
-  CircleContentAnalyticsToPublicResolver,
-  GQLArticleAccessType,
-} from 'definitions'
+import type { GQLCircleContentAnalyticsResolvers } from 'definitions'
 
-const resolver: CircleContentAnalyticsToPublicResolver = async (
+import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+
+const resolver: GQLCircleContentAnalyticsResolvers['public'] = async (
   { id },
   _,
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      atomService,
+      connections: { knex },
+    },
+  }
 ) => {
   const records = await knex
     .select('ac.article_id as article_id')
@@ -14,7 +18,7 @@ const resolver: CircleContentAnalyticsToPublicResolver = async (
     .innerJoin('article_read_count as arc', 'ac.article_id', 'arc.article_id')
     .where({
       'ac.circle_id': id,
-      'ac.access': GQLArticleAccessType.public,
+      'ac.access': ARTICLE_ACCESS_TYPE.public,
     })
     .sum('arc.timed_count as readCount')
     .groupBy('ac.article_id')

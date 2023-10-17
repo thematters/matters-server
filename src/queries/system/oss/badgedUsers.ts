@@ -1,10 +1,16 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToBadgedUsersResolver } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
-export const badgedUsers: OSSToBadgedUsersResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
   _,
   { input },
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      userService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { type } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -40,7 +46,7 @@ export const badgedUsers: OSSToBadgedUsersResolver = async (
   )
 
   return connectionFromPromisedArray(
-    atomService.userIdLoader.loadMany(users.map(({ userId }) => userId)),
+    userService.loadByIds(users.map(({ userId }) => userId)),
     input,
     totalCount
   )

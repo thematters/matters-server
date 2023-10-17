@@ -1,10 +1,21 @@
+import type { Connections } from 'definitions'
+
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { GQLCommentType } from 'definitions'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const isDesc = (ints: number[]) =>
   ints
@@ -95,7 +106,7 @@ const TOGGLE_PIN_COMMENT = /* GraphQL */ `
 `
 
 const getCommentVotes = async (commentId: string) => {
-  const server = await testClient()
+  const server = await testClient({ connections })
   const { data } = await server.executeOperation({
     query: GET_COMMENT,
     variables: {
@@ -108,7 +119,7 @@ const getCommentVotes = async (commentId: string) => {
 describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
-    const server = await testClient()
+    const server = await testClient({ connections })
     const result = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
@@ -123,7 +134,7 @@ describe('query comment list on article', () => {
   })
 
   test('sort comments by newest', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
@@ -144,8 +155,26 @@ describe('query comment list on article', () => {
 describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
+  test('user w/o username can not comment', async () => {
+    const server = await testClient({ noUserName: true, connections })
+    const { errors } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            parentId: COMMENT_ID,
+            replyTo: COMMENT_ID,
+            articleId: ARTICLE_2_ID,
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('create a article comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
 
     const result = await server.executeOperation({
       query: PUT_COMMENT,
@@ -156,7 +185,7 @@ describe('mutations on comment', () => {
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
             articleId: ARTICLE_2_ID,
-            type: GQLCommentType.article,
+            type: 'article',
           },
         },
       },
@@ -166,7 +195,7 @@ describe('mutations on comment', () => {
   })
 
   test('upvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
@@ -179,58 +208,8 @@ describe('mutations on comment', () => {
     expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
   })
 
-  test('onboarding user vote a comment', async () => {
-    const onboardingCommentId = toGlobalId({ type: NODE_TYPES.Comment, id: 6 })
-    const server = await testClient({
-      isAuth: true,
-      isOnboarding: true,
-    })
-
-    // upvote
-    const upvoteResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'up' },
-      },
-    })
-    expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe(
-      'FORBIDDEN_BY_STATE'
-    )
-
-    // upvote comment that article published by viewer
-    const upvoteSuccuessResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
-    })
-    expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
-
-    // downvote
-    const downvoteResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: commentId, vote: 'down' },
-      },
-    })
-    expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe(
-      'FORBIDDEN_BY_STATE'
-    )
-
-    // downvote comment that article published by viewer
-    const downvoteSuccuessResult = await server.executeOperation({
-      query: VOTE_COMMENT,
-      variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
-    })
-    expect(
-      _get(downvoteSuccuessResult, 'data.voteComment.downvotes')
-    ).toBeDefined()
-  })
-
   test('downvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await server.executeOperation({
       query: VOTE_COMMENT,
@@ -243,7 +222,7 @@ describe('mutations on comment', () => {
   })
 
   test('unvote a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await server.executeOperation({
       query: UNVOTE_COMMENT,
@@ -256,7 +235,7 @@ describe('mutations on comment', () => {
   })
 
   test('delete comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: DELETE_COMMENT,
       variables: {
@@ -267,7 +246,7 @@ describe('mutations on comment', () => {
   })
 
   test('pin a comment', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const result = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {
@@ -281,7 +260,7 @@ describe('mutations on comment', () => {
   })
 
   test('unpin a comment ', async () => {
-    const server = await testClient({ isAuth: true })
+    const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {

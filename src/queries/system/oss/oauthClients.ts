@@ -1,7 +1,8 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { OSSToOauthClientsResolver } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
-export const oauthClients: OSSToOauthClientsResolver = async (
+import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+
+export const oauthClients: GQLOssResolvers['oauthClients'] = async (
   _,
   { input },
   { dataSources: { oauthService } }

@@ -1,11 +1,10 @@
+import type { AuthMode, GQLMutationResolvers } from 'definitions'
+
 import {
-  AUTO_FOLLOW_TAGS,
-  CIRCLE_STATE,
-  DB_NOTICE_TYPE,
-  INVITATION_STATE,
   VERIFICATION_CODE_STATUS,
+  VERIFICATION_CODE_TYPE,
+  AUTH_RESULT_TYPE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import {
   CodeExpiredError,
   CodeInactiveError,
@@ -25,21 +24,14 @@ import {
   isValidUserName,
   setCookie,
 } from 'common/utils'
-import {
-  AuthMode,
-  GQLAuthResultType,
-  GQLVerificationCodeType,
-  MutationToUserRegisterResolver,
-} from 'definitions'
 
-const resolver: MutationToUserRegisterResolver = async (
-  root,
+const resolver: GQLMutationResolvers['userRegister'] = async (
+  _,
   { input },
   context
 ) => {
   const {
-    viewer,
-    dataSources: { atomService, tagService, userService, notificationService },
+    dataSources: { userService },
     req,
     res,
   } = context
@@ -54,7 +46,7 @@ const resolver: MutationToUserRegisterResolver = async (
     where: {
       uuid: codeId,
       email,
-      type: GQLVerificationCodeType.register,
+      type: VERIFICATION_CODE_TYPE.register,
     },
   })
   const code = codes?.length > 0 ? codes[0] : {}
@@ -90,7 +82,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   let newUserName
   if (userName) {
-    if (!isValidUserName(userName)) {
+    if (!isValidUserName(userName.toLowerCase())) {
       throw new NameInvalidError('invalid user name')
     }
 
@@ -106,52 +98,15 @@ const resolver: MutationToUserRegisterResolver = async (
   const newUser = await userService.create({
     ...input,
     email,
+    emailVerified: true,
     userName: newUserName.toLowerCase(),
   })
-
-  // auto follow matty
-  await userService.follow(newUser.id, environment.mattyId)
-
-  // auto follow tags
-  await tagService.followTags(newUser.id, AUTO_FOLLOW_TAGS)
-
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
     status: VERIFICATION_CODE_STATUS.used,
   })
-
-  // send email
-  notificationService.mail.sendRegisterSuccess({
-    to: email,
-    recipient: {
-      displayName,
-    },
-    language: viewer.language,
-  })
-
-  // send circle invitations' notices if user is invited
-  const invitations = await atomService.findMany({
-    table: 'circle_invitation',
-    where: { email, state: INVITATION_STATE.pending },
-  })
-  await Promise.all(
-    invitations.map(async (invitation) => {
-      const circle = await atomService.findFirst({
-        table: 'circle',
-        where: {
-          id: invitation.circleId,
-          state: CIRCLE_STATE.active,
-        },
-      })
-      notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_invitation,
-        actorId: invitation.inviter,
-        recipientId: newUser.id,
-        entities: [{ type: 'target', entityTable: 'circle', entity: circle }],
-      })
-    })
-  )
+  await userService.postRegister(newUser)
 
   const { token, user } = await userService.loginByEmail({ ...input, email })
 
@@ -164,7 +119,7 @@ const resolver: MutationToUserRegisterResolver = async (
   return {
     token,
     auth: true,
-    type: GQLAuthResultType.Signup,
+    type: AUTH_RESULT_TYPE.Signup,
     user,
   }
 }

@@ -1,5 +1,8 @@
 import { isProd } from 'common/environment'
 
+export const CHANGE_EMAIL_TIMES_LIMIT_PER_DAY = 3
+export const CHANGE_EMAIL_COUNTER_KEY_PREFIX = 'change-email-counter'
+
 const DEV_EMAIL_TEMPLATE_ID = {
   verificationCode: {
     zh_hant: 'd-250ba94c759948cbb2bd9f94089d13b8',
@@ -40,6 +43,11 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-d3c45a17feb441eca8b979db18596b6c',
     zh_hans: 'd-80a66fac2361413bb4ea594cf0238d53',
     en: 'd-d3c45a17feb441eca8b979db18596b6c',
+  },
+  emailChange: {
+    zh_hant: 'd-3af92651ad31455090e49c6911e23b09',
+    zh_hans: 'd-4c7653d27d0f4f8f9801692588819769',
+    en: 'd-3af92651ad31455090e49c6911e23b09',
   },
 }
 
@@ -83,6 +91,11 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-409e5bce4c8343df828d9393a5a4c32d',
     zh_hans: 'd-75f9d85caae141278a8a816fa44ef9f7',
     en: 'd-409e5bce4c8343df828d9393a5a4c32d',
+  },
+  emailChange: {
+    zh_hant: 'd-546c1a3cfc394a819983303fa56caf87',
+    zh_hans: 'd-25eddfd765994b3d97cfbb9760503a19',
+    en: 'd-546c1a3cfc394a819983303fa56caf87',
   },
 }
 

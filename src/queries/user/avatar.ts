@@ -1,6 +1,6 @@
-import { UserToAvatarResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToAvatarResolver = async (
+const resolver: GQLUserResolvers['avatar'] = async (
   { avatar },
   _,
   { dataSources: { systemService } }

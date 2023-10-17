@@ -1,7 +1,8 @@
+import type { Connections } from 'definitions'
+
 import Queue from 'bull'
 
 import {
-  MINUTE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -10,7 +11,7 @@ import {
   USER_STATE,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { aws } from 'connectors'
+import { aws, UserService, AtomService, NotificationService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -20,28 +21,16 @@ interface ArchiveUserData {
   userId: string
 }
 
-class UserQueue extends BaseQueue {
-  constructor() {
-    super(QUEUE_NAME.user)
+export class UserQueue extends BaseQueue {
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.user, connections)
     this.addConsumers()
   }
 
   /**
    * Producers
    */
-  addRepeatJobs = async () => {
-    // activate onboarding users every 2 minutes
-    this.q.add(
-      QUEUE_JOB.activateOnboardingUsers,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 20, // every 20 minutes
-        },
-      }
-    )
-
+  public addRepeatJobs = async () => {
     // unban user every day at 00:00
     this.q.add(
       QUEUE_JOB.unbanUsers,
@@ -56,7 +45,7 @@ class UserQueue extends BaseQueue {
   /**
    * Producers
    */
-  archiveUser = (data: ArchiveUserData) =>
+  public archiveUser = (data: ArchiveUserData) =>
     aws.sqsSendMessage({
       messageBody: data,
       queueUrl: QUEUE_URL.archiveUser,
@@ -66,45 +55,8 @@ class UserQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    // activate onboarding users
-    this.q.process(
-      QUEUE_JOB.activateOnboardingUsers,
-      this.activateOnboardingUsers
-    )
-
     this.q.process(QUEUE_JOB.unbanUsers, this.unbanUsers)
   }
-
-  /**
-   * Activate onboarding users
-   */
-  private activateOnboardingUsers: Queue.ProcessCallbackFunction<unknown> =
-    async (job, done) => {
-      try {
-        const activatableUsers = await this.userService.findActivatableUsers()
-        const activatedUsers: Array<string | number> = []
-
-        await Promise.all(
-          activatableUsers.map(async (user, index) => {
-            try {
-              await this.userService.activate({ id: user.id })
-              this.notificationService.trigger({
-                event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated,
-                recipientId: user.id,
-              })
-              activatedUsers.push(user.id)
-              job.progress(((index + 1) / activatableUsers.length) * 100)
-            } catch (err: any) {
-              logger.error(err)
-            }
-          })
-        )
-
-        done(null, activatedUsers)
-      } catch (err: any) {
-        done(err)
-      }
-    }
 
   /**
    * Unban users.
@@ -113,8 +65,11 @@ class UserQueue extends BaseQueue {
     job,
     done
   ) => {
+    const userService = new UserService(this.connections)
+    const atomService = new AtomService(this.connections)
+    const notificationService = new NotificationService(this.connections)
     try {
-      const records = await this.userService.findPunishRecordsByTime({
+      const records = await userService.findPunishRecordsByTime({
         state: USER_STATE.banned,
         archived: false,
         expiredAt: new Date(Date.now()).toISOString(),
@@ -128,18 +83,18 @@ class UserQueue extends BaseQueue {
               state: USER_STATE.active,
             }
 
-            await this.atomService.update({
+            await atomService.update({
               table: 'user',
               where: { id: record.userId },
               data,
             })
 
-            await this.userService.baseUpdate(
+            await userService.baseUpdate(
               record.id,
               { archived: true },
               'punish_record'
             )
-            this.notificationService.trigger({
+            notificationService.trigger({
               event: OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned,
               recipientId: record.userId,
             })
@@ -157,5 +112,3 @@ class UserQueue extends BaseQueue {
     }
   }
 }
-
-export const userQueue = new UserQueue()

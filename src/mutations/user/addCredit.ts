@@ -1,3 +1,5 @@
+import type { Customer, GQLMutationResolvers } from 'definitions'
+
 import {
   PAYMENT_CURRENCY,
   PAYMENT_MAX_DECIMAL_PLACES,
@@ -6,20 +8,19 @@ import {
   TRANSACTION_PURPOSE,
 } from 'common/enums'
 import {
-  AuthenticationError,
   PaymentAmountInvalidError,
   PaymentAmountTooSmallError,
   ServerError,
+  ForbiddenError,
 } from 'common/errors'
-import { Customer, MutationToAddCreditResolver } from 'definitions'
 
-const resolver: MutationToAddCreditResolver = async (
+const resolver: GQLMutationResolvers['addCredit'] = async (
   _,
   { input: { amount } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.email) {
+    throw new ForbiddenError('user has no email')
   }
 
   const provider = PAYMENT_PROVIDER.stripe
@@ -70,7 +71,7 @@ const resolver: MutationToAddCreditResolver = async (
   }
 
   return {
-    client_secret: payment.client_secret,
+    client_secret: payment.client_secret as string,
     transaction: payment.transaction,
   }
 }

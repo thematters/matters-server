@@ -1,15 +1,21 @@
+import type { GQLCircleResolvers } from 'definitions'
+
 import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { CircleToWorksResolver } from 'definitions'
 
-const resolver: CircleToWorksResolver = async (
+const resolver: GQLCircleResolvers['works'] = async (
   { id },
   { input },
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -31,7 +37,7 @@ const resolver: CircleToWorksResolver = async (
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
   return connectionFromPromisedArray(
-    atomService.draftIdLoader.loadMany(articles.map(({ draftId }) => draftId)),
+    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

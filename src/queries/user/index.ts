@@ -1,31 +1,28 @@
+import type {
+  GQLAppreciationResolvers,
+  GQLCryptoWalletResolvers,
+  GQLFollowingActivityResolvers,
+  GQLFollowingResolvers,
+  GQLLikerResolvers,
+  GQLQueryResolvers,
+  GQLRecommendationResolvers,
+  GQLStripeAccountResolvers,
+  GQLTransactionTargetResolvers,
+  GQLTransactionResolvers,
+  GQLUserActivityResolvers,
+  GQLUserAnalyticsResolvers,
+  GQLUserInfoResolvers,
+  GQLUserOssResolvers,
+  GQLUserSettingsResolvers,
+  GQLUserStatusResolvers,
+  GQLUserResolvers,
+  GQLWalletResolvers,
+  GQLCollectionResolvers,
+  GQLPinnableWorkResolvers,
+} from 'definitions'
+
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import {
-  GQLAppreciationTypeResolver,
-  GQLCryptoWalletTypeResolver,
-  GQLFollowingActivityTypeResolver,
-  GQLFollowingTypeResolver,
-  GQLLikerTypeResolver,
-  GQLPossibleFollowingActivityTypeNames,
-  GQLQueryTypeResolver,
-  GQLQuoteCurrency,
-  GQLRecommendationTypeResolver,
-  GQLStripeAccountTypeResolver,
-  GQLTransactionTargetTypeResolver,
-  GQLTransactionTypeResolver,
-  GQLUserActivityTypeResolver,
-  GQLUserAnalyticsTypeResolver,
-  GQLUserInfoTypeResolver,
-  GQLUserLanguage,
-  GQLUserOSSTypeResolver,
-  GQLUserSettingsTypeResolver,
-  GQLUserStatusTypeResolver,
-  GQLUserTypeResolver,
-  GQLWalletTypeResolver,
-  GQLCollectionTypeResolver,
-  GQLPinnableWorkTypeResolver,
-  GQLPossiblePinnableWorkTypeNames,
-} from 'definitions'
 
 import UserAnalytics from './analytics'
 import { Appreciation } from './appreciation'
@@ -33,6 +30,7 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
 import collections from './collections'
 import commentCount from './commentCount'
@@ -60,6 +58,7 @@ import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
+import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
@@ -75,39 +74,33 @@ import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
 
 const user: {
-  Query: GQLQueryTypeResolver
+  Query: GQLQueryResolvers
 
-  User: GQLUserTypeResolver
-  UserInfo: GQLUserInfoTypeResolver
-  UserSettings: GQLUserSettingsTypeResolver
-  UserActivity: GQLUserActivityTypeResolver
-  UserAnalytics: GQLUserAnalyticsTypeResolver
-  UserStatus: GQLUserStatusTypeResolver
-  Appreciation: GQLAppreciationTypeResolver
+  User: GQLUserResolvers
+  UserInfo: GQLUserInfoResolvers
+  UserSettings: GQLUserSettingsResolvers
+  UserActivity: GQLUserActivityResolvers
+  UserAnalytics: GQLUserAnalyticsResolvers
+  UserStatus: GQLUserStatusResolvers
+  Appreciation: GQLAppreciationResolvers
 
-  Following: GQLFollowingTypeResolver
-  FollowingActivity: {
-    __resolveType: GQLFollowingActivityTypeResolver
-  }
+  Following: GQLFollowingResolvers
+  FollowingActivity: GQLFollowingActivityResolvers
 
-  Recommendation: GQLRecommendationTypeResolver
+  Recommendation: GQLRecommendationResolvers
 
-  Liker: GQLLikerTypeResolver
+  Liker: GQLLikerResolvers
 
-  UserOSS: GQLUserOSSTypeResolver
+  UserOSS: GQLUserOssResolvers
 
-  Wallet: GQLWalletTypeResolver
-  Transaction: GQLTransactionTypeResolver
-  TransactionTarget: {
-    __resolveType: GQLTransactionTargetTypeResolver
-  }
-  PinnableWork: {
-    __resolveType: GQLPinnableWorkTypeResolver
-  }
-  StripeAccount: GQLStripeAccountTypeResolver
+  Wallet: GQLWalletResolvers
+  Transaction: GQLTransactionResolvers
+  TransactionTarget: GQLTransactionTargetResolvers
+  PinnableWork: GQLPinnableWorkResolvers
+  StripeAccount: GQLStripeAccountResolvers
 
-  CryptoWallet: GQLCryptoWalletTypeResolver
-  Collection: GQLCollectionTypeResolver
+  CryptoWallet: GQLCryptoWalletResolvers
+  Collection: GQLCollectionResolvers
 } = {
   Query: {
     viewer: (_, __, { viewer }) => viewer,
@@ -149,15 +142,17 @@ const user: {
     badges,
     userNameEditable,
     email: ({ email }) => email && email.replace(/#/g, '@'),
+    emailVerified: ({ emailVerified }) => emailVerified || false,
     profileCover,
     group,
     isWalletAuth,
     cryptoWallet,
     featuredTags,
+    socialAccounts,
   },
   UserSettings: {
-    language: ({ language }) => language || ('zh_hant' as GQLUserLanguage),
-    currency: ({ currency }) => currency || ('USD' as GQLQuoteCurrency),
+    language: ({ language }) => language || 'zh_hant',
+    currency: ({ currency }) => currency || 'USD',
     notification,
   },
   UserActivity,
@@ -171,16 +166,14 @@ const user: {
     totalWordCount,
     donatedArticleCount,
     receivedDonationCount,
+    changeEmailTimesLeft,
+    hasEmailLoginPassword: ({ passwordHash }) => passwordHash !== null,
   },
   Appreciation,
 
   Following,
   FollowingActivity: {
-    __resolveType: ({
-      __type,
-    }: {
-      __type: GQLPossibleFollowingActivityTypeNames
-    }) => __type,
+    __resolveType: ({ __type }: any) => __type,
   },
 
   Recommendation,
@@ -198,10 +191,10 @@ const user: {
   // Payment
   Wallet,
   Transaction,
+  // @ts-ignore
   TransactionTarget,
   PinnableWork: {
-    __resolveType: ({ __type }: { __type: GQLPossiblePinnableWorkTypeNames }) =>
-      __type,
+    __resolveType: ({ __type }: any) => __type,
   },
   StripeAccount,
 

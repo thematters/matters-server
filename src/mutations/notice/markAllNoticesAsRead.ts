@@ -1,7 +1,8 @@
-import { AuthenticationError } from 'common/errors'
-import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToMarkAllNoticesAsReadResolver = async (
+import { AuthenticationError } from 'common/errors'
+
+const resolver: GQLMutationResolvers['markAllNoticesAsRead'] = async (
   root,
   _,
   { viewer, dataSources: { notificationService } }

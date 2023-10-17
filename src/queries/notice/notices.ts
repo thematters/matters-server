@@ -1,13 +1,14 @@
+import type { GQLUserResolvers } from 'definitions'
+
 import {
   connectionFromArray,
   filterMissingFieldNoticeEdges,
   fromConnectionArgs,
 } from 'common/utils'
-import { UserToNoticesResolver } from 'definitions'
 
 const MAX_NOTICE_COUNT = 1000
 
-const resolver: UserToNoticesResolver = async (
+const resolver: GQLUserResolvers['notices'] = async (
   { id },
   { input },
   { dataSources: { notificationService } }

@@ -1,17 +1,41 @@
+import type {
+  GQLPutTagInput,
+  GQLUpdateTagSettingInput,
+  Connections,
+} from 'definitions'
+
 import _difference from 'lodash/difference'
 import _get from 'lodash/get'
 
-import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
 import {
-  GQLFeatureFlag,
-  GQLFeatureName,
-  GQLPutTagInput,
-  GQLUpdateTagSettingInput,
-  GQLUpdateTagSettingType,
-} from 'definitions'
+  NODE_TYPES,
+  FEATURE_FLAG,
+  FEATURE_NAME,
+  UPDATE_TAG_SETTING_TYPE,
+} from 'common/enums'
+import { toGlobalId } from 'common/utils'
 
-import { setFeature, testClient } from '../utils'
+import {
+  setFeature,
+  testClient,
+  genConnections,
+  closeConnections,
+} from '../utils'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connections: Connections
+}
+
+let connections: Connections
+beforeAll(async () => {
+  connections = await genConnections()
+  globalThis.connections = connections
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 const QUERY_TAG = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -159,7 +183,7 @@ export const putTag = async ({
   isMatty = true,
   tag,
 }: PutTagInput) => {
-  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const server = await testClient({ isAdmin, isAuth, isMatty, connections })
   const result = await server.executeOperation({
     query: PUT_TAG,
     variables: { input: tag },
@@ -178,7 +202,7 @@ export const updateTagSetting = async ({
   type,
   editors,
 }: UpdateTagSettingInput) => {
-  const server = await testClient({ isAdmin, isAuth, isMatty })
+  const server = await testClient({ isAdmin, isAuth, isMatty, connections })
   const result = await server.executeOperation({
     query: UPDATE_TAG_SETTING,
     variables: { input: { id, type, editors } },
@@ -207,13 +231,15 @@ describe('put tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
-    const queryResult = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: QUERY_TAG,
       variables: { input: { id: createTagId } },
     })
-    expect(_get(queryResult, 'data.node.content')).toBe(expected)
-    expect(_get(queryResult, 'data.node.description')).toBe(description)
+    console.log(errors)
+    expect(data.node.content).toBe(expected)
+    expect(data.node.description).toBe(description)
 
     // update
     const updateContent = 'Update tag #1'
@@ -242,6 +268,7 @@ describe('manage tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
     // rename
     const renameContent = 'Rename tag'
@@ -273,6 +300,14 @@ describe('manage tag', () => {
 })
 
 describe('manage article tag', () => {
+  test('users w/o username can not add tags', async () => {
+    const server = await testClient({ noUserName: true, connections })
+    const { errors } = await server.executeOperation({
+      query: PUT_TAG,
+      variables: { input: { content: 'faketag' } },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+  })
   test('add and delete article tag', async () => {
     // create
     const createResult = await putTag({ tag: { content: 'Test tag #1' } })
@@ -283,6 +318,7 @@ describe('manage article tag', () => {
       isAuth: true,
       isAdmin: true,
       isMatty: true,
+      connections,
     })
 
     const articleIds = [
@@ -342,14 +378,17 @@ describe('manage settings of a tag', () => {
     const mattyId = toGlobalId({ type: NODE_TYPES.User, id: 6 })
 
     // matty enable user can adopt tag
-    await setFeature({
-      isAdmin: true,
-      isMatty: true,
-      input: {
-        name: GQLFeatureName.tag_adoption,
-        flag: GQLFeatureFlag.on,
+    await setFeature(
+      {
+        isAdmin: true,
+        isMatty: true,
+        input: {
+          name: FEATURE_NAME.tag_adoption,
+          flag: FEATURE_FLAG.on,
+        },
       },
-    })
+      connections
+    )
 
     // matty create tag
     const tag = await putTag({ tag: { content: 'Tag adoption #1' } })
@@ -361,7 +400,7 @@ describe('manage settings of a tag', () => {
     const adoptMattyTagData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.adopt,
+      type: UPDATE_TAG_SETTING_TYPE.adopt,
     })
     expect(_get(adoptMattyTagData, errorPath)).toBe('FORBIDDEN')
 
@@ -369,7 +408,7 @@ describe('manage settings of a tag', () => {
     const leaveMattyTagData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.leave,
+      type: UPDATE_TAG_SETTING_TYPE.leave,
     })
     expect(_get(leaveMattyTagData, errorPath)).toBe('FORBIDDEN')
 
@@ -378,7 +417,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.leave,
+      type: UPDATE_TAG_SETTING_TYPE.leave,
     })
     const mattyLeaveTagDataEditors = (mattyLeaveTagData?.editors || []).map(
       editorFilter
@@ -390,7 +429,7 @@ describe('manage settings of a tag', () => {
     const adoptData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.adopt,
+      type: UPDATE_TAG_SETTING_TYPE.adopt,
     })
     const adoptDataEditors = (adoptData?.editors || []).map(editorFilter)
     expect(adoptDataEditors.includes(authedId)).toBeTruthy()
@@ -400,7 +439,7 @@ describe('manage settings of a tag', () => {
     const leaveData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.leave,
+      type: UPDATE_TAG_SETTING_TYPE.leave,
     })
     const leaveDataEditors = (leaveData?.editors || []).map(editorFilter)
     expect(leaveDataEditors.includes(authedId)).toBeFalsy()
@@ -427,7 +466,7 @@ describe('manage settings of a tag', () => {
     const otherAddEditorData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user2Id],
     })
     expect(_get(otherAddEditorData, errorPath)).toBe('FORBIDDEN')
@@ -436,7 +475,7 @@ describe('manage settings of a tag', () => {
     const otherRemoveEditorData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [user2Id],
     })
     expect(_get(otherRemoveEditorData, errorPath)).toBe('FORBIDDEN')
@@ -446,7 +485,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [mattyId],
     })
     const addSelfDataEditors = (addSelfData?.editors || []).map(editorFilter)
@@ -458,7 +497,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [mattyId],
     })
     const rmSelfDataEditors = (rmSelfData?.editors || []).map(editorFilter)
@@ -470,7 +509,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user1Id],
     })
     const addData1Editors = (addData1?.editors || []).map(editorFilter)
@@ -481,7 +520,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user2Id, user3Id, user4Id],
     })
     const addData2Editors = (addData2?.editors || []).map(editorFilter)
@@ -500,7 +539,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user7Id, user9Id],
     })
     expect(_get(addData3, errorPath)).toBe('TAG_EDITORS_REACH_LIMIT')
@@ -510,7 +549,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [user4Id],
     })
     const rmData1Editors = (rmData1?.editors || []).map(editorFilter)
@@ -525,7 +564,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [user2Id, user3Id],
     })
     const rmData2Editors = (rmData2?.editors || []).map(editorFilter)
@@ -539,7 +578,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [user1Id],
     })
     const rmData3Editors = (rmData3?.editors || []).map(editorFilter)
@@ -563,7 +602,7 @@ describe('manage settings of a tag', () => {
     const authedUserAddData1 = await updateTagSetting({
       isAuth: true,
       id: authedUserTag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [mattyId],
     })
     const authedUserAddData1Editors = (authedUserAddData1?.editors || []).map(
@@ -577,7 +616,7 @@ describe('manage settings of a tag', () => {
     const authedUserAddData2 = await updateTagSetting({
       isAuth: true,
       id: authedUserTag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user1Id, user2Id],
     })
     const authedUserAddData2Editors = (authedUserAddData2?.editors || []).map(
@@ -591,7 +630,7 @@ describe('manage settings of a tag', () => {
     const authedUserRmData1 = await updateTagSetting({
       isAuth: true,
       id: authedUserTag.id,
-      type: GQLUpdateTagSettingType.remove_editor,
+      type: UPDATE_TAG_SETTING_TYPE.remove_editor,
       editors: [mattyId],
     })
     const authedUserRmData1Editors = (authedUserRmData1?.editors || []).map(
@@ -617,7 +656,7 @@ describe('manage settings of a tag', () => {
       isAuth: true,
       isMatty: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.add_editor,
+      type: UPDATE_TAG_SETTING_TYPE.add_editor,
       editors: [user1Id],
     })
     const addDataEditors = (addData?.editors || []).map(editorFilter)
@@ -628,7 +667,7 @@ describe('manage settings of a tag', () => {
     const leaveData = await updateTagSetting({
       isAuth: true,
       id: tag.id,
-      type: GQLUpdateTagSettingType.leave_editor,
+      type: UPDATE_TAG_SETTING_TYPE.leave_editor,
       editors: [user1Id],
     })
     const leaveDataEditors = (leaveData?.editors || []).map(editorFilter)
@@ -639,7 +678,7 @@ describe('manage settings of a tag', () => {
 
 describe('query tag', () => {
   test('tag recommended', async () => {
-    const server = await testClient()
+    const server = await testClient({ connections })
     const { data } = await server.executeOperation({
       query: QUERY_TAG,
       variables: { input: { id: toGlobalId({ type: NODE_TYPES.Tag, id: 1 }) } },

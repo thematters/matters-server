@@ -1,11 +1,12 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import { CIRCLE_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { RecommendationToNewestCirclesResolver } from 'definitions'
 
-const resolver: RecommendationToNewestCirclesResolver = async (
-  { id },
+const resolver: GQLRecommendationResolvers['newestCircles'] = async (
+  _,
   { input },
-  { viewer, dataSources: { atomService }, knex }
+  { dataSources: { atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

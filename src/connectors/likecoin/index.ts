@@ -1,4 +1,7 @@
+import type { UserOAuthLikeCoin, Connections } from 'definitions'
+
 import axios, { AxiosRequestConfig } from 'axios'
+import Redis from 'ioredis'
 import { Knex } from 'knex'
 import _ from 'lodash'
 import { v4 } from 'uuid'
@@ -12,8 +15,7 @@ import {
   OAuthTokenInvalidError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { aws, CacheService, knex } from 'connectors'
-import { UserOAuthLikeCoin } from 'definitions'
+import { aws, CacheService } from 'connectors'
 
 const logger = getLogger('service-likecoin')
 
@@ -94,12 +96,13 @@ const ENDPOINTS = {
  */
 export class LikeCoin {
   knex: Knex
+  redis: Redis
   cache: CacheService
   aws: typeof aws
 
-  constructor() {
-    this.knex = knex
-    this.cache = new CacheService(CACHE_PREFIX.LIKECOIN)
+  constructor(connections: Connections) {
+    this.knex = connections.knex
+    this.redis = connections.redis
     this.aws = aws
   }
 
@@ -225,7 +228,7 @@ export class LikeCoin {
           accessToken: data.access_token,
           refreshToken: data.refresh_token,
           scope: data.scope,
-          updatedAt: knex.fn.now(), // new Date(),
+          updatedAt: this.knex.fn.now(), // new Date(),
         })
     } catch (e) {
       logger.error(e)
@@ -377,10 +380,10 @@ export class LikeCoin {
   }: {
     likerId: string
     userId: string
-  }) => {
-    const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER)
+  }): Promise<boolean> => {
+    const cache = new CacheService(CACHE_PREFIX.CIVIC_LIKER, this.redis)
     const keys = { id: likerId }
-    const isCivicLiker = await cache.getObject({
+    const isCivicLiker = (await cache.getObject({
       keys,
       getter: async () => {
         this.updateCivicLikerCache({
@@ -392,8 +395,8 @@ export class LikeCoin {
         return false
       },
       expire: CACHE_TTL.MEDIUM,
-    })
-    return isCivicLiker
+    })) as boolean | null
+    return isCivicLiker ?? false
   }
 
   /**
@@ -589,7 +592,8 @@ export class LikeCoin {
 
     const data = _.get(res, 'data')
 
-    this.cache.storeObject({
+    const cache = new CacheService(CACHE_PREFIX.LIKECOIN, this.redis)
+    cache.storeObject({
       // keys: ['iscnPublish', userName, 'likerId', liker.likerId],
       keys: {
         type: 'iscnPublish',
@@ -647,5 +651,3 @@ export class LikeCoin {
       queueUrl: QUEUE_URL.likecoinUpdateCivicLikerCache,
     })
 }
-
-export const likecoin = new LikeCoin()

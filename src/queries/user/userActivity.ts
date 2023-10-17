@@ -3,9 +3,9 @@ import {
   connectionFromPromisedArray,
   fromConnectionArgs,
 } from 'common/utils'
-import { GQLUserActivityTypeResolver } from 'definitions'
+import { GQLUserActivityResolvers } from 'definitions'
 
-const resolver: GQLUserActivityTypeResolver = {
+const resolver: GQLUserActivityResolvers = {
   history: async (
     { id },
     { input },
@@ -23,7 +23,7 @@ const resolver: GQLUserActivityTypeResolver = {
     ])
     const nodes = await Promise.all(
       reads.map(async ({ article, readAt }) => {
-        const node = await draftService.dataloader.load(article.draftId)
+        const node = await draftService.loadById(article.draftId)
         return { readAt, article: node }
       })
     )
@@ -50,6 +50,9 @@ const resolver: GQLUserActivityTypeResolver = {
     { input },
     { dataSources: { userService } }
   ) => {
+    if (!id) {
+      return connectionFromArray([], input)
+    }
     const { take, skip } = fromConnectionArgs(input)
     const totalCount = await userService.totalSentAppreciationCount(id)
     return connectionFromPromisedArray(
@@ -59,14 +62,21 @@ const resolver: GQLUserActivityTypeResolver = {
     )
   },
 
-  appreciationsSentTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalSent(id),
+  appreciationsSentTotal: ({ id }, _, { dataSources: { userService } }) => {
+    if (!id) {
+      return 0
+    }
+    return userService.totalSent(id)
+  },
 
   appreciationsReceived: async (
     { id },
     { input },
     { dataSources: { userService } }
   ) => {
+    if (!id) {
+      return connectionFromArray([], input)
+    }
     const { take, skip } = fromConnectionArgs(input)
 
     const totalCount = await userService.totalRecivedAppreciationCount(id)
@@ -77,8 +87,12 @@ const resolver: GQLUserActivityTypeResolver = {
     )
   },
 
-  appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalRecived(id),
+  appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) => {
+    if (!id) {
+      return 0
+    }
+    return userService.totalRecived(id)
+  },
 }
 
 export default resolver

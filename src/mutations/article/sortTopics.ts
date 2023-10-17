@@ -1,12 +1,13 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _inter from 'lodash/intersection'
 import _uniq from 'lodash/uniq'
 
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToSortTopicsResolver } from 'definitions'
 
-const resolver: MutationToSortTopicsResolver = async (
+const resolver: GQLMutationResolvers['sortTopics'] = async (
   _,
   { input: { ids } },
   { viewer, dataSources: { atomService } }

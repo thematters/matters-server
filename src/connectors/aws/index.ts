@@ -1,3 +1,5 @@
+import type { GQLAssetType, ValueOf } from 'definitions'
+
 import * as AWS from 'aws-sdk'
 import getStream from 'get-stream'
 import mime from 'mime-types'
@@ -5,7 +7,6 @@ import mime from 'mime-types'
 import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums'
 import { environment, isLocal, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { GQLAssetType } from 'definitions'
 
 const logger = getLogger('service-aws')
 
@@ -16,7 +17,7 @@ export class AWSService {
   s3Bucket: string
   s3Endpoint: string
 
-  constructor() {
+  public constructor() {
     AWS.config.update(this.getAWSConfig())
     this.s3 = new AWS.S3()
     this.s3Bucket = this.getS3Bucket()
@@ -30,7 +31,7 @@ export class AWSService {
   /**
    * Get AWS config.
    */
-  getAWSConfig = () => ({
+  private getAWSConfig = () => ({
     region: environment.awsRegion,
     accessKeyId: environment.awsAccessId,
     secretAccessKey: environment.awsAccessKey,
@@ -41,7 +42,7 @@ export class AWSService {
    * Get S3 endpoint. If AWS Cloud Front is enabled, the default S3 endpoint
    * will be replaced.
    */
-  getS3Endpoint = (): string =>
+  private getS3Endpoint = (): string =>
     isTest
       ? `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
       : `https://${
@@ -52,12 +53,12 @@ export class AWSService {
   /**
    * Get S3 bucket.
    */
-  getS3Bucket = (): string => environment.awsS3Bucket
+  private getS3Bucket = (): string => environment.awsS3Bucket
 
   /**
    * Upload file to AWS S3.
    */
-  baseUploadFile = async (
+  public baseUploadFile = async (
     folder: GQLAssetType,
     upload: any,
     uuid: string
@@ -114,7 +115,7 @@ export class AWSService {
   /**
    * Delete file from AWS S3 by a given path key.
    */
-  baseDeleteFile = async (key: string) => {
+  public baseDeleteFile = async (key: string) => {
     logger.info(`Deleting file from S3: ${key}`)
     await this.s3
       .deleteObject({
@@ -124,14 +125,14 @@ export class AWSService {
       .promise()
   }
 
-  sqsSendMessage = async ({
+  public sqsSendMessage = async ({
     messageBody,
     queueUrl,
     messageGroupId,
     messageDeduplicationId,
   }: {
     messageBody: any
-    queueUrl: (typeof QUEUE_URL)[keyof typeof QUEUE_URL]
+    queueUrl: ValueOf<typeof QUEUE_URL>
     messageGroupId?: string
     messageDeduplicationId?: string
   }) => {
@@ -145,14 +146,14 @@ export class AWSService {
       MessageDeduplicationId: messageDeduplicationId,
     }
     const res = (await this.sqs?.sendMessage(payload).promise()) as any
-    logger.info(
+    logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
       res.ResponseMetadata.RequestId
     )
   }
 
-  snsPublishMessage = async ({
+  public snsPublishMessage = async ({
     // MessageGroupId,
     MessageBody,
   }: {

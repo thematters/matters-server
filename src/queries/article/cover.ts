@@ -1,6 +1,6 @@
-import { ArticleToCoverResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToCoverResolver = async (
+const resolver: GQLArticleResolvers['cover'] = async (
   { articleId },
   _,
   { dataSources: { articleService, systemService } }

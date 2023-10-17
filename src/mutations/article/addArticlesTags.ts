@@ -1,84 +1,26 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
-import _uniqBy from 'lodash/uniqBy'
 
-import {
-  DB_NOTICE_TYPE,
-  MAX_TAGS_PER_ARTICLE_LIMIT,
-  USER_STATE,
-} from 'common/enums'
+import { MAX_TAGS_PER_ARTICLE_LIMIT, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TagNotFoundError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { ArticleService, NotificationService } from 'connectors'
-import { MutationToAddArticlesTagsResolver } from 'definitions'
 
-const triggerNotice = async ({
-  articleId,
-  articleService,
-  notificationService,
-  tag,
-  viewerId,
-  isOwner,
-}: {
-  articleId: string
-  articleService: InstanceType<typeof ArticleService>
-  notificationService: InstanceType<typeof NotificationService>
-  tag: any
-  viewerId: string
-  isOwner: boolean
-}) => {
-  const { mattyId } = environment
-  const article = await articleService.baseFindById(articleId)
-  const editors = (tag.editors || []).filter((id: string) => id !== mattyId)
-  const owner = tag.owner ? [`${tag.owner}`] : []
-  const users = _uniqBy(
-    [article.authorId, ...(isOwner ? editors : owner)].filter(
-      (id) => id !== viewerId
-    ),
-    'id'
-  )
-
-  users.map((user) => {
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_tag_has_been_added,
-      recipientId: user,
-      actorId: viewerId,
-      entities: [
-        { type: 'target', entityTable: 'article', entity: article },
-        {
-          type: 'tag',
-          entityTable: 'tag',
-          entity: tag,
-        },
-      ],
-    })
-  })
-}
-
-const resolver: MutationToAddArticlesTagsResolver = async (
-  root,
+const resolver: GQLMutationResolvers['addArticlesTags'] = async (
+  _,
   { input: { id, articles, selected } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      articleService,
-      notificationService,
-      tagService,
-    },
-  }
+  { viewer, dataSources: { atomService, articleService, tagService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
   }
 
   if (viewer.state === USER_STATE.frozen) {
@@ -106,7 +48,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
   }
 
   if (!isMatty && tag.id === environment.mattyChoiceTagId) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    throw new ForbiddenError('not allow to add official tag')
   }
 
   // compare new and old article ids that have this tag (dedupe)
@@ -144,20 +86,6 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     tagIds: [dbId],
     selected,
   })
-
-  // trigger notification for adding article tag by maintainer
-  if (isMaintainer) {
-    for (const articleId of addIds) {
-      await triggerNotice({
-        articleId,
-        articleService,
-        notificationService,
-        tag,
-        viewerId: viewer.id,
-        isOwner,
-      })
-    }
-  }
 
   return tag
 }

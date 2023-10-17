@@ -1,8 +1,10 @@
+import type { Connections } from 'definitions'
+
 import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { AtomService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -12,16 +14,16 @@ interface AssetParams {
   ids: string[]
 }
 
-class AssetQueue extends BaseQueue {
-  constructor() {
-    super(QUEUE_NAME.asset)
+export class AssetQueue extends BaseQueue {
+  constructor(connections: Connections) {
+    super(QUEUE_NAME.asset, connections)
     this.addConsumers()
   }
 
   /**
    * Producers
    */
-  remove = ({ ids }: { ids: string[] }) =>
+  public remove = ({ ids }: { ids: string[] }) =>
     this.q.add(
       QUEUE_JOB.deleteAsset,
       { ids },
@@ -35,10 +37,6 @@ class AssetQueue extends BaseQueue {
    * Consumer
    */
   private addConsumers = () => {
-    if (isTest) {
-      return
-    }
-
     this.q.process(QUEUE_JOB.deleteAsset, this.deleteAsset)
   }
 
@@ -53,13 +51,14 @@ class AssetQueue extends BaseQueue {
         throw new Error('asset job has no required data')
       }
 
-      const assets = await this.atomService.findMany({
+      const atomService = new AtomService(this.connections)
+      const assets = await atomService.findMany({
         table: 'asset',
         whereIn: ['id', ids],
       })
 
       // delete db records
-      await this.atomService.knex.transaction(async (trx) => {
+      await atomService.knex.transaction(async (trx) => {
         await trx('asset_map').whereIn('asset_id', ids).del()
         await trx('asset').whereIn('id', ids).del()
       })
@@ -68,8 +67,8 @@ class AssetQueue extends BaseQueue {
       await Promise.all(
         assets
           .map((asset) => [
-            this.atomService.aws.baseDeleteFile(asset.path),
-            this.atomService.cfsvc.baseDeleteFile(asset.path),
+            atomService.aws.baseDeleteFile(asset.path),
+            atomService.cfsvc.baseDeleteFile(asset.path),
           ])
           .flat()
       )
@@ -82,5 +81,3 @@ class AssetQueue extends BaseQueue {
     }
   }
 }
-
-export const assetQueue = new AssetQueue()

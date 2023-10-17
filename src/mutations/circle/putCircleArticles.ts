@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -29,10 +31,8 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { revisionQueue } from 'connectors/queue'
-import { MutationToPutCircleArticlesResolver } from 'definitions'
 
-const resolver: MutationToPutCircleArticlesResolver = async (
+const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   _,
   { input: { id, articles, type: actionType, accessType, license } },
   {
@@ -44,8 +44,9 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       tagService,
       articleService,
       notificationService,
+      connections: { knex },
+      queues: { revisionQueue },
     },
-    knex,
   }
 ) => {
   if (!viewer.id) {

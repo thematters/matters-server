@@ -1,6 +1,6 @@
-import { UserStatusToHasPaymentPasswordResolver } from 'definitions'
+import type { GQLUserStatusResolvers } from 'definitions'
 
-const resolver: UserStatusToHasPaymentPasswordResolver = async (
+const resolver: GQLUserStatusResolvers['hasPaymentPassword'] = async (
   { id, paymentPasswordHash },
   _,
   { viewer }

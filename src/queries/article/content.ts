@@ -1,11 +1,12 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
-import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
-const resolver: ArticleToContentResolver = async (
+const resolver: GQLArticleResolvers['content'] = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, paymentService }, knex }
+  { viewer, dataSources: { articleService, paymentService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 

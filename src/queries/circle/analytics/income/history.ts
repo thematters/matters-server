@@ -1,3 +1,5 @@
+import type { GQLCircleIncomeAnalyticsResolvers } from 'definitions'
+
 import {
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -5,12 +7,17 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { CircleIncomeAnalyticsToHistoryResolver } from 'definitions'
 
-const resolver: CircleIncomeAnalyticsToHistoryResolver = async (
+const resolver: GQLCircleIncomeAnalyticsResolvers['history'] = async (
   { id, owner },
   _,
-  { dataSources: { atomService, systemService }, knex }
+  {
+    dataSources: {
+      atomService,
+      systemService,
+      connections: { knex },
+    },
+  }
 ) => {
   const [{ id: entityTypeId }, price] = await Promise.all([
     systemService.baseFindEntityTypeId(TRANSACTION_TARGET_TYPE.circlePrice),

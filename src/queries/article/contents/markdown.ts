@@ -1,10 +1,11 @@
-import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
-import { ArticleContentsToMarkdownResolver } from 'definitions'
+import type { GQLArticleContentsResolvers } from 'definitions'
 
-export const markdown: ArticleContentsToMarkdownResolver = async (
+import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
+
+export const markdown: GQLArticleContentsResolvers['markdown'] = async (
   { articleId, authorId, contentMd },
   _,
-  { viewer, dataSources: { articleService, paymentService }, knex }
+  { viewer, dataSources: { articleService, paymentService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 

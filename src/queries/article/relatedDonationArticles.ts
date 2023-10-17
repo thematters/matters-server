@@ -1,9 +1,10 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
-const resolver: ArticleToRelatedDonationArticlesResolver = async (
+const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
   { articleId },
   { input },
   { dataSources: { articleService, draftService } }
@@ -31,7 +32,7 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     const filteredArticles = chunks[index] || []
 
     return connectionFromPromisedArray(
-      draftService.dataloader.loadMany(
+      draftService.loadByIds(
         filteredArticles.map((article) => article.draftId)
       ),
       input,
@@ -50,9 +51,7 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      articles.map((article) => article.draftId)
-    ),
+    draftService.loadByIds(articles.map((article) => article.draftId)),
     input,
     totalCount
   )

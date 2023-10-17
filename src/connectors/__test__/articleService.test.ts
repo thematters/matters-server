@@ -1,13 +1,27 @@
+import type { Connections } from 'definitions'
+
 import { ArticleService, UserService } from 'connectors'
 
-const articleService = new ArticleService()
+import { genConnections, closeConnections } from './utils'
 
 let articleId: string
+let connections: Connections
+let articleService: ArticleService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  articleService = new ArticleService(connections)
+}, 50000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 test('publish', async () => {
   // publish article to IPFS
   const publishedDraft = await articleService.draftLoader.load('1')
   const { mediaHash, contentHash: dataHash } =
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await articleService.publishToIPFS(publishedDraft))!
   const articlePublished = await articleService.createArticle({
     draftId: '1',
@@ -90,10 +104,14 @@ describe('updatePinned', () => {
     )
   })
   test('success', async () => {
-    let article = await new ArticleService().updatePinned('1', '1', true)
+    let article = await new ArticleService(connections).updatePinned(
+      '1',
+      '1',
+      true
+    )
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
-    article = await new ArticleService().updatePinned('1', '1', true)
+    article = await new ArticleService(connections).updatePinned('1', '1', true)
     expect(article.pinned).toBe(true)
     expect((await getArticleFromDb('1')).pinned).toBe(true)
   })
@@ -101,7 +119,7 @@ describe('updatePinned', () => {
     await articleService.updatePinned('4', '1', true)
     await articleService.updatePinned('6', '1', true)
 
-    const userService = new UserService()
+    const userService = new UserService(connections)
     const total = await userService.totalPinnedWorks('1')
     expect(total).toBe(3)
     await expect(
@@ -115,4 +133,26 @@ test('update', async () => {
     state: 'archived',
   })
   expect(article.state).toEqual('archived')
+})
+
+test('quicksearch', async () => {
+  const { nodes, totalCount } = await articleService.searchV3({
+    key: 'test',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes.length).toBe(1)
+  expect(totalCount).toBeGreaterThan(0)
+
+  const { nodes: nodes2, totalCount: totalCount2 } =
+    await articleService.searchV3({
+      key: 'test',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+      filter: { authorId: '1' },
+    })
+  expect(nodes2.length).toBe(1)
+  expect(totalCount2).toBeLessThan(totalCount)
 })

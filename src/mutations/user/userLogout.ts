@@ -1,9 +1,10 @@
-import { clearCookie } from 'common/utils'
-import { MutationToUserLogoutResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
-const resolver: MutationToUserLogoutResolver = async (
-  root,
-  args,
+import { clearCookie } from 'common/utils'
+
+const resolver: GQLMutationResolvers['userLogout'] = async (
+  _,
+  __,
   { req, res }
 ) => {
   clearCookie({ req, res })

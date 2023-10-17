@@ -1,3 +1,5 @@
+import type { GQLTagResolvers } from 'definitions'
+
 import { chunk } from 'lodash'
 
 import { TAGS_RECOMMENDED_LIMIT } from 'common/enums'
@@ -7,9 +9,8 @@ import {
   fromConnectionArgs,
   normalizeTagInput,
 } from 'common/utils'
-import { Item, TagToRecommendedResolver } from 'definitions'
 
-const resolver: TagToRecommendedResolver = async (
+const resolver: GQLTagResolvers['recommended'] = async (
   { id },
   { input },
   { dataSources: { tagService } }
@@ -27,9 +28,7 @@ const resolver: TagToRecommendedResolver = async (
   const relatedIds = await tagService.findRelatedTags({ id })
 
   const tags = (
-    (await tagService.dataloader.loadMany(
-      relatedIds.map((tag: any) => `${tag.id}`)
-    )) as Item[]
+    await tagService.loadByIds(relatedIds.map((tag: any) => `${tag.id}`))
   ).filter(({ content }) => normalizeTagInput(content) === content)
 
   const totalCount = tags?.length ?? 0
@@ -47,9 +46,7 @@ const resolver: TagToRecommendedResolver = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.dataloader.loadMany(
-        filteredTags.map((tag: any) => `${tag.id}`)
-      ),
+      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
       input,
       totalCount
     )

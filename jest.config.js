@@ -10,11 +10,10 @@ module.exports = {
     '^definitions(.*)$': '<rootDir>/src/definitions$1',
     '^mutations(.*)$': '<rootDir>/src/mutations$1',
     '^queries(.*)$': '<rootDir>/src/queries$1',
+    '^@root(.*)$': '<rootDir>/$1',
   },
   testPathIgnorePatterns: ['/node_modules/'],
   globalSetup: '<rootDir>/db/globalTestSetup.js',
-  globalTeardown: '<rootDir>/db/globalTestTeardown.js',
-  setupFilesAfterEnv: ['<rootDir>/db/afterEnvTestSetup.js'],
   coverageDirectory: './coverage/',
   collectCoverage: true,
   globals: {

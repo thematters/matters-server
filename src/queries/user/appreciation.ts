@@ -1,10 +1,15 @@
+import type {
+  GQLAppreciationResolvers,
+  GQLAppreciationPurpose,
+  Draft,
+} from 'definitions'
+
 import { camelCase } from 'lodash'
 
 import { APPRECIATION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { i18n } from 'common/utils/i18n'
-import { GQLAppreciationTypeResolver } from 'definitions'
 
 const logger = getLogger('query-appreciation')
 
@@ -41,13 +46,15 @@ const trans = {
   }),
 }
 
-export const Appreciation: GQLAppreciationTypeResolver = {
-  purpose: ({ purpose }) => camelCase(purpose),
+export const Appreciation: GQLAppreciationResolvers = {
+  purpose: ({ purpose }) => camelCase(purpose) as GQLAppreciationPurpose,
   content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:
       case APPRECIATION_PURPOSE.superlike:
-        const node = await articleService.draftLoader.load(trx.referenceId)
+        const node = await articleService.draftLoader.load(
+          trx.referenceId as string
+        )
         if (!node) {
           throw new ArticleNotFoundError(
             'reference article linked draft not found'
@@ -76,11 +83,11 @@ export const Appreciation: GQLAppreciationTypeResolver = {
     }
   },
   sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.dataloader.load(trx.senderId) : null,
+    trx.senderId ? userService.loadById(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
+    userService.loadById(trx.recipientId),
   target: (trx, _, { dataSources: { articleService } }) =>
     trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId
-      ? articleService.draftLoader.load(trx.referenceId)
+      ? (articleService.draftLoader.load(trx.referenceId) as Promise<Draft>)
       : null,
 }

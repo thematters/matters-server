@@ -1,11 +1,12 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { ArticleToReplyToDonatorResolver } from 'definitions'
 
-const resolver: ArticleToReplyToDonatorResolver = async (
+const resolver: GQLArticleResolvers['replyToDonator'] = async (
   { authorId, articleId, replyToDonator },
   _,
   { viewer, dataSources }
@@ -16,7 +17,7 @@ const resolver: ArticleToReplyToDonatorResolver = async (
 
   const isAuthor = viewer.id === authorId
   const isDonator = await _isDonator(viewer.id, articleId, dataSources)
-  return isAuthor || isDonator ? replyToDonator : null
+  return isAuthor || isDonator ? replyToDonator ?? null : null
 }
 
 const _isDonator = async (

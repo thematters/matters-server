@@ -1,28 +1,32 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import {
+  MINUTE,
+  VERIFICATION_CODE_EXPIRED_AFTER,
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_DOMAIN_WHITELIST,
+  VERIFICATION_CODE_TYPE,
+  USER_STATE,
 } from 'common/enums'
+import { isProd } from 'common/environment'
 import {
   AuthenticationError,
   EmailExistsError,
   ForbiddenError,
   EmailNotFoundError,
   UserInputError,
+  ForbiddenByStateError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { extractRootDomain } from 'common/utils'
-import { GCP } from 'connectors'
-import {
-  GQLVerificationCodeType,
-  MutationToSendVerificationCodeResolver,
-} from 'definitions'
+import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
+import { Passphrases } from 'connectors/passphrases'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
-const resolver: MutationToSendVerificationCodeResolver = async (
+const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl } },
+  { input: { email: rawEmail, type, token, redirectUrl, language } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -33,30 +37,31 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     )
   }
 
-  let user
+  const user = await userService.findByEmail(email)
+
+  if (user && user.state === USER_STATE.archived) {
+    throw new ForbiddenByStateError('email has been archived')
+  }
 
   // register check
-  if (type === GQLVerificationCodeType.register) {
+  if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
-    user = await userService.findByEmail(email)
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
 
-    // check token for Turing test
-    const gcp = new GCP()
-    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
     }
   }
 
   if (
-    type === GQLVerificationCodeType.payment_password_reset ||
-    type === GQLVerificationCodeType.password_reset ||
-    type === GQLVerificationCodeType.email_reset
+    type === VERIFICATION_CODE_TYPE.payment_password_reset ||
+    type === VERIFICATION_CODE_TYPE.password_reset ||
+    type === VERIFICATION_CODE_TYPE.email_reset ||
+    type === VERIFICATION_CODE_TYPE.email_verify
   ) {
-    user = await userService.findByEmail(email)
     if (!user) {
       throw new EmailNotFoundError('cannot find email')
     }
@@ -128,12 +133,33 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   }
 
   // insert record
-  const { code } = await userService.createVerificationCode({
-    userId: viewer.id,
-    email,
-    type,
-    strong: !!redirectUrl, // strong random code for link
-  })
+  let code = ''
+  const isEmailOTP = type === 'email_otp'
+
+  if (isEmailOTP) {
+    // generate passpharse for email OTP
+    const passphrases = new Passphrases()
+    code = (
+      await passphrases.generate({
+        payload: {
+          email,
+          // include userId to prevent login to other user's account
+          // if email is changed
+          ...(user ? { userId: user.id } : {}),
+        },
+        expiresInMinutes:
+          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE * 3) / MINUTE,
+      })
+    ).join('-')
+  } else {
+    const result = await userService.createVerificationCode({
+      userId: viewer.id,
+      email,
+      type,
+      strong: !!redirectUrl, // strong random code for link
+    })
+    code = result.code
+  }
 
   // send verification email
   notificationService.mail.sendVerificationCode({
@@ -142,9 +168,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     code,
     redirectUrl,
     recipient: {
-      displayName: user && user.displayName,
+      displayName: (user && user.displayName) ?? null,
     },
-    language: viewer.language,
+    language: language || viewer.language,
   })
 
   return true

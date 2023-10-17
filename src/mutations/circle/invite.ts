@@ -1,3 +1,5 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import {
@@ -7,6 +9,7 @@ import {
   INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
+  VERIFICATION_CODE_TYPE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -20,13 +23,11 @@ import {
   generateRegisterRedirectUrl,
   makeUserName,
 } from 'common/utils'
-import { redis } from 'connectors'
-import { GQLVerificationCodeType, MutationToInviteResolver } from 'definitions'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
-const resolver: MutationToInviteResolver = async (
-  root,
+const resolver: GQLMutationResolvers['invite'] = async (
+  _,
   { input: { invitees, freePeriod, circleId } },
   {
     dataSources: {
@@ -34,6 +35,7 @@ const resolver: MutationToInviteResolver = async (
       paymentService,
       notificationService,
       userService,
+      connections: { redis },
     },
     viewer,
   }
@@ -102,8 +104,7 @@ const resolver: MutationToInviteResolver = async (
       ? (
           await atomService.findFirst({
             table: 'user',
-            where: { email },
-            whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
+            where: { email, state: USER_STATE.active },
           })
         )?.id
       : userId
@@ -169,16 +170,16 @@ const resolver: MutationToInviteResolver = async (
     const recipient = await atomService.findFirst({
       table: 'user',
       where: {
+        state: USER_STATE.active,
         ...(userId ? { id: userId } : { email }),
       },
-      whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
     })
 
     // if user not found by id and email, then generate code
     if (!recipient && email) {
       codeObject = await userService.createVerificationCode({
         email,
-        type: GQLVerificationCodeType.register,
+        type: VERIFICATION_CODE_TYPE.register,
         strong: true,
         expiredAt: new Date(
           Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER

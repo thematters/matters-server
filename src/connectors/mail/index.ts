@@ -10,11 +10,12 @@ class MailService {
     this.aws = aws
   }
 
-  send = async (params: MailDataRequired, express = false) =>
+  send = async (params: MailDataRequired, express = false) => {
     this.aws.sqsSendMessage({
       messageBody: params,
       queueUrl: express ? QUEUE_URL.expressMail : QUEUE_URL.mail,
     })
+  }
 }
 
 export const mailService = new MailService()

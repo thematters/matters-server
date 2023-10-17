@@ -1,7 +1,8 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { CircleToPinnedBroadcastResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToPinnedBroadcastResolver = async (
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+
+const resolver: GQLCircleResolvers['pinnedBroadcast'] = async (
   { id },
   _,
   { dataSources: { atomService } }

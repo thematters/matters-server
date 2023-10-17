@@ -1,4 +1,4 @@
-import type { MutationToReorderCollectionArticlesResolver } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
 import {
@@ -8,7 +8,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToReorderCollectionArticlesResolver = async (
+const resolver: GQLMutationResolvers['reorderCollectionArticles'] = async (
   _,
   { input: { collection: globalId, moves: rawMoves } },
   { dataSources: { collectionService }, viewer }

@@ -1,8 +1,8 @@
-import _difference from 'lodash/difference'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import type { GQLMutationResolvers } from 'definitions'
 
-import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
+import _some from 'lodash/some'
+
+import { USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -12,20 +12,11 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteArticlesTagsResolver } from 'definitions'
 
-const resolver: MutationToDeleteArticlesTagsResolver = async (
+const resolver: GQLMutationResolvers['deleteArticlesTags'] = async (
   root,
   { input: { id, articles } },
-  {
-    viewer,
-    dataSources: {
-      articleService,
-      notificationService,
-      tagService,
-      userService,
-    },
-  }
+  { viewer, dataSources: { tagService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -64,23 +55,6 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
     tagId: dbId,
   })
 
-  // trigger notification for deleting article tag
-  for (const articleId of deleteIds) {
-    const article = await articleService.baseFindById(articleId)
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_tag_has_been_removed,
-      recipientId: article.authorId,
-      actorId: viewer.id,
-      entities: [
-        { type: 'target', entityTable: 'article', entity: article },
-        {
-          type: 'tag',
-          entityTable: 'tag',
-          entity: tag,
-        },
-      ],
-    })
-  }
   return tag
 }
 

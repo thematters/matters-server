@@ -1,10 +1,16 @@
-import { INVITATION_STATE } from 'common/enums'
-import { CircleToInvitedByResolver } from 'definitions'
+import type { GQLCircleResolvers } from 'definitions'
 
-const resolver: CircleToInvitedByResolver = async (
+import { INVITATION_STATE } from 'common/enums'
+
+const resolver: GQLCircleResolvers['invitedBy'] = async (
   { id },
   _,
-  { knex, viewer }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+    viewer,
+  }
 ) => {
   if (!viewer.id) {
     return null

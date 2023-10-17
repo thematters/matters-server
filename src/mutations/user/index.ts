@@ -5,6 +5,7 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
+import emailLogin from './emailLogin'
 import generateLikerId from './generateLikerId'
 import generateSigningMessage from './generateSigningMessage'
 import migration from './migration'
@@ -17,6 +18,10 @@ import resetPassword from './resetPassword'
 import resetWallet from './resetWallet'
 import sendVerificationCode from './sendVerificationCode'
 import setCurrency from './setCurrency'
+import setEmail from './setEmail'
+import setPassword from './setPassword'
+import setUserName from './setUserName'
+import { socialLogin, addSocialLogin, removeSocialLogin } from './socialLogin'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
@@ -30,7 +35,8 @@ import updateUserState from './updateUserState'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
 import userRegister from './userRegister'
-import walletLogin from './walletLogin'
+import verifyEmail from './verifyEmail'
+import { walletLogin, addWalletLogin, removeWalletLogin } from './walletLogin'
 
 export default {
   Mutation: {
@@ -40,8 +46,11 @@ export default {
     changeEmail,
     userRegister,
     userLogin,
+    emailLogin,
     userLogout,
     walletLogin,
+    addWalletLogin,
+    removeWalletLogin,
     resetWallet,
     generateLikerId,
     generateSigningMessage,
@@ -57,6 +66,9 @@ export default {
     clearSearchHistory,
     updateUserState,
     updateUserRole,
+    setEmail,
+    setUserName,
+    setPassword,
     refreshIPNSFeed,
     migration,
     addCredit,
@@ -67,5 +79,9 @@ export default {
     unbindLikerId,
     claimLogbooks,
     putFeaturedTags,
+    socialLogin,
+    addSocialLogin,
+    removeSocialLogin,
+    verifyEmail,
   },
 }

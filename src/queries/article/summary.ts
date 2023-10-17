@@ -1,11 +1,12 @@
+import type { GQLArticleResolvers } from 'definitions'
+
 import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE } from 'common/enums'
-import { ArticleToSummaryResolver } from 'definitions'
 
 import { type as accessTypeResolver } from './access/type'
 
-const resolver: ArticleToSummaryResolver = async (
+const resolver: GQLArticleResolvers['summary'] = async (
   parent,
   args,
   context,

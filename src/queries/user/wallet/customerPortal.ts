@@ -1,10 +1,16 @@
-import { PAYMENT_PROVIDER, PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
-import { Customer, WalletToCustomerPortalResolver } from 'definitions'
+import type { Customer, GQLWalletResolvers } from 'definitions'
 
-const resolver: WalletToCustomerPortalResolver = async (
+import { PAYMENT_PROVIDER, PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
+
+const resolver: GQLWalletResolvers['customerPortal'] = async (
   { id },
   _,
-  { dataSources: { paymentService }, knex }
+  {
+    dataSources: {
+      paymentService,
+      connections: { knex },
+    },
+  }
 ) => {
   const where = {
     'csi.user_id': id,
@@ -49,7 +55,9 @@ const resolver: WalletToCustomerPortalResolver = async (
   }
 
   const customerId = customer.customerId
-  return paymentService.stripe.getCustomerPortal({ customerId })
+  return paymentService.stripe.getCustomerPortal({
+    customerId,
+  }) as Promise<string>
 }
 
 export default resolver

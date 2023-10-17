@@ -1,7 +1,8 @@
-import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-import { OSSToRestrictedUsersResolver } from 'definitions'
+import type { GQLOssResolvers } from 'definitions'
 
-export const restrictedUsers: OSSToRestrictedUsersResolver = async (
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
+
+export const restrictedUsers: GQLOssResolvers['restrictedUsers'] = async (
   _,
   { input },
   { dataSources: { userService } }

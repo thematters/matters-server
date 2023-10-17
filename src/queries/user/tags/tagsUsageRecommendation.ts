@@ -1,11 +1,19 @@
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { UserToTagsResolver } from 'definitions'
+import type { GQLUserResolvers } from 'definitions'
 
-const resolver: UserToTagsResolver = async (
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+  connectionFromArray,
+} from 'common/utils'
+
+const resolver: GQLUserResolvers['tags'] = async (
   { id },
   { input },
   { dataSources: { tagService } }
 ) => {
+  if (id === null) {
+    return connectionFromArray([], input)
+  }
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 10 })
 
   const totalCount = await tagService.findTotalTagsByAuthorUsage(id)
@@ -16,7 +24,7 @@ const resolver: UserToTagsResolver = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(
+    tagService.loadByIds(
       items.filter((item: any) => item?.id).map((item: any) => `${item.id}`)
     ),
     input,

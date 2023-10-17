@@ -1,6 +1,6 @@
-import { ArticleToRevisionCountResolver } from 'definitions'
+import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: ArticleToRevisionCountResolver = async (
+const resolver: GQLArticleResolvers['revisionCount'] = async (
   { articleId },
   _,
   { dataSources: { articleService } }

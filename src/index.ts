@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express, { RequestHandler } from 'express'
 import helmet from 'helmet'
@@ -7,7 +6,6 @@ import requestIp from 'request-ip'
 import { v4 } from 'uuid'
 
 import { CORS_OPTIONS, LOGGING_CONTEXT_KEY } from 'common/enums'
-import { environment } from 'common/environment'
 import { contextStorage, LoggingContextKey } from 'common/logger'
 
 import * as routes from './routes'
@@ -15,18 +13,6 @@ import * as routes from './routes'
   /**
    * Init
    */
-
-  // Sentry
-  Sentry.init({
-    dsn: environment.sentryDsn,
-    sampleRate: 0.1,
-    ignoreErrors: [
-      'ActionLimitExceededError',
-      'ArticleNotFoundError',
-      'ForbiddenError',
-      'ForbiddenByStateError',
-    ],
-  })
 
   // Express
   const PORT = 4000
@@ -41,6 +27,8 @@ import * as routes from './routes'
     const traceId = req.header('x-trace-id')
     const context = new Map<LoggingContextKey, string>()
     context.set(LOGGING_CONTEXT_KEY.requestId, traceId ?? v4())
+    context.set(LOGGING_CONTEXT_KEY.ip, requestIp.getClientIp(req) ?? '')
+    context.set(LOGGING_CONTEXT_KEY.userAgent, req.header('user-agent') ?? '')
     contextStorage.enterWith(context)
     next()
   })

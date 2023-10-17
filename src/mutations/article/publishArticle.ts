@@ -1,24 +1,25 @@
+import type { GQLMutationResolvers } from 'definitions'
+
 import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
-  AuthenticationError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue'
-import { MutationToPublishArticleResolver } from 'definitions'
 
-const resolver: MutationToPublishArticleResolver = async (
+const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
   { input: { id, iscnPublish } },
-  { viewer, dataSources: { draftService }, knex }
-) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+  {
+    viewer,
+    dataSources: {
+      draftService,
+      queues: { publicationQueue },
+    },
   }
-
+) => {
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
       viewer.state
@@ -30,10 +31,13 @@ const resolver: MutationToPublishArticleResolver = async (
   if (!viewer.likerId) {
     throw new ForbiddenError('user has no liker id')
   }
+  if (!viewer.userName) {
+    throw new ForbiddenError('user has no username')
+  }
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const draft = await draftService.dataloader.load(draftDBId)
+  const draft = await draftService.loadById(draftDBId)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
@@ -58,7 +62,6 @@ const resolver: MutationToPublishArticleResolver = async (
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
     iscnPublish,
-    updatedAt: knex.fn.now(),
   })
 
   // add job to queue

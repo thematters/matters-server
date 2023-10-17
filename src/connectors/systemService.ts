@@ -1,3 +1,11 @@
+import type {
+  ItemData,
+  SkippedListItemType,
+  Viewer,
+  Connections,
+} from 'definitions'
+
+import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
 import {
@@ -6,24 +14,19 @@ import {
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
-import {
-  GQLFeatureFlag,
-  GQLFeatureName,
-  ItemData,
-  SkippedListItemType,
-  Viewer,
-} from 'definitions'
 
 const logger = getLogger('service-system')
 
 export class SystemService extends BaseService {
   featureFlagTable: string
 
-  constructor() {
-    super('noop')
+  public constructor(connections: Connections) {
+    super('noop', connections)
 
     this.featureFlagTable = 'feature_flag'
   }
@@ -33,7 +36,7 @@ export class SystemService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  frequentSearch = async ({
+  public frequentSearch = async ({
     key = '',
     first = 5,
   }: {
@@ -75,21 +78,20 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
 
-  getFeatureFlags = () => this.knex(this.featureFlagTable).select('*').limit(50)
+  public getFeatureFlags = () =>
+    this.knex(this.featureFlagTable).select('*').limit(50)
 
-  getFeatureFlag = async (
-    name: GQLFeatureName | keyof typeof GQLFeatureName
-  ) => {
+  public getFeatureFlag = async (name: keyof typeof FEATURE_NAME) => {
     const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
     return featureFlag
   }
 
-  setFeatureFlag = async ({
+  public setFeatureFlag = async ({
     name,
     flag,
   }: {
-    name: GQLFeatureName | keyof typeof GQLFeatureName
-    flag: GQLFeatureFlag | keyof typeof GQLFeatureFlag
+    name: keyof typeof FEATURE_NAME
+    flag: keyof typeof FEATURE_FLAG
   }) => {
     const [featureFlag] = await this.knex
       .where({ name })
@@ -103,15 +105,18 @@ export class SystemService extends BaseService {
     return featureFlag
   }
 
-  isFeatureEnabled = async (flag: GQLFeatureFlag, viewer: Viewer) => {
+  public isFeatureEnabled = async (
+    flag: keyof typeof FEATURE_FLAG,
+    viewer: Viewer
+  ) => {
     switch (flag) {
-      case GQLFeatureFlag.on: {
+      case FEATURE_FLAG.on: {
         return true
       }
-      case GQLFeatureFlag.admin: {
+      case FEATURE_FLAG.admin: {
         return viewer.role === USER_ROLE.admin
       }
-      case GQLFeatureFlag.seeding: {
+      case FEATURE_FLAG.seeding: {
         if (!('id' in viewer)) {
           return false
         }
@@ -141,7 +146,7 @@ export class SystemService extends BaseService {
   /**
    * Create asset and asset_map
    */
-  createAssetAndAssetMap = async (
+  public createAssetAndAssetMap = async (
     asset: { [key: string]: any },
     entityTypeId: string,
     entityId: string
@@ -163,9 +168,13 @@ export class SystemService extends BaseService {
   /**
    * Find asset by a given uuid
    */
-  findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')
+  public findAssetByUUID = async (uuid: string) =>
+    this.baseFindByUUID(uuid, 'asset')
 
-  findAssetOrCreateByPath = async (
+  public findAssetByPath = async (path: string) =>
+    this.knex('asset').where('path', path).first()
+
+  public findAssetOrCreateByPath = async (
     // path: string,
     data: ItemData,
     entityTypeId: string,
@@ -173,21 +182,25 @@ export class SystemService extends BaseService {
   ) =>
     this.knex.transaction(async (trx) => {
       // const [newAsset] = await trx.find(asset).into('asset').returning('*')
-      const { path, type, authorId, uuid } = data
+      const { path, type, authorId, uuid, ...rest } = data
       let asset = await trx('asset')
         .select()
         .where({ path, type, authorId })
         .first()
+      let updatedAsset
       if (!asset) {
         ;[asset] = await trx
           .insert({
-            path,
-            type,
-            authorId,
+            ...data,
             uuid: uuid || v4(),
           })
           .into('asset')
           .returning('*')
+      } else {
+        if (Object.keys(rest).length > 0) {
+          // if rest is not empty
+          updatedAsset = this.baseUpdate(asset.id, rest, 'asset', trx)
+        }
       }
 
       const assetMData = {
@@ -204,20 +217,22 @@ export class SystemService extends BaseService {
         await trx.insert(assetMData).into('asset_map')
       }
 
-      return asset
+      return updatedAsset ?? asset
     })
 
   /**
    * Find assets by given uuids
    */
-  findAssetByUUIDs = async (uuids: string[]) =>
+  public findAssetByUUIDs = async (uuids: string[]) =>
     this.baseFindByUUIDs(uuids, 'asset')
 
   /**
    * Gen the url of an asset according asset type.
    */
-  genAssetUrl = (asset: { path: string; type: string }): string => {
-    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(asset.type)
+  public genAssetUrl = (asset: { path: string; type: string }): string => {
+    const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(
+      asset.type as any
+    )
     return isImageType
       ? this.cfsvc.genUrl(asset.path)
       : `${this.aws.s3Endpoint}/${asset.path}`
@@ -225,7 +240,7 @@ export class SystemService extends BaseService {
   /**
    * Find the url of an asset by a given id.
    */
-  findAssetUrl = async (id: string): Promise<string | null> => {
+  public findAssetUrl = async (id: string): Promise<string | null> => {
     const result = await this.baseFindById(id, 'asset')
     return result ? this.genAssetUrl(result) : null
   }
@@ -233,7 +248,7 @@ export class SystemService extends BaseService {
   /**
    * Find asset and asset map by given entity type and id
    */
-  findAssetAndAssetMap = async ({
+  public findAssetAndAssetMap = async ({
     entityTypeId,
     entityId,
     assetType,
@@ -241,23 +256,28 @@ export class SystemService extends BaseService {
     entityTypeId: string
     entityId: string
     assetType?: keyof typeof ASSET_TYPE
-  }) => {
-    const query = this.knex('asset_map')
-      .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
+  }) =>
+    this.knex('asset_map')
+      .select(
+        'asset_map.*',
+        'uuid',
+        'path',
+        'type',
+        'asset.draft',
+        'created_at'
+      )
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
-
-    if (assetType) {
-      query.andWhere({ type: assetType })
-    }
-
-    return query
-  }
+      .modify((builder: Knex.QueryBuilder) => {
+        if (assetType) {
+          builder.andWhere({ type: assetType })
+        }
+      })
 
   /**
    * Swap entity of asset map by given ids
    */
-  swapAssetMapEntity = async (
+  public swapAssetMapEntity = async (
     assetMapIds: string[],
     entityTypeId: string,
     entityId: string
@@ -270,7 +290,7 @@ export class SystemService extends BaseService {
   /**
    * Copy entity of asset map by given ids
    */
-  copyAssetMapEntities = async ({
+  public copyAssetMapEntities = async ({
     source,
     target,
     entityTypeId,
@@ -297,7 +317,9 @@ export class SystemService extends BaseService {
   /**
    * Delete asset and asset map by the given id:path maps
    */
-  deleteAssetAndAssetMap = async (assetPaths: { [id: string]: string }) => {
+  public deleteAssetAndAssetMap = async (assetPaths: {
+    [id: string]: string
+  }) => {
     const ids = Object.keys(assetPaths)
     const paths = Object.keys(assetPaths)
 
@@ -323,7 +345,7 @@ export class SystemService extends BaseService {
   /**
    * Find or Delete assets by given author id and types
    */
-  findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
+  public findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
     this.knex('asset').whereIn('type', types).andWhere({ authorId })
 
   /*********************************
@@ -331,10 +353,10 @@ export class SystemService extends BaseService {
    *            Log Record         *
    *                               *
    *********************************/
-  findLogRecord = async (where: { [key: string]: string | boolean }) =>
+  public findLogRecord = async (where: { [key: string]: string | boolean }) =>
     this.knex.select().from('log_record').where(where).first()
 
-  logRecord = async (data: { userId: string; type: string }) =>
+  public logRecord = async (data: { userId: string; type: string }) =>
     this.baseUpdateOrCreate({
       where: data,
       data: { readAt: new Date(), ...data },
@@ -346,7 +368,7 @@ export class SystemService extends BaseService {
    *           Skipped             *
    *                               *
    *********************************/
-  findSkippedItems = async ({
+  public findSkippedItems = async ({
     types,
     skip,
     take,
@@ -369,10 +391,10 @@ export class SystemService extends BaseService {
     return query
   }
 
-  findSkippedItem = async (type: SkippedListItemType, value: string) =>
+  public findSkippedItem = async (type: SkippedListItemType, value: string) =>
     this.knex('blocklist').where({ type, value }).first()
 
-  countSkippedItems = async ({ types }: { types: string[] }) => {
+  public countSkippedItems = async ({ types }: { types: string[] }) => {
     const result = await this.knex('blocklist')
       .whereIn('type', types)
       .count()
@@ -381,7 +403,7 @@ export class SystemService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  createSkippedItem = async ({
+  public createSkippedItem = async ({
     type,
     value,
     uuid,
@@ -410,7 +432,7 @@ export class SystemService extends BaseService {
     })
   }
 
-  saveAgentHash = async (value: string, note?: string) => {
+  public saveAgentHash = async (value: string, note?: string) => {
     if (!value) {
       return
     }
@@ -422,7 +444,7 @@ export class SystemService extends BaseService {
     })
   }
 
-  updateSkippedItem = async (
+  public updateSkippedItem = async (
     where: Record<string, any>,
     data: Record<string, any>
   ) => {

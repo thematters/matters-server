@@ -1,3 +1,5 @@
+import type { GQLRecommendationResolvers } from 'definitions'
+
 import _chunk from 'lodash/chunk'
 import _times from 'lodash/times'
 
@@ -7,7 +9,6 @@ import {
   fromConnectionArgs,
   indexToCursor,
 } from 'common/utils'
-import { RecommendationToFollowingResolver } from 'definitions'
 
 import {
   makeBaseActivityQuery,
@@ -25,7 +26,7 @@ export enum RecommendationSource {
   UserSubscription = 'UserSubscription',
 }
 
-const resolver: RecommendationToFollowingResolver = async (
+const resolver: GQLRecommendationResolvers['following'] = async (
   { id: userId },
   { input },
   {
@@ -35,8 +36,8 @@ const resolver: RecommendationToFollowingResolver = async (
       tagService,
       atomService,
       articleService,
+      connections: { knexRO },
     },
-    knex,
   }
 ) => {
   if (!userId) {
@@ -47,8 +48,8 @@ const resolver: RecommendationToFollowingResolver = async (
 
   // Retrieve activities
   const [count, activities] = await Promise.all([
-    makeBaseActivityQuery({ userId }).count().first(),
-    makeBaseActivityQuery({ userId })
+    makeBaseActivityQuery({ userId }, knexRO).count().first(),
+    makeBaseActivityQuery({ userId }, knexRO)
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take),
@@ -90,19 +91,19 @@ const resolver: RecommendationToFollowingResolver = async (
   const recommenders = [
     {
       source: RecommendationSource.ReadArticlesTags,
-      query: () => makeReadArticlesTagsActivityQuery({ userId }),
+      query: () => makeReadArticlesTagsActivityQuery({ userId }, knexRO),
     },
     {
       source: RecommendationSource.UserFollowing,
-      query: () => makeUserFollowUserActivityQuery({ userId }),
+      query: () => makeUserFollowUserActivityQuery({ userId }, knexRO),
     },
     {
       source: RecommendationSource.UserDonation,
-      query: () => makeUserDonateArticleActivityQuery({ userId }),
+      query: () => makeUserDonateArticleActivityQuery({ userId }, knexRO),
     },
     {
       source: RecommendationSource.UserSubscription,
-      query: () => makeUserSubscribeCircleActivityQuery({ userId }),
+      query: () => makeUserSubscribeCircleActivityQuery({ userId }, knexRO),
     },
   ]
 
@@ -129,7 +130,7 @@ const resolver: RecommendationToFollowingResolver = async (
     // append circle activity
     const circleTake = 1
     const circleSkip = (Math.ceil(position / step) - 1) * circleTake
-    const circleActivities = await makeCircleActivityQuery({ userId })
+    const circleActivities = await makeCircleActivityQuery({ userId }, knexRO)
       .orderBy('created_at', 'desc')
       .offset(circleSkip)
       .limit(circleTake)
