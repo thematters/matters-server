@@ -71,7 +71,6 @@ const _resolver: Exclude<
     viewer,
     dataSources: {
       userService,
-      systemService,
       connections: { redis },
     },
     req,
@@ -153,8 +152,6 @@ const _resolver: Exclude<
         throw err.errors[0]
       }
     }
-
-    systemService.saveAgentHash(viewer.agentHash || '', email)
 
     // set email verfied if not and login user
     if (user.emailVerified === false) {

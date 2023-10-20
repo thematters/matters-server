@@ -251,7 +251,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
     })
   }
 
-  if (input.displayName) {
+  if (input.displayName && viewer.displayName !== input.displayName) {
     auditLog({
       actorId: viewer.id,
       action: AUDIT_LOG_ACTION.updateDisplayName,
