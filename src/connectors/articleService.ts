@@ -408,14 +408,19 @@ export class ArticleService extends BaseService {
     authorId: string,
     {
       columns = ['draft_id'],
-      showAll = false,
-      orderBy = [{ column: 'article.id', order: 'desc' }],
+      state,
+      orderBy,
       skip,
       take,
     }: {
       columns?: string[]
-      showAll?: boolean
-      orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
+      state?: keyof typeof ARTICLE_STATE
+      orderBy?:
+        | 'newest'
+        | 'mostReaders'
+        | 'mostAppreciations'
+        | 'mostComments'
+        | 'mostDonations'
       skip?: number
       take?: number
     } = {}
@@ -425,16 +430,16 @@ export class ArticleService extends BaseService {
       .from(this.table)
       .where({
         authorId,
-        ...(showAll
-          ? null
-          : {
-              state: ARTICLE_STATE.active,
-            }),
       })
       .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
       .modify((builder: Knex.QueryBuilder) => {
         // always as last orderBy
-        builder.orderBy(orderBy)
+        if (state) {
+          builder.andWhere({ state })
+        }
+        if (orderBy === 'newest') {
+          builder.orderBy([{ column: 'article.id', order: 'desc' }])
+        }
 
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
