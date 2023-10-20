@@ -408,13 +408,13 @@ export class ArticleService extends BaseService {
     authorId: string,
     {
       columns = ['draft_id'],
-      state,
-      orderBy,
+      orderBy = 'newest',
+      state = 'active',
       skip,
       take,
     }: {
       columns?: string[]
-      state?: keyof typeof ARTICLE_STATE
+      state?: keyof typeof ARTICLE_STATE | null
       orderBy?:
         | 'newest'
         | 'mostReaders'
@@ -425,7 +425,7 @@ export class ArticleService extends BaseService {
       take?: number
     } = {}
   ) =>
-    this.knex
+    this.knexRO
       .select(columns)
       .from(this.table)
       .where({

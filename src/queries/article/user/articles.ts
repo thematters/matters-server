@@ -13,8 +13,7 @@ const resolver: GQLUserResolvers['articles'] = async (
 
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
-  const state =
-    input?.filter?.state ?? (isViewer || isAdmin) ? undefined : 'active'
+  const state = input?.filter?.state ?? (isViewer || isAdmin) ? null : 'active'
 
   const articles = await articleService.findByAuthor(id, {
     state,
