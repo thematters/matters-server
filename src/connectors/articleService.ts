@@ -409,18 +409,12 @@ export class ArticleService extends BaseService {
     {
       columns = ['draft_id'],
       showAll = false,
-      tagIds,
-      inRangeStart,
-      inRangeEnd,
       orderBy = [{ column: 'article.id', order: 'desc' }],
       skip,
       take,
     }: {
       columns?: string[]
       showAll?: boolean
-      tagIds?: string[]
-      inRangeStart?: string
-      inRangeEnd?: string
       orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
       skip?: number
       take?: number
@@ -439,23 +433,6 @@ export class ArticleService extends BaseService {
       })
       .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
       .modify((builder: Knex.QueryBuilder) => {
-        if (Array.isArray(tagIds) && tagIds.length > 0) {
-          builder
-            .join('article_tag AS at', 'at.article_id', 'article.id')
-            .andWhere('tag_id', 'in', tagIds)
-        }
-        if (inRangeStart != null && inRangeEnd != null) {
-          // neither null nor undefined
-          builder.andWhereBetween('article.created_at', [
-            inRangeStart,
-            inRangeEnd,
-          ])
-        } else if (inRangeStart != null) {
-          builder.andWhere('article.created_at', '>=', inRangeStart)
-        } else if (inRangeEnd != null) {
-          builder.andWhere('article.created_at', '<', inRangeEnd)
-        }
-
         // always as last orderBy
         builder.orderBy(orderBy)
 

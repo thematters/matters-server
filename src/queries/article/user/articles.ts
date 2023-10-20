@@ -1,10 +1,6 @@
 import type { GQLUserResolvers } from 'definitions'
 
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  fromGlobalId,
-} from 'common/utils'
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 
 const resolver: GQLUserResolvers['articles'] = async (
   { id },
@@ -18,14 +14,10 @@ const resolver: GQLUserResolvers['articles'] = async (
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
 
-  const tagIds = input.filter?.tagIds?.map((tagId) => fromGlobalId(tagId).id)
   const articles = await articleService.findByAuthor(id, {
     // filter,
     showAll: isViewer || isAdmin,
-    tagIds,
     orderBy: [{ column: 'article.id', order: 'desc' }],
-    inRangeStart: input.filter?.inRangeStart,
-    inRangeEnd: input.filter?.inRangeEnd,
   })
 
   return connectionFromPromisedArray(

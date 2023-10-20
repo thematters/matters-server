@@ -378,6 +378,12 @@ type Article implements Node & PinnableWork {
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
+  """Total number of donation recieved of this article."""
+  donationCount: Int!
+
+  """Total number of readers of this article."""
+  readerCount: Int!
+
   """Subscribers of this article."""
   subscribers(input: ConnectionArgs!): UserConnection!
 
@@ -987,7 +993,7 @@ type User implements Node {
   recommendation: Recommendation!
 
   """Articles authored by current user."""
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: UserArticlesInput!): ArticleConnection!
 
   """Topics created by current user."""
   topics(input: TopicInput!): TopicConnection!
@@ -3052,6 +3058,25 @@ input SetPasswordInput {
 
 input RemoveSocialLoginInput {
   type: SocialAccountType!
+}
+
+input UserArticlesInput {
+  after: String
+  first: Int
+  sort: UserArticlesSort = newest
+  filter: UserArticlesFilter
+}
+
+enum UserArticlesSort {
+  newest
+  mostReaders
+  mostAppreciations
+  mostComments
+  mostDonations
+}
+
+input UserArticlesFilter {
+  state: ArticleState = active
 }
 
 union Response = Article | Comment
