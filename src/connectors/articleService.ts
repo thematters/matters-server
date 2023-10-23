@@ -433,12 +433,14 @@ export class ArticleService extends BaseService {
       })
       .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
       .modify((builder: Knex.QueryBuilder) => {
-        // always as last orderBy
         if (state) {
           builder.andWhere({ state })
         }
-        if (orderBy === 'newest') {
-          builder.orderBy([{ column: 'article.id', order: 'desc' }])
+
+        switch (orderBy) {
+          case 'newest': {
+            builder.orderBy('article.id', 'desc')
+          }
         }
 
         if (skip !== undefined && Number.isFinite(skip)) {
