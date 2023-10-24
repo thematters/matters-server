@@ -49,9 +49,17 @@ test('sumAppreciation', async () => {
   expect(appreciation).toBeDefined()
 })
 
-test('findByAuthor', async () => {
-  const articles = await articleService.findByAuthor('1')
-  expect(articles.length).toBeDefined()
+describe('findByAuthor', () => {
+  test('order by created_at', async () => {
+    const articles = await articleService.findByAuthor('1')
+    expect(articles.length).toBeDefined()
+  })
+  test('order by num of readers', async () => {
+    const articles = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(articles.length).toBeDefined()
+  })
 })
 
 test('findByCommentedAuthor', async () => {

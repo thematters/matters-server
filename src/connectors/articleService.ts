@@ -425,21 +425,42 @@ export class ArticleService extends BaseService {
       take?: number
     } = {}
   ) =>
-    this.knexRO
-      .select(columns)
-      .from(this.table)
-      .where({
-        authorId,
-      })
-      .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
+    this.knexRO(
+      this.knexRO
+        .from(this.table)
+        .where({
+          authorId,
+        })
+        .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
+        .as('t1')
+    )
       .modify((builder: Knex.QueryBuilder) => {
         if (state) {
-          builder.andWhere({ state })
+          builder.andWhere({ 't1.state': state })
         }
 
         switch (orderBy) {
           case 'newest': {
-            builder.orderBy('article.id', 'desc')
+            builder.orderBy('t1.id', 'desc')
+            break
+          }
+          case 'mostReaders': {
+            builder
+              .leftJoin(
+                this.knexRO('article_ga4_data')
+                  .groupBy('article_id')
+                  .select(
+                    'article_id',
+                    this.knex.raw('SUM(total_users) as reader_count')
+                  )
+                  .as('t2'),
+                't1.id',
+                't2.article_id'
+              )
+              .orderBy([
+                { column: 't2.reader_count', order: 'desc', nulls: 'last' },
+                { column: 't1.id', order: 'desc' },
+              ])
           }
         }
 
@@ -450,6 +471,7 @@ export class ArticleService extends BaseService {
           builder.limit(take)
         }
       })
+      .select(columns)
 
   public findByTitle = async ({
     title,
