@@ -51,14 +51,24 @@ test('sumAppreciation', async () => {
 
 describe('findByAuthor', () => {
   test('order by created_at', async () => {
-    const articles = await articleService.findByAuthor('1')
-    expect(articles.length).toBeDefined()
+    const draftIds = await articleService.findByAuthor('1')
+    expect(draftIds.length).toBeDefined()
   })
   test('order by num of readers', async () => {
-    const articles = await articleService.findByAuthor('1', {
+    const draftIds = await articleService.findByAuthor('1', {
       orderBy: 'mostReaders',
     })
-    expect(articles.length).toBeDefined()
+    expect(draftIds.length).toBeDefined()
+    expect(draftIds[0].draftId).not.toBe('1')
+    await connections.knex('article_ga4_data').insert({
+      articleId: '1',
+      totalUsers: '1',
+      dateRange: '[2023-10-24,2023-10-24]',
+    })
+    const draftIds2 = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(draftIds2[0].draftId).toBe('1')
   })
 })
 
