@@ -23,6 +23,7 @@ import {
   ARTICLE_STATE,
   CIRCLE_STATE,
   COMMENT_TYPE,
+  COMMENT_STATE,
   // DEFAULT_IPNS_LIFETIME,
   MINUTE,
   QUEUE_URL,
@@ -424,8 +425,9 @@ export class ArticleService extends BaseService {
       skip?: number
       take?: number
     } = {}
-  ) =>
-    this.knexRO(
+  ) => {
+    const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
+    return this.knexRO(
       this.knexRO
         .from(this.table)
         .where({
@@ -451,16 +453,100 @@ export class ArticleService extends BaseService {
                   .groupBy('article_id')
                   .select(
                     'article_id',
-                    this.knex.raw('SUM(total_users) as reader_count')
+                    this.knex.raw('SUM(total_users) as reader_amount')
                   )
                   .as('t2'),
                 't1.id',
                 't2.article_id'
               )
               .orderBy([
-                { column: 't2.reader_count', order: 'desc', nulls: 'last' },
+                { column: 't2.reader_amount', order: 'desc', nulls: 'last' },
                 { column: 't1.id', order: 'desc' },
               ])
+            break
+          }
+          case 'mostAppreciations': {
+            builder
+              .leftJoin(
+                this.knexRO('appreciation')
+                  .whereIn('purpose', [
+                    APPRECIATION_PURPOSE.appreciate,
+                    APPRECIATION_PURPOSE.appreciateSubsidy,
+                  ])
+                  .groupBy('reference_id')
+                  .select(
+                    'reference_id',
+                    this.knex.raw('SUM(amount) as appreciation_amount')
+                  )
+                  .as('t2'),
+                't1.id',
+                't2.reference_id'
+              )
+              .orderBy([
+                {
+                  column: 't2.appreciation_amount',
+                  order: 'desc',
+                  nulls: 'last',
+                },
+                { column: 't1.id', order: 'desc' },
+              ])
+            break
+          }
+          case 'mostComments': {
+            builder
+              .leftJoin(
+                this.knexRO('comment')
+                  .where({
+                    type: COMMENT_TYPE.article,
+                    state: COMMENT_STATE.active,
+                    targetTypeId,
+                  })
+                  .groupBy('target_id')
+                  .select(
+                    'target_id',
+                    this.knex.raw('COUNT(1) as comment_count')
+                  )
+                  .as('t2'),
+                't1.id',
+                't2.target_id'
+              )
+              .orderBy([
+                {
+                  column: 't2.comment_count',
+                  order: 'desc',
+                  nulls: 'last',
+                },
+                { column: 't1.id', order: 'desc' },
+              ])
+            break
+          }
+          case 'mostDonations': {
+            builder
+              .leftJoin(
+                this.knexRO('transaction')
+                  .where({
+                    purpose: TRANSACTION_PURPOSE.donation,
+                    state: TRANSACTION_STATE.succeeded,
+                    targetType: targetTypeId,
+                  })
+                  .groupBy('target_id')
+                  .select(
+                    'target_id',
+                    this.knex.raw('COUNT(1) as donation_count')
+                  )
+                  .as('t2'),
+                't1.id',
+                't2.target_id'
+              )
+              .orderBy([
+                {
+                  column: 't2.donation_count',
+                  order: 'desc',
+                  nulls: 'last',
+                },
+                { column: 't1.id', order: 'desc' },
+              ])
+            break
           }
         }
 
@@ -472,6 +558,7 @@ export class ArticleService extends BaseService {
         }
       })
       .select(columns)
+  }
 
   public findByTitle = async ({
     title,

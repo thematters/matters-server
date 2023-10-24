@@ -70,6 +70,24 @@ describe('findByAuthor', () => {
     })
     expect(draftIds2[0].draftId).toBe('1')
   })
+  test('order by amount of appreciations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostAppreciations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of comments', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostComments',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of donations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostDonations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
 })
 
 test('findByCommentedAuthor', async () => {
