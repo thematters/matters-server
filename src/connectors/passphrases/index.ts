@@ -2,7 +2,11 @@ import axios from 'axios'
 import { ServerError } from 'oauth2-server'
 
 import { environment } from 'common/environment'
-import { CodeExpiredError, CodeInvalidError, UnknownError } from 'common/errors'
+import {
+  CodeExpiredError,
+  PasswordInvalidError,
+  UnknownError,
+} from 'common/errors'
 
 const TAKE = 6
 const WORD_CHAR_LENGTH = 5
@@ -66,7 +70,7 @@ export class Passphrases {
         throw new CodeExpiredError('passphrases expired')
       }
       if (code === 'PassphrasesMismatchError') {
-        throw new CodeInvalidError('passphrases mismatch')
+        throw new PasswordInvalidError('passphrases mismatch')
       }
 
       throw new UnknownError('unknown error')

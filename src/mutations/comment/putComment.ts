@@ -56,8 +56,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       articleService,
       notificationService,
       userService,
+      connections: { knex },
     },
-    knex,
   }
 ) => {
   if (!viewer.userName) {

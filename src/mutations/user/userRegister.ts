@@ -82,7 +82,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
 
   let newUserName
   if (userName) {
-    if (!isValidUserName(userName)) {
+    if (!isValidUserName(userName.toLowerCase())) {
       throw new NameInvalidError('invalid user name')
     }
 
@@ -98,6 +98,7 @@ const resolver: GQLMutationResolvers['userRegister'] = async (
   const newUser = await userService.create({
     ...input,
     email,
+    emailVerified: true,
     userName: newUserName.toLowerCase(),
   })
   // mark code status as used

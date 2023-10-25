@@ -5,12 +5,17 @@ import { Knex } from 'knex'
 import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
-import { readonlyKnex as knexRO } from 'connectors'
 
 export const newest: GQLRecommendationResolvers['newest'] = async (
   _,
   { input },
-  { viewer, dataSources: { draftService } }
+  {
+    viewer,
+    dataSources: {
+      draftService,
+      connections: { knexRO },
+    },
+  }
 ) => {
   const { oss = false } = input
 

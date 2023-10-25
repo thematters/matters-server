@@ -8,11 +8,13 @@ import {
   TAG_ACTION,
   USER_ACTION,
 } from 'common/enums'
-import { readonlyKnex as knexRO } from 'connectors'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 
-export const withExcludedUsers = ({ userId }: { userId: string }) =>
+export const withExcludedUsers = (
+  { userId }: { userId: string },
+  knexRO: Knex
+) =>
   knexRO.with('excluded_users', (builder) => {
     // blocked users
     builder
@@ -24,8 +26,11 @@ export const withExcludedUsers = ({ userId }: { userId: string }) =>
   })
 
 // retrieve base activities
-export const makeBaseActivityQuery = ({ userId }: { userId: string }) =>
-  withExcludedUsers({ userId })
+export const makeBaseActivityQuery = (
+  { userId }: { userId: string },
+  knexRO: Knex
+) =>
+  withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
       // retrieve UserPublishArticleActivity based on user's following user
@@ -62,8 +67,11 @@ export const makeBaseActivityQuery = ({ userId }: { userId: string }) =>
     )
 
 // retrieve circle activities
-export const makeCircleActivityQuery = ({ userId }: { userId: string }) =>
-  withExcludedUsers({ userId })
+export const makeCircleActivityQuery = (
+  { userId }: { userId: string },
+  knexRO: Knex
+) =>
+  withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
       // retrieve UserCreateCircleActivity based on user's following user
@@ -100,11 +108,14 @@ export const makeCircleActivityQuery = ({ userId }: { userId: string }) =>
     )
 
 // retrieve UserDonateArticleActivity
-export const makeUserDonateArticleActivityQuery = ({
-  userId,
-}: {
-  userId: string
-}) => {
+export const makeUserDonateArticleActivityQuery = (
+  {
+    userId,
+  }: {
+    userId: string
+  },
+  knexRO: Knex
+) => {
   const query = (builder: Knex.QueryBuilder) =>
     builder
       .select()
@@ -118,7 +129,7 @@ export const makeUserDonateArticleActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
@@ -131,18 +142,21 @@ export const makeUserDonateArticleActivityQuery = ({
         'acty.type': ActivityType.UserDonateArticleActivity,
       })
 
-  return withExcludedUsers({ userId })
+  return withExcludedUsers({ userId }, knexRO)
     .select()
     .from(query)
     .orderBy('created_at', 'desc')
 }
 
 // retrieve UserFollowUserActivity
-export const makeUserFollowUserActivityQuery = ({
-  userId,
-}: {
-  userId: string
-}) => {
+export const makeUserFollowUserActivityQuery = (
+  {
+    userId,
+  }: {
+    userId: string
+  },
+  knexRO: Knex
+) => {
   const query = (builder: Knex.QueryBuilder) =>
     builder
       .select()
@@ -156,7 +170,7 @@ export const makeUserFollowUserActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
@@ -175,7 +189,7 @@ export const makeUserFollowUserActivityQuery = ({
         'acty.type': ActivityType.UserFollowUserActivity,
       })
 
-  return withExcludedUsers({ userId })
+  return withExcludedUsers({ userId }, knexRO)
     .with('excluded_followers', (builder) => {
       builder
         .select('target_id as user_id')
@@ -188,11 +202,14 @@ export const makeUserFollowUserActivityQuery = ({
 }
 
 // retrieve UserSubscribeCircleActivity
-export const makeUserSubscribeCircleActivityQuery = ({
-  userId,
-}: {
-  userId: string
-}) => {
+export const makeUserSubscribeCircleActivityQuery = (
+  {
+    userId,
+  }: {
+    userId: string
+  },
+  knexRO: Knex
+) => {
   const query = (builder: Knex.QueryBuilder) =>
     builder
       .select()
@@ -206,7 +223,7 @@ export const makeUserSubscribeCircleActivityQuery = ({
       .select('acty.*')
       .select(
         knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id) as row_number'
+          'row_number() over (partition by node_id order by acty.id desc) as row_number'
         )
       )
       .from('action_user as au')
@@ -225,7 +242,7 @@ export const makeUserSubscribeCircleActivityQuery = ({
         'acty.type': ActivityType.UserSubscribeCircleActivity,
       })
 
-  return withExcludedUsers({ userId })
+  return withExcludedUsers({ userId }, knexRO)
     .with('excluded_circles', (builder) => {
       // following circles
       builder
@@ -250,12 +267,15 @@ export const makeUserSubscribeCircleActivityQuery = ({
 }
 
 // retrieve recommendations based on user read articles tags
-export const makeReadArticlesTagsActivityQuery = ({
-  userId,
-}: {
-  userId: string
-}) =>
-  withExcludedUsers({ userId })
+export const makeReadArticlesTagsActivityQuery = (
+  {
+    userId,
+  }: {
+    userId: string
+  },
+  knexRO: Knex
+) =>
+  withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
       knexRO

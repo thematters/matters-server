@@ -1,18 +1,78 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
-import { VERIFICATION_CODE_TYPE, AUTH_RESULT_TYPE } from 'common/enums'
-import { EmailInvalidError, PasswordInvalidError } from 'common/errors'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import {
+  AUTH_RESULT_TYPE,
+  VERIFICATION_CODE_TYPE,
+  NODE_TYPES,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+} from 'common/enums'
+import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
+import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
 
 const resolver: GQLMutationResolvers['emailLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  const passphrases = new Passphrases()
+  const isEmailOTP = passphrases.isValidPassphrases(args.input.passwordOrCode)
+  const getAction = (res: any) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? isEmailOTP
+        ? AUDIT_LOG_ACTION.emailSignupOTP
+        : AUDIT_LOG_ACTION.emailSignup
+      : isEmailOTP
+      ? AUDIT_LOG_ACTION.emailLoginOTP
+      : AUDIT_LOG_ACTION.emailLogin
+  let result
+  try {
+    result = await _resolver(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+    return result
+  } catch (err: any) {
+    const email = args.input.email.toLowerCase()
+    const user = await context.dataSources.userService.findByEmail(email)
+    auditLog({
+      actorId: user?.id || null,
+      action: isEmailOTP
+        ? user?.id
+          ? AUDIT_LOG_ACTION.emailLoginOTP
+          : AUDIT_LOG_ACTION.emailSignupOTP
+        : user?.id
+        ? AUDIT_LOG_ACTION.emailLogin
+        : AUDIT_LOG_ACTION.emailSignup,
+      status: AUDIT_LOG_STATUS.failed,
+      remark: `email: ${email} error message: ${err.message}`,
+    })
+    throw err
+  }
+}
+
+const _resolver: Exclude<
+  GQLMutationResolvers['emailLogin'],
+  undefined
+> = async (
   _,
-  { input: { email: rawEmail, passwordOrCode } },
+  { input: { email: rawEmail, passwordOrCode, language } },
   context
 ) => {
   const {
     viewer,
-    dataSources: { userService, systemService },
+    dataSources: {
+      userService,
+      connections: { redis },
+    },
     req,
     res,
   } = context
@@ -22,31 +82,39 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     throw new EmailInvalidError('invalid email address format')
   }
   const user = await userService.findByEmail(email)
+  if (user?.state === 'archived') {
+    throw new ForbiddenByStateError('email is archived')
+  }
+
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
 
+  const isE2ETest = checkIfE2ETest(email)
+
+  if (isE2ETest) {
+    throwIfE2EMagicToken(passwordOrCode)
+  }
+
   if (user === undefined) {
     // user not exist, register
-    const verifyOTP = isEmailOTP
-      ? passphrases.verify({
+    if (!isE2ETest) {
+      if (isEmailOTP) {
+        await passphrases.verify({
           payload: { email },
           passphrases: passphrases.normalize(passwordOrCode),
         })
-      : undefined
-    const verifyRegister = userService.verifyVerificationCode({
-      email,
-      type: VERIFICATION_CODE_TYPE.register,
-      code: passwordOrCode,
-    })
-
-    try {
-      await Promise.any([verifyOTP, verifyRegister].filter(Boolean))
-    } catch (err: any) {
-      throw err.errors[0]
+      } else {
+        await userService.verifyVerificationCode({
+          email,
+          type: VERIFICATION_CODE_TYPE.register,
+          code: passwordOrCode,
+        })
+      }
     }
-
     const newUser = await userService.create({
       email,
+      emailVerified: true,
+      language: language || viewer.language,
     })
     await userService.postRegister(newUser)
 
@@ -80,21 +148,16 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
     } catch (err: any) {
-      for (const e of err.errors) {
-        // PasswordInvalidError is last error to throw
-        if (!(e instanceof PasswordInvalidError)) {
-          throw e
-        }
+      if (!isE2ETest) {
+        throw err.errors[0]
       }
-      throw err.errors[0]
     }
-
-    systemService.saveAgentHash(viewer.agentHash || '', email)
 
     // set email verfied if not and login user
     if (user.emailVerified === false) {
       await userService.baseUpdate(user.id, { emailVerified: true })
       user.emailVerified = true
+      invalidateFQC({ node: { type: NODE_TYPES.User, id: user.id }, redis })
     }
 
     const sessionToken = await userService.genSessionToken(user.id)

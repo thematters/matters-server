@@ -1,6 +1,10 @@
+import type { Connections } from 'definitions'
+
 import { v4 } from 'uuid'
 
 import { SystemService } from 'connectors'
+
+import { genConnections, closeConnections } from './utils'
 
 const assetValidation = {
   id: expect.any(String),
@@ -12,16 +16,27 @@ const assetValidation = {
   updatedAt: expect.any(Date),
 }
 
-const service = new SystemService()
+let connections: Connections
+let systemService: SystemService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  systemService = new SystemService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 test('findAssetUrl', async () => {
   // image assets return cloudflare url
-  const imageUrl = await service.findAssetUrl('1')
+  const imageUrl = await systemService.findAssetUrl('1')
   expect(imageUrl).toContain('https://imagedelivery.net')
 
   // not-image assets return s3 url
-  const notImageUrl = await service.findAssetUrl('7')
-  expect(notImageUrl).toContain(service.aws.s3Endpoint)
+  const notImageUrl = await systemService.findAssetUrl('7')
+  // @ts-ignore
+  expect(notImageUrl).toContain(systemService.aws.s3Endpoint)
 })
 
 test('create and delete asset', async () => {
@@ -31,10 +46,10 @@ test('create and delete asset', async () => {
     type: 'cover',
     path: 'path/to/file.txt',
   }
-  const asset = await service.baseCreate(data, 'asset')
+  const asset = await systemService.baseCreate(data, 'asset')
   expect(asset).toEqual(expect.objectContaining(assetValidation))
 
-  await service.baseDelete(asset.id, 'asset')
-  const result = await service.baseFindById(asset.id, 'asset')
+  await systemService.baseDelete(asset.id, 'asset')
+  const result = await systemService.baseFindById(asset.id, 'asset')
   expect(result).toBeUndefined()
 })

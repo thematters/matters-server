@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
@@ -15,8 +17,8 @@ import { Item, ItemData, Tag } from 'definitions'
 const logger = getLogger('service-tag')
 
 export class TagService extends BaseService {
-  public constructor() {
-    super('tag')
+  public constructor(connections: Connections) {
+    super('tag', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
@@ -862,7 +864,7 @@ export class TagService extends BaseService {
       result = await this.knex(VIEW.tags_lasts_view)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
-          this.where('tag_id', tagId)
+          this.where('id', '=', tagId)
           if (withSynonyms) {
             this.orWhere(knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [tagId]))
           } // else { this.where('id', tagId) // exactly }

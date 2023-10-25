@@ -7,6 +7,7 @@ import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_DOMAIN_WHITELIST,
   VERIFICATION_CODE_TYPE,
+  USER_STATE,
 } from 'common/enums'
 import { isProd } from 'common/environment'
 import {
@@ -15,17 +16,17 @@ import {
   ForbiddenError,
   EmailNotFoundError,
   UserInputError,
+  ForbiddenByStateError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { extractRootDomain } from 'common/utils'
-import { GCP } from 'connectors'
+import { extractRootDomain, verifyCaptchaToken } from 'common/utils'
 import { Passphrases } from 'connectors/passphrases'
 
 const logger = getLogger('mutation-send-verificaiton-code')
 
 const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
   _,
-  { input: { email: rawEmail, type, token, redirectUrl } },
+  { input: { email: rawEmail, type, token, redirectUrl, language } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail.toLowerCase()
@@ -38,6 +39,10 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
 
   const user = await userService.findByEmail(email)
 
+  if (user && user.state === USER_STATE.archived) {
+    throw new ForbiddenByStateError('email has been archived')
+  }
+
   // register check
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
@@ -45,9 +50,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new EmailExistsError('email has been registered')
     }
 
-    // check token for Turing test
-    const gcp = new GCP()
-    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
     }
@@ -145,7 +148,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
           ...(user ? { userId: user.id } : {}),
         },
         expiresInMinutes:
-          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE) / MINUTE,
+          (isProd ? VERIFICATION_CODE_EXPIRED_AFTER : MINUTE * 3) / MINUTE,
       })
     ).join('-')
   } else {
@@ -167,7 +170,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     recipient: {
       displayName: (user && user.displayName) ?? null,
     },
-    language: viewer.language,
+    language: language || viewer.language,
   })
 
   return true

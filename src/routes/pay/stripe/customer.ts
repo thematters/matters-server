@@ -1,20 +1,24 @@
+import type { Customer, Connections } from 'definitions'
+
 import _ from 'lodash'
 import Stripe from 'stripe'
 
 import { PAYMENT_PROVIDER } from 'common/enums'
 import { AtomService, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
-import { Customer } from 'definitions'
 
-export const updateCustomerCard = async ({
-  setupIntent,
-  event,
-}: {
-  setupIntent: Stripe.SetupIntent
-  event: Stripe.Event
-}) => {
-  const atomService = new AtomService()
-  const paymentService = new PaymentService()
+export const updateCustomerCard = async (
+  {
+    setupIntent,
+    event,
+  }: {
+    setupIntent: Stripe.SetupIntent
+    event: Stripe.Event
+  },
+  connections: Connections
+) => {
+  const atomService = new AtomService(connections)
+  const paymentService = new PaymentService(connections)
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,

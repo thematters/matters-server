@@ -488,12 +488,14 @@ export type GQLAsset = {
   __typename?: 'Asset'
   /** Time of this asset was created. */
   createdAt: Scalars['DateTime']['output']
+  draft?: Maybe<Scalars['Boolean']['output']>
   /** Unique ID of this Asset. */
   id: Scalars['ID']['output']
   /** Link of this asset. */
   path: Scalars['String']['output']
   /** Types of this asset. */
   type: GQLAssetType
+  uploadURL?: Maybe<Scalars['String']['output']>
 }
 
 /** Enums for asset types. */
@@ -1181,6 +1183,8 @@ export type GQLEditArticleInput = {
 
 export type GQLEmailLoginInput = {
   email: Scalars['String']['input']
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   passwordOrCode: Scalars['String']['input']
 }
 
@@ -1490,6 +1494,7 @@ export type GQLMutation = {
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   /** Delete topics */
   deleteTopics: Scalars['Boolean']['output']
+  directImageUpload: GQLAsset
   /** Edit an article. */
   editArticle: GQLArticle
   emailLogin: GQLAuthResult
@@ -1640,7 +1645,7 @@ export type GQLMutation = {
    */
   userRegister: GQLAuthResult
   /** Verify user email. */
-  verifyEmail: GQLUser
+  verifyEmail: GQLAuthResult
   /** Upvote or downvote a comment. */
   voteComment: GQLComment
   /** Login/Signup via a wallet. */
@@ -1729,6 +1734,10 @@ export type GQLMutationDeleteTagsArgs = {
 
 export type GQLMutationDeleteTopicsArgs = {
   input: GQLDeleteTopicsInput
+}
+
+export type GQLMutationDirectImageUploadArgs = {
+  input: GQLSingleFileUploadInput
 }
 
 export type GQLMutationEditArticleArgs = {
@@ -2769,6 +2778,8 @@ export type GQLSearchTypes = 'Article' | 'Tag' | 'User'
 
 export type GQLSendVerificationCodeInput = {
   email: Scalars['String']['input']
+  /** email content language */
+  language?: InputMaybe<GQLUserLanguage>
   /**
    * Redirect URL embedded in the verification email,
    * use code instead if not provided.
@@ -2822,6 +2833,7 @@ export type GQLSigningMessageResult = {
 }
 
 export type GQLSingleFileUploadInput = {
+  draft?: InputMaybe<Scalars['Boolean']['input']>
   entityId?: InputMaybe<Scalars['ID']['input']>
   entityType: GQLEntityType
   file?: InputMaybe<Scalars['Upload']['input']>
@@ -2874,6 +2886,8 @@ export type GQLSocialLoginInput = {
   authorizationCode: Scalars['String']['input']
   /** OAuth2 PKCE code_verifier for Facebook and Twitter */
   codeVerifier?: InputMaybe<Scalars['String']['input']>
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   /** OIDC nonce for Google */
   nonce?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
@@ -3697,6 +3711,8 @@ export type GQLUserStatus = {
   __typename?: 'UserStatus'
   /** Number of articles published by user */
   articleCount: Scalars['Int']['output']
+  /** Number of chances for the user to change email in a nature day. Reset in UTC+8 0:00 */
+  changeEmailTimesLeft: Scalars['Int']['output']
   /** Number of comments posted by user. */
   commentCount: Scalars['Int']['output']
   /** Number of articles donated by user */
@@ -3730,6 +3746,7 @@ export type GQLVerificationCodeType =
 
 export type GQLVerifyEmailInput = {
   code: Scalars['String']['input']
+  email: Scalars['String']['input']
 }
 
 /** Enums for vote types. */
@@ -3768,6 +3785,8 @@ export type GQLWalletLoginInput = {
    */
   email?: InputMaybe<Scalars['String']['input']>
   ethAddress: Scalars['String']['input']
+  /** used in register */
+  language?: InputMaybe<GQLUserLanguage>
   /** nonce from generateSigningMessage */
   nonce: Scalars['String']['input']
   /** sign'ed by wallet */
@@ -5504,9 +5523,15 @@ export type GQLAssetResolvers<
   ParentType extends GQLResolversParentTypes['Asset'] = GQLResolversParentTypes['Asset']
 > = ResolversObject<{
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  draft?: Resolver<Maybe<GQLResolversTypes['Boolean']>, ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   path?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   type?: Resolver<GQLResolversTypes['AssetType'], ParentType, ContextType>
+  uploadURL?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6545,6 +6570,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationDeleteTopicsArgs, 'input'>
   >
+  directImageUpload?: Resolver<
+    GQLResolversTypes['Asset'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDirectImageUploadArgs, 'input'>
+  >
   editArticle?: Resolver<
     GQLResolversTypes['Article'],
     ParentType,
@@ -6978,7 +7009,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationUserRegisterArgs, 'input'>
   >
   verifyEmail?: Resolver<
-    GQLResolversTypes['User'],
+    GQLResolversTypes['AuthResult'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationVerifyEmailArgs, 'input'>
@@ -8503,6 +8534,11 @@ export type GQLUserStatusResolvers<
   ParentType extends GQLResolversParentTypes['UserStatus'] = GQLResolversParentTypes['UserStatus']
 > = ResolversObject<{
   articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  changeEmailTimesLeft?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donatedArticleCount?: Resolver<
     GQLResolversTypes['Int'],

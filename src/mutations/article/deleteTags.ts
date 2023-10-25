@@ -4,12 +4,16 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['deleteTags'] = async (
   _,
   { input: { ids } },
-  { dataSources: { atomService } }
+  {
+    dataSources: {
+      atomService,
+      connections: { redis },
+    },
+  }
 ) => {
   const tagIds = ids.map((id) => fromGlobalId(id).id)
 

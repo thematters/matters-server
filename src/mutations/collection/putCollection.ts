@@ -16,12 +16,18 @@ import {
   AssetNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['putCollection'] = async (
   _,
   { input: { id, title, description, cover, pinned } },
-  { dataSources: { collectionService, systemService }, viewer }
+  {
+    dataSources: {
+      collectionService,
+      systemService,
+      connections: { redis },
+    },
+    viewer,
+  }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('User has no permission')

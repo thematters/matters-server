@@ -10,7 +10,12 @@ import {
 const resolver: GQLCircleIncomeAnalyticsResolvers['nextMonth'] = async (
   { id },
   _,
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      atomService,
+      connections: { knex },
+    },
+  }
 ) => {
   const [price, stripeSubItems, trialEndSubItems] = await Promise.all([
     atomService.findFirst({

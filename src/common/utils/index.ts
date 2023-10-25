@@ -4,7 +4,6 @@ import * as cheerio from 'cheerio'
 import { BCRYPT_ROUNDS } from 'common/enums'
 import { environment } from 'common/environment'
 
-export * from './makeContext'
 export * from './getFileName'
 export * from './getLanguage'
 export * from './getViewer'
@@ -24,6 +23,8 @@ export * from './blockchain'
 export * from './ipfs'
 export * from './IERC1271'
 export * from './genDisplayName'
+export * from './counter'
+export * from './verify'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.

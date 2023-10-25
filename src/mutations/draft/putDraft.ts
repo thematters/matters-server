@@ -31,7 +31,6 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
@@ -48,8 +47,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       draftService,
       systemService,
       userService,
+      connections: { knex },
     },
-    knex,
   }
 ) => {
   const {
@@ -320,7 +319,7 @@ const validateTags = async ({
       where: { id: mattyTagId },
     })
     if (mattyTag && tags.includes(mattyTag.content)) {
-      throw new NotAllowAddOfficialTagError('not allow to add official tag')
+      throw new ForbiddenError('not allow to add official tag')
     }
   }
 }

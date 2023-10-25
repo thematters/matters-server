@@ -15,9 +15,13 @@ export const score: GQLTagOssResolvers['score'] = (
 export const selected: GQLTagOssResolvers['selected'] = async (
   { id },
   _,
-  { dataSources: { tagService } }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+  }
 ) => {
-  const result = await tagService.knex
+  const result = await knex
     .from('matters_choice_tag')
     .where({ tagId: id })
     .count()

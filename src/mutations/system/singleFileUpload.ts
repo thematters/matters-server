@@ -114,8 +114,10 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   // make sure both settled
   try {
     key = isImageType
-      ? await systemService.cfsvc.baseUploadFile(type, upload, uuid)
-      : await systemService.aws.baseUploadFile(type, upload, uuid)
+      ? // @ts-ignore
+        await systemService.cfsvc.baseUploadFile(type, upload, uuid)
+      : // @ts-ignore
+        await systemService.aws.baseUploadFile(type, upload, uuid)
   } catch (err) {
     logger.error('cloudflare upload image ERROR:', err)
     throw err

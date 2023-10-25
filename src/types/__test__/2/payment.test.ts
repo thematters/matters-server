@@ -1,3 +1,5 @@
+import type { Connections } from 'definitions'
+
 import {
   NODE_TYPES,
   BLOCKCHAIN,
@@ -6,7 +8,17 @@ import {
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 describe('donation', () => {
   const PAYTO = /* GraphQL */ `
@@ -46,6 +58,7 @@ describe('donation', () => {
   test('cannot donate yourself', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO,
@@ -58,6 +71,7 @@ describe('donation', () => {
   test('cannot donate to wrong recipient', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO,
@@ -78,6 +92,7 @@ describe('donation', () => {
   test('cannot call USDT payTo without `chain`', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
@@ -98,6 +113,7 @@ describe('donation', () => {
   test('cannot call USDT payTo without `txHash`', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
@@ -119,6 +135,7 @@ describe('donation', () => {
   test('cannot call USDT payTo with bad `txHash`', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
@@ -140,6 +157,7 @@ describe('donation', () => {
     const server = await testClient({
       isAuth: true,
       isBanned: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYTO_USDT,
@@ -160,6 +178,7 @@ describe('donation', () => {
   test('can call USDT payTo', async () => {
     const server = await testClient({
       isAuth: true,
+      connections,
     })
     const {
       data: {
@@ -199,6 +218,7 @@ describe('payout', () => {
     const server = await testClient({
       isAuth: true,
       isBanned: true,
+      connections,
     })
     const { errors } = await server.executeOperation({
       query: PAYOUT,

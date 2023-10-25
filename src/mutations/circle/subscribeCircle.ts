@@ -23,7 +23,6 @@ import {
   ServerError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { redis } from 'connectors'
 
 const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   _,
@@ -36,8 +35,8 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
       paymentService,
       systemService,
       userService,
+      connections: { redis, knex },
     },
-    knex,
   }
 ) => {
   if (!viewer.userName) {

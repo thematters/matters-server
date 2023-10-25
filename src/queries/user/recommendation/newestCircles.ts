@@ -4,9 +4,9 @@ import { CIRCLE_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLRecommendationResolvers['newestCircles'] = async (
-  { id },
+  _,
   { input },
-  { viewer, dataSources: { atomService }, knex }
+  { dataSources: { atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

@@ -3,12 +3,20 @@ import type { GQLMutationResolvers, User } from 'definitions'
 import { USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { userQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
   { input: { id: globalId, state, banDays, password, emails } },
-  { viewer, dataSources: { userService, notificationService, atomService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      notificationService,
+      atomService,
+      connections: { knex },
+      queues: { userQueue },
+    },
+  }
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
 
@@ -64,6 +72,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
         where: { id: user.id },
         data: {
           state,
+          updatedAt: knex.fn.now(),
         },
       })
     }

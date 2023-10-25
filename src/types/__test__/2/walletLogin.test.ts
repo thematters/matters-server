@@ -1,14 +1,26 @@
+import type { Connections } from 'definitions'
+
 import { Wallet } from 'ethers'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 
-import { testClient } from '../utils'
+import { testClient, genConnections, closeConnections } from '../utils'
 
 jest.mock('common/utils', () => ({
   __esModule: true,
   ...jest.requireActual('common/utils'),
   getAlchemyProvider: () => ({ getCode: jest.fn(() => '0x') }),
 }))
+
+let connections: Connections
+
+beforeAll(async () => {
+  connections = await genConnections()
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 describe('walletLogin', () => {
   const GENERATE_SIGNING_MESSAGE = /* GraphQL */ `
@@ -42,7 +54,7 @@ describe('walletLogin', () => {
       purpose: keyof typeof SIGNING_MESSAGE_PURPOSE
     ) => {
       const wallet = Wallet.createRandom()
-      const server = await testClient()
+      const server = await testClient({ connections })
       // signup
       const {
         data: {
@@ -119,7 +131,7 @@ describe('walletLogin', () => {
   }, 100000)
   test('wallet login with wrong purpose will throw errors', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce, signingMessage },
@@ -149,7 +161,7 @@ describe('walletLogin', () => {
   })
   test('wallet login with wrong nonce will throw errors', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce, signingMessage },
@@ -179,7 +191,7 @@ describe('walletLogin', () => {
   })
   test('wallet login check nonce in signature', async () => {
     const wallet = Wallet.createRandom()
-    const server = await testClient()
+    const server = await testClient({ connections })
     const {
       data: {
         generateSigningMessage: { nonce: nonce, signingMessage },

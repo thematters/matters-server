@@ -23,7 +23,6 @@ import {
   generateRegisterRedirectUrl,
   makeUserName,
 } from 'common/utils'
-import { redis } from 'connectors'
 
 const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
@@ -36,6 +35,7 @@ const resolver: GQLMutationResolvers['invite'] = async (
       paymentService,
       notificationService,
       userService,
+      connections: { redis },
     },
     viewer,
   }

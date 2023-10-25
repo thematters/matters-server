@@ -4,9 +4,14 @@ import { ARTICLE_STATE, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
 export const icymi: GQLRecommendationResolvers['icymi'] = async (
-  { id },
+  _,
   { input },
-  { dataSources: { draftService }, knex }
+  {
+    dataSources: {
+      draftService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 

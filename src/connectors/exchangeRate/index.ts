@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Redis from 'ioredis'
 
 import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
@@ -46,8 +47,8 @@ const EXCHANGE_RATES_DATA_API_URL =
 export class ExchangeRate {
   cache: CacheService
   expire: number
-  constructor() {
-    this.cache = new CacheService('exchangeRate')
+  constructor(redis: Redis) {
+    this.cache = new CacheService('exchangeRate', redis)
     this.expire = CACHE_TTL.STATIC
   }
 

@@ -1,16 +1,5 @@
 import type { BasedContext } from '@apollo/server'
-import type { Request, Response } from 'express'
-import type { Redis } from 'ioredis'
-import type { Knex } from 'knex'
-
-import {
-  PAYMENT_CURRENCY,
-  PAYMENT_PROVIDER,
-  TRANSACTION_STATE,
-  TRANSACTION_PURPOSE,
-  VERIFICATION_CODE_STATUS,
-} from 'common/enums'
-import {
+import type {
   Alchemy,
   ArticleService,
   AtomService,
@@ -24,7 +13,31 @@ import {
   TagService,
   UserService,
   CollectionService,
+  LikeCoin,
+  ExchangeRate,
 } from 'connectors'
+import type {
+  PublicationQueue,
+  RevisionQueue,
+  AssetQueue,
+  AppreciationQueue,
+  MigrationQueue,
+  PayToByBlockchainQueue,
+  PayToByMattersQueue,
+  PayoutQueue,
+  UserQueue,
+} from 'connectors/queues'
+import type { Request, Response } from 'express'
+import type { Redis } from 'ioredis'
+import type { Knex } from 'knex'
+
+import {
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_STATE,
+  TRANSACTION_PURPOSE,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 
 export * from './user'
 export * from './article'
@@ -46,23 +59,43 @@ export interface Context extends BasedContext {
   viewer: Viewer
   req: Request
   res: Response
-  knex: Knex
   dataSources: DataSources
 }
 
+export interface Connections {
+  knex: Knex
+  knexRO: Knex
+  knexSearch: Knex
+  redis: Redis
+}
+
 export interface DataSources {
-  atomService: InstanceType<typeof AtomService>
-  articleService: InstanceType<typeof ArticleService>
-  commentService: InstanceType<typeof CommentService>
-  draftService: InstanceType<typeof DraftService>
-  userService: InstanceType<typeof UserService>
-  systemService: InstanceType<typeof SystemService>
-  tagService: InstanceType<typeof TagService>
-  notificationService: InstanceType<typeof NotificationService>
-  oauthService: InstanceType<typeof OAuthService>
-  paymentService: InstanceType<typeof PaymentService>
-  openseaService: InstanceType<typeof OpenSeaService>
-  collectionService: InstanceType<typeof CollectionService>
+  atomService: AtomService
+  articleService: ArticleService
+  commentService: CommentService
+  draftService: DraftService
+  userService: UserService
+  systemService: SystemService
+  tagService: TagService
+  notificationService: NotificationService
+  oauthService: OAuthService
+  paymentService: PaymentService
+  openseaService: OpenSeaService
+  collectionService: CollectionService
+  likecoin: LikeCoin
+  exchangeRate: ExchangeRate
+  connections: Connections
+  queues: {
+    publicationQueue: PublicationQueue
+    revisionQueue: RevisionQueue
+    assetQueue: AssetQueue
+    appreciationQueue: AppreciationQueue
+    migrationQueue: MigrationQueue
+    payToByBlockchainQueue: PayToByBlockchainQueue
+    payToByMattersQueue: PayToByMattersQueue
+    payoutQueue: PayoutQueue
+    userQueue: UserQueue
+  }
 }
 
 export type BasicTableName =
@@ -148,6 +181,7 @@ export type BasicTableName =
   | 'blockchain_sync_record'
   | 'collection'
   | 'collection_article'
+  | 'social_account'
 
 export type View =
   | 'tag_count_view'

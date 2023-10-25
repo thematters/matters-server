@@ -23,13 +23,13 @@ export default /* GraphQL */ `
     setEmail(input: SetEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): User! @auth(mode: "oauth") @purgeCache(type: "${NODE_TYPES.User}")
+    verifyEmail(input: VerifyEmailInput!): AuthResult!
 
     "Set user currency preference."
     setCurrency(input: SetCurrencyInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Register user, can only be used on matters.{town,news} website."
-    userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
+    userRegister(input: UserRegisterInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead") @rateLimit(limit:10, period:86400)
 
     "Login user."
     userLogin(input: UserLoginInput!): AuthResult! @deprecated(reason: "use 'emailLogin' instead")
@@ -407,6 +407,9 @@ export default /* GraphQL */ `
 
     "Weather login password is set for email login."
     hasEmailLoginPassword: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "Number of chances for the user to change email in a nature day. Reset in UTC+8 0:00"
+    changeEmailTimesLeft: Int! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   type Liker {
@@ -692,6 +695,9 @@ export default /* GraphQL */ `
     use code instead if not provided.
     """
     redirectUrl: String @constraint(format: "uri")
+
+    "email content language"
+    language: UserLanguage
   }
 
   input ConfirmVerificationCodeInput {
@@ -714,6 +720,7 @@ export default /* GraphQL */ `
   }
 
   input VerifyEmailInput {
+    email: String!
     code: String!
   }
 
@@ -757,6 +764,9 @@ export default /* GraphQL */ `
 
     "email verification code, required for wallet register"
     codeId: ID @deprecated(reason: "No longer in use")
+
+    "used in register"
+    language: UserLanguage
   }
 
   input ResetLikerIdInput {
@@ -987,6 +997,8 @@ export default /* GraphQL */ `
   input EmailLoginInput {
     email: String!
     passwordOrCode: String!
+    "used in register"
+    language: UserLanguage
   }
 
   input SocialLoginInput {
@@ -996,6 +1008,8 @@ export default /* GraphQL */ `
     codeVerifier: String
     "OIDC nonce for Google"
     nonce: String
+    "used in register"
+    language: UserLanguage
   }
 
   input SetUserNameInput {

@@ -1,3 +1,5 @@
+import type { GQLChain, Connections } from 'definitions'
+
 import {
   BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
@@ -13,9 +15,22 @@ import {
   PaymentService,
   UserService,
 } from 'connectors'
-import { GQLChain } from 'definitions'
 
-import { createDonationTx } from './utils'
+import { createDonationTx, genConnections, closeConnections } from './utils'
+
+let connections: Connections
+let paymentService: PaymentService
+let userService: UserService
+
+beforeAll(async () => {
+  connections = await genConnections()
+  paymentService = new PaymentService(connections)
+  userService = new UserService(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 // helpers
 
@@ -24,8 +39,6 @@ const genRandomProviderTxId = () => 'testProviderTxId' + Math.random()
 // tests
 
 describe('Transaction CRUD', () => {
-  const paymentService = new PaymentService()
-
   const amount = 1
   const fee = 0.1
   const state = TRANSACTION_STATE.pending
@@ -281,8 +294,6 @@ describe('Transaction CRUD', () => {
 })
 
 describe('notifyDonation', () => {
-  const paymentService = new PaymentService()
-  const userService = new UserService()
   mailService.send = jest.fn()
   test('donationCount value is correct', async () => {
     const getDonationCount = () =>
@@ -290,7 +301,7 @@ describe('notifyDonation', () => {
       mailService.send.mock.calls[0][0].personalizations[0]
         .dynamic_template_data.tx.donationCount
 
-    const articleService = new ArticleService()
+    const articleService = new ArticleService(connections)
     const sender = await userService.create({
       userName: 'sender',
       email: 'sender@example.com',
@@ -299,23 +310,29 @@ describe('notifyDonation', () => {
       userName: 'recipient',
       email: 'recipient@example.com',
     })
-    const tx = await createDonationTx({
-      senderId: sender.id,
-      recipientId: recipient.id,
-    })
+    const tx = await createDonationTx(
+      {
+        senderId: sender.id,
+        recipientId: recipient.id,
+      },
+      paymentService
+    )
     const article = await articleService.baseFindById('1')
     await paymentService.notifyDonation({ tx, sender, recipient, article })
     expect(getDonationCount()).toBe(1)
 
     // @ts-ignore
     mailService.send.mockClear()
-    const tx2 = await createDonationTx({
-      senderId: sender.id,
-      recipientId: recipient.id,
-    })
+    const tx2 = await createDonationTx(
+      {
+        senderId: sender.id,
+        recipientId: recipient.id,
+      },
+      paymentService
+    )
     await paymentService.notifyDonation({ tx: tx2, sender, recipient, article })
     expect(getDonationCount()).toBe(2)
-  })
+  }, 10000)
 })
 
 describe('calculateBalance', () => {
@@ -328,7 +345,6 @@ describe('calculateBalance', () => {
   const providerTxId = genRandomProviderTxId()
   const senderId = '1'
   test('pending dispute affect balance', async () => {
-    const paymentService = new PaymentService()
     const prev = await paymentService.calculateBalance({
       userId: senderId,
       currency,

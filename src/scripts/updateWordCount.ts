@@ -1,15 +1,15 @@
 import 'module-alias/register'
 
+import { countWords } from 'common/utils'
 import { ArticleService, DraftService } from 'connectors'
-
-import { countWords } from './content'
+import { connections } from 'routes/connections'
 
 const main = async () => {
   const articleIds = process.argv.slice(2)
   console.log('going to update wordCount for artcies:', articleIds)
 
-  const draftService = new DraftService()
-  const articleService = new ArticleService()
+  const draftService = new DraftService(connections)
+  const articleService = new ArticleService(connections)
 
   await Promise.all(
     articleIds.map(async (articleId) => {

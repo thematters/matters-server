@@ -5,7 +5,12 @@ import { INVITATION_STATE } from 'common/enums'
 const resolver: GQLCircleResolvers['invitedBy'] = async (
   { id },
   _,
-  { knex, viewer }
+  {
+    dataSources: {
+      connections: { knex },
+    },
+    viewer,
+  }
 ) => {
   if (!viewer.id) {
     return null

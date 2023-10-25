@@ -1,4 +1,11 @@
-import type { GQLSearchExclude, Item, Article, Draft } from 'definitions'
+import type {
+  GQLSearchExclude,
+  GQLSearchFilter,
+  Item,
+  Article,
+  Draft,
+  Connections,
+} from 'definitions'
 
 import {
   ArticlePageContext,
@@ -21,7 +28,6 @@ import {
   QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-  PUBLISH_STATE,
   TRANSACTION_TARGET_TYPE,
   MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
@@ -52,8 +58,8 @@ export class ArticleService extends BaseService {
   private ipfsServers: typeof ipfsServers
   draftLoader: DataLoader<string, Item>
 
-  public constructor() {
-    super('article')
+  public constructor(connections: Connections) {
+    super('article', connections)
     this.ipfsServers = ipfsServers
 
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {
@@ -139,7 +145,7 @@ export class ArticleService extends BaseService {
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
     const totalPinned = await userService.totalPinnedWorks(userId)
     if (pinned === article.pinned) {
       return article
@@ -162,9 +168,9 @@ export class ArticleService extends BaseService {
    * Publish draft data to IPFS
    */
   public publishToIPFS = async (draft: any) => {
-    const userService = new UserService()
-    const systemService = new SystemService()
-    const atomService = new AtomService()
+    const userService = new UserService(this.connections)
+    const systemService = new SystemService(this.connections)
+    const atomService = new AtomService(this.connections)
 
     // prepare metadata
     const {
@@ -318,12 +324,17 @@ export class ArticleService extends BaseService {
     forceReplace?: boolean
     updatedDrafts?: Item[]
   }) => {
-    const userService = new UserService()
+    const userService = new UserService(this.connections)
 
-    const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
-    if (!ipnsKeyRec) {
-      // cannot do anything if no ipns key
-      logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+    try {
+      const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
+      if (!ipnsKeyRec) {
+        // cannot do anything if no ipns key
+        logger.error('create IPNS key ERROR: %o', ipnsKeyRec)
+        return
+      }
+    } catch (error) {
+      logger.error('create IPNS key ERROR: %o', error)
       return
     }
   }
@@ -373,7 +384,7 @@ export class ArticleService extends BaseService {
    * Archive article
    */
   public archive = async (id: string) => {
-    const atomService = new AtomService()
+    const atomService = new AtomService(this.connections)
     const targetArticle = await atomService.findFirst({
       table: 'article',
       where: { id },
@@ -417,18 +428,7 @@ export class ArticleService extends BaseService {
   ) =>
     this.knex
       .select(columns)
-      .from(this.knex.ref(this.table))
-      .join(
-        this.knex
-          .from('draft')
-          .select('id', 'article_id')
-          .distinctOn('article_id')
-          .where({ authorId, publishState: PUBLISH_STATE.published })
-          .orderByRaw('article_id DESC NULLS LAST') // the first orderBy must match distinctOn
-          .as('t'),
-        'article_id',
-        'article.id'
-      )
+      .from(this.table)
       .where({
         authorId,
         ...(showAll
@@ -559,9 +559,11 @@ export class ArticleService extends BaseService {
     keyOriginal,
     take = 10,
     skip = 0,
+    filter,
     exclude,
     viewerId,
     coefficients,
+    quicksearch,
   }: {
     key: string
     keyOriginal?: string
@@ -569,9 +571,14 @@ export class ArticleService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
+    filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
+    }
     let coeffs = [1, 1, 1, 1]
     try {
       coeffs = JSON.parse(coefficients || '[]')
@@ -708,6 +715,8 @@ export class ArticleService extends BaseService {
     // keyOriginal,
     take = 10,
     skip = 0,
+    quicksearch,
+    filter,
   }: {
     key: string
     // keyOriginal?: string
@@ -715,9 +724,14 @@ export class ArticleService extends BaseService {
     take: number
     skip: number
     viewerId?: string | null
+    filter?: GQLSearchFilter
     exclude?: GQLSearchExclude
     coefficients?: string
+    quicksearch?: boolean
   }) => {
+    if (quicksearch) {
+      return this.quicksearch({ key, take, skip, filter })
+    }
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
       u.searchParams.set('q', key?.trim())
@@ -748,6 +762,41 @@ export class ArticleService extends BaseService {
       logger.error(`searchV3 ERROR:`, err)
       return { nodes: [], totalCount: 0 }
     }
+  }
+
+  private quicksearch = async ({
+    key,
+    take,
+    skip,
+    filter,
+  }: {
+    key: string
+    take?: number
+    skip?: number
+    filter?: GQLSearchFilter
+  }) => {
+    const records = await this.knexRO
+      .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .whereLike('title', `%${key}%`)
+      .from('article')
+      .orderBy('id', 'desc')
+      .modify((builder: Knex.QueryBuilder) => {
+        if (filter && filter.authorId) {
+          builder.where({ authorId: filter.authorId })
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
+
+    const nodes = (await this.draftLoader.loadMany(
+      records.map((item: { id: string }) => item.id).filter(Boolean)
+    )) as Draft[]
+    const totalCount = +(records?.[0]?.totalCount ?? 0)
+    return { nodes, totalCount }
   }
 
   /**

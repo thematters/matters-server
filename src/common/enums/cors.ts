@@ -11,11 +11,13 @@ export const CORS_OPTIONS: CorsOptions = {
     const isLocalDev = /(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
     const isMatters = /\/\/(.*\.)?matters\.(town|news)$/.test(origin)
     const isApolloStudio = /\/\/(.*\.)?apollographql\.com$/.test(origin)
-    const isObservable = 'https://matters-tech.static.observableusercontent.com' === origin
+    const isObservable =
+      'https://matters-tech.static.observableusercontent.com' === origin
     const isDevPreview =
       !isProd &&
       (/\.vercel\.app$/.test(origin) || /githubpreview\.dev$/.test(origin))
-    const isAllowed = isLocalDev || isMatters || isApolloStudio || isObservable || isDevPreview
+    const isAllowed =
+      isLocalDev || isMatters || isApolloStudio || isObservable || isDevPreview
 
     callback(null, isAllowed)
   },

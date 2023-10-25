@@ -6,7 +6,13 @@ import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLInvitesResolvers['accepted'] = async (
   { id, owner },
   { input },
-  { dataSources: { atomService }, viewer, knex }
+  {
+    dataSources: {
+      atomService,
+      connections: { knex },
+    },
+    viewer,
+  }
 ) => {
   const isOwner = owner === viewer.id
   if (!isOwner) {

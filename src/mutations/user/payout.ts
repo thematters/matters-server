@@ -22,12 +22,18 @@ import {
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
-import { payoutQueue } from 'connectors/queue'
 
 const resolver: GQLMutationResolvers['payout'] = async (
   _,
   { input: { amount, password } },
-  { viewer, dataSources: { atomService, paymentService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      queues: { payoutQueue },
+    },
+  }
 ) => {
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')

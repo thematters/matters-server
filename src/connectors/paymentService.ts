@@ -3,6 +3,7 @@ import type {
   GQLChain,
   Transaction,
   EmailableUser,
+  Connections,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -37,8 +38,8 @@ const logger = getLogger('service-payment')
 export class PaymentService extends BaseService {
   stripe: typeof stripe
 
-  public constructor() {
-    super('transaction')
+  public constructor(connections: Connections) {
+    super('transaction', connections)
 
     this.stripe = stripe
 
@@ -1060,8 +1061,8 @@ export class PaymentService extends BaseService {
       draftId: string
     }
   }) => {
-    const atomService = new AtomService()
-    const notificationService = new NotificationService()
+    const atomService = new AtomService(this.connections)
+    const notificationService = new NotificationService(this.connections)
     const amount = parseFloat(tx.amount)
     // send email to sender
     const author = await atomService.findFirst({

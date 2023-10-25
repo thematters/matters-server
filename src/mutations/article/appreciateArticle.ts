@@ -19,14 +19,15 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { GCP } from 'connectors'
-import { appreciationQueue } from 'connectors/queue'
+import { fromGlobalId, verifyCaptchaToken } from 'common/utils'
+// import { GCP, cfsvc } from 'connectors'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
   { input: { id, amount, token, superLike } },
-  {
+  context
+) => {
+  const {
     viewer,
     dataSources: {
       atomService,
@@ -35,9 +36,10 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       draftService,
       paymentService,
       systemService,
+      queues: { appreciationQueue },
     },
-  }
-) => {
+  } = context
+
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }
@@ -173,21 +175,25 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
   if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
-    const gcp = new GCP()
-    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    // for a transition period, we may check both, and pass if any one pass siteverify
+    // after the transition period, can turn off the one no longer in use
+    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')
     }
   }
 
   // insert appreciation job
-  appreciationQueue.appreciate({
-    amount: validAmount,
-    articleId: article.id,
-    senderId: viewer.id,
-    senderIP: viewer.ip,
-    userAgent: viewer.userAgent,
-  })
+  appreciationQueue.appreciate(
+    {
+      amount: validAmount,
+      articleId: article.id,
+      senderId: viewer.id,
+      senderIP: viewer.ip,
+      userAgent: viewer.userAgent,
+    },
+    context
+  )
 
   return node
 }

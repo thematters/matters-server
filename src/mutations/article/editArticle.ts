@@ -37,13 +37,11 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  NotAllowAddOfficialTagError,
   TooManyTagsForArticleError,
   UserInputError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId, measureDiffs, normalizeTagInput } from 'common/utils'
-import { publicationQueue, revisionQueue } from 'connectors/queue'
 
 const logger = getLogger('mutation-edit-article')
 
@@ -80,8 +78,9 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       systemService,
       tagService,
       userService,
+      connections: { knex },
+      queues: { publicationQueue, revisionQueue },
     },
-    knex,
   }
 ) => {
   if (!viewer.userName) {
@@ -511,7 +510,7 @@ const handleTags = async ({
   const isMatty = environment.mattyId === viewerId
   const addIds = difference(newIds, oldIds)
   if (addIds.includes(mattyTagId) && !isMatty) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    throw new ForbiddenError('not allow to add official tag')
   }
 
   // add

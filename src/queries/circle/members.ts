@@ -6,7 +6,12 @@ import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLCircleResolvers['members'] = async (
   { id },
   { input },
-  { dataSources: { atomService }, knex }
+  {
+    dataSources: {
+      atomService,
+      connections: { knex },
+    },
+  }
 ) => {
   if (!id) {
     return connectionFromArray([], input)

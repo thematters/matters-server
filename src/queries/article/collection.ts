@@ -6,7 +6,12 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLArticleResolvers['collection'] = async (
   { articleId },
   { input },
-  { dataSources: { articleService }, knex }
+  {
+    dataSources: {
+      articleService,
+      connections: { knex },
+    },
+  }
 ) => {
   const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
 
