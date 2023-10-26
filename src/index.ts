@@ -54,9 +54,6 @@ import * as routes from './routes'
   // Pay
   app.use('/pay', routes.pay)
 
-  // Twitter OAuth
-  app.use('/twitter', routes.twitter)
-
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
   )
