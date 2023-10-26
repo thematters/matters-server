@@ -11,6 +11,8 @@ const hash_function_sha1 = (base_string: string, key: string) => {
   return crypto.createHmac('sha1', key).update(base_string).digest('base64')
 }
 
+// Twitter OAuth 1.0a flow
+// see https://developer.twitter.com/en/docs/authentication/guides/log-in-with-twitter
 export class Twitter {
   private oauth: Oauth
 
@@ -53,5 +55,43 @@ export class Twitter {
     }
 
     return parsedData.oauth_token
+  }
+  public fetchAccessToken = async (
+    oauthToken: string,
+    oauthVerifier: string
+  ) => {
+    const requestData = {
+      url: 'https://api.twitter.com/oauth/access_token',
+      method: 'POST',
+      data: { oauth_token: oauthToken, oauth_verifier: oauthVerifier },
+    }
+    const authHeaders = this.oauth.toHeader(this.oauth.authorize(requestData))
+    const response = await axios.post(requestData.url, requestData.data, {
+      headers: authHeaders as any,
+    })
+    if (response.status !== 200) {
+      logger.error('fetch access token failed', response.data)
+      throw new Error(
+        `fetch access token failed with status ${response.status}`
+      )
+    }
+    const parsedData = Object.fromEntries(
+      response.data.split('&').map((s: string) => s.split('='))
+    )
+    if (
+      !parsedData.oauth_token ||
+      !parsedData.oauth_token_secret ||
+      !parsedData.user_id ||
+      !parsedData.screen_name
+    ) {
+      logger.error('unexpected data', response.data)
+      throw new Error('unexpected data')
+    }
+    return {
+      id: parsedData.user_id,
+      username: parsedData.screen_name,
+      oauthToken: parsedData.oauth_token,
+      oauthTokenSecret: parsedData.oauth_token_secret,
+    }
   }
 }
