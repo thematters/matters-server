@@ -1498,7 +1498,10 @@ export type GQLMutation = {
   /** Edit an article. */
   editArticle: GQLArticle
   emailLogin: GQLAuthResult
-  /** Generate or claim a Liker ID through LikeCoin */
+  /**
+   * Generate or claim a Liker ID through LikeCoin
+   * @deprecated No longer in use
+   */
   generateLikerId: GQLUser
   /** Get signing message. */
   generateSigningMessage: GQLSigningMessageResult

@@ -41,7 +41,7 @@ interface AppreciationParams {
 }
 
 export class AppreciationQueue extends BaseQueue {
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     // make it a bit slower on handling jobs in order to reduce courrent operations
     super(QUEUE_NAME.appreciation, connections, {
       limiter: { max: 1, duration: 500 },
@@ -130,10 +130,6 @@ export class AppreciationQueue extends BaseQueue {
         throw new UserNotFoundError('user not found')
       }
 
-      if (!author.likerId || !sender.likerId) {
-        throw new ForbiddenError('user has no liker id')
-      }
-
       // insert appreciation record
       await articleService.appreciate({
         articleId: article.id,
@@ -145,14 +141,16 @@ export class AppreciationQueue extends BaseQueue {
 
       // insert record to LikeCoin
       const likecoin = new LikeCoin(this.connections)
-      likecoin.like({
-        likerId: sender.likerId,
-        likerIp: senderIP,
-        userAgent,
-        authorLikerId: author.likerId,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-        amount: validAmount,
-      })
+      if (author.likerId && sender.likerId) {
+        likecoin.like({
+          likerId: sender.likerId,
+          likerIp: senderIP,
+          userAgent,
+          authorLikerId: author.likerId,
+          url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+          amount: validAmount,
+        })
+      }
 
       // trigger notifications
       notificationService.trigger({
