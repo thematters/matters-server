@@ -1693,6 +1693,6 @@ export class ArticleService extends BaseService {
       .where({ articleId })
       .select(this.knex.raw('SUM(total_users) as reader_amount'))
       .first()
-    return parseInt(res?.reader_amount || '0', 10)
+    return parseInt(res?.readerAmount || '0', 10)
   }
 }

@@ -15,7 +15,12 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { ArticleService, AtomService, PaymentService } from 'connectors'
+import {
+  ArticleService,
+  AtomService,
+  PaymentService,
+  UserService,
+} from 'connectors'
 
 import {
   getUserContext,
@@ -68,6 +73,8 @@ const GET_ARTICLE = /* GraphQL */ `
       canComment
       sensitiveByAuthor
       sensitiveByAdmin
+      readerCount
+      donationCount
     }
   }
 `
@@ -1169,5 +1176,53 @@ describe('edit article', () => {
     expect(_get(data, 'viewer.status.totalWordCount') - article.wordCount).toBe(
       _get(data2, 'viewer.status.totalWordCount')
     )
+  })
+})
+
+describe('query article readerCount/donationCount', () => {
+  beforeAll(async () => {
+    // insert test data
+    await connections.knex('article_ga4_data').insert({
+      articleId: '1',
+      totalUsers: '1',
+      dateRange: '[2023-10-24,2023-10-24]',
+    })
+    const paymentService = new PaymentService(connections)
+    await paymentService.createTransaction({
+      amount: 1,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+      senderId: '2',
+      targetId: '1',
+      targetType: TRANSACTION_TARGET_TYPE.article,
+      provider: PAYMENT_PROVIDER.matters,
+      providerTxId: Math.random().toString(),
+    })
+  })
+  test('only article author can view readerCount/donationCount', async () => {
+    const anonymousServer = await testClient({ connections })
+    const { data } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: 'someIpfsMediaHash1' },
+      },
+    })
+    expect(data.article.readerCount).toBe(0)
+    expect(data.article.donationCount).toBe(0)
+
+    const userService = new UserService(connections)
+    const author = await userService.loadById('1')
+    const authorServer = await testClient({
+      connections,
+      context: { viewer: author },
+    })
+    const { data: data2 } = await authorServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: 'someIpfsMediaHash1' },
+      },
+    })
+    expect(data2.article.readerCount).not.toBe(0)
+    expect(data2.article.donationCount).not.toBe(0)
   })
 })
