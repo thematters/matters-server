@@ -1486,7 +1486,7 @@ export class ArticleService extends BaseService {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     const result = await this.knexRO
       .select()
-      .from((knex: any) => {
+      .from((knex: Knex.QueryBuilder) => {
         const source = knex
           .select('sender_id', 'target_id')
           .from('transaction')
@@ -1687,4 +1687,12 @@ export class ArticleService extends BaseService {
         'circle.state': CIRCLE_STATE.active,
       })
       .first()
+
+  public countReaders = async (articleId: string): Promise<number> => {
+    const res = await this.knexRO('article_ga4_data')
+      .where({ articleId })
+      .select(this.knex.raw('SUM(total_users) as reader_amount'))
+      .first()
+    return parseInt(res?.reader_amount || '0', 10)
+  }
 }

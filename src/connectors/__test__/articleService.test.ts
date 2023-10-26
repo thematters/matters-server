@@ -188,3 +188,11 @@ test('quicksearch', async () => {
   expect(nodes2.length).toBe(1)
   expect(totalCount2).toBeLessThan(totalCount)
 })
+
+test('countReaders', async () => {
+  const count1 = await articleService.countReaders('1')
+  expect(count1).toBeDefined()
+  // count not exist articles' readers
+  const count0 = await articleService.countReaders('0')
+  expect(count0).toBe(0)
+})
