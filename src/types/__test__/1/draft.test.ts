@@ -341,6 +341,18 @@ describe('put draft', () => {
     )
     expect(_get(result2, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_0)
 
+    // change license to CC2 should throw error
+    const changeCC2Result = await putDraft(
+      {
+        draft: {
+          id: draftId,
+          license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2 as any,
+        },
+      },
+      connections
+    )
+    expect(changeCC2Result.errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+
     // change license to ARR should succeed
     const changeResult = await putDraft(
       {
