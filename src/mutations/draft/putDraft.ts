@@ -8,6 +8,7 @@ import { isUndefined, omitBy, isString, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -91,6 +92,13 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       tags,
       dataSources: { atomService },
     })
+  }
+
+  // cc_by_nc_nd_2 license not longer in use
+  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
+    throw new UserInputError(
+      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+    )
   }
 
   // check for asset existence
