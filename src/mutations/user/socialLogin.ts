@@ -41,16 +41,18 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
           oauthToken,
           oauthVerifier
         )) as any
+      } else {
+        throw new UserInputError('oauth1Credential are required')
       }
-      throw new UserInputError('oauth1Credential are required')
-    }
-    if (isE2ETest) {
-      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
     } else {
-      userInfo = await userService.fetchTwitterUserInfo(
-        authorizationCode,
-        codeVerifier
-      )
+      if (isE2ETest) {
+        userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+      } else {
+        userInfo = await userService.fetchTwitterUserInfo(
+          authorizationCode,
+          codeVerifier
+        )
+      }
     }
     user = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: userInfo.id,
@@ -138,19 +140,20 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
           oauthToken,
           oauthVerifier
         )
+      } else {
+        throw new UserInputError(
+          'codeVerifier and authorizationCode are both required'
+        )
       }
-      throw new UserInputError(
-        'codeVerifier and authorizationCode are both required'
-      )
-    }
-
-    if (isE2ETest) {
-      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
     } else {
-      userInfo = await userService.fetchTwitterUserInfo(
-        authorizationCode,
-        codeVerifier
-      )
+      if (isE2ETest) {
+        userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+      } else {
+        userInfo = await userService.fetchTwitterUserInfo(
+          authorizationCode,
+          codeVerifier
+        )
+      }
     }
     await userService.createSocialAccount({
       userId: viewer.id,

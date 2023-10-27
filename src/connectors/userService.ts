@@ -2634,7 +2634,7 @@ export class UserService extends BaseService {
     try {
       return await twitter.fetchAccessToken(oauthToken, oauthVerifier)
     } catch (err: any) {
-      throw new UnknownError(err.message)
+      throw new OAuthTokenInvalidError(err.message)
     }
   }
 
