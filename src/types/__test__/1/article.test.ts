@@ -887,6 +887,18 @@ describe('edit article', () => {
     )
     expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
 
+    // change license to CC2 should throw error
+    const changeCC2Result = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          license: ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        },
+      },
+    })
+    expect(changeCC2Result.errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+
     // change license to ARR should succeed
     const changeResult = await server.executeOperation({
       query: EDIT_ARTICLE,
