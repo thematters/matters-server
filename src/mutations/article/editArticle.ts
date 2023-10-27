@@ -280,12 +280,18 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * License
    */
+  // cc_by_nc_nd_2 license not longer in use
+  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
+    throw new UserInputError(
+      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+    )
+  }
   if (license !== draft.license) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
       data: {
-        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4,
         updatedAt: knex.fn.now(),
       },
     })
