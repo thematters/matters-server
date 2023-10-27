@@ -2222,6 +2222,11 @@ export type GQLOssUsersArgs = {
   input: GQLConnectionArgs
 }
 
+export type GQLOauth1CredentialInput = {
+  oauthToken: Scalars['String']['input']
+  oauthVerifier: Scalars['String']['input']
+}
+
 /** This type contains system-wise info and settings. */
 export type GQLOfficial = {
   __typename?: 'Official'
@@ -2476,6 +2481,7 @@ export type GQLQuery = {
   node?: Maybe<GQLNode>
   nodes?: Maybe<Array<GQLNode>>
   oauthClient?: Maybe<GQLOAuthClient>
+  oauthRequestToken?: Maybe<Scalars['String']['output']>
   official: GQLOfficial
   oss: GQLOss
   search: GQLSearchResultConnection
@@ -2883,13 +2889,15 @@ export type GQLSocialAccount = {
 export type GQLSocialAccountType = 'Facebook' | 'Google' | 'Twitter'
 
 export type GQLSocialLoginInput = {
-  authorizationCode: Scalars['String']['input']
+  authorizationCode?: InputMaybe<Scalars['String']['input']>
   /** OAuth2 PKCE code_verifier for Facebook and Twitter */
   codeVerifier?: InputMaybe<Scalars['String']['input']>
   /** used in register */
   language?: InputMaybe<GQLUserLanguage>
   /** OIDC nonce for Google */
   nonce?: InputMaybe<Scalars['String']['input']>
+  /** oauth token/verifier in OAuth1.0a for Twitter */
+  oauth1Credential?: InputMaybe<GQLOauth1CredentialInput>
   type: GQLSocialAccountType
 }
 
@@ -4302,6 +4310,7 @@ export type GQLResolversTypes = ResolversObject<{
       users: GQLResolversTypes['UserConnection']
     }
   >
+  Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: ResolverTypeWrapper<GQLOfficial>
   OfficialAnnouncementNotice: ResolverTypeWrapper<NoticeItemModel>
   PageInfo: ResolverTypeWrapper<GQLPageInfo>
@@ -4764,6 +4773,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     tags: GQLResolversParentTypes['TagConnection']
     users: GQLResolversParentTypes['UserConnection']
   }
+  Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: GQLOfficial
   OfficialAnnouncementNotice: NoticeItemModel
   PageInfo: GQLPageInfo
@@ -7486,6 +7496,11 @@ export type GQLQueryResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLQueryOauthClientArgs, 'input'>
+  >
+  oauthRequestToken?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
   >
   official?: Resolver<GQLResolversTypes['Official'], ParentType, ContextType>
   oss?: Resolver<GQLResolversTypes['OSS'], ParentType, ContextType>

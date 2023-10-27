@@ -143,6 +143,8 @@ export const environment = {
     process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
+  twitterConsumerKey: process.env.MATTERS_TWITTER_CONSUMER_KEY || '',
+  twitterConsumerSecret: process.env.MATTERS_TWITTER_CONSUMER_SECRET || '',
   twitterClientId: process.env.MATTERS_TWITTER_CLIENT_ID || '',
   twitterClientSecret: process.env.MATTERS_TWITTER_CLIENT_SECRET || '',
   twitterRedirectUri: process.env.MATTERS_TWITTER_REDIRECT_URI || '',
