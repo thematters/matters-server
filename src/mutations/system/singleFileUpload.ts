@@ -11,9 +11,7 @@ import {
   AUDIO_ASSET_TYPE,
   IMAGE_ASSET_TYPE,
   COVER_ASSET_TYPE,
-  AVATAR_ASSET_TYPE,
   UPLOAD_IMAGE_SIZE_LIMIT,
-  UPLOAD_AVATAR_IMAGE_SIZE_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
@@ -44,7 +42,6 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   { viewer, dataSources: { systemService } }
 ) => {
   const isCoverType = Object.values(COVER_ASSET_TYPE).includes(type as any)
-  const isAvatarType = Object.values(AVATAR_ASSET_TYPE).includes(type as any)
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
   const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type as any)
 
@@ -84,9 +81,7 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   let upload
   if (url) {
     try {
-      const maxContentLength = isAvatarType
-        ? UPLOAD_AVATAR_IMAGE_SIZE_LIMIT
-        : isImageType
+      const maxContentLength = isImageType
         ? UPLOAD_IMAGE_SIZE_LIMIT
         : UPLOAD_FILE_SIZE_LIMIT
       const res = await axios.get(url, {
