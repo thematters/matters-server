@@ -7,9 +7,14 @@ import { v4 } from 'uuid'
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
   ACCEPTED_UPLOAD_IMAGE_TYPES,
+  ACCEPTED_COVER_UPLOAD_IMAGE_TYPES,
   AUDIO_ASSET_TYPE,
   IMAGE_ASSET_TYPE,
+  COVER_ASSET_TYPE,
+  AVATAR_ASSET_TYPE,
   UPLOAD_IMAGE_SIZE_LIMIT,
+  UPLOAD_AVATAR_IMAGE_SIZE_LIMIT,
+  UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
@@ -38,6 +43,8 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
+  const isCoverType = Object.values(COVER_ASSET_TYPE).includes(type as any)
+  const isAvatarType = Object.values(AVATAR_ASSET_TYPE).includes(type as any)
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
   const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type as any)
 
@@ -77,9 +84,14 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   let upload
   if (url) {
     try {
+      const maxContentLength = isAvatarType
+        ? UPLOAD_AVATAR_IMAGE_SIZE_LIMIT
+        : isImageType
+        ? UPLOAD_IMAGE_SIZE_LIMIT
+        : UPLOAD_FILE_SIZE_LIMIT
       const res = await axios.get(url, {
         responseType: 'stream',
-        maxContentLength: UPLOAD_IMAGE_SIZE_LIMIT,
+        maxContentLength,
       })
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
@@ -100,7 +112,10 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
 
   // check MIME types
   if (upload.mimetype) {
-    if (isImageType && !ACCEPTED_UPLOAD_IMAGE_TYPES.includes(upload.mimetype)) {
+    const acceptedImageTypes = isCoverType
+      ? ACCEPTED_COVER_UPLOAD_IMAGE_TYPES
+      : ACCEPTED_UPLOAD_IMAGE_TYPES
+    if (isImageType && !acceptedImageTypes.includes(upload.mimetype)) {
       throw new UserInputError('Invalid image format.')
     }
 

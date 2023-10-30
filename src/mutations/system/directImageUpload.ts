@@ -12,15 +12,7 @@ const logger = getLogger('mutation-upload')
 
 const resolver: GQLMutationResolvers['directImageUpload'] = async (
   _,
-  {
-    input: {
-      type, // file: fileUpload, url,
-      entityType,
-      entityId,
-      url,
-      draft,
-    },
-  },
+  { input: { type, entityType, entityId, url, draft } },
   { viewer, dataSources: { systemService } }
 ) => {
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
