@@ -49,13 +49,45 @@ test('sumAppreciation', async () => {
   expect(appreciation).toBeDefined()
 })
 
-test('findByAuthor', async () => {
-  const articles = await articleService.findByAuthor('1')
-  expect(articles.length).toBeDefined()
-  const articles2 = await articleService.findByAuthor('1', {
-    orderBy: [{ column: 'updated_at', order: 'desc' }],
+describe('findByAuthor', () => {
+  test('order by created_at', async () => {
+    const draftIds = await articleService.findByAuthor('1')
+    expect(draftIds.length).toBeDefined()
   })
-  expect(articles2.length).toBeDefined()
+  test('order by num of readers', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(draftIds.length).toBeDefined()
+    expect(draftIds[0].draftId).not.toBe('1')
+    await connections.knex('article_ga4_data').insert({
+      articleId: '1',
+      totalUsers: '1',
+      dateRange: '[2023-10-24,2023-10-24]',
+    })
+    const draftIds2 = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(draftIds2[0].draftId).toBe('1')
+  })
+  test('order by amount of appreciations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostAppreciations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of comments', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostComments',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of donations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostDonations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
 })
 
 test('findByCommentedAuthor', async () => {
@@ -155,4 +187,12 @@ test('quicksearch', async () => {
     })
   expect(nodes2.length).toBe(1)
   expect(totalCount2).toBeLessThan(totalCount)
+})
+
+test('countReaders', async () => {
+  const count1 = await articleService.countReaders('1')
+  expect(count1).toBeDefined()
+  // count not exist articles' readers
+  const count0 = await articleService.countReaders('0')
+  expect(count0).toBe(0)
 })

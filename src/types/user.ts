@@ -150,7 +150,7 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
 
     "Articles authored by current user."
-    articles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Topics created by current user."
     topics(input: TopicInput!): TopicConnection! @complexity(multipliers: ["input.first"], value: 1)
@@ -1036,5 +1036,22 @@ export default /* GraphQL */ `
     type: SocialAccountType!
   }
 
+  input UserArticlesInput {
+    after: String
+    first: Int @constraint(min: 0)
+    sort: UserArticlesSort = newest
+    filter: UserArticlesFilter
+  }
 
+  enum UserArticlesSort {
+    newest
+    mostReaders
+    mostAppreciations
+    mostComments
+    mostDonations
+  }
+
+  input UserArticlesFilter {
+    state: ArticleState = active
+  }
 `
