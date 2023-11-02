@@ -145,6 +145,7 @@ export class UserService extends BaseService {
       ethAddress,
       emailVerified = false,
       language,
+      referralCode,
     }: {
       userName?: string
       displayName?: string
@@ -154,6 +155,7 @@ export class UserService extends BaseService {
       ethAddress?: string
       emailVerified?: boolean
       language?: LANGUAGES
+      referralCode?: string
     },
     trx?: Knex.Transaction
   ) => {
@@ -161,6 +163,9 @@ export class UserService extends BaseService {
     const passwordHash = password
       ? await generatePasswordhash(password)
       : undefined
+    const extra = {
+      ...(referralCode ? { referralCode } : null),
+    }
     const user = await this.baseCreate(
       _.omitBy(
         {
@@ -176,6 +181,7 @@ export class UserService extends BaseService {
           state: USER_STATE.active,
           ethAddress,
           language,
+          extra: _.isEmpty(extra) ? null : extra,
         },
         _.isNil
       ),
@@ -2382,9 +2388,11 @@ export class UserService extends BaseService {
     email,
     emailVerified,
     language,
+    referralCode,
   }: Omit<SocialAccount, 'userId'> & {
     emailVerified?: boolean
     language: LANGUAGES
+    referralCode?: string
   }) => {
     try {
       const [user, created] = await this._getOrCreateUserBySocialAccount({
@@ -2394,6 +2402,7 @@ export class UserService extends BaseService {
         email,
         emailVerified,
         language,
+        referralCode,
       })
       if (created) {
         auditLog({
@@ -2427,9 +2436,11 @@ export class UserService extends BaseService {
     email,
     emailVerified,
     language,
+    referralCode,
   }: Omit<SocialAccount, 'userId'> & {
     emailVerified?: boolean
     language: LANGUAGES
+    referralCode?: string
   }): Promise<[User, boolean]> => {
     let isCreated = false
     // check if social account exists, if true, return user directly
@@ -2457,12 +2468,15 @@ export class UserService extends BaseService {
     try {
       if (!user) {
         // social account email not used by existing users, create new user
-        user = await this.create({ email, emailVerified, language }, trx)
+        user = await this.create(
+          { email, emailVerified, language, referralCode },
+          trx
+        )
         isCreated = true
       } else if (user && (!user.emailVerified || !emailVerified)) {
         // social account have email but not verified, create new user
         // or social account email have been used by existing user but not verified, create new user w/o email
-        user = await this.create({ language }, trx)
+        user = await this.create({ language, referralCode }, trx)
         isCreated = true
       } else {
         // social account email have been used by existing user and verified.
@@ -2472,7 +2486,7 @@ export class UserService extends BaseService {
           type
         )
         if (socialAccounts.length > 0) {
-          user = await this.create({ language }, trx)
+          user = await this.create({ language, referralCode }, trx)
           isCreated = true
         }
       }

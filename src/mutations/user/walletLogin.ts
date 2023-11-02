@@ -78,6 +78,7 @@ const _walletLogin: Exclude<
       email,
       codeId,
       language,
+      referralCode,
     },
   },
   context
@@ -216,6 +217,7 @@ const _walletLogin: Exclude<
         displayName: userName,
         ethAddress: ethAddress.toLowerCase(), // save the lower case ones
         language: language || viewer.language,
+        referralCode,
       })
       // mark code status as used
       await userService.postRegister(user)
