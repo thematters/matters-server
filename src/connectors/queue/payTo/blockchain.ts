@@ -213,7 +213,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
-      let syncedBlocknum: number
+      let syncedBlocknum: bigint
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
       } catch (error) {
@@ -426,14 +426,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
   private fetchCurationLogs = async (
     curation: CurationContract,
     savepoint: number
-  ): Promise<[Array<Log<CurationEvent>>, number]> => {
+  ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
     const safeBlockNum =
-      (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+      (await curation.fetchBlockNumber()) - BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
 
-    const fromBlockNum = savepoint + 1
+    const fromBlockNum = BigInt(savepoint + 1)
 
     if (fromBlockNum >= safeBlockNum) {
-      return [[], savepoint as number]
+      return [[], BigInt(savepoint)]
     }
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
@@ -596,7 +596,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       const entity = await userService.baseFindEntityTypeTable(targetType)
       const entityType =
         NODE_TYPES[
-          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
+        (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
         ]
       if (entityType) {
         invalidateFQC({
