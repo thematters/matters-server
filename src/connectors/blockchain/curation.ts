@@ -1,4 +1,6 @@
-import { Address, decodeEventLog, encodeEventTopics, parseAbi, parseAbiItem } from 'viem'
+import type { Address, Abi } from 'viem';
+
+import { decodeEventLog, encodeEventTopics, parseAbi, parseAbiItem } from 'viem'
 
 import { BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -33,7 +35,7 @@ export interface CurationTxReceipt {
 // erc20 token
 const erc20TokenCurationEventIdentifier =
   'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)'
-const erc20TokenCurationEventABI = [{
+const erc20TokenCurationEventABI: [Abi[number]] = [{
   name: erc20TokenCurationEventIdentifier,
   type: 'event',
   inputs: [
@@ -48,7 +50,7 @@ type Erc20Params = { from: `0x${string}`; to: `0x${string}`; uri: string; amount
 // native token
 const nativeTokenCurationEventIdentifier =
   'event Curation(address indexed from, address indexed to, string uri, uint256 amount)'
-const nativeTokenCurationEventABI = [{
+const nativeTokenCurationEventABI: [Abi[number]] = [{
   name: nativeTokenCurationEventIdentifier,
   type: 'event',
   inputs: [
@@ -73,17 +75,19 @@ const chainId = isProd
 // CurationContract
 
 export class CurationContract extends BaseContract {
-  public erc20TokenCurationEventTopic: string[]
-  public nativeTokenCurationEventTopic: string
+  public erc20TokenCurationEventTopic: `0x${string}`
+  public nativeTokenCurationEventTopic: `0x${string}`
 
   public constructor() {
     super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
-    const a = encodeEventTopics({
-      abi: erc20TokenCurationEventABI
-    })
-    this.nativeTokenCurationEventTopic = this.contract.interface.getEventTopic(
-      nativeTokenCurationEventIdentifier
-    )
+    this.erc20TokenCurationEventTopic = encodeEventTopics({
+      abi: erc20TokenCurationEventABI,
+      eventName: erc20TokenCurationEventIdentifier
+    })[0]
+    this.nativeTokenCurationEventTopic = encodeEventTopics({
+      abi: nativeTokenCurationEventABI,
+      eventName: nativeTokenCurationEventIdentifier
+    })[0]
   }
 
   public fetchLogs = async (
