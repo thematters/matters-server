@@ -1,4 +1,4 @@
-import type { Address, Abi } from 'viem';
+import type { Address, Hex } from 'viem';
 
 import { decodeEventLog, encodeEventTopics, parseAbi, parseAbiItem } from 'viem'
 
@@ -33,9 +33,10 @@ export interface CurationTxReceipt {
 
 // constants
 // erc20 token
-const erc20TokenCurationEventIdentifier =
-  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)'
-const erc20TokenCurationEventABI: [Abi[number]] = [{
+const erc20TokenCurationEventIdentifier = 'Curation' as const;
+const erc20TokenCurationEventSignature =
+  'event Curation(address indexed curator, address indexed creator, address indexed token, string uri, uint256 amount)' as const
+const erc20TokenCurationEventABI = [{
   name: erc20TokenCurationEventIdentifier,
   type: 'event',
   inputs: [
@@ -46,11 +47,12 @@ const erc20TokenCurationEventABI: [Abi[number]] = [{
     { type: 'uint256', name: 'amount' }
   ]
 }] as const
-type Erc20Params = { from: `0x${string}`; to: `0x${string}`; uri: string; amount: bigint; }
+type Erc20Params = { from: Hex; to: Hex; uri: string; amount: bigint; }
 // native token
-const nativeTokenCurationEventIdentifier =
-  'event Curation(address indexed from, address indexed to, string uri, uint256 amount)'
-const nativeTokenCurationEventABI: [Abi[number]] = [{
+const nativeTokenCurationEventIdentifier = 'Curation' as const
+const nativeTokenCurationEventSignature =
+  'event Curation(address indexed from, address indexed to, string uri, uint256 amount)' as const
+const nativeTokenCurationEventABI = [{
   name: nativeTokenCurationEventIdentifier,
   type: 'event',
   inputs: [
@@ -60,7 +62,7 @@ const nativeTokenCurationEventABI: [Abi[number]] = [{
     { type: 'uint256', name: 'amount' }
   ]
 }] as const
-type NativeTokenParams = { curator: `0x${string}`; creator: `0x${string}`; token: `0x${string}`; uri: string; amount: bigint; }
+type NativeTokenParams = { curator: Hex; creator: Hex; token: Hex; uri: string; amount: bigint; }
 // typeguards for viem
 const isErc20TokenParams = (t: Erc20Params | NativeTokenParams): t is Erc20Params => (t as Erc20Params).from !== undefined
 
@@ -75,55 +77,73 @@ const chainId = isProd
 // CurationContract
 
 export class CurationContract extends BaseContract {
-  public erc20TokenCurationEventTopic: `0x${string}`
-  public nativeTokenCurationEventTopic: `0x${string}`
+  public erc20TokenCurationEventTopic: [signature: Hex]
+  public nativeTokenCurationEventTopic: [signature: Hex]
 
   public constructor() {
     super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
+    // TODO: this cast is weirdly required here; viem has this returned implicitly as this type
+    //  but typescript inferred this as just Hex[] which is wrong. Viem should've explicitly type this
+    // in `encodeEventTopics` but choose not to at the point of this
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: erc20TokenCurationEventIdentifier
-    })[0]
+    }) as [signature: Hex]
     this.nativeTokenCurationEventTopic = encodeEventTopics({
       abi: nativeTokenCurationEventABI,
       eventName: nativeTokenCurationEventIdentifier
-    })[0]
+    }) as [signature: Hex]
   }
 
   public fetchLogs = async (
-    fromBlock: number,
-    toBlock: number
+    fromBlock: bigint,
+    toBlock: bigint
   ): Promise<Array<Log<CurationEvent>>> => {
+    // has to refactor this out because otherwise viem would not type it correctly
     const [erc20Logs, nativeLogs] = await Promise.all([
-      this._fetchLogs(
-        fromBlock,
-        toBlock,
-        erc20TokenCurationEventIdentifier as never // leaving viem to parse
-      ),
-      this._fetchLogs(
-        fromBlock,
-        toBlock,
-        nativeTokenCurationEventIdentifier as never // leaving viem to parse
-      ),
-    ])
-    const logs = erc20Logs.concat(nativeLogs)
-    return logs
-      .map((e) => {
-        const decodedLog = decodeEventLog({ abi: this.contract.abi, ...e })
-        return {
-          event: {
-            curatorAddress: (e.args!.curator! || e.args!.from!).toLowerCase(),
-            creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
-            uri: e.args!.uri,
-            tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
-            amount: e.args!.amount!.toString(),
-          },
-          txHash: e.transactionHash,
-          address: contractAddress,
-          blockNumber: e.blockNumber,
-          removed: e.removed,
-        }
+      this.client.getFilterLogs({
+        filter: await this.client.createEventFilter({
+          event: parseAbiItem(erc20TokenCurationEventSignature),
+          fromBlock: BigInt(fromBlock),
+          toBlock: BigInt(toBlock)
+        })
+      }),
+      this.client.getFilterLogs({
+        filter: await this.client.createEventFilter({
+          event: parseAbiItem(nativeTokenCurationEventSignature),
+          fromBlock: BigInt(fromBlock),
+          toBlock: BigInt(toBlock)
+        })
       })
+    ])
+    const logs: Array<Log<CurationEvent>> = []
+
+    // parse erc20logs and add result to logs
+    // TODO: the args are not parsed correctly
+    const decodeErc20Logs = decodeEventLog({
+      abi: erc20TokenCurationEventABI,
+      topics: this.erc20TokenCurationEventTopic
+    });
+
+    return logs;
+    // const logs = erc20Logs.concat(nativeLogs)
+    // return logs
+    //   .map((e) => {
+    //     const decodedLog = decodeEventLog({ abi: this.contract.abi, ...e })
+    //     return {
+    //       event: {
+    //         curatorAddress: (decodedLog.args!.curator! || e.args!.from!).toLowerCase(),
+    //         creatorAddress: (e.args!.creator! || e.args!.to!).toLowerCase(),
+    //         uri: e.args!.uri,
+    //         tokenAddress: e.args!.token! ? e.args!.token!.toLowerCase() : null,
+    //         amount: e.args!.amount!.toString(),
+    //       },
+    //       txHash: e.transactionHash,
+    //       address: contractAddress,
+    //       blockNumber: e.blockNumber,
+    //       removed: e.removed,
+    //     }
+    //   })
   }
 
   public fetchTxReceipt = async (
@@ -135,8 +155,8 @@ export class CurationContract extends BaseContract {
     }
     const targets = txReceipt.logs.filter(log =>
       log.address.toLowerCase() === this.address.toLowerCase() &&
-      (log.topics[0] === this.erc20TokenCurationEventTopic ||
-        log.topics[0] === this.nativeTokenCurationEventTopic)
+      (log.topics[0] === this.erc20TokenCurationEventTopic[0] ||
+        log.topics[0] === this.nativeTokenCurationEventTopic[0])
     )
 
     return {
@@ -157,18 +177,5 @@ export class CurationContract extends BaseContract {
           }
         }),
     }
-  }
-
-  private _fetchLogs = async (
-    fromBlock: number,
-    toBlock: number,
-    eventFilterAbi: Parameters<typeof parseAbiItem>
-  ) => {
-    const filter = await this.client.createEventFilter({
-      event: parseAbiItem(eventFilterAbi),
-      fromBlock: BigInt(fromBlock),
-      toBlock: BigInt(toBlock)
-    })
-    return this.client.getFilterLogs({ filter })
   }
 }
