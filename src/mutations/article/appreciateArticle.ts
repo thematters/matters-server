@@ -53,10 +53,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  if (!viewer.likerId) {
-    throw new ForbiddenError('viewer has no liker id')
-  }
-
   // check amount
   if (!amount || amount <= 0) {
     throw new UserInputError('invalid amount')
@@ -85,12 +81,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   }
 
   const author = await userService.loadById(article.authorId)
-  if (!author) {
-    throw new ForbiddenError('author has no liker id')
-  }
-  if (!author.likerId) {
-    throw new ForbiddenError('author has no liker id')
-  }
 
   if (author.state === USER_STATE.frozen) {
     throw new ForbiddenByTargetStateError(
@@ -127,43 +117,44 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
    */
   if (superLike) {
     const liker = await userService.findLiker({ userId: viewer.id })
-    if (!liker || !author) {
-      throw new ForbiddenError('viewer or author has no liker id')
+
+    if (liker?.likerId && author.likerId) {
+      // const slug = slugify(node.title)
+      const superLikeData = {
+        liker,
+        iscn_id: article.iscn_id,
+        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}`,
+        likerIp: viewer.ip,
+        userAgent: viewer.userAgent,
+      }
+      const canSuperLike = await userService.likecoin.canSuperLike(
+        superLikeData
+      )
+
+      if (!canSuperLike) {
+        throw new ForbiddenError('cannot super like')
+      }
+
+      await userService.likecoin.superlike({
+        ...superLikeData,
+        authorLikerId: author.likerId,
+      })
+
+      // insert record
+      const appreciation = {
+        senderId: viewer.id,
+        recipientId: article.authorId,
+        referenceId: article.id,
+        purpose: APPRECIATION_PURPOSE.superlike,
+        type: APPRECIATION_TYPES.like,
+      }
+      await atomService.create({
+        table: 'appreciation',
+        data: { ...appreciation, uuid: v4(), amount },
+      })
+
+      return node
     }
-
-    // const slug = slugify(node.title)
-    const superLikeData = {
-      liker,
-      iscn_id: article.iscn_id,
-      url: `https://${environment.siteDomain}/@${author.userName}/${article.id}`,
-      likerIp: viewer.ip,
-      userAgent: viewer.userAgent,
-    }
-    const canSuperLike = await userService.likecoin.canSuperLike(superLikeData)
-
-    if (!canSuperLike) {
-      throw new ForbiddenError('cannot super like')
-    }
-
-    await userService.likecoin.superlike({
-      ...superLikeData,
-      authorLikerId: author.likerId,
-    })
-
-    // insert record
-    const appreciation = {
-      senderId: viewer.id,
-      recipientId: article.authorId,
-      referenceId: article.id,
-      purpose: APPRECIATION_PURPOSE.superlike,
-      type: APPRECIATION_TYPES.like,
-    }
-    await atomService.create({
-      table: 'appreciation',
-      data: { ...appreciation, uuid: v4(), amount },
-    })
-
-    return node
   }
 
   /**

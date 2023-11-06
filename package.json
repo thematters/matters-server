@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "4.26.1",
+  "version": "4.26.2",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -100,6 +100,7 @@
     "nanoid": "^3.3.6",
     "node-fetch": "^2.6.11",
     "number-precision": "^1.6.0",
+    "oauth-1.0a": "^2.2.6",
     "oauth2-server": "^3.1.1",
     "objection": "^3.0.2",
     "opencc": "^1.1.3",

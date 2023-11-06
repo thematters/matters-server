@@ -4,6 +4,7 @@ export default /* GraphQL */ `
   extend type Query {
     viewer: User @privateCache @logCache(type: "${NODE_TYPES.User}")
     user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.User}")
+    oauthRequestToken: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   extend type Mutation {
@@ -64,7 +65,7 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
+    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}") @deprecated(reason: "No longer in use")
 
     "Reset Liker ID"
     resetLikerId(input: ResetLikerIdInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
@@ -1003,13 +1004,20 @@ export default /* GraphQL */ `
 
   input SocialLoginInput {
     type: SocialAccountType!
-    authorizationCode: String!
+    authorizationCode: String
     "OAuth2 PKCE code_verifier for Facebook and Twitter"
     codeVerifier: String
     "OIDC nonce for Google"
     nonce: String
+    "oauth token/verifier in OAuth1.0a for Twitter"
+    oauth1Credential: Oauth1CredentialInput
     "used in register"
     language: UserLanguage
+  }
+
+  input Oauth1CredentialInput {
+    oauthToken: String!
+    oauthVerifier: String!
   }
 
   input SetUserNameInput {

@@ -7,6 +7,7 @@ import draft from './draft'
 import exchangeRates from './exchangeRates'
 import notice from './notice'
 import oauthClient from './oauthClient'
+import oauthRequestToken from './oauthRequestToken'
 import response from './response'
 import scalars from './scalars'
 import system from './system'
@@ -23,5 +24,6 @@ export default merge(
   system,
   response,
   oauthClient,
+  oauthRequestToken,
   exchangeRates
 )

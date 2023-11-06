@@ -102,6 +102,7 @@ import {
   OAuthService,
   NotificationService,
 } from 'connectors'
+import { Twitter } from 'connectors/oauth'
 
 import { LikeCoin } from './likecoin'
 import { medium } from './medium'
@@ -2624,6 +2625,23 @@ export class UserService extends BaseService {
       codeVerifier
     )
     return this.fetchTwitterUserInfoByAccessToken(accessToken)
+  }
+  public fetchTwitterUserInfoOauth1 = async (
+    oauthToken: string,
+    oauthVerifier: string
+  ) => {
+    const twitter = new Twitter()
+    let userInfo
+    try {
+      userInfo = await twitter.fetchAccessToken(oauthToken, oauthVerifier)
+      return userInfo
+    } catch (err: any) {
+      throw new OAuthTokenInvalidError(err.message)
+    } finally {
+      if (userInfo) {
+        twitter.invokeToken(userInfo.oauthToken, userInfo.oauthTokenSecret)
+      }
+    }
   }
 
   private exchangeTwitterAccessToken = async (

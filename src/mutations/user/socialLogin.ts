@@ -7,7 +7,16 @@ import { checkIfE2ETest, throwOrReturnUserInfo } from 'common/utils/e2e'
 
 export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
   _,
-  { input: { type, authorizationCode, codeVerifier, nonce, language } },
+  {
+    input: {
+      type,
+      authorizationCode,
+      codeVerifier,
+      nonce,
+      oauth1Credential,
+      language,
+    },
+  },
   context
 ) => {
   const {
@@ -17,24 +26,33 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
     viewer,
   } = context
 
-  const isE2ETest = checkIfE2ETest(authorizationCode)
+  const isE2ETest = checkIfE2ETest(authorizationCode ?? '')
 
   let user
   if (type === SOCIAL_LOGIN_TYPE.Twitter) {
-    if (codeVerifier === undefined) {
-      throw new UserInputError('codeVerifier is required')
-    }
     let userInfo: {
       id: string
       username: string
     }
-    if (isE2ETest) {
-      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+    if (codeVerifier === undefined || authorizationCode === undefined) {
+      if (oauth1Credential) {
+        const { oauthToken, oauthVerifier } = oauth1Credential
+        userInfo = (await userService.fetchTwitterUserInfoOauth1(
+          oauthToken,
+          oauthVerifier
+        )) as any
+      } else {
+        throw new UserInputError('oauth1Credential are required')
+      }
     } else {
-      userInfo = await userService.fetchTwitterUserInfo(
-        authorizationCode,
-        codeVerifier
-      )
+      if (isE2ETest) {
+        userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+      } else {
+        userInfo = await userService.fetchTwitterUserInfo(
+          authorizationCode,
+          codeVerifier
+        )
+      }
     }
     user = await userService.getOrCreateUserBySocialAccount({
       providerAccountId: userInfo.id,
@@ -43,8 +61,10 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       language: language || viewer.language,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
-    if (codeVerifier === undefined) {
-      throw new UserInputError('codeVerifier is required')
+    if (codeVerifier === undefined || authorizationCode === undefined) {
+      throw new UserInputError(
+        'codeVerifier and authorizationCode are both required'
+      )
     }
     let userInfo: {
       id: string
@@ -65,8 +85,8 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       language: language || viewer.language,
     })
   } else {
-    if (nonce === undefined) {
-      throw new UserInputError('nonce is required')
+    if (nonce === undefined || authorizationCode === undefined) {
+      throw new UserInputError('nonce and authorizationCode is required')
     }
     let userInfo: {
       id: string
@@ -103,27 +123,37 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
 
 export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
   _,
-  { input: { type, authorizationCode, codeVerifier, nonce } },
+  { input: { type, authorizationCode, codeVerifier, oauth1Credential, nonce } },
   { dataSources: { userService }, viewer }
 ) => {
-  const isE2ETest = checkIfE2ETest(authorizationCode)
+  const isE2ETest = checkIfE2ETest(authorizationCode ?? '')
 
   if (type === SOCIAL_LOGIN_TYPE.Twitter) {
-    if (codeVerifier === undefined) {
-      throw new UserInputError('codeVerifier is required')
-    }
     let userInfo: {
       id: string
       username: string
     }
-
-    if (isE2ETest) {
-      userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+    if (codeVerifier === undefined || authorizationCode === undefined) {
+      if (oauth1Credential) {
+        const { oauthToken, oauthVerifier } = oauth1Credential
+        userInfo = await userService.fetchTwitterUserInfoOauth1(
+          oauthToken,
+          oauthVerifier
+        )
+      } else {
+        throw new UserInputError(
+          'codeVerifier and authorizationCode are both required'
+        )
+      }
     } else {
-      userInfo = await userService.fetchTwitterUserInfo(
-        authorizationCode,
-        codeVerifier
-      )
+      if (isE2ETest) {
+        userInfo = throwOrReturnUserInfo(authorizationCode, type) as any
+      } else {
+        userInfo = await userService.fetchTwitterUserInfo(
+          authorizationCode,
+          codeVerifier
+        )
+      }
     }
     await userService.createSocialAccount({
       userId: viewer.id,
@@ -132,8 +162,10 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
       userName: userInfo.username,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
-    if (codeVerifier === undefined) {
-      throw new UserInputError('codeVerifier is required')
+    if (codeVerifier === undefined || authorizationCode === undefined) {
+      throw new UserInputError(
+        'codeVerifier and authorizationCode are both required'
+      )
     }
     let userInfo: {
       id: string
@@ -155,8 +187,8 @@ export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
     })
   } else {
     // Google
-    if (nonce === undefined) {
-      throw new UserInputError('nonce is required')
+    if (nonce === undefined || authorizationCode === undefined) {
+      throw new UserInputError('nonce and authorizationCode is required')
     }
     let userInfo: {
       id: string

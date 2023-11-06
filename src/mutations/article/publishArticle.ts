@@ -28,9 +28,6 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  if (!viewer.likerId) {
-    throw new ForbiddenError('user has no liker id')
-  }
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }

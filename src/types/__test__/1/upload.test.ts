@@ -3,7 +3,8 @@ import type { Connections } from 'definitions'
 import { createReadStream } from 'fs'
 import { FileUpload, Upload } from 'graphql-upload'
 
-import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE } from 'common/enums'
+import { AUDIO_ASSET_TYPE, IMAGE_ASSET_TYPE, NODE_TYPES } from 'common/enums'
+import { toGlobalId } from 'common/utils'
 import { SystemService } from 'connectors'
 
 import { genConnections, closeConnections, testClient } from '../utils'
@@ -11,7 +12,7 @@ import { genConnections, closeConnections, testClient } from '../utils'
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -55,6 +56,21 @@ describe('singleFileUpload', () => {
           type: IMAGE_ASSET_TYPE.avatar,
           file: createUpload('audio/mpeg'),
           entityType: 'user',
+        },
+      },
+    })
+    expect(errors && errors[0].message).toBe('Invalid image format.')
+  })
+  test('upload GIF as cover will fail', async () => {
+    const server = await testClient({ isAuth: true, connections })
+    const { errors } = await server.executeOperation({
+      query: SINGLE_FILE_UPLOAD,
+      variables: {
+        input: {
+          type: IMAGE_ASSET_TYPE.cover,
+          file: createUpload('image/gif'),
+          entityType: 'article',
+          entityId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
         },
       },
     })
