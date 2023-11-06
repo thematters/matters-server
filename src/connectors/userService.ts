@@ -2631,10 +2631,16 @@ export class UserService extends BaseService {
     oauthVerifier: string
   ) => {
     const twitter = new Twitter()
+    let userInfo
     try {
-      return await twitter.fetchAccessToken(oauthToken, oauthVerifier)
+      userInfo = await twitter.fetchAccessToken(oauthToken, oauthVerifier)
+      return userInfo
     } catch (err: any) {
       throw new OAuthTokenInvalidError(err.message)
+    } finally {
+      if (userInfo) {
+        twitter.invokeToken(userInfo.oauthToken, userInfo.oauthTokenSecret)
+      }
     }
   }
 
