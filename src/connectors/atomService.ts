@@ -47,16 +47,6 @@ interface UpdateInput {
   columns?: string | string[]
 }
 
-interface UpdateJsonColumnInput {
-  table: TableName
-  where: Record<string, any>
-  jsonColumn?: string // default extra column name is 'extra'
-  removeKeys?: string[] // keys to remove from extra json column
-  jsonData?: Record<string, any> | null
-  // resetNull?; boolean
-  columns?: string | string[] // returning columns
-}
-
 interface UpsertInput {
   table: TableName
   where?: Record<string, any>
@@ -224,36 +214,6 @@ export class AtomService {
       .where(where)
       .update(data)
       .into(table)
-      .returning(columns)
-    return record
-  }
-
-  updateJsonColumn = async ({
-    table,
-    where,
-    jsonColumn = 'extra', // the json column's name
-    removeKeys = [], // the keys to remove from jsonb data
-    jsonData, // the extra data to append into jsonb data
-    // resetNull,
-    columns = '*',
-  }: UpdateJsonColumnInput) => {
-    const [record] = await this.knex
-      .table(table)
-      .where(where)
-      .update(
-        jsonColumn,
-        jsonData == null
-          ? null
-          : this.knex.raw(
-              String.raw`(COALESCE(:jsonColumn:, '{}'::jsonb) - :removeKeys ::text[]) || :jsonData ::jsonb`,
-              {
-                jsonColumn,
-                removeKeys,
-                jsonData,
-              }
-            )
-      )
-      .update('updatedAt', this.knex.fn.now())
       .returning(columns)
     return record
   }

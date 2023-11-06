@@ -29,7 +29,6 @@ import togglePinTag from './togglePinTag'
 import toggleUsersBadge from './toggleUsersBadge'
 import unbindLikerId from './unbindLikerId'
 import updateNotificationSetting from './updateNotificationSetting'
-import updateUserExtra from './updateUserExtra'
 import updateUserInfo from './updateUserInfo'
 import updateUserRole from './updateUserRole'
 import updateUserState from './updateUserState'
@@ -67,7 +66,6 @@ export default {
     clearSearchHistory,
     updateUserState,
     updateUserRole,
-    updateUserExtra,
     setEmail,
     setUserName,
     setPassword,

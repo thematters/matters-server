@@ -1190,7 +1190,6 @@ export type GQLEmailLoginInput = {
   /** used in register */
   language?: InputMaybe<GQLUserLanguage>
   passwordOrCode: Scalars['String']['input']
-  referralCode?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLEntityType =
@@ -1631,8 +1630,6 @@ export type GQLMutation = {
   updateNotificationSetting: GQLUser
   /** Update member, permission and othters of a tag. */
   updateTagSetting: GQLTag
-  /** Update referralCode of a user, used in OSS. */
-  updateUserExtra: GQLUser
   /** Update user information. */
   updateUserInfo: GQLUser
   /** Update state of a user, used in OSS. */
@@ -2005,10 +2002,6 @@ export type GQLMutationUpdateNotificationSettingArgs = {
 
 export type GQLMutationUpdateTagSettingArgs = {
   input: GQLUpdateTagSettingInput
-}
-
-export type GQLMutationUpdateUserExtraArgs = {
-  input: GQLUpdateUserExtraInput
 }
 
 export type GQLMutationUpdateUserInfoArgs = {
@@ -2909,7 +2902,6 @@ export type GQLSocialLoginInput = {
   nonce?: InputMaybe<Scalars['String']['input']>
   /** oauth token/verifier in OAuth1.0a for Twitter */
   oauth1Credential?: InputMaybe<GQLOauth1CredentialInput>
-  referralCode?: InputMaybe<Scalars['String']['input']>
   type: GQLSocialAccountType
 }
 
@@ -3368,11 +3360,6 @@ export type GQLUpdateTagSettingType =
   | 'leave_editor'
   | 'remove_editor'
 
-export type GQLUpdateUserExtraInput = {
-  id: Scalars['ID']['input']
-  referralCode?: InputMaybe<Scalars['String']['input']>
-}
-
 export type GQLUpdateUserInfoInput = {
   agreeOn?: InputMaybe<Scalars['Boolean']['input']>
   avatar?: InputMaybe<Scalars['ID']['input']>
@@ -3382,7 +3369,6 @@ export type GQLUpdateUserInfoInput = {
   paymentPassword?: InputMaybe<Scalars['String']['input']>
   paymentPointer?: InputMaybe<Scalars['String']['input']>
   profileCover?: InputMaybe<Scalars['ID']['input']>
-  referralCode?: InputMaybe<Scalars['String']['input']>
   /** @deprecated use 'setUserName' instead */
   userName?: InputMaybe<Scalars['String']['input']>
 }
@@ -3726,7 +3712,6 @@ export type GQLUserRegisterInput = {
   displayName: Scalars['String']['input']
   email: Scalars['String']['input']
   password: Scalars['String']['input']
-  referralCode?: InputMaybe<Scalars['String']['input']>
   userName?: InputMaybe<Scalars['String']['input']>
 }
 
@@ -3834,7 +3819,6 @@ export type GQLWalletLoginInput = {
   language?: InputMaybe<GQLUserLanguage>
   /** nonce from generateSigningMessage */
   nonce: Scalars['String']['input']
-  referralCode?: InputMaybe<Scalars['String']['input']>
   /** sign'ed by wallet */
   signature: Scalars['String']['input']
   /** the message being sign'ed, including nonce */
@@ -4536,7 +4520,6 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateTagSettingInput: GQLUpdateTagSettingInput
   UpdateTagSettingType: GQLUpdateTagSettingType
-  UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
@@ -4954,7 +4937,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateTagSettingInput: GQLUpdateTagSettingInput
-  UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
@@ -7033,12 +7015,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateTagSettingArgs, 'input'>
-  >
-  updateUserExtra?: Resolver<
-    GQLResolversTypes['User'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationUpdateUserExtraArgs, 'input'>
   >
   updateUserInfo?: Resolver<
     GQLResolversTypes['User'],
