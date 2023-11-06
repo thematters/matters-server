@@ -157,7 +157,7 @@ const GET_VIEWER_INFO = /* GraphQL */ `
   }
 `
 const GET_VIEW_ARTICLES = /* GraphQL */ `
-  query ($input: UserArticlesInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       id
       articles(input: $input) {

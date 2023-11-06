@@ -22,13 +22,11 @@ import content from './content'
 import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
-import donationCount from './donationCount'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import language from './language'
 import * as articleOSS from './oss'
 import pinned from './pinned'
-import readerCount from './readerCount'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
@@ -125,8 +123,6 @@ export default {
     license: ({ license }: { license: GQLArticleLicenseType }) => license,
     requestForDonation,
     replyToDonator,
-    donationCount,
-    readerCount,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),

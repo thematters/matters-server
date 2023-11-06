@@ -23,7 +23,6 @@ import {
   ARTICLE_STATE,
   CIRCLE_STATE,
   COMMENT_TYPE,
-  COMMENT_STATE,
   // DEFAULT_IPNS_LIFETIME,
   MINUTE,
   QUEUE_URL,
@@ -409,146 +408,56 @@ export class ArticleService extends BaseService {
     authorId: string,
     {
       columns = ['draft_id'],
-      orderBy = 'newest',
-      state = 'active',
+      showAll = false,
+      tagIds,
+      inRangeStart,
+      inRangeEnd,
+      orderBy = [{ column: 'article.id', order: 'desc' }],
       skip,
       take,
     }: {
       columns?: string[]
-      state?: keyof typeof ARTICLE_STATE | null
-      orderBy?:
-        | 'newest'
-        | 'mostReaders'
-        | 'mostAppreciations'
-        | 'mostComments'
-        | 'mostDonations'
+      showAll?: boolean
+      tagIds?: string[]
+      inRangeStart?: string
+      inRangeEnd?: string
+      orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
       skip?: number
       take?: number
     } = {}
-  ) => {
-    const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
-    return this.knexRO(
-      this.knexRO
-        .from(this.table)
-        .where({
-          authorId,
-        })
-        .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
-        .as('t1')
-    )
+  ) =>
+    this.knex
+      .select(columns)
+      .from(this.table)
+      .where({
+        authorId,
+        ...(showAll
+          ? null
+          : {
+              state: ARTICLE_STATE.active,
+            }),
+      })
+      .whereNotIn('state', [ARTICLE_STATE.pending, ARTICLE_STATE.error])
       .modify((builder: Knex.QueryBuilder) => {
-        if (state) {
-          builder.andWhere({ 't1.state': state })
+        if (Array.isArray(tagIds) && tagIds.length > 0) {
+          builder
+            .join('article_tag AS at', 'at.article_id', 'article.id')
+            .andWhere('tag_id', 'in', tagIds)
+        }
+        if (inRangeStart != null && inRangeEnd != null) {
+          // neither null nor undefined
+          builder.andWhereBetween('article.created_at', [
+            inRangeStart,
+            inRangeEnd,
+          ])
+        } else if (inRangeStart != null) {
+          builder.andWhere('article.created_at', '>=', inRangeStart)
+        } else if (inRangeEnd != null) {
+          builder.andWhere('article.created_at', '<', inRangeEnd)
         }
 
-        switch (orderBy) {
-          case 'newest': {
-            builder.orderBy('t1.id', 'desc')
-            break
-          }
-          case 'mostReaders': {
-            builder
-              .leftJoin(
-                this.knexRO('article_ga4_data')
-                  .groupBy('article_id')
-                  .select(
-                    'article_id',
-                    this.knex.raw('SUM(total_users) as reader_amount')
-                  )
-                  .as('t2'),
-                't1.id',
-                't2.article_id'
-              )
-              .orderBy([
-                { column: 't2.reader_amount', order: 'desc', nulls: 'last' },
-                { column: 't1.id', order: 'desc' },
-              ])
-            break
-          }
-          case 'mostAppreciations': {
-            builder
-              .leftJoin(
-                this.knexRO('appreciation')
-                  .whereIn('purpose', [
-                    APPRECIATION_PURPOSE.appreciate,
-                    APPRECIATION_PURPOSE.appreciateSubsidy,
-                  ])
-                  .groupBy('reference_id')
-                  .select(
-                    'reference_id',
-                    this.knex.raw('SUM(amount) as appreciation_amount')
-                  )
-                  .as('t2'),
-                't1.id',
-                't2.reference_id'
-              )
-              .orderBy([
-                {
-                  column: 't2.appreciation_amount',
-                  order: 'desc',
-                  nulls: 'last',
-                },
-                { column: 't1.id', order: 'desc' },
-              ])
-            break
-          }
-          case 'mostComments': {
-            builder
-              .leftJoin(
-                this.knexRO('comment')
-                  .where({
-                    type: COMMENT_TYPE.article,
-                    state: COMMENT_STATE.active,
-                    targetTypeId,
-                  })
-                  .groupBy('target_id')
-                  .select(
-                    'target_id',
-                    this.knex.raw('COUNT(1) as comment_count')
-                  )
-                  .as('t2'),
-                't1.id',
-                't2.target_id'
-              )
-              .orderBy([
-                {
-                  column: 't2.comment_count',
-                  order: 'desc',
-                  nulls: 'last',
-                },
-                { column: 't1.id', order: 'desc' },
-              ])
-            break
-          }
-          case 'mostDonations': {
-            builder
-              .leftJoin(
-                this.knexRO('transaction')
-                  .where({
-                    purpose: TRANSACTION_PURPOSE.donation,
-                    state: TRANSACTION_STATE.succeeded,
-                    targetType: targetTypeId,
-                  })
-                  .groupBy('target_id')
-                  .select(
-                    'target_id',
-                    this.knex.raw('COUNT(1) as donation_count')
-                  )
-                  .as('t2'),
-                't1.id',
-                't2.target_id'
-              )
-              .orderBy([
-                {
-                  column: 't2.donation_count',
-                  order: 'desc',
-                  nulls: 'last',
-                },
-                { column: 't1.id', order: 'desc' },
-              ])
-            break
-          }
-        }
+        // always as last orderBy
+        builder.orderBy(orderBy)
 
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -557,8 +466,6 @@ export class ArticleService extends BaseService {
           builder.limit(take)
         }
       })
-      .select(columns)
-  }
 
   public findByTitle = async ({
     title,
@@ -1486,7 +1393,7 @@ export class ArticleService extends BaseService {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
     const result = await this.knexRO
       .select()
-      .from((knex: Knex.QueryBuilder) => {
+      .from((knex: any) => {
         const source = knex
           .select('sender_id', 'target_id')
           .from('transaction')
@@ -1687,12 +1594,4 @@ export class ArticleService extends BaseService {
         'circle.state': CIRCLE_STATE.active,
       })
       .first()
-
-  public countReaders = async (articleId: string): Promise<number> => {
-    const res = await this.knexRO('article_ga4_data')
-      .where({ articleId })
-      .select(this.knex.raw('SUM(total_users) as reader_amount'))
-      .first()
-    return parseInt(res?.readerAmount || '0', 10)
-  }
 }
