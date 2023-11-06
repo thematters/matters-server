@@ -94,4 +94,23 @@ export class Twitter {
       oauthTokenSecret: parsedData.oauth_token_secret,
     }
   }
+  public invokeToken = async (oauthToken: string, oauthTokenSecret: string) => {
+    const requestData = {
+      url: 'https://api.twitter.com/1.1/oauth/invalidate_token',
+      method: 'POST',
+    }
+    const authHeaders = this.oauth.toHeader(
+      this.oauth.authorize(requestData, {
+        key: oauthToken,
+        secret: oauthTokenSecret,
+      })
+    )
+    const response = await axios.post(requestData.url, undefined, {
+      headers: authHeaders as any,
+    })
+    if (response.status !== 200) {
+      logger.error('invoke token failed', response.data)
+      throw new Error(`invoke token failed with status ${response.status}`)
+    }
+  }
 }
