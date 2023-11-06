@@ -1,7 +1,6 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import _isEmpty from 'lodash/isEmpty'
 
 import {
   AUTH_RESULT_TYPE,
@@ -65,7 +64,7 @@ const _resolver: Exclude<
   undefined
 > = async (
   _,
-  { input: { email: rawEmail, passwordOrCode, language, referralCode } },
+  { input: { email: rawEmail, passwordOrCode, language } },
   context
 ) => {
   const {
@@ -112,12 +111,10 @@ const _resolver: Exclude<
         })
       }
     }
-
     const newUser = await userService.create({
       email,
       emailVerified: true,
       language: language || viewer.language,
-      referralCode,
     })
     await userService.postRegister(newUser)
 

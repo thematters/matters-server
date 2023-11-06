@@ -15,7 +15,6 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       nonce,
       oauth1Credential,
       language,
-      referralCode,
     },
   },
   context
@@ -60,7 +59,6 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       type: SOCIAL_LOGIN_TYPE.Twitter,
       userName: userInfo.username,
       language: language || viewer.language,
-      referralCode,
     })
   } else if (type === SOCIAL_LOGIN_TYPE.Facebook) {
     if (codeVerifier === undefined || authorizationCode === undefined) {
@@ -85,7 +83,6 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       type: SOCIAL_LOGIN_TYPE.Facebook,
       userName: userInfo.username,
       language: language || viewer.language,
-      referralCode,
     })
   } else {
     if (nonce === undefined || authorizationCode === undefined) {
@@ -107,7 +104,6 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
       email: userInfo.email,
       emailVerified: userInfo.emailVerified,
       language: language || viewer.language,
-      referralCode,
     })
   }
   const sessionToken = await userService.genSessionToken(user.id)
@@ -127,16 +123,7 @@ export const socialLogin: GQLMutationResolvers['socialLogin'] = async (
 
 export const addSocialLogin: GQLMutationResolvers['addSocialLogin'] = async (
   _,
-  {
-    input: {
-      type,
-      authorizationCode,
-      codeVerifier,
-      oauth1Credential,
-      nonce,
-      referralCode,
-    },
-  },
+  { input: { type, authorizationCode, codeVerifier, oauth1Credential, nonce } },
   { dataSources: { userService }, viewer }
 ) => {
   const isE2ETest = checkIfE2ETest(authorizationCode ?? '')

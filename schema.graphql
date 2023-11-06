@@ -265,9 +265,6 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
-  """Update referralCode of a user, used in OSS."""
-  updateUserExtra(input: UpdateUserExtraInput!): User!
-
   """Update state of a user, used in OSS."""
   refreshIPNSFeed(input: RefreshIPNSFeedInput!): User!
   toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
@@ -2769,7 +2766,6 @@ input UserRegisterInput {
   password: String!
   description: String
   codeId: ID!
-  referralCode: String
 }
 
 input UserLoginInput {
@@ -2802,7 +2798,6 @@ input WalletLoginInput {
 
   """used in register"""
   language: UserLanguage
-  referralCode: String
 }
 
 input ResetLikerIdInput {
@@ -2828,7 +2823,6 @@ input UpdateUserInfoInput {
   profileCover: ID
   paymentPassword: String
   paymentPointer: String
-  referralCode: String
 }
 
 input UpdateUserStateInput {
@@ -2842,11 +2836,6 @@ input UpdateUserStateInput {
 input UpdateUserRoleInput {
   id: ID!
   role: UserRole!
-}
-
-input UpdateUserExtraInput {
-  id: ID!
-  referralCode: String
 }
 
 input RefreshIPNSFeedInput {
@@ -3040,7 +3029,6 @@ input EmailLoginInput {
 
   """used in register"""
   language: UserLanguage
-  referralCode: String
 }
 
 input SocialLoginInput {
@@ -3058,7 +3046,6 @@ input SocialLoginInput {
 
   """used in register"""
   language: UserLanguage
-  referralCode: String
 }
 
 input Oauth1CredentialInput {
