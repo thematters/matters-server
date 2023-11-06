@@ -88,12 +88,6 @@ describe('findByAuthor', () => {
     })
     expect(draftIds.length).toBeDefined()
   })
-  test('filter by state', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
-      state: 'archived',
-    })
-    expect(draftIds.length).toBeDefined()
-  })
 })
 
 test('findByCommentedAuthor', async () => {

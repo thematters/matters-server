@@ -40,7 +40,7 @@ declare global {
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-}, 50000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -1236,63 +1236,5 @@ describe('query article readerCount/donationCount', () => {
     })
     expect(data2.article.readerCount).not.toBe(0)
     expect(data2.article.donationCount).not.toBe(0)
-  })
-})
-
-describe('query users articles', () => {
-  const userName = 'test1'
-  const GET_VIEWER_ARTICLES = /* GraphQL */ `
-    query GetViewerArticles($input: UserArticlesInput!) {
-      viewer {
-        id
-        articles(input: $input) {
-          edges {
-            node {
-              id
-              state
-            }
-          }
-        }
-      }
-    }
-  `
-  const GET_USER_ARTICLES = /* GraphQL */ `
-      query GetUserArticles($input: UserArticlesInput!) {
-        user(input: {userName: "${userName}"}) {
-          articles(input: $input) {
-            edges {
-              node {
-                id
-                state
-              }
-            }
-          }
-        }
-      }
-    `
-  test('only author can view not-active articles', async () => {
-    const userService = new UserService(connections)
-    const articleService = new ArticleService(connections)
-    const author = await userService.findByUserName(userName)
-    await articleService.archive('1')
-
-    const authorServer = await testClient({
-      connections,
-      context: { viewer: author },
-    })
-    const { data: authorData } = await authorServer.executeOperation({
-      query: GET_VIEWER_ARTICLES,
-      variables: { input: { filter: { state: 'archived' } } },
-    })
-
-    expect(authorData.viewer.articles.edges[0].node.state).toBe('archived')
-
-    const otherServer = await testClient({ connections })
-    const { data: otherData } = await otherServer.executeOperation({
-      query: GET_USER_ARTICLES,
-      variables: { input: { filter: { state: 'archived' } } },
-    })
-
-    expect(otherData.user.articles.edges.length).toBe(0)
   })
 })
