@@ -160,6 +160,13 @@ export default /* GraphQL */ `
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
+
+    "Total number of donation recieved of this article."
+    donationCount: Int! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+
+    "Total number of readers of this article."
+    readerCount: Int! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+
     "Subscribers of this article."
     subscribers(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
