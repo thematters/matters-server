@@ -104,8 +104,12 @@ export class CloudflareService {
     return key
   }
 
-  directUploadImage = async (folder: GQLAssetType, uuid: string) => {
-    const key = this.genKey(folder, uuid, 'jpeg') // assume jpeg, 'cause can no way know extension before uploaded
+  public directUploadImage = async (
+    folder: GQLAssetType,
+    uuid: string,
+    extension: string
+  ) => {
+    const key = this.genKey(folder, uuid, extension)
 
     const formData = new FormData()
     formData.append('id', envPrefix + '/' + key)
