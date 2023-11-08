@@ -1083,6 +1083,15 @@ export type GQLDeleteTopicsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
+export type GQLDirectImageUploadInput = {
+  draft?: InputMaybe<Scalars['Boolean']['input']>
+  entityId?: InputMaybe<Scalars['ID']['input']>
+  entityType: GQLEntityType
+  mime?: InputMaybe<Scalars['String']['input']>
+  type: GQLAssetType
+  url?: InputMaybe<Scalars['String']['input']>
+}
+
 /** This type contains content, collections, assets and related data of a draft. */
 export type GQLDraft = GQLNode & {
   __typename?: 'Draft'
@@ -1737,7 +1746,7 @@ export type GQLMutationDeleteTopicsArgs = {
 }
 
 export type GQLMutationDirectImageUploadArgs = {
-  input: GQLSingleFileUploadInput
+  input: GQLDirectImageUploadInput
 }
 
 export type GQLMutationEditArticleArgs = {
@@ -4187,6 +4196,7 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
+  DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: ResolverTypeWrapper<DraftModel>
   DraftAccess: ResolverTypeWrapper<DraftModel>
   DraftConnection: ResolverTypeWrapper<
@@ -4680,6 +4690,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
   DeleteTopicsInput: GQLDeleteTopicsInput
+  DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: DraftModel
   DraftAccess: DraftModel
   DraftConnection: Omit<GQLDraftConnection, 'edges'> & {
