@@ -146,7 +146,7 @@ type Mutation {
 
   """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
-  directImageUpload(input: SingleFileUploadInput!): Asset!
+  directImageUpload(input: DirectImageUploadInput!): Asset!
 
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
@@ -264,6 +264,9 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
+
+  """Update referralCode of a user, used in OSS."""
+  updateUserExtra(input: UpdateUserExtraInput!): User!
 
   """Update state of a user, used in OSS."""
   refreshIPNSFeed(input: RefreshIPNSFeedInput!): User!
@@ -2038,6 +2041,15 @@ input SingleFileUploadInput {
   entityId: ID
 }
 
+input DirectImageUploadInput {
+  type: AssetType!
+  mime: String
+  url: String
+  draft: Boolean
+  entityType: EntityType!
+  entityId: ID
+}
+
 input SetBoostInput {
   id: ID!
   boost: Float!
@@ -2760,6 +2772,7 @@ input UserRegisterInput {
   password: String!
   description: String
   codeId: ID!
+  referralCode: String
 }
 
 input UserLoginInput {
@@ -2792,6 +2805,7 @@ input WalletLoginInput {
 
   """used in register"""
   language: UserLanguage
+  referralCode: String
 }
 
 input ResetLikerIdInput {
@@ -2817,6 +2831,7 @@ input UpdateUserInfoInput {
   profileCover: ID
   paymentPassword: String
   paymentPointer: String
+  referralCode: String
 }
 
 input UpdateUserStateInput {
@@ -2830,6 +2845,11 @@ input UpdateUserStateInput {
 input UpdateUserRoleInput {
   id: ID!
   role: UserRole!
+}
+
+input UpdateUserExtraInput {
+  id: ID!
+  referralCode: String
 }
 
 input RefreshIPNSFeedInput {
@@ -3023,6 +3043,7 @@ input EmailLoginInput {
 
   """used in register"""
   language: UserLanguage
+  referralCode: String
 }
 
 input SocialLoginInput {
@@ -3040,6 +3061,7 @@ input SocialLoginInput {
 
   """used in register"""
   language: UserLanguage
+  referralCode: String
 }
 
 input Oauth1CredentialInput {

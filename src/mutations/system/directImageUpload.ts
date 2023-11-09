@@ -3,21 +3,26 @@ import type { ItemData, GQLMutationResolvers } from 'definitions'
 // import { FileUpload } from 'graphql-upload'
 import { v4 } from 'uuid'
 
-import { IMAGE_ASSET_TYPE } from 'common/enums'
+import { IMAGE_ASSET_TYPE, ACCEPTED_UPLOAD_IMAGE_TYPES } from 'common/enums'
 import { AssetNotFoundError, UserInputError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
+import { cfsvc } from 'connectors'
 
 const logger = getLogger('mutation-upload')
 
 const resolver: GQLMutationResolvers['directImageUpload'] = async (
   _,
-  { input: { type, entityType, entityId, url, draft } },
+  { input: { type, mime, entityType, entityId, url, draft } },
   { viewer, dataSources: { systemService } }
 ) => {
   const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
   if (!isImageType) {
     throw new UserInputError(`type:${type} doesn't support directImageUpload.`)
+  }
+
+  if (mime && !ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mime as any)) {
+    throw new UserInputError(`mime:${mime} is not supported.`)
   }
 
   if (!entityType) {
@@ -59,9 +64,13 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
 
   let uploadURL: string | undefined = undefined
   if (!key) {
+    if (!mime) {
+      throw new UserInputError('mime needs to be specified.')
+    }
     try {
       // @ts-ignore
-      const result = (await systemService.cfsvc.directUploadImage(type, uuid))!
+      const ext = mime.split('/')[1]
+      const result = (await cfsvc.directUploadImage(type, uuid, ext))!
       logger.info('got cloudflare image uploadURL: %o', result)
       ;({ key, uploadURL } = result)
     } catch (err) {

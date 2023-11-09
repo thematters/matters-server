@@ -21,7 +21,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     "Upload a single file."
     singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
-    directImageUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    directImageUpload(input: DirectImageUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
@@ -257,6 +257,15 @@ export default /* GraphQL */ `
   input SingleFileUploadInput {
     type: AssetType!
     file: Upload
+    url: String @constraint(format: "uri")
+    draft: Boolean
+    entityType: EntityType!
+    entityId: ID
+  }
+
+  input DirectImageUploadInput {
+    type: AssetType!
+    mime: String
     url: String @constraint(format: "uri")
     draft: Boolean
     entityType: EntityType!
