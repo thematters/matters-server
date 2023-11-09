@@ -113,6 +113,9 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Update referralCode of a user, used in OSS."
+    updateUserExtra(input: UpdateUserExtraInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Update state of a user, used in OSS."
     refreshIPNSFeed(input: RefreshIPNSFeedInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -736,6 +739,7 @@ export default /* GraphQL */ `
     password: String!
     description: String
     codeId: ID!
+    referralCode: String
   }
 
   input UserLoginInput {
@@ -768,6 +772,8 @@ export default /* GraphQL */ `
 
     "used in register"
     language: UserLanguage
+
+    referralCode: String
   }
 
   input ResetLikerIdInput {
@@ -793,6 +799,7 @@ export default /* GraphQL */ `
     profileCover: ID
     paymentPassword: String
     paymentPointer: String
+    referralCode: String	## user can change it once only, from null to a value
   }
 
   input UpdateUserStateInput {
@@ -806,6 +813,12 @@ export default /* GraphQL */ `
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
+  }
+
+  input UpdateUserExtraInput {
+    id: ID!
+    referralCode: String	## user can change it once only, from null to a value
+    ## more features can be saved into extra jsonb column in future
   }
 
   input RefreshIPNSFeedInput {
@@ -1000,6 +1013,7 @@ export default /* GraphQL */ `
     passwordOrCode: String!
     "used in register"
     language: UserLanguage
+    referralCode: String
   }
 
   input SocialLoginInput {
@@ -1013,6 +1027,7 @@ export default /* GraphQL */ `
     oauth1Credential: Oauth1CredentialInput
     "used in register"
     language: UserLanguage
+    referralCode: String
   }
 
   input Oauth1CredentialInput {

@@ -2,18 +2,25 @@ import type { Connections } from 'definitions'
 
 import { CACHE_PREFIX, USER_ACTION } from 'common/enums'
 import { ActionFailedError } from 'common/errors'
-import { CacheService, UserService, PaymentService } from 'connectors'
+import {
+  AtomService,
+  CacheService,
+  UserService,
+  PaymentService,
+} from 'connectors'
 
 import { createDonationTx } from './utils'
 import { genConnections, closeConnections } from './utils'
 
 const TEST_RECIPIENT_ID = '9'
 let connections: Connections
+let atomService: AtomService
 let userService: UserService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
+  atomService = new AtomService(connections)
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
 }, 50000)
@@ -669,5 +676,48 @@ describe('recommendAuthors', () => {
     for (const author of authors) {
       expect(author.userName).not.toBe(null)
     }
+  })
+})
+
+describe('updateUserExtra', () => {
+  const userId = '1'
+
+  test('set extra jsonb column', async () => {
+    let user = await userService.baseFindById(userId)
+    expect(user.extra).toBeNull()
+
+    const referralCode = 'code1'
+    user = await atomService.updateJsonColumn({
+      table: 'user',
+      where: { id: userId },
+      jsonColumn: 'extra',
+      jsonData: { referralCode, feature2: 'something' },
+    })
+    expect(user.extra).toBeDefined()
+    expect(user.extra.referralCode).toBe(referralCode)
+    expect(user.extra.feature2).toBeDefined()
+
+    const referralCode2 = 'code2'
+    user = await atomService.updateJsonColumn({
+      table: 'user',
+      where: { id: userId },
+      jsonColumn: 'extra',
+      removeKeys: ['feature2', 'feature3'],
+      jsonData: { referralCode: referralCode2 },
+      columns: ['extra'],
+    })
+
+    expect(user.extra).toBeDefined()
+    expect(user.extra.referralCode).toBe(referralCode2)
+    expect(user.extra.feature2).toBeUndefined()
+
+    user = await atomService.updateJsonColumn({
+      table: 'user',
+      where: { id: userId },
+      jsonColumn: 'extra',
+      jsonData: null,
+      // resetNull: true,
+    })
+    expect(user.extra).toBeNull()
   })
 })
