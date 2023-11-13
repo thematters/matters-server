@@ -11,14 +11,20 @@ module.exports = {
     '^mutations(.*)$': '<rootDir>/src/mutations$1',
     '^queries(.*)$': '<rootDir>/src/queries$1',
     '^@root(.*)$': '<rootDir>/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   testPathIgnorePatterns: ['/node_modules/'],
   globalSetup: '<rootDir>/db/globalTestSetup.js',
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  globals: {
-    'ts-jest': {
-      diagnostics: false,
-    },
+  verbose: true,
+  transform: {
+    '^.+\\.ts?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
   },
+  extensionsToTreatAsEsm: ['.ts'],
 }

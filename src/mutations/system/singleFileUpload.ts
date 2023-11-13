@@ -1,7 +1,10 @@
 import type { ItemData, GQLMutationResolvers } from 'definitions'
+import type { Readable } from 'node:stream'
 
 import axios from 'axios'
+import { fileTypeFromBuffer } from 'file-type'
 import { FileUpload } from 'graphql-upload'
+import streamHead from 'stream-head'
 import { v4 } from 'uuid'
 
 import {
@@ -79,6 +82,7 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   }
 
   let upload
+  let inputStream: Readable
   if (url) {
     try {
       const maxContentLength = isImageType
@@ -91,8 +95,10 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
 
+      inputStream = res.data
+
       upload = {
-        createReadStream: () => res.data,
+        createReadStream: () => inputStream,
         mimetype: res.headers['content-type'],
         encoding: 'utf8',
         filename,
@@ -103,18 +109,31 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   } else {
     const file = fileUpload.file as FileUpload
     upload = await file
+    inputStream = upload.createReadStream()
   }
 
+  // Peek the first section from the stream.
+  const { stream: dupStream, head } = await streamHead(inputStream, {
+    bytes: 1024,
+  })
+  const fileType = await fileTypeFromBuffer(head)
+
+  upload.createReadStream = () => dupStream
+
   // check MIME types
-  if (upload.mimetype) {
+  const detectedMimeType = fileType?.mime || upload.mimetype
+  if (detectedMimeType) {
     const acceptedImageTypes = isCoverType
       ? ACCEPTED_COVER_UPLOAD_IMAGE_TYPES
       : ACCEPTED_UPLOAD_IMAGE_TYPES
-    if (isImageType && !acceptedImageTypes.includes(upload.mimetype)) {
+    if (isImageType && !acceptedImageTypes.includes(detectedMimeType)) {
       throw new UserInputError('Invalid image format.')
     }
 
-    if (isAudioType && !ACCEPTED_UPLOAD_AUDIO_TYPES.includes(upload.mimetype)) {
+    if (
+      isAudioType &&
+      !ACCEPTED_UPLOAD_AUDIO_TYPES.includes(detectedMimeType)
+    ) {
       throw new UserInputError('Invalid audio format.')
     }
   }
