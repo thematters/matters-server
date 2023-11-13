@@ -873,6 +873,7 @@ export class ArticleService extends BaseService {
       .whereLike('title', `%${key}%`)
       .from('article')
       .orderBy('id', 'desc')
+      .where({ state: ARTICLE_STATE.active })
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {
           builder.where({ authorId: filter.authorId })
