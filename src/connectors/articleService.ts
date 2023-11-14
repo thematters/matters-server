@@ -870,7 +870,7 @@ export class ArticleService extends BaseService {
   }) => {
     const records = await this.knexRO
       .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .whereLike('title', `%${key}%`)
+      .whereILike('title', `%${key}%`)
       .from('article')
       .orderBy('id', 'desc')
       .where({ state: ARTICLE_STATE.active })
