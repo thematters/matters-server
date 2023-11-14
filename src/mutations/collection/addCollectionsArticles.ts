@@ -23,7 +23,7 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
     throw new ForbiddenError('Viewer has no permission')
   }
   if (
-    rawCollections.length + rawArticles.length >
+    rawCollections.length * rawArticles.length >
     MAX_ARTICLES_PER_COLLECTION_LIMIT
   ) {
     throw new ActionLimitExceededError('Action limit exceeded')
