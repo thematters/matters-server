@@ -42,6 +42,7 @@ import {
   ActionLimitExceededError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
+import { s2tConverter } from 'common/utils'
 import {
   AtomService,
   BaseService,
@@ -869,9 +870,12 @@ export class ArticleService extends BaseService {
     skip?: number
     filter?: GQLSearchFilter
   }) => {
+    const keySimplified = key
+    const keyTraditional = await s2tConverter.convertPromise(key)
     const records = await this.knexRO
       .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .whereILike('title', `%${key}%`)
+      .whereILike('title', `%${keySimplified}%`)
+      .orWhereILike('title', `%${keyTraditional}%`)
       .from('article')
       .orderBy('id', 'desc')
       .where({ state: ARTICLE_STATE.active })

@@ -2,7 +2,7 @@ import type { Connections } from 'definitions'
 
 import { ArticleService, UserService } from 'connectors'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections, createArticle } from './utils'
 
 let articleId: string
 let connections: Connections
@@ -183,16 +183,30 @@ test('quicksearch', async () => {
   expect(nodes.length).toBe(1)
   expect(totalCount).toBeGreaterThan(0)
 
-  const { nodes: nodes2, totalCount: totalCount2 } =
-    await articleService.searchV3({
-      key: 'test',
-      take: 1,
-      skip: 0,
-      quicksearch: true,
-      filter: { authorId: '1' },
-    })
+  // both case insensitive and chinese simplified/traditional insensitive
+  await createArticle(
+    { title: 'Uppercase', content: '', authorId: '1' },
+    connections
+  )
+  const { nodes: nodes2 } = await articleService.searchV3({
+    key: 'uppercase',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
   expect(nodes2.length).toBe(1)
-  expect(totalCount2).toBeLessThan(totalCount)
+
+  await createArticle(
+    { title: '測試', content: '', authorId: '1' },
+    connections
+  )
+  const { nodes: nodes3 } = await articleService.searchV3({
+    key: '测试',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes3.length).toBe(1)
 })
 
 test('countReaders', async () => {

@@ -41,7 +41,8 @@ export const stripSpaces = (content: string | null) =>
 export const normalizeTagInput = (content: string) =>
   stripAllPunct(content).substring(0, MAX_TAG_CONTENT_LENGTH)
 
-const t2sConverter: OpenCC = new OpenCC('t2s.json')
+export const t2sConverter: OpenCC = new OpenCC('t2s.json')
+export const s2tConverter: OpenCC = new OpenCC('s2t.json')
 
 export const normalizeQueryInput = async (content: string): Promise<string> =>
   t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)
