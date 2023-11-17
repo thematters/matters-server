@@ -1,13 +1,12 @@
 import type { Connections } from 'definitions'
 import type { Redis } from 'ioredis'
 
-import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import _ from 'lodash'
 
 import { getLogger } from 'common/logger'
 import { aws, cfsvc } from 'connectors'
-import { Item, ItemData, TableName } from 'definitions'
+import { ItemData, TableName } from 'definitions'
 
 const logger = getLogger('service-base')
 
@@ -20,7 +19,6 @@ export class BaseService {
   protected knexRO: Knex
   protected searchKnex: Knex
   protected redis: Redis
-  dataloader: DataLoader<string, Item>
 
   public constructor(table: TableName, connections: Connections) {
     this.table = table

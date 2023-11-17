@@ -24,6 +24,7 @@ import {
   SystemService,
   DraftService,
 } from 'connectors'
+import { medium } from 'connectors/medium'
 import { UserHasUsername } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
@@ -114,8 +115,9 @@ export class MigrationQueue extends BaseQueue {
                 }
 
                 // process raw html
-                const { title, content, assets } =
-                  await userService.medium.convertRawHTML(html)
+                const { title, content, assets } = await medium.convertRawHTML(
+                  html
+                )
 
                 // put draft
                 const draft = await draftService.baseCreate({

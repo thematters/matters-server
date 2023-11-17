@@ -11,6 +11,7 @@ import type {
   PutNoticeParams,
   User,
   Connections,
+  Item,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -33,6 +34,8 @@ const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 export class Notice extends BaseService {
+  public dataloader: DataLoader<string, Item>
+
   public constructor(connections: Connections) {
     super('notice', connections)
     this.dataloader = new DataLoader(this.findByIds)
