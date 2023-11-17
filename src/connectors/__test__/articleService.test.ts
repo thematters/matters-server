@@ -207,6 +207,39 @@ test('quicksearch', async () => {
     quicksearch: true,
   })
   expect(nodes3.length).toBe(1)
+
+  await createArticle(
+    { title: '试测', content: '', authorId: '1' },
+    connections
+  )
+  const { nodes: nodes4 } = await articleService.searchV3({
+    key: '試測',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes4.length).toBe(1)
+
+  await createArticle(
+    { title: '測测', content: '', authorId: '1' },
+    connections
+  )
+  const { nodes: nodes5 } = await articleService.searchV3({
+    key: '測测',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes5.length).toBe(1)
+
+  // mixed case will not match in current implementation
+  const { nodes: nodes6 } = await articleService.searchV3({
+    key: '测測',
+    take: 1,
+    skip: 0,
+    quicksearch: true,
+  })
+  expect(nodes6.length).toBe(0)
 })
 
 test('countReaders', async () => {

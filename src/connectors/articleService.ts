@@ -11,7 +11,6 @@ import {
   ArticlePageContext,
   makeArticlePage,
 } from '@matters/ipns-site-generator'
-// import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
@@ -24,7 +23,6 @@ import {
   CIRCLE_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
-  // DEFAULT_IPNS_LIFETIME,
   MINUTE,
   QUEUE_URL,
   TRANSACTION_PURPOSE,
@@ -42,7 +40,7 @@ import {
   ActionLimitExceededError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { s2tConverter } from 'common/utils'
+import { s2tConverter, t2sConverter, normalizeSearchKey } from 'common/utils'
 import {
   AtomService,
   BaseService,
@@ -650,8 +648,7 @@ export class ArticleService extends BaseService {
   }
 
   public search = async ({
-    key,
-    keyOriginal,
+    key: keyOriginal,
     take = 10,
     skip = 0,
     filter,
@@ -661,7 +658,6 @@ export class ArticleService extends BaseService {
     quicksearch,
   }: {
     key: string
-    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -672,13 +668,14 @@ export class ArticleService extends BaseService {
     quicksearch?: boolean
   }) => {
     if (quicksearch) {
-      return this.quicksearch({ key, take, skip, filter })
+      return this.quicksearch({ key: keyOriginal, take, skip, filter })
     }
+    const key = await normalizeSearchKey(keyOriginal)
     let coeffs = [1, 1, 1, 1]
     try {
       coeffs = JSON.parse(coefficients || '[]')
     } catch (err) {
-      // do nothing
+      logger.error(err)
     }
 
     const c0 = +(
@@ -806,15 +803,13 @@ export class ArticleService extends BaseService {
   }
 
   public searchV3 = async ({
-    key,
-    // keyOriginal,
+    key: keyOriginal,
     take = 10,
     skip = 0,
     quicksearch,
     filter,
   }: {
     key: string
-    // keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -825,8 +820,9 @@ export class ArticleService extends BaseService {
     quicksearch?: boolean
   }) => {
     if (quicksearch) {
-      return this.quicksearch({ key, take, skip, filter })
+      return this.quicksearch({ key: keyOriginal, take, skip, filter })
     }
+    const key = await normalizeSearchKey(keyOriginal)
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/articles/search`)
       u.searchParams.set('q', key?.trim())
@@ -870,12 +866,13 @@ export class ArticleService extends BaseService {
     skip?: number
     filter?: GQLSearchFilter
   }) => {
-    const keySimplified = key
+    const keySimplified = await t2sConverter.convertPromise(key)
     const keyTraditional = await s2tConverter.convertPromise(key)
     const records = await this.knexRO
       .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .whereILike('title', `%${keySimplified}%`)
+      .whereILike('title', `%${key}%`)
       .orWhereILike('title', `%${keyTraditional}%`)
+      .orWhereILike('title', `%${keySimplified}%`)
       .from('article')
       .orderBy('id', 'desc')
       .where({ state: ARTICLE_STATE.active })
