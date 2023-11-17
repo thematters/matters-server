@@ -4,6 +4,7 @@ import type {
   GQLVote,
   Comment,
   Connections,
+  Item,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -26,6 +27,8 @@ interface CommentFilter {
 }
 
 export class CommentService extends BaseService {
+  public dataloader: DataLoader<string, Item>
+
   public constructor(connections: Connections) {
     super('comment', connections)
     this.dataloader = new DataLoader(async (ids: readonly string[]) => {

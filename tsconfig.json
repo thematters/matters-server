@@ -31,7 +31,6 @@
     "outDir": "./build",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "strictPropertyInitialization": false,
     "skipLibCheck": true
   },
   "exclude": ["node_modules"]

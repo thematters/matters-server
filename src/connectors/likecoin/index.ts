@@ -97,7 +97,6 @@ const ENDPOINTS = {
 export class LikeCoin {
   knex: Knex
   redis: Redis
-  cache: CacheService
   aws: typeof aws
 
   public constructor(connections: Connections) {

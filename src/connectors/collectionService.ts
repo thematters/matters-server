@@ -1,4 +1,9 @@
-import type { Collection, CollectionArticle, Connections } from 'definitions'
+import type {
+  Item,
+  Collection,
+  CollectionArticle,
+  Connections,
+} from 'definitions'
 
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -17,6 +22,8 @@ import { BaseService, UserService } from 'connectors'
 // const logger = getLogger('service-collection')
 
 export class CollectionService extends BaseService {
+  public dataloader: DataLoader<string, Item>
+
   public constructor(connections: Connections) {
     super('collection', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)

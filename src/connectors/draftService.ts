@@ -1,4 +1,4 @@
-import type { Draft, Connections } from 'definitions'
+import type { Draft, Connections, Item } from 'definitions'
 
 import DataLoader from 'dataloader'
 
@@ -6,6 +6,8 @@ import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
+  public dataloader: DataLoader<string, Item>
+
   public constructor(connections: Connections) {
     super('draft', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)
