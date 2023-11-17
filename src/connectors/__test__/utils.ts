@@ -5,6 +5,7 @@ import type { Connections } from 'definitions'
 import initDatabase from '@root/db/initDatabase'
 import { Redis } from 'ioredis'
 import { RedisMemoryServer } from 'redis-memory-server'
+import { v4 } from 'uuid'
 
 import {
   PAYMENT_CURRENCY,
@@ -12,7 +13,10 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
+  PUBLISH_STATE,
+  ARTICLE_STATE,
 } from 'common/enums'
+import { ArticleService, DraftService } from 'connectors'
 
 export const genConnections = async (): Promise<Connections> => {
   const randomString = Buffer.from(Math.random().toString())
@@ -43,6 +47,45 @@ export const closeConnections = async (connections: Connections) => {
   await connections.knex.destroy()
   // @ts-ignore
   await connections.__redisServer.stop()
+}
+
+export const createArticle = async (
+  {
+    title,
+    content,
+    authorId,
+  }: { title: string; content: string; authorId: string },
+  connections: Connections
+) => {
+  const articleService = new ArticleService(connections)
+  const draftService = new DraftService(connections)
+
+  const randomString = Math.random().toString()
+  const dataHash = `test-data-hash-${randomString}`
+  const mediaHash = `test-media-hash-${randomString}`
+
+  const draft = await draftService.baseCreate({
+    uuid: v4(),
+    title,
+    content,
+    authorId,
+    publishState: PUBLISH_STATE.published,
+    dataHash,
+    mediaHash,
+  })
+  const article = await articleService.createArticle({
+    draftId: draft.id,
+    authorId,
+    title,
+    slug: title,
+    cover: '1',
+    wordCount: content.length,
+    summary: 'test-summary',
+    content,
+    dataHash,
+    mediaHash,
+  })
+  return articleService.baseUpdate(article.id, { state: ARTICLE_STATE.active })
 }
 
 export const createDonationTx = async (

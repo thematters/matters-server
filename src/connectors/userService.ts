@@ -92,6 +92,7 @@ import {
   IERC1271,
   genDisplayName,
   RatelimitCounter,
+  normalizeSearchKey,
 } from 'common/utils'
 import {
   AtomService,
@@ -673,8 +674,7 @@ export class UserService extends BaseService {
    *********************************/
 
   public search = async ({
-    key,
-    keyOriginal,
+    key: keyOriginal,
     take,
     skip,
     exclude,
@@ -683,7 +683,6 @@ export class UserService extends BaseService {
     quicksearch,
   }: {
     key: string
-    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -692,11 +691,12 @@ export class UserService extends BaseService {
     coefficients?: string
     quicksearch?: boolean
   }) => {
+    const key = await normalizeSearchKey(keyOriginal)
     let coeffs = [1, 1, 1, 1]
     try {
       coeffs = JSON.parse(coefficients || '[]')
     } catch (err) {
-      // do nothing
+      logger.error(err)
     }
 
     const c0 = +(coeffs?.[0] || environment.searchPgUserCoefficients?.[0] || 1)
@@ -708,7 +708,7 @@ export class UserService extends BaseService {
     const c6 = +(coeffs?.[6] || environment.searchPgUserCoefficients?.[6] || 1)
 
     const searchUserName = key.startsWith('@') || key.startsWith('＠')
-    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim() // (searchUserName ? key.slice(1) : key).trim()
+    const strippedName = key.replaceAll(/^[@＠]+/g, '').trim()
 
     if (!strippedName) {
       return { nodes: [], totalCount: 0 }
@@ -830,14 +830,12 @@ export class UserService extends BaseService {
   }
 
   public searchV3 = async ({
-    key,
-    // keyOriginal,
+    key: keyOriginal,
     take,
     skip,
     quicksearch,
   }: {
     key: string
-    // keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -846,6 +844,7 @@ export class UserService extends BaseService {
     coefficients?: string
     quicksearch?: boolean
   }) => {
+    const key = await normalizeSearchKey(keyOriginal)
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/users/search`)
       u.searchParams.set('q', key?.trim())
