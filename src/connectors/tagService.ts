@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Item, ItemData, Tag } from 'definitions'
 
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
@@ -12,11 +12,12 @@ import {
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
-import { Item, ItemData, Tag } from 'definitions'
 
 const logger = getLogger('service-tag')
 
 export class TagService extends BaseService {
+  public dataloader: DataLoader<string, Item>
+
   public constructor(connections: Connections) {
     super('tag', connections)
     this.dataloader = new DataLoader(this.baseFindByIds)

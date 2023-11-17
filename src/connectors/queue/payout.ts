@@ -31,9 +31,7 @@ interface PaymentParams {
 }
 
 export class PayoutQueue extends BaseQueue {
-  paymentService: InstanceType<typeof PaymentService>
-
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super(QUEUE_NAME.payout, connections)
     this.addConsumers()
   }
@@ -42,7 +40,7 @@ export class PayoutQueue extends BaseQueue {
    * Producer for payout.
    *
    */
-  payout = ({ txId }: PaymentParams) =>
+  public payout = ({ txId }: PaymentParams) =>
     this.q.add(
       QUEUE_JOB.payout,
       { txId },
@@ -65,8 +63,8 @@ export class PayoutQueue extends BaseQueue {
    * Wrapper of db service function makes transaction canceled.
    *
    */
-  private cancelTx = async (txId: string) =>
-    this.paymentService.markTransactionStateAs({
+  private cancelTx = async (txId: string, paymentService: PaymentService) =>
+    paymentService.markTransactionStateAs({
       id: txId,
       state: TRANSACTION_STATE.canceled,
     })
@@ -75,8 +73,8 @@ export class PayoutQueue extends BaseQueue {
    * Wrapper of db service function makes transaction failed.
    *
    */
-  private failTx = async (txId: string) =>
-    this.paymentService.markTransactionStateAs({
+  private failTx = async (txId: string, paymentService: PaymentService) =>
+    paymentService.markTransactionStateAs({
       id: txId,
       state: TRANSACTION_STATE.failed,
     })
@@ -113,7 +111,7 @@ export class PayoutQueue extends BaseQueue {
 
       // cancel payout if senderId is not specified
       if (!tx.senderId) {
-        await this.cancelTx(txId)
+        await this.cancelTx(txId, paymentService)
         return done(null, job.data)
       }
 
@@ -127,7 +125,7 @@ export class PayoutQueue extends BaseQueue {
             archived: false,
           },
         }),
-        this.paymentService.countPendingPayouts({ userId: tx.senderId }),
+        paymentService.countPendingPayouts({ userId: tx.senderId }),
       ])
       const recipient = payoutAccount
 
@@ -136,13 +134,13 @@ export class PayoutQueue extends BaseQueue {
       // 2. user has no stripe account
       // 3. user has multiple pending payouts
       if (balance < 0 || !recipient || !recipient.accountId || pending > 1) {
-        await this.cancelTx(txId)
+        await this.cancelTx(txId, paymentService)
         return done(null, job.data)
       }
 
       // only support HKD
       if (tx.currency !== PAYMENT_CURRENCY.HKD) {
-        await this.cancelTx(txId)
+        await this.cancelTx(txId, paymentService)
         return done(null, job.data)
       }
 
@@ -175,7 +173,7 @@ export class PayoutQueue extends BaseQueue {
         : numRound((netInUSD * 100) / 99)
 
       // start transfer
-      const transfer = await this.paymentService.stripe.transfer({
+      const transfer = await paymentService.stripe.transfer({
         amount: adjustedNetInUSD,
         currency: PAYMENT_CURRENCY.USD,
         recipientStripeConnectedId: recipient.accountId,
@@ -183,12 +181,12 @@ export class PayoutQueue extends BaseQueue {
       })
 
       if (!transfer || !transfer.id) {
-        await this.failTx(txId)
+        await this.failTx(txId, paymentService)
         return done(null, job.data)
       }
 
       // update tx
-      await this.paymentService.baseUpdate(tx.id, {
+      await paymentService.baseUpdate(tx.id, {
         state: TRANSACTION_STATE.succeeded,
         provider_tx_id: transfer.id,
         updatedAt: new Date(),
@@ -237,7 +235,7 @@ export class PayoutQueue extends BaseQueue {
 
       if (txId && err.name !== 'PaymentQueueJobDataError') {
         try {
-          await this.failTx(txId)
+          await this.failTx(txId, paymentService)
         } catch (error) {
           logger.error(error)
         }
