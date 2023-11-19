@@ -870,9 +870,11 @@ export class ArticleService extends BaseService {
     const keyTraditional = await s2tConverter.convertPromise(key)
     const records = await this.knexRO
       .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .whereILike('title', `%${key}%`)
-      .orWhereILike('title', `%${keyTraditional}%`)
-      .orWhereILike('title', `%${keySimplified}%`)
+      .where(function () {
+        this.whereILike('title', `%${key}%`)
+          .orWhereILike('title', `%${keyTraditional}%`)
+          .orWhereILike('title', `%${keySimplified}%`)
+      })
       .from('article')
       .orderBy('id', 'desc')
       .where({ state: ARTICLE_STATE.active })
