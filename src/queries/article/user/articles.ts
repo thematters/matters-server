@@ -1,10 +1,9 @@
 import type { GQLUserResolvers } from 'definitions'
 
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  fromGlobalId,
-} from 'common/utils'
+import { getLogger } from 'common/logger'
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
+
+const logger = getLogger('resolver-user-articles')
 
 const resolver: GQLUserResolvers['articles'] = async (
   { id },
@@ -17,15 +16,21 @@ const resolver: GQLUserResolvers['articles'] = async (
 
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
+  // only viewer and admin can see all articles
+  let state
+  if (isViewer || isAdmin) {
+    state = input?.filter?.state ?? null
+  } else {
+    state = input?.filter?.state ?? 'active'
+    if (state !== 'active') {
+      logger.warn('user %s is not allowed to see state %s', viewer.id, state)
+      return connectionFromArray([], input)
+    }
+  }
 
-  const tagIds = input.filter?.tagIds?.map((tagId) => fromGlobalId(tagId).id)
   const articles = await articleService.findByAuthor(id, {
-    // filter,
-    showAll: isViewer || isAdmin,
-    tagIds,
-    orderBy: [{ column: 'article.id', order: 'desc' }],
-    inRangeStart: input.filter?.inRangeStart,
-    inRangeEnd: input.filter?.inRangeEnd,
+    state,
+    orderBy: input.sort,
   })
 
   return connectionFromPromisedArray(

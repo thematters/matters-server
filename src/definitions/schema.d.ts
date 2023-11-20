@@ -196,6 +196,8 @@ export type GQLArticle = GQLNode &
     createdAt: Scalars['DateTime']['output']
     /** IPFS hash of this article. */
     dataHash: Scalars['String']['output']
+    /** Total number of donation recieved of this article. */
+    donationCount: Scalars['Int']['output']
     /**
      * Drafts linked to this article.
      * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
@@ -229,6 +231,8 @@ export type GQLArticle = GQLNode &
     pinnedComments?: Maybe<Array<GQLComment>>
     /** Cumulative reading time in seconds */
     readTime: Scalars['Float']['output']
+    /** Total number of readers of this article. */
+    readerCount: Scalars['Int']['output']
     /** Related articles to this article. */
     relatedArticles: GQLArticleConnection
     /** Donation-related articles to this article. */
@@ -3478,7 +3482,7 @@ export type GQLUser = GQLNode & {
 }
 
 export type GQLUserArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLUserArticlesInput
 }
 
 export type GQLUserBlockListArgs = {
@@ -3580,6 +3584,24 @@ export type GQLUserAnalytics = {
 export type GQLUserAnalyticsTopDonatorsArgs = {
   input: GQLTopDonatorInput
 }
+
+export type GQLUserArticlesFilter = {
+  state?: InputMaybe<GQLArticleState>
+}
+
+export type GQLUserArticlesInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLUserArticlesFilter>
+  first?: InputMaybe<Scalars['Int']['input']>
+  sort?: InputMaybe<GQLUserArticlesSort>
+}
+
+export type GQLUserArticlesSort =
+  | 'mostAppreciations'
+  | 'mostComments'
+  | 'mostDonations'
+  | 'mostReaders'
+  | 'newest'
 
 export type GQLUserBroadcastCircleActivity = {
   __typename?: 'UserBroadcastCircleActivity'
@@ -4539,6 +4561,9 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   UserAnalytics: ResolverTypeWrapper<UserModel>
+  UserArticlesFilter: GQLUserArticlesFilter
+  UserArticlesInput: GQLUserArticlesInput
+  UserArticlesSort: GQLUserArticlesSort
   UserBroadcastCircleActivity: ResolverTypeWrapper<
     Omit<GQLUserBroadcastCircleActivity, 'actor' | 'node' | 'target'> & {
       actor: GQLResolversTypes['User']
@@ -4956,6 +4981,8 @@ export type GQLResolversParentTypes = ResolversObject<{
     target: GQLResolversParentTypes['Tag']
   }
   UserAnalytics: UserModel
+  UserArticlesFilter: GQLUserArticlesFilter
+  UserArticlesInput: GQLUserArticlesInput
   UserBroadcastCircleActivity: Omit<
     GQLUserBroadcastCircleActivity,
     'actor' | 'node' | 'target'
@@ -5266,6 +5293,7 @@ export type GQLArticleResolvers<
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   dataHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   drafts?: Resolver<
     Maybe<Array<GQLResolversTypes['Draft']>>,
     ParentType,
@@ -5315,6 +5343,7 @@ export type GQLArticleResolvers<
     ContextType
   >
   readTime?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  readerCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   relatedArticles?: Resolver<
     GQLResolversTypes['ArticleConnection'],
     ParentType,

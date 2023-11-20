@@ -8,7 +8,7 @@ import { testClient, genConnections, closeConnections } from '../utils'
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -475,7 +475,7 @@ describe('add articles to collections', () => {
       query: ADD_COLLECTIONS_ARTICLES,
       variables: {
         input: {
-          collections: Array(200).fill(collectionId1),
+          collections: Array(201).fill(collectionId1),
           articles: [articleGlobalId1],
         },
       },

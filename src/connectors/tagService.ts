@@ -11,6 +11,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { normalizeSearchKey } from 'common/utils'
 import { BaseService } from 'connectors'
 
 const logger = getLogger('service-tag')
@@ -487,8 +488,7 @@ export class TagService extends BaseService {
    *********************************/
 
   public search = async ({
-    key,
-    keyOriginal,
+    key: keyOriginal,
     take,
     skip,
     includeAuthorTags,
@@ -497,7 +497,6 @@ export class TagService extends BaseService {
     quicksearch,
   }: {
     key: string
-    keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -506,11 +505,12 @@ export class TagService extends BaseService {
     coefficients?: string
     quicksearch?: boolean
   }) => {
+    const key = await normalizeSearchKey(keyOriginal)
     let coeffs = [1, 1, 1, 1]
     try {
       coeffs = JSON.parse(coefficients || '[]')
     } catch (err) {
-      // do nothing
+      logger.error(err)
     }
 
     const a = +(coeffs?.[0] || environment.searchPgTagCoefficients?.[0] || 1)
@@ -605,8 +605,7 @@ export class TagService extends BaseService {
   }
 
   public searchV3 = async ({
-    key,
-    // keyOriginal,
+    key: keyOriginal,
     take,
     skip,
     // includeAuthorTags,
@@ -615,7 +614,6 @@ export class TagService extends BaseService {
     quicksearch,
   }: {
     key: string
-    // keyOriginal?: string
     author?: string
     take: number
     skip: number
@@ -624,6 +622,7 @@ export class TagService extends BaseService {
     coefficients?: string
     quicksearch?: boolean
   }) => {
+    const key = await normalizeSearchKey(keyOriginal)
     try {
       const u = new URL(`${environment.tsQiServerUrl}/api/tags/search`)
       u.searchParams.set('q', key?.trim())

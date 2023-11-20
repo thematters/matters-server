@@ -1,9 +1,4 @@
-import {
-  normalizeQueryInput,
-  // normalizeTagInput,
-  stripAllPunct,
-  tagSlugify,
-} from 'common/utils'
+import { normalizeSearchKey, stripAllPunct, tagSlugify } from 'common/utils'
 
 test('stripAllPunct', () => {
   const pairs = [
@@ -60,8 +55,8 @@ test('tagSlugify', () => {
 })
 
 test('normalizeQueryInput', async () => {
-  expect(await normalizeQueryInput('')).toBe('')
-  expect(await normalizeQueryInput('小說')).toBe('小说')
-  expect(await normalizeQueryInput('Abc')).toBe('abc')
-  expect(await normalizeQueryInput(' Abc小說')).toBe('abc小说')
+  expect(await normalizeSearchKey('')).toBe('')
+  expect(await normalizeSearchKey('小說')).toBe('小说')
+  expect(await normalizeSearchKey('Abc')).toBe('abc')
+  expect(await normalizeSearchKey(' Abc小說')).toBe('abc小说')
 })

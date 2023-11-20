@@ -59,6 +59,7 @@ export class CloudflareService {
         res.headers
         // await res.text()
       )
+      throw err
     }
 
     return key
@@ -100,6 +101,7 @@ export class CloudflareService {
         res.headers
         // await res.text()
       )
+      throw err
     }
     return key
   }
@@ -141,6 +143,7 @@ export class CloudflareService {
         res.headers
         // await res.text()
       )
+      throw err
     }
   }
 

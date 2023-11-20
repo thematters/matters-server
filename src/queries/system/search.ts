@@ -11,7 +11,7 @@ import {
   connectionFromArray,
   fromConnectionArgs,
   fromGlobalId,
-  normalizeQueryInput,
+  stripSpaces,
 } from 'common/utils'
 
 const resolver: GQLQueryResolvers['search'] = async (
@@ -54,13 +54,12 @@ const resolver: GQLQueryResolvers['search'] = async (
   }
 
   const keyOriginal = input.key
-  input.key = await normalizeQueryInput(keyOriginal)
+  input.key = stripSpaces(keyOriginal) as string
 
   const connection = await (input.version === SEARCH_API_VERSION.v20230601
     ? serviceMap[input.type].searchV3
     : serviceMap[input.type].search)({
     ...input,
-    keyOriginal,
     take,
     skip,
     viewerId: viewer.id,

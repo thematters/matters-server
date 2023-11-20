@@ -2,7 +2,7 @@ import type { Connections } from 'definitions'
 
 import { ArticleService, UserService } from 'connectors'
 
-import { genConnections, closeConnections } from './utils'
+import { genConnections, closeConnections, createArticle } from './utils'
 
 let articleId: string
 let connections: Connections
@@ -49,13 +49,51 @@ test('sumAppreciation', async () => {
   expect(appreciation).toBeDefined()
 })
 
-test('findByAuthor', async () => {
-  const articles = await articleService.findByAuthor('1')
-  expect(articles.length).toBeDefined()
-  const articles2 = await articleService.findByAuthor('1', {
-    orderBy: [{ column: 'updated_at', order: 'desc' }],
+describe('findByAuthor', () => {
+  test('order by created_at', async () => {
+    const draftIds = await articleService.findByAuthor('1')
+    expect(draftIds.length).toBeDefined()
   })
-  expect(articles2.length).toBeDefined()
+  test('order by num of readers', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(draftIds.length).toBeDefined()
+    expect(draftIds[0].draftId).not.toBe('1')
+    await connections.knex('article_ga4_data').insert({
+      articleId: '1',
+      totalUsers: '1',
+      dateRange: '[2023-10-24,2023-10-24]',
+    })
+    const draftIds2 = await articleService.findByAuthor('1', {
+      orderBy: 'mostReaders',
+    })
+    expect(draftIds2[0].draftId).toBe('1')
+  })
+  test('order by amount of appreciations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostAppreciations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of comments', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostComments',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('order by num of donations', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      orderBy: 'mostDonations',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
+  test('filter by state', async () => {
+    const draftIds = await articleService.findByAuthor('1', {
+      state: 'archived',
+    })
+    expect(draftIds.length).toBeDefined()
+  })
 })
 
 test('findByCommentedAuthor', async () => {
@@ -135,24 +173,94 @@ test('update', async () => {
   expect(article.state).toEqual('archived')
 })
 
-test('quicksearch', async () => {
-  const { nodes, totalCount } = await articleService.searchV3({
-    key: 'test',
-    take: 1,
-    skip: 0,
-    quicksearch: true,
-  })
-  expect(nodes.length).toBe(1)
-  expect(totalCount).toBeGreaterThan(0)
-
-  const { nodes: nodes2, totalCount: totalCount2 } =
-    await articleService.searchV3({
+describe('quicksearch', () => {
+  test('search by title', async () => {
+    const { nodes, totalCount } = await articleService.searchV3({
       key: 'test',
       take: 1,
       skip: 0,
       quicksearch: true,
-      filter: { authorId: '1' },
     })
-  expect(nodes2.length).toBe(1)
-  expect(totalCount2).toBeLessThan(totalCount)
+    expect(nodes.length).toBe(1)
+    expect(totalCount).toBeGreaterThan(0)
+
+    // both case insensitive and chinese simplified/traditional insensitive
+    await createArticle(
+      { title: 'Uppercase', content: '', authorId: '1' },
+      connections
+    )
+    const { nodes: nodes2 } = await articleService.searchV3({
+      key: 'uppercase',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes2.length).toBe(1)
+
+    await createArticle(
+      { title: '測試', content: '', authorId: '1' },
+      connections
+    )
+    const { nodes: nodes3 } = await articleService.searchV3({
+      key: '测试',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes3.length).toBe(1)
+
+    await createArticle(
+      { title: '试测', content: '', authorId: '1' },
+      connections
+    )
+    const { nodes: nodes4 } = await articleService.searchV3({
+      key: '試測',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes4.length).toBe(1)
+
+    await createArticle(
+      { title: '測测', content: '', authorId: '1' },
+      connections
+    )
+    const { nodes: nodes5 } = await articleService.searchV3({
+      key: '測测',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes5.length).toBe(1)
+
+    // mixed case will not match in current implementation
+    const { nodes: nodes6 } = await articleService.searchV3({
+      key: '测測',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes6.length).toBe(0)
+  })
+  test('filter by authorId', async () => {
+    const { nodes } = await articleService.searchV3({
+      key: 'test',
+      take: 10,
+      skip: 0,
+      quicksearch: true,
+      filter: { authorId: '2' },
+    })
+    console.log(nodes)
+    nodes.forEach((node) => {
+      expect(node.authorId).toBe('2')
+    })
+  })
+})
+
+test('countReaders', async () => {
+  const count1 = await articleService.countReaders('1')
+  expect(count1).toBeDefined()
+  // count not exist articles' readers
+  const count0 = await articleService.countReaders('0')
+  expect(count0).toBe(0)
 })

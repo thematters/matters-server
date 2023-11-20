@@ -4,7 +4,6 @@ import {
   ARTICLE_STATE,
   NODE_TYPES,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
-  GRAPHQL_INPUT_LENGTH_LIMIT,
 } from 'common/enums'
 import {
   ForbiddenError,
@@ -23,7 +22,10 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
   }
-  if (rawCollections.length + rawArticles.length > GRAPHQL_INPUT_LENGTH_LIMIT) {
+  if (
+    rawCollections.length * rawArticles.length >
+    MAX_ARTICLES_PER_COLLECTION_LIMIT
+  ) {
     throw new ActionLimitExceededError('Action limit exceeded')
   }
 
