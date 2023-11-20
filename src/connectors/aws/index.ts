@@ -5,7 +5,7 @@ import getStream from 'get-stream'
 import mime from 'mime-types'
 
 import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums'
-import { environment, isLocal, isTest } from 'common/environment'
+import { environment, isLocal, isProd, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-aws')
@@ -189,7 +189,7 @@ export class AWSService {
 
   public putMetricData = async ({
     MetricData,
-    Namespace = 'Matters/Server',
+    Namespace = 'MattersDev/Server',
   }: {
     MetricData: any
     Namespace?: string
@@ -197,10 +197,17 @@ export class AWSService {
     if (isTest) {
       return
     }
+    if (isProd) {
+      Namespace = 'MattersProd/Server'
+    }
     const res = (await this.cloudwatch
       .putMetricData({ MetricData, Namespace })
       .promise()) as any
-    logger.info('cloudwatch putMetricData %o with res data %o', MetricData, res)
+    logger.info(
+      'cloudwatch:putMetricData %o with res RequestId: %s',
+      MetricData,
+      res.ResponseMetadata.RequestId
+    )
   }
 }
 

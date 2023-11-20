@@ -204,6 +204,13 @@ export class UserService extends BaseService {
         {
           MetricName: METRICS_NAMES.UserRegistrationCount,
           // Counts: [1],
+          Dimensions: [
+            {
+              Name: 'reg_type' /* required */,
+              Value: ethAddress ? 'wallet' : 'email' /* required */,
+            },
+            /* more items */
+          ],
           Timestamp: new Date(),
           Unit: 'Count',
           Value: 1,
@@ -2441,6 +2448,14 @@ export class UserService extends BaseService {
             {
               MetricName: METRICS_NAMES.UserRegistrationCount,
               // Counts: [1],
+
+              Dimensions: [
+                {
+                  Name: 'reg_type' /* required */,
+                  Value: 'social' /* required */,
+                },
+                /* more items */
+              ],
               Timestamp: new Date(),
               Unit: 'Count',
               Value: 1,
