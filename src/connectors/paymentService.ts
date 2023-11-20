@@ -4,6 +4,7 @@ import type {
   Transaction,
   EmailableUser,
   Connections,
+  Item,
 } from 'definitions'
 
 import DataLoader from 'dataloader'
@@ -36,7 +37,8 @@ import { stripe } from './stripe'
 const logger = getLogger('service-payment')
 
 export class PaymentService extends BaseService {
-  stripe: typeof stripe
+  public stripe: typeof stripe
+  public dataloader: DataLoader<string, Item>
 
   public constructor(connections: Connections) {
     super('transaction', connections)

@@ -56,7 +56,8 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService {
   private ipfsServers: typeof ipfsServers
-  draftLoader: DataLoader<string, Item>
+  public dataloader: DataLoader<string, Item>
+  public draftLoader: DataLoader<string, Item>
 
   public constructor(connections: Connections) {
     super('article', connections)

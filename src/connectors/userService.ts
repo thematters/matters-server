@@ -105,23 +105,21 @@ import {
 import { Twitter } from 'connectors/oauth'
 
 import { LikeCoin } from './likecoin'
-import { medium } from './medium'
 
 const logger = getLogger('service-user')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class UserService extends BaseService {
-  ipfs: typeof ipfsServers
-  likecoin: LikeCoin
-  medium: typeof medium
+  private ipfs: typeof ipfsServers
+  public likecoin: LikeCoin
+  public dataloader: DataLoader<string, Item>
 
   constructor(connections: Connections) {
     super('user', connections)
 
     this.ipfs = ipfsServers
     this.likecoin = new LikeCoin(connections)
-    this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
