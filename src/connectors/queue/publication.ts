@@ -18,6 +18,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  METRICS_NAMES,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
@@ -375,6 +376,19 @@ export class PublicationQueue extends BaseQueue {
         })
         // .then(res => {})
         .catch((err: Error) => logger.error('failed sns notify:', err))
+
+      // no await to put data async
+      atomService.aws.putMetricData({
+        MetricData: [
+          {
+            MetricName: METRICS_NAMES.ArticlePublishCount,
+            // Counts: [1],
+            Timestamp: new Date(),
+            Unit: 'Count',
+            Value: 1,
+          },
+        ],
+      })
 
       done(null, {
         articleId: article.id,

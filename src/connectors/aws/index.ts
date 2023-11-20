@@ -14,6 +14,7 @@ export class AWSService {
   s3: AWS.S3
   sqs: AWS.SQS
   sns?: AWS.SNS
+  cloudwatch: AWS.CloudWatch
   s3Bucket: string
   s3Endpoint: string
 
@@ -26,6 +27,7 @@ export class AWSService {
     if (environment.awsArticlesSnsTopic) {
       this.sns = new AWS.SNS()
     }
+    this.cloudwatch = new AWS.CloudWatch()
   }
 
   /**
@@ -183,6 +185,22 @@ export class AWSService {
       MessageBody,
       res.ResponseMetadata.RequestId
     )
+  }
+
+  public putMetricData = async ({
+    MetricData,
+    Namespace = 'Matters/Server',
+  }: {
+    MetricData: any
+    Namespace?: string
+  }) => {
+    if (isTest) {
+      return
+    }
+    const res = (await this.cloudwatch
+      .putMetricData({ MetricData, Namespace })
+      .promise()) as any
+    logger.info('cloudwatch putMetricData %o with res data %o', MetricData, res)
   }
 }
 

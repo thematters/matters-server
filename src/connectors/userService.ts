@@ -60,6 +60,7 @@ import {
   CHANGE_EMAIL_COUNTER_KEY_PREFIX,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
+  METRICS_NAMES,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -196,6 +197,19 @@ export class UserService extends BaseService {
       undefined,
       trx
     )
+
+    // no await to put data async
+    this.aws.putMetricData({
+      MetricData: [
+        {
+          MetricName: METRICS_NAMES.UserRegistrationCount,
+          // Counts: [1],
+          Timestamp: new Date(),
+          Unit: 'Count',
+          Value: 1,
+        },
+      ],
+    })
 
     return user
   }
@@ -2419,6 +2433,19 @@ export class UserService extends BaseService {
           actorId: user.id,
           action: AUDIT_LOG_ACTION[`socialSignup${type}`],
           status: AUDIT_LOG_STATUS.succeeded,
+        })
+
+        // no await to put data async
+        this.aws.putMetricData({
+          MetricData: [
+            {
+              MetricName: METRICS_NAMES.UserRegistrationCount,
+              // Counts: [1],
+              Timestamp: new Date(),
+              Unit: 'Count',
+              Value: 1,
+            },
+          ],
         })
       } else {
         auditLog({
