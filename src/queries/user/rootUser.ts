@@ -7,7 +7,7 @@ import { UserInputError } from 'common/errors'
 
 const resolver: GQLQueryResolvers['user'] = async (
   _,
-  { input: { userName, ethAddress } },
+  { input: { userName, userNameCaseIgnore, ethAddress } },
   { dataSources: { userService } },
   info
 ) => {
@@ -16,7 +16,7 @@ const resolver: GQLQueryResolvers['user'] = async (
   }
 
   if (userName) {
-    return userService.findByUserName(userName)
+    return userService.findByUserName(userName, userNameCaseIgnore)
   } else if (ethAddress) {
     cacheControlFromInfo(info).setCacheHint({
       maxAge: CACHE_TTL.INSTANT,

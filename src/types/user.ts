@@ -686,6 +686,8 @@ export default /* GraphQL */ `
 
   input UserInput {
     userName: String
+    """used for case insensitive username search """
+    userNameCaseIgnore: Boolean = false
     ethAddress: String
   }
 
