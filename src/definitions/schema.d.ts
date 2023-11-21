@@ -3679,6 +3679,8 @@ export type GQLUserInfoFields =
 export type GQLUserInput = {
   ethAddress?: InputMaybe<Scalars['String']['input']>
   userName?: InputMaybe<Scalars['String']['input']>
+  /** used for case insensitive username search  */
+  userNameCaseIgnore?: InputMaybe<Scalars['Boolean']['input']>
 }
 
 export type GQLUserLanguage = 'en' | 'zh_hans' | 'zh_hant'

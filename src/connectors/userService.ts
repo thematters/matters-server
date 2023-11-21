@@ -374,8 +374,21 @@ export class UserService extends BaseService {
   public findByEmails = async (emails: string[]): Promise<User[]> =>
     this.knex.select().from(this.table).whereIn('email', emails)
 
-  public findByUserName = async (userName: string): Promise<User> =>
-    this.knex.select().from(this.table).where({ userName }).first()
+  public findByUserName = async (
+    userName: string,
+    ignoreCase = false
+  ): Promise<User> =>
+    this.knex
+      .select()
+      .from(this.table)
+      .modify((builder: Knex.QueryBuilder) => {
+        if (ignoreCase) {
+          builder.whereILike('user_name', userName)
+        } else {
+          builder.where({ userName })
+        }
+      })
+      .first()
 
   public findByEthAddress = async (ethAddress: string): Promise<User> =>
     this.knex
