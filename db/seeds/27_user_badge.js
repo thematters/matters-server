@@ -8,6 +8,7 @@ exports.seed = function (knex, Promise) {
         {
           user_id: 1,
           type: 'seed',
+          enabled: true,
         },
       ])
     })

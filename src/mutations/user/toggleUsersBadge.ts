@@ -1,3 +1,5 @@
+import { isNil, omitBy } from 'lodash'
+
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { GQLMutationResolvers } from 'definitions'
@@ -15,19 +17,46 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
   }
 
   const table = 'user_badge'
-  const userIds = ids.map((id) => fromGlobalId(id).id)
+  const userIds = ids.map((id) => fromGlobalId(id).id) // .filter(Boolean)
 
-  await (enabled
-    ? Promise.all(
-        userIds.map((id) =>
-          atomService.create({ table, data: { userId: id, type } })
-        )
+  let level = 0
+  switch (type) {
+    case 'nomad1':
+      level = 1
+      break
+    case 'nomad2':
+      level = 2
+      break
+    case 'nomad3':
+      level = 3
+      break
+    case 'nomad4':
+      level = 4
+      break
+    // level = Number.parseInt(type.charAt(5)) // only 1, 2, 3, 4
+    // type = 'nomad'
+  }
+  const dbType: string = type.startsWith('nomad') && level >= 1 ? 'nomad' : type
+
+  await // enabled
+  Promise.all(
+    userIds.map((id) => {
+      const dataUpdate = omitBy(
+        { type: dbType, extra: level ? { level } : null, enabled },
+        isNil
       )
-    : atomService.deleteMany({
+      const dataCreate = { userId: id, ...dataUpdate }
+
+      return atomService.upsert({
         table,
-        where: { type },
-        whereIn: ['user_id', userIds],
-      }))
+        where: { userId: id },
+        update: dataUpdate,
+        create: dataCreate,
+      })
+    })
+  )
+
+  // notifications TODO for Nomad Campaign
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

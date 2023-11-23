@@ -1,4 +1,4 @@
-import type { Connections, GQLUserRestrictionType } from 'definitions'
+import type { Connections, GQLBadgeType, GQLUserRestrictionType } from 'definitions'
 
 import _get from 'lodash/get'
 
@@ -66,12 +66,18 @@ const GET_USER_OSS_BY_USERNAME = /* GraphQL */ `
     user(input: $input) {
       id
       userName
+      displayName
       oss {
         score
         boost
         restrictions {
           type
           createdAt
+        }
+      }
+      info {
+        badges {
+          type
         }
       }
     }
@@ -228,6 +234,13 @@ const TOGGLE_USERS_BADGE = `
   mutation($input: ToggleUsersBadgeInput!) {
     toggleUsersBadge(input: $input) {
       id
+      userName
+      displayName
+      info {
+        badges {
+          type
+        }
+      }
     }
   }
 `
@@ -518,6 +531,131 @@ describe('manage feature flag', () => {
 })
 
 describe('manage user badges', () => {
+  test('add nomad badges with `ToggleUsersBadge`', async () => {
+    const serverAdmin = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const result1 = await serverAdmin.executeOperation({
+      query: GET_USER_OSS_BY_USERNAME,
+      variables: { input: { userName: 'test2' } },
+    })
+    expect(
+      result1?.data?.user?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad1')
+    ).toBe(false)
+
+    // expect(_get(data, 'user.userName')).toBe(userName)
+    const toggleUserId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
+
+    let resBadges = await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: {
+          ids: [toggleUserId],
+          type: 'nomad1',
+          enabled: true,
+        },
+      },
+    })
+    expect(
+      resBadges?.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad1')
+    ).toBe(true)
+
+    resBadges = await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: {
+          ids: [toggleUserId],
+          type: 'nomad2',
+          enabled: true,
+        },
+      },
+    })
+    expect(
+      resBadges?.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad1')
+    ).toBe(false)
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad2')
+    ).toBe(true)
+
+    resBadges = await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: {
+          ids: [toggleUserId],
+          type: 'nomad3',
+          enabled: true,
+        },
+      },
+    })
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad1')
+    ).toBe(false)
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad2')
+    ).toBe(false)
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad3')
+    ).toBe(true)
+
+    resBadges = await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: {
+          ids: [toggleUserId],
+          type: 'nomad4',
+          enabled: true,
+        },
+      },
+    })
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad3')
+    ).toBe(false)
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad4')
+    ).toBe(true)
+
+    resBadges = await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: {
+          ids: [toggleUserId],
+          type: 'nomad4',
+          enabled: false,
+        },
+      },
+    })
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad3')
+    ).toBe(false)
+    expect(
+      resBadges.data?.toggleUsersBadge?.[0]?.info?.badges
+        ?.map(({ type }: { type: GQLBadgeType }) => type)
+        ?.includes('nomad4')
+    ).toBe(false)
+  })
+
   test('toggle user badge', async () => {
     const errorPath = 'errors.0.extensions.code'
     const adminClient = { isAuth: true, isAdmin: true, connections }
