@@ -2915,6 +2915,10 @@ enum BadgeType {
   seed
   golden_motor
   architect
+  nomad1
+  nomad2
+  nomad3
+  nomad4
 }
 
 enum VerificationCodeType {

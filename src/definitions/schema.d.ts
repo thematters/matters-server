@@ -534,7 +534,14 @@ export type GQLBadge = {
   type: GQLBadgeType
 }
 
-export type GQLBadgeType = 'architect' | 'golden_motor' | 'seed'
+export type GQLBadgeType =
+  | 'architect'
+  | 'golden_motor'
+  | 'nomad1'
+  | 'nomad2'
+  | 'nomad3'
+  | 'nomad4'
+  | 'seed'
 
 export type GQLBadgedUsersInput = {
   after?: InputMaybe<Scalars['String']['input']>
