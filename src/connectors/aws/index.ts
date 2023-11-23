@@ -5,7 +5,7 @@ import getStream from 'get-stream'
 import mime from 'mime-types'
 
 import { LOCAL_S3_ENDPOINT, QUEUE_URL } from 'common/enums'
-import { environment, isLocal, isTest } from 'common/environment'
+import { environment, isLocal, isProd, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-aws')
@@ -14,6 +14,7 @@ export class AWSService {
   s3: AWS.S3
   sqs: AWS.SQS
   sns?: AWS.SNS
+  cloudwatch: AWS.CloudWatch
   s3Bucket: string
   s3Endpoint: string
 
@@ -26,6 +27,7 @@ export class AWSService {
     if (environment.awsArticlesSnsTopic) {
       this.sns = new AWS.SNS()
     }
+    this.cloudwatch = new AWS.CloudWatch()
   }
 
   /**
@@ -181,6 +183,29 @@ export class AWSService {
     logger.info(
       'SNS sent message %j with request-id %s',
       MessageBody,
+      res.ResponseMetadata.RequestId
+    )
+  }
+
+  public putMetricData = async ({
+    MetricData,
+    Namespace = 'MattersDev/Server',
+  }: {
+    MetricData: any
+    Namespace?: string
+  }) => {
+    if (isTest) {
+      return
+    }
+    if (isProd) {
+      Namespace = 'MattersProd/Server'
+    }
+    const res = (await this.cloudwatch
+      .putMetricData({ MetricData, Namespace })
+      .promise()) as any
+    logger.info(
+      'cloudwatch:putMetricData %o with res RequestId: %s',
+      MetricData,
       res.ResponseMetadata.RequestId
     )
   }

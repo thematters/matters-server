@@ -28,6 +28,7 @@ export * from './oss'
 export * from './tag'
 export * from './search'
 export * from './appreciation'
+export * from './metrics'
 
 export const GRAPHQL_COST_LIMIT = 10e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100

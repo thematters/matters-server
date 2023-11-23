@@ -532,7 +532,7 @@ export class ArticleService extends BaseService {
                   .groupBy('target_id')
                   .select(
                     'target_id',
-                    this.knex.raw('COUNT(1) as donation_count')
+                    this.knex.raw('COUNT(DISTINCT sender_id) as donation_count')
                   )
                   .as('t2'),
                 't1.id',

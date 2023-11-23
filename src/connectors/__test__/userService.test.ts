@@ -721,3 +721,18 @@ describe('updateUserExtra', () => {
     expect(user.extra).toBeNull()
   })
 })
+
+describe('findByUserName', () => {
+  test('exact match by default', async () => {
+    const user1 = await userService.findByUserName('test1')
+    expect(user1).toBeDefined()
+
+    const user2 = await userService.findByUserName('Test1')
+    expect(user2).not.toBeDefined()
+  })
+
+  test('case ignore match', async () => {
+    const user = await userService.findByUserName('Test1', true)
+    expect(user).toBeDefined()
+  })
+})
