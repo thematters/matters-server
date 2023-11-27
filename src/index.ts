@@ -54,6 +54,10 @@ import * as routes from './routes'
   // Pay
   app.use('/pay', routes.pay)
 
+  // Facebook Data Deletion Request Callback
+  // see https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback
+  app.use('/facebook', routes.facebook)
+
   await new Promise((resolve) =>
     app.listen({ port: PORT }, resolve as () => void)
   )
