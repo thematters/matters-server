@@ -36,14 +36,19 @@ facebook.post('/delete/', async (req, res) => {
 
   const facebookUserId = data.user_id
   const userId = await getUserId(facebookUserId)
-  const userService = new UserService(connections)
-  console.log(`userId ${userId} facebook info is going to be deleted`)
-  userService.removeSocialAccount(userId, SOCIAL_LOGIN_TYPE.Facebook)
+
+  if (userId) {
+    logger.info(`userId ${userId} facebook info is going to be deleted`)
+    const userService = new UserService(connections)
+    userService.removeSocialAccount(userId, SOCIAL_LOGIN_TYPE.Facebook)
+  } else {
+    logger.warn(`facebook info of ${facebookUserId} does not exist`)
+  }
 
   const confirmationCode = facebookUserId
   const url = `https://${environment.serverDomain}/facebook/delete/?id=${confirmationCode}`
   res.type('json')
-  res.send(`{ url: '${url}', confirmation_code: '${confirmationCode}' }`)
+  res.send(JSON.stringify({ url, confirmation_code: confirmationCode }))
 })
 
 facebook.get('/delete/', async (req, res) => {
