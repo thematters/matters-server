@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { Router } from 'express'
+import { Router, urlencoded } from 'express'
 
 import { SOCIAL_LOGIN_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -17,6 +17,8 @@ type Data = {
 const logger = getLogger('route-facebook')
 
 export const facebook = Router()
+
+facebook.use(urlencoded({ extended: false }))
 
 facebook.post('/delete/', async (req, res) => {
   const signedRequest = req.body.signed_request
