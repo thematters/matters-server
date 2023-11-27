@@ -1,5 +1,7 @@
 import type { GQLOfficialResolvers } from 'definitions'
 
+import { Knex } from 'knex'
+
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
@@ -22,7 +24,11 @@ export const announcements: GQLOfficialResolvers['announcements'] = async (
       ...(dbId ? { id: dbId } : {}),
       ...visibleFilter,
     },
-    // ...(dbId ? { where: { id: dbId } } : {}),
+    modifier: (builder: Knex.QueryBuilder) => {
+      builder.whereRaw(
+        `(expired_at IS NULL OR expired_at <= CURRENT_TIMESTAMP)`
+      )
+    },
     orderBy: [{ column: 'createdAt', order: 'desc' }],
   })
 

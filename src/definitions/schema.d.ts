@@ -89,6 +89,7 @@ export type GQLAnnouncement = {
   content?: Maybe<Scalars['String']['output']>
   cover?: Maybe<Scalars['String']['output']>
   createdAt: Scalars['DateTime']['output']
+  expiredAt?: Maybe<Scalars['DateTime']['output']>
   id: Scalars['ID']['output']
   link?: Maybe<Scalars['String']['output']>
   order: Scalars['Int']['output']
@@ -2370,6 +2371,7 @@ export type GQLPublishState = 'error' | 'pending' | 'published' | 'unpublished'
 export type GQLPutAnnouncementInput = {
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['String']['input']>
+  expiredAt?: InputMaybe<Scalars['DateTime']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
   link?: InputMaybe<Scalars['String']['input']>
   order?: InputMaybe<Scalars['Int']['input']>
@@ -5183,6 +5185,11 @@ export type GQLAnnouncementResolvers<
   >
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  expiredAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   link?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   order?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>

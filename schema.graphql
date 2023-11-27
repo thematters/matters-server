@@ -1896,6 +1896,7 @@ type Announcement {
   order: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  expiredAt: DateTime
   translations: [TranslatedAnnouncement!]
 }
 
@@ -2122,6 +2123,7 @@ input PutAnnouncementInput {
   content: String
   link: String
   type: AnnouncementType
+  expiredAt: DateTime
   visible: Boolean
   order: Int
   translations: [TranslatedAnnouncementInput!]

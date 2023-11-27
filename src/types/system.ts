@@ -112,6 +112,7 @@ export default /* GraphQL */ `
     order: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
+    expiredAt: DateTime
     translations: [TranslatedAnnouncement!]
   }
 
@@ -334,6 +335,7 @@ export default /* GraphQL */ `
     content: String
     link: String @constraint(format: "uri")
     type: AnnouncementType
+    expiredAt: DateTime
     visible: Boolean
     order: Int
     translations: [TranslatedAnnouncementInput!]
