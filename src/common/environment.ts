@@ -149,6 +149,7 @@ export const environment = {
   twitterClientSecret: process.env.MATTERS_TWITTER_CLIENT_SECRET || '',
   twitterRedirectUri: process.env.MATTERS_TWITTER_REDIRECT_URI || '',
   facebookClientId: process.env.MATTERS_FACEBOOK_CLIENT_ID || '',
+  facebookClientSecret: process.env.MATTERS_FACEBOOK_CLIENT_SECRET || '',
   facebookRedirectUri: process.env.MATTERS_FACEBOOK_REDIRECT_URI || '',
   googleClientId: process.env.MATTERS_GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.MATTERS_GOOGLE_CLIENT_SECRET || '',
