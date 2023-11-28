@@ -4,7 +4,8 @@ FROM node:18
 RUN apt-get update && apt-get -y install curl \
   postgresql-client \
   vim \
-  wget
+  wget \
+  python-is-python3
 
 # install dependencies
 WORKDIR /var/app
