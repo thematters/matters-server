@@ -19,6 +19,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
     id,
     // title, content, cover, link,
     type,
+    expiredAt,
     visible,
     order,
     translations,
@@ -66,6 +67,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         link,
         type,
         visible,
+        expiredAt,
       },
       lodash.isUndefined
     )
@@ -90,6 +92,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
         link,
         type,
         order, // default to 0 // : order || 0
+        expiredAt,
       },
     })
   }

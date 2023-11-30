@@ -1,4 +1,5 @@
-import { GQLUserInfoResolvers } from 'definitions'
+import { ALL_BADGE_TYPES } from 'common/enums'
+import { GQLBadgeType, GQLUserInfoResolvers } from 'definitions'
 
 const resolver: GQLUserInfoResolvers['badges'] = async (
   { id },
@@ -9,7 +10,16 @@ const resolver: GQLUserInfoResolvers['badges'] = async (
     return []
   }
 
-  return atomService.findMany({ table: 'user_badge', where: { userId: id } })
+  const badges = await atomService.findMany({
+    table: 'user_badge',
+    where: { userId: id },
+  })
+
+  return badges
+    .map(({ type, extra }) => ({
+      type: `${type}${extra?.level || ''}` as GQLBadgeType,
+    }))
+    .filter(({ type }) => ALL_BADGE_TYPES.includes(type))
 }
 
 export default resolver

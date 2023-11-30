@@ -31,6 +31,7 @@ interface FindManyInput {
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
   orderByRaw?: string
+  modifier?: (builder: Knex.QueryBuilder) => void
   skip?: number
   take?: number
 }
@@ -173,6 +174,7 @@ export class AtomService {
     whereIn,
     orderBy,
     orderByRaw,
+    modifier,
     skip,
     take,
   }: FindManyInput) => {
@@ -192,6 +194,10 @@ export class AtomService {
 
     if (orderByRaw) {
       query.orderByRaw(orderByRaw)
+    }
+
+    if (modifier) {
+      query.modify(modifier)
     }
 
     if (skip) {

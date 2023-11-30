@@ -879,6 +879,12 @@ export default /* GraphQL */ `
     seed
     golden_motor
     architect
+
+    # can only have 1 of the 4 levels of nomad badges
+    nomad1
+    nomad2
+    nomad3
+    nomad4
   }
 
   enum VerificationCodeType {

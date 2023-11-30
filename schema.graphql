@@ -1896,6 +1896,7 @@ type Announcement {
   order: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  expiredAt: DateTime
   translations: [TranslatedAnnouncement!]
 }
 
@@ -2122,6 +2123,7 @@ input PutAnnouncementInput {
   content: String
   link: String
   type: AnnouncementType
+  expiredAt: DateTime
   visible: Boolean
   order: Int
   translations: [TranslatedAnnouncementInput!]
@@ -2915,6 +2917,10 @@ enum BadgeType {
   seed
   golden_motor
   architect
+  nomad1
+  nomad2
+  nomad3
+  nomad4
 }
 
 enum VerificationCodeType {
