@@ -1,4 +1,8 @@
-import type { Connections, GQLBadgeType, GQLUserRestrictionType } from 'definitions'
+import type {
+  Connections,
+  GQLBadgeType,
+  GQLUserRestrictionType,
+} from 'definitions'
 
 import _get from 'lodash/get'
 
