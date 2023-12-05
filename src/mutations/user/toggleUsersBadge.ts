@@ -1,4 +1,4 @@
-import { isNil, omitBy } from 'lodash'
+// import { isNil, omitBy } from 'lodash'
 
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -36,20 +36,21 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
     // level = Number.parseInt(type.charAt(5)) // only 1, 2, 3, 4
     // type = 'nomad'
   }
-  const dbType: string = type.startsWith('nomad') && level >= 1 ? 'nomad' : type
+  const dbType = (
+    type.startsWith('nomad') && level >= 1 ? 'nomad' : type
+  ) as string
 
   await // enabled
   Promise.all(
     userIds.map((id) => {
-      const dataUpdate = omitBy(
-        { type: dbType, extra: level ? { level } : null, enabled },
-        isNil
-      )
-      const dataCreate = { userId: id, ...dataUpdate }
+      const dataUpdate =
+        // omitBy(
+        { enabled, ...(level ? { extra: { level } } : null) }
+      const dataCreate = { userId: id, type: dbType, ...dataUpdate }
 
       return atomService.upsert({
         table,
-        where: { userId: id },
+        where: { userId: id, type: dbType },
         update: dataUpdate,
         create: dataCreate,
       })

@@ -30,8 +30,9 @@ export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
     .as('badged_users')
 
   if (type) {
-    countQuery.where({ type })
-    usersQuery.where({ type })
+    const dbType = (type?.startsWith('nomad') ? 'nomad' : type) as string
+    countQuery.where({ type: dbType })
+    usersQuery.where({ type: dbType })
   }
 
   if (skip) {
