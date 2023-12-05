@@ -699,6 +699,19 @@ describe('manage user badges', () => {
     })
     expect(_get(data3, 'oss.badgedUsers.totalCount')).toBe(0)
 
+    // enable another 'nomad3' for badged user
+    await serverAdmin.executeOperation({
+      query: TOGGLE_USERS_BADGE,
+      variables: {
+        input: { ids: [userId], type: 'nomad3', enabled: true },
+      },
+    })
+    const { data: data4 } = await serverAdmin.executeOperation({
+      query: QUERY_BADGED_USERS,
+      variables: { input: { first: null, type: 'nomad3' } },
+    })
+    expect(_get(data4, 'oss.badgedUsers.totalCount')).toBe(1)
+
     // check user couldn't query and mutate
     const serverUser = await testClient(userClient)
     const result = await serverUser.executeOperation({
