@@ -290,6 +290,19 @@ export class CollectionService extends BaseService {
     return { ...collection, pinned }
   }
 
+  public findByAuthor = async (
+    authorId: string,
+    { skip, take }: { skip?: number; take?: number } = {}
+  ) =>
+    this.baseFind({
+      where: {
+        authorId,
+      },
+      skip,
+      take,
+      orderBy: [{ column: 'id', order: 'desc' }],
+    })
+
   public findPinnedByAuthor = async (authorId: string) =>
     this.baseFind({ where: { authorId, pinned: true } })
 }

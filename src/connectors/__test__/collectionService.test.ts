@@ -352,6 +352,29 @@ describe('findPinnedByAuthor', () => {
   })
 })
 
+describe('findByAuthor', () => {
+  test('empty', async () => {
+    const records = await collectionService.findByAuthor('2')
+    expect(records.length).toBe(0)
+  })
+  test('success', async () => {
+    await collectionService.createCollection({
+      authorId: '2',
+      title: 'test',
+    })
+    const records = await collectionService.findByAuthor('2')
+    expect(records.length).toBe(1)
+
+    await collectionService.createCollection({
+      authorId: '2',
+      title: 'test2',
+    })
+
+    const records2 = await collectionService.findByAuthor('2', { take: 1 })
+    expect(records2.length).toBe(1)
+  })
+})
+
 test('updatePinned', async () => {
   const { id } = await collectionService.createCollection({
     authorId: '1',
