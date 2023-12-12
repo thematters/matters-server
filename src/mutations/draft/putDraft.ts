@@ -163,8 +163,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   const data: ItemData = omitBy(
     {
       authorId: id ? undefined : viewer.id,
-      title,
-      summary,
+      title: title?.trim(),
+      summary: summary?.trim(),
       summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && normalizeArticleHTML(sanitizeHTML(content)),
       tags: tags?.length === 0 ? null : tags,
