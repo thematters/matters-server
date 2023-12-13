@@ -3792,6 +3792,8 @@ export type GQLUserStatus = {
   role: GQLUserRole
   /** User state. */
   state: GQLUserState
+  /** Number of referred user registration count (in Digital Nomad Campaign). */
+  totalReferredCount: Scalars['Int']['output']
   /** Number of total written words. */
   totalWordCount: Scalars['Int']['output']
   /** Whether there are unread activities from following. */
@@ -8657,6 +8659,11 @@ export type GQLUserStatusResolvers<
   >
   role?: Resolver<GQLResolversTypes['UserRole'], ParentType, ContextType>
   state?: Resolver<GQLResolversTypes['UserState'], ParentType, ContextType>
+  totalReferredCount?: Resolver<
+    GQLResolversTypes['Int'],
+    ParentType,
+    ContextType
+  >
   totalWordCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   unreadFollowing?: Resolver<
     GQLResolversTypes['Boolean'],

@@ -164,6 +164,7 @@ const user: {
     unreadFollowing,
     hasPaymentPassword,
     totalWordCount,
+    totalReferredCount: ({ extra }) => extra?.referredCount || 0,
     donatedArticleCount,
     receivedDonationCount,
     changeEmailTimesLeft,

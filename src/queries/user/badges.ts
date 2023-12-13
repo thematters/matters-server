@@ -12,7 +12,7 @@ const resolver: GQLUserInfoResolvers['badges'] = async (
 
   const badges = await atomService.findMany({
     table: 'user_badge',
-    where: { userId: id },
+    where: { userId: id, enabled: true },
   })
 
   return badges

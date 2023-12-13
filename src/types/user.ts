@@ -409,6 +409,9 @@ export default /* GraphQL */ `
     "Number of total written words."
     totalWordCount: Int!
 
+    "Number of referred user registration count (in Digital Nomad Campaign)."
+    totalReferredCount: Int!
+
     "Weather login password is set for email login."
     hasEmailLoginPassword: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
 

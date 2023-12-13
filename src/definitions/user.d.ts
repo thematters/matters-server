@@ -27,6 +27,7 @@ interface UserBase {
   ethAddress: string
   currency?: 'HKD' | 'TWD' | 'USD'
   profileCover?: string
+  extra?: any // jsonb saved here
 }
 
 export type UserNoUsername = UserBase & { userName: null; displayName: null }

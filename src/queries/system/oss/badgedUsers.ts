@@ -17,16 +17,22 @@ export const badgedUsers: GQLOssResolvers['badgedUsers'] = async (
 
   const table = 'user_badge'
 
-  const countQuery = knex.countDistinct('user_id').from(table).first()
+  const countQuery = knex
+    .countDistinct('user_id')
+    .from(table)
+    .where({ enabled: true })
+    .first()
   let usersQuery = knex
     .select()
     .from(table)
+    .where({ enabled: true })
     .orderBy([{ column: 'created_at', order: 'desc' }])
     .as('badged_users')
 
   if (type) {
-    countQuery.where({ type })
-    usersQuery.where({ type })
+    const dbType = (type?.startsWith('nomad') ? 'nomad' : type) as string
+    countQuery.where({ type: dbType })
+    usersQuery.where({ type: dbType })
   }
 
   if (skip) {
