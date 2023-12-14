@@ -22,7 +22,7 @@ const resolver: GQLMutationResolvers['setBoost'] = async (
 
   await serviceMap[type].setBoost({ id: dbId, boost })
 
-  return { ...entity, __type: type, id } as any
+  return { ...entity, __type: type, id: dbId } as any
 }
 
 export default resolver
