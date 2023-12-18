@@ -16,9 +16,17 @@ module.exports = {
   globalSetup: '<rootDir>/db/globalTestSetup.js',
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  globals: {
-    'ts-jest': {
-      diagnostics: false,
-    },
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '.+\\.tsx?$': ['ts-jest', {//the content you'd placed at "global"
+      // babel: true, tsConfig: 'tsconfig.json',
+      useESM: true,
+    }],
+    // 'node_modules/kubo-rpc-client',
+    // "node_modules/kubo-rpc-client/.+\\.(j|t)sx?$": ["ts-jest", { useESM: true, }],
   },
+  transformIgnorePatterns: [
+    // '<rootDir>/node_modules/',
+    "node_modules/(?!kubo-rpc-client/.*)"
+  ],
 }

@@ -1,6 +1,8 @@
 import { generateKeyPair } from 'crypto'
 import FormData from 'form-data'
-import { create } from 'ipfs-http-client'
+// import { create } from 'ipfs-http-client'
+// import { createHelia } from 'helia'
+// import { create } from 'kubo-rpc-client'
 import fetch from 'node-fetch'
 import { Readable } from 'stream'
 import { promisify } from 'util'
@@ -23,22 +25,31 @@ const ipfsServerUrls = (
 // In-App load-balancer, instead of transparent EC2 load balancer
 export class IPFSServer {
   // 1 active primary + multiple backup secondaries
-  clients: any[]
+  clients?: any[]
+
+  async init() {
+    try {
+      const kuboRpcClientImport = await import('kubo-rpc-client')
+      this.clients = ipfsServerUrls.map((url) => kuboRpcClientImport.create({ url }))
+    } catch(err) {
+      logger.error('ipfs init ERROR:', err)
+    }
+  }
 
   constructor() {
-    this.clients = ipfsServerUrls.map((url) => create({ url }))
+    this.init()
   }
 
   get size() {
-    return this.clients.length
+    return this.clients?.length || 0
   }
   get client() {
     // const idx = active ? 0 : Math.floor(1 + Math.random() * (this.size - 1))
-    return this.clients[0]
+    return this.clients?.[0]
   }
   get backupClient() {
     const idx = Math.floor(1 + Math.random() * (this.size - 1))
-    return this.clients[idx]
+    return this.clients?.[idx]
   }
 
   // same as `openssl genpkey -algorithm ED25519`
@@ -70,7 +81,7 @@ export class IPFSServer {
     try {
       const imported = await res.json()
 
-      return { imported, client: this.clients[idx] }
+      return { imported, client: this.clients?.[idx] }
     } catch (err) {
       logger.error(
         'importKey ERROR:',
