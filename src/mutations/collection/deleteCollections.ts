@@ -2,8 +2,9 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
-import { NODE_TYPES } from 'common/enums'
+import { AUDIT_LOG_ACTION, AUDIT_LOG_STATUS, NODE_TYPES } from 'common/enums'
 import { ForbiddenError, UserInputError } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteCollections'] = async (
@@ -39,6 +40,13 @@ const resolver: GQLMutationResolvers['deleteCollections'] = async (
   )
   for (const id of collectionIds) {
     invalidateFQC({ node: { type: NODE_TYPES.Collection, id }, redis })
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.removeCollection,
+      entity: 'collection',
+      entityId: id,
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
   }
   await invalidateFQC({
     node: { type: NODE_TYPES.User, id: viewer.id },

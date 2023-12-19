@@ -5,6 +5,8 @@ import { validate as validateUUID } from 'uuid'
 
 import {
   ASSET_TYPE,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
   MAX_COLLECTION_TITLE_LENGTH,
   MAX_COLLECTION_DESCRIPTION_LENGTH,
   NODE_TYPES,
@@ -15,6 +17,7 @@ import {
   UserInputError,
   AssetNotFoundError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putCollection'] = async (
@@ -107,6 +110,13 @@ const resolver: GQLMutationResolvers['putCollection'] = async (
     await invalidateFQC({
       node: { type: NODE_TYPES.User, id: collection.authorId },
       redis,
+    })
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.createCollection,
+      entity: 'collection',
+      entityId: collection.id,
+      status: AUDIT_LOG_STATUS.succeeded,
     })
     return collection
   }
