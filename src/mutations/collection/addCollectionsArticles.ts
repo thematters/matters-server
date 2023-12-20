@@ -2,6 +2,8 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import {
   ARTICLE_STATE,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
   NODE_TYPES,
   MAX_ARTICLES_PER_COLLECTION_LIMIT,
 } from 'common/enums'
@@ -12,6 +14,7 @@ import {
   ArticleNotFoundError,
   ActionLimitExceededError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
@@ -94,6 +97,17 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   for (const collectionId of collectionIds) {
     if (articles.length > 0) {
       await collectionService.addArticles(collectionId, articleIds)
+
+      articleIds.map((articleId) =>
+        auditLog({
+          actorId: viewer.id,
+          action: AUDIT_LOG_ACTION.addArticleIntoCollection,
+          entity: 'collection',
+          entityId: collectionId,
+          newValue: articleId,
+          status: AUDIT_LOG_STATUS.succeeded,
+        })
+      )
     }
   }
 

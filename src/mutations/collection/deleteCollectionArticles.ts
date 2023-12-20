@@ -1,11 +1,17 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { NODE_TYPES, GRAPHQL_INPUT_LENGTH_LIMIT } from 'common/enums'
+import {
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+  NODE_TYPES,
+  GRAPHQL_INPUT_LENGTH_LIMIT,
+} from 'common/enums'
 import {
   ForbiddenError,
   UserInputError,
   ActionLimitExceededError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteCollectionArticles'] = async (
@@ -46,6 +52,18 @@ const resolver: GQLMutationResolvers['deleteCollectionArticles'] = async (
     collectionId,
     articles.map((id) => fromGlobalId(id).id)
   )
+
+  articles.map((id) =>
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.removeArticleFromCollection,
+      entity: 'collection',
+      entityId: collectionId,
+      oldValue: fromGlobalId(id).id,
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+  )
+
   return collection
 }
 
