@@ -127,7 +127,6 @@ export type BasicTableName =
   | 'notice_entity'
   | 'push_device'
   | 'report'
-  | 'report_asset'
   | 'feedback'
   | 'feedback_asset'
   | 'invitation'
