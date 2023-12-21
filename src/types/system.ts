@@ -32,6 +32,9 @@ export default /* GraphQL */ `
     "Delete blocked search keywords from search_history db"
     deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
 
+    "Submit inappropriate content report"
+    submitReport(input: SubmitReportInput!): Report! @auth(mode: "${AUTH_MODE.oauth}")
+
     ##############
     #     OSS    #
     ##############
@@ -208,6 +211,14 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
+  type Report {
+    id: ID!
+    reporter: User!
+    targetId: ID!
+    reason: ReportReason!
+    createdAt: DateTime!
+  }
+
   input NodeInput {
     id: ID!
   }
@@ -350,6 +361,11 @@ export default /* GraphQL */ `
     restrictions: [UserRestrictionType!]!
   }
 
+  input SubmitReportInput {
+    targetId: ID!
+    reason: ReportReason!
+  }
+
   enum SearchTypes {
     Article
     User
@@ -460,6 +476,14 @@ export default /* GraphQL */ `
   enum UserRestrictionType {
     articleHottest
     articleNewest
+  }
+
+  enum ReportReason {
+    tort
+    illegal_advertising
+    discrimination_insult_hatred
+    pornography_involving_minors
+    other
   }
 
   ####################
