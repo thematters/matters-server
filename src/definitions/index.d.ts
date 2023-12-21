@@ -52,6 +52,7 @@ export * from './payment'
 export * from './appreciation'
 export * from './asset'
 export * from './topic'
+export * from './report'
 
 export interface Context extends BasedContext {
   viewer: Viewer

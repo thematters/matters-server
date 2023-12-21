@@ -3,6 +3,9 @@ import type {
   SkippedListItemType,
   Viewer,
   Connections,
+  ReportType,
+  ReportReason,
+  Report,
 } from 'definitions'
 
 import { Knex } from 'knex'
@@ -454,5 +457,37 @@ export class SystemService extends BaseService {
       .into('blocklist')
       .returning('*')
     return updateItem
+  }
+
+  public submitReport = async ({
+    type,
+    targetId,
+    reporterId,
+    reason,
+  }: {
+    type: ReportType
+    targetId: string
+    reporterId: string
+    reason: ReportReason
+  }): Promise<Report> => {
+    if (type === 'Article') {
+      const ret = await this.knex('report')
+        .insert({
+          articleId: targetId,
+          userId: reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
+    } else {
+      const ret = await this.knex('report')
+        .insert({
+          commentId: targetId,
+          userId: reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
+    }
   }
 }

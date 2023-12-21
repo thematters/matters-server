@@ -211,10 +211,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type Report {
+  type Report implements Node {
     id: ID!
     reporter: User!
-    targetId: ID!
+    target: Response!
     reason: ReportReason!
     createdAt: DateTime!
   }

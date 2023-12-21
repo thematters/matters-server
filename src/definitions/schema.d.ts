@@ -27,6 +27,7 @@ import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
 import { Topic as TopicModel } from './topic'
+import { Report as ReportModel } from './report'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -2724,13 +2725,13 @@ export type GQLReorderMoveInput = {
   newPosition: Scalars['Int']['input']
 }
 
-export type GQLReport = {
+export type GQLReport = GQLNode & {
   __typename?: 'Report'
   createdAt: Scalars['DateTime']['output']
   id: Scalars['ID']['output']
   reason: GQLReportReason
   reporter: GQLUser
-  targetId: Scalars['ID']['output']
+  target: GQLResponse
 }
 
 export type GQLReportReason =
@@ -4105,6 +4106,7 @@ export type GQLResolversInterfaceTypes<
     | CollectionModel
     | CommentModel
     | DraftModel
+    | ReportModel
     | TagModel
     | TopicModel
     | UserModel
@@ -4463,9 +4465,7 @@ export type GQLResolversTypes = ResolversObject<{
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
-  Report: ResolverTypeWrapper<
-    Omit<GQLReport, 'reporter'> & { reporter: GQLResolversTypes['User'] }
-  >
+  Report: ResolverTypeWrapper<ReportModel>
   ReportReason: GQLReportReason
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
@@ -4922,9 +4922,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
-  Report: Omit<GQLReport, 'reporter'> & {
-    reporter: GQLResolversParentTypes['User']
-  }
+  Report: ReportModel
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetWalletInput: GQLResetWalletInput
@@ -7206,6 +7204,7 @@ export type GQLNodeResolvers<
     | 'Collection'
     | 'Comment'
     | 'Draft'
+    | 'Report'
     | 'Tag'
     | 'Topic'
     | 'User',
@@ -7782,7 +7781,7 @@ export type GQLReportResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
-  targetId?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
