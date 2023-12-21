@@ -14,7 +14,7 @@ const resolver: GQLMutationResolvers['submitReport'] = async (
     throw new UserInputError('invalid type')
   }
   return systemService.submitReport({
-    type: type as ReportType,
+    targetType: type as ReportType,
     targetId,
     reporterId: viewer.id,
     reason,

@@ -7,8 +7,8 @@ import type {
   ReportReason,
   Report,
 } from 'definitions'
+import type { Knex } from 'knex'
 
-import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
 import {
@@ -19,6 +19,7 @@ import {
   USER_ROLE,
   FEATURE_NAME,
   FEATURE_FLAG,
+  NODE_TYPES,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
@@ -460,17 +461,17 @@ export class SystemService extends BaseService {
   }
 
   public submitReport = async ({
-    type,
+    targetType,
     targetId,
     reporterId,
     reason,
   }: {
-    type: ReportType
+    targetType: ReportType
     targetId: string
     reporterId: string
     reason: ReportReason
   }): Promise<Report> => {
-    if (type === 'Article') {
+    if (targetType === NODE_TYPES.Article) {
       const ret = await this.knex('report')
         .insert({
           articleId: targetId,
