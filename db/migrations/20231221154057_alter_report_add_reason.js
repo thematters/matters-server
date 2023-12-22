@@ -23,5 +23,6 @@ exports.down = async (knex) => {
   await knex.schema.table(table.report, function (t) {
     t.string('category').notNullable()
     t.dropColumn('reason')
+    t.renameColumn('reporter_id', 'user_id')
   })
 }
