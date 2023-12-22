@@ -6,8 +6,8 @@ import { toGlobalId } from 'common/utils'
 
 const report: GQLReportResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Report, id }),
-  reporter: ({ userId }, _, { dataSources: { userService } }) =>
-    userService.loadById(userId),
+  reporter: ({ reporterId }, _, { dataSources: { userService } }) =>
+    userService.loadById(reporterId),
   target: async (
     { articleId, commentId },
     _,

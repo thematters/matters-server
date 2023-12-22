@@ -11,7 +11,7 @@ export type ReportReason =
 
 export interface Report {
   id: string
-  userId: string
+  reporterId: string
   articleId?: string
   commentId?: string
   reason: ReportReason

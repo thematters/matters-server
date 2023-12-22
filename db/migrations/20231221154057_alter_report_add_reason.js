@@ -15,6 +15,7 @@ exports.up = async (knex) => {
       'other',
     ]).notNullable()
     t.dropColumn('category')
+    t.renameColumn('user_id', 'reporter_id')
   })
 }
 
