@@ -475,7 +475,7 @@ export class SystemService extends BaseService {
       const ret = await this.knex('report')
         .insert({
           articleId: targetId,
-          userId: reporterId,
+          reporterId,
           reason,
         })
         .returning('*')
@@ -484,7 +484,7 @@ export class SystemService extends BaseService {
       const ret = await this.knex('report')
         .insert({
           commentId: targetId,
-          userId: reporterId,
+          reporterId,
           reason,
         })
         .returning('*')
