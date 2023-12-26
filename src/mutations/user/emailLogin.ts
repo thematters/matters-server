@@ -8,10 +8,16 @@ import {
   NODE_TYPES,
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
+  USER_STATE,
 } from 'common/enums'
 import { EmailInvalidError, ForbiddenByStateError } from 'common/errors'
 import { auditLog } from 'common/logger'
-import { isValidEmail, setCookie, getViewerFromUser } from 'common/utils'
+import {
+  isValidEmail,
+  setCookie,
+  getViewerFromUser,
+  isEmailinWhitelist,
+} from 'common/utils'
 import { checkIfE2ETest, throwIfE2EMagicToken } from 'common/utils/e2e'
 import { Passphrases } from 'connectors/passphrases'
 
@@ -73,6 +79,7 @@ const _resolver: Exclude<
     viewer,
     dataSources: {
       userService,
+      systemService,
       connections: { redis },
     },
     req,
@@ -155,11 +162,10 @@ const _resolver: Exclude<
       }
     }
 
-    if (user.state === 'archived') {
-      await context.dataSources.systemService.saveAgentHash(
-        context.viewer.agentHash || '',
-        email
-      )
+    if (user.state === USER_STATE.archived) {
+      if (!isEmailinWhitelist(email)) {
+        await systemService.saveAgentHash(context.viewer.agentHash || '', email)
+      }
       throw new ForbiddenByStateError('email is archived')
     }
 
