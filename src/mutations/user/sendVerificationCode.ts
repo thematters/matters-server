@@ -43,14 +43,21 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     throw new ForbiddenByStateError('email has been archived')
   }
 
-  // register check
+  // register check (`register`, `email_otp` register case)
   if (type === VERIFICATION_CODE_TYPE.register) {
     // check email
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
 
-    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
+    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
+    if (!isHuman) {
+      throw new ForbiddenError('registration via scripting is not allowed')
+    }
+  }
+  if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
     }
