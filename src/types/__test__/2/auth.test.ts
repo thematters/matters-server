@@ -900,7 +900,7 @@ describe('emailLogin', () => {
     })
     test('login archived users will create agent hash records', async () => {
       // create archived user
-      const archivedEmail = 'archived@matters.town'
+      const archivedEmail = 'archived@abuse.com'
       const archivedUser = await userService.create({ email: archivedEmail })
       await userService.archive(archivedUser.id)
       // @ts-ignore
