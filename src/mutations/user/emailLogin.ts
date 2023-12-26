@@ -1,7 +1,6 @@
 import type { GQLMutationResolvers, AuthMode } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import _isEmpty from 'lodash/isEmpty'
 
 import {
   AUTH_RESULT_TYPE,
@@ -24,6 +23,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
 ) => {
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(args.input.passwordOrCode)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getAction = (res: any) =>
     res?.type === AUTH_RESULT_TYPE.Signup
       ? isEmailOTP
@@ -41,6 +41,7 @@ const resolver: GQLMutationResolvers['emailLogin'] = async (
       status: AUDIT_LOG_STATUS.succeeded,
     })
     return result
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     const email = args.input.email.toLowerCase()
     const user = await context.dataSources.userService.findByEmail(email)
@@ -83,9 +84,6 @@ const _resolver: Exclude<
     throw new EmailInvalidError('invalid email address format')
   }
   const user = await userService.findByEmail(email)
-  if (user?.state === 'archived') {
-    throw new ForbiddenByStateError('email is archived')
-  }
 
   const passphrases = new Passphrases()
   const isEmailOTP = passphrases.isValidPassphrases(passwordOrCode)
@@ -150,10 +148,19 @@ const _resolver: Exclude<
 
     try {
       await Promise.any([verifyOTP, verifyPassword].filter(Boolean))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (!isE2ETest) {
         throw err.errors[0]
       }
+    }
+
+    if (user.state === 'archived') {
+      await context.dataSources.systemService.saveAgentHash(
+        context.viewer.agentHash || '',
+        email
+      )
+      throw new ForbiddenByStateError('email is archived')
     }
 
     // set email verfied if not and login user

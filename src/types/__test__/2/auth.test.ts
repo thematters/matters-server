@@ -10,7 +10,7 @@ import {
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { UserService } from 'connectors'
+import { UserService, SystemService } from 'connectors'
 
 import {
   adminUser,
@@ -788,7 +788,7 @@ describe('emailLogin', () => {
   describe('otp login', () => {
     const passphrases = ['loena', 'loenb', 'loenc', 'loend', 'loene', 'loenf']
 
-    test('login not existed user with OTP will register new user', async () => {
+    test('login a non-existent user with OTP will register a new user', async () => {
       // @ts-ignore
       axios.mockImplementation(({ url }) => {
         if (url.includes('/generate')) {
@@ -897,6 +897,38 @@ describe('emailLogin', () => {
         },
       })
       expect(errors?.[0].extensions.code).toBe('USER_PASSWORD_INVALID')
+    })
+    test('login archived users will create agent hash records', async () => {
+      // create archived user
+      const archivedEmail = 'archived@matters.town'
+      const archivedUser = await userService.create({ email: archivedEmail })
+      await userService.archive(archivedUser.id)
+      // @ts-ignore
+
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
+
+      const agentHash = 'test-archived-user-agent-hash'
+      const context = { viewer: { ...archivedUser, agentHash } }
+      const server = await testClient({ context, connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: archivedEmail,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('FORBIDDEN_BY_STATE')
+      const systemService = new SystemService(connections)
+      const item = await systemService.findSkippedItem('agent_hash', agentHash)
+      expect(item).toBeDefined()
     })
   })
 })
