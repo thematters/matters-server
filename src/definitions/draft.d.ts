@@ -10,6 +10,8 @@ export interface Draft {
   cover?: string
   summary?: string
   summaryCustomized: boolean
+  access: string
+  license: string
   wordCount?: string
   dataHash: string
   mediaHash: string

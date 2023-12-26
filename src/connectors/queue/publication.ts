@@ -1,5 +1,5 @@
 import type { CustomQueueOpts } from './utils'
-import type { Connections } from 'definitions'
+import type { Connections, Article, Draft } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
@@ -125,6 +125,11 @@ export class PublicationQueue extends BaseQueue {
       done(null, `Draft ${draftId} isn't in pending state.`)
       return
     }
+    if (draft.articleId) {
+      await job.progress(100)
+      done(null, `Draft ${draftId} already has an article.`)
+      return
+    }
     await job.progress(5)
 
     try {
@@ -132,18 +137,11 @@ export class PublicationQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: create an article
-      const articleData = {
-        ...draft,
+      article = await articleService.createArticle({
         draftId: draft.id,
-        // dataHash,
-        // mediaHash,
-        summary,
-        wordCount,
-        slug: slugify(draft.title),
-      }
-      article = await (draft.articleId
-        ? articleService.baseUpdate(draft.articleId, articleData)
-        : articleService.createArticle(articleData))
+        authorId: draft.authorId,
+        cover: draft.cover,
+      })
 
       await job.progress(20)
 
@@ -160,14 +158,10 @@ export class PublicationQueue extends BaseQueue {
           summary,
           wordCount,
           contentMd,
-          // dataHash,
-          // mediaHash,
           archived: true,
-          // iscnId,
           publishState: PUBLISH_STATE.published,
           pinState: PIN_STATE.pinned,
         }),
-        // this.articleService.baseUpdate(article.id, { iscnId }),
         articleService.baseUpdate(article.id, {
           state: ARTICLE_STATE.active,
         }),
@@ -183,7 +177,7 @@ export class PublicationQueue extends BaseQueue {
       // Section1: update local DB related
       try {
         // Step 4: handle collection, circles, tags & mentions
-        await this.handleCollection({ draft, article })
+        await this.handleConnection({ draft, article })
         await job.progress(40)
 
         await this.handleCircle({
@@ -259,16 +253,10 @@ export class PublicationQueue extends BaseQueue {
           key,
         } = (await articleService.publishToIPFS(draft))!
         await job.progress(80)
-        ;[article, draft] = await Promise.all([
-          articleService.baseUpdate(article.id, {
-            dataHash,
-            mediaHash,
-          }),
-          draftService.baseUpdate(draft.id, {
-            dataHash,
-            mediaHash,
-          }),
-        ])
+        draft = await draftService.baseUpdate(draft.id, {
+          dataHash,
+          mediaHash,
+        })
 
         if (key && draft.access) {
           const data = {
@@ -306,16 +294,15 @@ export class PublicationQueue extends BaseQueue {
             userName: `${displayName} (@${userName})`,
             title: draft.title,
             description: summary,
-            datePublished: article.createdAt?.toISOString().substring(0, 10),
-            url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${article.mediaHash}`,
+            datePublished: article.createdAt.toISOString().substring(0, 10),
+            url: `https://${environment.siteDomain}/@${userName}/${
+              article.id
+            }-${slugify(draft.slug)}-${draft.mediaHash}`,
             tags,
             liker,
           })
 
-          ;[article, draft] = await Promise.all([
-            articleService.baseUpdate(article.id, {
-              iscnId,
-            }),
+          draft = await Promise.all([
             draftService.baseUpdate(draft.id, {
               iscnId,
               iscnPublish: iscnPublish || draft.iscnPublish,
@@ -326,8 +313,6 @@ export class PublicationQueue extends BaseQueue {
 
         ipnsRes = await articleService.publishFeedToIPNS({
           userName,
-          // incremental: true, // attach the last just published article
-          updatedDrafts: [draft],
         })
 
         await job.progress(95)
@@ -351,7 +336,7 @@ export class PublicationQueue extends BaseQueue {
 
       // no await to notify async
       articleService
-        .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
+        .sendArticleFeedMsgToSQS({ article: draft, author, ipnsData: ipnsRes })
         .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       // no await to notify async
@@ -360,10 +345,12 @@ export class PublicationQueue extends BaseQueue {
           // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
           MessageBody: {
             articleId: article.id,
-            title: article.title,
-            url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
-            dataHash: article.dataHash,
-            mediaHash: article.mediaHash,
+            title: draft.title,
+            url: `https://${environment.siteDomain}/@${userName}/${
+              article.id
+            }-${slugify(draft.title)}`,
+            dataHash: draft.dataHash,
+            mediaHash: draft.mediaHash,
 
             // ipns info:
             ipnsKey: ipnsRes?.ipnsKey,
@@ -374,7 +361,6 @@ export class PublicationQueue extends BaseQueue {
             displayName,
           },
         })
-        // .then(res => {})
         .catch((err: Error) => logger.error('failed sns notify:', err))
 
       // no await to put data async
@@ -396,13 +382,14 @@ export class PublicationQueue extends BaseQueue {
         dataHash: publishedDraft.dataHash,
         mediaHash: publishedDraft.mediaHash,
         iscnPublish: iscnPublish || draft.iscnPublish,
-        iscnId: article.iscnId,
+        iscnId: draft.iscnId,
       })
     } catch (err: any) {
       await Promise.all([
-        articleService.baseUpdate(article.id, {
-          state: ARTICLE_STATE.error,
-        }),
+        article &&
+          articleService.baseUpdate(article.id, {
+            state: ARTICLE_STATE.error,
+          }),
         draftService.baseUpdate(draft.id, {
           publishState: PUBLISH_STATE.error,
         }),
@@ -411,12 +398,12 @@ export class PublicationQueue extends BaseQueue {
     }
   }
 
-  private handleCollection = async ({
+  private handleConnection = async ({
     draft,
     article,
   }: {
-    draft: any
-    article: any
+    draft: Draft
+    article: Article
   }) => {
     if (!draft.collection || draft.collection.length <= 0) {
       return
@@ -429,8 +416,6 @@ export class PublicationQueue extends BaseQueue {
       entranceId: article.id,
       articleId,
       order: index,
-      // createdAt: new Date(), // default to CURRENT_TIMESTAMP
-      // updatedAt: new Date(), // default to CURRENT_TIMESTAMP
     }))
     await articleService.baseBatchCreate(items, 'article_connection')
 
@@ -458,8 +443,8 @@ export class PublicationQueue extends BaseQueue {
     article,
     secret,
   }: {
-    draft: any
-    article: any
+    draft: Draft
+    article: Article
     secret?: any
   }) => {
     if (!draft.circleId) {
@@ -510,8 +495,8 @@ export class PublicationQueue extends BaseQueue {
     draft,
     article,
   }: {
-    draft: any
-    article: any
+    draft: Draft
+    article: Article
   }) => {
     const tagService = new TagService(this.connections)
     let tags = draft.tags as string[]
@@ -563,8 +548,8 @@ export class PublicationQueue extends BaseQueue {
     draft,
     article,
   }: {
-    draft: any
-    article: any
+    draft: Draft
+    article: Article
   }) => {
     const $ = cheerio.load(draft.content)
     const mentionIds = $('a.mention')
@@ -601,7 +586,7 @@ export class PublicationQueue extends BaseQueue {
     draft,
   }: {
     draftEntityTypeId: string
-    draft: any
+    draft: Draft
   }) => {
     const systemService = new SystemService(this.connections)
     try {

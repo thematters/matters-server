@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { makeSummary } from '@matters/ipns-site-generator'
@@ -90,7 +90,7 @@ export class RevisionQueue extends BaseQueue {
         done(null, `Revision draft ${draftId} isn't in pending state.`)
         return
       }
-      let article = await articleService.baseFindById(draft.articleId)
+      const article = await articleService.loadById(draft.articleId)
       if (!article) {
         job.progress(100)
         done(null, `Revised article ${draft.articleId} not found`)
@@ -114,15 +114,11 @@ export class RevisionQueue extends BaseQueue {
         // Step 3: update draft
         ;[draft] = await Promise.all([
           draftService.baseUpdate(draft.id, {
-            // dataHash,
-            // mediaHash,
             wordCount,
             archived: true,
-            // iscnId,
             publishState: PUBLISH_STATE.published,
             pinState: PIN_STATE.pinned,
           }),
-          // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
         ])
 
         job.progress(40)
@@ -132,12 +128,7 @@ export class RevisionQueue extends BaseQueue {
           (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
         const updatedArticle = await articleService.baseUpdate(article.id, {
           draftId: draft.id,
-          dataHash: null, // TBD in Section2
-          mediaHash: null,
-          summary,
-          wordCount,
           revisionCount,
-          slug: slugify(draft.title),
         })
         job.progress(50)
 
@@ -209,16 +200,10 @@ export class RevisionQueue extends BaseQueue {
             key,
           } = (await articleService.publishToIPFS(revised))!
 
-          ;[draft, article] = await Promise.all([
-            draftService.baseUpdate(draft.id, {
-              dataHash,
-              mediaHash,
-            }),
-            articleService.baseUpdate(article.id, {
-              dataHash,
-              mediaHash,
-            }),
-          ])
+          draft = await draftService.baseUpdate(draft.id, {
+            dataHash,
+            mediaHash,
+          })
 
           // update secret
           if (key) {
@@ -248,8 +233,10 @@ export class RevisionQueue extends BaseQueue {
               userName: `${displayName} (@${userName})`,
               title: draft.title,
               description: summary,
-              datePublished: article.created_at?.toISOString().substring(0, 10),
-              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
+              datePublished: article.createdAt.toISOString().substring(0, 10),
+              url: `https://${environment.siteDomain}/@${userName}/${
+                article.id
+              }-${slugify(draft.title)}-${mediaHash}`,
               tags: draft.tags,
 
               // for liker auth&headers info
@@ -259,22 +246,14 @@ export class RevisionQueue extends BaseQueue {
             })
 
             // handling both cases of set to true or false, but not omit (undefined)
-            ;[draft, article] = await Promise.all([
-              draftService.baseUpdate(draft.id, {
-                iscnId,
-                iscnPublish, // : iscnPublish || draft.iscnPublish,
-              }),
-              articleService.baseUpdate(article.id, {
-                iscnId,
-              }),
-            ])
+            draft = await draftService.baseUpdate(draft.id, {
+              iscnId,
+              iscnPublish, // : iscnPublish || draft.iscnPublish,
+            })
           }
 
           ipnsRes = await articleService.publishFeedToIPNS({
             userName,
-            // incremental: true, // attach the last just published article
-            updatedDrafts: [draft],
-            forceReplace: true,
           })
         } catch (err) {
           logger.warn('job failed at optional step: %j', {
@@ -288,19 +267,25 @@ export class RevisionQueue extends BaseQueue {
 
         // no await to notify async
         articleService
-          .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
+          .sendArticleFeedMsgToSQS({
+            article: draft,
+            author,
+            ipnsData: ipnsRes,
+          })
           .catch((err: Error) => logger.error('failed sqs notify:', err))
 
         // no await to notify async
+
+        const slug = slugify(draft.title)
         atomService.aws
           ?.snsPublishMessage({
             // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
             MessageBody: {
               articleId: article.id,
-              title: article.title,
-              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
-              dataHash: article.dataHash,
-              mediaHash: article.mediaHash,
+              title: draft.title,
+              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${slug}`,
+              dataHash: draft.dataHash,
+              mediaHash: draft.mediaHash,
 
               // ipns info:
               ipnsKey: ipnsRes?.ipnsKey,
@@ -316,9 +301,9 @@ export class RevisionQueue extends BaseQueue {
         done(null, {
           articleId: article.id,
           draftId: draft.id,
-          dataHash: article.dataHash,
-          mediaHash: article.mediaHash,
-          iscnPublish, // : iscnPublish || draft.iscnPublish,
+          dataHash: draft.dataHash,
+          mediaHash: draft.mediaHash,
+          iscnPublish,
           iscnId: draft.iscnId,
         })
       } catch (err: any) {
@@ -344,7 +329,7 @@ export class RevisionQueue extends BaseQueue {
       circleId,
       secret,
     }: {
-      article: any
+      article: Article
       circleId: string
       secret: string
     },
@@ -366,7 +351,7 @@ export class RevisionQueue extends BaseQueue {
       preDraftContent,
       content,
     }: {
-      article: any
+      article: Article
       preDraftContent: string
       content: string
     },

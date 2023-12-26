@@ -10,7 +10,9 @@ import type {
 import {
   ArticlePageContext,
   makeArticlePage,
+  makeSummary,
 } from '@matters/ipns-site-generator'
+import slugify from '@matters/slugify'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
@@ -103,30 +105,16 @@ export class ArticleService extends BaseService {
    * Create a pending article with linked draft
    */
   public createArticle = async ({
-    draftId,
     authorId,
-    title,
-    slug,
-    wordCount,
-    summary,
-    content,
+    draftId,
     cover,
-    dataHash,
-    mediaHash,
-  }: Record<string, any>) =>
+  }: Pick<Article, 'authorId' | 'draftId' | 'cover'>): Promise<Article> =>
     this.baseCreate({
       uuid: v4(),
       state: ARTICLE_STATE.pending,
       draftId,
       authorId,
-      title,
-      slug,
-      wordCount,
-      summary,
-      content,
       cover,
-      dataHash,
-      mediaHash,
     })
 
   /**
@@ -168,7 +156,7 @@ export class ArticleService extends BaseService {
   /**
    * Publish draft data to IPFS
    */
-  public publishToIPFS = async (draft: any) => {
+  public publishToIPFS = async (draft: Draft) => {
     const userService = new UserService(this.connections)
     const systemService = new SystemService(this.connections)
     const atomService = new AtomService(this.connections)
@@ -214,9 +202,9 @@ export class ArticleService extends BaseService {
       encrypted: false,
       meta: {
         title: `${title} - ${displayName} (${userName})`,
-        description: summary,
+        description: summary || makeSummary(content),
         authorName: displayName,
-        image: articleCoverImg,
+        image: articleCoverImg ?? undefined,
       },
       byline: {
         date: publishedAt,
@@ -243,7 +231,7 @@ export class ArticleService extends BaseService {
           displayName,
         },
         title,
-        summary,
+        summary: summary || makeSummary(content),
         date: publishedAt,
         content,
         tags: tags?.map((t: string) => t.trim()).filter(Boolean) || [],
@@ -312,19 +300,7 @@ export class ArticleService extends BaseService {
 
   // DEPRECATED, To Be Deleted
   //  moved to IPNS-Listener
-  public publishFeedToIPNS = async ({
-    userName,
-    numArticles = 50,
-    incremental = false,
-    forceReplace = false,
-    updatedDrafts,
-  }: {
-    userName: string
-    numArticles?: number
-    incremental?: boolean
-    forceReplace?: boolean
-    updatedDrafts?: Item[]
-  }) => {
+  public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
     const userService = new UserService(this.connections)
 
     try {
@@ -348,7 +324,6 @@ export class ArticleService extends BaseService {
     article: {
       id: string
       title: string
-      slug: string
       dataHash: string
       mediaHash: string
     }
@@ -366,7 +341,9 @@ export class ArticleService extends BaseService {
       messageBody: {
         articleId: article.id,
         title: article.title,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
+        url: `https://${environment.siteDomain}/@${author.userName}/${
+          article.id
+        }-${slugify(article.title)}`,
         dataHash: article.dataHash,
         mediaHash: article.mediaHash,
 

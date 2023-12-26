@@ -6,23 +6,12 @@ export interface Article {
   id: string
   uuid: string
   authorId: string
-  title: string
-  slug: string
   cover?: string
-  summary: string
-  wordCount: string
-  dataHash: string
-  mediaHash: string
-  content: string
   state: ARTICLE_STATE
-  public: boolean
-  live: boolean
-  createdAt: string
-  updatedAt: string
+  createdAt: Date
+  updatedAt: Date
   draftId: string
   remark?: string
-  sticky: boolean
-  language?: LANGUAGES
-  revisionCount: string
-  iscnId?: string
+  pinnedAt: boolean
+  revisionCount: number
 }

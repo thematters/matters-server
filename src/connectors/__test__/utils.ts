@@ -76,14 +76,7 @@ export const createArticle = async (
   const article = await articleService.createArticle({
     draftId: draft.id,
     authorId,
-    title,
-    slug: title,
     cover: '1',
-    wordCount: content.length,
-    summary: 'test-summary',
-    content,
-    dataHash,
-    mediaHash,
   })
   return articleService.baseUpdate(article.id, { state: ARTICLE_STATE.active })
 }

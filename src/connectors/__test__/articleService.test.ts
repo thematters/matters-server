@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Draft } from 'definitions'
 
 import { ArticleService, UserService } from 'connectors'
 
@@ -19,21 +19,14 @@ afterAll(async () => {
 
 test('publish', async () => {
   // publish article to IPFS
-  const publishedDraft = await articleService.draftLoader.load('1')
+  const publishedDraft = (await articleService.draftLoader.load('1')) as Draft
   const { mediaHash, contentHash: dataHash } =
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await articleService.publishToIPFS(publishedDraft))!
   const articlePublished = await articleService.createArticle({
     draftId: '1',
     authorId: '1',
-    title: 'test',
-    slug: 'test',
     cover: '1',
-    wordCount: 0,
-    summary: 'test-summary',
-    content: '<div>test-html-string</div>',
-    dataHash,
-    mediaHash,
   })
   expect(mediaHash).toBeDefined()
   expect(dataHash).toBeDefined()
