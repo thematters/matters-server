@@ -264,3 +264,13 @@ test('countReaders', async () => {
   const count0 = await articleService.countReaders('0')
   expect(count0).toBe(0)
 })
+
+test('latestArticles', async () => {
+  const articles = await articleService.latestArticles({
+    maxTake: 500,
+    skip: 0,
+    take: 10,
+    oss: false,
+  })
+  expect(articles.length).toBeGreaterThan(0)
+})

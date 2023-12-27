@@ -1719,8 +1719,14 @@ export class ArticleService extends BaseService {
           .select('id', 'draft_id', 'author_id')
           .from('article')
           .where({ state: ARTICLE_STATE.active })
+          .whereNotIn(
+            'author_id',
+            this.knexRO('user_restriction')
+              .select('user_id')
+              .where('type', 'articleNewest')
+          )
           .orderBy('id', 'desc')
-          .limit(maxTake + 100) // add some extra to cover excluded ones in settings
+          .limit(maxTake * 2) // add some extra to cover excluded ones in settings
           .as('article_set')
       )
       .leftJoin(
@@ -1730,21 +1736,14 @@ export class ArticleService extends BaseService {
       )
       .where((builder: Knex.QueryBuilder) => {
         if (!oss) {
-          builder
-            .whereRaw('in_newest IS NOT false')
-            .whereNotIn(
-              'article_set.author_id',
-              this.knexRO('user_restriction')
-                .select('user_id')
-                .where('type', 'articleNewest')
-            )
+          builder.whereRaw('in_newest IS NOT false')
         }
       })
       .as('newest')
 
     return this.knexRO
       .select()
-      .from(query.orderBy('id', 'desc').limit(maxTake))
+      .from(query.limit(maxTake))
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take)
