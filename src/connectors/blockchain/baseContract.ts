@@ -1,20 +1,20 @@
-import { Contract, providers } from 'ethers'
+import { Abi, PublicClient, getContract } from 'viem'
 
-import { getAlchemyProvider } from 'common/utils'
+import { getAlchemyClient } from 'common/utils'
 
 export class BaseContract {
-  chainId: number
-  address: string
-  abi: string[]
-  protected provider: providers.Provider
-  protected contract: Contract
-  constructor(chainId: number, address: string, abi: string[]) {
+  public chainId: number
+  public address: string
+  public abi: Abi
+  protected client: PublicClient
+  protected contract: ReturnType<typeof getContract>
+  public constructor(chainId: number, address: `0x${string}`, abi: Abi) {
     this.chainId = chainId
     this.address = address
     this.abi = abi
-    this.provider = getAlchemyProvider(chainId)
-    this.contract = new Contract(address, abi, this.provider)
+    this.client = getAlchemyClient(chainId)
+    this.contract = getContract({ abi, address, publicClient: this.client })
   }
 
-  fetchBlockNumber = async (): Promise<number> => this.provider.getBlockNumber()
+  public fetchBlockNumber = async (): Promise<bigint> => this.client.getBlockNumber()
 }

@@ -1,7 +1,7 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { utils } from 'ethers'
 import { customAlphabet } from 'nanoid'
+import { isAddress } from 'viem'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['generateSigningMessage'] = async (
   { dataSources: { atomService } }
 ) => {
   // check address is a valid one,
-  if (!address || !utils.isAddress(address)) {
+  if (!address || !isAddress(address)) {
     throw new UserInputError('address is invalid')
   }
 
@@ -27,9 +27,8 @@ const resolver: GQLMutationResolvers['generateSigningMessage'] = async (
   const expiredAt = new Date(+createdAt + 10 * 60e3) // 10 minutes
 
   // create the message to be sign'ed
-  const signingMessage = `${
-    environment.siteDomain
-  } wants you to sign in with your Ethereum account:
+  const signingMessage = `${environment.siteDomain
+    } wants you to sign in with your Ethereum account:
 ${address}
 
 I accept the Matters Terms of Service: https://${environment.siteDomain}/tos
