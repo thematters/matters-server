@@ -41,7 +41,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     throw new DraftNotFoundError('draft does not exists')
   }
 
-  if (!draft.title) {
+  if (!draft.title.trim()) {
     throw new UserInputError('title is required')
   }
 
