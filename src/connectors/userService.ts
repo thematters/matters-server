@@ -15,13 +15,12 @@ import type {
 import axios from 'axios'
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
-import { recoverPersonalSignature } from 'eth-sig-util'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
-import { getContract, hashMessage, isAddress, trim } from 'viem'
+import { getContract, hashMessage, isAddress, recoverAddress, trim } from 'viem'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -89,7 +88,7 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  getAlchemyClient,
+  publicClient,
   IERC1271,
   genDisplayName,
   RatelimitCounter,
@@ -1318,8 +1317,8 @@ export class UserService extends BaseService {
           type === AUTHOR_TYPE.active
             ? 'most_active_author_materialized'
             : type === AUTHOR_TYPE.appreciated
-              ? 'most_appreciated_author_materialized'
-              : 'most_trendy_author_materialized'
+            ? 'most_appreciated_author_materialized'
+            : 'most_trendy_author_materialized'
 
         const query = this.knexRO
           .from({ view })
@@ -1595,10 +1594,10 @@ export class UserService extends BaseService {
     const code = strong
       ? nanoid(40)
       : customAlphabet(
-        // alphanumeric
-        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        8
-      )()
+          // alphanumeric
+          '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+          8
+        )()
 
     return this.baseCreate(
       {
@@ -1661,13 +1660,13 @@ export class UserService extends BaseService {
     for (const c of codes) {
       await (c.code === code.code
         ? this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.used },
-          trx
-        )
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.used },
+            trx
+          )
         : this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
-          trx
-        ))
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+            trx
+          ))
     }
     await trx.commit()
   }
@@ -1687,13 +1686,13 @@ export class UserService extends BaseService {
     for (const c of codes) {
       await (c.code === code.code
         ? this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
-          trx
-        )
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.verified },
+            trx
+          )
         : this.markVerificationCodeAs(
-          { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
-          trx
-        ))
+            { codeId: c.id, status: VERIFICATION_CODE_STATUS.inactive },
+            trx
+          ))
     }
     await trx.commit()
   }
@@ -2270,54 +2269,46 @@ export class UserService extends BaseService {
       throw new UserInputError('Invalid nonce')
     }
 
-    // if it's smart contract wallet
     const isValidSignature = async () => {
-      const MAGICVALUE = '0x1626ba7e'
-
-      const chainType = 'Polygon'
-
-      const chainNetwork = 'PolygonMainnet'
-
-      const client = getAlchemyClient(
-        Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
+      const client = publicClient(
+        Number(BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet) // hardcode to polygon mainnet
       )
-
       const bytecode = await client.getBytecode({ address: ethAddress })
-
       const isSmartContract = bytecode && trim(bytecode) !== '0x'
 
-      const hash = hashMessage(signedMessage)
-
+      // if it's smart contract wallet
       if (isSmartContract) {
         // verify the message for a decentralized account (contract wallet)
         const contractWallet = getContract({
           publicClient: client,
           abi: IERC1271,
-          address: ethAddress
+          address: ethAddress,
         })
-        // TODO: validsignature has no replacement
-        const verification = await contractWallet.isValidSignature(
-          hash,
-          signature
-        )
 
-        const doneVerified = verification === MAGICVALUE
+        const verification = await contractWallet.read.isValidSignature([
+          hashMessage(signedMessage),
+          signature as `0x${string}`,
+        ])
 
-        if (!doneVerified) {
+        const MAGICVALUE = '0x1626ba7e'
+        if (verification !== MAGICVALUE) {
           throw new UserInputError('signature is not valid')
         }
       } else {
         // verify signature for EOA account
-        const verifiedAddress = recoverPersonalSignature({
-          data: signedMessage,
-          sig: signature,
-        }).toLowerCase()
+        const verifiedAddress = (
+          await recoverAddress({
+            hash: signedMessage as `0x${string}`,
+            signature: signature as `0x${string}`,
+          })
+        ).toLowerCase()
 
         if (ethAddress.toLowerCase() !== verifiedAddress) {
           throw new UserInputError('signature is not valid')
         }
       }
     }
+
     await isValidSignature()
     return lastSigning
   }
