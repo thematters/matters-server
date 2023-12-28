@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Knex } from 'knex'
 import {
   Address,
+  Hex,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
@@ -53,8 +54,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
 
   const verifiedAddress = (
     await recoverAddress({
-      hash: signedMessage as `0x${string}`,
-      signature: signature as `0x${string}`,
+      hash: signedMessage as Hex,
+      signature: signature as Hex,
     })
   ).toLowerCase()
 

@@ -20,7 +20,14 @@ import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
-import { getContract, hashMessage, isAddress, recoverAddress, trim } from 'viem'
+import {
+  Hex,
+  getContract,
+  hashMessage,
+  isAddress,
+  recoverAddress,
+  trim,
+} from 'viem'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -2198,8 +2205,8 @@ export class UserService extends BaseService {
   }: {
     ethAddress: string
     nonce: string
-    signedMessage: string
-    signature: string
+    signedMessage: Hex
+    signature: Hex
     validPurposes: Array<keyof typeof SIGNING_MESSAGE_PURPOSE>
   }) => {
     if (!ethAddress || !isAddress(ethAddress)) {
@@ -2250,7 +2257,7 @@ export class UserService extends BaseService {
 
         const verification = await contractWallet.read.isValidSignature([
           hashMessage(signedMessage),
-          signature as `0x${string}`,
+          signature,
         ])
 
         const MAGICVALUE = '0x1626ba7e'
@@ -2261,8 +2268,8 @@ export class UserService extends BaseService {
         // verify signature for EOA account
         const verifiedAddress = (
           await recoverAddress({
-            hash: signedMessage as `0x${string}`,
-            signature: signature as `0x${string}`,
+            hash: signedMessage,
+            signature: signature,
           })
         ).toLowerCase()
 
