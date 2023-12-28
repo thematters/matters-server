@@ -1,6 +1,6 @@
 import { Abi, PublicClient, getContract } from 'viem'
 
-import { getAlchemyClient } from 'common/utils'
+import { publicClient } from 'common/utils'
 
 export class BaseContract {
   public chainId: number
@@ -8,13 +8,15 @@ export class BaseContract {
   public abi: Abi
   protected client: PublicClient
   protected contract: ReturnType<typeof getContract>
+
   public constructor(chainId: number, address: `0x${string}`, abi: Abi) {
     this.chainId = chainId
     this.address = address
     this.abi = abi
-    this.client = getAlchemyClient(chainId)
+    this.client = publicClient(chainId)
     this.contract = getContract({ abi, address, publicClient: this.client })
   }
 
-  public fetchBlockNumber = async (): Promise<bigint> => this.client.getBlockNumber()
+  public fetchBlockNumber = async (): Promise<bigint> =>
+    this.client.getBlockNumber()
 }

@@ -13,17 +13,17 @@ describe('curationContract', () => {
   test.skip('fetchLogs correctly', async () => {
     jest.setTimeout(0)
     const curation = new CurationContract()
-    const logs = await curation.fetchLogs(28675517, 28797000)
+    const logs = await curation.fetchLogs(BigInt(28675517), BigInt(28797000))
     console.log(logs)
   })
   test.skip('fetchTxReceipt correctly', async () => {
     jest.setTimeout(0)
     const curation = new CurationContract()
     const erc20Receipt = await curation.fetchTxReceipt(
-      '0x1764d50fb01e04350248f6a4e30dff3839880f50af26de3e0b78657a46c4118f'
+      '0x1764d50fb01e04350248f6a4e30dff3839880f50af26de3e0b78657a46c4118f' as `0x{string}`
     )
     const nativeTokenReceipt = await curation.fetchTxReceipt(
-      '0xedacfa988eb2aa3c491cb77029ca44fd1a94ae28b685133b7b017febe864ecd2'
+      '0xedacfa988eb2aa3c491cb77029ca44fd1a94ae28b685133b7b017febe864ecd2' as `0x{string}`
     )
     console.log(erc20Receipt)
     console.log(nativeTokenReceipt)

@@ -23,4 +23,4 @@ export const IERC1271 = [
     stateMutability: 'view',
     type: 'function',
   },
-]
+] as const

@@ -1,10 +1,19 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import axios from 'axios'
-import { recoverPersonalSignature } from 'eth-sig-util'
 import { Knex } from 'knex'
-import { Address, createWalletClient, encodeFunctionData, getContract, http, parseUnits } from 'viem'
+import {
+  Address,
+  createPublicClient,
+  createWalletClient,
+  encodeFunctionData,
+  getContract,
+  http,
+  parseGwei,
+  recoverAddress,
+} from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { polygon, polygonMumbai } from 'viem/chains'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -13,7 +22,6 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getClient } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
@@ -43,10 +51,12 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     )
   }
 
-  const verifiedAddress = recoverPersonalSignature({
-    data: signedMessage,
-    sig: signature,
-  }).toLowerCase()
+  const verifiedAddress = (
+    await recoverAddress({
+      hash: signedMessage as `0x${string}`,
+      signature: signature as `0x${string}`,
+    })
+  ).toLowerCase()
 
   if (ethAddress.toLowerCase() !== verifiedAddress) {
     throw new UserInputError('signature is not valid')
@@ -67,22 +77,29 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   }
 
   // filter unclaimed token ids
-  const client = getClient()
+  const client = createPublicClient({
+    chain: isProd ? polygon : polygonMumbai,
+    transport: isProd
+      ? http('https://polygon-rpc.com/')
+      : http('https://rpc-mumbai.matic.today'),
+  })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
     'function claim(address to_, uint256 logrsId_)',
     'function multicall(bytes[] data) returns (bytes[] results)',
   ]
   const walletClient = createWalletClient({
-    account: privateKeyToAccount(environment.logbookClaimerPrivateKey as Address),
+    account: privateKeyToAccount(
+      environment.logbookClaimerPrivateKey as Address
+    ),
     chain: client.chain,
-    transport: http()
+    transport: http(),
   })
   const contract = getContract({
     publicClient: client,
     abi,
     address: environment.logbookContractAddress as Address,
-    walletClient
+    walletClient,
   })
 
   const unclaimedTokenIds = []
@@ -108,14 +125,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
         ? 'https://gasstation-mainnet.matic.network/v2'
         : 'https://gasstation-mumbai.matic.today/v2',
     })
-    maxFeePerGas = parseUnits(
-      Math.ceil(data.fast.maxFee) + '',
-      9, // 'gwei'
-    )
-    maxPriorityFeePerGas = parseUnits(
-      Math.ceil(data.fast.maxPriorityFee) + '',
-      9, // 'gwei'
-    )
+    maxFeePerGas = parseGwei(Math.ceil(data.fast.maxFee) + '')
+    maxPriorityFeePerGas = parseGwei(Math.ceil(data.fast.maxPriorityFee) + '')
   } catch {
     // ignore
   }
@@ -125,7 +136,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     encodeFunctionData({
       abi,
       functionName: 'claim',
-      args: [ethAddress, tokenId]
+      args: [ethAddress, tokenId],
     })
   )
 
