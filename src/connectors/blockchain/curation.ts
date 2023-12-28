@@ -1,4 +1,4 @@
-import type { Address, Hex } from 'viem'
+import type { Address, Hash, Hex } from 'viem'
 
 import { decodeEventLog, encodeEventTopics, parseAbiItem } from 'viem'
 
@@ -50,6 +50,7 @@ const erc20TokenCurationEventABI = [
   },
 ] as const
 type Erc20Params = { from: Hex; to: Hex; uri: string; amount: bigint }
+
 // native token
 const nativeTokenCurationEventIdentifier = 'Curation' as const
 const nativeTokenCurationEventSignature =
@@ -93,8 +94,8 @@ const chainId = isProd
 // CurationContract
 
 export class CurationContract extends BaseContract {
-  public erc20TokenCurationEventTopic: [signature: Hex]
-  public nativeTokenCurationEventTopic: [signature: Hex]
+  public erc20TokenCurationEventTopic: Hex[]
+  public nativeTokenCurationEventTopic: Hex[]
 
   public constructor() {
     super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
@@ -104,7 +105,7 @@ export class CurationContract extends BaseContract {
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: erc20TokenCurationEventIdentifier,
-    }) as [signature: Hex]
+    })
     this.nativeTokenCurationEventTopic = encodeEventTopics({
       abi: nativeTokenCurationEventABI,
       eventName: nativeTokenCurationEventIdentifier,
@@ -164,7 +165,7 @@ export class CurationContract extends BaseContract {
   }
 
   public fetchTxReceipt = async (
-    txHash: `0x{string}`
+    txHash: Hash
   ): Promise<CurationTxReceipt | null> => {
     const txReceipt = await this.client.getTransactionReceipt({ hash: txHash })
     if (!txReceipt) {

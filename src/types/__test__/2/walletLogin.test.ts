@@ -56,9 +56,11 @@ describe('walletLogin', () => {
       purpose: keyof typeof SIGNING_MESSAGE_PURPOSE
     ) => {
       const account = privateKeyToAccount(generatePrivateKey())
-      const wallet = createWalletClient(
-        { account, chain: mainnet, transport: http() }
-      )
+      const wallet = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(),
+      })
       const server = await testClient({ connections })
       // signup
       const {
@@ -136,9 +138,11 @@ describe('walletLogin', () => {
   }, 100000)
   test('wallet login with wrong purpose will throw errors', async () => {
     const account = privateKeyToAccount(generatePrivateKey())
-    const wallet = createWalletClient(
-      { account, chain: mainnet, transport: http() }
-    )
+    const wallet = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http(),
+    })
     const server = await testClient({ connections })
     const {
       data: {
@@ -169,9 +173,11 @@ describe('walletLogin', () => {
   })
   test('wallet login with wrong nonce will throw errors', async () => {
     const account = privateKeyToAccount(generatePrivateKey())
-    const wallet = createWalletClient(
-      { account, chain: mainnet, transport: http() }
-    )
+    const wallet = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http(),
+    })
     const server = await testClient({ connections })
     const {
       data: {
@@ -202,9 +208,11 @@ describe('walletLogin', () => {
   })
   test('wallet login check nonce in signature', async () => {
     const account = privateKeyToAccount(generatePrivateKey())
-    const wallet = createWalletClient(
-      { account, chain: mainnet, transport: http() }
-    )
+    const wallet = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http(),
+    })
     const server = await testClient({ connections })
     const {
       data: {
