@@ -1700,4 +1700,52 @@ export class ArticleService extends BaseService {
       .first()
     return parseInt(res?.readerAmount || '0', 10)
   }
+
+  public latestArticles = async ({
+    skip,
+    take,
+    maxTake,
+    oss,
+  }: {
+    skip: number
+    take: number
+    maxTake: number
+    oss: boolean
+  }) => {
+    const query = this.knexRO
+      .select('article_set.draft_id', 'article_set.id')
+      .from(
+        this.knexRO
+          .select('id', 'draft_id', 'author_id')
+          .from('article')
+          .where({ state: ARTICLE_STATE.active })
+          .whereNotIn(
+            'author_id',
+            this.knexRO('user_restriction')
+              .select('user_id')
+              .where('type', 'articleNewest')
+          )
+          .orderBy('id', 'desc')
+          .limit(maxTake * 2) // add some extra to cover excluded ones in settings
+          .as('article_set')
+      )
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article_set.id',
+        'setting.article_id'
+      )
+      .where((builder: Knex.QueryBuilder) => {
+        if (!oss) {
+          builder.whereRaw('in_newest IS NOT false')
+        }
+      })
+      .as('newest')
+
+    return this.knexRO
+      .select()
+      .from(query.limit(maxTake))
+      .orderBy('id', 'desc')
+      .offset(skip)
+      .limit(take)
+  }
 }
