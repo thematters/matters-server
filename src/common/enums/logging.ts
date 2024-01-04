@@ -36,6 +36,10 @@ export const AUDIT_LOG_ACTION = {
   emailSignupOTP: 'email_signup_otp',
   walletLogin: 'wallet_login',
   walletSignup: 'wallet_signup',
+  createCollection: 'create_collection',
+  removeCollection: 'remove_collection',
+  addArticleIntoCollection: 'add_article_into_collection',
+  removeArticleFromCollection: 'remove_article_from_collection',
 } as const
 
 export const AUDIT_LOG_STATUS = {

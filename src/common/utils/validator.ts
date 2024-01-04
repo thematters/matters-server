@@ -19,9 +19,12 @@ const REGEXP_ALL_PUNCTUATIONS = new RegExp(
   `^[${PUNCTUATION_CHINESE}${PUNCTUATION_ASCII}]*$`
 )
 
+export const isEmailinWhitelist = (email: string) =>
+  EMAIL_DOMAIN_WHITELIST.indexOf(email.split('@')[1]) >= 0
+
 export const isValidEmail = (str: string, options: ValidEmailOptions) => {
   const { allowPlusSign } = options
-  const isInWhitelist = EMAIL_DOMAIN_WHITELIST.indexOf(str.split('@')[1]) >= 0
+  const isInWhitelist = isEmailinWhitelist(str)
 
   // check "+" sign
   if (!allowPlusSign && !isInWhitelist && str.indexOf('+') >= 0) {
