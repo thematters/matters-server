@@ -1004,6 +1004,11 @@ type User implements Node {
 
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
+
+  """user latest articles or collections"""
+  latestWorks: [PinnableWork!]!
+
+  """user pinned articles or collections"""
   pinnedWorks: [PinnableWork!]!
 
   """Tags by by usage order of current user."""
