@@ -180,7 +180,7 @@ export default /* GraphQL */ `
     drafts(input: ConnectionArgs!): DraftConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Articles current user commented on"
-    commentedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
+    commentedArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Artilces current user subscribed to."
     subscriptions(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
@@ -404,7 +404,7 @@ export default /* GraphQL */ `
     articleCount: Int!
 
     "Number of comments posted by user."
-    commentCount: Int!
+    commentCount: Int! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Number of unread notices."
     unreadNoticeCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -413,10 +413,10 @@ export default /* GraphQL */ `
     unreadFollowing: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Number of total written words."
-    totalWordCount: Int!
+    totalWordCount: Int! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Number of referred user registration count (in Digital Nomad Campaign)."
-    totalReferredCount: Int!
+    totalReferredCount: Int! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Weather login password is set for email login."
     hasEmailLoginPassword: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
