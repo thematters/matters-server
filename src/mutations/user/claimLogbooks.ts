@@ -23,6 +23,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
+import { rpcs } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
@@ -80,9 +81,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // filter unclaimed token ids
   const client = createPublicClient({
     chain: isProd ? polygon : polygonMumbai,
-    transport: isProd
-      ? http('https://polygon-rpc.com/')
-      : http('https://rpc-mumbai.matic.today'),
+    transport: http(isProd ? rpcs[polygon.id] : rpcs[polygonMumbai.id]),
   })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
