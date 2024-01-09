@@ -11,7 +11,7 @@ import {
   getContract,
   http,
   parseGwei,
-  recoverAddress,
+  recoverMessageAddress,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { polygon, polygonMumbai } from 'viem/chains'
@@ -53,8 +53,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   }
 
   const verifiedAddress = (
-    await recoverAddress({
-      hash: signedMessage as Hex,
+    await recoverMessageAddress({
+      message: signedMessage as Hex,
       signature: signature as Hex,
     })
   ).toLowerCase()

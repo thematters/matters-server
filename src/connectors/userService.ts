@@ -22,12 +22,15 @@ import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 import {
   Hex,
+  createPublicClient,
   getContract,
   hashMessage,
+  http,
   isAddress,
-  recoverAddress,
+  recoverMessageAddress,
   trim,
 } from 'viem'
+import { polygon } from 'viem/chains'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -59,7 +62,6 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
-  BLOCKCHAIN_CHAINID,
   SIGNING_MESSAGE_PURPOSE,
   SOCIAL_LOGIN_TYPE,
   CHANGE_EMAIL_TIMES_LIMIT_PER_DAY,
@@ -94,10 +96,10 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  publicClient,
   IERC1271,
   genDisplayName,
   RatelimitCounter,
+  mainnetPolygonRpc,
 } from 'common/utils'
 import {
   AtomService,
@@ -2240,9 +2242,12 @@ export class UserService extends BaseService {
     }
 
     const isValidSignature = async () => {
-      const client = publicClient(
-        Number(BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet) // hardcode to polygon mainnet
-      )
+      const client = createPublicClient({
+        chain: polygon,
+        transport: http(mainnetPolygonRpc),
+      })
+      console.log({ ethAddress })
+
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'
 
@@ -2266,14 +2271,13 @@ export class UserService extends BaseService {
         }
       } else {
         // verify signature for EOA account
-        const verifiedAddress = (
-          await recoverAddress({
-            hash: signedMessage,
-            signature: signature,
-          })
-        ).toLowerCase()
+        const verifiedAddress = await recoverMessageAddress({
+          message: signedMessage,
+          signature: signature,
+        })
 
-        if (ethAddress.toLowerCase() !== verifiedAddress) {
+        console.log({ verifiedAddress, ethAddress })
+        if (ethAddress.toLowerCase() !== verifiedAddress.toLowerCase()) {
           throw new UserInputError('signature is not valid')
         }
       }
