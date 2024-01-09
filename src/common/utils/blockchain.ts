@@ -1,22 +1,9 @@
-import { createPublicClient, formatUnits, http, parseUnits } from 'viem'
-import { polygon, polygonMumbai } from 'viem/chains'
+import { formatUnits, parseUnits } from 'viem'
 
-import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from 'common/enums'
 import { environment } from 'common/environment'
 
-export const publicClient = (chainId: number) => {
-  const isMainnetPolygon =
-    chainId.toString() === BLOCKCHAIN_CHAINID[BLOCKCHAIN.Polygon].PolygonMainnet
-  const mainnetPolygonRpc = `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`
-  const mumbaiPolygonRpc = `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`
-
-  return createPublicClient({
-    chain: isMainnetPolygon ? polygon : polygonMumbai,
-    transport: isMainnetPolygon
-      ? http(mainnetPolygonRpc)
-      : http(mumbaiPolygonRpc),
-  })
-}
+export const mainnetPolygonRpc = `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`
+export const mumbaiPolygonRpc = `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`
 
 export const toTokenBaseUnit = (amount: string, decimals: number): string =>
   parseUnits(amount, decimals).toString()

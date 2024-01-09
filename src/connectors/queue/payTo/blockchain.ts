@@ -240,8 +240,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       where: { chainId, contractAddress },
     })
     const oldSavepoint = record
-      ? parseInt(record.blockNumber, 10)
-      : parseInt(environment.polygonCurationContractBlocknum, 10)
+      ? BigInt(parseInt(record.blockNumber, 10))
+      : BigInt(parseInt(environment.polygonCurationContractBlocknum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
@@ -425,13 +425,13 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private fetchCurationLogs = async (
     curation: CurationContract,
-    savepoint: number
+    savepoint: bigint
   ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
     const safeBlockNum =
-      (await curation.fetchBlockNumber()) -
+      BigInt(await curation.fetchBlockNumber()) -
       BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
 
-    const fromBlockNum = BigInt(savepoint + 1)
+    const fromBlockNum = savepoint + BigInt(1)
 
     if (fromBlockNum >= safeBlockNum) {
       return [[], BigInt(savepoint)]
