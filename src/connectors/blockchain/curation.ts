@@ -97,9 +97,6 @@ export class CurationContract extends BaseContract {
 
   public constructor() {
     super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
-    // FIXME: this cast is weirdly required here; viem has this returned implicitly as this type
-    //  but typescript inferred this as just Hex[] which is wrong. Viem should've explicitly type this
-    // in `encodeEventTopics` but choose not to at the point of this
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: 'Curation',
@@ -134,42 +131,42 @@ export class CurationContract extends BaseContract {
     // parse erc20logs and add result to logs
     const logs: Array<Log<CurationEvent>> = []
     ;[...erc20Logs, ...nativeLogs].forEach((log) => {
-      const decodedLog = decodeEventLog({
+      const { args: logArgs } = decodeEventLog({
         abi: CURATION_ABI,
         data: log.data,
-        topics: log.topics as any,
+        topics: log.topics as [signature: `0x${string}`, ...hex: Hex[]],
       })
+      const baseLog = {
+        txHash: log.transactionHash,
+        address: contractAddress,
+        blockNumber: Number(log.blockNumber),
+        removed: log.removed,
+      }
 
       // ERC20
-      if ('curator' in decodedLog.args) {
+      if ('curator' in logArgs) {
         logs.push({
           event: {
-            curatorAddress: decodedLog.args.curator.toLowerCase(),
-            creatorAddress: decodedLog.args.creator.toLowerCase(),
-            uri: decodedLog.args.uri,
-            tokenAddress: decodedLog.args.token.toLowerCase(),
-            amount: decodedLog.args.amount.toString(),
+            curatorAddress: logArgs.curator.toLowerCase(),
+            creatorAddress: logArgs.creator.toLowerCase(),
+            uri: logArgs.uri,
+            tokenAddress: logArgs.token.toLowerCase(),
+            amount: logArgs.amount.toString(),
           },
-          txHash: log.transactionHash,
-          address: contractAddress,
-          blockNumber: Number(log.blockNumber),
-          removed: log.removed,
+          ...baseLog,
         })
       }
       // native
       else {
         logs.push({
           event: {
-            curatorAddress: decodedLog.args.from.toLowerCase(),
-            creatorAddress: decodedLog.args.to.toLowerCase(),
-            uri: decodedLog.args.uri,
+            curatorAddress: logArgs.from.toLowerCase(),
+            creatorAddress: logArgs.to.toLowerCase(),
+            uri: logArgs.uri,
             tokenAddress: null,
-            amount: decodedLog.args.amount.toString(),
+            amount: logArgs.amount.toString(),
           },
-          txHash: log.transactionHash,
-          address: contractAddress,
-          blockNumber: Number(log.blockNumber),
-          removed: log.removed,
+          ...baseLog,
         })
       }
     })
