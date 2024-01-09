@@ -99,7 +99,7 @@ import {
   IERC1271,
   genDisplayName,
   RatelimitCounter,
-  mainnetPolygonRpc,
+  rpcs,
 } from 'common/utils'
 import {
   AtomService,
@@ -2255,7 +2255,7 @@ export class UserService extends BaseService {
       // try to verify signature for contract wallet
       const client = createPublicClient({
         chain: polygon,
-        transport: http(mainnetPolygonRpc),
+        transport: http(rpcs[polygon.id]),
       })
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'

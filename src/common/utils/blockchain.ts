@@ -1,9 +1,12 @@
 import { formatUnits, parseUnits } from 'viem'
+import { polygon, polygonMumbai } from 'viem/chains'
 
 import { environment } from 'common/environment'
 
-export const mainnetPolygonRpc = `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`
-export const mumbaiPolygonRpc = `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`
+export const rpcs: { [chainId: number]: string } = {
+  [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+}
 
 export const toTokenBaseUnit = (amount: string, decimals: number): string =>
   parseUnits(amount, decimals).toString()
