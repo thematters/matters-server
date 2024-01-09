@@ -1,4 +1,3 @@
-// import slugify from '@matters/slugify'
 import type { GQLMutationResolvers } from 'definitions'
 
 import { v4 } from 'uuid'
@@ -6,7 +5,6 @@ import { v4 } from 'uuid'
 import {
   APPRECIATION_PURPOSE,
   APPRECIATION_TYPES,
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -20,7 +18,6 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId, verifyCaptchaToken } from 'common/utils'
-// import { GCP, cfsvc } from 'connectors'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
@@ -34,7 +31,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       userService,
       articleService,
       draftService,
-      paymentService,
       systemService,
       queues: { appreciationQueue },
     },
@@ -75,32 +71,11 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   }
 
   // check author
-  const isAuthor = article.authorId === viewer.id
-  if (isAuthor && !superLike) {
-    throw new ForbiddenError('cannot appreciate your own article')
-  }
-
   const author = await userService.loadById(article.authorId)
-
   if (author.state === USER_STATE.frozen) {
     throw new ForbiddenByTargetStateError(
       `cannot appreciate ${author.state} user`
     )
-  }
-
-  // check access
-  const articleCircle = await articleService.findArticleCircle(article.id)
-
-  if (articleCircle && !isAuthor) {
-    const isCircleMember = await paymentService.isCircleMember({
-      userId: viewer.id,
-      circleId: articleCircle.circleId,
-    })
-    const isPaywall = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
-
-    if (isPaywall && !isCircleMember) {
-      throw new ForbiddenError('only circle members have the permission')
-    }
   }
 
   // check if viewer is blocked by article owner
@@ -119,7 +94,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     const liker = await userService.findLiker({ userId: viewer.id })
 
     if (liker?.likerId && author.likerId) {
-      // const slug = slugify(node.title)
       const superLikeData = {
         liker,
         iscn_id: article.iscn_id,
@@ -177,7 +151,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
     // for a transition period, we may check both, and pass if any one pass siteverify
     // after the transition period, can turn off the one no longer in use
-    const isHuman = await verifyCaptchaToken(token!, viewer.ip)
+    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')
     }

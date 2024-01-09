@@ -1,4 +1,4 @@
-import { SOCIAL_LOGIN_TYPE } from 'common/enums'
+import { SOCIAL_LOGIN_TYPE, USER_STATE } from 'common/enums'
 
 import { LANGUAGES } from './language'
 
@@ -46,7 +46,7 @@ export interface EmailableUser {
 
 export type UserRole = 'admin' | 'user'
 
-export type UserState = 'active' | 'banned' | 'archived'
+export type UserState = keyof typeof USER_STATE
 
 type ViewerBase = {
   id: undefined

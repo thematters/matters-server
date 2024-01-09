@@ -3454,6 +3454,8 @@ export type GQLUser = GQLNode & {
   isFollowee: Scalars['Boolean']['output']
   /** Whether current user is following viewer. */
   isFollower: Scalars['Boolean']['output']
+  /** user latest articles or collections */
+  latestWorks: Array<GQLPinnableWork>
   /** Liker info of current user */
   liker: GQLLiker
   /** LikerID of LikeCoin, being used by LikeCoin OAuth */
@@ -3468,6 +3470,7 @@ export type GQLUser = GQLNode & {
   paymentPointer?: Maybe<Scalars['String']['output']>
   /** Tags pinned by current user. */
   pinnedTags: GQLTagConnection
+  /** user pinned articles or collections */
   pinnedWorks: Array<GQLPinnableWork>
   /** Article recommendations for current user. */
   recommendation: GQLRecommendation
@@ -8265,6 +8268,11 @@ export type GQLUserResolvers<
   isBlocking?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollowee?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollower?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  latestWorks?: Resolver<
+    Array<GQLResolversTypes['PinnableWork']>,
+    ParentType,
+    ContextType
+  >
   liker?: Resolver<GQLResolversTypes['Liker'], ParentType, ContextType>
   likerId?: Resolver<
     Maybe<GQLResolversTypes['String']>,
