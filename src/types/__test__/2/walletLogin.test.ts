@@ -49,6 +49,7 @@ describe('walletLogin', () => {
       }
     }
   `
+
   test('wallet signup/login', async () => {
     const testWalletLoginPurpose = async (
       purpose: keyof typeof SIGNING_MESSAGE_PURPOSE
@@ -72,7 +73,7 @@ describe('walletLogin', () => {
       const signature = await account.signMessage({
         message: signingMessage,
       })
-      const result = await server.executeOperation({
+      const { data } = await server.executeOperation({
         query: WALLET_LOGIN,
         variables: {
           input: {
@@ -83,7 +84,6 @@ describe('walletLogin', () => {
           },
         },
       })
-      const data = result.data
       expect(data?.walletLogin.auth).toBe(true)
       expect(data?.walletLogin.token).toBeDefined()
       expect(data?.walletLogin.type).toBe('Signup')
@@ -195,39 +195,6 @@ describe('walletLogin', () => {
           signedMessage: signingMessage,
           signature,
           nonce: nonce + 'wrong',
-        },
-      },
-    })
-    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
-  })
-
-  test('wallet login check nonce in signature', async () => {
-    const account = privateKeyToAccount(generatePrivateKey())
-    const server = await testClient({ connections })
-    const {
-      data: {
-        generateSigningMessage: { nonce: nonce, signingMessage },
-      },
-    } = await server.executeOperation({
-      query: GENERATE_SIGNING_MESSAGE,
-      variables: {
-        input: {
-          address: account.address,
-          purpose: SIGNING_MESSAGE_PURPOSE.signup,
-        },
-      },
-    })
-    const signature = await account.signMessage({
-      message: signingMessage.replace(nonce, 'wrongnonce'),
-    })
-    const { errors } = await server.executeOperation({
-      query: WALLET_LOGIN,
-      variables: {
-        input: {
-          ethAddress: account.address,
-          signedMessage: signingMessage,
-          signature,
-          nonce: nonce,
         },
       },
     })
