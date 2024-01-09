@@ -1,8 +1,9 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers, Draft, Comment } from 'definitions'
 
 import _last from 'lodash/last'
 
 import { NODE_TYPES } from 'common/enums'
+import { ServerError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLArticleResolvers['responses'] = async (
@@ -50,34 +51,41 @@ const resolver: GQLArticleResolvers['responses'] = async (
 
   // fetch responses
   const items = await Promise.all(
-    sources.map((source: { [key: string]: any }) => {
+    sources.map((source: { entityId: string; type: string }) => {
       switch (source.type) {
         case 'Article': {
-          return articleService.draftLoader.load(source.entityId)
+          return articleService.draftLoader.load(
+            source.entityId
+          ) as Promise<Draft>
         }
         case 'Comment': {
-          return commentService.baseFindById(source.entityId)
+          return commentService.loadById(source.entityId)
+        }
+        default: {
+          throw new ServerError(`Unknown response type: ${source.type}`)
         }
       }
     })
   )
 
   // re-process edges
-  const edges = items.map((item: { [key: string]: any }) => {
-    const type = item.title ? NODE_TYPES.Article : NODE_TYPES.Comment
-    const id = type === 'Article' ? item.articleId : item.id
+  const isDraft = (item: Draft | Comment): item is Draft =>
+    Object.prototype.hasOwnProperty.call(item, 'articleId')
+  const edges = items.map((item) => {
+    const type = isDraft(item) ? NODE_TYPES.Article : NODE_TYPES.Comment
+    const id = isDraft(item) ? item.articleId : item.id
 
     return {
       cursor: toGlobalId({ type, id }),
-      node: { __type: type, ...item },
-    } as any
+      node: { __type: type, ...item } as any,
+    }
   })
 
   // handle page info
-  const head = sources[0] as { [key: string]: any }
+  const head = sources[0]
   const headSeq = head && parseInt(head.seq, 10)
 
-  const tail = _last(sources) as { [key: string]: any }
+  const tail = _last(sources)
   const tailSeq = tail && parseInt(tail.seq, 10)
 
   const edgeHead = edges[0]
