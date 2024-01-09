@@ -1,6 +1,5 @@
 import type { BasedContext } from '@apollo/server'
 import type {
-  Alchemy,
   ArticleService,
   AtomService,
   CommentService,
@@ -36,7 +35,6 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
-  VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 
 export * from './user'

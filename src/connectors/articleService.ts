@@ -1318,12 +1318,12 @@ export class ArticleService extends BaseService {
     fields?: string
     articleOnly?: boolean
   }) =>
-    this.knex.select(fields).from((wrapper: any) => {
+    this.knex.select(fields).from((wrapper: Knex) => {
       wrapper
         .select(
           this.knex.raw('row_number() over (order by created_at) as seq, *')
         )
-        .from((knex: any) => {
+        .from((knex: Knex) => {
           const source = knex.union((operator: any) => {
             operator
               .select(
@@ -1404,8 +1404,8 @@ export class ArticleService extends BaseService {
     id: string
     order?: string
     state?: string
-    after?: any
-    before?: any
+    after?: string
+    before?: string
     first?: number
     includeAfter?: boolean
     includeBefore?: boolean
