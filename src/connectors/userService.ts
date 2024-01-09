@@ -2279,16 +2279,23 @@ export class UserService extends BaseService {
     }
 
     const isValidSignature = async () => {
+      // verify signature for EOA account
+      const verifiedAddress = await recoverMessageAddress({
+        message: signedMessage,
+        signature: signature,
+      })
+
+      if (ethAddress.toLowerCase() === verifiedAddress.toLowerCase()) {
+        return
+      }
+
+      // try to verify signature for contract wallet
       const client = createPublicClient({
         chain: polygon,
         transport: http(mainnetPolygonRpc),
       })
-      console.log({ ethAddress })
-
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'
-
-      // if it's smart contract wallet
       if (isSmartContract) {
         // verify the message for a decentralized account (contract wallet)
         const contractWallet = getContract({
@@ -2307,16 +2314,7 @@ export class UserService extends BaseService {
           throw new UserInputError('signature is not valid')
         }
       } else {
-        // verify signature for EOA account
-        const verifiedAddress = await recoverMessageAddress({
-          message: signedMessage,
-          signature: signature,
-        })
-
-        console.log({ verifiedAddress, ethAddress })
-        if (ethAddress.toLowerCase() !== verifiedAddress.toLowerCase()) {
-          throw new UserInputError('signature is not valid')
-        }
+        throw new UserInputError('signature is not valid')
       }
     }
 
