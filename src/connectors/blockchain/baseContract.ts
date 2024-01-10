@@ -1,20 +1,32 @@
-import { Contract, providers } from 'ethers'
+import { Abi, PublicClient, createPublicClient, getContract, http } from 'viem'
+import { polygon, polygonMumbai } from 'viem/chains'
 
-import { getAlchemyProvider } from 'common/utils'
+import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from 'common/enums'
+import { rpcs } from 'common/utils'
 
 export class BaseContract {
-  chainId: number
-  address: string
-  abi: string[]
-  protected provider: providers.Provider
-  protected contract: Contract
-  constructor(chainId: number, address: string, abi: string[]) {
+  public chainId: number
+  public address: string
+  public abi: Abi
+  protected client: PublicClient
+  protected contract: ReturnType<typeof getContract>
+
+  public constructor(chainId: number, address: `0x${string}`, abi: Abi) {
     this.chainId = chainId
     this.address = address
     this.abi = abi
-    this.provider = getAlchemyProvider(chainId)
-    this.contract = new Contract(address, abi, this.provider)
+
+    const isMainnetPolygon =
+      chainId.toString() ===
+      BLOCKCHAIN_CHAINID[BLOCKCHAIN.Polygon].PolygonMainnet
+    this.client = createPublicClient({
+      chain: isMainnetPolygon ? polygon : polygonMumbai,
+      transport: http(rpcs[chainId]),
+    })
+
+    this.contract = getContract({ abi, address, publicClient: this.client })
   }
 
-  fetchBlockNumber = async (): Promise<number> => this.provider.getBlockNumber()
+  public fetchBlockNumber = async (): Promise<bigint> =>
+    this.client.getBlockNumber()
 }

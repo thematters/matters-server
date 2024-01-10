@@ -213,7 +213,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
-      let syncedBlocknum: number
+      let syncedBlocknum: bigint
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
       } catch (error) {
@@ -240,8 +240,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       where: { chainId, contractAddress },
     })
     const oldSavepoint = record
-      ? parseInt(record.blockNumber, 10)
-      : parseInt(environment.polygonCurationContractBlocknum, 10)
+      ? BigInt(parseInt(record.blockNumber, 10))
+      : BigInt(parseInt(environment.polygonCurationContractBlocknum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
@@ -425,15 +425,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private fetchCurationLogs = async (
     curation: CurationContract,
-    savepoint: number
-  ): Promise<[Array<Log<CurationEvent>>, number]> => {
+    savepoint: bigint
+  ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
     const safeBlockNum =
-      (await curation.fetchBlockNumber()) - BLOCKCHAIN_SAFE_CONFIRMS.Polygon
+      BigInt(await curation.fetchBlockNumber()) -
+      BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
 
-    const fromBlockNum = savepoint + 1
+    const fromBlockNum = savepoint + BigInt(1)
 
     if (fromBlockNum >= safeBlockNum) {
-      return [[], savepoint as number]
+      return [[], BigInt(savepoint)]
     }
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
