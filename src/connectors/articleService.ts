@@ -31,6 +31,7 @@ import {
   MAX_PINNED_WORKS_LIMIT,
   USER_ACTION,
   USER_STATE,
+  NODE_TYPES,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -38,6 +39,7 @@ import {
   ServerError,
   ForbiddenError,
   ActionLimitExceededError,
+  InvalidCursorError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { s2tConverter, t2sConverter, normalizeSearchKey } from 'common/utils'
@@ -1305,95 +1307,10 @@ export class ArticleService extends BaseService {
    *           Response            *
    *                               *
    *********************************/
-  private makeResponseQuery = ({
-    id,
-    order,
-    state,
-    fields = '*',
-    articleOnly = false,
-  }: {
-    id: string
-    order: string
-    state?: string
-    fields?: string
-    articleOnly?: boolean
-  }) =>
-    this.knex.select(fields).from((wrapper: Knex) => {
-      wrapper
-        .select(
-          this.knex.raw('row_number() over (order by created_at) as seq, *')
-        )
-        .from((knex: Knex) => {
-          const source = knex.union((operator: any) => {
-            operator
-              .select(
-                this.knex.raw(
-                  "'Article' as type, entrance_id as entity_id, article_connection.created_at"
-                )
-              )
-              .from('article_connection')
-              .rightJoin(
-                'article',
-                'article_connection.entrance_id',
-                'article.id'
-              )
-              .where({
-                'article_connection.article_id': id,
-                'article.state': state,
-              })
-          })
-
-          if (articleOnly !== true) {
-            source.union((operator: any) => {
-              operator
-                .select(
-                  this.knex.raw(
-                    "'Comment' as type, id as entity_id, created_at"
-                  )
-                )
-                .from('comment')
-                .where({
-                  targetId: id,
-                  parentCommentId: null,
-                  type: COMMENT_TYPE.article,
-                })
-            })
-          }
-
-          source.as('base_sources')
-          return source
-        })
-        .orderBy('created_at', order)
-        .as('sources')
-    })
-
-  private makeResponseFilterQuery = ({
-    id,
-    entityId,
-    order,
-    state,
-    articleOnly,
-  }: {
-    id: string
-    entityId: string
-    order: string
-    state?: string
-    articleOnly?: boolean
-  }) => {
-    const query = this.makeResponseQuery({
-      id,
-      order,
-      state,
-      fields: 'seq',
-      articleOnly,
-    })
-    return query.where({ entityId }).first()
-  }
-
   public findResponses = ({
     id,
     order = 'desc',
-    state = ARTICLE_STATE.active,
+    articleState = ARTICLE_STATE.active,
     after,
     before,
     first,
@@ -1403,68 +1320,89 @@ export class ArticleService extends BaseService {
   }: {
     id: string
     order?: string
-    state?: string
-    after?: string
-    before?: string
+    articleState?: keyof typeof ARTICLE_STATE
+    after?: { type: NODE_TYPES; id: string }
+    before?: { type: NODE_TYPES; id: string }
     first?: number
     includeAfter?: boolean
     includeBefore?: boolean
     articleOnly?: boolean
   }) => {
-    const query = this.makeResponseQuery({ id, order, state, articleOnly })
+    const query = this.knexRO
+      .select(
+        this.knexRO.raw('COUNT(1) OVER() AS total_count'),
+        this.knexRO.raw('MIN(created_at) OVER() AS min_cursor'),
+        this.knexRO.raw('MAX(created_at) OVER() AS max_cursor'),
+        '*'
+      )
+      .from(
+        this.knexRO
+          .select(
+            this.knex.raw(
+              "'Article' as type, entrance_id as entity_id, article_connection.created_at"
+            )
+          )
+          .from('article_connection')
+          .rightJoin('article', 'article_connection.entrance_id', 'article.id')
+          .where({
+            'article_connection.article_id': id,
+            'article.state': articleState,
+          })
+          .modify((builder: Knex.QueryBuilder) => {
+            if (articleOnly !== true) {
+              builder.union(
+                this.knexRO
+                  .select(
+                    this.knex.raw(
+                      "'Comment' as type, id as entity_id, created_at"
+                    )
+                  )
+                  .from('comment')
+                  .where({
+                    targetId: id,
+                    parentCommentId: null,
+                    type: COMMENT_TYPE.article,
+                  })
+              )
+            }
+          })
+          .orderBy('created_at', order)
+          .as('t')
+      )
+
+    const validTypes = [NODE_TYPES.Comment, NODE_TYPES.Article]
     if (after) {
-      const subQuery = this.makeResponseFilterQuery({
-        id,
-        order,
-        state,
-        entityId: after,
-        articleOnly,
-      })
+      if (!validTypes.includes(after.type)) {
+        throw new InvalidCursorError('after is invalid cursor')
+      }
+      const cursor = this.knexRO(after.type.toLowerCase())
+        .select('created_at')
+        .where({ id: after.id })
+        .first()
       if (includeAfter) {
-        query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
+        query.andWhere('created_at', order === 'asc' ? '>=' : '<=', cursor)
       } else {
-        query.andWhere('seq', order === 'asc' ? '>' : '<', subQuery)
+        query.andWhere('created_at', order === 'asc' ? '>' : '<', cursor)
       }
     }
     if (before) {
-      const subQuery = this.makeResponseFilterQuery({
-        id,
-        order,
-        state,
-        entityId: before,
-      })
+      if (!validTypes.includes(before.type)) {
+        throw new InvalidCursorError('before is invalid cursor')
+      }
+      const cursor = this.knexRO(before.type.toLowerCase())
+        .select('created_at')
+        .where({ id: before.id })
+        .first()
       if (includeBefore) {
-        query.andWhere('seq', order === 'asc' ? '<=' : '>=', subQuery)
+        query.andWhere('created_at', order === 'asc' ? '<=' : '>=', cursor)
       } else {
-        query.andWhere('seq', order === 'asc' ? '<' : '>', subQuery)
+        query.andWhere('created_at', order === 'asc' ? '<' : '>', cursor)
       }
     }
     if (first) {
       query.limit(first)
     }
     return query
-  }
-
-  public responseRange = async ({
-    id,
-    order,
-    state,
-  }: {
-    id: string
-    order: string
-    state: string
-  }) => {
-    const query = this.makeResponseQuery({ id, order, state, fields: '' })
-    const { count, max, min } = (await query
-      .max('seq')
-      .min('seq')
-      .count()
-      .first()) as Record<string, any>
-    return {
-      count: parseInt(count, 10),
-      max: parseInt(max, 10),
-      min: parseInt(min, 10),
-    }
   }
 
   /*********************************

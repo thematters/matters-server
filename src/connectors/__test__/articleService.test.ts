@@ -274,3 +274,8 @@ test('latestArticles', async () => {
   })
   expect(articles.length).toBeGreaterThan(0)
 })
+
+test('findResponses', async () => {
+  const res = await articleService.findResponses({ id: '1' })
+  console.log(res)
+})

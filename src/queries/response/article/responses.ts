@@ -12,7 +12,7 @@ const resolver: GQLArticleResolvers['responses'] = async (
   { dataSources: { articleService, commentService } }
 ) => {
   const order = sort === 'oldest' ? 'asc' : 'desc'
-  const state = 'active'
+  const articleState = 'active'
 
   // set default first as 10, and use null for querying all.
   if (!restParams.before && typeof first === 'undefined') {
@@ -22,32 +22,25 @@ const resolver: GQLArticleResolvers['responses'] = async (
   let after
   let before
   if (restParams.after) {
-    after = fromGlobalId(restParams.after).id
+    after = fromGlobalId(restParams.after)
   }
   if (restParams.before) {
-    before = fromGlobalId(restParams.before).id
+    before = fromGlobalId(restParams.before)
   }
 
   // fetch order and range based on Collection and Comment
   const { includeAfter, includeBefore, articleOnly } = restParams
-  const [sources, range] = await Promise.all([
-    articleService.findResponses({
-      id: articleId,
-      order,
-      state,
-      after,
-      before,
-      first,
-      includeAfter,
-      includeBefore,
-      articleOnly,
-    }),
-    articleService.responseRange({
-      id: articleId,
-      order,
-      state,
-    }),
-  ])
+  const sources = await articleService.findResponses({
+    id: articleId,
+    order,
+    articleState,
+    after,
+    before,
+    first,
+    includeAfter,
+    includeBefore,
+    articleOnly,
+  })
 
   // fetch responses
   const items = await Promise.all(
@@ -83,23 +76,28 @@ const resolver: GQLArticleResolvers['responses'] = async (
 
   // handle page info
   const head = sources[0]
-  const headSeq = head && parseInt(head.seq, 10)
+  const headCursor = head && parseInt(head.createdAt, 10)
 
   const tail = _last(sources)
-  const tailSeq = tail && parseInt(tail.seq, 10)
+  const tailCursor = tail && parseInt(tail.createdAt, 10)
 
   const edgeHead = edges[0]
   const edgeTail = _last(edges)
 
   return {
     edges,
-    totalCount: range.count,
+    totalCount: head.count,
     pageInfo: {
       startCursor: edgeHead ? edgeHead.cursor : '',
       endCursor: edgeTail ? edgeTail.cursor : '',
       hasPreviousPage:
-        order === 'asc' ? headSeq > range.min : headSeq < range.max,
-      hasNextPage: order === 'asc' ? tailSeq < range.max : tailSeq > range.min,
+        order === 'asc'
+          ? headCursor > head.minCursor
+          : headCursor < head.maxCursor,
+      hasNextPage:
+        order === 'asc'
+          ? tailCursor < head.maxCursor
+          : tailCursor > head.minCursor,
     },
   }
 }
