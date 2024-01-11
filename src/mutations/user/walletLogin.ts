@@ -6,6 +6,7 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import { Hex } from 'viem'
 
 import {
   NODE_TYPES,
@@ -98,8 +99,8 @@ const _walletLogin: Exclude<
   const lastSigning = await userService.verifyWalletSignature({
     ethAddress,
     nonce,
-    signedMessage,
-    signature,
+    signedMessage: signedMessage as Hex,
+    signature: signature as Hex,
     validPurposes: [
       SIGNING_MESSAGE_PURPOSE.signup,
       SIGNING_MESSAGE_PURPOSE.login,
@@ -247,8 +248,8 @@ export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
   await userService.verifyWalletSignature({
     ethAddress,
     nonce,
-    signedMessage,
-    signature,
+    signedMessage: signedMessage as Hex,
+    signature: signature as Hex,
     validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
   })
   return userService.addWallet(viewer.id, ethAddress)

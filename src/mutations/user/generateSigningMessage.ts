@@ -1,7 +1,7 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { utils } from 'ethers'
 import { customAlphabet } from 'nanoid'
+import { isAddress } from 'viem'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['generateSigningMessage'] = async (
   { dataSources: { atomService } }
 ) => {
   // check address is a valid one,
-  if (!address || !utils.isAddress(address)) {
+  if (!address || !isAddress(address)) {
     throw new UserInputError('address is invalid')
   }
 

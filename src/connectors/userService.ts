@@ -15,13 +15,22 @@ import type {
 import axios from 'axios'
 import { compare } from 'bcrypt'
 import DataLoader from 'dataloader'
-import { recoverPersonalSignature } from 'eth-sig-util'
-import { Contract, utils } from 'ethers'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
 import { customAlphabet, nanoid } from 'nanoid'
 import { v4 } from 'uuid'
+import {
+  Hex,
+  createPublicClient,
+  getContract,
+  hashMessage,
+  http,
+  isAddress,
+  recoverMessageAddress,
+  trim,
+} from 'viem'
+import { polygon } from 'viem/chains'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -53,7 +62,6 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
-  BLOCKCHAIN_CHAINID,
   SIGNING_MESSAGE_PURPOSE,
   SOCIAL_LOGIN_TYPE,
   CHANGE_EMAIL_TIMES_LIMIT_PER_DAY,
@@ -89,11 +97,11 @@ import {
   isValidPassword,
   makeUserName,
   getPunishExpiredDate,
-  getAlchemyProvider,
   IERC1271,
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
+  rpcs,
 } from 'common/utils'
 import {
   AtomService,
@@ -2236,11 +2244,11 @@ export class UserService extends BaseService {
   }: {
     ethAddress: string
     nonce: string
-    signedMessage: string
-    signature: string
+    signedMessage: Hex
+    signature: Hex
     validPurposes: Array<keyof typeof SIGNING_MESSAGE_PURPOSE>
   }) => {
-    if (!ethAddress || !utils.isAddress(ethAddress)) {
+    if (!ethAddress || !isAddress(ethAddress)) {
       throw new UserInputError('address is invalid')
     }
     const sigTable = 'crypto_wallet_signature'
@@ -2270,49 +2278,46 @@ export class UserService extends BaseService {
       throw new UserInputError('Invalid nonce')
     }
 
-    // if it's smart contract wallet
     const isValidSignature = async () => {
-      const MAGICVALUE = '0x1626ba7e'
+      // verify signature for EOA account
+      const verifiedAddress = await recoverMessageAddress({
+        message: signedMessage,
+        signature: signature,
+      })
 
-      const chainType = 'Polygon'
+      if (ethAddress.toLowerCase() === verifiedAddress.toLowerCase()) {
+        return
+      }
 
-      const chainNetwork = 'PolygonMainnet'
-
-      const provider = getAlchemyProvider(
-        Number(BLOCKCHAIN_CHAINID[chainType][chainNetwork])
-      )
-
-      const bytecode = await provider.getCode(ethAddress.toLowerCase())
-
-      const isSmartContract = bytecode && utils.hexStripZeros(bytecode) !== '0x'
-
-      const hash = utils.hashMessage(signedMessage)
-
+      // try to verify signature for contract wallet
+      const client = createPublicClient({
+        chain: polygon,
+        transport: http(rpcs[polygon.id]),
+      })
+      const bytecode = await client.getBytecode({ address: ethAddress })
+      const isSmartContract = bytecode && trim(bytecode) !== '0x'
       if (isSmartContract) {
         // verify the message for a decentralized account (contract wallet)
-        const contractWallet = new Contract(ethAddress, IERC1271, provider)
-        const verification = await contractWallet.isValidSignature(
-          hash,
-          signature
-        )
+        const contractWallet = getContract({
+          publicClient: client,
+          abi: IERC1271,
+          address: ethAddress,
+        })
 
-        const doneVerified = verification === MAGICVALUE
+        const verification = await contractWallet.read.isValidSignature([
+          hashMessage(signedMessage),
+          signature,
+        ])
 
-        if (!doneVerified) {
+        const MAGICVALUE = '0x1626ba7e'
+        if (verification !== MAGICVALUE) {
           throw new UserInputError('signature is not valid')
         }
       } else {
-        // verify signature for EOA account
-        const verifiedAddress = recoverPersonalSignature({
-          data: signedMessage,
-          sig: signature,
-        }).toLowerCase()
-
-        if (ethAddress.toLowerCase() !== verifiedAddress) {
-          throw new UserInputError('signature is not valid')
-        }
+        throw new UserInputError('signature is not valid')
       }
     }
+
     await isValidSignature()
     return lastSigning
   }

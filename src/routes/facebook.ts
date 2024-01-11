@@ -54,7 +54,7 @@ facebook.post('/delete/', async (req, res) => {
 facebook.get('/delete/', async (req, res) => {
   const facebookUserId = req.query.id
   if (!facebookUserId) {
-    return res.status(400).send('Missing id')
+    return res.status(200).send('Missing id')
   }
   const userId = await getUserId(facebookUserId as string)
   if (!userId) {

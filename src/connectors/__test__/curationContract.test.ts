@@ -3,17 +3,17 @@ import { CurationContract } from 'connectors/blockchain'
 describe('curationContract', () => {
   test('compute topics correctly', async () => {
     const curation = new CurationContract()
-    expect(curation.erc20TokenCurationEventTopic).toBe(
+    expect(curation.erc20TokenCurationEventTopic[0]).toBe(
       '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
     )
-    expect(curation.nativeTokenCurationEventTopic).toBe(
+    expect(curation.nativeTokenCurationEventTopic[0]).toBe(
       '0xd7dc0722e6bc9987e505da6eb6e28fb6cab480d622b478011168976231055694'
     )
   })
   test.skip('fetchLogs correctly', async () => {
     jest.setTimeout(0)
     const curation = new CurationContract()
-    const logs = await curation.fetchLogs(28675517, 28797000)
+    const logs = await curation.fetchLogs(BigInt(28675517), BigInt(28797000))
     console.log(logs)
   })
   test.skip('fetchTxReceipt correctly', async () => {

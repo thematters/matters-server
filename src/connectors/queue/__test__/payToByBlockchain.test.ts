@@ -281,8 +281,8 @@ describe('payToByBlockchainQueue.payTo', () => {
 })
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
-  const latestBlockNum = 30000128
-  const safeBlockNum = 30000000
+  const latestBlockNum = BigInt(30000128)
+  const safeBlockNum = BigInt(30000000)
   const txTable = 'transaction'
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
@@ -324,25 +324,28 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
   test('fetch logs', async () => {
     const curation = new CurationContract()
 
-    const oldSavepoint1 = 20000000
+    const oldSavepoint1 = BigInt(20000000)
     mockFetchLogs.mockClear()
     // @ts-ignore
     const [, newSavepoint1] = await queue.fetchCurationLogs(
       curation,
       oldSavepoint1
     )
-    expect(mockFetchLogs).toHaveBeenCalledWith(oldSavepoint1 + 1, safeBlockNum)
+    expect(mockFetchLogs).toHaveBeenCalledWith(
+      oldSavepoint1 + BigInt(1),
+      safeBlockNum
+    )
     expect(newSavepoint1).toBe(safeBlockNum)
 
     mockFetchLogs.mockClear()
     // @ts-ignore
     const [logs1, newSavepoint3] = await queue.fetchCurationLogs(
       curation,
-      safeBlockNum - 1
+      safeBlockNum - BigInt(1)
     )
     expect(mockFetchLogs).not.toHaveBeenCalled()
     expect(logs1).toEqual([])
-    expect(newSavepoint3).toBe(safeBlockNum - 1)
+    expect(newSavepoint3).toBe(safeBlockNum - BigInt(1))
 
     mockFetchLogs.mockClear()
     // @ts-ignore

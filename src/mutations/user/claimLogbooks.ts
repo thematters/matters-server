@@ -1,9 +1,20 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import axios from 'axios'
-import { recoverPersonalSignature } from 'eth-sig-util'
-import { ethers } from 'ethers'
 import { Knex } from 'knex'
+import {
+  Address,
+  Hex,
+  createPublicClient,
+  createWalletClient,
+  encodeFunctionData,
+  getContract,
+  http,
+  parseGwei,
+  recoverMessageAddress,
+} from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+import { polygon, polygonMumbai } from 'viem/chains'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd } from 'common/environment'
@@ -12,7 +23,7 @@ import {
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { getProvider } from 'common/utils'
+import { rpcs } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
@@ -42,10 +53,12 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     )
   }
 
-  const verifiedAddress = recoverPersonalSignature({
-    data: signedMessage,
-    sig: signature,
-  }).toLowerCase()
+  const verifiedAddress = (
+    await recoverMessageAddress({
+      message: signedMessage as Hex,
+      signature: signature as Hex,
+    })
+  ).toLowerCase()
 
   if (ethAddress.toLowerCase() !== verifiedAddress) {
     throw new UserInputError('signature is not valid')
@@ -58,7 +71,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
   const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
-    ethers.BigNumber.from(item.id.tokenId).toString()
+    BigInt(item.id.tokenId).toString()
   )
 
   if (tokenIds.length <= 0) {
@@ -66,26 +79,33 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   }
 
   // filter unclaimed token ids
-  const provider = getProvider()
+  const client = createPublicClient({
+    chain: isProd ? polygon : polygonMumbai,
+    transport: http(isProd ? rpcs[polygon.id] : rpcs[polygonMumbai.id]),
+  })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
     'function claim(address to_, uint256 logrsId_)',
     'function multicall(bytes[] data) returns (bytes[] results)',
   ]
-  const signer = new ethers.Wallet(
-    environment.logbookClaimerPrivateKey,
-    provider
-  )
-  const contract = new ethers.Contract(
-    environment.logbookContractAddress,
+  const walletClient = createWalletClient({
+    account: privateKeyToAccount(
+      environment.logbookClaimerPrivateKey as Address
+    ),
+    chain: client.chain,
+    transport: http(),
+  })
+  const contract = getContract({
+    publicClient: client,
     abi,
-    signer
-  )
+    address: environment.logbookContractAddress as Address,
+    walletClient,
+  })
 
   const unclaimedTokenIds = []
   for (const tokenId of tokenIds) {
     try {
-      await contract.ownerOf(tokenId)
+      await contract.read.ownerOf([tokenId])
     } catch (e) {
       unclaimedTokenIds.push(tokenId)
     }
@@ -96,8 +116,8 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   }
 
   // get max gas from gas station
-  let maxFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
-  let maxPriorityFeePerGas = ethers.BigNumber.from(40000000000) // 40 gwei
+  let maxFeePerGas = BigInt(40000000000) // 40 gwei
+  let maxPriorityFeePerGas = BigInt(40000000000) // 40 gwei
   try {
     const { data } = await axios({
       method: 'get',
@@ -105,30 +125,25 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
         ? 'https://gasstation-mainnet.matic.network/v2'
         : 'https://gasstation-mumbai.matic.today/v2',
     })
-    maxFeePerGas = ethers.utils.parseUnits(
-      Math.ceil(data.fast.maxFee) + '',
-      'gwei'
-    )
-    maxPriorityFeePerGas = ethers.utils.parseUnits(
-      Math.ceil(data.fast.maxPriorityFee) + '',
-      'gwei'
-    )
+    maxFeePerGas = parseGwei(Math.ceil(data.fast.maxFee) + '')
+    maxPriorityFeePerGas = parseGwei(Math.ceil(data.fast.maxPriorityFee) + '')
   } catch {
     // ignore
   }
 
   // send tx to claim tokens
-  const iface = new ethers.utils.Interface(abi)
   const calldata = unclaimedTokenIds.map((tokenId) =>
-    iface.encodeFunctionData('claim', [ethAddress, tokenId])
+    encodeFunctionData({
+      abi,
+      functionName: 'claim',
+      args: [ethAddress, tokenId],
+    })
   )
 
-  const tx = await contract.multicall(calldata, {
+  const txHash = await contract.write.multicall(calldata, {
     maxFeePerGas,
     maxPriorityFeePerGas,
   })
-  const receipt = (await tx.wait()) as ethers.providers.TransactionReceipt
-  const txHash = receipt.transactionHash
 
   // update crypto_wallet_signature record
   await atomService.update({
