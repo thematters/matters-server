@@ -275,7 +275,9 @@ test('latestArticles', async () => {
   expect(articles.length).toBeGreaterThan(0)
 })
 
-test('findResponses', async () => {
-  const res = await articleService.findResponses({ id: '1' })
-  console.log(res)
+describe.only('findResponses', () => {
+  test('find responses', async () => {
+    const res = await articleService.findResponses({ id: '1' })
+    expect(res.length).toBeGreaterThan(0)
+  })
 })

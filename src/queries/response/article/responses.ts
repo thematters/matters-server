@@ -12,7 +12,6 @@ const resolver: GQLArticleResolvers['responses'] = async (
   { dataSources: { articleService, commentService } }
 ) => {
   const order = sort === 'oldest' ? 'asc' : 'desc'
-  const articleState = 'active'
 
   // set default first as 10, and use null for querying all.
   if (!restParams.before && typeof first === 'undefined') {
@@ -33,7 +32,6 @@ const resolver: GQLArticleResolvers['responses'] = async (
   const sources = await articleService.findResponses({
     id: articleId,
     order,
-    articleState,
     after,
     before,
     first,

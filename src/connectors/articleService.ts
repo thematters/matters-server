@@ -1310,7 +1310,6 @@ export class ArticleService extends BaseService {
   public findResponses = ({
     id,
     order = 'desc',
-    articleState = ARTICLE_STATE.active,
     after,
     before,
     first,
@@ -1320,7 +1319,6 @@ export class ArticleService extends BaseService {
   }: {
     id: string
     order?: string
-    articleState?: keyof typeof ARTICLE_STATE
     after?: { type: NODE_TYPES; id: string }
     before?: { type: NODE_TYPES; id: string }
     first?: number
@@ -1346,7 +1344,7 @@ export class ArticleService extends BaseService {
           .rightJoin('article', 'article_connection.entrance_id', 'article.id')
           .where({
             'article_connection.article_id': id,
-            'article.state': articleState,
+            'article.state': ARTICLE_STATE.active,
           })
           .modify((builder: Knex.QueryBuilder) => {
             if (articleOnly !== true) {
@@ -1357,17 +1355,33 @@ export class ArticleService extends BaseService {
                       "'Comment' as type, id as entity_id, created_at"
                     )
                   )
-                  .from('comment')
+                  .fromRaw('comment AS outer_comment')
                   .where({
                     targetId: id,
                     parentCommentId: null,
-                    type: COMMENT_TYPE.article,
+                  })
+                  .andWhere((andWhereBuilder) => {
+                    andWhereBuilder
+                      .where({ state: COMMENT_STATE.active })
+                      .orWhere({ state: COMMENT_STATE.collapsed })
+                      .orWhere((orWhereBuilder) => {
+                        orWhereBuilder
+                          .where({ state: COMMENT_STATE.archived })
+                          .andWhere(
+                            this.knexRO.raw(
+                              '(SELECT COUNT(1) FROM comment WHERE state <> ? and parent_comment_id = outer_comment.id)',
+                              COMMENT_STATE.archived
+                            ),
+                            '>',
+                            0
+                          )
+                      })
                   })
               )
             }
           })
           .orderBy('created_at', order)
-          .as('t')
+          .as('source')
       )
 
     const validTypes = [NODE_TYPES.Comment, NODE_TYPES.Article]
