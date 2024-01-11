@@ -2,6 +2,8 @@ import type {
   GQLMutationResolvers,
   NoticeCircleNewBroadcastCommentsParams,
   NoticeCircleNewDiscussionCommentsParams,
+  Article,
+  Circle,
 } from 'definitions'
 
 import {
@@ -77,9 +79,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check target
    */
-  let article: any
-  let circle: any
-  let targetAuthor: any
+  let article: Article | undefined
+  let circle: Circle | undefined
+  let targetAuthor: string | undefined
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
     article = await atomService.findFirst({
@@ -100,7 +102,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     targetAuthor = article.authorId
   } else if (circleId) {
     const { id: circleDbId } = fromGlobalId(circleId)
-    circle = await atomService.circleIdLoader.load(circleDbId)
+    circle = (await atomService.circleIdLoader.load(circleDbId)) as Circle
 
     if (!circle) {
       throw new CircleNotFoundError('target circle does not exists')
@@ -508,7 +510,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     parentComment ? { id: parentComment.id, type: NODE_TYPES.Comment } : {},
     replyToComment ? { id: replyToComment.id, type: NODE_TYPES.Comment } : {},
     {
-      id: article ? article.id : circle.id,
+      id: article ? article.id : circle?.id,
       type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
     },
   ]
