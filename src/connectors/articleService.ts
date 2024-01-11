@@ -1326,7 +1326,7 @@ export class ArticleService extends BaseService {
     includeBefore?: boolean
     articleOnly?: boolean
   }) => {
-    const query = this.knexRO
+    const subQuery = this.knexRO
       .select(
         this.knexRO.raw('COUNT(1) OVER() AS total_count'),
         this.knexRO.raw('MIN(created_at) OVER() AS min_cursor'),
@@ -1383,6 +1383,8 @@ export class ArticleService extends BaseService {
           .orderBy('created_at', order)
           .as('source')
       )
+
+    const query = this.knexRO.from(subQuery.as('t1'))
 
     const validTypes = [NODE_TYPES.Comment, NODE_TYPES.Article]
     if (after) {
