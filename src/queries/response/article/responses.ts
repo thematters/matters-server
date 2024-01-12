@@ -83,7 +83,7 @@ const resolver: GQLArticleResolvers['responses'] = async (
 
   return {
     edges,
-    totalCount: head.count,
+    totalCount: +head.totalCount,
     pageInfo: {
       startCursor: edgeHead ? edgeHead.cursor : '',
       endCursor: edgeTail ? edgeTail.cursor : '',

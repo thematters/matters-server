@@ -1365,16 +1365,14 @@ export class ArticleService extends BaseService {
                       .where({ state: COMMENT_STATE.active })
                       .orWhere({ state: COMMENT_STATE.collapsed })
                       .orWhere((orWhereBuilder) => {
-                        orWhereBuilder
-                          .where({ state: COMMENT_STATE.archived })
-                          .andWhere(
-                            this.knexRO.raw(
-                              '(SELECT COUNT(1) FROM comment WHERE state <> ? and parent_comment_id = outer_comment.id)',
-                              COMMENT_STATE.archived
-                            ),
-                            '>',
-                            0
-                          )
+                        orWhereBuilder.andWhere(
+                          this.knexRO.raw(
+                            '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                            [COMMENT_STATE.active, COMMENT_STATE.collapsed]
+                          ),
+                          '>',
+                          0
+                        )
                       })
                   })
               )
