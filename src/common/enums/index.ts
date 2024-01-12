@@ -169,6 +169,7 @@ export enum NODE_TYPES {
   Topic = 'Topic',
   Chapter = 'Chapter',
   Collection = 'Collection',
+  Report = 'Report',
 
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',

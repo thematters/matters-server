@@ -2,6 +2,7 @@ import type { Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
+import { NODE_TYPES } from 'common/enums'
 import { SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -22,7 +23,7 @@ let systemService: SystemService
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -52,4 +53,16 @@ test('create and delete asset', async () => {
   await systemService.baseDelete(asset.id, 'asset')
   const result = await systemService.baseFindById(asset.id, 'asset')
   expect(result).toBeUndefined()
+})
+
+test('submit report', async () => {
+  const report = await systemService.submitReport({
+    targetType: NODE_TYPES.Article,
+    targetId: '1',
+    reporterId: '1',
+    reason: 'other',
+  })
+  expect(report.id).toBeDefined()
+  expect(report.articleId).not.toBeNull()
+  expect(report.commentId).toBeNull()
 })

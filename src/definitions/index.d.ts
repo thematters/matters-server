@@ -52,6 +52,7 @@ export * from './payment'
 export * from './appreciation'
 export * from './asset'
 export * from './topic'
+export * from './report'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -127,7 +128,6 @@ export type BasicTableName =
   | 'notice_entity'
   | 'push_device'
   | 'report'
-  | 'report_asset'
   | 'feedback'
   | 'feedback_asset'
   | 'invitation'
