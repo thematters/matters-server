@@ -8,7 +8,7 @@ const resolver: GQLCommentResolvers['content'] = (
   { viewer }
 ) => {
   const isActive = state === COMMENT_STATE.active
-  const isCollapsed = state === 'collapsed'
+  const isCollapsed = state === COMMENT_STATE.collapsed
   const isAdmin = viewer.hasRole('admin')
 
   if (isActive || isCollapsed || isAdmin) {

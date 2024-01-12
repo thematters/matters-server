@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Article } from 'definitions'
 
 import {
   CACHE_KEYWORD,
@@ -31,10 +31,10 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   const comment = await commentService.loadById(dbId)
 
   // check target
-  let article: any
+  let article: Article | undefined
   let circle: any
   if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.dataloader.load(comment.targetId)
+    article = await articleService.loadById(comment.targetId)
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
   }

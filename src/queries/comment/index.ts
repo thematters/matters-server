@@ -18,6 +18,7 @@ import circleDiscussionThreadCount from './circle/discussionThreadCount'
 import circlePinnedBroadcast from './circle/pinnedBroadcast'
 import comments from './comments'
 import content from './content'
+import createdAt from './createdAt'
 import downvotes from './downvotes'
 import fromDonator from './fromDonator'
 import myVote from './myVote'
@@ -53,6 +54,7 @@ export default {
     fromDonator,
     type: ({ type }: { type: string }) => COMMENT_TYPES_REVERSED[type],
     node,
+    createdAt,
   },
   Circle: {
     broadcast: circleBroadcast,
