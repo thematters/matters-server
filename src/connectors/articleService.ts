@@ -1336,7 +1336,7 @@ export class ArticleService extends BaseService {
       .from(
         this.knexRO
           .select(
-            this.knex.raw(
+            this.knexRO.raw(
               "'Article' as type, entrance_id as entity_id, article_connection.created_at"
             )
           )
@@ -1351,7 +1351,7 @@ export class ArticleService extends BaseService {
               builder.union(
                 this.knexRO
                   .select(
-                    this.knex.raw(
+                    this.knexRO.raw(
                       "'Comment' as type, id as entity_id, created_at"
                     )
                   )
