@@ -309,19 +309,36 @@ describe('findResponses', () => {
     expect(res2.length).toBe(res1.length + 1)
 
     // archived comment will not be returned
-    const comment = await createComment(COMMENT_STATE.archived)
+    const archived = await createComment(COMMENT_STATE.archived)
     const res3 = await articleService.findResponses({ id: '1' })
     expect(res3.length).toBe(res2.length)
 
-    // archived comment w/o not-archived child comments will not be returned
-    await createComment(COMMENT_STATE.archived, comment.id)
+    // archived comment w/o active/collapsed child comments will not be returned
+    await createComment(COMMENT_STATE.archived, archived.id)
+    await createComment(COMMENT_STATE.banned, archived.id)
     const res4 = await articleService.findResponses({ id: '1' })
     expect(res4.length).toBe(res3.length)
 
-    // archived comment w not-archived child comments will be returned
-    await createComment(COMMENT_STATE.active, comment.id)
+    // archived comment w active/collapsed child comments will be returned
+    await createComment(COMMENT_STATE.active, archived.id)
     const res5 = await articleService.findResponses({ id: '1' })
     expect(res5.length).toBe(res4.length + 1)
+
+    // banned comment will not be returned
+    const banned = await createComment(COMMENT_STATE.archived)
+    const res6 = await articleService.findResponses({ id: '1' })
+    expect(res6.length).toBe(res5.length)
+
+    // banned comment w/o active/collapsed child comments will not be returned
+    await createComment(COMMENT_STATE.archived, banned.id)
+    await createComment(COMMENT_STATE.banned, banned.id)
+    const res7 = await articleService.findResponses({ id: '1' })
+    expect(res7.length).toBe(res6.length)
+
+    // banned comment w active/collapsed child comments will be returned
+    await createComment(COMMENT_STATE.collapsed, banned.id)
+    const res8 = await articleService.findResponses({ id: '1' })
+    expect(res8.length).toBe(res7.length + 1)
   })
   test('count is right', async () => {
     const res = await articleService.findResponses({ id: '1' })
