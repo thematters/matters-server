@@ -1,8 +1,9 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers, Draft, Comment } from 'definitions'
 
 import _last from 'lodash/last'
 
 import { NODE_TYPES } from 'common/enums'
+import { ServerError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLArticleResolvers['responses'] = async (
@@ -11,7 +12,6 @@ const resolver: GQLArticleResolvers['responses'] = async (
   { dataSources: { articleService, commentService } }
 ) => {
   const order = sort === 'oldest' ? 'asc' : 'desc'
-  const state = 'active'
 
   // set default first as 10, and use null for querying all.
   if (!restParams.before && typeof first === 'undefined') {
@@ -21,77 +21,80 @@ const resolver: GQLArticleResolvers['responses'] = async (
   let after
   let before
   if (restParams.after) {
-    after = fromGlobalId(restParams.after).id
+    after = fromGlobalId(restParams.after)
   }
   if (restParams.before) {
-    before = fromGlobalId(restParams.before).id
+    before = fromGlobalId(restParams.before)
   }
 
   // fetch order and range based on Collection and Comment
   const { includeAfter, includeBefore, articleOnly } = restParams
-  const [sources, range] = await Promise.all([
-    articleService.findResponses({
-      id: articleId,
-      order,
-      state,
-      after,
-      before,
-      first,
-      includeAfter,
-      includeBefore,
-      articleOnly,
-    }),
-    articleService.responseRange({
-      id: articleId,
-      order,
-      state,
-    }),
-  ])
+  const sources = await articleService.findResponses({
+    id: articleId,
+    order,
+    after,
+    before,
+    first,
+    includeAfter,
+    includeBefore,
+    articleOnly,
+  })
 
   // fetch responses
   const items = await Promise.all(
-    sources.map((source: { [key: string]: any }) => {
+    sources.map((source: { entityId: string; type: string }) => {
       switch (source.type) {
         case 'Article': {
-          return articleService.draftLoader.load(source.entityId)
+          return articleService.draftLoader.load(
+            source.entityId
+          ) as Promise<Draft>
         }
         case 'Comment': {
-          return commentService.baseFindById(source.entityId)
+          return commentService.loadById(source.entityId)
+        }
+        default: {
+          throw new ServerError(`Unknown response type: ${source.type}`)
         }
       }
     })
   )
 
   // re-process edges
-  const edges = items.map((item: { [key: string]: any }) => {
-    const type = item.title ? NODE_TYPES.Article : NODE_TYPES.Comment
-    const id = type === 'Article' ? item.articleId : item.id
+  const isDraft = (item: Draft | Comment): item is Draft => 'title' in item
+  const edges = items.map((item) => {
+    const type = isDraft(item) ? NODE_TYPES.Article : NODE_TYPES.Comment
+    const id = isDraft(item) ? item.articleId : item.id
 
     return {
       cursor: toGlobalId({ type, id }),
-      node: { __type: type, ...item },
-    } as any
+      node: { __type: type, ...item } as any,
+    }
   })
 
   // handle page info
-  const head = sources[0] as { [key: string]: any }
-  const headSeq = head && parseInt(head.seq, 10)
+  const head = sources[0]
+  const headCursor = head && parseInt(head.createdAt, 10)
 
-  const tail = _last(sources) as { [key: string]: any }
-  const tailSeq = tail && parseInt(tail.seq, 10)
+  const tail = _last(sources)
+  const tailCursor = tail && parseInt(tail.createdAt, 10)
 
   const edgeHead = edges[0]
   const edgeTail = _last(edges)
 
   return {
     edges,
-    totalCount: range.count,
+    totalCount: head.count,
     pageInfo: {
       startCursor: edgeHead ? edgeHead.cursor : '',
       endCursor: edgeTail ? edgeTail.cursor : '',
       hasPreviousPage:
-        order === 'asc' ? headSeq > range.min : headSeq < range.max,
-      hasNextPage: order === 'asc' ? tailSeq < range.max : tailSeq > range.min,
+        order === 'asc'
+          ? headCursor > head.minCursor
+          : headCursor < head.maxCursor,
+      hasNextPage:
+        order === 'asc'
+          ? tailCursor < head.maxCursor
+          : tailCursor > head.minCursor,
     },
   }
 }

@@ -32,6 +32,12 @@ export class UserInputError extends GraphQLError {
   }
 }
 
+export class InvalidCursorError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'INVALID_CURSOR_ERROR' } })
+  }
+}
+
 export class ActionLimitExceededError extends GraphQLError {
   public constructor(message: string) {
     super(message, { extensions: { code: 'ACTION_LIMIT_EXCEEDED' } })

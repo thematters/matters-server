@@ -1,16 +1,21 @@
 import type { Connections } from 'definitions'
 
-import { ArticleService, UserService } from 'connectors'
+import { v4 } from 'uuid'
+
+import { COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import { ArticleService, UserService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections, createArticle } from './utils'
 
 let articleId: string
 let connections: Connections
 let articleService: ArticleService
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  atomService = new AtomService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -273,4 +278,66 @@ test('latestArticles', async () => {
     oss: false,
   })
   expect(articles.length).toBeGreaterThan(0)
+})
+
+describe('findResponses', () => {
+  const createComment = async (
+    state?: keyof typeof COMMENT_STATE,
+    parentCommentId?: string
+  ) => {
+    return atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '1',
+        targetId: '1',
+        targetTypeId: '4',
+        type: 'article',
+        parentCommentId,
+        state: state ?? COMMENT_STATE.active,
+      },
+    })
+  }
+  test('do not return archived comment not having any not-archived child comments', async () => {
+    const res1 = await articleService.findResponses({ id: '1' })
+    expect(res1.length).toBeGreaterThan(0)
+
+    // active comment will be returned
+    await createComment()
+    const res2 = await articleService.findResponses({ id: '1' })
+    expect(res2.length).toBe(res1.length + 1)
+
+    // archived comment will not be returned
+    const comment = await createComment(COMMENT_STATE.archived)
+    const res3 = await articleService.findResponses({ id: '1' })
+    expect(res3.length).toBe(res2.length)
+
+    // archived comment w/o not-archived child comments will not be returned
+    await createComment(COMMENT_STATE.archived, comment.id)
+    const res4 = await articleService.findResponses({ id: '1' })
+    expect(res4.length).toBe(res3.length)
+
+    // archived comment w not-archived child comments will be returned
+    await createComment(COMMENT_STATE.active, comment.id)
+    const res5 = await articleService.findResponses({ id: '1' })
+    expect(res5.length).toBe(res4.length + 1)
+  })
+  test('count is right', async () => {
+    const res = await articleService.findResponses({ id: '1' })
+    expect(+res[0].totalCount).toBe(res.length)
+
+    const res1 = await articleService.findResponses({ id: '1', first: 1 })
+    expect(+res1[0].totalCount).toBe(res.length)
+  })
+
+  test('cursor works', async () => {
+    const res = await articleService.findResponses({ id: '1' })
+    const res1 = await articleService.findResponses({
+      id: '1',
+      after: { type: NODE_TYPES.Comment, id: res[0].entityId },
+    })
+    expect(res1.length).toBe(res.length - 1)
+    expect(+res1[0].totalCount).toBe(res.length)
+  })
 })
