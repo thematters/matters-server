@@ -295,6 +295,13 @@ describe('query responses list on article', () => {
                 }
               }
             }
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
           }
         }
       }
