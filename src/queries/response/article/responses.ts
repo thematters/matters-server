@@ -60,7 +60,7 @@ const resolver: GQLArticleResolvers['responses'] = async (
   )
 
   // re-process edges
-  const isDraft = (item: Draft | Comment): item is Draft => 'articleId' in item
+  const isDraft = (item: Draft | Comment): item is Draft => 'title' in item
   const edges = items.map((item) => {
     const type = isDraft(item) ? NODE_TYPES.Article : NODE_TYPES.Comment
     const id = isDraft(item) ? item.articleId : item.id

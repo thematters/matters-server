@@ -273,3 +273,43 @@ describe('mutations on comment', () => {
     expect(_get(data, 'togglePinComment.pinned')).toBe(false)
   })
 })
+
+describe('query responses list on article', () => {
+  const GET_ARTILCE_RESPONSES = /* GraphQL */ `
+    query ($nodeInput: NodeInput!, $responsesInput: ResponsesInput!) {
+      node(input: $nodeInput) {
+        ... on Article {
+          id
+          responses(input: $responsesInput) {
+            edges {
+              node {
+                __typename
+                ... on Comment {
+                  id
+                  content
+                  state
+                }
+                ... on Article {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  test('query responses', async () => {
+    const server = await testClient({ isAuth: true, connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: ARTICLE_ID },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
+  })
+})
