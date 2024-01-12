@@ -299,7 +299,7 @@ describe('findResponses', () => {
       },
     })
   }
-  test('do not return archived comment not have any not-archived child comments', async () => {
+  test('do not return archived comment not having any not-archived child comments', async () => {
     const res1 = await articleService.findResponses({ id: '1' })
     expect(res1.length).toBeGreaterThan(0)
 
@@ -313,7 +313,7 @@ describe('findResponses', () => {
     const res3 = await articleService.findResponses({ id: '1' })
     expect(res3.length).toBe(res2.length)
 
-    // archived comment w/o not-archived child comments will be returned
+    // archived comment w/o not-archived child comments will not be returned
     await createComment(COMMENT_STATE.archived, comment.id)
     const res4 = await articleService.findResponses({ id: '1' })
     expect(res4.length).toBe(res3.length)
