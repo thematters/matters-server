@@ -72,6 +72,19 @@ const resolver: GQLArticleResolvers['responses'] = async (
   })
 
   // handle page info
+  if (!sources.length) {
+    return {
+      edges: [],
+      totalCount: 0,
+      pageInfo: {
+        startCursor: '',
+        endCursor: '',
+        hasPreviousPage: false,
+        hasNextPage: false,
+      },
+    }
+  }
+
   const head = sources[0]
   const headCursor = head && parseInt(head.createdAt, 10)
 
