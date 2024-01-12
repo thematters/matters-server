@@ -87,17 +87,17 @@ interface MaxInput {
  * This object is a container for data loaders or system wide services.
  */
 export class AtomService {
-  aws: typeof aws
-  cfsvc: typeof cfsvc
-  knex: Knex
+  private knex: Knex
+  public aws: typeof aws
+  public cfsvc: typeof cfsvc
 
-  circleIdLoader: DataLoader<string, Item>
-  draftIdLoader: DataLoader<string, Item>
-  userIdLoader: DataLoader<string, Item>
-  topicIdLoader: DataLoader<string, Item>
-  chapterIdLoader: DataLoader<string, Item>
+  public circleIdLoader: DataLoader<string, Item>
+  public draftIdLoader: DataLoader<string, Item>
+  public userIdLoader: DataLoader<string, Item>
+  public topicIdLoader: DataLoader<string, Item>
+  public chapterIdLoader: DataLoader<string, Item>
 
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     this.aws = aws
     this.cfsvc = cfsvc
     this.knex = connections.knex
@@ -114,7 +114,7 @@ export class AtomService {
   /**
    * Initialize typical data loader.
    */
-  initLoader = ({ table, mode }: InitLoaderInput) => {
+  private initLoader = ({ table, mode }: InitLoaderInput) => {
     const batchFn = async (keys: readonly string[]) => {
       let records = await this.findMany({
         table,
@@ -140,7 +140,7 @@ export class AtomService {
    *
    * A Prisma like method for retrieving a record by specified id.
    */
-  findUnique = async ({ table, where }: FindUniqueInput) =>
+  public findUnique = async ({ table, where }: FindUniqueInput) =>
     this.knex.select().from(table).where(where).first()
 
   /**
@@ -148,7 +148,12 @@ export class AtomService {
    *
    * A Prisma like method for getting the first record in rows.
    */
-  findFirst = async ({ table, where, whereIn, orderBy }: FindFirstInput) => {
+  public findFirst = async ({
+    table,
+    where,
+    whereIn,
+    orderBy,
+  }: FindFirstInput) => {
     const query = this.knex.select().from(table).where(where)
 
     if (whereIn) {
@@ -167,7 +172,7 @@ export class AtomService {
    *
    * A Prisma like mehtod for fetching records.
    */
-  findMany = async ({
+  public findMany = async ({
     table,
     select = ['*'],
     where,
@@ -215,7 +220,7 @@ export class AtomService {
    *
    * A Prisma like method for creating one record.
    */
-  create = async ({ table, data }: CreateInput) => {
+  public create = async ({ table, data }: CreateInput) => {
     const [record] = await this.knex(table).insert(data).returning('*')
     return record
   }
@@ -225,7 +230,12 @@ export class AtomService {
    *
    * A Prisma like method for updating a record.
    */
-  update = async ({ table, where, data, columns = '*' }: UpdateInput) => {
+  public update = async ({
+    table,
+    where,
+    data,
+    columns = '*',
+  }: UpdateInput) => {
     const [record] = await this.knex
       .where(where)
       .update(data)
@@ -234,7 +244,7 @@ export class AtomService {
     return record
   }
 
-  updateJsonColumn = async ({
+  public updateJsonColumn = async ({
     table,
     where,
     jsonColumn = 'extra', // the json column's name
@@ -269,7 +279,12 @@ export class AtomService {
    *
    * A Prisma like method for updating many records.
    */
-  updateMany = async ({ table, where, data, columns = '*' }: UpdateInput) =>
+  public updateMany = async ({
+    table,
+    where,
+    data,
+    columns = '*',
+  }: UpdateInput) =>
     this.knex.where(where).update(data).into(table).returning(columns)
 
   /**
@@ -277,7 +292,7 @@ export class AtomService {
    *
    * A Prisma like method for updating or creating a record.
    */
-  upsert = async ({ table, where, create, update }: UpsertInput) => {
+  public upsert = async ({ table, where, create, update }: UpsertInput) => {
     // TODO: Use onConflict instead
     // @see {@url https://github.com/knex/knex/pull/3763}
     const record = await this.knex(table)
@@ -304,7 +319,7 @@ export class AtomService {
    *
    * A Prisma like method for deleting multiple records.
    */
-  deleteMany = async ({ table, where, whereIn }: DeleteManyInput) => {
+  public deleteMany = async ({ table, where, whereIn }: DeleteManyInput) => {
     const action = this.knex(table)
     if (where) {
       action.where(where as Record<string, any>)
@@ -320,7 +335,7 @@ export class AtomService {
    *
    * A Prisma like method for counting records.
    */
-  count = async ({ table, where, whereIn }: CountInput) => {
+  public count = async ({ table, where, whereIn }: CountInput) => {
     const action = this.knex.count().from(table).where(where)
     if (whereIn) {
       action.whereIn(...whereIn)
@@ -335,7 +350,7 @@ export class AtomService {
    *
    * A Prisma like method for getting max.
    */
-  max = async ({ table, where, column }: MaxInput) => {
+  public max = async ({ table, where, column }: MaxInput) => {
     const record = await this.knex(table)
       .max(column)
       .where(where as Record<string, any>)

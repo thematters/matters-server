@@ -17,7 +17,14 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['putTopic'] = async (
   _,
   { input: { id, chapters, articles, cover, ...rest } },
-  { viewer, dataSources: { atomService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      systemService,
+      connections: { knex },
+    },
+  }
 ) => {
   // access control
   if (!viewer.userName) {
@@ -82,7 +89,7 @@ const resolver: GQLMutationResolvers['putTopic'] = async (
       )
 
       // join to get topic owner
-      const chapterObjs = await atomService.knex
+      const chapterObjs = await knex
         .select('chapter.id', 'topic.user_id')
         .from('chapter')
         .join('topic', 'chapter.topic_id', 'topic.id')
