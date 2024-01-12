@@ -86,10 +86,10 @@ const resolver: GQLArticleResolvers['responses'] = async (
   }
 
   const head = sources[0]
-  const headCursor = head && parseInt(head.createdAt, 10)
+  const headCursor = head && head.createdAt
 
   const tail = _last(sources)
-  const tailCursor = tail && parseInt(tail.createdAt, 10)
+  const tailCursor = tail && tail.createdAt
 
   const edgeHead = edges[0]
   const edgeTail = _last(edges)
