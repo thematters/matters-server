@@ -308,11 +308,24 @@ describe('query responses list on article', () => {
     }
   `
   test('query responses', async () => {
-    const server = await testClient({ isAuth: true, connections })
+    const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: GET_ARTILCE_RESPONSES,
       variables: {
         nodeInput: { id: ARTICLE_ID },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
+  })
+  test('query empty responses', async () => {
+    const articleId = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: articleId },
         responsesInput: {},
       },
     })
