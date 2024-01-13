@@ -2,10 +2,10 @@
 import type { Connections } from 'definitions'
 
 import { Knex } from 'knex'
+import { polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN,
-  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_TRANSACTION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -34,7 +34,7 @@ jest.mock('connectors/blockchain', () => ({
     fetchTxReceipt: mockFetchTxReceipt,
     fetchLogs: mockFetchLogs,
     fetchBlockNumber: mockFetchBlockNumber,
-    chainId: BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai,
+    chainId: polygonMumbai.id,
     address: environment.polygonCurationContractAddress.toLowerCase(),
   })),
 }))
