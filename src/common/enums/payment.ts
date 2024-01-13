@@ -43,13 +43,6 @@ export const BLOCKCHAIN = {
   Polygon: 'Polygon',
 } as const
 
-export const BLOCKCHAIN_CHAINID = {
-  [BLOCKCHAIN.Polygon]: {
-    PolygonMainnet: '137',
-    PolygonMumbai: '80001',
-  },
-} as const
-
 export const BLOCKCHAIN_CHAINNAME = {
   '137': BLOCKCHAIN.Polygon,
   '80001': BLOCKCHAIN.Polygon,

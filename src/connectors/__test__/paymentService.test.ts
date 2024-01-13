@@ -1,8 +1,9 @@
 import type { GQLChain, Connections } from 'definitions'
 
+import { polygonMumbai } from 'viem/chains'
+
 import {
   BLOCKCHAIN,
-  BLOCKCHAIN_CHAINID,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
@@ -90,9 +91,7 @@ describe('Transaction CRUD', () => {
     const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
       { chain, txHash }
     )
-    expect(blockchainTx.chainId).toEqual(
-      BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
-    )
+    expect(blockchainTx.chainId).toEqual(polygonMumbai.id + '')
     expect(blockchainTx.txHash).toEqual(txHash)
     expect(blockchainTx.state).toEqual('pending')
 

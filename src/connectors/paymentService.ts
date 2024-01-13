@@ -9,12 +9,11 @@ import type {
 
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-import _ from 'lodash'
 import { v4 } from 'uuid'
+import { polygon, polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN,
-  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
@@ -266,9 +265,7 @@ export class PaymentService extends BaseService {
 
     let chainId
     if (chain.valueOf() === BLOCKCHAIN.Polygon.valueOf()) {
-      chainId = isProd
-        ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
-        : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
+      chainId = isProd ? polygon.id : polygonMumbai.id
     }
     const where = {
       txHash: txHashDb,
