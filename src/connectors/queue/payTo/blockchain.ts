@@ -3,6 +3,7 @@ import type { EmailableUser, Connections } from 'definitions'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
+import { formatUnits, parseUnits } from 'viem'
 
 import {
   BLOCKCHAIN,
@@ -28,7 +29,6 @@ import {
   polygonUSDTContractDecimals,
 } from 'common/environment'
 import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
-import { fromTokenBaseUnit, toTokenBaseUnit } from 'common/utils'
 import {
   PaymentService,
   UserService,
@@ -103,8 +103,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
   }
 
   /**
-   * Pay-to handler.
+   * Pay-to handler, process USDT tx synchronously.
    *
+   * 1. Mark tx as succeeded if tx is mined and matched;
+   * 2. Otherwise, mark tx as failed;
    */
   private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
@@ -142,13 +144,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     if (txReceipt.reverted) {
-      await this.failBothTxAndBlockchainTx(
+      // fail both tx and blockchain tx
+      await this.updateTxAndBlockchainTxState({
         txId,
-        blockchainTx.id,
-        paymentService
-      )
+        txState: TRANSACTION_STATE.failed,
+        blockchainTxId: blockchainTx.id,
+        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
+      })
       return data
     }
+
     const [recipient, sender, article] = await Promise.all([
       userService.baseFindById(tx.recipientId),
       userService.baseFindById(tx.senderId),
@@ -158,45 +163,28 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }),
     ])
 
-    const creatorAddress = recipient.ethAddress
-    const curatorAddress = sender.ethAddress
-    const cid = article.dataHash
-    const tokenAddress = polygonUSDTContractAddress
-    const amount = tx.amount
-    const decimals = polygonUSDTContractDecimals
-
-    // txReceipt does not match with tx record in database
-    if (
-      !(await this.containMatchedEvent(txReceipt.events, {
-        creatorAddress,
-        curatorAddress,
-        cid,
-        tokenAddress,
-        amount,
-        decimals,
-      }))
-    ) {
-      await this.updateTxAndBlockchainTxState(
-        {
-          txId,
-          txState: TRANSACTION_STATE.canceled,
-          txRemark: TRANSACTION_REMARK.INVALID,
-        },
-        {
-          blockchainTxId: blockchainTx.id,
-          blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
-        },
-        paymentService
-      )
+    // cancel tx and success blockchain tx if it's invalid
+    const isValidUSDTTx = await this.containMatchedEvent(txReceipt.events, {
+      creatorAddress: recipient.ethAddress,
+      curatorAddress: sender.ethAddress,
+      cid: article.dataHash,
+      tokenAddress: polygonUSDTContractAddress,
+      amount: tx.amount,
+      decimals: polygonUSDTContractDecimals,
+    })
+    if (!isValidUSDTTx) {
+      await this.updateTxAndBlockchainTxState({
+        txId,
+        txState: TRANSACTION_STATE.canceled,
+        txRemark: TRANSACTION_REMARK.INVALID,
+        blockchainTxId: blockchainTx.id,
+        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+      })
       return data
     }
 
     // update pending tx
-    await this.succeedBothTxAndBlockchainTx(
-      txId,
-      blockchainTx.id,
-      paymentService
-    )
+    await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
     // notification
     await paymentService.notifyDonation({ tx, sender, recipient, article })
@@ -208,8 +196,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
   }
 
   /**
-   * syncCurationEvents handler.
+   * syncCurationEvents handler, process blockchain tx asynchronously.
+   * TODO: supports arbitrary tokens
    *
+   * 1. Fetch and save curation events from blockchain;
+   * 2. Upsert `blockchain_transaction` if needed;
+   * 3. Upsert `transaction` if needed;
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
@@ -230,6 +222,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private _handleSyncCurationEvents = async () => {
     const atomService = new AtomService(this.connections)
+
     // fetch events
     const syncRecordTable = 'blockchain_sync_record'
     const curation = new CurationContract()
@@ -254,15 +247,24 @@ export class PayToByBlockchainQueue extends BaseQueue {
     await atomService.upsert({
       table: syncRecordTable,
       where: { chainId, contractAddress },
-      update: { chainId, contractAddress, blockNumber: newSavepoint },
-      create: { chainId, contractAddress, blockNumber: newSavepoint },
+      update: {
+        chainId,
+        contractAddress,
+        blockNumber: newSavepoint,
+        updatedAt: this.connections.knex.fn.now(),
+      },
+      create: {
+        chainId,
+        contractAddress,
+        blockNumber: newSavepoint,
+      },
     })
 
     return newSavepoint
   }
 
   private handleNewEvent = async (
-    log: Log<CurationEvent>,
+    event: CurationEvent,
     blockchainTx: {
       id: string
       transactionId: string
@@ -275,9 +277,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       atomService: AtomService
     }
   ) => {
-    const { paymentService, userService, articleService, atomService } =
-      services
-    const event = log.event
+    const { paymentService, userService, atomService } = services
+
     // related tx record has resolved
     if (
       blockchainTx.transactionId &&
@@ -302,23 +303,26 @@ export class PayToByBlockchainQueue extends BaseQueue {
       return
     }
     const cid = extractCid(event.uri)
-    const articles = await articleService.baseFind({
-      where: { author_id: creatorUser.id, data_hash: cid },
+    const article = await atomService.findFirst({
+      table: 'article',
+      where: { authorId: creatorUser.id, dataHash: cid },
     })
-    if (articles.length === 0) {
+    if (!article) {
       return
     }
-    const article = articles[0]
 
     // donation is from Matters
     const amount = parseFloat(
-      fromTokenBaseUnit(event.amount, polygonUSDTContractDecimals)
+      formatUnits(BigInt(event.amount), polygonUSDTContractDecimals)
     )
 
     let tx
     // find related tx
     if (blockchainTx.transactionId) {
-      tx = await paymentService.baseFindById(blockchainTx.transactionId)
+      tx = await atomService.findFirst({
+        table: 'transaction',
+        where: { id: blockchainTx.transactionId },
+      })
     } else {
       tx = await atomService.findFirst({
         table: 'transaction',
@@ -332,9 +336,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         await atomService.update({
           table: 'blockchain_transaction',
           where: { id: blockchainTx.id },
-          data: {
-            transactionId: tx.id,
-          },
+          data: { transactionId: tx.id },
         })
         if (tx.state === TRANSACTION_STATE.succeeded) {
           return
@@ -343,21 +345,17 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     if (tx) {
-      // this blackchain tx record, related tx record, validate it
-      if (
+      const isValidTx =
         tx.senderId === curatorUser.id &&
         tx.recipientId === creatorUser.id &&
         tx.targetId === article.id &&
-        toTokenBaseUnit(tx.amount, polygonUSDTContractDecimals) === event.amount
-      ) {
-        // related tx record is valid, update its state
-        await this.succeedBothTxAndBlockchainTx(
-          tx.id,
-          blockchainTx.id,
-          paymentService
-        )
-      } else {
-        // related tx record is invalid, correct it and update state
+        parseUnits(tx.amount, polygonUSDTContractDecimals).toString() ===
+          event.amount
+
+      // correct tx data if it's invalid
+      // invalid case 1: sender or recipient changed their ETH address
+      // invalid case 2: payTo mutation was called with wrong articleId or amount
+      if (!isValidTx) {
         await atomService.update({
           table: 'transaction',
           where: { id: tx.id },
@@ -371,14 +369,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
             providerTxId: blockchainTx.id,
           },
         })
-        await this.succeedBothTxAndBlockchainTx(
-          tx.id,
-          blockchainTx.id,
-          paymentService
-        )
       }
+
+      // update tx state
+      await this.succeedBothTxAndBlockchainTx(tx.id, blockchainTx.id)
     } else {
-      // no related tx record, create one
+      // no related tx record (interacted with contract directly), create one
       const trx = await this.connections.knex.transaction()
       try {
         tx = await paymentService.createTransaction(
@@ -407,6 +403,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         throw error
       }
     }
+
     if (
       curatorUser.userName &&
       creatorUser.userName &&
@@ -444,53 +441,69 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const userService = new UserService(this.connections)
     const articleService = new ArticleService(this.connections)
     const atomService = new AtomService(this.connections)
-    const events = []
+
+    // save events to `blockchain_curation_event`
+    const events: any[] = []
+    const curation = new CurationContract()
     for (const log of logs) {
       if (log.removed) {
-        // getlogs from final blocks should not return removed logs
+        // get logs from final blocks should not return removed logs
         throw new UnknownError('unexpected removed logs')
       }
+
       const data: any = { ...log.event }
       const blockchainTx =
         await paymentService.findOrCreateBlockchainTransaction(
           { chain: BLOCKCHAIN.Polygon, txHash: log.txHash },
-          { state: BLOCKCHAIN_TRANSACTION_STATE.succeeded }
+          {
+            state: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+            from: log.event.curatorAddress,
+            to: curation.address,
+            blockNumber: log.blockNumber,
+          }
         )
       data.blockchainTransactionId = blockchainTx.id
       data.contractAddress = log.address
-      await this.handleNewEvent(log, blockchainTx, {
-        paymentService,
-        userService,
-        articleService,
-        atomService,
-      })
+
+      // correct tx if needed
+      try {
+        await this.handleNewEvent(log.event, blockchainTx, {
+          paymentService,
+          userService,
+          articleService,
+          atomService,
+        })
+      } catch (error) {
+        this.slackService.sendQueueMessage({
+          data: { error },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `'Failed to handle new event`,
+          state: SLACK_MESSAGE_STATE.failed,
+        })
+      }
 
       events.push(data)
     }
+
     if (events.length >= 0) {
       await paymentService.baseBatchCreate(events, 'blockchain_curation_event')
     }
   }
 
-  private updateTxAndBlockchainTxState = async (
-    {
-      txId,
-      txState,
-      txRemark,
-    }: {
-      txId: string
-      txState: TRANSACTION_STATE
-      txRemark?: TRANSACTION_REMARK
-    },
-    {
-      blockchainTxId,
-      blockchainTxState,
-    }: {
-      blockchainTxId: string
-      blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
-    },
-    paymentService: PaymentService
-  ) => {
+  private updateTxAndBlockchainTxState = async ({
+    txId,
+    txState,
+    txRemark,
+    blockchainTxId,
+    blockchainTxState,
+  }: {
+    txId: string
+    txState: TRANSACTION_STATE
+    txRemark?: TRANSACTION_REMARK
+    blockchainTxId: string
+    blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE
+  }) => {
+    const paymentService = new PaymentService(this.connections)
     const trx = await this.connections.knex.transaction()
     try {
       await paymentService.markTransactionStateAs(
@@ -515,34 +528,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
   }
 
-  private failBothTxAndBlockchainTx = async (
-    txId: string,
-    blockchainTxId: string,
-    paymentService: PaymentService
-  ) => {
-    await this.updateTxAndBlockchainTxState(
-      { txId, txState: TRANSACTION_STATE.failed },
-      {
-        blockchainTxId,
-        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.reverted,
-      },
-      paymentService
-    )
-  }
-
   private succeedBothTxAndBlockchainTx = async (
     txId: string,
-    blockchainTxId: string,
-    paymentService: PaymentService
+    blockchainTxId: string
   ) => {
-    await this.updateTxAndBlockchainTxState(
-      { txId, txState: TRANSACTION_STATE.succeeded },
-      {
-        blockchainTxId,
-        blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
-      },
-      paymentService
-    )
+    await this.updateTxAndBlockchainTxState({
+      txId,
+      txState: TRANSACTION_STATE.succeeded,
+      blockchainTxId,
+      blockchainTxState: BLOCKCHAIN_TRANSACTION_STATE.succeeded,
+    })
   }
 
   private containMatchedEvent = async (
@@ -576,7 +571,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         ignoreCaseMatch(event.curatorAddress, curatorAddress) &&
         ignoreCaseMatch(event.creatorAddress, creatorAddress) &&
         ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
-        event.amount === toTokenBaseUnit(amount, decimals) &&
+        event.amount === parseUnits(amount, decimals).toString() &&
         isValidUri(event.uri) &&
         extractCid(event.uri) === cid
       ) {

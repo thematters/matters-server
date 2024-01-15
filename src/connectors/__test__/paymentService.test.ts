@@ -56,7 +56,7 @@ describe('Transaction CRUD', () => {
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae876f7be'
   const txHashUppercase =
     '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE876F7BE'
-  const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
+  const chain = BLOCKCHAIN.Polygon as GQLChain
 
   test('create Transaction', async () => {
     const txn = await paymentService.createTransaction({

@@ -141,95 +141,91 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     targetId: target.id,
   }
 
-  switch (currency) {
-    case 'LIKE':
-      if (!viewer.likerId || !recipient.likerId) {
-        throw new ForbiddenError('viewer or recipient has no liker id')
-      }
-      // insert a pending transaction
-      const { id: targetTypeId } = await targetService.baseFindEntityTypeId(
-        TRANSACTION_TARGET_TYPE.article
+  if (currency === PAYMENT_CURRENCY.LIKE) {
+    if (!viewer.likerId || !recipient.likerId) {
+      throw new ForbiddenError('viewer or recipient has no liker id')
+    }
+    // insert a pending transaction
+    const { id: targetTypeId } = await targetService.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+    const pendingTxId = `${v4()}-${targetTypeId}-${target.id}`
+    transaction = await paymentService.createTransaction({
+      ...baseParams,
+      state: TRANSACTION_STATE.pending,
+      currency: PAYMENT_CURRENCY.LIKE,
+      purpose: TRANSACTION_PURPOSE[purpose],
+      provider: PAYMENT_PROVIDER.likecoin,
+      providerTxId: pendingTxId,
+    })
+
+    const { likecoinPayURL, likecoinPayCallbackURL, likecoinPayLikerId } =
+      environment
+    const params = new URLSearchParams()
+    params.append('to', recipient.likerId)
+    params.append('amount', amount.toString())
+    params.append('via', likecoinPayLikerId)
+    params.append('fee', '0')
+    params.append('state', pendingTxId)
+    params.append('redirect_uri', likecoinPayCallbackURL)
+    params.append('blocking', 'true')
+
+    redirectUrl = `${likecoinPayURL}?${params}`
+  } else if (currency === PAYMENT_CURRENCY.HKD) {
+    const balance = await paymentService.calculateHKDBalance({
+      userId: viewer.id,
+    })
+    if (amount > balance) {
+      throw new PaymentBalanceInsufficientError(
+        'viewer has insufficient balance'
       )
-      const pendingTxId = `${v4()}-${targetTypeId}-${target.id}`
-      transaction = await paymentService.createTransaction({
+    }
+
+    if (amount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
+      throw new PaymentReachMaximumLimitError('payment reached maximum limit')
+    }
+
+    const hasPaidAmount = await paymentService.sumTodayDonationTransactions({
+      senderId: viewer.id,
+    })
+    if (amount + hasPaidAmount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
+      throw new PaymentReachMaximumLimitError(
+        'payment reached daily maximum limit'
+      )
+    }
+
+    // insert pending tx
+    transaction = await paymentService.createTransaction({
+      ...baseParams,
+      state: TRANSACTION_STATE.pending,
+      currency: PAYMENT_CURRENCY.HKD,
+      purpose: TRANSACTION_PURPOSE[purpose],
+      provider: PAYMENT_PROVIDER.matters,
+      providerTxId: v4(),
+    })
+
+    // insert queue job
+    payToByMattersQueue.payTo({ txId: transaction.id })
+  } else if (currency === PAYMENT_CURRENCY.USDT) {
+    if (!chain) {
+      throw new UserInputError('`chain` is required if `currency` is `USDT`')
+    }
+    if (!txHash) {
+      throw new UserInputError('`txHash` is required if `currency` is `USDT`')
+    }
+    if (!isValidTransactionHash(txHash)) {
+      throw new UserInputError('invalid transaction hash')
+    }
+    transaction =
+      await paymentService.findOrCreateTransactionByBlockchainTxHash({
         ...baseParams,
+        chain,
+        txHash,
         state: TRANSACTION_STATE.pending,
-        currency: PAYMENT_CURRENCY.LIKE,
+        currency: PAYMENT_CURRENCY.USDT,
         purpose: TRANSACTION_PURPOSE[purpose],
-        provider: PAYMENT_PROVIDER.likecoin,
-        providerTxId: pendingTxId,
       })
-
-      const { likecoinPayURL, likecoinPayCallbackURL, likecoinPayLikerId } =
-        environment
-      const params = new URLSearchParams()
-      params.append('to', recipient.likerId)
-      params.append('amount', amount.toString())
-      params.append('via', likecoinPayLikerId)
-      params.append('fee', '0')
-      params.append('state', pendingTxId)
-      params.append('redirect_uri', likecoinPayCallbackURL)
-      params.append('blocking', 'true')
-
-      redirectUrl = `${likecoinPayURL}?${params}`
-      break
-    case 'HKD':
-      const balance = await paymentService.calculateHKDBalance({
-        userId: viewer.id,
-      })
-      if (amount > balance) {
-        throw new PaymentBalanceInsufficientError(
-          'viewer has insufficient balance'
-        )
-      }
-
-      if (amount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
-        throw new PaymentReachMaximumLimitError('payment reached maximum limit')
-      }
-
-      const hasPaidAmount = await paymentService.sumTodayDonationTransactions({
-        senderId: viewer.id,
-      })
-      if (amount + hasPaidAmount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
-        throw new PaymentReachMaximumLimitError(
-          'payment reached daily maximum limit'
-        )
-      }
-
-      // insert pending tx
-      transaction = await paymentService.createTransaction({
-        ...baseParams,
-        state: TRANSACTION_STATE.pending,
-        currency: PAYMENT_CURRENCY.HKD,
-        purpose: TRANSACTION_PURPOSE[purpose],
-        provider: PAYMENT_PROVIDER.matters,
-        providerTxId: v4(),
-      })
-
-      // insert queue job
-      payToByMattersQueue.payTo({ txId: transaction.id })
-      break
-    case 'USDT':
-      if (!chain) {
-        throw new UserInputError('`chain` is required if `currency` is `USDT`')
-      }
-      if (!txHash) {
-        throw new UserInputError('`txHash` is required if `currency` is `USDT`')
-      }
-      if (!isValidTransactionHash(txHash)) {
-        throw new UserInputError('invalid transaction hash')
-      }
-      transaction =
-        await paymentService.findOrCreateTransactionByBlockchainTxHash({
-          ...baseParams,
-          chain,
-          txHash,
-          state: TRANSACTION_STATE.pending,
-          currency: PAYMENT_CURRENCY.USDT,
-          purpose: TRANSACTION_PURPOSE[purpose],
-        })
-      payToByBlockchainQueue.payTo({ txId: transaction.id })
-      break
+    payToByBlockchainQueue.payTo({ txId: transaction.id })
   }
 
   return { transaction, redirectUrl }
