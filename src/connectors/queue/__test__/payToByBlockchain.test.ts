@@ -6,6 +6,7 @@ import { polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN,
+  BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -69,7 +70,7 @@ const recipientId = '1'
 const senderId = '2'
 const targetId = '1'
 const targetType = TRANSACTION_TARGET_TYPE.article
-const chain = BLOCKCHAIN.Polygon.valueOf() as GQLChain
+const chain = BLOCKCHAIN.Polygon as GQLChain
 
 const invalidTxhash =
   '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
@@ -282,7 +283,8 @@ describe('payToByBlockchainQueue.payTo', () => {
 
 describe('payToByBlockchainQueue.syncCurationEvents', () => {
   const latestBlockNum = BigInt(30000128)
-  const safeBlockNum = BigInt(30000000)
+  const safeBlockNum =
+    latestBlockNum - BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN.Polygon])
   const txTable = 'transaction'
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
@@ -316,10 +318,15 @@ describe('payToByBlockchainQueue.syncCurationEvents', () => {
     // @ts-ignore
     await queue._handleSyncCurationEvents()
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
+    const oldSavepoint = await knex(syncRecordTable).first()
     // update record
     // @ts-ignore
     await queue._handleSyncCurationEvents()
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
+    const newSavepoint = await knex(syncRecordTable).first()
+    expect(new Date(newSavepoint.updatedAt).getTime()).toBeGreaterThan(
+      new Date(oldSavepoint.updatedAt).getTime()
+    )
   })
   test('fetch logs', async () => {
     const curation = new CurationContract()

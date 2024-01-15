@@ -48,7 +48,6 @@ const erc20TokenCurationEventABI = [
     ],
   },
 ] as const
-type Erc20Params = { from: Hex; to: Hex; uri: string; amount: bigint }
 
 // native token
 const nativeTokenCurationEventSignature =
@@ -65,17 +64,6 @@ const nativeTokenCurationEventABI = [
     ],
   },
 ] as const
-type NativeTokenParams = {
-  curator: Hex
-  creator: Hex
-  token: Hex
-  uri: string
-  amount: bigint
-}
-// typeguards for viem
-const isErc20TokenParams = (
-  t: Erc20Params | NativeTokenParams
-): t is Erc20Params => (t as Erc20Params).from !== undefined
 
 // additional constants
 const CURATION_ABI = [
@@ -192,26 +180,26 @@ export class CurationContract extends BaseContract {
       events: targets
         .map((log) =>
           decodeEventLog({
-            abi: this.contract.abi as typeof CURATION_ABI,
-            ...log,
+            abi: CURATION_ABI,
+            data: log.data,
+            topics: log.topics as [signature: `0x${string}`, ...hex: Hex[]],
           })
         )
         .map((e) => {
+          const log = e.args
+          const isERC20 = 'curator' in log
           const curatorAddress = (
-            isErc20TokenParams(e.args) ? e.args.from : e.args.curator
+            isERC20 ? log.curator : log.from
           ).toLowerCase()
-          const creatorAddress = (
-            isErc20TokenParams(e.args) ? e.args.to : e.args.creator
-          ).toLowerCase()
-          const tokenAddress = !isErc20TokenParams(e.args)
-            ? e.args?.token?.toLowerCase()
-            : null
+          const creatorAddress = (isERC20 ? log.creator : log.to).toLowerCase()
+          const tokenAddress = isERC20 ? log.token.toLowerCase() : null
+
           return {
             curatorAddress,
             creatorAddress,
-            uri: e.args?.uri,
+            uri: log?.uri,
             tokenAddress,
-            amount: e.args?.amount?.toString(),
+            amount: log?.amount?.toString(),
           }
         }),
     }

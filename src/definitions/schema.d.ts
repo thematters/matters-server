@@ -2294,7 +2294,7 @@ export type GQLPageInfo = {
 
 export type GQLPayToInput = {
   amount: Scalars['Float']['input']
-  /** for USDT payment */
+  /** for ERC20/native token payment */
   chain?: InputMaybe<GQLChain>
   currency: GQLTransactionCurrency
   /** for HKD payment */
@@ -3217,7 +3217,7 @@ export type GQLTopicInput = {
 export type GQLTransaction = {
   __typename?: 'Transaction'
   amount: Scalars['Float']['output']
-  /** blockchain transaction info of USDT payment transaction */
+  /** blockchain transaction info of ERC20/native token payment transaction */
   blockchainTx?: Maybe<GQLBlockchainTransaction>
   /** Timestamp of transaction. */
   createdAt: Scalars['DateTime']['output']
