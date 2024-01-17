@@ -2335,6 +2335,7 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.succeeded,
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2383,6 +2384,7 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.succeeded,
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2475,6 +2477,7 @@ export class UserService extends BaseService {
         })
       }
       return user
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: null,
@@ -2596,6 +2599,7 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.succeeded,
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2623,6 +2627,7 @@ export class UserService extends BaseService {
     try {
       const result = await query
       return result
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       // duplicate key error
       if (err.code === '23505') {
@@ -2654,6 +2659,7 @@ export class UserService extends BaseService {
         status: AUDIT_LOG_STATUS.succeeded,
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -2706,6 +2712,7 @@ export class UserService extends BaseService {
     try {
       userInfo = await twitter.fetchAccessToken(oauthToken, oauthVerifier)
       return userInfo
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       throw new OAuthTokenInvalidError(err.message)
     } finally {
@@ -2735,6 +2742,7 @@ export class UserService extends BaseService {
     try {
       const response = await axios.post(url, data, { headers })
       return response.data.access_token
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response.status === 400) {
         logger.warn('exchange twitter failed: ', error.response.data)
@@ -2768,22 +2776,67 @@ export class UserService extends BaseService {
     authorizationCode: string,
     codeVerifier: string
   ) => {
-    const { id_token } = await this.exchangeFacebookToken(
+    const { id_token, access_token } = await this.exchangeFacebookToken(
       authorizationCode,
       codeVerifier
     )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = jwt.decode(id_token) as any
     if (data.aud !== environment.facebookClientId) {
       throw new OAuthTokenInvalidError('Facebook token id aud is invalid')
     }
+    // Facebook apps return app scoped id instead of real id, when switch to another app, the id will be different
+    const ids = await this.fetchFacebookUserAppScopedIds(access_token)
+    if (ids.length > 1) {
+      logger.warn('facebook user has multiple app scoped ids: %j', ids)
+      for (const id of ids) {
+        const account = await this.getSocialAccount({
+          type: SOCIAL_LOGIN_TYPE.Facebook,
+          providerAccountId: id,
+        })
+        if (account) {
+          return { id: account.providerAccountId, username: account.userName }
+        }
+      }
+    }
+
     return { id: data.sub, username: data.name }
+  }
+
+  /**
+   * fetch facebook user all logged-in app scoped ids
+   * @see {@link https://developers.facebook.com/docs/facebook-login/guides/map-users/}
+   */
+  private fetchFacebookUserAppScopedIds = async (
+    accessToken: string
+  ): Promise<string[]> => {
+    try {
+      const response = await axios.get(
+        `https://graph.facebook.com/v18.0/me/ids_for_business`,
+        {
+          params: {
+            access_token: accessToken,
+          },
+        }
+      )
+      return response.data.data.map((item: { id: string }) => item.id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn('fetch facebook app ids failed: ', error.response.data)
+        throw new OAuthTokenInvalidError('exchange facebook app ids failed')
+      }
+      logger.error('fetch facebook app ids error: ', error)
+      throw new UnknownError('exchange facebook app ids failed')
+    }
   }
 
   private exchangeFacebookToken = async (
     authorizationCode: string,
     codeVerifier: string
   ): Promise<{ access_token: string; id_token: string }> => {
-    const url = 'https://graph.facebook.com/v17.0/oauth/access_token'
+    const url = 'https://graph.facebook.com/v18.0/oauth/access_token'
     try {
       const response = await axios.get(url, {
         params: {
@@ -2794,13 +2847,14 @@ export class UserService extends BaseService {
         },
       })
       return response.data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response.status === 400) {
         // logger.error('fetch facebook error: ', error)
-        logger.warn('fetch facebook failed: ', error.response.data)
+        logger.warn('fetch facebook token failed: ', error.response.data)
         throw new OAuthTokenInvalidError('exchange facebook token failed')
       }
-      logger.error('fetch facebook error: ', error)
+      logger.error('fetch facebook token error: ', error)
       throw new UnknownError('exchange facebook token failed')
     }
   }
@@ -2814,6 +2868,7 @@ export class UserService extends BaseService {
     nonce: string
   ) => {
     const { id_token } = await this.exchangeGoogleToken(authorizationCode)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = jwt.decode(id_token) as any
     if (data.aud !== environment.googleClientId) {
       throw new OAuthTokenInvalidError('Google token id aud is invalid')
@@ -2845,6 +2900,7 @@ export class UserService extends BaseService {
     try {
       const response = await axios.post(url, data, { headers })
       return response.data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response.status === 400) {
         // logger.error('fetch facebook error: ', error)
