@@ -152,6 +152,12 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.refund.updated': {
         const refund = event.data.object as Stripe.Refund
+
+        // ignore if refund is not failed
+        if (refund.status !== 'failed') {
+          break
+        }
+
         await createOrUpdateFailedRefundTx(refund, paymentService)
         slack.sendStripeAlert({
           message: `Refund for ${toDBAmount({ amount: refund.amount })} ${
