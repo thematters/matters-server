@@ -105,8 +105,9 @@ export class PayToByBlockchainQueue extends BaseQueue {
   /**
    * Pay-to handler, process USDT tx synchronously.
    *
-   * 1. Mark tx as succeeded if tx is mined and matched;
-   * 2. Otherwise, mark tx as failed;
+   * 1. Mark tx as succeeded if tx is mined;
+   * 2. Mark tx as failed if blockchain tx or tx is reverted;
+   * 3. Skip to process if tx is not found or mined;
    */
   private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
@@ -116,21 +117,21 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const userService = new UserService(this.connections)
     const atomService = new AtomService(this.connections)
 
+    // skip if tx is not found
     const tx = await paymentService.baseFindById(txId)
     if (!tx) {
       job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
     }
-
     if (tx.provider !== PAYMENT_PROVIDER.blockchain) {
       job.discard()
       throw new PaymentQueueJobDataError('wrong pay-to queue')
     }
 
+    // skip if blockchain tx is not found
     const blockchainTx = await paymentService.findBlockchainTransactionById(
       tx.providerTxId
     )
-
     if (!blockchainTx) {
       job.discard()
       throw new PaymentQueueJobDataError('blockchain transaction not found')
@@ -139,12 +140,13 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const curation = new CurationContract()
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
+    // skip if tx is not mined
     if (!txReceipt) {
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
     }
 
+    // fail both tx and blockchain tx if it's reverted
     if (txReceipt.reverted) {
-      // fail both tx and blockchain tx
       await this.updateTxAndBlockchainTxState({
         txId,
         txState: TRANSACTION_STATE.failed,
@@ -164,15 +166,15 @@ export class PayToByBlockchainQueue extends BaseQueue {
     ])
 
     // cancel tx and success blockchain tx if it's invalid
-    const isValidUSDTTx = await this.containMatchedEvent(txReceipt.events, {
-      creatorAddress: recipient.ethAddress,
-      curatorAddress: sender.ethAddress,
+    // Note: sender and recipient's ETH address may change after tx is created
+    const isValidTx = await this.containMatchedEvent(txReceipt.events, {
       cid: article.dataHash,
-      tokenAddress: polygonUSDTContractAddress,
       amount: tx.amount,
+      // support USDT only for now
+      tokenAddress: polygonUSDTContractAddress,
       decimals: polygonUSDTContractDecimals,
     })
-    if (!isValidUSDTTx) {
+    if (!isValidTx) {
       await this.updateTxAndBlockchainTxState({
         txId,
         txState: TRANSACTION_STATE.canceled,
@@ -183,15 +185,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
       return data
     }
 
-    // update pending tx
+    // success both tx and blockchain tx if it's valid
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
-    // notification
+    // notify sender and recipient
     await paymentService.notifyDonation({ tx, sender, recipient, article })
 
     await this.invalidCache(tx.targetType, tx.targetId, userService)
     job.progress(100)
-
     return data
   }
 
@@ -543,15 +544,11 @@ export class PayToByBlockchainQueue extends BaseQueue {
   private containMatchedEvent = async (
     events: CurationEvent[],
     {
-      curatorAddress,
-      creatorAddress,
       cid,
       tokenAddress,
       amount,
       decimals,
     }: {
-      curatorAddress?: string
-      creatorAddress?: string
       cid: string
       tokenAddress: string
       amount: string
@@ -562,14 +559,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       return false
     }
 
-    if (!curatorAddress || !creatorAddress) {
-      return false
-    }
-
     for (const event of events) {
       if (
-        ignoreCaseMatch(event.curatorAddress, curatorAddress) &&
-        ignoreCaseMatch(event.creatorAddress, creatorAddress) &&
         ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
         event.amount === parseUnits(amount, decimals).toString() &&
         isValidUri(event.uri) &&
