@@ -1,3 +1,4 @@
 .eslintrc.js
 src/definitions/schema.d.ts
 build/*
+**/__test__/*

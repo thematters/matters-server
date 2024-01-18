@@ -26,7 +26,7 @@ const resolver: GQLArticleResolvers['translation'] = async (
       articleService,
       paymentService,
       tagService,
-      connections: { redis },
+      connections: { redis, knex },
     },
   }
 ) => {
@@ -101,7 +101,7 @@ const resolver: GQLArticleResolvers['translation'] = async (
       table: 'article_translation',
       where: { articleId, language },
       create: data,
-      update: { ...data, updatedAt: atomService.knex.fn.now() },
+      update: { ...data, updatedAt: knex.fn.now() },
     })
 
     // translate tags
@@ -127,7 +127,7 @@ const resolver: GQLArticleResolvers['translation'] = async (
               table: 'tag_translation',
               where: { tagId: tag.id },
               create: tagData,
-              update: { ...tagData, updatedAt: atomService.knex.fn.now() },
+              update: { ...tagData, updatedAt: knex.fn.now() },
             })
           })
         )
