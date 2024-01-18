@@ -142,7 +142,11 @@ stripeRouter.post('/', async (req, res) => {
         if (charge.refunds === null) {
           throw new Error('No refunds found in charge.refunded event')
         }
+
+        // create refunx tnxs with the status 'succeeded' instead of 'pending'
+        // to prevent users spend these funds before tnxs are settled.
         await createRefundTxs(charge.refunds, paymentService)
+
         slack.sendStripeAlert({
           message: `Refund created for ${toDBAmount({
             amount: charge.amount,
@@ -152,6 +156,12 @@ stripeRouter.post('/', async (req, res) => {
       }
       case 'charge.refund.updated': {
         const refund = event.data.object as Stripe.Refund
+
+        // ignore if refund is succeeded
+        if (refund.status === 'succeeded') {
+          break
+        }
+
         await createOrUpdateFailedRefundTx(refund, paymentService)
         slack.sendStripeAlert({
           message: `Refund for ${toDBAmount({ amount: refund.amount })} ${
