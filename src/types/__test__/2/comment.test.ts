@@ -273,3 +273,63 @@ describe('mutations on comment', () => {
     expect(_get(data, 'togglePinComment.pinned')).toBe(false)
   })
 })
+
+describe('query responses list on article', () => {
+  const GET_ARTILCE_RESPONSES = /* GraphQL */ `
+    query ($nodeInput: NodeInput!, $responsesInput: ResponsesInput!) {
+      node(input: $nodeInput) {
+        ... on Article {
+          id
+          responses(input: $responsesInput) {
+            edges {
+              node {
+                __typename
+                ... on Comment {
+                  id
+                  content
+                  state
+                }
+                ... on Article {
+                  id
+                  title
+                }
+              }
+            }
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+  `
+  test('query responses', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: ARTICLE_ID },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
+  })
+  test('query empty responses', async () => {
+    const articleId = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: articleId },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
+  })
+})

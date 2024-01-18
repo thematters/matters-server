@@ -10,6 +10,7 @@ import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
 import singleFileUpload from './singleFileUpload'
+import submitReport from './submitReport'
 import toggleSeedingUsers from './toggleSeedingUsers'
 
 export default {
@@ -27,5 +28,6 @@ export default {
     addBlockedSearchKeyword,
     deleteBlockedSearchKeywords,
     putRestrictedUsers,
+    submitReport,
   },
 }

@@ -156,6 +156,9 @@ type Mutation {
 
   """Delete blocked search keywords from search_history db"""
   deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
+  """Submit inappropriate content report"""
+  submitReport(input: SubmitReportInput!): Report!
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
@@ -1004,6 +1007,11 @@ type User implements Node {
 
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
+
+  """user latest articles or collections"""
+  latestWorks: [PinnableWork!]!
+
+  """user pinned articles or collections"""
   pinnedWorks: [PinnableWork!]!
 
   """Tags by by usage order of current user."""
@@ -1992,6 +2000,14 @@ type UserRestriction {
   createdAt: DateTime!
 }
 
+type Report implements Node {
+  id: ID!
+  reporter: User!
+  target: Response!
+  reason: ReportReason!
+  createdAt: DateTime!
+}
+
 input NodeInput {
   id: ID!
 }
@@ -2138,6 +2154,11 @@ input PutRestrictedUsersInput {
   restrictions: [UserRestrictionType!]!
 }
 
+input SubmitReportInput {
+  targetId: ID!
+  reason: ReportReason!
+}
+
 enum SearchTypes {
   Article
   User
@@ -2248,6 +2269,14 @@ enum AnnouncementType {
 enum UserRestrictionType {
   articleHottest
   articleNewest
+}
+
+enum ReportReason {
+  tort
+  illegal_advertising
+  discrimination_insult_hatred
+  pornography_involving_minors
+  other
 }
 
 enum CacheControlScope {

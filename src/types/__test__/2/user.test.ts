@@ -15,8 +15,8 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService, PaymentService } from 'connectors'
+import { createDonationTx, createTx } from 'connectors/__test__/utils'
 
-import { createDonationTx, createTx } from '../../../connectors/__test__/utils'
 import {
   defaultTestUser,
   getUserContext,

@@ -38,9 +38,6 @@ export interface PageInfo {
 
 const PREFIX = 'arrayconnection'
 
-export const cursorToOffset = (cursor: ConnectionCursor | undefined): number =>
-  cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
-
 export const cursorToIndex = (cursor: ConnectionCursor | undefined): number =>
   cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 

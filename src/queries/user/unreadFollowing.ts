@@ -20,10 +20,6 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
     type: LOG_RECORD_TYPES.ReadFollowingFeed,
   })
 
-  if (!readFollowingFeedLog) {
-    return true
-  }
-
   const latestActivity = await knexRO
     .select()
     .from(
@@ -78,6 +74,10 @@ const resolver: GQLUserStatusResolvers['unreadFollowing'] = async (
 
   if (!latestActivity) {
     return false
+  }
+
+  if (!readFollowingFeedLog) {
+    return true
   }
 
   return readFollowingFeedLog.readAt < latestActivity.createdAt

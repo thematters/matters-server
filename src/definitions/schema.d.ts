@@ -27,6 +27,7 @@ import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
 import { Topic as TopicModel } from './topic'
+import { Report as ReportModel } from './report'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -1608,6 +1609,8 @@ export type GQLMutation = {
   socialLogin: GQLAuthResult
   /** Sort topics */
   sortTopics: Array<GQLTopic>
+  /** Submit inappropriate content report */
+  submitReport: GQLReport
   /** Subscribe a Circle. */
   subscribeCircle: GQLSubscribeCircleResult
   toggleArticleRecommend: GQLArticle
@@ -1934,6 +1937,10 @@ export type GQLMutationSocialLoginArgs = {
 
 export type GQLMutationSortTopicsArgs = {
   input: GQLSortTopicsInput
+}
+
+export type GQLMutationSubmitReportArgs = {
+  input: GQLSubmitReportInput
 }
 
 export type GQLMutationSubscribeCircleArgs = {
@@ -2718,6 +2725,22 @@ export type GQLReorderMoveInput = {
   newPosition: Scalars['Int']['input']
 }
 
+export type GQLReport = GQLNode & {
+  __typename?: 'Report'
+  createdAt: Scalars['DateTime']['output']
+  id: Scalars['ID']['output']
+  reason: GQLReportReason
+  reporter: GQLUser
+  target: GQLResponse
+}
+
+export type GQLReportReason =
+  | 'discrimination_insult_hatred'
+  | 'illegal_advertising'
+  | 'other'
+  | 'pornography_involving_minors'
+  | 'tort'
+
 export type GQLResetLikerIdInput = {
   id: Scalars['ID']['input']
 }
@@ -2974,6 +2997,11 @@ export type GQLStripeAccountCountry =
   | 'Sweden'
   | 'UnitedKingdom'
   | 'UnitedStates'
+
+export type GQLSubmitReportInput = {
+  reason: GQLReportReason
+  targetId: Scalars['ID']['input']
+}
 
 export type GQLSubscribeCircleInput = {
   /** Unique ID. */
@@ -3454,6 +3482,8 @@ export type GQLUser = GQLNode & {
   isFollowee: Scalars['Boolean']['output']
   /** Whether current user is following viewer. */
   isFollower: Scalars['Boolean']['output']
+  /** user latest articles or collections */
+  latestWorks: Array<GQLPinnableWork>
   /** Liker info of current user */
   liker: GQLLiker
   /** LikerID of LikeCoin, being used by LikeCoin OAuth */
@@ -3468,6 +3498,7 @@ export type GQLUser = GQLNode & {
   paymentPointer?: Maybe<Scalars['String']['output']>
   /** Tags pinned by current user. */
   pinnedTags: GQLTagConnection
+  /** user pinned articles or collections */
   pinnedWorks: Array<GQLPinnableWork>
   /** Article recommendations for current user. */
   recommendation: GQLRecommendation
@@ -4075,6 +4106,7 @@ export type GQLResolversInterfaceTypes<
     | CollectionModel
     | CommentModel
     | DraftModel
+    | ReportModel
     | TagModel
     | TopicModel
     | UserModel
@@ -4433,6 +4465,8 @@ export type GQLResolversTypes = ResolversObject<{
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
+  Report: ResolverTypeWrapper<ReportModel>
+  ReportReason: GQLReportReason
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetPasswordType: GQLResetPasswordType
@@ -4476,6 +4510,7 @@ export type GQLResolversTypes = ResolversObject<{
   String: ResolverTypeWrapper<Scalars['String']['output']>
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
+  SubmitReportInput: GQLSubmitReportInput
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: ResolverTypeWrapper<
     Omit<GQLSubscribeCircleResult, 'circle'> & {
@@ -4887,6 +4922,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   RenameTagInput: GQLRenameTagInput
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
+  Report: ReportModel
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetWalletInput: GQLResetWalletInput
@@ -4918,6 +4954,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SortTopicsInput: GQLSortTopicsInput
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
+  SubmitReportInput: GQLSubmitReportInput
   SubscribeCircleInput: GQLSubscribeCircleInput
   SubscribeCircleResult: Omit<GQLSubscribeCircleResult, 'circle'> & {
     circle: GQLResolversParentTypes['Circle']
@@ -6931,6 +6968,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationSortTopicsArgs, 'input'>
   >
+  submitReport?: Resolver<
+    GQLResolversTypes['Report'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSubmitReportArgs, 'input'>
+  >
   subscribeCircle?: Resolver<
     GQLResolversTypes['SubscribeCircleResult'],
     ParentType,
@@ -7161,6 +7204,7 @@ export type GQLNodeResolvers<
     | 'Collection'
     | 'Comment'
     | 'Draft'
+    | 'Report'
     | 'Tag'
     | 'Topic'
     | 'User',
@@ -7729,6 +7773,18 @@ export type GQLRecommendationResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLReportResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Report'] = GQLResolversParentTypes['Report']
+> = ResolversObject<{
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
+  reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLResponseResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Response'] = GQLResolversParentTypes['Response']
@@ -8265,6 +8321,11 @@ export type GQLUserResolvers<
   isBlocking?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollowee?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   isFollower?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  latestWorks?: Resolver<
+    Array<GQLResolversTypes['PinnableWork']>,
+    ParentType,
+    ContextType
+  >
   liker?: Resolver<GQLResolversTypes['Liker'], ParentType, ContextType>
   likerId?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -8799,6 +8860,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   RecentSearchConnection?: GQLRecentSearchConnectionResolvers<ContextType>
   RecentSearchEdge?: GQLRecentSearchEdgeResolvers<ContextType>
   Recommendation?: GQLRecommendationResolvers<ContextType>
+  Report?: GQLReportResolvers<ContextType>
   Response?: GQLResponseResolvers<ContextType>
   ResponseConnection?: GQLResponseConnectionResolvers<ContextType>
   ResponseEdge?: GQLResponseEdgeResolvers<ContextType>

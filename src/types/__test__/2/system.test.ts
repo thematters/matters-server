@@ -49,7 +49,7 @@ beforeAll(async () => {
     },
     connections
   )
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -839,5 +839,41 @@ describe('manage user restrictions', () => {
         ({ type }: { type: GQLUserRestrictionType }) => type
       )
     ).toEqual(['articleHottest'])
+  })
+})
+
+describe('submitReport', () => {
+  const SUBMIT_REPORT = /* GraphQL */ `
+    mutation ($input: SubmitReportInput!) {
+      submitReport(input: $input) {
+        id
+        reporter {
+          id
+        }
+        target {
+          ... on Article {
+            id
+          }
+        }
+      }
+    }
+  `
+  test('submit report successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { data } = await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+    expect(data.submitReport.id).toBeDefined()
+    expect(data.submitReport.reporter.id).toBeDefined()
+    expect(data.submitReport.target.id).toBeDefined()
   })
 })

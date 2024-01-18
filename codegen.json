@@ -62,7 +62,8 @@
           "OfficialAnnouncementNotice": "./notification#NoticeItem",
           "Appreciation": "./appreciation#Appreciation",
           "OAuthClient": "./user#OAuthClientDB",
-          "Topic": "./topic#Topic"
+          "Topic": "./topic#Topic",
+          "Report": "./report#Report"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

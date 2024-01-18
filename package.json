@@ -36,7 +36,6 @@
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push:dev": "rover graph publish matters-stage@current --schema ./schema.graphql",
     "schema:push:prod": "rover graph publish matters-production@current --schema ./schema.graphql",
-    "search:init": "ts-node --files src/common/utils/initSearchIndices.ts",
     "prepare": "husky install"
   },
   "dependencies": {
