@@ -16,7 +16,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { environment, polygonUSDTContractAddress } from 'common/environment'
-import { PaymentQueueJobDataError, UnknownError } from 'common/errors'
+import { PaymentQueueJobDataError } from 'common/errors'
 import { PaymentService } from 'connectors'
 import { CurationContract } from 'connectors/blockchain'
 import { PayToByBlockchainQueue } from 'connectors/queue'
@@ -278,6 +278,39 @@ describe('payToByBlockchainQueue.payTo', () => {
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
   })
+
+  test('no matched sender address will mark transaction as anonymous', async () => {
+    const knex = connections.knex
+    const txTable = 'transaction'
+    const blockchainTxTable = 'blockchain_transaction'
+    const eventTable = 'blockchain_curation_event'
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+
+    const tx = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chainId,
+      txHash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId: '3', // user w/0 eth address
+      targetId,
+      targetType,
+    })
+    const job = await queue.payTo({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
+    const ret = await paymentService.baseFindById(tx.id)
+    expect(ret.senderId).toBeNull()
+    expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
+    const blockchainTx = await paymentService.baseFindById(
+      tx.providerTxId,
+      'blockchain_transaction'
+    )
+    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
+  })
 })
 
 describe('payToByBlockchainQueue._syncCurationEvents', () => {
@@ -382,7 +415,10 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       await knex(eventTable).where({ tokenAddress: null }).count()
     ).toEqual([{ count: '1' }])
   })
-  test('removed logs will throw error', async () => {
+  test('removed logs will be ignored', async () => {
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
     const removedLog = {
       txHash,
       address: polygonCurationContractAddress,
@@ -391,25 +427,16 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       event: validEvent,
     }
     // @ts-ignore
-    await expect(queue._syncCurationEvents([removedLog])).rejects.toThrow(
-      new UnknownError('unexpected removed logs')
-    )
+    await queue._syncCurationEvents([removedLog])
+    expect(await knex(txTable).count()).toEqual([{ count: '0' }])
+    expect(await knex(blockchainTxTable).count()).toEqual([{ count: '0' }])
+    expect(await knex(eventTable).count()).toEqual([{ count: '0' }])
   })
-  test('not matters logs will not update tx', async () => {
+  test('invalid logs will not update tx', async () => {
     await knex(eventTable).del()
     await knex(blockchainTxTable).del()
     await knex(txTable).del()
-    const notMattersLogs = [
-      {
-        txHash: 'fakeTxhash1',
-        address: polygonCurationContractAddress,
-        blockNumber: 1,
-        removed: false,
-        event: {
-          ...validEvent,
-          curatorAddress: zeroAdress,
-        },
-      },
+    const invalidLogs = [
       {
         txHash: 'fakeTxhash2',
         address: polygonCurationContractAddress,
@@ -442,12 +469,12 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(notMattersLogs)
+    await queue._syncCurationEvents(invalidLogs)
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
-    expect(await knex(blockchainTxTable).count()).toEqual([{ count: '4' }])
-    expect(await knex(eventTable).count()).toEqual([{ count: '4' }])
+    expect(await knex(blockchainTxTable).count()).toEqual([{ count: '3' }])
+    expect(await knex(eventTable).count()).toEqual([{ count: '3' }])
   })
-  test('matters logs will update tx', async () => {
+  test('valid logs will update tx', async () => {
     await knex(eventTable).del()
     await knex(blockchainTxTable).del()
     await knex(txTable).del()
@@ -492,9 +519,10 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
 
-    // related tx is invalid, correct it and update to succeeded
+    // related tx sender/recipient is invalid, won't be corrected
     await knex(eventTable).del()
-    await knex(txTable).update({ recipientId: '3' })
+    await knex(txTable).update({ senderId: '3' })
+    await knex(txTable).update({ recipientId: '4' })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
     await knex(blockchainTxTable).update({
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
@@ -507,7 +535,8 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const updatedBlockchainTx2 = await knex(blockchainTxTable)
       .where('id', blockchainTx.id)
       .first()
-    expect(updatedTx2.recipientId).toBe(tx.recipientId)
+    expect(updatedTx2.senderId).toBe('3')
+    expect(updatedTx2.recipientId).toBe('4')
     expect(updatedTx2.state).toBe(TRANSACTION_STATE.succeeded)
     expect(updatedBlockchainTx2.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
