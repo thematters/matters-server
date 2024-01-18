@@ -1,9 +1,6 @@
 import type { Address, Hash, Hex } from 'viem'
 
 import { decodeEventLog, encodeEventTopics, parseAbiItem } from 'viem'
-import { polygon, polygonMumbai } from 'viem/chains'
-
-import { environment, isProd } from 'common/environment'
 
 import { BaseContract } from './baseContract'
 
@@ -70,19 +67,13 @@ const CURATION_ABI = [
   ...erc20TokenCurationEventABI,
   ...nativeTokenCurationEventABI,
 ] as const
-const contractAddress =
-  environment.polygonCurationContractAddress.toLowerCase() as Address
-
-const chainId = isProd ? polygon.id : polygonMumbai.id
-
-// CurationContract
 
 export class CurationContract extends BaseContract {
   public erc20TokenCurationEventTopic: Hex[]
   public nativeTokenCurationEventTopic: Hex[]
 
-  public constructor() {
-    super(chainId, contractAddress, CURATION_ABI)
+  public constructor(chainId: number, contractAddress: string) {
+    super(chainId, contractAddress as Address, CURATION_ABI)
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: 'Curation',
@@ -124,7 +115,7 @@ export class CurationContract extends BaseContract {
       })
       const baseLog = {
         txHash: log.transactionHash,
-        address: contractAddress,
+        address: this.address,
         blockNumber: Number(log.blockNumber),
         removed: log.removed,
       }
