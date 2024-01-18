@@ -1,9 +1,8 @@
-import type { GQLChain, Connections } from 'definitions'
+import type { Connections } from 'definitions'
 
 import { polygonMumbai } from 'viem/chains'
 
 import {
-  BLOCKCHAIN,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
@@ -56,7 +55,7 @@ describe('Transaction CRUD', () => {
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae876f7be'
   const txHashUppercase =
     '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE876F7BE'
-  const chain = BLOCKCHAIN.Polygon as GQLChain
+  const chainId = polygonMumbai.id
 
   test('create Transaction', async () => {
     const txn = await paymentService.createTransaction({
@@ -89,20 +88,23 @@ describe('Transaction CRUD', () => {
   test('get or create BlockchainTransaction', async () => {
     // create
     const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
-      { chain, txHash }
+      { chainId, txHash }
     )
-    expect(blockchainTx.chainId).toEqual(polygonMumbai.id + '')
+    expect(blockchainTx.chainId).toEqual(chainId + '')
     expect(blockchainTx.txHash).toEqual(txHash)
     expect(blockchainTx.state).toEqual('pending')
 
     // get
     const blockchainTx2 =
-      await paymentService.findOrCreateBlockchainTransaction({ chain, txHash })
+      await paymentService.findOrCreateBlockchainTransaction({
+        chainId,
+        txHash,
+      })
     expect(blockchainTx2.id).toEqual(blockchainTx.id)
     // get with uppercase txHash
     const blockchainTx3 =
       await paymentService.findOrCreateBlockchainTransaction({
-        chain,
+        chainId,
         txHash: txHashUppercase,
       })
     expect(blockchainTx3.id).toEqual(blockchainTx.id)
@@ -114,7 +116,7 @@ describe('Transaction CRUD', () => {
 
     // create
     const txn = await paymentService.findOrCreateTransactionByBlockchainTxHash({
-      chain,
+      chainId,
       txHash: txHash2,
       amount,
       fee,
@@ -129,7 +131,7 @@ describe('Transaction CRUD', () => {
     })
     const blockchainTx = await paymentService.findOrCreateBlockchainTransaction(
       {
-        chain,
+        chainId,
         txHash: txHash2,
       }
     )
@@ -152,7 +154,7 @@ describe('Transaction CRUD', () => {
     // get
     const txn2 = await paymentService.findOrCreateTransactionByBlockchainTxHash(
       {
-        chain,
+        chainId,
         txHash: txHash2,
         amount,
         fee,
