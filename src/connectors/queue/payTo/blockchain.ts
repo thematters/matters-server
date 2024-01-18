@@ -190,7 +190,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // anonymize tx if sender's ETH address is not matched
     const isSenderMatched = txReceipt.events
       .map((e) => e.curatorAddress)
-      .every((address) => ignoreCaseMatch(address, sender.ethAddress))
+      .every((address) => ignoreCaseMatch(address, sender.ethAddress || ''))
     if (!isSenderMatched) {
       await atomService.update({
         table: 'transaction',
@@ -254,7 +254,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     )
 
     // update tx state and save events
-    await this._syncCurationEvents(logs, curation)
+    await this._syncCurationEvents(logs)
 
     // save progress
     await atomService.upsert({
@@ -435,15 +435,15 @@ export class PayToByBlockchainQueue extends BaseQueue {
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
 
-  private _syncCurationEvents = async (
-    logs: Array<Log<CurationEvent>>,
-    curation: CurationContract
-  ) => {
+  private _syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
     const paymentService = new PaymentService(this.connections)
     const userService = new UserService(this.connections)
     const articleService = new ArticleService(this.connections)
     const atomService = new AtomService(this.connections)
+
     const chainId = isProd ? polygon.id : polygonMumbai.id
+    const contractAddress = environment.polygonCurationContractAddress
+    const curation = new CurationContract(chainId, contractAddress)
 
     // save events to `blockchain_curation_event`
     const events: any[] = []
