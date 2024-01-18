@@ -142,6 +142,9 @@ export const createOrUpdateFailedRefundTx = async (
   refund: Stripe.Refund,
   paymentService: PaymentService
 ) => {
+  if (refund.status !== 'failed') {
+    throw new Error('Expect updated refund status to be failed')
+  }
   const refundTx = (
     await paymentService.findTransactions({
       providerTxId: refund.id,
