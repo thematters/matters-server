@@ -1,6 +1,5 @@
 import type {
   CirclePrice,
-  GQLChain,
   Transaction,
   EmailableUser,
   Connections,
@@ -9,12 +8,9 @@ import type {
 
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
-import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  BLOCKCHAIN,
-  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_TRANSACTION_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
@@ -26,7 +22,6 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { isProd } from 'common/environment'
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
@@ -257,32 +252,30 @@ export class PaymentService extends BaseService {
     this.baseFindById(id, 'blockchain_transaction')
 
   public findOrCreateBlockchainTransaction = async (
-    { chain, txHash }: { chain: GQLChain; txHash: string },
-    data?: { state?: BLOCKCHAIN_TRANSACTION_STATE },
+    { chainId, txHash }: { chainId: number; txHash: string },
+    data?: {
+      state?: BLOCKCHAIN_TRANSACTION_STATE
+      from?: string
+      to?: string
+      blockNumber?: number
+    },
     trx?: Knex.Transaction
   ) => {
     const table = 'blockchain_transaction'
     const txHashDb = txHash.toLowerCase()
 
-    let chainId
-    if (chain.valueOf() === BLOCKCHAIN.Polygon.valueOf()) {
-      chainId = isProd
-        ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
-        : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
+    const where = { txHash: txHashDb, chainId }
+
+    const toInsert = {
+      ...where,
+      ...(data || {}),
     }
-    const where = {
-      txHash: txHashDb,
-      chainId,
-    }
-    const toInsert = { ...where } as any
-    if (data && data.state) {
-      toInsert.state = data.state
-    }
+
     return this.baseFindOrCreate({ where, data: toInsert, table, trx })
   }
 
   public findOrCreateTransactionByBlockchainTxHash = async ({
-    chain,
+    chainId,
     txHash,
 
     amount,
@@ -299,7 +292,7 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
-    chain: GQLChain
+    chainId: number
     txHash: string
 
     amount: number
@@ -319,7 +312,7 @@ export class PaymentService extends BaseService {
     const trx = await this.knex.transaction()
     try {
       const blockchainTx = await this.findOrCreateBlockchainTransaction(
-        { chain, txHash },
+        { chainId, txHash },
         undefined,
         trx
       )
@@ -1053,7 +1046,7 @@ export class PaymentService extends BaseService {
     article,
   }: {
     tx: Transaction
-    sender: EmailableUser
+    sender?: EmailableUser
     recipient: EmailableUser
     article: {
       title: string
@@ -1066,7 +1059,6 @@ export class PaymentService extends BaseService {
     const atomService = new AtomService(this.connections)
     const notificationService = new NotificationService(this.connections)
     const amount = parseFloat(tx.amount)
-    // send email to sender
     const author = await atomService.findFirst({
       table: 'user',
       where: { id: article.authorId },
@@ -1089,29 +1081,32 @@ export class PaymentService extends BaseService {
       hasReplyToDonator,
     }
 
-    const donationCount = await this.donationCount(sender.id)
-    await notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      article: _article,
-      tx: {
-        recipient,
-        sender,
-        amount,
-        currency: tx.currency,
-        donationCount,
-      },
-      language: sender.language,
-    })
+    // send email to sender
+    if (sender) {
+      const donationCount = await this.donationCount(sender.id)
+      await notificationService.mail.sendPayment({
+        to: sender.email,
+        recipient: {
+          displayName: sender.displayName,
+          userName: sender.userName,
+        },
+        type: 'donated',
+        article: _article,
+        tx: {
+          recipient,
+          sender,
+          amount,
+          currency: tx.currency,
+          donationCount,
+        },
+        language: sender.language,
+      })
+    }
 
     // send email to recipient
     await notificationService.trigger({
       event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
+      actorId: sender?.id || null,
       recipientId: recipient.id,
       entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
     })

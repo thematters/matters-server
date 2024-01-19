@@ -99,7 +99,7 @@ export default /* GraphQL */ `
     "Message for end user, including reason of failure."
     message: String
 
-    "blockchain transaction info of USDT payment transaction"
+    "blockchain transaction info of ERC20/native token payment transaction"
     blockchainTx: BlockchainTransaction
   }
 
@@ -179,9 +179,11 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
     recipientId: ID!
     targetId: ID
+
     "for HKD payment"
     password: String
-    "for USDT payment"
+
+    "for ERC20/native token payment"
     chain: Chain
     txHash: String
   }
