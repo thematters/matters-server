@@ -28,12 +28,15 @@ const resolver: GQLArticleResolvers['transactionsReceivedBy'] = async (
       purpose: dashCase(input.purpose) as TRANSACTION_PURPOSE,
       targetId: articleId,
       senderId: recipientDbId,
+      excludeNullSender: true,
     }),
     articleService.findTransactions({
-      skip,
-      take,
+      purpose: dashCase(input.purpose) as TRANSACTION_PURPOSE,
       targetId: articleId,
       senderId: recipientDbId,
+      skip,
+      take,
+      excludeNullSender: true,
     }),
   ])
 

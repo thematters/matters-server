@@ -424,6 +424,9 @@ type Article implements Node & PinnableWork {
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
+  """Donors of this article"""
+  donors(input: ConnectionArgs!): ArticleDonorConnection!
+
   """Cumulative reading time in seconds"""
   readTime: Float!
 
@@ -675,6 +678,22 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+type ArticleDonorConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ArticleDonorEdge!]
+}
+
+type ArticleDonorEdge {
+  cursor: String!
+  node: ArticleDonor!
+}
+
+type ArticleDonor {
+  id: ID!
+  sender: User
 }
 
 input ArticleInput {

@@ -1424,43 +1424,85 @@ export class ArticleService extends BaseService {
    *          Transaction          *
    *                               *
    *********************************/
-  /**
-   * Count an article's transactions by a given articleId.
-   */
-  public countTransactions = async ({
+  public makeTransactionsQuery = ({
     purpose = TRANSACTION_PURPOSE.donation,
     state = TRANSACTION_STATE.succeeded,
     targetId,
-    targetType = TRANSACTION_TARGET_TYPE.article,
     senderId,
+    targetType,
+    excludeNullSender,
   }: {
     purpose?: TRANSACTION_PURPOSE
     state?: TRANSACTION_STATE
     targetId: string
-    targetType?: TRANSACTION_TARGET_TYPE
     senderId?: string
+    targetType: string
+    excludeNullSender?: boolean
   }) => {
-    const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-    const result = await this.knexRO
-      .select()
-      .from((knex: Knex.QueryBuilder) => {
-        const source = knex
-          .select('sender_id', 'target_id')
-          .from('transaction')
-          .where({
-            purpose,
-            state,
-            targetId,
-            targetType: entityTypeId,
-          })
-          .groupBy('sender_id', 'target_id')
-        source.as('source')
-      })
+    const where = {
+      purpose,
+      state,
+      targetId,
+      targetType,
+    }
+
+    const rankedTransactionsSubquery = this.knex('transaction')
+      .select([
+        'id',
+        'sender_id',
+        'target_id',
+        this.knex.raw(
+          'row_number() OVER (PARTITION BY target_id, sender_id ORDER BY id) AS rn'
+        ),
+      ])
+      .where(where)
+      .whereNotNull('sender_id')
       .modify((builder: Knex.QueryBuilder) => {
         if (senderId) {
           builder.where({ senderId })
         }
       })
+      .as('RankedTransactions')
+
+    const rankedTransactions = this.knex
+      .from(rankedTransactionsSubquery)
+      .select(['id', 'sender_id', 'target_id'])
+      .where('rn', 1)
+
+    const nullSenderTransactions = this.knex('transaction')
+      .select(['id', 'sender_id', 'target_id'])
+      .where(where)
+      .whereNull('sender_id')
+
+    if (excludeNullSender) {
+      return rankedTransactions
+    }
+
+    return rankedTransactions.unionAll([nullSenderTransactions])
+  }
+
+  /**
+   * Count an article's transactions by a given articleId and group by sender.
+   */
+  public countTransactions = async (params: {
+    purpose?: TRANSACTION_PURPOSE
+    state?: TRANSACTION_STATE
+    targetId: string
+    targetType?: TRANSACTION_TARGET_TYPE
+    senderId?: string
+    excludeNullSender?: boolean
+  }) => {
+    const { id: targetType } = await this.baseFindEntityTypeId(
+      params.targetType || TRANSACTION_TARGET_TYPE.article
+    )
+    const combinedQuery = this.makeTransactionsQuery({
+      ...params,
+      targetType,
+    })
+
+    const result = await this.knex
+      .select()
+      .from(combinedQuery.as('source'))
       .count()
       .first()
 
@@ -1468,16 +1510,12 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Find an article's transactions by a given articleId.
+   * Find an article's transactions by a given articleId and group by sender.
    */
   public findTransactions = async ({
     take,
     skip,
-    purpose = TRANSACTION_PURPOSE.donation,
-    state = TRANSACTION_STATE.succeeded,
-    targetId,
-    targetType = TRANSACTION_TARGET_TYPE.article,
-    senderId,
+    ...restParams
   }: {
     take?: number
     skip?: number
@@ -1486,29 +1524,24 @@ export class ArticleService extends BaseService {
     targetId: string
     targetType?: TRANSACTION_TARGET_TYPE
     senderId?: string
+    excludeNullSender?: boolean
   }) => {
-    const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
-    return this.knex('transaction')
-      .select('sender_id', 'target_id')
-      .where({
-        purpose,
-        state,
-        targetId,
-        targetType: entityTypeId,
-      })
-      .groupBy('sender_id', 'target_id')
-      .sum('amount as amount')
-      .max('created_at as created_at')
-      .orderBy('created_at', 'desc')
+    const { id: targetType } = await this.baseFindEntityTypeId(
+      restParams.targetType || TRANSACTION_TARGET_TYPE.article
+    )
+    const combinedQuery = this.makeTransactionsQuery({
+      ...restParams,
+      targetType,
+    })
+
+    return combinedQuery
+      .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
         }
         if (take !== undefined && Number.isFinite(take)) {
           builder.limit(take)
-        }
-        if (senderId) {
-          builder.where({ senderId })
         }
       })
   }
