@@ -24,6 +24,10 @@ const resolver: GQLWalletResolvers['transactions'] = async (
   const { id, states, filter } = input
   const { take, skip } = fromConnectionArgs(input)
 
+  if (!viewer.id) {
+    return connectionFromArray([], input)
+  }
+
   let txId
   if (id) {
     txId = fromGlobalId(id).id
