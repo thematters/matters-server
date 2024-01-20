@@ -9,7 +9,6 @@ import {
   TRANSACTION_STATE,
   TransactionRemarkText,
 } from 'common/enums'
-import { AuthenticationError } from 'common/errors'
 import {
   connectionFromArray,
   fromConnectionArgs,
@@ -26,7 +25,7 @@ const resolver: GQLWalletResolvers['transactions'] = async (
   const { take, skip } = fromConnectionArgs(input)
 
   if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+    return connectionFromArray([], input)
   }
 
   let txId
