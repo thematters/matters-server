@@ -236,7 +236,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
-      let syncedBlocknum: bigint
+      let syncedBlocknum: number
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
       } catch (error) {
@@ -290,7 +290,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       },
     })
 
-    return newSavepoint
+    return Number(newSavepoint)
   }
 
   private _handleNewEvent = async (
