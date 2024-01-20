@@ -23,8 +23,9 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import {
-  environment,
   isProd,
+  polygonCurationContractAddress,
+  polygonCurationContractBlocknum,
   polygonUSDTContractAddress,
   polygonUSDTContractDecimals,
 } from 'common/environment'
@@ -138,7 +139,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = environment.polygonCurationContractAddress
+    const contractAddress = polygonCurationContractAddress
     const curation = new CurationContract(chainId, contractAddress)
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
@@ -239,7 +240,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
     // fetch events
     const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = environment.polygonCurationContractAddress
+    const contractAddress = polygonCurationContractAddress
     const curation = new CurationContract(chainId, contractAddress)
     const record = await atomService.findFirst({
       table: 'blockchain_sync_record',
@@ -247,7 +248,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     })
     const oldSavepoint = record
       ? BigInt(parseInt(record.blockNumber, 10))
-      : BigInt(parseInt(environment.polygonCurationContractBlocknum, 10) || 0)
+      : BigInt(parseInt(polygonCurationContractBlocknum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
@@ -442,7 +443,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const atomService = new AtomService(this.connections)
 
     const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = environment.polygonCurationContractAddress
+    const contractAddress = polygonCurationContractAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     // save events to `blockchain_curation_event`
@@ -479,7 +480,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         this.slackService.sendQueueMessage({
           data: { error },
           title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-          message: `'Failed to handle new event`,
+          message: `Failed to handle new event`,
           state: SLACK_MESSAGE_STATE.failed,
         })
       }

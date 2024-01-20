@@ -137,10 +137,6 @@ export const environment = {
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
-  polygonCurationContractAddress:
-    process.env.MATTERS_POLYGON_CURATION_CONTRACT_ADDRESS || '',
-  polygonCurationContractBlocknum:
-    process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
   twitterConsumerKey: process.env.MATTERS_TWITTER_CONSUMER_KEY || '',
@@ -159,7 +155,14 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 }
 
-export const polygonUSDTContractAddress = isProd
-  ? '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
-  : '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
+export const polygonUSDTContractAddress = (
+  isProd
+    ? '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
+    : '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
+).toLowerCase()
 export const polygonUSDTContractDecimals = isProd ? 6 : 18
+export const polygonCurationContractAddress = (
+  process.env.MATTERS_POLYGON_CURATION_CONTRACT_ADDRESS || ''
+).toLowerCase()
+export const polygonCurationContractBlocknum =
+  process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || ''
