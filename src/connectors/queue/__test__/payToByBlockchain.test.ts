@@ -15,7 +15,10 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import { environment, polygonUSDTContractAddress } from 'common/environment'
+import {
+  polygonCurationContractAddress,
+  polygonUSDTContractAddress,
+} from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { PaymentService } from 'connectors'
 import { CurationContract } from 'connectors/blockchain'
@@ -35,7 +38,7 @@ jest.mock('connectors/blockchain', () => ({
     fetchLogs: mockFetchLogs,
     fetchBlockNumber: mockFetchBlockNumber,
     chainId,
-    address: environment.polygonCurationContractAddress.toLowerCase(),
+    address: polygonCurationContractAddress,
   })),
 }))
 
@@ -54,9 +57,6 @@ afterAll(async () => {
 })
 
 // test data
-
-const polygonCurationContractAddress =
-  environment.polygonCurationContractAddress.toLowerCase()
 const zeroAdress = '0x0000000000000000000000000000000000000000'
 
 const amount = 1
@@ -361,7 +361,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
   test('fetch logs', async () => {
-    const contractAddress = environment.polygonCurationContractAddress
+    const contractAddress = polygonCurationContractAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     const oldSavepoint1 = BigInt(20000000)

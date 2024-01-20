@@ -1,13 +1,14 @@
 import { polygonMumbai } from 'viem/chains'
 
-import { environment } from 'common/environment'
 import { CurationContract } from 'connectors/blockchain'
-
-const contractAddress = environment.polygonCurationContractAddress
+import { polygonCurationContractAddress } from 'common/environment'
 
 describe('curationContract', () => {
   test('compute topics correctly', async () => {
-    const curation = new CurationContract(polygonMumbai.id, contractAddress)
+    const curation = new CurationContract(
+      polygonMumbai.id,
+      polygonCurationContractAddress
+    )
     expect(curation.erc20TokenCurationEventTopic[0]).toBe(
       '0xc2e41b3d49bbccbac6ceb142bad6119608adf4f1ee1ca5cc6fc332e0ca2fc602'
     )
@@ -17,13 +18,19 @@ describe('curationContract', () => {
   })
   test.skip('fetchLogs correctly', async () => {
     jest.setTimeout(0)
-    const curation = new CurationContract(polygonMumbai.id, contractAddress)
+    const curation = new CurationContract(
+      polygonMumbai.id,
+      polygonCurationContractAddress
+    )
     const logs = await curation.fetchLogs(BigInt(28675517), BigInt(28797000))
     console.log(logs)
   })
   test.skip('fetchTxReceipt correctly', async () => {
     jest.setTimeout(0)
-    const curation = new CurationContract(polygonMumbai.id, contractAddress)
+    const curation = new CurationContract(
+      polygonMumbai.id,
+      polygonCurationContractAddress
+    )
     const erc20Receipt = await curation.fetchTxReceipt(
       '0x1764d50fb01e04350248f6a4e30dff3839880f50af26de3e0b78657a46c4118f'
     )
