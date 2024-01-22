@@ -85,11 +85,17 @@ const notMinedHash =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215f'
 
 const invalidTxReceipt = {
+  blockNumber: 1,
+  from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  to: polygonCurationContractAddress,
   txHash: invalidTxhash,
   reverted: false,
   events: [],
 }
 const failedTxReceipt = {
+  blockNumber: 1,
+  from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  to: polygonCurationContractAddress,
   txHash: failedTxhash,
   reverted: true,
   events: [],
@@ -109,6 +115,9 @@ const nativeTokenEvent = {
   amount: '1000000000000000000',
 }
 const txReceipt = {
+  blockNumber: 1,
+  from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  to: polygonCurationContractAddress,
   txHash,
   reverted: false,
   events: [validEvent],
