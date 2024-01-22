@@ -198,7 +198,7 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Donations of this article, grouped by sender"
-    donations(input: ConnectionArgs!): ArticleDonorConnection! @complexity(multipliers: ["input.first"], value: 1)
+    donations(input: ConnectionArgs!): ArticleDonationConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Cumulative reading time in seconds"
     readTime: Float!
@@ -436,18 +436,18 @@ export default /* GraphQL */ `
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
-  type ArticleDonorConnection {
+  type ArticleDonationConnection {
     totalCount: Int!
     pageInfo: PageInfo!
-    edges: [ArticleDonorEdge!]
+    edges: [ArticleDonationEdge!]
   }
 
-  type ArticleDonorEdge {
+  type ArticleDonationEdge {
     cursor: String!
-    node: ArticleDonor!
+    node: ArticleDonation!
   }
 
-  type ArticleDonor {
+  type ArticleDonation {
     id: ID!
     sender: User
   }
