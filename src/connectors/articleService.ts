@@ -1494,12 +1494,12 @@ export class ArticleService extends BaseService {
       targetType,
     }
 
-    const rankedTransactionsSubquery = this.knex('transaction')
+    const rankedTransactionsSubquery = this.knexRO('transaction')
       .select([
         'id',
         'sender_id',
         'target_id',
-        this.knex.raw(
+        this.knexRO.raw(
           'row_number() OVER (PARTITION BY target_id, sender_id ORDER BY id) AS rn'
         ),
       ])
@@ -1512,12 +1512,12 @@ export class ArticleService extends BaseService {
       })
       .as('RankedTransactions')
 
-    const rankedTransactions = this.knex
+    const rankedTransactions = this.knexRO
       .from(rankedTransactionsSubquery)
       .select(['id', 'sender_id', 'target_id'])
       .where('rn', 1)
 
-    const nullSenderTransactions = this.knex('transaction')
+    const nullSenderTransactions = this.knexRO('transaction')
       .select(['id', 'sender_id', 'target_id'])
       .where(where)
       .whereNull('sender_id')
@@ -1548,7 +1548,7 @@ export class ArticleService extends BaseService {
       targetType,
     })
 
-    const result = await this.knex
+    const result = await this.knexRO
       .select()
       .from(combinedQuery.as('source'))
       .count()
