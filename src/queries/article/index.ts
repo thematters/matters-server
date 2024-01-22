@@ -23,7 +23,7 @@ import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
 import donationCount from './donationCount'
-import donors from './donors'
+import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import language from './language'
@@ -118,7 +118,7 @@ export default {
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
-    donors,
+    donations,
     readTime,
     createdAt,
     revisedAt,

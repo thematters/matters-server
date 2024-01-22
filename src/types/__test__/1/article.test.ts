@@ -76,7 +76,7 @@ const GET_ARTICLE = /* GraphQL */ `
       sensitiveByAdmin
       readerCount
       donationCount
-      donors(input: { first: 10 }) {
+      donations(input: { first: 10 }) {
         totalCount
         edges {
           node {
@@ -1309,7 +1309,7 @@ describe('query users articles', () => {
   })
 })
 
-describe('query article donors', () => {
+describe('query article donations', () => {
   beforeAll(async () => {
     // insert test data
     const baseTx = {
@@ -1361,7 +1361,7 @@ describe('query article donors', () => {
       },
     ])
   })
-  test('can read article donors', async () => {
+  test('can read article donations', async () => {
     const anonymousServer = await testClient({ connections })
     const { data } = await anonymousServer.executeOperation({
       query: GET_ARTICLE,
@@ -1369,10 +1369,10 @@ describe('query article donors', () => {
         input: { mediaHash: 'someIpfsMediaHash1' },
       },
     })
-    expect(data.article.donors.totalCount).toBe(5)
-    expect(data.article.donors.edges.length).toBe(5)
+    expect(data.article.donations.totalCount).toBe(5)
+    expect(data.article.donations.edges.length).toBe(5)
     expect(
-      data.article.donors.edges.filter((e: any) => e.node.sender === null)
+      data.article.donations.edges.filter((e: any) => e.node.sender === null)
         .length
     ).toBe(3)
   })

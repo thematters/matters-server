@@ -425,7 +425,7 @@ type Article implements Node & PinnableWork {
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
   """Donors of this article"""
-  donors(input: ConnectionArgs!): ArticleDonorConnection!
+  donations(input: ConnectionArgs!): ArticleDonorConnection!
 
   """Cumulative reading time in seconds"""
   readTime: Float!

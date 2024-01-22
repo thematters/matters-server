@@ -7,7 +7,7 @@ import {
   toGlobalId,
 } from 'common/utils'
 
-const resolver: GQLArticleResolvers['donors'] = async (
+const resolver: GQLArticleResolvers['donations'] = async (
   { articleId },
   { input },
   { dataSources: { articleService, userService } }
