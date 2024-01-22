@@ -425,7 +425,7 @@ type Article implements Node & PinnableWork {
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
   """Donations of this article, grouped by sender"""
-  donations(input: ConnectionArgs!): ArticleDonorConnection!
+  donations(input: ConnectionArgs!): ArticleDonationConnection!
 
   """Cumulative reading time in seconds"""
   readTime: Float!
@@ -680,18 +680,18 @@ type TagEdge {
   node: Tag!
 }
 
-type ArticleDonorConnection {
+type ArticleDonationConnection {
   totalCount: Int!
   pageInfo: PageInfo!
-  edges: [ArticleDonorEdge!]
+  edges: [ArticleDonationEdge!]
 }
 
-type ArticleDonorEdge {
+type ArticleDonationEdge {
   cursor: String!
-  node: ArticleDonor!
+  node: ArticleDonation!
 }
 
-type ArticleDonor {
+type ArticleDonation {
   id: ID!
   sender: User
 }

@@ -201,7 +201,7 @@ export type GQLArticle = GQLNode &
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
     /** Donations of this article, grouped by sender */
-    donations: GQLArticleDonorConnection
+    donations: GQLArticleDonationConnection
     /**
      * Drafts linked to this article.
      * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
@@ -427,23 +427,23 @@ export type GQLArticleContents = {
   markdown: Scalars['String']['output']
 }
 
-export type GQLArticleDonor = {
-  __typename?: 'ArticleDonor'
+export type GQLArticleDonation = {
+  __typename?: 'ArticleDonation'
   id: Scalars['ID']['output']
   sender?: Maybe<GQLUser>
 }
 
-export type GQLArticleDonorConnection = {
-  __typename?: 'ArticleDonorConnection'
-  edges?: Maybe<Array<GQLArticleDonorEdge>>
+export type GQLArticleDonationConnection = {
+  __typename?: 'ArticleDonationConnection'
+  edges?: Maybe<Array<GQLArticleDonationEdge>>
   pageInfo: GQLPageInfo
   totalCount: Scalars['Int']['output']
 }
 
-export type GQLArticleDonorEdge = {
-  __typename?: 'ArticleDonorEdge'
+export type GQLArticleDonationEdge = {
+  __typename?: 'ArticleDonationEdge'
   cursor: Scalars['String']['output']
-  node: GQLArticleDonor
+  node: GQLArticleDonation
 }
 
 export type GQLArticleEdge = {
@@ -4188,19 +4188,19 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   ArticleContents: ResolverTypeWrapper<DraftModel>
-  ArticleDonor: ResolverTypeWrapper<
-    Omit<GQLArticleDonor, 'sender'> & {
+  ArticleDonation: ResolverTypeWrapper<
+    Omit<GQLArticleDonation, 'sender'> & {
       sender?: Maybe<GQLResolversTypes['User']>
     }
   >
-  ArticleDonorConnection: ResolverTypeWrapper<
-    Omit<GQLArticleDonorConnection, 'edges'> & {
-      edges?: Maybe<Array<GQLResolversTypes['ArticleDonorEdge']>>
+  ArticleDonationConnection: ResolverTypeWrapper<
+    Omit<GQLArticleDonationConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['ArticleDonationEdge']>>
     }
   >
-  ArticleDonorEdge: ResolverTypeWrapper<
-    Omit<GQLArticleDonorEdge, 'node'> & {
-      node: GQLResolversTypes['ArticleDonor']
+  ArticleDonationEdge: ResolverTypeWrapper<
+    Omit<GQLArticleDonationEdge, 'node'> & {
+      node: GQLResolversTypes['ArticleDonation']
     }
   >
   ArticleEdge: ResolverTypeWrapper<
@@ -4738,14 +4738,14 @@ export type GQLResolversParentTypes = ResolversObject<{
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
   ArticleContents: DraftModel
-  ArticleDonor: Omit<GQLArticleDonor, 'sender'> & {
+  ArticleDonation: Omit<GQLArticleDonation, 'sender'> & {
     sender?: Maybe<GQLResolversParentTypes['User']>
   }
-  ArticleDonorConnection: Omit<GQLArticleDonorConnection, 'edges'> & {
-    edges?: Maybe<Array<GQLResolversParentTypes['ArticleDonorEdge']>>
+  ArticleDonationConnection: Omit<GQLArticleDonationConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['ArticleDonationEdge']>>
   }
-  ArticleDonorEdge: Omit<GQLArticleDonorEdge, 'node'> & {
-    node: GQLResolversParentTypes['ArticleDonor']
+  ArticleDonationEdge: Omit<GQLArticleDonationEdge, 'node'> & {
+    node: GQLResolversParentTypes['ArticleDonation']
   }
   ArticleEdge: Omit<GQLArticleEdge, 'node'> & {
     node: GQLResolversParentTypes['Article']
@@ -5403,7 +5403,7 @@ export type GQLArticleResolvers<
   dataHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donations?: Resolver<
-    GQLResolversTypes['ArticleDonorConnection'],
+    GQLResolversTypes['ArticleDonationConnection'],
     ParentType,
     ContextType,
     RequireFields<GQLArticleDonationsArgs, 'input'>
@@ -5606,21 +5606,21 @@ export type GQLArticleContentsResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLArticleDonorResolvers<
+export type GQLArticleDonationResolvers<
   ContextType = Context,
-  ParentType extends GQLResolversParentTypes['ArticleDonor'] = GQLResolversParentTypes['ArticleDonor']
+  ParentType extends GQLResolversParentTypes['ArticleDonation'] = GQLResolversParentTypes['ArticleDonation']
 > = ResolversObject<{
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   sender?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLArticleDonorConnectionResolvers<
+export type GQLArticleDonationConnectionResolvers<
   ContextType = Context,
-  ParentType extends GQLResolversParentTypes['ArticleDonorConnection'] = GQLResolversParentTypes['ArticleDonorConnection']
+  ParentType extends GQLResolversParentTypes['ArticleDonationConnection'] = GQLResolversParentTypes['ArticleDonationConnection']
 > = ResolversObject<{
   edges?: Resolver<
-    Maybe<Array<GQLResolversTypes['ArticleDonorEdge']>>,
+    Maybe<Array<GQLResolversTypes['ArticleDonationEdge']>>,
     ParentType,
     ContextType
   >
@@ -5629,12 +5629,12 @@ export type GQLArticleDonorConnectionResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLArticleDonorEdgeResolvers<
+export type GQLArticleDonationEdgeResolvers<
   ContextType = Context,
-  ParentType extends GQLResolversParentTypes['ArticleDonorEdge'] = GQLResolversParentTypes['ArticleDonorEdge']
+  ParentType extends GQLResolversParentTypes['ArticleDonationEdge'] = GQLResolversParentTypes['ArticleDonationEdge']
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  node?: Resolver<GQLResolversTypes['ArticleDonor'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['ArticleDonation'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8870,9 +8870,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleArticleNotice?: GQLArticleArticleNoticeResolvers<ContextType>
   ArticleConnection?: GQLArticleConnectionResolvers<ContextType>
   ArticleContents?: GQLArticleContentsResolvers<ContextType>
-  ArticleDonor?: GQLArticleDonorResolvers<ContextType>
-  ArticleDonorConnection?: GQLArticleDonorConnectionResolvers<ContextType>
-  ArticleDonorEdge?: GQLArticleDonorEdgeResolvers<ContextType>
+  ArticleDonation?: GQLArticleDonationResolvers<ContextType>
+  ArticleDonationConnection?: GQLArticleDonationConnectionResolvers<ContextType>
+  ArticleDonationEdge?: GQLArticleDonationEdgeResolvers<ContextType>
   ArticleEdge?: GQLArticleEdgeResolvers<ContextType>
   ArticleNotice?: GQLArticleNoticeResolvers<ContextType>
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
