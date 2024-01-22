@@ -8,6 +8,7 @@ import {
   ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   NODE_TYPES,
+  PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PUBLISH_STATE,
   TRANSACTION_PURPOSE,
@@ -75,6 +76,17 @@ const GET_ARTICLE = /* GraphQL */ `
       sensitiveByAdmin
       readerCount
       donationCount
+      donations(input: { first: 10 }) {
+        totalCount
+        edges {
+          node {
+            id
+            sender {
+              id
+            }
+          }
+        }
+      }
     }
   }
 `
@@ -1294,5 +1306,74 @@ describe('query users articles', () => {
     })
 
     expect(otherData.user.articles.edges.length).toBe(0)
+  })
+})
+
+describe('query article donations', () => {
+  beforeAll(async () => {
+    // insert test data
+    const baseTx = {
+      amount: 0.12,
+      currency: PAYMENT_CURRENCY.USDT,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+      provider: PAYMENT_PROVIDER.blockchain,
+      recipientId: 1,
+      targetId: 1,
+      targetType: 4,
+    }
+    await connections.knex('transaction').insert([
+      {
+        ...baseTx,
+        providerTxId: 'usdt-1',
+        senderId: 2,
+      },
+      {
+        ...baseTx,
+        amount: 1.23,
+        providerTxId: 'usdt-2',
+        senderId: 3,
+      },
+      {
+        ...baseTx,
+        currency: PAYMENT_CURRENCY.LIKE,
+        provider: PAYMENT_PROVIDER.likecoin,
+        providerTxId: 'like-5',
+        senderId: 3,
+      },
+      // sender is anonymous
+      {
+        ...baseTx,
+        providerTxId: 'usdt-3',
+        senderId: null,
+      },
+      {
+        ...baseTx,
+        providerTxId: 'usdt-4',
+        senderId: null,
+      },
+      {
+        ...baseTx,
+        currency: PAYMENT_CURRENCY.HKD,
+        provider: PAYMENT_PROVIDER.matters,
+        providerTxId: 'hkd-1',
+        senderId: null,
+      },
+    ])
+  })
+  test('can read article donations', async () => {
+    const anonymousServer = await testClient({ connections })
+    const { data } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: { mediaHash: 'someIpfsMediaHash1' },
+      },
+    })
+    expect(data.article.donations.totalCount).toBe(5)
+    expect(data.article.donations.edges.length).toBe(5)
+    expect(
+      data.article.donations.edges.filter((e: any) => e.node.sender === null)
+        .length
+    ).toBe(3)
   })
 })

@@ -143,8 +143,19 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const curation = new CurationContract(chainId, contractAddress)
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
-    // skip if tx is not mined
-    if (!txReceipt) {
+    // update metadata blockchain tx
+    if (txReceipt) {
+      await atomService.update({
+        table: 'blockchain_transaction',
+        where: { id: blockchainTx.id },
+        data: {
+          from: txReceipt.from,
+          to: txReceipt.to,
+          blockNumber: txReceipt.blockNumber,
+        },
+      })
+    } else {
+      // skip if tx is not mined
       throw new PaymentQueueJobDataError('blockchain transaction not mined')
     }
 
@@ -203,8 +214,13 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // success both tx and blockchain tx if it's valid
     await this.succeedBothTxAndBlockchainTx(txId, blockchainTx.id)
 
-    // notify sender and recipient
-    await paymentService.notifyDonation({ tx, sender, recipient, article })
+    // notify recipient and sender (if needed)
+    await paymentService.notifyDonation({
+      tx,
+      sender: isSenderMatched ? sender : undefined,
+      recipient,
+      article,
+    })
 
     await this.invalidCache(tx.targetType, tx.targetId, userService)
     job.progress(100)
@@ -220,7 +236,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
-      let syncedBlocknum: bigint
+      let syncedBlocknum: number
       try {
         syncedBlocknum = await this._handleSyncCurationEvents()
       } catch (error) {
@@ -274,7 +290,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       },
     })
 
-    return newSavepoint
+    return Number(newSavepoint)
   }
 
   private _handleNewEvent = async (

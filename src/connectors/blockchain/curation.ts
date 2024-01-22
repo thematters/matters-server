@@ -26,6 +26,9 @@ export interface CurationTxReceipt {
   events: CurationEvent[]
   txHash: string
   reverted: boolean
+  from: Address
+  to: Address | null
+  blockNumber: number
 }
 
 // constants
@@ -168,6 +171,9 @@ export class CurationContract extends BaseContract {
     return {
       txHash,
       reverted: txReceipt.status === 'reverted',
+      from: txReceipt.from,
+      to: txReceipt.to,
+      blockNumber: Number(txReceipt.blockNumber),
       events: targets
         .map((log) =>
           decodeEventLog({

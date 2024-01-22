@@ -160,7 +160,6 @@ export default /* GraphQL */ `
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
-
     "Total number of donation recieved of this article."
     donationCount: Int! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
@@ -197,6 +196,9 @@ export default /* GraphQL */ `
 
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    "Donations of this article, grouped by sender"
+    donations(input: ConnectionArgs!): ArticleDonationConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Cumulative reading time in seconds"
     readTime: Float!
@@ -432,6 +434,22 @@ export default /* GraphQL */ `
   type TagEdge {
     cursor: String!
     node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
+  }
+
+  type ArticleDonationConnection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ArticleDonationEdge!]
+  }
+
+  type ArticleDonationEdge {
+    cursor: String!
+    node: ArticleDonation!
+  }
+
+  type ArticleDonation {
+    id: ID!
+    sender: User
   }
 
   input ArticleInput {
