@@ -200,7 +200,7 @@ export type GQLArticle = GQLNode &
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
     /** Donors of this article */
-    donors: GQLArticleDonorConnection
+    donations: GQLArticleDonorConnection
     /**
      * Drafts linked to this article.
      * @deprecated Use Article.newestUnpublishedDraft or Article.newestPublishedDraft instead
@@ -324,7 +324,7 @@ export type GQLArticleCommentsArgs = {
  * This type contains metadata, content, hash and related data of an article. If you
  * want information about article's comments. Please check Comment type.
  */
-export type GQLArticleDonorsArgs = {
+export type GQLArticleDonationsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -5365,11 +5365,11 @@ export type GQLArticleResolvers<
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   dataHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  donors?: Resolver<
+  donations?: Resolver<
     GQLResolversTypes['ArticleDonorConnection'],
     ParentType,
     ContextType,
-    RequireFields<GQLArticleDonorsArgs, 'input'>
+    RequireFields<GQLArticleDonationsArgs, 'input'>
   >
   drafts?: Resolver<
     Maybe<Array<GQLResolversTypes['Draft']>>,

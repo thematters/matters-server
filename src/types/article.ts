@@ -198,7 +198,7 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Donors of this article"
-    donors(input: ConnectionArgs!): ArticleDonorConnection! @complexity(multipliers: ["input.first"], value: 1)
+    donations(input: ConnectionArgs!): ArticleDonorConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Cumulative reading time in seconds"
     readTime: Float!
