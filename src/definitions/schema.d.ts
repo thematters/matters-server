@@ -200,7 +200,7 @@ export type GQLArticle = GQLNode &
     dataHash: Scalars['String']['output']
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
-    /** Donors of this article */
+    /** Donations of this article, grouped by sender */
     donations: GQLArticleDonorConnection
     /**
      * Drafts linked to this article.

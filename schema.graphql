@@ -424,7 +424,7 @@ type Article implements Node & PinnableWork {
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-  """Donors of this article"""
+  """Donations of this article, grouped by sender"""
   donations(input: ConnectionArgs!): ArticleDonorConnection!
 
   """Cumulative reading time in seconds"""
