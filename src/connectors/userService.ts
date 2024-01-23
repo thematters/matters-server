@@ -2780,12 +2780,9 @@ export class UserService extends BaseService {
       authorizationCode,
       codeVerifier
     )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = jwt.decode(id_token) as any
-    if (data.aud !== environment.facebookClientId) {
-      throw new OAuthTokenInvalidError('Facebook token id aud is invalid')
-    }
-    // Facebook apps return app scoped id instead of real id, when switch to another app, the id will be different
+
+    // Facebook apps return app scoped id instead of real id, when we switch to another app, the returned id will be different.
+    // when users have multi app scoped id, try return app scoped id exsited in db first
     const ids = await this.fetchFacebookUserAppScopedIds(access_token)
     if (ids.length > 1) {
       logger.warn('facebook user has multiple app scoped ids: %j', ids)
@@ -2800,7 +2797,44 @@ export class UserService extends BaseService {
       }
     }
 
-    return { id: data.sub, username: data.name }
+    // `scope=openid` in auth request, id_token should be returned
+    if (id_token) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = jwt.decode(id_token) as any
+      if (data.aud !== environment.facebookClientId) {
+        throw new OAuthTokenInvalidError('Facebook token id aud is invalid')
+      }
+      return { id: data.sub, username: data.name }
+    } else {
+      // id_token not returned, fetch user info from graph api
+      return await this._fetchFacebookUserInfo(access_token)
+    }
+  }
+  private _fetchFacebookUserInfo = async (
+    accessToken: string
+  ): Promise<{ id: string; username: string }> => {
+    try {
+      const response = await axios.get(`https://graph.facebook.com/v18.0/me`, {
+        params: {
+          access_token: accessToken,
+        },
+      })
+      return { id: response.data.id, username: response.data.name }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        // logger.error('fetch facebook error: ', error)
+        logger.warn(
+          'fetch facebook user info by graphql api failed: ',
+          error.response.data
+        )
+        throw new OAuthTokenInvalidError('exchange facebook app ids failed')
+      }
+      logger.error('fetch facebook app ids error: ', error)
+      throw new UnknownError(
+        'exchange facebook uesr info by graphql api failed'
+      )
+    }
   }
 
   /**
