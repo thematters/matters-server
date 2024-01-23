@@ -753,6 +753,43 @@ describe('emailLogin', () => {
       expect(data?.emailLogin.auth).toBe(true)
       expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
+    test('register with invalid email will fail', async () => {
+      const plusSignEmail = 'test1+abc@gmail.com'
+      const code = await userService.createVerificationCode({
+        email: plusSignEmail,
+        type: 'register',
+      })
+      const server = await testClient({ connections })
+      const { errors } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: plusSignEmail,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(errors?.[0].extensions.code).toBe('USER_EMAIL_INVALID')
+    })
+    test('register with valid plus sign email will succeed', async () => {
+      const plusSignEmail = 'test1+abc@matters.town'
+      const code = await userService.createVerificationCode({
+        email: plusSignEmail,
+        type: 'register',
+      })
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: plusSignEmail,
+            passwordOrCode: code.code,
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
+    })
   })
 
   describe('passwd login', () => {
@@ -929,6 +966,35 @@ describe('emailLogin', () => {
       const systemService = new SystemService(connections)
       const item = await systemService.findSkippedItem('agent_hash', agentHash)
       expect(item).toBeDefined()
+    })
+    test('login existed user wtih plus sign email will succeed', async () => {
+      const plusSignEmail = 'test1+abc@gmail.com'
+
+      await userService.create({ email: plusSignEmail })
+
+      // @ts-ignore
+      axios.mockImplementation(({ url }) => {
+        if (url.includes('/generate')) {
+          return Promise.resolve({ data: { passphrases } })
+        } else if (url.includes('/verify')) {
+          return Promise.resolve({ data: {} })
+        }
+      })
+
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: EMAIL_LOGIN,
+        variables: {
+          input: {
+            email: plusSignEmail,
+            passwordOrCode: passphrases.join('-'),
+          },
+        },
+      })
+      expect(data?.emailLogin.auth).toBe(true)
+      expect(data?.emailLogin.type).toBe('Login')
+      expect(data?.emailLogin.token).toBeDefined()
+      expect(data?.emailLogin.user.info.emailVerified).toBe(true)
     })
   })
 })
