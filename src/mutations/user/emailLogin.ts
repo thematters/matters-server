@@ -87,7 +87,8 @@ const _resolver: Exclude<
   } = context
 
   const email = rawEmail.toLowerCase()
-  if (!isValidEmail(email, { allowPlusSign: false })) {
+  // allow existing users with `+` sign to login
+  if (!isValidEmail(email, { allowPlusSign: true })) {
     throw new EmailInvalidError('invalid email address format')
   }
   const user = await userService.findByEmail(email)
@@ -102,6 +103,11 @@ const _resolver: Exclude<
   }
 
   if (user === undefined) {
+    // not allow users to sign up with `+` sign
+    if (!isValidEmail(email, { allowPlusSign: false })) {
+      throw new EmailInvalidError('invalid email address format')
+    }
+
     // user not exist, register
     if (!isE2ETest) {
       if (isEmailOTP) {
