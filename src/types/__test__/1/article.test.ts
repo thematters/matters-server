@@ -977,7 +977,7 @@ describe('edit article', () => {
     expect(_get(result, 'data.editArticle.replyToDonator')).toBe(replyToDonator)
 
     // update one support settings field will not reset other one
-    const requestForDonation2 = 'test support request2'
+    const requestForDonation2 = ''
     const result2 = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
