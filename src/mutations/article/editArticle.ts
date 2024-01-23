@@ -300,8 +300,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * Support settings
    */
-  const isUpdatingRequestForDonation = !!requestForDonation
-  const isUpdatingReplyToDonator = !!requestForDonation
+  const isUpdatingRequestForDonation = requestForDonation !== undefined
+  const isUpdatingReplyToDonator = replyToDonator !== undefined
   if (isUpdatingRequestForDonation || isUpdatingReplyToDonator) {
     await atomService.update({
       table: 'draft',
