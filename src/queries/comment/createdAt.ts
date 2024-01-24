@@ -2,18 +2,19 @@ import type { GQLCommentResolvers } from 'definitions'
 
 import { COMMENT_STATE } from 'common/enums'
 
-const resolver: GQLCommentResolvers['author'] = (
-  { authorId, state },
+const resolver: GQLCommentResolvers['createdAt'] = (
+  { createdAt, state },
   _,
-  { viewer, dataSources: { userService } }
+  { viewer }
 ) => {
   const isActive = state === COMMENT_STATE.active
   const isCollapsed = state === COMMENT_STATE.collapsed
   const isAdmin = viewer.hasRole('admin')
   if (isActive || isCollapsed || isAdmin) {
-    return userService.loadById(authorId)
+    return createdAt
   } else {
-    return null
+    // invalid date
+    return new Date(0)
   }
 }
 

@@ -917,7 +917,7 @@ export type GQLCollectionEdge = {
 export type GQLComment = GQLNode & {
   __typename?: 'Comment'
   /** Author of this comment. */
-  author: GQLUser
+  author?: Maybe<GQLUser>
   /** Descendant comments of this comment. */
   comments: GQLCommentConnection
   /** Content of this comment. */
@@ -936,7 +936,7 @@ export type GQLComment = GQLNode & {
   /** The value determines current user's vote. */
   myVote?: Maybe<GQLVote>
   /** Current comment belongs to which Node. */
-  node: GQLNode
+  node?: Maybe<GQLNode>
   /** Parent comment of this comment. */
   parentComment?: Maybe<GQLComment>
   /** This value determines this comment is pinned or not. */
@@ -6147,7 +6147,7 @@ export type GQLCommentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Comment'] = GQLResolversParentTypes['Comment']
 > = ResolversObject<{
-  author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  author?: Resolver<Maybe<GQLResolversTypes['User']>, ParentType, ContextType>
   comments?: Resolver<
     GQLResolversTypes['CommentConnection'],
     ParentType,
@@ -6164,7 +6164,7 @@ export type GQLCommentResolvers<
   fromDonator?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   myVote?: Resolver<Maybe<GQLResolversTypes['Vote']>, ParentType, ContextType>
-  node?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
+  node?: Resolver<Maybe<GQLResolversTypes['Node']>, ParentType, ContextType>
   parentComment?: Resolver<
     Maybe<GQLResolversTypes['Comment']>,
     ParentType,

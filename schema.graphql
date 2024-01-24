@@ -1383,7 +1383,7 @@ type Comment implements Node {
   content: String
 
   """Author of this comment."""
-  author: User!
+  author: User
 
   """This value determines this comment is pinned or not."""
   pinned: Boolean!
@@ -1411,7 +1411,7 @@ type Comment implements Node {
   remark: String
 
   """Current comment belongs to which Node."""
-  node: Node!
+  node: Node
 }
 
 type CommentConnection implements Connection {

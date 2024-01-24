@@ -79,8 +79,20 @@ const GET_COMMENT = /* GraphQL */ `
   query ($input: NodeInput!) {
     node(input: $input) {
       ... on Comment {
+        state
+        type
+        createdAt
+        content
+        author {
+          id
+        }
+        pinned
         upvotes
         downvotes
+        myVote
+        replyTo {
+          id
+        }
       }
     }
   }
@@ -115,6 +127,58 @@ const getCommentVotes = async (commentId: string) => {
   })
   return data && data.node
 }
+
+describe('query comment', () => {
+  test('query comment by id', async () => {
+    const server = await testClient({ connections })
+    const {
+      data: { node },
+      errors,
+    } = await server.executeOperation({
+      query: GET_COMMENT,
+      variables: {
+        input: { id: COMMENT_ID },
+      },
+    })
+    expect(node.state).toBe('active')
+    expect(node.type).toBe('article')
+    expect(node.createdAt.toString()).not.toBe(new Date(0).toString())
+    expect(node.content).not.toBe('')
+    expect(node.author).not.toBeNull()
+    expect(errors).toBeUndefined()
+  })
+  test('query archived comment', async () => {
+    await connections
+      .knex('comment')
+      .where({ id: 1 })
+      .update({ state: 'archived' })
+    const server = await testClient({ connections })
+    const {
+      data: { node },
+      errors,
+    } = await server.executeOperation({
+      query: GET_COMMENT,
+      variables: {
+        input: { id: COMMENT_ID },
+      },
+    })
+    expect(node.state).toBe('archived')
+    expect(node.type).toBe('article')
+    expect(node.createdAt.toString()).toBe(new Date(0).toString())
+    expect(node.content).toBe('')
+    expect(node.author).toBeNull()
+    expect(node.pinned).toBe(false)
+    expect(node.upvotes).toBe(0)
+    expect(node.downvotes).toBe(0)
+    expect(node.replyTo).toBeNull()
+    expect(errors).toBeUndefined()
+
+    await connections
+      .knex('comment')
+      .where({ id: 1 })
+      .update({ state: 'active' })
+  })
+})
 
 describe('query comment list on article', () => {
   test('query comments by author', async () => {

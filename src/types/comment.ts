@@ -53,7 +53,7 @@ export default /* GraphQL */ `
     content: String
 
     "Author of this comment."
-    author: User! @logCache(type: "${NODE_TYPES.User}")
+    author: User @logCache(type: "${NODE_TYPES.User}")
 
     "This value determines this comment is pinned or not."
     pinned: Boolean!
@@ -82,7 +82,7 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
     "Current comment belongs to which Node."
-    node: Node! @logCache(type: "${NODE_TYPES.Node}")
+    node: Node @logCache(type: "${NODE_TYPES.Node}")
   }
 
   extend type Article {
