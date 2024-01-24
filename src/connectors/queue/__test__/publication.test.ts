@@ -1,10 +1,11 @@
 import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
-import Redis from 'ioredis-mock'
+import Redis from 'ioredis'
 import { v4 } from 'uuid'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import { DraftService, ArticleService, UserService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
@@ -25,10 +26,15 @@ describe('publicationQueue.publishArticle', () => {
     userService = new UserService(connections)
     queue = new PublicationQueue(connections, {
       createClient: () => {
-        return new Redis()
+        return new Redis({
+          host: environment.queueHost,
+          port: environment.queuePort,
+          maxRetriesPerRequest: null,
+          enableReadyCheck: false,
+        })
       },
     })
-  }, 30000)
+  }, 50000)
 
   afterAll(async () => {
     await closeConnections(connections)
@@ -59,8 +65,6 @@ describe('publicationQueue.publishArticle', () => {
     const updatedArticle = await articleService.baseFindById(
       updatedDraft.articleId
     )
-    console.log(updatedDraft)
-
     expect(updatedDraft.content).toBe(contentHTML)
     expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
