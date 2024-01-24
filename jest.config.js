@@ -16,9 +16,7 @@ module.exports = {
   globalSetup: '<rootDir>/db/globalTestSetup.js',
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  globals: {
-    'ts-jest': {
-      diagnostics: false,
-    },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { diagnostics: false }],
   },
 }
