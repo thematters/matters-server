@@ -44,12 +44,12 @@ import { BaseQueue } from './baseQueue'
 const logger = getLogger('queue-publication')
 
 export class PublicationQueue extends BaseQueue {
-  constructor(connections: Connections, customOpts?: CustomQueueOpts) {
+  public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
     super(QUEUE_NAME.publication, connections, customOpts)
     this.addConsumers()
   }
 
-  publishArticle = ({
+  public publishArticle = ({
     draftId,
     iscnPublish,
   }: {
@@ -65,7 +65,7 @@ export class PublicationQueue extends BaseQueue {
       }
     )
 
-  refreshIPNSFeed = ({
+  public refreshIPNSFeed = ({
     userName,
     numArticles = 50,
     forceReplace,
