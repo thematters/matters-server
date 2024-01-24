@@ -2,16 +2,14 @@ import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
 import Redis from 'ioredis'
-import { RedisMemoryServer } from 'redis-memory-server'
 import { v4 } from 'uuid'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import { DraftService, ArticleService, UserService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
-
-const redisServer = new RedisMemoryServer()
 
 describe('publicationQueue.publishArticle', () => {
   let connections: Connections
@@ -26,23 +24,20 @@ describe('publicationQueue.publishArticle', () => {
     draftService = new DraftService(connections)
     articleService = new ArticleService(connections)
     userService = new UserService(connections)
-    const port = await redisServer.getPort()
-    const host = await redisServer.getHost()
     queue = new PublicationQueue(connections, {
       createClient: () => {
         return new Redis({
-          port,
-          host,
+          host: environment.queueHost,
+          port: environment.queuePort,
           maxRetriesPerRequest: null,
           enableReadyCheck: false,
         })
       },
     })
-  }, 30000)
+  }, 50000)
 
   afterAll(async () => {
     await closeConnections(connections)
-    redisServer.stop()
   })
 
   test('publish not pending draft', async () => {
@@ -70,8 +65,6 @@ describe('publicationQueue.publishArticle', () => {
     const updatedArticle = await articleService.baseFindById(
       updatedDraft.articleId
     )
-    console.log(updatedDraft)
-
     expect(updatedDraft.content).toBe(contentHTML)
     expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
