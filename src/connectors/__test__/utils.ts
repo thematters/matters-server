@@ -3,8 +3,7 @@ import type { Connections } from 'definitions'
 
 // @ts-ignore
 import initDatabase from '@root/db/initDatabase'
-import { Redis } from 'ioredis'
-import { RedisMemoryServer } from 'redis-memory-server'
+import Redis from 'ioredis-mock'
 import { v4 } from 'uuid'
 
 import {
@@ -25,28 +24,18 @@ export const genConnections = async (): Promise<Connections> => {
   const database = 'test_matters_' + randomString
   const knexClient = await initDatabase(database)
 
-  const redisServer = new RedisMemoryServer()
-  const redisPort = await redisServer.getPort()
-  const redisHost = await redisServer.getHost()
-  const redis = new Redis(redisPort, redisHost, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  })
+  const redis = new Redis()
 
   return {
     knex: knexClient,
     knexRO: knexClient,
     knexSearch: knexClient,
     redis,
-    __redisServer: redisServer,
-  } as any as Connections
+  }
 }
 
 export const closeConnections = async (connections: Connections) => {
-  connections.redis.disconnect()
   await connections.knex.destroy()
-  // @ts-ignore
-  await connections.__redisServer.stop()
 }
 
 export const createArticle = async (

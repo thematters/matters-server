@@ -1,13 +1,9 @@
-import { Redis } from 'ioredis'
-import { RedisMemoryServer } from 'redis-memory-server'
+import Redis from 'ioredis-mock'
 
 import { RatelimitCounter } from 'common/utils'
 
 test('increment', async () => {
-  const redisServer = new RedisMemoryServer()
-  const redisPort = await redisServer.getPort()
-  const redisHost = await redisServer.getHost()
-  const redis = new Redis(redisPort, redisHost)
+  const redis = new Redis()
 
   const counter = new RatelimitCounter(redis)
   const key = 'test:increment'
@@ -17,7 +13,4 @@ test('increment', async () => {
   expect(value2).toBe(2)
   const value = await counter.get(key)
   expect(value).toBe(2)
-
-  redis.disconnect()
-  await redisServer.stop()
 })
