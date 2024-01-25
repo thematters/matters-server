@@ -21,7 +21,7 @@ export async function verifyCaptchaToken(token: string, ip: string) {
   }
 
   // suppose it's space concatenated multiple tokens
-  const tokens = (token || '').trim().split(/\s+/)
+  const tokens = (token || '').split(' ')
 
   return (
     (
