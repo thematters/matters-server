@@ -7,6 +7,11 @@ const articleVersionTable = 'article_version'
 exports.up = async (knex) => {
   // schema migration
 
+  // rename draft collection column to connections
+  await knex.schema.alterTable('draft', (t) => {
+    t.renameColumn('collection', 'connections')
+  })
+
   // create new tables, add new columns to article table
   await knex('entity_type').insert({ table: articleContentTable })
   await knex.schema.createTable(articleContentTable, (t) => {
@@ -28,8 +33,8 @@ exports.up = async (knex) => {
     t.boolean('summary_customized')
     t.bigInteger('content_id').unsigned().notNullable()
     t.bigInteger('content_md_id').unsigned()
-    t.specificType('tags', 'text ARRAY')
-    t.specificType('connections', 'text ARRAY')
+    t.specificType('tags', 'text ARRAY').notNullable()
+    t.specificType('connections', 'text ARRAY').notNullable()
     t.integer('word_count').notNullable()
     t.string('data_hash')
     t.string('media_hash')
@@ -151,8 +156,8 @@ BEGIN
       draft_record.summary_customized,
       content_id,
       content_md_id,
-      draft_record.tags,
-      draft_record.collection,
+      COALESCE (draft_record.tags, '{}'),
+      COALESCE (draft_record.connections, '{}'),
       draft_record.word_count,
       draft_record.data_hash,
       draft_record.media_hash,
@@ -193,5 +198,9 @@ exports.down = async (knex) => {
   })
   await knex.schema.alterTable('action_article', (t) => {
     t.dropColumn('article_version_id')
+  })
+
+  await knex.schema.alterTable('draft', (t) => {
+    t.renameColumn('connections', 'collection')
   })
 }
