@@ -5,8 +5,9 @@ const articleContentTable = 'article_content'
 const articleVersionTable = 'article_version'
 
 exports.up = async (knex) => {
-  // create new tables, add new columns to article table
+  // schema migration
 
+  // create new tables, add new columns to article table
   await knex('entity_type').insert({ table: articleContentTable })
   await knex.schema.createTable(articleContentTable, (t) => {
     t.bigIncrements('id').primary()
@@ -59,7 +60,18 @@ exports.up = async (knex) => {
   await knex.schema.alterTable(articleTable, (t) => {
     t.boolean('sensitive_by_admin').notNullable().defaultTo(false)
   })
-  // add article_version_id to comment
+  // add article_version_id field to comment, transaction, action_article
+  await knex.schema.alterTable('comment', (t) => {
+    t.bigInteger('article_version_id')
+  })
+  await knex.schema.alterTable('transaction', (t) => {
+    t.bigInteger('article_version_id')
+  })
+  await knex.schema.alterTable('action_article', (t) => {
+    t.bigInteger('article_version_id')
+  })
+
+  // data migration
 
   // migrate data from draft to article_content, article_version
   await knex.schema.raw(`
@@ -103,6 +115,7 @@ BEGIN
     RAISE NOTICE '    content_md_id %', content_md_id;
 
     -- insert article_version table
+
     INSERT INTO article_version (
       article_id,
       title,
@@ -153,6 +166,9 @@ BEGIN
       draft_record.updated_at
     ) RETURNING id INTO article_version_id;
     RAISE NOTICE '    article_version_id %', article_version_id;
+    IF draft_record.sensitive_by_admin = true THEN
+      UPDATE article SET sensitive_by_admin = true WHERE id = draft_record.article_id;
+    END IF;
   END LOOP;
 END
 $$;
@@ -164,5 +180,14 @@ exports.down = async (knex) => {
   await baseDown(articleContentTable)(knex)
   await knex.schema.alterTable(articleTable, (t) => {
     t.dropColumn('sensitive_by_admin')
+  })
+  await knex.schema.alterTable('comment', (t) => {
+    t.dropColumn('article_version_id')
+  })
+  await knex.schema.alterTable('transaction', (t) => {
+    t.dropColumn('article_version_id')
+  })
+  await knex.schema.alterTable('action_article', (t) => {
+    t.dropColumn('article_version_id')
   })
 }
