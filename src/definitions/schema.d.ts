@@ -2243,6 +2243,7 @@ export type GQLOss = {
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
   oauthClients: GQLOAuthClientConnection
+  reports: GQLReportConnection
   restrictedUsers: GQLUserConnection
   seedingUsers: GQLUserConnection
   skippedListItems: GQLSkippedListItemsConnection
@@ -2263,6 +2264,10 @@ export type GQLOssCommentsArgs = {
 }
 
 export type GQLOssOauthClientsArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLOssReportsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -2761,6 +2766,19 @@ export type GQLReport = GQLNode & {
   reason: GQLReportReason
   reporter: GQLUser
   target: GQLResponse
+}
+
+export type GQLReportConnection = GQLConnection & {
+  __typename?: 'ReportConnection'
+  edges?: Maybe<Array<GQLReportEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLReportEdge = {
+  __typename?: 'ReportEdge'
+  cursor: Scalars['String']['output']
+  node: GQLReport
 }
 
 export type GQLReportReason =
@@ -4107,6 +4125,9 @@ export type GQLResolversInterfaceTypes<
         edges?: Maybe<Array<RefType['ReadHistoryEdge']>>
       })
     | GQLRecentSearchConnection
+    | (Omit<GQLReportConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['ReportEdge']>>
+      })
     | GQLResponseConnection
     | GQLSearchResultConnection
     | GQLSkippedListItemsConnection
@@ -4432,6 +4453,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'badgedUsers'
       | 'comments'
       | 'oauthClients'
+      | 'reports'
       | 'restrictedUsers'
       | 'seedingUsers'
       | 'tags'
@@ -4441,6 +4463,7 @@ export type GQLResolversTypes = ResolversObject<{
       badgedUsers: GQLResolversTypes['UserConnection']
       comments: GQLResolversTypes['CommentConnection']
       oauthClients: GQLResolversTypes['OAuthClientConnection']
+      reports: GQLResolversTypes['ReportConnection']
       restrictedUsers: GQLResolversTypes['UserConnection']
       seedingUsers: GQLResolversTypes['UserConnection']
       tags: GQLResolversTypes['TagConnection']
@@ -4510,6 +4533,14 @@ export type GQLResolversTypes = ResolversObject<{
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
   Report: ResolverTypeWrapper<ReportModel>
+  ReportConnection: ResolverTypeWrapper<
+    Omit<GQLReportConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['ReportEdge']>>
+    }
+  >
+  ReportEdge: ResolverTypeWrapper<
+    Omit<GQLReportEdge, 'node'> & { node: GQLResolversTypes['Report'] }
+  >
   ReportReason: GQLReportReason
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
@@ -4913,6 +4944,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'badgedUsers'
     | 'comments'
     | 'oauthClients'
+    | 'reports'
     | 'restrictedUsers'
     | 'seedingUsers'
     | 'tags'
@@ -4922,6 +4954,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     badgedUsers: GQLResolversParentTypes['UserConnection']
     comments: GQLResolversParentTypes['CommentConnection']
     oauthClients: GQLResolversParentTypes['OAuthClientConnection']
+    reports: GQLResolversParentTypes['ReportConnection']
     restrictedUsers: GQLResolversParentTypes['UserConnection']
     seedingUsers: GQLResolversParentTypes['UserConnection']
     tags: GQLResolversParentTypes['TagConnection']
@@ -4976,6 +5009,12 @@ export type GQLResolversParentTypes = ResolversObject<{
   ReorderCollectionArticlesInput: GQLReorderCollectionArticlesInput
   ReorderMoveInput: GQLReorderMoveInput
   Report: ReportModel
+  ReportConnection: Omit<GQLReportConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['ReportEdge']>>
+  }
+  ReportEdge: Omit<GQLReportEdge, 'node'> & {
+    node: GQLResolversParentTypes['Report']
+  }
   ResetLikerIdInput: GQLResetLikerIdInput
   ResetPasswordInput: GQLResetPasswordInput
   ResetWalletInput: GQLResetWalletInput
@@ -6275,6 +6314,7 @@ export type GQLConnectionResolvers<
     | 'OAuthClientConnection'
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
+    | 'ReportConnection'
     | 'ResponseConnection'
     | 'SearchResultConnection'
     | 'SkippedListItemsConnection'
@@ -7528,6 +7568,12 @@ export type GQLOssResolvers<
     ContextType,
     RequireFields<GQLOssOauthClientsArgs, 'input'>
   >
+  reports?: Resolver<
+    GQLResolversTypes['ReportConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssReportsArgs, 'input'>
+  >
   restrictedUsers?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
@@ -7873,6 +7919,29 @@ export type GQLReportResolvers<
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   target?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLReportConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ReportConnection'] = GQLResolversParentTypes['ReportConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['ReportEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLReportEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ReportEdge'] = GQLResolversParentTypes['ReportEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Report'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8955,6 +9024,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   RecentSearchEdge?: GQLRecentSearchEdgeResolvers<ContextType>
   Recommendation?: GQLRecommendationResolvers<ContextType>
   Report?: GQLReportResolvers<ContextType>
+  ReportConnection?: GQLReportConnectionResolvers<ContextType>
+  ReportEdge?: GQLReportEdgeResolvers<ContextType>
   Response?: GQLResponseResolvers<ContextType>
   ResponseConnection?: GQLResponseConnectionResolvers<ContextType>
   ResponseEdge?: GQLResponseEdgeResolvers<ContextType>

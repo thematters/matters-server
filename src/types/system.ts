@@ -133,6 +133,7 @@ export default /* GraphQL */ `
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
+    reports(input: ConnectionArgs!): ReportConnection!
   }
 
 
@@ -217,6 +218,17 @@ export default /* GraphQL */ `
     target: Response!
     reason: ReportReason!
     createdAt: DateTime!
+  }
+
+  type ReportConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ReportEdge!]
+  }
+
+  type ReportEdge {
+    cursor: String!
+    node: Report!
   }
 
   input NodeInput {

@@ -858,9 +858,33 @@ describe('submitReport', () => {
       }
     }
   `
+  const GET_REPORTS = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      oss {
+        reports(input: $input) {
+          totalCount
+          edges {
+            node {
+              id
+              reporter {
+                id
+              }
+              target {
+                ... on Article {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+
   test('submit report successfully', async () => {
     const server = await testClient({
       isAuth: true,
+      isAdmin: true,
       connections,
     })
     const { data } = await server.executeOperation({
@@ -875,5 +899,18 @@ describe('submitReport', () => {
     expect(data.submitReport.id).toBeDefined()
     expect(data.submitReport.reporter.id).toBeDefined()
     expect(data.submitReport.target.id).toBeDefined()
+
+    // query reports
+    const { data: data2 } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: {
+        input: {
+          first: null,
+        },
+      },
+    })
+    expect(data2.oss.reports.totalCount).toBe(1)
+    expect(data2.oss.reports.edges[0].node.reporter.id).toBeDefined()
+    expect(data2.oss.reports.edges[0].node.target.id).toBeDefined()
   })
 })

@@ -1945,6 +1945,7 @@ type OSS {
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
+  reports(input: ConnectionArgs!): ReportConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2025,6 +2026,17 @@ type Report implements Node {
   target: Response!
   reason: ReportReason!
   createdAt: DateTime!
+}
+
+type ReportConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ReportEdge!]
+}
+
+type ReportEdge {
+  cursor: String!
+  node: Report!
 }
 
 input NodeInput {
