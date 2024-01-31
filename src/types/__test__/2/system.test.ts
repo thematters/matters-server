@@ -884,6 +884,7 @@ describe('submitReport', () => {
   test('submit report successfully', async () => {
     const server = await testClient({
       isAuth: true,
+      isAdmin: true,
       connections,
     })
     const { data } = await server.executeOperation({
