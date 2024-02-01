@@ -15,7 +15,7 @@ const report: GQLReportResolvers = {
   ) => {
     if (articleId) {
       return {
-        ...((await articleService.dataloader.load(articleId)) as Draft),
+        ...((await articleService.draftLoader.load(articleId)) as Draft),
         __type: NODE_TYPES.Article,
       }
     } else if (commentId) {
