@@ -853,6 +853,7 @@ describe('submitReport', () => {
         target {
           ... on Article {
             id
+            state
           }
         }
       }
