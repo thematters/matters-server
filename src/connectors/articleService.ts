@@ -562,28 +562,6 @@ export class ArticleService extends BaseService {
       .select(columns)
   }
 
-  public findByTitle = async ({
-    title,
-    oss = false,
-    filter,
-  }: {
-    title: string
-    oss?: boolean
-    filter?: Record<string, any>
-  }) => {
-    const query = this.knex.select().from(this.table).where({ title })
-
-    if (!oss) {
-      query.andWhere({ state: ARTICLE_STATE.active })
-    }
-
-    if (filter && Object.keys(filter).length > 0) {
-      query.andWhere(filter)
-    }
-
-    return query.orderBy('id', 'desc')
-  }
-
   public findByCommentedAuthor = async ({
     id,
     skip,
@@ -618,36 +596,6 @@ export class ArticleService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-
-  public searchByMediaHash = async ({
-    key,
-    oss = false,
-    filter,
-  }: {
-    key: string
-    oss?: boolean
-    filter?: Record<string, any>
-  }) => {
-    const query = this.knex.select().from(this.table).where({ mediaHash: key })
-
-    if (!oss) {
-      query.andWhere({ state: ARTICLE_STATE.active })
-    }
-
-    if (filter && Object.keys(filter).length > 0) {
-      query.andWhere(filter)
-    }
-
-    const rows = await query
-    if (rows.length > 0) {
-      return {
-        nodes: rows,
-        totalCount: rows.length,
-      }
-    } else {
-      throw new ServerError('article search by media hash failed')
-    }
-  }
 
   public search = async ({
     key: keyOriginal,
