@@ -6,7 +6,6 @@ import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
-import _uniq from 'lodash/uniq'
 
 import {
   ARTICLE_STATE,
@@ -41,12 +40,12 @@ interface RevisedArticleData {
 }
 
 export class RevisionQueue extends BaseQueue {
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super(QUEUE_NAME.revision, connections)
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: RevisedArticleData) =>
+  public publishRevisedArticle = (data: RevisedArticleData) =>
     this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
@@ -290,28 +289,6 @@ export class RevisionQueue extends BaseQueue {
         articleService
           .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
           .catch((err: Error) => logger.error('failed sqs notify:', err))
-
-        // no await to notify async
-        atomService.aws
-          ?.snsPublishMessage({
-            // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-            MessageBody: {
-              articleId: article.id,
-              title: article.title,
-              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
-              dataHash: article.dataHash,
-              mediaHash: article.mediaHash,
-
-              // ipns info:
-              ipnsKey: ipnsRes?.ipnsKey,
-              lastDataHash: ipnsRes?.lastDataHash,
-
-              // author info:
-              userName,
-              displayName,
-            },
-          })
-          .catch((err: Error) => logger.error('failed sns notify:', err))
 
         done(null, {
           articleId: article.id,

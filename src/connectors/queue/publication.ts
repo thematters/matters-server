@@ -354,29 +354,6 @@ export class PublicationQueue extends BaseQueue {
         .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
         .catch((err: Error) => logger.error('failed sqs notify:', err))
 
-      // no await to notify async
-      atomService.aws
-        .snsPublishMessage({
-          // MessageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-          MessageBody: {
-            articleId: article.id,
-            title: article.title,
-            url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}`,
-            dataHash: article.dataHash,
-            mediaHash: article.mediaHash,
-
-            // ipns info:
-            ipnsKey: ipnsRes?.ipnsKey,
-            lastDataHash: ipnsRes?.lastDataHash,
-
-            // author info:
-            userName,
-            displayName,
-          },
-        })
-        // .then(res => {})
-        .catch((err: Error) => logger.error('failed sns notify:', err))
-
       // no await to put data async
       atomService.aws.putMetricData({
         MetricData: [
