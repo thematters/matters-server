@@ -250,7 +250,6 @@ export class PublicationQueue extends BaseQueue {
       })
 
       // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
-      let ipnsRes: any
       try {
         // publish content to IPFS
         const {
@@ -324,7 +323,7 @@ export class PublicationQueue extends BaseQueue {
         }
         await job.progress(90)
 
-        ipnsRes = await articleService.publishFeedToIPNS({
+        await articleService.publishFeedToIPNS({
           userName,
           // incremental: true, // attach the last just published article
           updatedDrafts: [draft],
@@ -348,11 +347,6 @@ export class PublicationQueue extends BaseQueue {
       })
 
       await job.progress(100)
-
-      // no await to notify async
-      articleService
-        .sendArticleFeedMsgToSQS({ article, author, ipnsData: ipnsRes })
-        .catch((err: Error) => logger.error('failed sqs notify:', err))
 
       // no await to put data async
       atomService.aws.putMetricData({

@@ -24,7 +24,6 @@ import {
   COMMENT_TYPE,
   COMMENT_STATE,
   MINUTE,
-  QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -341,47 +340,6 @@ export class ArticleService extends BaseService {
       return
     }
   }
-
-  public sendArticleFeedMsgToSQS = async ({
-    article,
-    author,
-    ipnsData,
-  }: {
-    article: {
-      id: string
-      title: string
-      slug: string
-      dataHash: string
-      mediaHash: string
-    }
-    author: {
-      userName: string
-      displayName: string
-    }
-    ipnsData: {
-      ipnsKey: string
-      lastDataHash: string
-    }
-  }) =>
-    this.aws?.sqsSendMessage({
-      messageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-      messageBody: {
-        articleId: article.id,
-        title: article.title,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
-        dataHash: article.dataHash,
-        mediaHash: article.mediaHash,
-
-        // ipns info:
-        ipnsKey: ipnsData.ipnsKey,
-        lastDataHash: ipnsData.lastDataHash,
-
-        // author info:
-        userName: author.userName,
-        displayName: author.displayName,
-      },
-      queueUrl: QUEUE_URL.ipfsArticles,
-    })
 
   /**
    * Archive article
