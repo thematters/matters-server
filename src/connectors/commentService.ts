@@ -74,14 +74,18 @@ export class CommentService extends BaseService {
     id: string
     skip?: number
     take?: number
-  }) => {
+  }): Promise<[any[], number]> => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
     }
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex.select().from(this.table).where(where).orderBy('created_at', by)
+      this.knex
+        .select(['*', this.knex.raw('count(1) OVER() AS total_count')])
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
 
     if (author) {
       where = { ...where, authorId: author }
@@ -101,8 +105,9 @@ export class CommentService extends BaseService {
     if (take || take === 0) {
       query.limit(take)
     }
+    const records = await query
 
-    return query
+    return [records, records[0] ? parseInt(records[0].totalCount, 10) : 0]
   }
 
   /**
