@@ -1,8 +1,8 @@
 import type { GQLCommentResolvers } from 'definitions'
 
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
-const resolver: GQLCommentResolvers['comments'] = (
+const resolver: GQLCommentResolvers['comments'] = async (
   { id },
   { input: { author, sort, ...connectionArgs } },
   { dataSources: { commentService } }
@@ -11,10 +11,14 @@ const resolver: GQLCommentResolvers['comments'] = (
     allowTakeAll: true,
   })
 
-  return connectionFromPromisedArray(
-    commentService.findByParent({ id, author, sort, skip, take }),
-    connectionArgs
-  )
+  const [comments, totalCount] = await commentService.findByParent({
+    id,
+    author,
+    sort,
+    skip,
+    take,
+  })
+  return connectionFromArray(comments, connectionArgs, totalCount)
 }
 
 export default resolver
