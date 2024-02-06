@@ -14,8 +14,6 @@ exports.up = async (knex) => {
     t.text('content').notNullable()
     t.string('hash').notNullable().unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
-
-    t.index('hash')
   })
 
   await knex('entity_type').insert({ table: articleVersionTable })
@@ -57,10 +55,20 @@ exports.up = async (knex) => {
     t.foreign('circle_id').references('id').inTable('circle')
 
     t.index('article_id')
+    t.index(['article_id', 'id'])
     t.index('pin_state')
   })
   await knex.schema.alterTable(articleTable, (t) => {
     t.boolean('sensitive_by_admin').notNullable().defaultTo(false)
+    t.setNullable('uuid')
+    t.setNullable('title')
+    t.setNullable('slug')
+    t.setNullable('content')
+    t.setNullable('summary')
+    t.setNullable('word_count')
+  })
+  await knex.schema.alterTable('draft', (t) => {
+    t.setNullable('uuid')
   })
   // add article_version_id field to comment, transaction, action_article
   await knex.schema.alterTable('comment', (t) => {
