@@ -1,86 +1,210 @@
-import type { Item, TableName, Connections } from 'definitions'
+import type {
+  ActionCircle,
+  Article,
+  ArticleCircle,
+  ArticleConnection,
+  ArticleContent,
+  ArticleVersion,
+  Asset,
+  AssetMap,
+  Chapter,
+  Circle,
+  CirclePrice,
+  CircleInvitation,
+  CircleSubscription,
+  CircleSubscriptionItem,
+  Collection,
+  CollectionArticle,
+  Comment,
+  Connections,
+  CryptoWalletSignature,
+  CryptoWallet,
+  Customer,
+  Draft,
+  PunishRecord,
+  Tag,
+  Topic,
+  User,
+  UserIpnsKeys,
+  UserRestriction,
+  UsernameEditHistory,
+  VerificationCode,
+  PayoutAccount,
+  Transaction,
+  BlockchainTransaction,
+  BlockchainSyncRecord,
+} from 'definitions'
 import type { Knex } from 'knex'
 
 import DataLoader from 'dataloader'
 
-import { EntityNotFoundError } from 'common/errors'
-import { aws, cfsvc } from 'connectors'
+import {
+  EntityNotFoundError,
+  ArticleNotFoundError,
+  CommentNotFoundError,
+} from 'common/errors'
+
+type Mode = 'id' | 'uuid'
+
+type TableTypeMap = {
+  user: User
+  user_ipns_keys: UserIpnsKeys
+  username_edit_history: UsernameEditHistory
+  user_restriction: UserRestriction
+  asset: Asset
+  asset_map: AssetMap
+  draft: Draft
+  article: Article
+  article_version: ArticleVersion
+  article_content: ArticleContent
+  article_circle: ArticleCircle
+  article_connection: ArticleConnection
+  collection: Collection
+  collection_article: CollectionArticle
+  chapter: Chapter
+  comment: Comment
+  action_circle: ActionCircle
+  circle: Circle
+  circle_price: CirclePrice
+  circle_invitation: CircleInvitation
+  circle_subscription: CircleSubscription
+  circle_subscription_item: CircleSubscriptionItem
+  customer: Customer
+  crypto_wallet: CryptoWallet
+  crypto_wallet_signature: CryptoWalletSignature
+  tag: Tag
+  topic: Topic
+  verification_code: VerificationCode
+  punish_record: PunishRecord
+  payout_account: PayoutAccount
+  transaction: Transaction
+  blockchain_transaction: BlockchainTransaction
+  blockchain_sync_record: BlockchainSyncRecord
+}
+
+type TableTypeMapKey = keyof TableTypeMap
 
 interface InitLoaderInput {
-  table: TableName
-  mode: 'id' | 'uuid'
+  table: TableTypeMapKey
+  mode: Mode
+  error?: Error
 }
 
-interface FindUniqueInput {
-  table: TableName
-  where: { id: string }
-}
+type FindUniqueFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: { id: string } | { hash: string } | { uuid: string }
+}) => Promise<D>
 
-interface FindFirstInput {
-  table: TableName
-  select?: string[]
-  where: Record<string, any>
+type FindFirstFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  select?: keyof D[]
+  where: Partial<Record<string, any>>
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
-}
+}) => Promise<D>
 
-interface FindManyInput {
-  table: TableName
-  select?: string[]
-  where?: Record<string, any>
+type FindManyFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  select?: Array<keyof D>
+  where?: Partial<Record<keyof D, any>>
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
   orderByRaw?: string
   modifier?: (builder: Knex.QueryBuilder) => void
   skip?: number
   take?: number
-}
+}) => Promise<D[]>
 
-interface CreateInput {
-  table: TableName
-  data: Record<string, any>
-}
+type CreateFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  data: Partial<D>
+}) => Promise<D>
 
-interface UpdateInput {
-  table: TableName
-  where: Record<string, any>
-  data: Record<string, any>
-  columns?: string | string[]
-}
+type UpdateFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: Partial<Record<keyof D, any>>
+  data: Partial<D>
+  columns?: Array<keyof D> | '*'
+}) => Promise<D>
 
-interface UpdateJsonColumnInput {
-  table: TableName
-  where: Record<string, any>
+type UpdateManyFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: Partial<Record<keyof D, any>>
+  data: Partial<D>
+  columns?: Array<keyof D> | '*'
+}) => Promise<D[]>
+
+type UpdateJsonColumnFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: Partial<Record<keyof D, any>>
   jsonColumn?: string // default extra column name is 'extra'
   removeKeys?: string[] // keys to remove from extra json column
   jsonData?: Record<string, any> | null
   // resetNull?; boolean
-  columns?: string | string[] // returning columns
-}
+  columns?: string[] | '*' // returning columns
+}) => Promise<D>
 
-interface UpsertInput {
-  table: TableName
-  where?: Record<string, any>
-  create: Record<string, any>
-  update: Record<string, any>
-}
+type UpsertFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where?: Partial<Record<keyof D, any>>
+  create: Partial<D>
+  update: Partial<D>
+}) => Promise<D>
 
-interface DeleteManyInput {
-  table: TableName
-  where?: Record<string, any>
+type DeleteManyFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where?: Partial<Record<keyof D, any>>
   whereIn?: [string, string[]]
-}
+}) => Promise<void>
 
-interface CountInput {
-  table: TableName
-  where: Record<string, any>
+type CountFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: Partial<Record<keyof D, any>>
   whereIn?: [string, string[]]
-}
+}) => Promise<number>
 
-interface MaxInput {
-  table: TableName
-  where?: Record<string, any>
-  column: string
+type MaxFn = <
+  Table extends TableTypeMapKey,
+  D extends TableTypeMap[Table]
+>(params: {
+  table: Table
+  where: Partial<Record<keyof D, any>>
+  column: keyof D
+}) => Promise<number>
+
+interface AtomDataLoader<K, V> {
+  load: (key: K) => Promise<V>
+  loadMany: (keys: K[]) => Promise<V[]>
 }
 
 /**
@@ -88,49 +212,83 @@ interface MaxInput {
  */
 export class AtomService {
   private knex: Knex
-  public aws: typeof aws
-  public cfsvc: typeof cfsvc
 
-  public circleIdLoader: DataLoader<string, Item>
-  public draftIdLoader: DataLoader<string, Item>
-  public userIdLoader: DataLoader<string, Item>
-  public topicIdLoader: DataLoader<string, Item>
-  public chapterIdLoader: DataLoader<string, Item>
+  public articleIdLoader: AtomDataLoader<string, Article>
+  public articleVersionIdLoader: AtomDataLoader<string, ArticleVersion>
+  public articleContentIdLoader: AtomDataLoader<string, ArticleContent>
+  public circleIdLoader: AtomDataLoader<string, Circle>
+  public commentIdLoader: AtomDataLoader<string, Comment>
+  public collectionIdLoader: AtomDataLoader<string, Collection>
+  public draftIdLoader: AtomDataLoader<string, Draft>
+  public userIdLoader: AtomDataLoader<string, User>
+  public topicIdLoader: AtomDataLoader<string, Topic>
+  public chapterIdLoader: AtomDataLoader<string, Chapter>
+  public tagIdLoader: AtomDataLoader<string, Tag>
 
   public constructor(connections: Connections) {
-    this.aws = aws
-    this.cfsvc = cfsvc
     this.knex = connections.knex
 
-    this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
+    this.articleIdLoader = this.initLoader({
+      table: 'article',
+      mode: 'id',
+      error: new ArticleNotFoundError('Cannot find article'),
+    })
+    this.articleVersionIdLoader = this.initLoader({
+      table: 'article_version',
+      mode: 'id',
+    })
+    this.articleContentIdLoader = this.initLoader({
+      table: 'article_content',
+      mode: 'id',
+    })
     this.draftIdLoader = this.initLoader({ table: 'draft', mode: 'id' })
+    this.commentIdLoader = this.initLoader({
+      table: 'draft',
+      mode: 'id',
+      error: new CommentNotFoundError('Cannot find comment'),
+    })
+    this.collectionIdLoader = this.initLoader({
+      table: 'collection',
+      mode: 'id',
+    })
+    this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
     this.userIdLoader = this.initLoader({ table: 'user', mode: 'id' })
     this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
     this.chapterIdLoader = this.initLoader({ table: 'chapter', mode: 'id' })
+    this.tagIdLoader = this.initLoader({ table: 'tag', mode: 'id' })
   }
 
   /* Data Loader */
 
   /**
    * Initialize typical data loader.
+   *
+   * @remark
+   *
+   * loader throw error when it cannot find some entities.
    */
-  private initLoader = ({ table, mode }: InitLoaderInput) => {
+  public initLoader = <T>({
+    table,
+    mode,
+    error,
+  }: InitLoaderInput): AtomDataLoader<string, T> => {
     const batchFn = async (keys: readonly string[]) => {
-      let records = await this.findMany({
+      const records = await this.findMany({
         table,
         whereIn: [mode, keys as string[]],
       })
 
-      if (records.findIndex((item: any) => !item) >= 0) {
+      if (records.findIndex((item: unknown) => !item) >= 0) {
+        if (error) {
+          throw error
+        }
         throw new EntityNotFoundError(`Cannot find entity from ${table}`)
       }
 
       // fix order based on keys
-      records = keys.map((key) => records.find((r: any) => r[mode] === key))
-
-      return records
+      return keys.map((key) => records.find((r: any) => r[mode] === key)) as T[]
     }
-    return new DataLoader(batchFn)
+    return new DataLoader(batchFn) as AtomDataLoader<string, T>
   }
 
   /* Basic CRUD */
@@ -140,7 +298,7 @@ export class AtomService {
    *
    * A Prisma like method for retrieving a record by specified id.
    */
-  public findUnique = async ({ table, where }: FindUniqueInput) =>
+  public findUnique: FindUniqueFn = async ({ table, where }) =>
     this.knex.select().from(table).where(where).first()
 
   /**
@@ -148,12 +306,12 @@ export class AtomService {
    *
    * A Prisma like method for getting the first record in rows.
    */
-  public findFirst = async ({
+  public findFirst: FindFirstFn = async ({
     table,
     where,
     whereIn,
     orderBy,
-  }: FindFirstInput) => {
+  }) => {
     const query = this.knex.select().from(table).where(where)
 
     if (whereIn) {
@@ -172,7 +330,7 @@ export class AtomService {
    *
    * A Prisma like mehtod for fetching records.
    */
-  public findMany = async ({
+  public findMany: FindManyFn = async ({
     table,
     select = ['*'],
     where,
@@ -182,7 +340,7 @@ export class AtomService {
     modifier,
     skip,
     take,
-  }: FindManyInput) => {
+  }) => {
     const query = this.knex.select(select).from(table)
 
     if (where) {
@@ -220,7 +378,7 @@ export class AtomService {
    *
    * A Prisma like method for creating one record.
    */
-  public create = async ({ table, data }: CreateInput) => {
+  public create: CreateFn = async ({ table, data }) => {
     const [record] = await this.knex(table).insert(data).returning('*')
     return record
   }
@@ -230,21 +388,16 @@ export class AtomService {
    *
    * A Prisma like method for updating a record.
    */
-  public update = async ({
-    table,
-    where,
-    data,
-    columns = '*',
-  }: UpdateInput) => {
+  public update: UpdateFn = async ({ table, where, data, columns = '*' }) => {
     const [record] = await this.knex
       .where(where)
-      .update(data)
+      .update({ ...data, updatedAt: this.knex.fn.now() })
       .into(table)
-      .returning(columns)
+      .returning(columns as string)
     return record
   }
 
-  public updateJsonColumn = async ({
+  public updateJsonColumn: UpdateJsonColumnFn = async ({
     table,
     where,
     jsonColumn = 'extra', // the json column's name
@@ -252,7 +405,7 @@ export class AtomService {
     jsonData, // the extra data to append into jsonb data
     // resetNull,
     columns = '*',
-  }: UpdateJsonColumnInput) => {
+  }) => {
     const [record] = await this.knex
       .table(table)
       .where(where)
@@ -279,22 +432,28 @@ export class AtomService {
    *
    * A Prisma like method for updating many records.
    */
-  public updateMany = async ({
+  public updateMany: UpdateManyFn = async ({
     table,
     where,
     data,
     columns = '*',
-  }: UpdateInput) =>
-    this.knex.where(where).update(data).into(table).returning(columns)
+  }) => {
+    const records = await this.knex
+      .where(where)
+      .update(data)
+      .into(table)
+      .returning(columns as string)
+    return records
+  }
 
   /**
    * Upsert an unique record.
    *
    * A Prisma like method for updating or creating a record.
    */
-  public upsert = async ({ table, where, create, update }: UpsertInput) => {
+  public upsert: UpsertFn = async ({ table, where, create, update }) => {
     // TODO: Use onConflict instead
-    // @see {@url https://github.com/knex/knex/pull/3763}
+    // @see {@link https://github.com/knex/knex/pull/3763}
     const record = await this.knex(table)
       .select()
       .where(where as Record<string, any>)
@@ -308,7 +467,7 @@ export class AtomService {
     // update
     const [updatedRecord] = await this.knex(table)
       .where(where as Record<string, any>)
-      .update(update)
+      .update({ ...update, updatedAt: this.knex.fn.now() })
       .returning('*')
 
     return updatedRecord
@@ -319,7 +478,7 @@ export class AtomService {
    *
    * A Prisma like method for deleting multiple records.
    */
-  public deleteMany = async ({ table, where, whereIn }: DeleteManyInput) => {
+  public deleteMany: DeleteManyFn = async ({ table, where, whereIn }) => {
     const action = this.knex(table)
     if (where) {
       action.where(where as Record<string, any>)
@@ -335,7 +494,7 @@ export class AtomService {
    *
    * A Prisma like method for counting records.
    */
-  public count = async ({ table, where, whereIn }: CountInput) => {
+  public count: CountFn = async ({ table, where, whereIn }) => {
     const action = this.knex.count().from(table).where(where)
     if (whereIn) {
       action.whereIn(...whereIn)
@@ -350,11 +509,8 @@ export class AtomService {
    *
    * A Prisma like method for getting max.
    */
-  public max = async ({ table, where, column }: MaxInput) => {
-    const record = await this.knex(table)
-      .max(column)
-      .where(where as Record<string, any>)
-      .first()
+  public max: MaxFn = async ({ table, where, column }) => {
+    const record = await this.knex(table).max(column).where(where).first()
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 }
