@@ -1,7 +1,8 @@
+import type { LANGUAGES, UserHasUsername } from 'definitions'
+
 import { EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { mailService } from 'connectors'
-import { LANGUAGES, UserHasUsername } from 'definitions'
 
 import { trans } from './utils'
 
@@ -24,7 +25,7 @@ export const sendPayment = async ({
     | 'payout'
   recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
   tx?: {
-    recipient: Pick<UserHasUsername, 'displayName' | 'userName'>
+    recipient?: Pick<UserHasUsername, 'displayName' | 'userName'>
     sender?: Pick<UserHasUsername, 'displayName' | 'userName'>
     amount: number
     currency: string
