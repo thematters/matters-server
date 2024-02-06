@@ -71,3 +71,31 @@ export interface ArticleConnection {
   order: number
   createdAt: Date
 }
+
+export interface ArticleTag {
+  id: string
+  articleId: string
+  tagId: string
+  selected: boolean | null
+  creator: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleTopic {
+  id: string
+  topicId: string
+  articleId: string
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleChapter {
+  id: string
+  chapterId: string
+  articleId: string
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}

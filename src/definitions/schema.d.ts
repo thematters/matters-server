@@ -18,6 +18,7 @@ import {
   CircleInvitation as CircleInvitationModel,
   CircleMember as CircleMemberModel,
 } from './circle'
+import { Chapter as ChapterModel } from './chapter'
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
@@ -4149,10 +4150,7 @@ export type GQLResolversInterfaceTypes<
       })
   Node:
     | ArticleModel
-    | (Omit<GQLChapter, 'articles' | 'topic'> & {
-        articles?: Maybe<Array<RefType['Article']>>
-        topic: RefType['Topic']
-      })
+    | ChapterModel
     | CircleModel
     | CollectionModel
     | CommentModel
@@ -4259,12 +4257,7 @@ export type GQLResolversTypes = ResolversObject<{
   CacheControlScope: GQLCacheControlScope
   Chain: GQLChain
   ChangeEmailInput: GQLChangeEmailInput
-  Chapter: ResolverTypeWrapper<
-    Omit<GQLChapter, 'articles' | 'topic'> & {
-      articles?: Maybe<Array<GQLResolversTypes['Article']>>
-      topic: GQLResolversTypes['Topic']
-    }
-  >
+  Chapter: ResolverTypeWrapper<ChapterModel>
   Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<CircleModel>
   CircleConnection: ResolverTypeWrapper<
@@ -4801,10 +4794,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
   ChangeEmailInput: GQLChangeEmailInput
-  Chapter: Omit<GQLChapter, 'articles' | 'topic'> & {
-    articles?: Maybe<Array<GQLResolversParentTypes['Article']>>
-    topic: GQLResolversParentTypes['Topic']
-  }
+  Chapter: ChapterModel
   Circle: CircleModel
   CircleAnalytics: CircleModel
   CircleConnection: Omit<GQLCircleConnection, 'edges'> & {

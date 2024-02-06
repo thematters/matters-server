@@ -1,12 +1,17 @@
 import type {
   ActionCircle,
+  ActionTag,
   Article,
   ArticleCircle,
+  ArticleTag,
+  ArticleTopic,
+  ArticleChapter,
   ArticleConnection,
   ArticleContent,
   ArticleVersion,
   Asset,
   AssetMap,
+  Appreciation,
   Chapter,
   Circle,
   CirclePrice,
@@ -59,12 +64,16 @@ type TableTypeMap = {
   article_version: ArticleVersion
   article_content: ArticleContent
   article_circle: ArticleCircle
+  article_tag: ArticleTag
+  article_topic: ArticleTopic
+  article_chapter: ArticleChapter
   article_connection: ArticleConnection
   collection: Collection
   collection_article: CollectionArticle
   chapter: Chapter
   comment: Comment
   action_circle: ActionCircle
+  action_tag: ActionTag
   circle: Circle
   circle_price: CirclePrice
   circle_invitation: CircleInvitation
@@ -82,6 +91,7 @@ type TableTypeMap = {
   blockchain_transaction: BlockchainTransaction
   blockchain_sync_record: BlockchainSyncRecord
   entity_type: EntityType
+  appreciation: Appreciation
 }
 
 type TableTypeMapKey = keyof TableTypeMap
@@ -206,7 +216,7 @@ type MaxFn = <
 
 interface AtomDataLoader<K, V> {
   load: (key: K) => Promise<V>
-  loadMany: (keys: K[]) => Promise<V[]>
+  loadMany: (keys: readonly K[]) => Promise<V[]>
 }
 
 /**

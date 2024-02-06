@@ -26,6 +26,7 @@ export interface Draft {
   iscnPublish: boolean | null
   remark: string | null
   publishState: PUBLISH_STATE
+  articleId: string | null
   sensitiveByAuthor: boolean
   archived: boolean
   createdAt: Date

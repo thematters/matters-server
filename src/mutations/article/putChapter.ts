@@ -177,13 +177,13 @@ const resolver: GQLMutationResolvers['putChapter'] = async (
     }
 
     return chapter
-  }
 
-  /**
-   * create
-   * when id is provided
-   */
-  if (!id) {
+  } else {
+    /**
+     * create
+     * when id is not provided
+     */
+
     // check input validity
     if (!rest.title || !topicGlobalId) {
       throw new UserInputError(
