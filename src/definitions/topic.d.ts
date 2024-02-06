@@ -5,4 +5,5 @@ export interface Topic {
   cover?: string
   userId: string
   public: boolean
+  order: number
 }

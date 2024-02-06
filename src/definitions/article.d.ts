@@ -99,3 +99,10 @@ export interface ArticleChapter {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface ArticleRecommendSetting {
+  id: string
+  articleId: string
+  inHottest: boolean
+  inNewest: boolean
+}

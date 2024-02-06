@@ -3,13 +3,13 @@ export interface Tag {
   content: string
   createdAt: string
   updatedAt: string
-  remark?: string
+  remark: string | null
   delete: boolean
-  cover?: string
-  description?: string
-  editors?: string[]
+  cover: string | null
+  description: string | null
+  editors: string[] | null
   creator: string
   owner: string
-  majorTagId?: string
+  majorTagId: string | null
   slug: string
 }

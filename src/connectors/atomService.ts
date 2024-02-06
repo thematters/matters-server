@@ -1,5 +1,8 @@
 import type {
   MattersChoice,
+  ArticleRecommendSetting,
+  ActionArticle,
+  ActionUser,
   ActionCircle,
   ActionTag,
   Article,
@@ -71,10 +74,13 @@ type TableTypeMap = {
   article_topic: ArticleTopic
   article_chapter: ArticleChapter
   article_connection: ArticleConnection
+  article_recommend_setting: ArticleRecommendSetting
   collection: Collection
   collection_article: CollectionArticle
   chapter: Chapter
   comment: Comment
+  action_user: ActionUser
+  action_article: ActionArticle
   action_circle: ActionCircle
   action_tag: ActionTag
   circle: Circle

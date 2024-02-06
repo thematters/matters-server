@@ -7,3 +7,10 @@ export interface PunishRecord {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface MattersChoice {
+  id: string
+  articleId: string
+  createdAt: Date
+  updatedAt: Date
+}
