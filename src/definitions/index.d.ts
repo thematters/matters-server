@@ -210,6 +210,11 @@ export type MaterializedView =
 
 export type TableName = BasicTableName | View | MaterializedView
 
+export interface EntityType {
+  id: string
+  table: TableName
+}
+
 export interface ThirdPartyAccount {
   accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string

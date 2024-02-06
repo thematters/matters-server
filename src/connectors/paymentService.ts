@@ -1,12 +1,14 @@
 import type {
   CirclePrice,
+  Customer,
+  BlockchainTransaction,
   Transaction,
   EmailableUser,
   Connections,
-  Item,
+  UserHasUsername,
 } from 'definitions'
 
-import DataLoader from 'dataloader'
+import slugify from '@matters/slugify'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -25,22 +27,19 @@ import {
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
-import { AtomService, BaseService, NotificationService } from 'connectors'
+import { ArticleService, BaseService, NotificationService } from 'connectors'
 
 import { stripe } from './stripe'
 
 const logger = getLogger('service-payment')
 
-export class PaymentService extends BaseService {
+export class PaymentService extends BaseService<Transaction> {
   public stripe: typeof stripe
-  public dataloader: DataLoader<string, Item>
 
   public constructor(connections: Connections) {
     super('transaction', connections)
 
     this.stripe = stripe
-
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
   /*********************************
@@ -225,8 +224,8 @@ export class PaymentService extends BaseService {
 
     return this.baseCreate(
       {
-        amount,
-        fee,
+        amount: amount.toString(),
+        fee: fee ? fee.toString() : undefined,
 
         state,
         currency,
@@ -249,10 +248,10 @@ export class PaymentService extends BaseService {
   }
 
   public findBlockchainTransactionById = async (id: string) =>
-    this.baseFindById(id, 'blockchain_transaction')
+    this.models.findUnique({ table: 'blockchain_transaction', where: { id } })
 
   public findOrCreateBlockchainTransaction = async (
-    { chainId, txHash }: { chainId: number; txHash: string },
+    { chainId, txHash }: { chainId: string | number; txHash: string },
     data?: {
       state?: BLOCKCHAIN_TRANSACTION_STATE
       from?: string
@@ -271,7 +270,12 @@ export class PaymentService extends BaseService {
       ...(data || {}),
     }
 
-    return this.baseFindOrCreate({ where, data: toInsert, table, trx })
+    return this.baseFindOrCreate<BlockchainTransaction>({
+      where,
+      data: toInsert as unknown as BlockchainTransaction,
+      table,
+      trx,
+    })
   }
 
   public findOrCreateTransactionByBlockchainTxHash = async ({
@@ -312,7 +316,7 @@ export class PaymentService extends BaseService {
     const trx = await this.knex.transaction()
     try {
       const blockchainTx = await this.findOrCreateBlockchainTransaction(
-        { chainId, txHash },
+        { chainId: chainId.toString(), txHash },
         undefined,
         trx
       )
@@ -369,9 +373,9 @@ export class PaymentService extends BaseService {
     },
     trx?: Knex.Transaction
   ) =>
-    this.baseUpdate(
+    this.baseUpdate<BlockchainTransaction>(
       id,
-      { updatedAt: new Date(), state },
+      { state },
       'blockchain_transaction',
       trx
     )
@@ -398,12 +402,7 @@ export class PaymentService extends BaseService {
           state,
         }
 
-    return this.baseUpdate(
-      id,
-      { updatedAt: new Date(), ...data },
-      'transaction',
-      trx
-    )
+    return this.baseUpdate(id, data, 'transaction', trx)
   }
 
   /**
@@ -456,7 +455,7 @@ export class PaymentService extends BaseService {
         throw new ServerError('failed to create customer')
       }
 
-      return this.baseCreate(
+      return this.baseCreate<Customer>(
         {
           userId: user.id,
           provider,
@@ -699,7 +698,10 @@ export class PaymentService extends BaseService {
         TRANSACTION_TARGET_TYPE.circlePrice
       )
       for (const p of prices) {
-        const circle = await this.baseFindById(p.circleId, 'circle')
+        const circle = await this.baseFindById<{ owner: string }>(
+          p.circleId,
+          'circle'
+        )
         await trx('transaction').insert({
           amount: p.amount,
           currency: p.currency,
@@ -710,7 +712,7 @@ export class PaymentService extends BaseService {
           providerTxId: v4(),
 
           senderId: userId,
-          recipientId: circle.owner,
+          recipientId: circle?.owner,
 
           targetType: entityTypeId,
           targetId: p.id,
@@ -1049,31 +1051,27 @@ export class PaymentService extends BaseService {
     sender?: EmailableUser
     recipient: EmailableUser
     article: {
-      title: string
-      slug: string
+      id: string
       authorId: string
-      mediaHash: string
-      draftId: string
     }
   }) => {
-    const atomService = new AtomService(this.connections)
     const notificationService = new NotificationService(this.connections)
+    const articleService = new ArticleService(this.connections)
     const amount = parseFloat(tx.amount)
-    const author = await atomService.findFirst({
+    const author = (await this.models.findFirst({
       table: 'user',
       where: { id: article.authorId },
-    })
-    const draft = await atomService.findFirst({
-      table: 'draft',
-      where: { id: article.draftId },
-    })
+    })) as UserHasUsername
+    const articleVersion = await articleService.loadLatestArticleVersion(
+      article.id
+    )
 
-    const hasReplyToDonator = !!draft.replyToDonator
+    const hasReplyToDonator = !!articleVersion.replyToDonator
     const _article = {
       id: tx.targetId,
-      title: article.title,
-      slug: article.slug,
-      mediaHash: article.mediaHash,
+      title: articleVersion.title,
+      slug: slugify(articleVersion.title),
+      mediaHash: articleVersion.mediaHash,
       author: {
         displayName: author.displayName,
         userName: author.userName,

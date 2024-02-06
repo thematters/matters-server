@@ -33,6 +33,7 @@ import type {
   Transaction,
   BlockchainTransaction,
   BlockchainSyncRecord,
+  EntityType,
 } from 'definitions'
 import type { Knex } from 'knex'
 
@@ -80,6 +81,7 @@ type TableTypeMap = {
   transaction: Transaction
   blockchain_transaction: BlockchainTransaction
   blockchain_sync_record: BlockchainSyncRecord
+  entity_type: EntityType
 }
 
 type TableTypeMapKey = keyof TableTypeMap
@@ -224,6 +226,7 @@ export class AtomService {
   public topicIdLoader: AtomDataLoader<string, Topic>
   public chapterIdLoader: AtomDataLoader<string, Chapter>
   public tagIdLoader: AtomDataLoader<string, Tag>
+  public transactionIdLoader: AtomDataLoader<string, Transaction>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -243,7 +246,7 @@ export class AtomService {
     })
     this.draftIdLoader = this.initLoader({ table: 'draft', mode: 'id' })
     this.commentIdLoader = this.initLoader({
-      table: 'draft',
+      table: 'comment',
       mode: 'id',
       error: new CommentNotFoundError('Cannot find comment'),
     })
@@ -256,6 +259,10 @@ export class AtomService {
     this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
     this.chapterIdLoader = this.initLoader({ table: 'chapter', mode: 'id' })
     this.tagIdLoader = this.initLoader({ table: 'tag', mode: 'id' })
+    this.transactionIdLoader = this.initLoader({
+      table: 'transaction',
+      mode: 'id',
+    })
   }
 
   /* Data Loader */
