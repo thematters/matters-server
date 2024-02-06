@@ -5,7 +5,7 @@ import { Knex } from 'knex'
 
 import { getLogger } from 'common/logger'
 import { aws, cfsvc } from 'connectors'
-import { AtomService } from 'connectors'
+import { AtomService, isUpdateableTable } from 'connectors'
 import { ItemData, TableName } from 'definitions'
 
 const logger = getLogger('service-base')
@@ -229,14 +229,12 @@ export class BaseService<T extends BaseDBSchema> {
     data,
     table,
     createOptions,
-    updateUpdatedAt,
     trx,
   }: {
     where: { [key: string]: any }
     data: S
     table?: TableName
     createOptions?: { [key: string]: any }
-    updateUpdatedAt?: boolean
     trx?: Knex.Transaction
   }): Promise<S> => {
     const tableName = table || this.table
@@ -254,10 +252,11 @@ export class BaseService<T extends BaseDBSchema> {
     // update
     const query = this.knex(tableName)
       .where(where)
-      .update({
-        ...data,
-        ...(updateUpdatedAt ? { updatedAt: this.knex.fn.now() } : null),
-      })
+      .update(
+        isUpdateableTable(tableName)
+          ? { ...data, updatedAt: this.knex.fn.now() }
+          : data
+      )
       .returning('*')
 
     if (trx) {
@@ -315,7 +314,11 @@ export class BaseService<T extends BaseDBSchema> {
   ): Promise<S> => {
     const query = this.knex
       .where('id', id)
-      .update({ ...data, updatedAt: this.knex.fn.now() })
+      .update(
+        isUpdateableTable(table || this.table)
+          ? { ...data, updatedAt: this.knex.fn.now() }
+          : data
+      )
       .into(table || this.table)
       .returning('*')
 
@@ -339,7 +342,11 @@ export class BaseService<T extends BaseDBSchema> {
   ): Promise<S[]> =>
     this.knex
       .whereIn('id', ids)
-      .update(data)
+      .update(
+        isUpdateableTable(table || this.table)
+          ? { ...data, updatedAt: this.knex.fn.now() }
+          : data
+      )
       .into(table || this.table)
       .returning('*')
 

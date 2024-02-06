@@ -1,4 +1,5 @@
 import type {
+  MattersChoice,
   ActionCircle,
   ActionTag,
   Article,
@@ -39,6 +40,7 @@ import type {
   BlockchainTransaction,
   BlockchainSyncRecord,
   EntityType,
+  TableName,
 } from 'definitions'
 import type { Knex } from 'knex'
 
@@ -53,6 +55,7 @@ import {
 type Mode = 'id' | 'uuid'
 
 type TableTypeMap = {
+  matters_choice: MattersChoice
   user: User
   user_ipns_keys: UserIpnsKeys
   username_edit_history: UsernameEditHistory
@@ -408,7 +411,11 @@ export class AtomService {
   public update: UpdateFn = async ({ table, where, data, columns = '*' }) => {
     const [record] = await this.knex
       .where(where)
-      .update({ ...data, updatedAt: this.knex.fn.now() })
+      .update(
+        isUpdateableTable(table)
+          ? { ...data, updatedAt: this.knex.fn.now() }
+          : data
+      )
       .into(table)
       .returning(columns as string)
     return record
@@ -457,7 +464,11 @@ export class AtomService {
   }) => {
     const records = await this.knex
       .where(where)
-      .update(data)
+      .update(
+        isUpdateableTable(table)
+          ? { ...data, updatedAt: this.knex.fn.now() }
+          : data
+      )
       .into(table)
       .returning(columns as string)
     return records
@@ -484,7 +495,11 @@ export class AtomService {
     // update
     const [updatedRecord] = await this.knex(table)
       .where(where as Record<string, any>)
-      .update({ ...update, updatedAt: this.knex.fn.now() })
+      .update(
+        isUpdateableTable(table)
+          ? { ...update, updatedAt: this.knex.fn.now() }
+          : update
+      )
       .returning('*')
 
     return updatedRecord
@@ -531,3 +546,68 @@ export class AtomService {
     return parseInt(record ? (record.count as string) : '0', 10)
   }
 }
+
+export const isUpdateableTable = (table: TableName) =>
+  UPATEABLE_TABLES.includes(table)
+
+const UPATEABLE_TABLES = [
+  'user',
+  'user_oauth',
+  'user_notify_setting',
+  'article',
+  'tag',
+  'article_tag',
+  'comment',
+  'action_user',
+  'action_comment',
+  'action_article',
+  'draft',
+  'audio_draft',
+  'notice',
+  'asset',
+  'verification_code',
+  'push_device',
+  'matters_today',
+  'matters_choice',
+  'article_boost',
+  'tag_boost',
+  'user_boost',
+  'article_version',
+  'article_connection',
+  'oauth_client',
+  'oauth_access_token',
+  'oauth_authorization_code',
+  'oauth_refresh_token',
+  'user_oauth_likecoin',
+  'article_read_count',
+  'blocklist',
+  'transaction',
+  'punish_record',
+  'feature_flag',
+  'payout_account',
+  'action_tag',
+  'matters_choice_tag',
+  'circle',
+  'action_circle',
+  'circle_price',
+  'article_circle',
+  'circle_subscription',
+  'circle_subscription_item',
+  'circle_invoice',
+  'seeding_user',
+  'announcement',
+  'topic',
+  'article_topic',
+  'chapter',
+  'article_chapter',
+  'crypto_wallet',
+  'crypto_wallet_signature',
+  'article_translation',
+  'tag_translation',
+  'user_ipns_keys',
+  'user_tags_order',
+  'announcement_translation',
+  'blockchain_sync_record',
+  'blockchain_transaction',
+  'collection',
+]
