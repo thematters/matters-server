@@ -1,4 +1,8 @@
-import { SOCIAL_LOGIN_TYPE, USER_STATE } from 'common/enums'
+import {
+  SOCIAL_LOGIN_TYPE,
+  USER_STATE,
+  USER_RESTRICTION_TYPE,
+} from 'common/enums'
 
 import { LANGUAGES } from './language'
 
@@ -11,23 +15,25 @@ interface UserBase {
   avatar: string
   email: string | null
   emailVerified: boolean
-  likerId?: string
-  passwordHash: string
-  paymentPointer?: string
-  paymentPasswordHash?: string
+  likerId: string | null
+  passwordHash: string | null
+  paymentPointer: string | null
+  paymentPasswordHash: string | null
   baseGravity: number
   currGravity: number
   language: LANGUAGES
   // oauthType: any
   role: UserRole
   state: UserState
-  createdAt: string
-  updatedAt: string
   agreeOn: string
-  ethAddress: string
-  currency?: 'HKD' | 'TWD' | 'USD'
+  ethAddress: string | null
+  currency: 'HKD' | 'TWD' | 'USD' | null
   profileCover?: string
-  extra?: any // jsonb saved here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  extra: any | null // jsonb saved here
+  remark: string | null
+  createdAt: Date
+  updatedAt: Date
 }
 
 export type UserNoUsername = UserBase & { userName: null; displayName: null }
@@ -68,72 +74,6 @@ export type Viewer = (User & ViewerBase) | ViewerBase
 
 export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
-export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
-
-export interface UserOAuthLikeCoin {
-  likerId: string
-  accountType: UserOAuthLikeCoinAccountType
-  accessToken: string
-  refreshToken: string
-  expires: Date
-  scope: string | string[]
-}
-
-export interface OAuthClientDB {
-  id: sring
-  userId: string
-  avatar: string
-}
-
-export interface OAuthClient {
-  [key: string]: any
-  id: string
-  redirectUris?: string | string[]
-  grants: string | string[]
-  accessTokenLifetime?: number
-  refreshTokenLifetime?: number
-}
-
-export interface OAuthAuthorizationCode {
-  [key: string]: any
-  authorizationCode: string
-  expiresAt: Date
-  redirectUri: string
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthToken {
-  [key: string]: any
-  accessToken: string
-  accessTokenExpiresAt?: Date
-  refreshToken?: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface OAuthRefreshToken {
-  [key: string]: any
-  refreshToken: string
-  refreshTokenExpiresAt?: Date
-  scope?: string | string[]
-  client: OAuthClient
-  user: User
-}
-
-export interface VerficationCode {
-  id: string
-  uuid: string
-  expiredAt: Date
-  code: string
-  type: GQLVerificationCodeType
-  status: VERIFICATION_CODE_STATUS
-  email: string
-}
-
 export interface Wallet {
   id: string
   userId: string
@@ -146,4 +86,64 @@ export interface SocialAccount {
   providerAccountId: string
   userName?: string
   email?: string
+}
+
+export interface UserIpnsKeys {
+  id: string
+  userId: string | null
+  ipnsKey: string
+  privKeyPem: string
+  privKeyName: string
+  createdAt: Date
+  updatedAt: Date
+  lastDataHash: string | null
+  lastPublished: Date | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stats: any
+}
+
+export interface UserNotifySetting {
+  id: string
+  userId: string
+  enable: boolean
+  mention: boolean
+  userNewFollower: boolean
+  articleNewComment: boolean
+  articleNewAppreciation: boolean
+  articleNewSubscription: boolean
+  articleSubscribedNewComment: boolean
+  articleCommentPinned: boolean
+  reportFeedback: boolean
+  email: boolean
+  tag: boolean
+  circleNewFollower: boolean
+  circleNewDiscussion: boolean
+  circleNewSubscriber: boolean
+  circleNewUnsubscriber: boolean
+  circleMemberBroadcast: boolean
+  circleMemberNewDiscussion: boolean
+  circleMemberNewDiscussionReply: boolean
+  inCircleNewArticle: boolean
+  inCircleNewBroadcast: boolean
+  inCircleNewBroadcastReply: boolean
+  inCircleNewDiscussion: boolean
+  inCircleNewDiscussionReply: boolean
+  articleNewCollected: boolean
+  circleMemberNewBroadcastReply: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UsernameEditHistory {
+  id: string
+  userId: string
+  previous: string
+  createdAt: Date
+}
+
+export interface UserRestriction {
+  id: string
+  userId: string
+  type: keyof typeof USER_RESTRICTION_TYPE
+  createdAt: Date
 }

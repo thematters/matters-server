@@ -1,28 +1,73 @@
-import { ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
+  PIN_STATE,
+} from 'common/enums'
 
 import { LANGUAGES } from './language'
 
 export interface Article {
   id: string
-  uuid: string
   authorId: string
+  state: ARTICLE_STATE
+  revisionCount: number
+  sensitiveByAdmin: boolean
+  pinned: boolean
+  pinnedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+  remark: string | null
+}
+
+export interface ArticleVersion {
+  id: string
+  articleId: string
   title: string
-  slug: string
-  cover?: string
+  cover: string | null
   summary: string
-  wordCount: string
+  contentId: string
+  contentMdId: string | null
+  summaryCustomized: boolean
+  wordCount: number
   dataHash: string
   mediaHash: string
-  content: string
-  state: ARTICLE_STATE
-  public: boolean
-  live: boolean
-  createdAt: string
-  updatedAt: string
-  draftId: string
-  remark?: string
+  pinState: PIN_STATE
+  tags: string[]
+  connections: string[]
+  access: keyof typeof ARTICLE_ACCESS_TYPE
+  license: keyof typeof ARTICLE_LICENSE_TYPE
+  replyToDonator: string | null
+  requestForDonation: string | null
+  canComment: boolean
+  sensitiveByAuthor: boolean
   sticky: boolean
-  language?: LANGUAGES
-  revisionCount: string
-  iscnId?: string
+  language: LANGUAGES | null
+  iscnId: string | null
+  circleId: string | null
+  createdAt: Date
+}
+
+export interface ArticleContent {
+  id: string
+  content: string
+  hash: string
+}
+
+export interface ArticleCircle {
+  id: string
+  articleId: string
+  circleId: string
+  access: keyof typeof ARTICLE_ACCESS_TYPE
+  secret?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleConnection {
+  id: string
+  entranceId: string
+  articleId: string
+  order: number
+  createdAt: Date
 }

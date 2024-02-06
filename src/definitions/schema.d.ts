@@ -11,6 +11,7 @@ import {
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
+import { Article as ArticleModel } from './article'
 import { Draft as DraftModel } from './draft'
 import {
   Circle as CircleModel,
@@ -4081,8 +4082,8 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
           nodes?: Maybe<Array<RefType['User']>>
         })
     Invitee: GQLPerson | UserModel
-    Response: DraftModel | CommentModel
-    TransactionTarget: DraftModel | CircleModel | TransactionModel
+    Response: ArticleModel | CommentModel
+    TransactionTarget: ArticleModel | CircleModel | TransactionModel
   }>
 
 /** Mapping of interface types */
@@ -4147,7 +4148,7 @@ export type GQLResolversInterfaceTypes<
         edges?: Maybe<Array<RefType['UserEdge']>>
       })
   Node:
-    | DraftModel
+    | ArticleModel
     | (Omit<GQLChapter, 'articles' | 'topic'> & {
         articles?: Maybe<Array<RefType['Article']>>
         topic: RefType['Topic']
@@ -4169,7 +4170,7 @@ export type GQLResolversInterfaceTypes<
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
-  PinnableWork: DraftModel | CollectionModel
+  PinnableWork: ArticleModel | CollectionModel
 }>
 
 /** Mapping between all available schema types and the resolvers types */
@@ -4198,8 +4199,8 @@ export type GQLResolversTypes = ResolversObject<{
     }
   >
   AppreciationPurpose: GQLAppreciationPurpose
-  Article: ResolverTypeWrapper<DraftModel>
-  ArticleAccess: ResolverTypeWrapper<DraftModel>
+  Article: ResolverTypeWrapper<ArticleModel>
+  ArticleAccess: ResolverTypeWrapper<ArticleModel>
   ArticleAccessType: GQLArticleAccessType
   ArticleArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleArticleNoticeType: GQLArticleArticleNoticeType
@@ -4208,7 +4209,7 @@ export type GQLResolversTypes = ResolversObject<{
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
     }
   >
-  ArticleContents: ResolverTypeWrapper<DraftModel>
+  ArticleContents: ResolverTypeWrapper<ArticleModel>
   ArticleDonation: ResolverTypeWrapper<
     Omit<GQLArticleDonation, 'sender'> & {
       sender?: Maybe<GQLResolversTypes['User']>
@@ -4231,7 +4232,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleLicenseType: GQLArticleLicenseType
   ArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleNoticeType: GQLArticleNoticeType
-  ArticleOSS: ResolverTypeWrapper<DraftModel>
+  ArticleOSS: ResolverTypeWrapper<ArticleModel>
   ArticleRecommendationActivity: ResolverTypeWrapper<
     Omit<GQLArticleRecommendationActivity, 'nodes'> & {
       nodes?: Maybe<Array<GQLResolversTypes['Article']>>
@@ -4762,13 +4763,13 @@ export type GQLResolversParentTypes = ResolversObject<{
   AppreciationEdge: Omit<GQLAppreciationEdge, 'node'> & {
     node: GQLResolversParentTypes['Appreciation']
   }
-  Article: DraftModel
-  ArticleAccess: DraftModel
+  Article: ArticleModel
+  ArticleAccess: ArticleModel
   ArticleArticleNotice: NoticeItemModel
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
-  ArticleContents: DraftModel
+  ArticleContents: ArticleModel
   ArticleDonation: Omit<GQLArticleDonation, 'sender'> & {
     sender?: Maybe<GQLResolversParentTypes['User']>
   }
@@ -4783,7 +4784,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   ArticleInput: GQLArticleInput
   ArticleNotice: NoticeItemModel
-  ArticleOSS: DraftModel
+  ArticleOSS: ArticleModel
   ArticleRecommendationActivity: Omit<
     GQLArticleRecommendationActivity,
     'nodes'
