@@ -56,7 +56,6 @@ import {
   RevisionQueue,
   AssetQueue,
   AppreciationQueue,
-  IPFSQueue,
   MigrationQueue,
   PayToByBlockchainQueue,
   PayToByMattersQueue,
@@ -102,7 +101,6 @@ const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
 const payToByMattersQueue = new PayToByMattersQueue(connections)
 const payoutQueue = new PayoutQueue(connections)
 const userQueue = new UserQueue(connections)
-const ipfsQueue = new IPFSQueue(connections)
 
 const queues = {
   publicationQueue,
@@ -114,7 +112,6 @@ const queues = {
   payToByMattersQueue,
   payoutQueue,
   userQueue,
-  ipfsQueue,
 }
 
 export const graphql = async (app: Express) => {
