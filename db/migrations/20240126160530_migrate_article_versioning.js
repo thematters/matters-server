@@ -57,6 +57,10 @@ exports.up = async (knex) => {
     t.index('article_id')
     t.index(['article_id', 'id'])
     t.index('pin_state')
+    t.index('data_hash')
+    t.index('media_hash')
+    t.index('iscn_id')
+    t.index('title')
   })
   await knex.schema.alterTable(articleTable, (t) => {
     t.boolean('sensitive_by_admin').notNullable().defaultTo(false)
