@@ -11,7 +11,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['toggleBlockUser'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, atomService } }
 ) => {
   // checks
   if (!viewer.id) {
@@ -24,7 +24,7 @@ const resolver: GQLMutationResolvers['toggleBlockUser'] = async (
     throw new ActionFailedError('cannot block yourself')
   }
 
-  const user = await userService.loadById(dbId)
+  const user = await atomService.userIdLoader.load(dbId)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }

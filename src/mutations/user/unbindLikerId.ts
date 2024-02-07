@@ -8,12 +8,13 @@ const resolver: GQLMutationResolvers['unbindLikerId'] = async (
   {
     dataSources: {
       userService,
+      atomService,
       connections: { knex },
     },
   }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.loadById(dbId)
+  const user = await atomService.userIdLoader.load(dbId)
 
   // check user's liker id
   if (user.likerId !== likerId) {

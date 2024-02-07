@@ -1,15 +1,17 @@
 import type { Connections } from 'definitions'
 
-import { CollectionService } from 'connectors'
+import { CollectionService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let collectionService: CollectionService
+let atomService: AtomService
 let connections: Connections
 
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -159,7 +161,7 @@ test('deleteCollectionArticles', async () => {
 })
 
 test('loadByIds', async () => {
-  const res = await collectionService.loadByIds([])
+  const res = await atomService.collectionIdLoader.loadMany([])
   expect(res.length).toBe(0)
 
   const { id: id1 } = await collectionService.createCollection({
@@ -170,7 +172,7 @@ test('loadByIds', async () => {
     authorId: '1',
     title: 'test',
   })
-  const res2 = await collectionService.loadByIds([id1, id2])
+  const res2 = await atomService.collectionIdLoader.loadMany([id1, id2])
   expect(res2.length).toBe(2)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expect((res2[0] as any).id).toBe(id1)

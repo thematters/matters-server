@@ -10,7 +10,7 @@ import {
 const resolver: GQLUserResolvers['followers'] = async (
   { id },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { atomService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -27,7 +27,7 @@ const resolver: GQLUserResolvers['followers'] = async (
     (map, action) => ({ ...map, [action.userId]: action.id }),
     {}
   )
-  const users = await userService.loadByIds(
+  const users = await atomService.userIdLoader.loadMany(
     actions.map(({ userId }: { userId: string }) => userId)
   )
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))

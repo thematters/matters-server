@@ -9,7 +9,7 @@ import {
 const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
   { id },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { atomService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -30,7 +30,7 @@ const resolver: GQLUserAnalyticsResolvers['topDonators'] = async (
     ...connection,
     edges: connection.edges.map(async (edge) => ({
       cursor: edge.cursor,
-      node: await userService.loadById(edge.node.senderId),
+      node: await atomService.userIdLoader.load(edge.node.senderId),
       donationCount: edge.node.count,
     })),
   } as any

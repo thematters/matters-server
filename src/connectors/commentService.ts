@@ -4,10 +4,7 @@ import type {
   GQLVote,
   Comment,
   Connections,
-  Item,
 } from 'definitions'
-
-import DataLoader from 'dataloader'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
@@ -15,7 +12,6 @@ import {
   COMMENT_TYPE,
   USER_ACTION,
 } from 'common/enums'
-import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
 
 interface CommentFilter {
@@ -26,25 +22,10 @@ interface CommentFilter {
   parentCommentId?: string | null
 }
 
-export class CommentService extends BaseService {
-  public dataloader: DataLoader<string, Item>
-
+export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
     super('comment', connections)
-    this.dataloader = new DataLoader(async (ids: readonly string[]) => {
-      const result = await this.baseFindByIds(ids)
-
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new CommentNotFoundError('Cannot find comment')
-      }
-      return result
-    })
   }
-
-  public loadById = async (id: string): Promise<Comment> =>
-    this.dataloader.load(id) as Promise<Comment>
-  public loadByIds = async (ids: string[]): Promise<Comment[]> =>
-    this.dataloader.loadMany(ids) as Promise<Comment[]>
 
   /**
    * Count comments by a given article id.
@@ -74,7 +55,7 @@ export class CommentService extends BaseService {
     id: string
     skip?: number
     take?: number
-  }): Promise<[any[], number]> => {
+  }): Promise<[Comment[], number]> => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
     }
@@ -157,14 +138,14 @@ export class CommentService extends BaseService {
    * Find id range with given filter
    */
   public range = async (where: CommentFilter) => {
-    const { count, max, min } = (await this.knex
+    const { count, max, min } = await this.knex
       .select()
       .from(this.table)
       .where(where)
       .min('id')
       .max('id')
       .count()
-      .first()) as Record<string, any>
+      .first()
 
     return {
       count: parseInt(count, 10),
@@ -195,7 +176,7 @@ export class CommentService extends BaseService {
 
     return this.baseUpdateOrCreate({
       where: data,
-      data: { updatedAt: new Date(), ...data },
+      data: data,
       table: 'action_comment',
     })
   }
