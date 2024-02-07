@@ -177,7 +177,6 @@ const resolver: GQLMutationResolvers['putChapter'] = async (
     }
 
     return chapter
-
   } else {
     /**
      * create

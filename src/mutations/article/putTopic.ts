@@ -197,13 +197,12 @@ const resolver: GQLMutationResolvers['putTopic'] = async (
       )
     }
     return topic
-  }
+  } else {
+    /**
+     * create
+     * when id is not provided
+     */
 
-  /**
-   * create
-   * when id is provided
-   */
-  if (!id) {
     // check input validity
     if (!rest.title) {
       throw new UserInputError('Title is required for creating topic.')
@@ -218,7 +217,7 @@ const resolver: GQLMutationResolvers['putTopic'] = async (
     // update orders
     const userTopics = await atomService.findMany({
       table: 'topic',
-      where: { user_id: viewer.id },
+      where: { userId: viewer.id },
     })
     await Promise.all(
       userTopics.map((topic) =>
@@ -227,7 +226,6 @@ const resolver: GQLMutationResolvers['putTopic'] = async (
           where: { id: topic.id },
           data: {
             order: topic.order + 1,
-            updatedAt: new Date(),
           },
         })
       )

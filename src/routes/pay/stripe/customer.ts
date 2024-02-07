@@ -67,13 +67,13 @@ export const updateCustomerCard = async (
     return
   }
 
-  const updatedCustomer = (await atomService.update({
+  const updatedCustomer = await atomService.update({
     table: 'customer',
     where: { id: customer.id },
     data: {
-      card_last_4: cardLast4,
+      cardLast4,
     },
-  })) as Customer
+  })
 
   // set as default payment method
   await paymentService.stripe.updateCustomer({

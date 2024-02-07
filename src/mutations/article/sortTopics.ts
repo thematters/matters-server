@@ -1,7 +1,6 @@
 import type { GQLMutationResolvers } from 'definitions'
 
 import _difference from 'lodash/difference'
-import _inter from 'lodash/intersection'
 import _uniq from 'lodash/uniq'
 
 import { ForbiddenError } from 'common/errors'
@@ -28,7 +27,7 @@ const resolver: GQLMutationResolvers['sortTopics'] = async (
   // remake orders
   const userTopics = await atomService.findMany({
     table: 'topic',
-    where: { user_id: viewer.id },
+    where: { userId: viewer.id },
     orderBy: [{ column: 'order', order: 'asc' }],
   })
   const userTopicIds = userTopics.map((topic) => topic.id)
@@ -43,7 +42,6 @@ const resolver: GQLMutationResolvers['sortTopics'] = async (
         where: { id: topicId },
         data: {
           order: index,
-          updatedAt: new Date(),
         },
       })
     )
@@ -51,7 +49,7 @@ const resolver: GQLMutationResolvers['sortTopics'] = async (
 
   return atomService.findMany({
     table: 'topic',
-    where: { user_id: viewer.id },
+    where: { userId: viewer.id },
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 }

@@ -4,9 +4,9 @@ import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['toggleSeedingUsers'] = async (
-  root,
+  _,
   { input: { ids, enabled } },
-  { dataSources: { atomService }, viewer }
+  { dataSources: { atomService } }
 ) => {
   if (!ids || ids.length === 0) {
     throw new UserInputError('"ids" is required')

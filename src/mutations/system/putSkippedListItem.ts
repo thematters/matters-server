@@ -7,12 +7,15 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['putSkippedListItem'] = async (
   _,
   { input: { id, type, value, archived } },
-  { dataSources: { systemService } }
+  { dataSources: { systemService, atomService } }
 ) => {
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const item = await systemService.baseFindById(dbId, 'blocklist')
+    const item = await atomService.findUnique({
+      where: { id: dbId },
+      table: 'blocklist',
+    })
 
     if (!item) {
       throw new EntityNotFoundError(`target ${dbId} does not exists`)

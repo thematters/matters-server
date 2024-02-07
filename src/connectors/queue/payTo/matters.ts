@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, EmailableUser } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
@@ -25,7 +25,7 @@ interface PaymentParams {
 }
 
 export class PayToByMattersQueue extends BaseQueue {
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super(QUEUE_NAME.payTo, connections)
     this.addConsumers()
   }
@@ -34,7 +34,7 @@ export class PayToByMattersQueue extends BaseQueue {
    * Producer for payTo.
    *
    */
-  payTo = ({ txId }: PaymentParams) =>
+  public payTo = ({ txId }: PaymentParams) =>
     this.q.add(
       QUEUE_JOB.payTo,
       { txId },
@@ -122,8 +122,8 @@ export class PayToByMattersQueue extends BaseQueue {
       // 4. recipient or sender not existed
       if (
         balance < 0 ||
-        tx.amount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
-        tx.amount + hasPaid > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
+        parseFloat(tx.amount) > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
+        parseFloat(tx.amount) + hasPaid > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
         !recipient ||
         !sender
       ) {
@@ -144,8 +144,8 @@ export class PayToByMattersQueue extends BaseQueue {
       // notification
       await paymentService.notifyDonation({
         tx,
-        sender,
-        recipient,
+        sender: sender as EmailableUser,
+        recipient: recipient as EmailableUser,
         article,
       })
 

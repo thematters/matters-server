@@ -13,7 +13,7 @@ const { zh_hans, zh_hant, en } = LANGUAGE
 export class GCP {
   private translateAPI: TranslateAPI.TranslationServiceClient
 
-  constructor() {
+  public constructor() {
     this.translateAPI = new TranslateAPI.TranslationServiceClient({
       projectId: environment.gcpProjectId,
       keyFilename: environment.translateCertPath,

@@ -25,7 +25,7 @@ const resolver: GQLFollowingResolvers['circles'] = async (
     }),
     atomService.findMany({
       table: 'action_circle',
-      select: ['target_id'],
+      select: ['targetId'],
       where: { userId: id, action: CIRCLE_ACTION.follow },
       skip,
       take,

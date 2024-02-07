@@ -12,7 +12,7 @@ const resolver: GQLCircleResolvers['prices'] = async (
   const prices = await atomService.findMany({
     table: 'circle_price',
     where: {
-      circle_id: id,
+      circleId: id,
       state: 'active',
     },
   })

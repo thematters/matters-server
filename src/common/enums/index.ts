@@ -209,7 +209,7 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
   DOMAIN: 'domain',
-}
+} as const
 
 export const LOCAL_STRIPE = {
   host: 'localhost',

@@ -1058,7 +1058,7 @@ export class PaymentService extends BaseService<Transaction> {
     const notificationService = new NotificationService(this.connections)
     const articleService = new ArticleService(this.connections)
     const amount = parseFloat(tx.amount)
-    const author = (await this.models.findFirst({
+    const author = (await this.models.findUnique({
       table: 'user',
       where: { id: article.authorId },
     })) as UserHasUsername
