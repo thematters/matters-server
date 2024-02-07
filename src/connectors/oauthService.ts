@@ -1,7 +1,11 @@
 import type {
   Falsey,
   OAuthAuthorizationCode,
+  OAuthAuthorizationCodeDB,
   OAuthClient,
+  OAuthClientDB,
+  OAuthAccessTokenDB,
+  OAuthRefreshTokenDB,
   OAuthRefreshToken,
   OAuthToken,
   User,
@@ -19,11 +23,11 @@ import {
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { isScopeAllowed, toGlobalId } from 'common/utils'
-import { BaseService, UserService } from 'connectors'
+import { BaseService } from 'connectors'
 
 const logger = getLogger('service-oauth')
 
-export class OAuthService extends BaseService {
+export class OAuthService extends BaseService<OAuthClientDB> {
   public constructor(connections: Connections) {
     super('oauth_client', connections)
   }
@@ -53,10 +57,7 @@ export class OAuthService extends BaseService {
   }) =>
     this.baseUpdateOrCreate({
       where: { clientId: params.clientId },
-      data: {
-        ...params,
-        updatedAt: new Date(),
-      },
+      data: params,
       table: 'oauth_client',
     })
 
@@ -72,7 +73,7 @@ export class OAuthService extends BaseService {
     return this.toOAuthClient(client)
   }
 
-  private toOAuthClient = (dbClient: any) => {
+  private toOAuthClient = (dbClient: OAuthClientDB): OAuthClient | Falsey => {
     if (!dbClient) {
       return
     }
@@ -121,8 +122,7 @@ export class OAuthService extends BaseService {
     }
 
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService(this.connections)
-    const user = (await userService.loadById(token.userId)) as User
+    const user = await this.models.userIdLoader.load(token.userId)
 
     return {
       accessToken: token.token,
@@ -140,7 +140,7 @@ export class OAuthService extends BaseService {
   ): Promise<OAuthToken> => {
     const scope = token.scope instanceof Array ? token.scope : [token.scope]
 
-    const accessToken = await this.baseCreate(
+    const accessToken = await this.baseCreate<OAuthAccessTokenDB>(
       {
         token: token.accessToken,
         expires: token.accessTokenExpiresAt,
@@ -150,7 +150,7 @@ export class OAuthService extends BaseService {
       },
       'oauth_access_token'
     )
-    const refreshToken = await this.baseCreate(
+    const refreshToken = await this.baseCreate<OAuthRefreshTokenDB>(
       {
         token: token.refreshToken,
         expires: token.refreshTokenExpiresAt,
@@ -199,8 +199,7 @@ export class OAuthService extends BaseService {
       .where({ code: authorizationCode })
       .first()
     const client = (await this.getClientById(code.clientId)) as OAuthClient
-    const userService = new UserService(this.connections)
-    const user = (await userService.loadById(code.userId)) as User
+    const user = await this.models.userIdLoader.load(code.userId)
 
     if (!code) {
       return
@@ -221,12 +220,13 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     user: User
   ): Promise<OAuthAuthorizationCode | Falsey> => {
-    const authorizationCode = await this.baseCreate(
+    const authorizationCode = await this.baseCreate<OAuthAuthorizationCodeDB>(
       {
         code: code.authorizationCode,
         expires: code.expiresAt,
-        redirect_uri: code.redirectUri,
-        scope: code.scope,
+        redirectUri: code.redirectUri,
+        scope:
+          code.scope instanceof Array ? code.scope : [code.scope as string],
         clientId: client.id,
         userId: user.id,
       },
@@ -239,7 +239,7 @@ export class OAuthService extends BaseService {
 
     return {
       authorizationCode: authorizationCode.code,
-      expiresAt: new Date(authorizationCode.exipres),
+      expiresAt: new Date(authorizationCode.expires),
       redirectUri: authorizationCode.redirectUri,
       scope: authorizationCode.scope,
       client,
@@ -279,8 +279,7 @@ export class OAuthService extends BaseService {
       .where({ token: refreshToken })
       .first()
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService(this.connections)
-    const user = (await userService.loadById(token.userId)) as User
+    const user = await this.models.userIdLoader.load(token.userId)
 
     if (!token) {
       return
@@ -364,8 +363,7 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   public generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
-    const userService = new UserService(this.connections)
-    const user = (await userService.loadById(userId)) as User
+    const user = await this.models.userIdLoader.load(userId)
     const name = environment.likecoinOAuthClientName
     const client = await this.findClientByName({ name })
     const oauthClient = this.toOAuthClient(client)
