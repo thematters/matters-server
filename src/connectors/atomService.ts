@@ -1,49 +1,66 @@
 import type {
-  MattersChoice,
-  ArticleRecommendSetting,
   ActionArticle,
-  ActionUser,
   ActionCircle,
   ActionTag,
+  ActionUser,
+  Announcement,
+  AnnouncementTranslation,
+  Appreciation,
   Article,
-  ArticleCircle,
-  ArticleTag,
-  ArticleTopic,
+  ArticleBoost,
   ArticleChapter,
+  ArticleCircle,
   ArticleConnection,
   ArticleContent,
+  ArticleCountView,
+  ArticleReadTimeMaterialized,
+  ArticleRecommendSetting,
+  ArticleTag,
+  ArticleTopic,
+  ArticleTranslation,
   ArticleVersion,
   Asset,
   AssetMap,
-  Appreciation,
+  BlockchainSyncRecord,
+  BlockchainTransaction,
+  BlockedSearchKeyword,
+  Blocklist,
   Chapter,
   Circle,
-  CirclePrice,
   CircleInvitation,
+  CirclePrice,
   CircleSubscription,
   CircleSubscriptionItem,
   Collection,
   CollectionArticle,
   Comment,
   Connections,
-  CryptoWalletSignature,
   CryptoWallet,
+  CryptoWalletSignature,
   Customer,
   Draft,
+  EntityType,
+  FeaturedCommentMaterialized,
+  MattersChoice,
+  PayoutAccount,
   PunishRecord,
+  RecommendedArticlesFromReadTagsMaterialized,
+  Report,
+  SearchHistory,
+  SeedingUser,
+  TableName,
   Tag,
+  TagTranslation,
   Topic,
+  Transaction,
   User,
+  UserBadge,
   UserIpnsKeys,
+  UserOauthLikecoinDB,
   UserRestriction,
+  UserTagsOrder,
   UsernameEditHistory,
   VerificationCode,
-  PayoutAccount,
-  Transaction,
-  BlockchainTransaction,
-  BlockchainSyncRecord,
-  EntityType,
-  TableName,
 } from 'definitions'
 import type { Knex } from 'knex'
 
@@ -58,6 +75,10 @@ import {
 type Mode = 'id' | 'uuid'
 
 type TableTypeMap = {
+  announcement: Announcement
+  announcement_translation: AnnouncementTranslation
+  blocked_search_keyword: BlockedSearchKeyword
+  blocklist: Blocklist
   matters_choice: MattersChoice
   user: User
   user_ipns_keys: UserIpnsKeys
@@ -70,15 +91,20 @@ type TableTypeMap = {
   article_version: ArticleVersion
   article_content: ArticleContent
   article_circle: ArticleCircle
+  article_translation: ArticleTranslation
   article_tag: ArticleTag
   article_topic: ArticleTopic
+  article_boost: ArticleBoost
   article_chapter: ArticleChapter
   article_connection: ArticleConnection
   article_recommend_setting: ArticleRecommendSetting
+  article_count_view: ArticleCountView
+  article_read_time_materialized: ArticleReadTimeMaterialized
   collection: Collection
   collection_article: CollectionArticle
   chapter: Chapter
   comment: Comment
+  featured_comment_materialized: FeaturedCommentMaterialized
   action_user: ActionUser
   action_article: ActionArticle
   action_circle: ActionCircle
@@ -92,15 +118,23 @@ type TableTypeMap = {
   crypto_wallet: CryptoWallet
   crypto_wallet_signature: CryptoWalletSignature
   tag: Tag
+  tag_translation: TagTranslation
+  user_tags_order: UserTagsOrder
   topic: Topic
   verification_code: VerificationCode
   punish_record: PunishRecord
+  search_history: SearchHistory
   payout_account: PayoutAccount
   transaction: Transaction
   blockchain_transaction: BlockchainTransaction
   blockchain_sync_record: BlockchainSyncRecord
   entity_type: EntityType
   appreciation: Appreciation
+  seeding_user: SeedingUser
+  user_oauth_likecoin: UserOauthLikecoinDB
+  user_badge: UserBadge
+  report: Report
+  recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
 }
 
 type TableTypeMapKey = keyof TableTypeMap
@@ -125,7 +159,9 @@ type FindFirstFn = <
 >(params: {
   table: Table
   select?: keyof D[]
-  where: Partial<Record<string, any>>
+  where:
+    | Partial<Record<keyof D, any>>
+    | ((builder: Knex.QueryBuilder) => Knex.QueryBuilder<D, D>)
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
 }) => Promise<D>
@@ -136,7 +172,10 @@ type FindManyFn = <
 >(params: {
   table: Table
   select?: Array<keyof D>
-  where?: Partial<Record<keyof D, any>>
+  where?:
+    | Partial<Record<keyof D, any>>
+    | ((builder: Knex.QueryBuilder) => Knex.QueryBuilder<D, D>)
+
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
   orderByRaw?: string

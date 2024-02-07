@@ -12,6 +12,19 @@ export interface OAuthClientDB {
   scope: string[]
 }
 
+export interface UserOauthLikecoinDB {
+  id: string
+  likerId: string
+  accountType: string
+  accessToken: string
+  refreshToken: string | null
+  expires: Date
+  scope: string[]
+  pendingLike
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface OAuthAccessTokenDB {
   id: string
   token: string

@@ -231,8 +231,8 @@ export class BaseService<T extends BaseDBSchema> {
     createOptions,
     trx,
   }: {
-    where: { [key: string]: any }
-    data: S
+    where: Partial<S>
+    data: Partial<S>
     table?: TableName
     createOptions?: { [key: string]: any }
     trx?: Knex.Transaction

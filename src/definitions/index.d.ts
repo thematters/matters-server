@@ -31,6 +31,7 @@ import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'
 
 export * from './base'
+export * from './announcement'
 export * from './auth'
 export * from './action'
 export * from './oauth'

@@ -1,4 +1,4 @@
-import { GQLCryptoWalletSignaturePurpose } from './schema'
+import { GQLSigningMessagePurpose } from './schema'
 
 export interface CryptoWallet {
   id: string
@@ -14,10 +14,10 @@ export interface CryptoWalletSignature {
   address: string
   signedMessage: string | null
   signature: string | null
-  purpose: GQLCryptoWalletSignaturePurpose
+  purpose: GQLSigningMessagePurpose
   userId: string | null
   nonce: string | null
-  expiredAt: Date
+  expiredAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

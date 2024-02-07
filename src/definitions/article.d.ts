@@ -42,7 +42,7 @@ export interface ArticleVersion {
   canComment: boolean
   sensitiveByAuthor: boolean
   sticky: boolean
-  language: LANGUAGES | null
+  language: string | null
   iscnId: string | null
   circleId: string | null
   createdAt: Date
@@ -105,4 +105,46 @@ export interface ArticleRecommendSetting {
   articleId: string
   inHottest: boolean
   inNewest: boolean
+}
+
+export interface ArticleBoost {
+  id: string
+  articleId: string
+  boost: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleTranslation {
+  id: string
+  articleId: string
+  language: LANGUAGES
+  title: string
+  content: string
+  summary: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleCountView {
+  id
+  commentsTotal
+  commenters7d
+  commenters1d
+  recentCommentSince
+  score
+}
+
+export interface ArticleReadTimeMaterialized {
+  id: string
+  articleId: string
+  sumReadTime: string
+}
+
+export interface RecommendedArticlesFromReadTagsMaterialized {
+  id: string
+  userId: string
+  articleId: string
+  tagsBased: string[]
+  score: number
 }

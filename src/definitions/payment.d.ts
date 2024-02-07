@@ -66,4 +66,5 @@ export interface Customer {
   provider: string
   customerId: string
   cardLast4: string
+  archived: boolean
 }

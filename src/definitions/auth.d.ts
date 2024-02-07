@@ -10,7 +10,7 @@ export interface VerificationCode {
   type: keyof typeof VERIFICATION_CODE_TYPE
   status: VERIFICATION_CODE_STATUS
   userId: stiring | null
-  email: string
+  email: string | null
   createdAt: Date
   updatedAt: Date
 }

@@ -147,3 +147,27 @@ export interface UserRestriction {
   type: keyof typeof USER_RESTRICTION_TYPE
   createdAt: Date
 }
+
+export interface UserBoost {
+  id: string
+  userId: string
+  boost: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface SeedingUser {
+  id: string
+  userId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UserBadge {
+  id: string
+  userId: string
+  type: string
+  enabled: boolean
+  extra: any
+  createdAt: Date
+}
