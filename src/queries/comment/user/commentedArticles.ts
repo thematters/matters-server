@@ -8,7 +8,6 @@ const resolver: GQLUserResolvers['commentedArticles'] = async (
   { input },
   {
     dataSources: {
-      draftService,
       connections: { knex },
     },
   }
@@ -34,11 +33,7 @@ const resolver: GQLUserResolvers['commentedArticles'] = async (
   const [count, articles] = await Promise.all([countQuery, articlesQuery])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map((article) => article.draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(articles, input, totalCount)
 }
 
 export default resolver

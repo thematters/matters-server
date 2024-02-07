@@ -1,22 +1,12 @@
-import type { Draft, Connections, Item } from 'definitions'
-
-import DataLoader from 'dataloader'
+import type { Draft, Connections } from 'definitions'
 
 import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
-export class DraftService extends BaseService {
-  public dataloader: DataLoader<string, Item>
-
+export class DraftService extends BaseService<Draft> {
   public constructor(connections: Connections) {
     super('draft', connections)
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
-
-  public loadById = async (id: string): Promise<Draft> =>
-    this.dataloader.load(id) as Promise<Draft>
-  public loadByIds = async (ids: string[]): Promise<Draft[]> =>
-    this.dataloader.loadMany(ids) as Promise<Draft[]>
 
   public countByAuthor = async (authorId: string) => {
     const result = await this.knex(this.table)

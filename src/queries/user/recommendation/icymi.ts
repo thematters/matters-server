@@ -8,7 +8,6 @@ export const icymi: GQLRecommendationResolvers['icymi'] = async (
   { input },
   {
     dataSources: {
-      draftService,
       connections: { knex },
     },
   }
@@ -18,7 +17,7 @@ export const icymi: GQLRecommendationResolvers['icymi'] = async (
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeICYMIQuery = () =>
     knex
-      .select('article.draft_id')
+      .select('article.*')
       .from(
         knex
           .select()
@@ -44,9 +43,5 @@ export const icymi: GQLRecommendationResolvers['icymi'] = async (
     10
   )
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(articles, input, totalCount)
 }

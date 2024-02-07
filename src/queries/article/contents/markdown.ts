@@ -3,19 +3,17 @@ import type { GQLArticleContentsResolvers } from 'definitions'
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
 
 export const markdown: GQLArticleContentsResolvers['markdown'] = async (
-  { articleId, authorId, contentMd },
+  { id, authorId, state },
   _,
   { viewer, dataSources: { articleService, paymentService } }
 ) => {
-  const article = await articleService.dataloader.load(articleId)
-
-  const isActive = article.state === ARTICLE_STATE.active
+  const isActive = state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return contentMd || ''
+    return articleService.loadLatestArticleContentMd(id)
   }
 
   // check article state
@@ -23,18 +21,18 @@ export const markdown: GQLArticleContentsResolvers['markdown'] = async (
     return ''
   }
 
-  const articleCircle = await articleService.findArticleCircle(articleId)
+  const articleCircle = await articleService.findArticleCircle(id)
 
   // not in circle
   if (!articleCircle) {
-    return contentMd || ''
+    return articleService.loadLatestArticleContentMd(id)
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return contentMd || ''
+    return articleService.loadLatestArticleContentMd(id)
   }
 
   if (!viewer.id) {
@@ -51,5 +49,5 @@ export const markdown: GQLArticleContentsResolvers['markdown'] = async (
     return ''
   }
 
-  return contentMd || ''
+  return articleService.loadLatestArticleContentMd(id)
 }

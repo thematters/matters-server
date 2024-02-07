@@ -1,13 +1,14 @@
-import type { GQLArticleResolvers, Item, Draft } from 'definitions'
+import type { GQLArticleResolvers, Item } from 'definitions'
 
 import { ARTICLE_STATE } from 'common/enums'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['collection'] = async (
-  { articleId },
+  { id },
   { input },
   {
     dataSources: {
+      atomService,
       articleService,
       connections: { knex },
     },
@@ -19,10 +20,10 @@ const resolver: GQLArticleResolvers['collection'] = async (
     knex('article_connection')
       .countDistinct('article_id', 'state')
       .innerJoin('article', 'article.id', 'article_id')
-      .where({ entranceId: articleId, state: ARTICLE_STATE.active })
+      .where({ entranceId: id, state: ARTICLE_STATE.active })
       .first(),
     articleService.findConnections({
-      entranceId: articleId,
+      entranceId: id,
       take,
       skip,
     }),
@@ -34,9 +35,9 @@ const resolver: GQLArticleResolvers['collection'] = async (
   )
 
   return connectionFromPromisedArray(
-    articleService.loadDraftsByArticles(
+    atomService.articleIdLoader.loadMany(
       connections.map((connection: Item) => connection.articleId)
-    ) as Promise<Draft[]>,
+    ),
     input,
     totalCount
   )

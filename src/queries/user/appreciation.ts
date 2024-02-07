@@ -1,7 +1,6 @@
 import type {
   GQLAppreciationResolvers,
   GQLAppreciationPurpose,
-  Draft,
 } from 'definitions'
 
 import { camelCase } from 'lodash'
@@ -48,19 +47,25 @@ const trans = {
 
 export const Appreciation: GQLAppreciationResolvers = {
   purpose: ({ purpose }) => camelCase(purpose) as GQLAppreciationPurpose,
-  content: async (trx, _, { viewer, dataSources: { articleService } }) => {
+  content: async (
+    trx,
+    _,
+    { viewer, dataSources: { atomService, articleService } }
+  ) => {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:
-      case APPRECIATION_PURPOSE.superlike:
-        const node = await articleService.draftLoader.load(
+      case APPRECIATION_PURPOSE.superlike: {
+        const article = await atomService.articleIdLoader.load(
           trx.referenceId as string
         )
-        if (!node) {
+        if (!article) {
           throw new ArticleNotFoundError(
             'reference article linked draft not found'
           )
         }
+        const node = await articleService.loadLatestArticleVersion(article.id)
         return node.title
+      }
       case APPRECIATION_PURPOSE.appreciateSubsidy:
         return trans.appreciateSubsidy(viewer.language, {})
       case APPRECIATION_PURPOSE.systemSubsidy:
@@ -82,12 +87,12 @@ export const Appreciation: GQLAppreciationResolvers = {
         return ''
     }
   },
-  sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.loadById(trx.senderId) : null,
-  recipient: (trx, _, { dataSources: { userService } }) =>
-    userService.loadById(trx.recipientId),
-  target: (trx, _, { dataSources: { articleService } }) =>
+  sender: (trx, _, { dataSources: { atomService } }) =>
+    trx.senderId ? atomService.userIdLoader.load(trx.senderId) : null,
+  recipient: (trx, _, { dataSources: { atomService } }) =>
+    atomService.userIdLoader.load(trx.recipientId),
+  target: (trx, _, { dataSources: { atomService } }) =>
     trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId
-      ? (articleService.draftLoader.load(trx.referenceId) as Promise<Draft>)
+      ? atomService.articleIdLoader.load(trx.referenceId)
       : null,
 }

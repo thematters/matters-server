@@ -1,11 +1,11 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
 
 import { v4 } from 'uuid'
 
 import { COMMENT_STATE, NODE_TYPES } from 'common/enums'
 import { ArticleService, UserService, AtomService } from 'connectors'
 
-import { genConnections, closeConnections, createArticle } from './utils'
+import { genConnections, closeConnections } from './utils'
 
 let articleId: string
 let connections: Connections
@@ -24,26 +24,21 @@ afterAll(async () => {
 
 test('publish', async () => {
   // publish article to IPFS
-  // const publishedDraft = await articleService.draftLoader.load('1')
+  // const publishedDraft = await atomService.articleIdLoader.load('1')
   // const { mediaHash, contentHash: dataHash } =
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   // (await articleService.publishToIPFS(publishedDraft))!
-  const articlePublished = await articleService.createArticle({
-    draftId: '1',
+  const [article] = await articleService.createArticle({
     authorId: '1',
     title: 'test',
-    slug: 'test',
     cover: '1',
-    wordCount: 0,
-    summary: 'test-summary',
     content: '<div>test-html-string</div>',
-    // dataHash, mediaHash,
   })
   // expect(mediaHash).toBeDefined()
   // expect(dataHash).toBeDefined()
-  expect(articlePublished.state).toBe('pending')
+  expect(article.state).toBe('active')
 
-  articleId = articlePublished.id
+  articleId = article.id
   // publish to IPNS
   // await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
@@ -59,20 +54,20 @@ describe('findByAuthor', () => {
     expect(draftIds.length).toBeDefined()
   })
   test('order by num of readers', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       orderBy: 'mostReaders',
     })
-    expect(draftIds.length).toBeDefined()
-    expect(draftIds[0].draftId).not.toBe('1')
+    expect(articles.length).toBeDefined()
+    expect(articles[0].id).not.toBe('1')
     await connections.knex('article_ga4_data').insert({
       articleId: '1',
       totalUsers: '1',
       dateRange: '[2023-10-24,2023-10-24]',
     })
-    const draftIds2 = await articleService.findByAuthor('1', {
+    const articles2 = await articleService.findByAuthor('1', {
       orderBy: 'mostReaders',
     })
-    expect(draftIds2[0].draftId).toBe('1')
+    expect(articles2[0].id).toBe('1')
   })
   test('order by amount of appreciations', async () => {
     const draftIds = await articleService.findByAuthor('1', {
@@ -134,7 +129,8 @@ test('findSubscriptions', async () => {
 })
 
 describe('updatePinned', () => {
-  const getArticleFromDb = async (id: string) => articleService.baseFindById(id)
+  const getArticleFromDb = async (id: string) =>
+    articleService.baseFindById(id) as Promise<Article>
   test('invaild article id will throw error', async () => {
     await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(
       'Cannot find article'
@@ -189,10 +185,11 @@ describe('quicksearch', () => {
     expect(totalCount).toBeGreaterThan(0)
 
     // both case insensitive and chinese simplified/traditional insensitive
-    await createArticle(
-      { title: 'Uppercase', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: 'Uppercase',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes2 } = await articleService.searchV3({
       key: 'uppercase',
       take: 1,
@@ -201,10 +198,11 @@ describe('quicksearch', () => {
     })
     expect(nodes2.length).toBe(1)
 
-    await createArticle(
-      { title: '測試', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '測試',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes3 } = await articleService.searchV3({
       key: '测试',
       take: 1,
@@ -213,10 +211,11 @@ describe('quicksearch', () => {
     })
     expect(nodes3.length).toBe(1)
 
-    await createArticle(
-      { title: '试测', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '试测',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes4 } = await articleService.searchV3({
       key: '試測',
       take: 1,
@@ -225,10 +224,11 @@ describe('quicksearch', () => {
     })
     expect(nodes4.length).toBe(1)
 
-    await createArticle(
-      { title: '測测', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '測测',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes5 } = await articleService.searchV3({
       key: '測测',
       take: 1,

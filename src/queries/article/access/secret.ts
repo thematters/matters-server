@@ -3,7 +3,7 @@ import type { GQLArticleAccessResolvers } from 'definitions'
 import { ForbiddenError } from 'common/errors'
 
 export const secret: GQLArticleAccessResolvers['secret'] = async (
-  { articleId, authorId },
+  { id, authorId },
   _,
   { viewer, dataSources: { articleService } }
 ) => {
@@ -16,7 +16,7 @@ export const secret: GQLArticleAccessResolvers['secret'] = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const articleCircle = await articleService.findArticleCircle(articleId)
+  const articleCircle = await articleService.findArticleCircle(id)
 
   if (!articleCircle) {
     return

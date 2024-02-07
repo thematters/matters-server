@@ -24,7 +24,7 @@ import {
 const resolver: GQLMutationResolvers['putTag'] = async (
   _,
   { input: { id, content, cover, description } },
-  { viewer, dataSources: { systemService, tagService } }
+  { viewer, dataSources: { systemService, tagService, atomService } }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
@@ -131,7 +131,10 @@ const resolver: GQLMutationResolvers['putTag'] = async (
 
     // delete unused tag cover
     if (tag.cover && tag.cover !== updateTag.cover) {
-      const coverAsset = await tagService.baseFindById(tag.cover, 'asset')
+      const coverAsset = await atomService.findUnique({
+        where: { id: tag.cover },
+        table: 'asset',
+      })
       if (coverAsset) {
         await systemService.deleteAssetAndAssetMap({
           [`${coverAsset.id}`]: coverAsset.path,

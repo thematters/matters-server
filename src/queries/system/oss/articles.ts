@@ -5,7 +5,7 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 export const articles: GQLOssResolvers['articles'] = async (
   _,
   { input },
-  { dataSources: { articleService, draftService } }
+  { dataSources: { articleService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
@@ -13,9 +13,5 @@ export const articles: GQLOssResolvers['articles'] = async (
     articleService.baseCount(),
     articleService.baseFind({ skip, take }),
   ])
-  return connectionFromPromisedArray(
-    draftService.loadByIds(items.map((item) => item.draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(items, input, totalCount)
 }

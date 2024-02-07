@@ -7,7 +7,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['togglePinTag'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { tagService } }
+  { viewer, dataSources: { tagService, atomService } }
 ) => {
   // checks
   if (!viewer.id) {
@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['togglePinTag'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const tag = await tagService.loadById(dbId)
+  const tag = await atomService.tagIdLoader.load(dbId)
 
   if (!tag) {
     throw new TagNotFoundError('target user does not exists')

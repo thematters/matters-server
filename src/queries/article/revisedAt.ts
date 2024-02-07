@@ -1,29 +1,15 @@
 import type { GQLArticleResolvers } from 'definitions'
 
-import { PUBLISH_STATE } from 'common/enums'
-
 const resolver: GQLArticleResolvers['revisedAt'] = async (
-  { articleId },
+  { id: articleId },
   _,
-  { dataSources: { atomService } }
+  { dataSources: { articleService } }
 ) => {
-  const drafts = await atomService.findMany({
-    table: 'draft',
-    select: ['created_at'],
-    where: {
-      articleId,
-      archived: true,
-      publishState: PUBLISH_STATE.published,
-    },
-    orderBy: [{ column: 'created_at', order: 'desc' }],
-    take: 2,
-  })
+  const articleVersion = await articleService.loadLatestArticleVersion(
+    articleId
+  )
 
-  if (drafts.length <= 1) {
-    return
-  }
-
-  return drafts[0].createdAt
+  return articleVersion.createdAt
 }
 
 export default resolver

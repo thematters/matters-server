@@ -1,7 +1,6 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
@@ -12,22 +11,20 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PIN_STATE,
-  PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { countWords, fromGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import {
   AtomService,
   NotificationService,
-  DraftService,
   ArticleService,
   UserService,
-  SystemService,
 } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
@@ -35,7 +32,9 @@ import { BaseQueue } from './baseQueue'
 const logger = getLogger('queue-revision')
 
 interface RevisedArticleData {
-  draftId: string
+  articleId: string
+  oldArticleVerisionId: string
+  newArticleVersionId: string
   iscnPublish?: boolean
 }
 
@@ -67,284 +66,220 @@ export class RevisionQueue extends BaseQueue {
    */
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
     async (job, done) => {
-      const { draftId, iscnPublish } = job.data as RevisedArticleData
+      const {
+        articleId,
+        oldArticleVerisionId,
+        newArticleVersionId,
+        iscnPublish,
+      } = job.data as RevisedArticleData
 
-      const draftService = new DraftService(this.connections)
       const articleService = new ArticleService(this.connections)
       const userService = new UserService(this.connections)
-      const systemService = new SystemService(this.connections)
       const notificationService = new NotificationService(this.connections)
       const atomService = new AtomService(this.connections)
 
-      let draft = await draftService.baseFindById(draftId)
+      const article = await atomService.articleIdLoader.load(articleId)
+      const oldArticleVersion = await atomService.articleVersionIdLoader.load(
+        oldArticleVerisionId
+      )
+      const newArticleVersion = await atomService.articleVersionIdLoader.load(
+        newArticleVersionId
+      )
 
       // Step 1: checks
-      if (!draft) {
-        job.progress(100)
-        done(null, `Revision draft ${draftId} not found`)
-        return
-      }
-      if (draft.publishState !== PUBLISH_STATE.pending) {
-        job.progress(100)
-        done(null, `Revision draft ${draftId} isn't in pending state.`)
-        return
-      }
-      let article = await articleService.baseFindById(draft.articleId)
       if (!article) {
         job.progress(100)
-        done(null, `Revised article ${draft.articleId} not found`)
+        done(null, `Revised article ${articleId} not found`)
         return
       }
+      if (!oldArticleVersion) {
+        job.progress(100)
+        done(null, `old article version ${oldArticleVerisionId} not found`)
+        return
+      }
+
+      if (!newArticleVersion) {
+        job.progress(100)
+        done(null, `new article version ${newArticleVersionId} not found`)
+        return
+      }
+
       if (article.state !== ARTICLE_STATE.active) {
         job.progress(100)
-        done(null, `Revised article ${draft.articleId} is not active`)
+        done(null, `Revised article ${article.id} is not active`)
         return
       }
-      const preDraft = await draftService.baseFindById(article.draftId)
       job.progress(10)
 
+      // Section1: update local DB related
+      const { content: newContent } =
+        await atomService.articleContentIdLoader.load(
+          newArticleVersion.contentId
+        )
       try {
-        const summary = draft.summary || makeSummary(draft.content)
-        const wordCount = countWords(draft.content)
-
-        // Step 2: publish content to IPFS
-        const revised = { ...draft, summary }
-
-        // Step 3: update draft
-        ;[draft] = await Promise.all([
-          draftService.baseUpdate(draft.id, {
-            // dataHash,
-            // mediaHash,
-            wordCount,
-            archived: true,
-            // iscnId,
-            publishState: PUBLISH_STATE.published,
-            pinState: PIN_STATE.pinned,
-          }),
-          // iscnId && this.articleService.baseUpdate(article.id, { iscnId }),
-        ])
-
-        job.progress(40)
-
-        // Step 4: update back to article
-        const revisionCount =
-          (article.revisionCount || 0) + (iscnPublish ? 0 : 1) // skip revisionCount for iscnPublish retry
-        const updatedArticle = await articleService.baseUpdate(article.id, {
-          draftId: draft.id,
-          dataHash: null, // TBD in Section2
-          mediaHash: null,
-          summary,
-          wordCount,
-          revisionCount,
-          slug: slugify(draft.title),
-        })
-        job.progress(50)
-
-        const author = await userService.baseFindById(article.authorId)
-        const { userName, displayName } = author
-
-        // Note: the following steps won't affect the publication.
-        // Section1: update local DB related
-        try {
-          // Step 5: copy previous draft asset maps for current draft
-          // Note: collection and tags are handled in edit resolver.
-          // @see src/mutations/article/editArticle.ts
-          const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
-            'draft'
-          )
-          await systemService.copyAssetMapEntities({
-            source: preDraft.id,
-            target: draft.id,
-            entityTypeId,
-          })
-
-          // Step 7: handle newly added mentions
+        // Step 2: handle newly added mentions
+        if (newArticleVersion.contentId !== oldArticleVersion.contentId) {
+          const { content: oldContent } =
+            await atomService.articleContentIdLoader.load(
+              oldArticleVersion.contentId
+            )
           await this.handleMentions(
             {
-              article: updatedArticle,
-              preDraftContent: preDraft.content,
-              content: draft.content,
+              article,
+              preContent: oldContent,
+              content: newContent,
             },
             notificationService
           )
+        }
+        job.progress(70)
+      } catch (err) {
+        // ignore errors caused by these steps
+        logger.warn('job failed at optional step: %j', {
+          err,
+          job,
+          articleVersionId: newArticleVersionId,
+        })
+      }
 
-          job.progress(70)
-        } catch (err) {
-          // ignore errors caused by these steps
-          logger.warn('job failed at optional step: %j', {
-            err,
-            job,
-            draftId: draft.id,
+      // Step 3: trigger notifications
+      notificationService.trigger({
+        event: DB_NOTICE_TYPE.revised_article_published,
+        recipientId: article.authorId,
+        entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      })
+
+      // Step 4: invalidate article and user cache
+      await Promise.all([
+        invalidateFQC({
+          node: { type: NODE_TYPES.User, id: article.authorId },
+          redis: this.connections.redis,
+        }),
+        invalidateFQC({
+          node: { type: NODE_TYPES.Article, id: article.id },
+          redis: this.connections.redis,
+        }),
+      ])
+
+      // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
+      const author = await atomService.userIdLoader.load(article.authorId)
+      const { userName, displayName } = author
+      try {
+        // Step5: ipfs publishing
+        const {
+          contentHash: dataHash,
+          mediaHash,
+          key,
+        } = await articleService.publishToIPFS(
+          article,
+          newArticleVersion,
+          newContent
+        )
+
+        // update dataHash and mediaHash
+        await atomService.update({
+          table: 'article_version',
+          where: { id: newArticleVersion.id },
+          data: { dataHash, mediaHash, pinState: PIN_STATE.pinned },
+        })
+
+        // update secret
+        if (key && newArticleVersion.circleId) {
+          await atomService.update({
+            table: 'article_circle',
+            where: {
+              articleId: articleId,
+              circleId: newArticleVersion.circleId,
+            },
+            data: {
+              secret: key,
+            },
           })
         }
 
-        // Step 8: trigger notifications
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.revised_article_published,
-          recipientId: article.authorId,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-          ],
-        })
-
-        // Step 9: invalidate article and user cache
-        await Promise.all([
-          invalidateFQC({
-            node: { type: NODE_TYPES.User, id: article.authorId },
-            redis: this.connections.redis,
-          }),
-          invalidateFQC({
-            node: { type: NODE_TYPES.Article, id: article.id },
-            redis: this.connections.redis,
-          }),
-        ])
-
-        // Section2: publish to external services like: IPFS / IPNS / ISCN / etc...
-        try {
-          const {
-            contentHash: dataHash,
-            mediaHash,
-            key,
-          } = (await articleService.publishToIPFS(revised))!
-
-          ;[draft, article] = await Promise.all([
-            draftService.baseUpdate(draft.id, {
-              dataHash,
-              mediaHash,
-            }),
-            articleService.baseUpdate(article.id, {
-              dataHash,
-              mediaHash,
-            }),
-          ])
-
-          // update secret
-          if (key) {
-            await this.handleCircle(
-              {
-                article,
-                circleId: draft.circleId,
-                secret: key,
-              },
-              atomService
-            )
+        // Step6: iscn publishing
+        if (iscnPublish) {
+          const liker = await userService.findLiker({
+            userId: author.id,
+          })
+          // expect liker to be found
+          if (!liker) {
+            throw new ServerError(`Liker not found for user ${author.id}`)
           }
+          const cosmosWallet = await userService.likecoin.getCosmosWallet({
+            liker,
+          })
 
-          // Step: iscn publishing
-          if (iscnPublish) {
-            const liker = (await userService.findLiker({
-              userId: author.id,
-            }))!
-            const cosmosWallet = await userService.likecoin.getCosmosWallet({
-              liker,
-            })
+          const iscnId = await userService.likecoin.iscnPublish({
+            mediaHash: `hash://sha256/${mediaHash}`,
+            ipfsHash: `ipfs://${dataHash}`,
+            cosmosWallet, // 'TBD',
+            userName: `${displayName} (@${userName})`,
+            title: newArticleVersion.title,
+            description: newArticleVersion.summary,
+            datePublished: article.createdAt.toISOString().substring(0, 10),
+            url: `https://${environment.siteDomain}/@${userName}/${
+              article.id
+            }-${slugify(newArticleVersion.title)}-${mediaHash}`,
+            tags: newArticleVersion.tags,
 
-            const iscnId = await userService.likecoin.iscnPublish({
-              mediaHash: `hash://sha256/${mediaHash}`,
-              ipfsHash: `ipfs://${dataHash}`,
-              cosmosWallet, // 'TBD',
-              userName: `${displayName} (@${userName})`,
-              title: draft.title,
-              description: summary,
-              datePublished: article.created_at?.toISOString().substring(0, 10),
-              url: `https://${environment.siteDomain}/@${userName}/${article.id}-${article.slug}-${mediaHash}`,
-              tags: draft.tags,
+            // for liker auth&headers info
+            liker,
+            // likerIp,
+            // userAgent,
+          })
 
-              // for liker auth&headers info
-              liker,
-              // likerIp,
-              // userAgent,
-            })
+          // handling both cases of set to true or false, but not omit (undefined)
+          await atomService.update({
+            table: 'article_version',
+            where: { id: newArticleVersion.id },
+            data: { iscnId },
+          })
+        }
 
-            // handling both cases of set to true or false, but not omit (undefined)
-            ;[draft, article] = await Promise.all([
-              draftService.baseUpdate(draft.id, {
-                iscnId,
-                iscnPublish, // : iscnPublish || draft.iscnPublish,
-              }),
-              articleService.baseUpdate(article.id, {
-                iscnId,
-              }),
-            ])
-          }
-
+        if (userName) {
           await articleService.publishFeedToIPNS({
             userName,
-            // incremental: true, // attach the last just published article
-            updatedDrafts: [draft],
-            forceReplace: true,
-          })
-        } catch (err) {
-          logger.warn('job failed at optional step: %j', {
-            err,
-            job,
-            draftId: draft.id,
           })
         }
-
-        job.progress(100)
-
-        done(null, {
-          articleId: article.id,
-          draftId: draft.id,
-          dataHash: article.dataHash,
-          mediaHash: article.mediaHash,
-          iscnPublish, // : iscnPublish || draft.iscnPublish,
-          iscnId: draft.iscnId,
+      } catch (err) {
+        logger.warn('job failed at optional step: %j', {
+          err,
+          job,
+          articleVersionId: newArticleVersionId,
         })
-      } catch (err: any) {
-        await draftService.baseUpdate(draft.id, {
-          publishState: PUBLISH_STATE.error,
-        })
-
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.revised_article_not_published,
-          recipientId: article.authorId,
-          entities: [
-            { type: 'target', entityTable: 'article', entity: article },
-          ],
-        })
-
-        done(err)
       }
-    }
 
-  private handleCircle = async (
-    {
-      article,
-      circleId,
-      secret,
-    }: {
-      article: any
-      circleId: string
-      secret: string
-    },
-    atomService: AtomService
-  ) => {
-    await atomService.update({
-      table: 'article_circle',
-      where: { articleId: article.id, circleId },
-      data: {
-        secret,
-        updatedAt: this.connections.knex.fn.now(),
-      },
-    })
-  }
+      job.progress(100)
+
+      const updated = await atomService.findUnique({
+        table: 'article_version',
+        where: { id: newArticleVersionId },
+      })
+
+      done(null, {
+        articleId: article.id,
+        dataHash: updated.dataHash,
+        mediaHash: updated.mediaHash,
+        iscnPublish,
+        iscnId: updated.iscnId,
+      })
+    }
 
   private handleMentions = async (
     {
       article,
-      preDraftContent,
+      preContent,
       content,
     }: {
-      article: any
-      preDraftContent: string
+      article: Article
+      preContent: string
       content: string
     },
     notificationService: NotificationService
   ) => {
     // gather pre-draft ids
-    let $ = cheerio.load(preDraftContent)
+    let $ = cheerio.load(preContent)
     const filter = (index: number, node: any) => {
       const id = $(node).attr('data-id')
       if (id) {

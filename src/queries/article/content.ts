@@ -4,19 +4,17 @@ import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
 
 // ACL for article content
 const resolver: GQLArticleResolvers['content'] = async (
-  { articleId, authorId, content },
+  { id, authorId, state },
   _,
   { viewer, dataSources: { articleService, paymentService } }
 ) => {
-  const article = await articleService.dataloader.load(articleId)
-
-  const isActive = article.state === ARTICLE_STATE.active
+  const isActive = state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return content
+    return articleService.loadLatestArticleContent(id)
   }
 
   // check article state
@@ -24,18 +22,18 @@ const resolver: GQLArticleResolvers['content'] = async (
     return ''
   }
 
-  const articleCircle = await articleService.findArticleCircle(articleId)
+  const articleCircle = await articleService.findArticleCircle(id)
 
   // not in circle
   if (!articleCircle) {
-    return content
+    return articleService.loadLatestArticleContent(id)
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return content
+    return articleService.loadLatestArticleContent(id)
   }
 
   if (!viewer.id) {
@@ -52,7 +50,7 @@ const resolver: GQLArticleResolvers['content'] = async (
     return ''
   }
 
-  return content
+  return articleService.loadLatestArticleContent(id)
 }
 
 export default resolver

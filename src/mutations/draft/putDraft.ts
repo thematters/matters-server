@@ -1,11 +1,15 @@
-import type { DataSources, ItemData, GQLMutationResolvers } from 'definitions'
+import type {
+  DataSources,
+  ItemData,
+  GQLMutationResolvers,
+  Draft,
+} from 'definitions'
 
 import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
 import { isUndefined, omitBy, isString, uniq } from 'lodash'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -48,7 +52,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       draftService,
       systemService,
       userService,
-      connections: { knex },
     },
   }
 ) => {
@@ -196,7 +199,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.loadById(dbId)
+    const draft = await atomService.draftIdLoader.load(dbId)
 
     // check for draft existence
     if (!draft) {
@@ -233,11 +236,11 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
 
     // check for collection limit
     if (collection) {
-      const oldCollectionLength =
+      const oldConnectionLength =
         draft.collection == null ? 0 : draft.collection.length
       if (
         collection.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
-        collection.length > oldCollectionLength
+        collection.length > oldConnectionLength
       ) {
         throw new ArticleCollectionReachLimitError(
           `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in collection`
@@ -281,7 +284,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       // reset fields
       summary: resetSummary ? null : data.summary,
       circleId: resetCircle ? null : data.circleId,
-      updatedAt: knex.fn.now(),
     })
   }
 
@@ -298,7 +300,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       )
     }
 
-    const draft = await draftService.baseCreate({ uuid: v4(), ...data })
+    const draft = (await draftService.baseCreate(data)) as Draft & {
+      [CACHE_KEYWORD]: Array<{ id: string; type: NODE_TYPES.User }>
+    }
     draft[CACHE_KEYWORD] = [
       {
         id: viewer.id,

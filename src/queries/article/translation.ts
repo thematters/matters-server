@@ -10,14 +10,7 @@ import { GCP } from 'connectors'
 const logger = getLogger('query-translations')
 
 const resolver: GQLArticleResolvers['translation'] = async (
-  {
-    content: originContent,
-    title: originTitle,
-    summary: originSummary,
-    articleId,
-    authorId,
-    language: storedLanguage,
-  },
+  { id: articleId, authorId },
   { input },
   {
     viewer,
@@ -25,8 +18,7 @@ const resolver: GQLArticleResolvers['translation'] = async (
       atomService,
       articleService,
       paymentService,
-      tagService,
-      connections: { redis, knex },
+      connections: { redis },
     },
   }
 ) => {
@@ -55,6 +47,15 @@ const resolver: GQLArticleResolvers['translation'] = async (
       isPaywalledContent = true
     }
   }
+
+  const {
+    title: originTitle,
+    summary: originSummary,
+    language: storedLanguage,
+    contentId,
+  } = await articleService.loadLatestArticleVersion(articleId)
+  const { content: originContent } =
+    await atomService.articleContentIdLoader.load(contentId)
 
   // it's same as original language
   if (language === storedLanguage) {
@@ -101,14 +102,14 @@ const resolver: GQLArticleResolvers['translation'] = async (
       table: 'article_translation',
       where: { articleId, language },
       create: data,
-      update: { ...data, updatedAt: knex.fn.now() },
+      update: data,
     })
 
     // translate tags
     const tagIds = await articleService.findTagIds({ id: articleId })
     if (tagIds && tagIds.length > 0) {
       try {
-        const tags = await tagService.loadByIds(tagIds)
+        const tags = await atomService.tagIdLoader.loadMany(tagIds)
         await Promise.all(
           tags.map(async (tag) => {
             if (tag instanceof Error) {
@@ -120,14 +121,14 @@ const resolver: GQLArticleResolvers['translation'] = async (
             })
             const tagData = {
               tagId: tag.id,
-              content: translatedTag,
+              content: translatedTag ?? '',
               language,
             }
             await atomService.upsert({
               table: 'tag_translation',
               where: { tagId: tag.id },
               create: tagData,
-              update: { ...tagData, updatedAt: knex.fn.now() },
+              update: tagData,
             })
           })
         )

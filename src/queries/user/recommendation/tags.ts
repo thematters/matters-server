@@ -8,9 +8,9 @@ import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
 export const tags: GQLRecommendationResolvers['tags'] = async (
-  { id },
+  _,
   { input },
-  { viewer, dataSources: { tagService } }
+  { viewer, dataSources: { tagService, atomService } }
 ) => {
   const { filter, oss = false } = input
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 5 })
@@ -38,7 +38,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
+      atomService.tagIdLoader.loadMany(filteredTags.map((tag) => tag.id)),
       input,
       curationTags.length
     )
@@ -54,7 +54,7 @@ export const tags: GQLRecommendationResolvers['tags'] = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.loadByIds(items.map((item: any) => `${item.id}`)),
+    atomService.tagIdLoader.loadMany(items.map((item) => item.id)),
     input,
     totalCount
   )

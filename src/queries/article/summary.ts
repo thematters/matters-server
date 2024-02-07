@@ -4,16 +4,15 @@ import { makeSummary } from '@matters/ipns-site-generator'
 
 import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 
-import { type as accessTypeResolver } from './access/type'
-
 const resolver: GQLArticleResolvers['summary'] = async (
-  parent,
-  args,
-  context,
-  info
+  { id },
+  _,
+  { dataSources: { articleService, atomService } }
 ) => {
-  const { summary, content: cont, summaryCustomized } = parent
-  const accessType = await accessTypeResolver(parent, args, context, info)
+  const { summary, contentId, summaryCustomized } =
+    await articleService.loadLatestArticleVersion(id)
+
+  const accessType = await articleService.getAccess(id)
 
   if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
     if (!summaryCustomized) {
@@ -22,7 +21,8 @@ const resolver: GQLArticleResolvers['summary'] = async (
     return summary || ''
   }
 
-  return summary || makeSummary(cont)
+  const { content } = await atomService.articleContentIdLoader.load(contentId)
+  return summary || makeSummary(content)
 }
 
 export default resolver

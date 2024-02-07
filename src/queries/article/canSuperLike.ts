@@ -6,7 +6,7 @@ import { getLogger } from 'common/logger'
 const logger = getLogger('mutation-superlike')
 
 const resolver: GQLArticleResolvers['canSuperLike'] = async (
-  { articleId },
+  { id },
   _,
   { viewer, dataSources: { userService } }
 ) => {
@@ -26,7 +26,7 @@ const resolver: GQLArticleResolvers['canSuperLike'] = async (
   try {
     return await userService.likecoin.canSuperLike({
       liker,
-      url: `https://${environment.siteDomain}/@${author.userName}/${articleId}`,
+      url: `https://${environment.siteDomain}/@${author.userName}/${id}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     })

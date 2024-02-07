@@ -5,14 +5,15 @@ import { CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
 const resolver: GQLCommentResolvers['node'] = async (
   { targetId, targetTypeId, type },
   _,
-  { dataSources: { atomService, articleService } }
+  { dataSources: { atomService } }
 ) => {
   if (!targetId || !targetTypeId) {
-    return
+    // TODO: schema is not nullable, but we should handle this case
+    return null as any
   }
 
   if (type === COMMENT_TYPE.article) {
-    const draft = await articleService.draftLoader.load(targetId)
+    const draft = await atomService.articleIdLoader.load(targetId)
     return { ...draft, __type: 'Article' }
   } else {
     const circle = await atomService.findFirst({

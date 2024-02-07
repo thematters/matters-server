@@ -1,4 +1,4 @@
-import type { GQLReportResolvers, Draft } from 'definitions'
+import type { GQLReportResolvers } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { ServerError } from 'common/errors'
@@ -6,21 +6,21 @@ import { toGlobalId } from 'common/utils'
 
 const report: GQLReportResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Report, id }),
-  reporter: ({ reporterId }, _, { dataSources: { userService } }) =>
-    userService.loadById(reporterId),
+  reporter: ({ reporterId }, _, { dataSources: { atomService } }) =>
+    atomService.userIdLoader.load(reporterId),
   target: async (
     { articleId, commentId },
     _,
-    { dataSources: { articleService, commentService } }
+    { dataSources: { atomService } }
   ) => {
     if (articleId) {
       return {
-        ...((await articleService.draftLoader.load(articleId)) as Draft),
+        ...(await atomService.articleIdLoader.load(articleId)),
         __type: NODE_TYPES.Article,
       }
     } else if (commentId) {
       return {
-        ...(await commentService.loadById(commentId)),
+        ...(await atomService.commentIdLoader.load(commentId)),
         __type: NODE_TYPES.Comment,
       }
     } else {

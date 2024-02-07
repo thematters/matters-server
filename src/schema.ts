@@ -36,20 +36,6 @@ const typeResolver = (type: string, result: any) => {
   return type
 }
 
-const idResolver = (type: string, result: any) => {
-  // correct the article id since we return draft as article in resolver
-  if (
-    [NODE_TYPES.Article, NODE_TYPES.Draft, NODE_TYPES.Node].includes(
-      type as NODE_TYPES
-    ) &&
-    result?.articleId
-  ) {
-    return result.articleId
-  }
-
-  return result?.id
-}
-
 // add directives
 
 const { typeDef: authDirectiveTypeDef, transformer: authDirectiveTransformer } =
@@ -96,10 +82,9 @@ schema = authDirectiveTransformer(schema)
 schema = rateLimitDirectiveTransformer(schema)
 schema = privateCacheDirectiveTransformer(schema)
 schema = objectCacheDirectiveTransformer(schema)
-schema = logCacheDirectiveTransformer(schema, { typeResolver, idResolver })
+schema = logCacheDirectiveTransformer(schema, { typeResolver })
 schema = purgeCacheDirectiveTransformer(schema, {
   typeResolver,
-  idResolver,
   extraNodesPath: CACHE_KEYWORD,
 })
 

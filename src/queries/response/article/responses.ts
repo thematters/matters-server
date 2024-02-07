@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers, Draft, Comment } from 'definitions'
+import type { GQLArticleResolvers, Article, Comment } from 'definitions'
 
 import _last from 'lodash/last'
 
@@ -7,9 +7,9 @@ import { ServerError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLArticleResolvers['responses'] = async (
-  { articleId },
+  { id: articleId },
   { input: { sort, first, ...restParams } },
-  { dataSources: { articleService, commentService } }
+  { dataSources: { articleService, atomService } }
 ) => {
   const order = sort === 'oldest' ? 'asc' : 'desc'
 
@@ -45,12 +45,10 @@ const resolver: GQLArticleResolvers['responses'] = async (
     sources.map((source: { entityId: string; type: string }) => {
       switch (source.type) {
         case 'Article': {
-          return articleService.draftLoader.load(
-            source.entityId
-          ) as Promise<Draft>
+          return atomService.articleIdLoader.load(source.entityId)
         }
         case 'Comment': {
-          return commentService.loadById(source.entityId)
+          return atomService.commentIdLoader.load(source.entityId)
         }
         default: {
           throw new ServerError(`Unknown response type: ${source.type}`)
@@ -60,13 +58,13 @@ const resolver: GQLArticleResolvers['responses'] = async (
   )
 
   // re-process edges
-  const isDraft = (item: Draft | Comment): item is Draft => 'title' in item
+  const isArticle = (item: Article | Comment): item is Article =>
+    'title' in item
   const edges = items.map((item) => {
-    const type = isDraft(item) ? NODE_TYPES.Article : NODE_TYPES.Comment
-    const id = isDraft(item) ? item.articleId : item.id
+    const type = isArticle(item) ? NODE_TYPES.Article : NODE_TYPES.Comment
 
     return {
-      cursor: toGlobalId({ type, id }),
+      cursor: toGlobalId({ type, id: item.id }),
       node: { __type: type, ...item } as any,
     }
   })

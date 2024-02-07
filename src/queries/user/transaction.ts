@@ -41,7 +41,7 @@ export const Transaction: GQLTransactionResolvers = {
       txHash: blockchainTx.txHash,
     }
   },
-  target: async (trx, _, { dataSources: { articleService, atomService } }) => {
+  target: async (trx, _, { dataSources: { atomService } }) => {
     if (!trx.targetId || !trx.targetType) {
       return null
     }
@@ -60,7 +60,7 @@ export const Transaction: GQLTransactionResolvers = {
     let target
     switch (table) {
       case 'article': {
-        target = await articleService.draftLoader.load(trx.targetId)
+        target = await atomService.articleIdLoader.load(trx.targetId)
         break
       }
       case 'circle_price': {

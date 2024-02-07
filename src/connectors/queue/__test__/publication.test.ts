@@ -2,11 +2,10 @@ import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
 import Redis from 'ioredis'
-import { v4 } from 'uuid'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
 import { environment } from 'common/environment'
-import { DraftService, ArticleService, UserService } from 'connectors'
+import { DraftService, ArticleService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
@@ -16,14 +15,12 @@ describe('publicationQueue.publishArticle', () => {
   let queue: PublicationQueue
   let draftService: DraftService
   let articleService: ArticleService
-  let userService: UserService
   let knex: Knex
   beforeAll(async () => {
     connections = await genConnections()
     knex = connections.knex
     draftService = new DraftService(connections)
     articleService = new ArticleService(connections)
-    userService = new UserService(connections)
     queue = new PublicationQueue(connections, {
       createClient: () => {
         return new Redis({
@@ -43,7 +40,7 @@ describe('publicationQueue.publishArticle', () => {
   test('publish not pending draft', async () => {
     const notPendingDraftId = '1'
     const draft = await draftService.baseFindById(notPendingDraftId)
-    expect(draft.state).not.toBe(PUBLISH_STATE.pending)
+    expect(draft.publishState).not.toBe(PUBLISH_STATE.pending)
 
     const job = await queue.publishArticle({
       draftId: notPendingDraftId,
@@ -63,10 +60,10 @@ describe('publicationQueue.publishArticle', () => {
     expect(await job.getState()).toBe('completed')
     const updatedDraft = await draftService.baseFindById(draft.id)
     const updatedArticle = await articleService.baseFindById(
-      updatedDraft.articleId
+      updatedDraft.articleId as string
     )
     expect(updatedDraft.content).toBe(contentHTML)
-    expect(updatedDraft.contentMd.includes(content)).toBeTruthy()
+    expect(updatedDraft.contentMd?.includes(content)).toBeTruthy()
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
   })
@@ -88,10 +85,7 @@ describe('publicationQueue.publishArticle', () => {
   })
 
   test.skip('publish pending draft unsuccessfully', async () => {
-    // mock
-    userService.baseFindById = async (_) => {
-      throw Error('mock error in queue test')
-    }
+    // TODO: fix this test to make queue.publishArticle throw error
     const { draft } = await createPendingDraft(draftService)
     const job = await queue.publishArticle({
       draftId: draft.id,
@@ -105,11 +99,10 @@ describe('publicationQueue.publishArticle', () => {
 
     const updatedDraft = await draftService.baseFindById(draft.id)
     const updatedArticle = await articleService.baseFindById(
-      updatedDraft.articleId
+      updatedDraft.articleId as string
     )
-
-    expect(updatedDraft.publishState).toBe(PUBLISH_STATE.error)
-    expect(updatedArticle.state).toBe(ARTICLE_STATE.error)
+    expect(updatedDraft.publishState).toBe(PUBLISH_STATE.pending)
+    expect(updatedArticle).toBeUndefined()
   })
 })
 
@@ -120,7 +113,6 @@ const createPendingDraft = async (draftService: DraftService) => {
   return {
     draft: await draftService.baseCreate({
       authorId: '1',
-      uuid: v4(),
       title: 'test title',
       summary: 'test summary',
       content: contentHTML,

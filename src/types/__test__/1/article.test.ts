@@ -2,7 +2,6 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 import _omit from 'lodash/omit'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -1172,9 +1171,16 @@ describe('edit article', () => {
     // create duplicate article with same draft
     const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById(articleDbId)
-    const article2 = await articleService.baseCreate({
-      ..._omit(article, ['id', 'updatedAt', 'createdAt']),
-      uuid: v4(),
+    const articleVersion = await articleService.loadLatestArticleVersion(
+      article.id
+    )
+    const articleContent = await articleService.loadLatestArticleContent(
+      article.id
+    )
+    const [article2, _] = await articleService.createArticle({
+      title: articleVersion.title,
+      content: articleContent,
+      authorId: article.authorId,
     })
     const article2Id = toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
 
@@ -1197,9 +1203,9 @@ describe('edit article', () => {
     expect(_get(data, 'viewer.status.articleCount') - 1).toBe(
       _get(data2, 'viewer.status.articleCount')
     )
-    expect(_get(data, 'viewer.status.totalWordCount') - article.wordCount).toBe(
-      _get(data2, 'viewer.status.totalWordCount')
-    )
+    expect(
+      _get(data, 'viewer.status.totalWordCount') - articleVersion.wordCount
+    ).toBe(_get(data2, 'viewer.status.totalWordCount'))
   })
 })
 
@@ -1234,8 +1240,8 @@ describe('query article readerCount/donationCount', () => {
     expect(data.article.readerCount).toBe(0)
     expect(data.article.donationCount).toBe(0)
 
-    const userService = new UserService(connections)
-    const author = await userService.loadById('1')
+    const atomService = new AtomService(connections)
+    const author = await atomService.userIdLoader.load('1')
     const authorServer = await testClient({
       connections,
       context: { viewer: author },
