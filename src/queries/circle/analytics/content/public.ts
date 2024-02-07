@@ -31,11 +31,7 @@ const resolver: GQLCircleContentAnalyticsResolvers['public'] = async (
         table: 'article',
         where: { id: articleId },
       })
-      const node = await atomService.findUnique({
-        table: 'draft',
-        where: { id: article.draftId },
-      })
-      return { node, readCount }
+      return { node: article, readCount }
     })
   )
   return data

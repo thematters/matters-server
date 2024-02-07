@@ -3,7 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { USER_ACTION } from 'common/enums'
 
 const resolver: GQLArticleResolvers['subscribed'] = async (
-  { articleId },
+  { id: articleId },
   _,
   { viewer, dataSources: { atomService } }
 ) => {

@@ -3,7 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 
 const resolver: GQLArticleResolvers['pinnedComments'] = (
-  { articleId },
+  { id: articleId },
   _,
   { dataSources: { atomService } }
 ) =>
