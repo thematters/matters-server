@@ -31,7 +31,6 @@ import {
   extractAssetDataFromHtml,
   fromGlobalId,
   normalizeTagInput,
-  // stripAllPunct,
 } from 'common/utils'
 import {
   TagService,
@@ -121,7 +120,10 @@ export class PublicationQueue extends BaseQueue {
       draftId: string
       iscnPublish?: boolean
     }
-    const draft = await draftService.baseFindById(draftId)
+    const draft = await atomService.findUnique({
+      table: 'draft',
+      where: { id: draftId },
+    })
 
     // Step 1: checks
     if (!draft || draft.publishState !== PUBLISH_STATE.pending) {
