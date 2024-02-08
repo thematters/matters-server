@@ -23,7 +23,7 @@ exports.up = async (knex) => {
     t.string('title').notNullable()
     t.bigInteger('cover').unsigned()
     t.string('summary').notNullable()
-    t.boolean('summary_customized')
+    t.boolean('summary_customized').notNullable()
     t.bigInteger('content_id').unsigned().notNullable()
     t.bigInteger('content_md_id').unsigned()
     t.specificType('tags', 'text ARRAY').notNullable()
