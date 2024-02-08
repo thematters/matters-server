@@ -184,7 +184,7 @@ describe('quicksearch', () => {
     expect(nodes.length).toBe(1)
     expect(totalCount).toBeGreaterThan(0)
 
-    // both case insensitive and chinese simplified/traditional insensitive
+    // both case insensitive and Chinese simplified/traditional insensitive
     await articleService.createArticle({
       title: 'Uppercase',
       content: '',
@@ -254,7 +254,6 @@ describe('quicksearch', () => {
       quicksearch: true,
       filter: { authorId: '2' },
     })
-    console.log(nodes)
     nodes.forEach((node) => {
       expect(node.authorId).toBe('2')
     })

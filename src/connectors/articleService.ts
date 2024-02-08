@@ -39,6 +39,7 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
+  PIN_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -182,6 +183,7 @@ export class ArticleService extends BaseService<Article> {
           requestForDonation,
           replyToDonator,
           canComment: canComment ?? true,
+          pinState: PIN_STATE.pinning,
           sensitiveByAuthor: sensitiveByAuthor ?? false,
         })
         .returning('*')
@@ -209,7 +211,7 @@ export class ArticleService extends BaseService<Article> {
 
   public getOrCreateArticleContent = async (content: string) => {
     const contentHash = genMD5(content)
-    const result = this.models.findUnique({
+    const result = await this.models.findUnique({
       table: 'article_content',
       where: { hash: contentHash },
     })
@@ -801,7 +803,6 @@ export class ArticleService extends BaseService<Article> {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === 'blocked' && viewerId
@@ -834,7 +835,6 @@ export class ArticleService extends BaseService<Article> {
                 this.searchKnex.raw(
                   'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
                 ),
-                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_jieba_ts, query) AS title_ts_rank'
                 ),
@@ -892,13 +892,11 @@ export class ArticleService extends BaseService<Article> {
       records.map((item: { id: string }) => item.id).filter(Boolean)
     )
 
-    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     logger.debug(
       `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      // { countRes, articleIds }
       { sample: records?.slice(0, 3) }
     )
 
@@ -971,16 +969,24 @@ export class ArticleService extends BaseService<Article> {
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = await t2sConverter.convertPromise(key)
     const keyTraditional = await s2tConverter.convertPromise(key)
-    const records = await this.knexRO
-      .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .where(function () {
-        this.whereILike('title', `%${key}%`)
-          .orWhereILike('title', `%${keyTraditional}%`)
-          .orWhereILike('title', `%${keySimplified}%`)
-      })
-      .from('article')
-      .orderBy('id', 'desc')
+    const q = this.knexRO('article')
+      .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .whereIn(
+        'id',
+        this.knexRO
+          .select('article_id')
+          .where(function () {
+            if (filter && filter.authorId) {
+              this.where({ authorId: filter.authorId })
+            }
+            this.whereILike('title', `%${key}%`)
+              .orWhereILike('title', `%${keyTraditional}%`)
+              .orWhereILike('title', `%${keySimplified}%`)
+          })
+          .from('article_version_newest')
+      )
       .where({ state: ARTICLE_STATE.active })
+      .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {
           builder.where({ authorId: filter.authorId })
@@ -992,12 +998,11 @@ export class ArticleService extends BaseService<Article> {
           builder.offset(skip)
         }
       })
+    console.log(q.toString())
+    const records = await q
 
-    const nodes = await this.models.articleIdLoader.loadMany(
-      records.map((item: { id: string }) => item.id).filter(Boolean)
-    )
     const totalCount = +(records?.[0]?.totalCount ?? 0)
-    return { nodes, totalCount }
+    return { nodes: records as Article[], totalCount }
   }
 
   /**
@@ -1016,7 +1021,7 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
   /**
-   * Sum total appreciaton by a given article id.
+   * Sum total appreciation by a given article id.
    */
   public sumAppreciation = async (articleId: string) => {
     const result = await this.knex
