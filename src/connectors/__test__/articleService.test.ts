@@ -356,3 +356,8 @@ describe('findResponses', () => {
     expect(+res1[0].totalCount).toBe(res.length)
   })
 })
+
+test('loadLatestArticleVersion', async () => {
+  const articleVersion = await articleService.loadLatestArticleVersion('1')
+  expect(articleVersion.articleId).toBe('1')
+})

@@ -86,21 +86,11 @@ export class ArticleService extends BaseService<Article> {
     const batchFn = async (
       keys: readonly string[]
     ): Promise<ArticleVersion[]> => {
-      // use left outer join to get latest article version for each article
-      // idea from https://medium.com/@hanifaarrumaisha/query-greatest-n-per-group-a1516fd4b0f6
-      const table = 'article_version'
-      const records = await this.knexRO<ArticleVersion>(
-        this.knexRO.ref(table).as('a')
+      const table = 'article_version_newest'
+      const records = await this.knexRO<ArticleVersion>(table).whereIn(
+        'article_id',
+        keys
       )
-        .leftOuterJoin(this.knexRO.ref(table).as('b'), function () {
-          this.on('a.article_id', '=', 'b.article_id').andOn(
-            'a.id',
-            '<',
-            'b.id'
-          )
-        })
-        .whereNotNull('b.id')
-        .whereIn('a.article_id', keys)
 
       if (records.findIndex((item: unknown) => !item) >= 0) {
         throw new EntityNotFoundError(`Cannot find entity from ${table}`)
