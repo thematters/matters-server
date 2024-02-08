@@ -1,92 +1,154 @@
-const table = 'article'
+exports.seed = async function (knex, Promise) {
+  const articleTable = 'article'
+  const articleVersionTable = 'article_version'
+  const articleContentTable = 'article_content'
 
-exports.seed = function (knex, Promise) {
-  return knex(table)
-    .del()
-    .then(function () {
-      return knex(table).insert([
-        {
-          uuid: '00000000-0000-0000-0000-000000000001',
-          author_id: 1,
-          draft_id: 1,
-          title: 'test article 1',
-          slug: 'test-article-1',
-          summary: 'Some text',
-          word_count: '1000',
-          data_hash: 'someIpfsDataHash1',
-          media_hash: 'someIpfsMediaHash1',
-          content: '<div>some html string</div>',
-          state: 'active',
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000002',
-          author_id: 2,
-          draft_id: 2,
-          title: 'test article 2',
-          slug: 'test-article-2',
-          summary: 'Some text',
-          word_count: '1000',
-          data_hash: 'someIpfsDataHash2',
-          media_hash: 'someIpfsMediaHash2',
-          content: '<div>some html string</div>',
-          state: 'active',
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000003',
-          author_id: 3,
-          draft_id: 3,
-          title: 'test article 3',
-          slug: 'test-article-3',
-          summary: 'Some text',
-          word_count: '1000',
-          data_hash: 'someIpfsMediaHash3',
-          media_hash: 'someIpfsMediaHash3',
-          content: '<div>some html string</div>',
-          state: 'active',
-          public: true,
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000004',
-          author_id: 1,
-          draft_id: 4,
-          title: 'test article 4',
-          slug: 'test-article-4',
-          summary: 'Some text',
-          word_count: '1000',
-          data_hash: 'someIpfsMediaHash4',
-          media_hash: 'someIpfsMediaHash4',
-          content: '<div>some html string</div>',
-          state: 'active',
-          public: true,
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000005',
-          author_id: 7,
-          draft_id: 5,
-          title: 'test article 5 active user',
-          slug: 'test-article-5-active-user',
-          summary: 'Some text',
-          word_count: '1000',
-          data_hash: 'someIpfsMediaHash5',
-          media_hash: 'someIpfsMediaHash5',
-          content: '<div>some html string</div>',
-          state: 'active',
-          public: true,
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000004',
-          author_id: 1,
-          draft_id: 6,
-          title: 'test article 6',
-          slug: 'test-article-6',
-          summary: 'Some text',
-          word_count: 1000,
-          data_hash: 'someIpfsMediaHash4',
-          media_hash: 'someIpfsMediaHash4',
-          content: '<div>some html string</div>',
-          state: 'active',
-          public: true,
-        },
-      ])
-    })
+  await knex(articleVersionTable).del()
+  await knex(articleContentTable).del()
+  await knex(articleTable).del()
+
+  const rows1 = await knex(articleContentTable)
+    .insert([
+      {
+        content: '<div>some html string</div>',
+        hash: 'hash1',
+      },
+    ])
+    .returning('id')
+  const contentId1 = rows1[0].id
+
+  const rows2 = await knex(articleTable)
+    .insert([
+      {
+        author_id: 1,
+        state: 'active',
+      },
+      {
+        author_id: 2,
+        state: 'active',
+      },
+      {
+        author_id: 3,
+        state: 'active',
+      },
+      {
+        author_id: 1,
+        state: 'active',
+      },
+      {
+        author_id: 7,
+        state: 'active',
+      },
+      {
+        author_id: 1,
+        state: 'active',
+      },
+    ])
+    .returning('id')
+  const articleIds = rows2.map((row) => row.id)
+
+  return knex(articleVersionTable).insert([
+    {
+      article_id: articleIds[0],
+      content_id: contentId1,
+      title: 'test article 1',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: '1000',
+      data_hash: 'someIpfsDataHash1',
+      media_hash: 'someIpfsMediaHash1',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+    {
+      article_id: articleIds[1],
+      content_id: contentId1,
+      title: 'test article 2',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: '1000',
+      data_hash: 'someIpfsDataHash2',
+      media_hash: 'someIpfsMediaHash2',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+    {
+      article_id: articleIds[2],
+      content_id: contentId1,
+      title: 'test article 3',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: '1000',
+      data_hash: 'someIpfsMediaHash3',
+      media_hash: 'someIpfsMediaHash3',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+    {
+      article_id: articleIds[3],
+      content_id: contentId1,
+      title: 'test article 4',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: '1000',
+      data_hash: 'someIpfsMediaHash4',
+      media_hash: 'someIpfsMediaHash4',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+    {
+      article_id: articleIds[4],
+      content_id: contentId1,
+      title: 'test article 5 active user',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: '1000',
+      data_hash: 'someIpfsMediaHash5',
+      media_hash: 'someIpfsMediaHash5',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+    {
+      article_id: articleIds[5],
+      content_id: contentId1,
+      title: 'test article 6',
+      summary: 'Some text',
+      summary_customized: true,
+      word_count: 1000,
+      data_hash: 'someIpfsMediaHash4',
+      media_hash: 'someIpfsMediaHash4',
+      tags: [],
+      connections: [],
+      pin_state: 'pinned',
+      access: 'public',
+      license: 'cc_by_nc_nd_4',
+      can_comment: 'true',
+      sensitive_by_author: 'false',
+    },
+  ])
 }
