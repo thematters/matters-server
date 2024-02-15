@@ -351,7 +351,9 @@ export class AtomService {
       }
 
       // fix order based on keys
-      return keys.map((key) => records.find((r: any) => r[mode] === key)) as T[]
+      return keys.map((key) =>
+        records.find((r: any) => r[mode] === key.toString())
+      ) as T[]
     }
     return new DataLoader(batchFn) as AtomDataLoader<string, T>
   }
