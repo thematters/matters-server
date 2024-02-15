@@ -40,7 +40,7 @@ declare global {
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-}, 50000)
+}, 90000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -248,11 +248,11 @@ describe('query article', () => {
 
   test('query related articles', async () => {
     const server = await testClient({ connections })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_RELATED_ARTICLES,
       variables: { input: { mediaHash } },
     })
-    expect(_get(result, 'data.article.relatedArticles.edges')).toBeDefined()
+    expect(data.article.relatedArticles.edges).toBeDefined()
   })
 })
 

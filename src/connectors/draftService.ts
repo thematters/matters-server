@@ -41,7 +41,4 @@ export class DraftService extends BaseService<Draft> {
       .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
       .orderBy('updated_at', 'desc')
-
-  public findByMediaHash = async (mediaHash: string) =>
-    this.knex.select().from(this.table).where({ mediaHash }).first()
 }

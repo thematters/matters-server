@@ -552,6 +552,9 @@ export class ArticleService extends BaseService<Article> {
       updatedAt: new Date(),
     })
 
+  public findVersionByMediaHash = async (mediaHash: string) =>
+    this.models.findFirst({ table: 'article_version', where: { mediaHash } })
+
   public findByAuthor = async (
     authorId: string,
     {
