@@ -281,6 +281,7 @@ export class ArticleService extends BaseService<Article> {
         ...data,
         contentId: lastData.contentId,
         contentMdId: lastData.contentMdId,
+        wordCount: lastData.wordCount,
         dataHash: lastData.dataHash,
         mediaHash: lastData.mediaHash,
         pinState: lastData.pinState,
@@ -303,40 +304,38 @@ export class ArticleService extends BaseService<Article> {
     }
     if (newData.collection) {
       data = { ...data, connections: newData.collection }
+      await this.updateArticleConnections({
+        articleId,
+        actorId,
+        connections: newData.collection,
+      })
       delete newData.collection
     }
-    if (data.circleId) {
-      const _data = { articleId, circleId: data.circleId }
+    if (newData.circleId) {
+      const _data = { articleId, circleId: newData.circleId }
       await this.models.upsert({
         table: 'article_circle',
         where: _data,
-        create: { ..._data, access: data.access },
-        update: { ..._data, access: data.access },
+        create: { ..._data, access: newData.access || data.access },
+        update: { ..._data, access: newData.access || data.access },
       })
     }
 
-    if (data.circleId === null) {
+    if (newData.circleId === null) {
       await this.models.deleteMany({
         table: 'article_circle',
         where: { articleId },
       })
     }
-    if (data.tags) {
+    if (newData.tags) {
       const tagService = new TagService(this.connections)
       await tagService.updateArticleTags({
         articleId,
         actorId,
-        tags: data.tags,
+        tags: newData.tags,
       })
     }
 
-    if (data.connections) {
-      await this.updateArticleConnections({
-        articleId,
-        actorId,
-        connections: data.connections,
-      })
-    }
     const articleVersion = await this.models.create({
       table: 'article_version',
       data: { ...data, ...newData } as Partial<ArticleVersion>,

@@ -40,7 +40,7 @@ declare global {
 let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
-}, 90000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -660,7 +660,8 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult2, 'data.editArticle.tags.length')).toBe(0)
+    console.log(resetResult2.errors)
+    expect(resetResult2.data.editArticle.tags.length).toBe(0)
   })
 
   test('edit article collection', async () => {

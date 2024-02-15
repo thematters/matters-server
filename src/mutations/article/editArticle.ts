@@ -198,7 +198,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       updateRevisionCount = true
     }
 
-    data = { ...data, circleId }
+    data = { ...data, circleId, access: accessType }
   } else if (resetCircle) {
     data = { ...data, circleId: null }
   }
@@ -219,7 +219,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
     )
   }
-  if (license !== articleVersion.license) {
+  if (license && license !== articleVersion.license) {
     data = { ...data, license }
   }
 
@@ -299,7 +299,10 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     })
   }
 
-  const node = await atomService.findUnique({ table: 'article', where: { id } })
+  const node = await atomService.findUnique({
+    table: 'article',
+    where: { id: dbId },
+  })
   // invalidate circle
   if (circleGlobalId) {
     ;(

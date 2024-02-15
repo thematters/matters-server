@@ -1,4 +1,4 @@
-import type { GQLArticleLicenseType, Article } from 'definitions'
+import type { Article, Tag } from 'definitions'
 
 import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
@@ -10,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import canComment from './canComment'
 import canSuperLike from './canSuperLike'
 import chapterArticleCount from './chapter/articleCount'
 import chapterArticles from './chapter/articles'
@@ -26,6 +27,7 @@ import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import language from './language'
+import license from './license'
 import mediaHash from './mediaHash'
 import * as articleOSS from './oss'
 import pinned from './pinned'
@@ -39,12 +41,14 @@ import requestForDonation from './requestForDonation'
 import revisedAt from './revisedAt'
 import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
+import sensitiveByAuthor from './sensitiveByAuthor'
 import slug from './slug'
 import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
+import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -88,6 +92,7 @@ export default {
     content,
     contents: (root: Article) => root,
     summary,
+    summaryCustomized,
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -105,6 +110,7 @@ export default {
     relatedDonationArticles,
     remark,
     slug,
+    sensitiveByAuthor,
     dataHash,
     mediaHash,
     state,
@@ -124,7 +130,8 @@ export default {
     revisedAt,
     access: (root: Article) => root,
     revisionCount,
-    license: ({ license }: { license: GQLArticleLicenseType }) => license,
+    license,
+    canComment,
     requestForDonation,
     replyToDonator,
     donationCount,
@@ -143,7 +150,7 @@ export default {
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
     followers: tagFollowers,
-    oss: (root: any) => root,
+    oss: (root: Tag) => root,
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
