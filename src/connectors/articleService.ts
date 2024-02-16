@@ -241,19 +241,12 @@ export class ArticleService extends BaseService<Article> {
     newData: Partial<Draft>
   ) => {
     const lastData = await this.latestArticleVersionLoader.load(articleId)
-    let data = {
-      articleId,
-      title: lastData.title,
-      cover: lastData.cover,
-      tags: lastData.tags,
-      connections: lastData.connections,
-      language: lastData.language,
-      circleId: lastData.circleId,
-      access: lastData.access,
-      license: lastData.license,
-      canComment: lastData.canComment,
-      sensitiveByAuthor: lastData.sensitiveByAuthor,
-    } as Partial<ArticleVersion>
+    let data = lastData as Partial<ArticleVersion>
+    delete data.id
+    delete data.description
+    delete data.createdAt
+    delete data.updatedAt
+
     if (newData.content) {
       const { id: contentId } = await this.getOrCreateArticleContent(
         newData.content

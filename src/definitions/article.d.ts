@@ -45,7 +45,9 @@ export interface ArticleVersion {
   language: string | null
   iscnId: string | null
   circleId: string | null
+  description: string | null
   createdAt: Date
+  updatedAt: Date
 }
 
 export interface ArticleContent {
