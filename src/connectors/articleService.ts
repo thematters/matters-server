@@ -320,13 +320,13 @@ export class ArticleService extends BaseService<Article> {
         update: { ..._data, access: newData.access || data.access },
       })
     }
-
     if (newData.circleId === null) {
       await this.models.deleteMany({
         table: 'article_circle',
         where: { articleId },
       })
     }
+
     if (newData.tags) {
       const tagService = new TagService(this.connections)
       await tagService.updateArticleTags({
@@ -334,6 +334,16 @@ export class ArticleService extends BaseService<Article> {
         actorId,
         tags: newData.tags,
       })
+    }
+    if (newData.tags === null) {
+      const tagService = new TagService(this.connections)
+      await tagService.updateArticleTags({
+        articleId,
+        actorId,
+        tags: [],
+      })
+      data = { ...data, tags: [] }
+      delete newData.tags
     }
 
     const articleVersion = await this.models.create({
