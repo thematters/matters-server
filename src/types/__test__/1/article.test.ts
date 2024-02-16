@@ -658,7 +658,6 @@ describe('edit article', () => {
         },
       },
     })
-    console.log(resetResult2.errors)
     expect(resetResult2.data.editArticle.tags.length).toBe(0)
   })
 
@@ -1164,10 +1163,11 @@ describe('edit article', () => {
     const { data } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
-    const articleId = _get(data, 'viewer.articles.edges.0.node.id')
+
+    const articleId = data.viewer.articles.edges[0].node.id
     const articleDbId = fromGlobalId(articleId).id
 
-    // create duplicate article with same draft
+    // create duplicate article with same content
     const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById(articleDbId)
     const articleVersion = await articleService.loadLatestArticleVersion(
@@ -1176,12 +1176,16 @@ describe('edit article', () => {
     const articleContent = await articleService.loadLatestArticleContent(
       article.id
     )
-    const [article2, _] = await articleService.createArticle({
+    const [article2, articleVersion2] = await articleService.createArticle({
       title: articleVersion.title,
       content: articleContent,
       authorId: article.authorId,
     })
     const article2Id = toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
+
+    const { data: beforeData } = await server.executeOperation({
+      query: GET_VIEWER_STATUS,
+    })
 
     // archive
     const { data: archivedData } = await server.executeOperation({
@@ -1196,15 +1200,15 @@ describe('edit article', () => {
     expect(archivedData.editArticle.state).toBe(ARTICLE_STATE.archived)
 
     // refetch & expect de-duplicated
-    const { data: data2 } = await server.executeOperation({
+    const { data: afterData } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
-    expect(_get(data, 'viewer.status.articleCount') - 1).toBe(
-      _get(data2, 'viewer.status.articleCount')
+    expect(beforeData.viewer.status.articleCount - 1).toBe(
+      afterData.viewer.status.articleCount
     )
     expect(
-      _get(data, 'viewer.status.totalWordCount') - articleVersion.wordCount
-    ).toBe(_get(data2, 'viewer.status.totalWordCount'))
+      beforeData.viewer.status.totalWordCount - articleVersion2.wordCount
+    ).toBe(afterData.viewer.status.totalWordCount)
   })
 })
 
