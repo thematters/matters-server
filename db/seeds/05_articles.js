@@ -1,4 +1,5 @@
 exports.seed = async function (knex, Promise) {
+  const draftTable = 'draft'
   const articleTable = 'article'
   const articleVersionTable = 'article_version'
   const articleContentTable = 'article_content'
@@ -46,6 +47,13 @@ exports.seed = async function (knex, Promise) {
     ])
     .returning('id')
   const articleIds = rows2.map((row) => row.id)
+
+  // update draft article_id
+  await knex(draftTable).where('id', '2').update({ article_id: articleIds[1] })
+  await knex(draftTable).where('id', '3').update({ article_id: articleIds[2] })
+  await knex(draftTable).where('id', '4').update({ article_id: articleIds[0] })
+  await knex(draftTable).where('id', '5').update({ article_id: articleIds[4] })
+  await knex(draftTable).where('id', '6').update({ article_id: articleIds[3] })
 
   return knex(articleVersionTable).insert([
     {
