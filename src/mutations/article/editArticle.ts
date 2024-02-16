@@ -299,10 +299,13 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     })
   }
 
+  // fetch lastest article data
   const node = await atomService.findUnique({
     table: 'article',
     where: { id: dbId },
   })
+  articleService.latestArticleVersionLoader.clearAll()
+
   // invalidate circle
   if (circleGlobalId) {
     ;(

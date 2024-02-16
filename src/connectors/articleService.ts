@@ -77,7 +77,7 @@ const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class ArticleService extends BaseService<Article> {
   private ipfsServers: typeof ipfsServers
-  private latestArticleVersionLoader: DataLoader<string, ArticleVersion>
+  public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
   public constructor(connections: Connections) {
     super('article', connections)
@@ -288,11 +288,11 @@ export class ArticleService extends BaseService<Article> {
         iscnId: lastData.iscnId,
       }
     }
-    if (newData.summary || newData.summary === null) {
+    if (newData.summary || newData.summary === null || newData.summary === '') {
       data = {
         ...data,
         summary: newData.summary ?? '',
-        summaryCustomized: true,
+        summaryCustomized: newData.summary ? true : false,
       }
       delete newData.summary
     } else {

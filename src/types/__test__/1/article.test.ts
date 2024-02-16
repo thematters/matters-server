@@ -478,7 +478,7 @@ describe('edit article', () => {
       connections,
       isAdmin: false,
     })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -487,11 +487,11 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result, 'data.editArticle.summary')).toBe(summary)
-    expect(_get(result, 'data.editArticle.summaryCustomized')).toBe(true)
+    expect(data.editArticle.summary).toBe(summary)
+    expect(data.editArticle.summaryCustomized).toBe(true)
 
     // reset summary
-    const resetResult1 = await server.executeOperation({
+    const { data: resetData1 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -500,12 +500,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(
-      _get(resetResult1, 'data.editArticle.summary.length')
-    ).toBeGreaterThan(0)
-    expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
+    expect(resetData1.editArticle.summary.length).toBeGreaterThan(0)
+    expect(resetData1.editArticle.summaryCustomized).toBe(false)
 
-    const resetResult2 = await server.executeOperation({
+    const { data: resetData2 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -514,7 +512,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult2, 'data.editArticle.summaryCustomized')).toBe(false)
+    expect(resetData2.editArticle.summaryCustomized).toBe(false)
   })
 
   test('edit article tags', async () => {
