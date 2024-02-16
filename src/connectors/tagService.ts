@@ -1159,7 +1159,7 @@ export class TagService extends BaseService<Tag> {
   }: {
     articleId: string
     actorId: string
-    tags: string[] | null
+    tags: string[]
   }) => {
     const article = await this.models.articleIdLoader.load(articleId)
     // validate
@@ -1181,27 +1181,24 @@ export class TagService extends BaseService<Tag> {
     const tagEditors = environment.mattyId
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
-    const dbTags =
-      tags === null
-        ? []
-        : (
-            await Promise.all(
-              tags.filter(Boolean).map(async (content: string) =>
-                this.create(
-                  {
-                    content,
-                    creator: article.authorId,
-                    editors: tagEditors,
-                    owner: article.authorId,
-                  },
-                  {
-                    columns: ['id', 'content'],
-                    skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
-                  }
-                )
-              )
-            )
-          ).map(({ id, content }) => ({ id: `${id}`, content }))
+    const dbTags = (
+      await Promise.all(
+        tags.filter(Boolean).map(async (content: string) =>
+          this.create(
+            {
+              content,
+              creator: article.authorId,
+              editors: tagEditors,
+              owner: article.authorId,
+            },
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+            }
+          )
+        )
+      )
+    ).map(({ id, content }) => ({ id: `${id}`, content }))
 
     const newIds = dbTags.map(({ id: tagId }) => tagId)
 

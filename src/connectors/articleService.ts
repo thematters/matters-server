@@ -59,7 +59,6 @@ import {
   t2sConverter,
   normalizeSearchKey,
   genMD5,
-  fromGlobalId,
 } from 'common/utils'
 import {
   BaseService,
@@ -302,15 +301,16 @@ export class ArticleService extends BaseService<Article> {
         summaryCustomized: lastData.summaryCustomized,
       }
     }
-    if (newData.collection) {
-      data = { ...data, connections: newData.collection }
+    if (newData.collection || newData.collection === null) {
+      data = { ...data, connections: newData.collection ?? [] }
       await this.updateArticleConnections({
         articleId,
         actorId,
-        connections: newData.collection,
+        connections: newData.collection ?? [],
       })
       delete newData.collection
     }
+
     if (newData.circleId) {
       const _data = { articleId, circleId: newData.circleId }
       await this.models.upsert({
@@ -327,22 +327,14 @@ export class ArticleService extends BaseService<Article> {
       })
     }
 
-    if (newData.tags) {
+    if (newData.tags || newData.tags === null) {
       const tagService = new TagService(this.connections)
       await tagService.updateArticleTags({
         articleId,
         actorId,
-        tags: newData.tags,
+        tags: newData.tags ?? [],
       })
-    }
-    if (newData.tags === null) {
-      const tagService = new TagService(this.connections)
-      await tagService.updateArticleTags({
-        articleId,
-        actorId,
-        tags: [],
-      })
-      data = { ...data, tags: [] }
+      data = { ...data, tags: newData.tags ?? [] }
       delete newData.tags
     }
 
@@ -1000,7 +992,6 @@ export class ArticleService extends BaseService<Article> {
           builder.offset(skip)
         }
       })
-    console.log(q.toString())
     const records = await q
 
     const totalCount = +(records?.[0]?.totalCount ?? 0)
@@ -1866,26 +1857,23 @@ export class ArticleService extends BaseService<Article> {
   }: {
     articleId: string
     actorId: string
-    connections: string[] | null
+    connections: string[]
   }) => {
     const oldIds = (
       await this.findConnections({
         entranceId: articleId,
       })
     ).map(({ articleId: id }: { articleId: string }) => id)
-    const newIds =
-      connections === null
-        ? []
-        : uniq(connections.map((id) => fromGlobalId(id).id)).filter(
-            (id) => !!id
-          )
-    const newIdsToAdd = difference(newIds, oldIds)
-    const oldIdsToDelete = difference(oldIds, newIds)
+    const newIds = uniq(connections)
 
     // do nothing if no change
     if (isEqual(oldIds, newIds)) {
       return
     }
+
+    const newIdsToAdd = difference(newIds, oldIds)
+    const oldIdsToDelete = difference(oldIds, newIds)
+
     // only validate new-added articles
     if (newIdsToAdd.length) {
       if (
@@ -1934,11 +1922,11 @@ export class ArticleService extends BaseService<Article> {
 
     // gather data
     newIds.forEach((id: string, index: number) => {
-      const isNew = newIdsToAdd.includes(articleId)
+      const isNew = newIdsToAdd.includes(id)
       if (isNew) {
         addItems.push({ entranceId: articleId, articleId: id, order: index })
       }
-      if (!isNew && index !== oldIds.indexOf(articleId)) {
+      if (!isNew && index !== oldIds.indexOf(id)) {
         updateItems.push({ entranceId: articleId, articleId: id, order: index })
       }
     })

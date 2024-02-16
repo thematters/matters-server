@@ -156,7 +156,12 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    * Connection
    */
   if (collection !== undefined) {
-    data = { ...data, collection }
+    data = {
+      ...data,
+      collection: (collection ?? []).map(
+        (globalId) => fromGlobalId(globalId as unknown as string).id
+      ),
+    }
   }
 
   /**
@@ -206,8 +211,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * Summary
    */
-  const resetSummary = summary === null || summary === ''
-  if (summary || resetSummary) {
+  if (summary !== undefined) {
     data = { ...data, summary }
   }
 

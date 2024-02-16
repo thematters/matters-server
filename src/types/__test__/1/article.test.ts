@@ -662,7 +662,7 @@ describe('edit article', () => {
     expect(resetResult2.data.editArticle.tags.length).toBe(0)
   })
 
-  test('edit article collection', async () => {
+  test('edit article connections', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
@@ -677,8 +677,8 @@ describe('edit article', () => {
     ]
     const limit = 2
 
-    // set collection within limit
-    const res = await server.executeOperation({
+    // set connections within limit
+    const { data } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -687,13 +687,13 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(res, 'data.editArticle.collection.totalCount')).toBe(limit)
+    expect(data.editArticle.collection.totalCount).toBe(limit)
     expect([
-      _get(res, 'data.editArticle.collection.edges.0.node.id'),
-      _get(res, 'data.editArticle.collection.edges.1.node.id'),
+      data.editArticle.collection.edges[0].node.id,
+      data.editArticle.collection.edges[1].node.id,
     ]).toEqual(collection.slice(0, limit))
 
-    // set collection out of limit
+    // set connections out of limit
     globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const failedRes = await server.executeOperation({
       query: EDIT_ARTICLE,
