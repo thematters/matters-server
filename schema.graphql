@@ -726,6 +726,9 @@ input EditArticleInput {
   requestForDonation: String
   replyToDonator: String
 
+  """revision description"""
+  description: String
+
   """whether publish to ISCN"""
   iscnPublish: Boolean
 

@@ -1219,6 +1219,8 @@ export type GQLEditArticleInput = {
   collection?: InputMaybe<Array<Scalars['ID']['input']>>
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
+  /** revision description */
+  description?: InputMaybe<Scalars['String']['input']>
   id: Scalars['ID']['input']
   /** whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>

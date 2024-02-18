@@ -482,6 +482,9 @@ export default /* GraphQL */ `
     requestForDonation: String  @constraint(maxLength: 140)
     replyToDonator: String  @constraint(maxLength: 140)
 
+    "revision description"
+    description: String @constraint(maxLength: 140)
+
     "whether publish to ISCN"
     iscnPublish: Boolean
 

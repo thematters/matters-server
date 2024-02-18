@@ -369,3 +369,31 @@ test('countArticleVersions', async () => {
   const count2 = await articleService.countArticleVersions('1')
   expect(count2).toBe(2)
 })
+
+describe('createNewArticleVersion', () => {
+  test('provide description or not', async () => {
+    const articleVersion = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false }
+    )
+    expect(articleVersion.description).toBe(null)
+
+    const articleVersion2 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      undefined
+    )
+    expect(articleVersion2.description).toBe(null)
+
+    const description = 'test desc'
+    const articleVersion3 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      description
+    )
+    expect(articleVersion3.description).toBe(description)
+  })
+})

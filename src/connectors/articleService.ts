@@ -237,7 +237,8 @@ export class ArticleService extends BaseService<Article> {
   public createNewArticleVersion = async (
     articleId: string,
     actorId: string,
-    newData: Partial<Draft>
+    newData: Partial<Draft>,
+    description?: string
   ) => {
     if (Object.keys(newData).length === 0) {
       throw new ActionFailedError('newData is empty')
@@ -334,7 +335,7 @@ export class ArticleService extends BaseService<Article> {
 
     const articleVersion = await this.models.create({
       table: 'article_version',
-      data: { ...data, ...newData } as Partial<ArticleVersion>,
+      data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
     return articleVersion
   }
