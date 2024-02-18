@@ -89,12 +89,6 @@ export const PUBLISH_STATE = {
   published: 'published',
 } as const
 
-export enum PIN_STATE {
-  pinned = 'pinned',
-  pinning = 'pinning',
-  failed = 'failed',
-}
-
 export const CIRCLE_STATE = {
   active: 'active',
   archived: 'archived',

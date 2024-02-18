@@ -10,7 +10,6 @@ import {
   ARTICLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
-  PIN_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -180,7 +179,7 @@ export class RevisionQueue extends BaseQueue {
         await atomService.update({
           table: 'article_version',
           where: { id: newArticleVersion.id },
-          data: { dataHash, mediaHash, pinState: PIN_STATE.pinned },
+          data: { dataHash, mediaHash },
         })
 
         // update secret

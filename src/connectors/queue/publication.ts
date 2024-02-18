@@ -17,7 +17,6 @@ import * as cheerio from 'cheerio'
 import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
-  PIN_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -240,7 +239,6 @@ export class PublicationQueue extends BaseQueue {
         data: {
           dataHash,
           mediaHash,
-          pinState: PIN_STATE.pinned,
         },
         where: { id: articleVersion.id },
       })

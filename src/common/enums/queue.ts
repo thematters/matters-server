@@ -10,7 +10,6 @@ export const QUEUE_JOB = {
   // Publication
   publishArticle: 'publishArticle',
   publishPendingDrafts: 'publishPendingDrafts',
-  verifyIPFSPinHashes: 'verifyIPFSPinHashes',
 
   // refresh IPNS Feed
   refreshIPNSFeed: 'refreshIPNSFeed',
@@ -47,7 +46,6 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   revision: 'revision',
   asset: 'asset',
-  ipfs: 'ipfs',
 }
 
 export const QUEUE_CONCURRENCY = {

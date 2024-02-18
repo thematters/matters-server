@@ -31,7 +31,6 @@ exports.up = async (knex) => {
     t.integer('word_count').notNullable()
     t.string('data_hash')
     t.string('media_hash')
-    t.enu('pin_state', ['pinned', 'pinning', 'failed']).notNullable()
     t.string('language')
     t.bigInteger('circle_id').unsigned()
     t.enu('access', ['public', 'paywall']).notNullable()
@@ -56,7 +55,6 @@ exports.up = async (knex) => {
 
     t.index('article_id')
     t.index(['article_id', 'id'])
-    t.index('pin_state')
     t.index('data_hash')
     t.index('media_hash')
     t.index('iscn_id')
@@ -143,7 +141,6 @@ BEGIN
       word_count,
       data_hash,
       media_hash,
-      pin_state,
       language,
       circle_id,
       access,
@@ -168,7 +165,6 @@ BEGIN
       draft_record.word_count,
       draft_record.data_hash,
       draft_record.media_hash,
-      COALESCE (draft_record.pin_state, 'pinned'),
       draft_record.language,
       draft_record.circle_id,
       draft_record.access,

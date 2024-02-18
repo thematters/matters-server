@@ -2,7 +2,6 @@ import {
   ARTICLE_STATE,
   ARTICLE_ACCESS_TYPE,
   ARTICLE_LICENSE_TYPE,
-  PIN_STATE,
 } from 'common/enums'
 
 import { LANGUAGES } from './language'
@@ -32,7 +31,6 @@ export interface ArticleVersion {
   wordCount: number
   dataHash: string
   mediaHash: string
-  pinState: PIN_STATE
   tags: string[]
   connections: string[]
   access: keyof typeof ARTICLE_ACCESS_TYPE

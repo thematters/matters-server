@@ -39,7 +39,6 @@ import {
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
-  PIN_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -173,7 +172,6 @@ export class ArticleService extends BaseService<Article> {
           requestForDonation,
           replyToDonator,
           canComment: canComment ?? true,
-          pinState: PIN_STATE.pinning,
           sensitiveByAuthor: sensitiveByAuthor ?? false,
         })
         .returning('*')
@@ -280,7 +278,6 @@ export class ArticleService extends BaseService<Article> {
         wordCount: lastData.wordCount,
         dataHash: lastData.dataHash,
         mediaHash: lastData.mediaHash,
-        pinState: lastData.pinState,
         iscnId: lastData.iscnId,
       }
     }
