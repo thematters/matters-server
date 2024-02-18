@@ -48,6 +48,7 @@ import {
   NetworkError,
   ForbiddenError,
   ActionLimitExceededError,
+  ActionFailedError,
   InvalidCursorError,
   EntityNotFoundError,
   ArticleCollectionReachLimitError,
@@ -240,6 +241,9 @@ export class ArticleService extends BaseService<Article> {
     actorId: string,
     newData: Partial<Draft>
   ) => {
+    if (Object.keys(newData).length === 0) {
+      throw new ActionFailedError('newData is empty')
+    }
     const lastData = await this.latestArticleVersionLoader.load(articleId)
     let data = lastData as Partial<ArticleVersion>
     delete data.id
@@ -337,6 +341,9 @@ export class ArticleService extends BaseService<Article> {
     })
     return articleVersion
   }
+
+  public countArticleVersions = async (articleId: string) =>
+    this.models.count({ table: 'article_version', where: { articleId } })
 
   /**
    * Update article's pin status and return article

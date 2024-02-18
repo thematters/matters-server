@@ -361,3 +361,11 @@ test('loadLatestArticleVersion', async () => {
   const articleVersion = await articleService.loadLatestArticleVersion('1')
   expect(articleVersion.articleId).toBe('1')
 })
+
+test('countArticleVersions', async () => {
+  const count = await articleService.countArticleVersions('1')
+  expect(count).toBe(1)
+  await articleService.createNewArticleVersion('1', '1', { content: 'test2' })
+  const count2 = await articleService.countArticleVersions('1')
+  expect(count2).toBe(2)
+})

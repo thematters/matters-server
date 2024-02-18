@@ -5,6 +5,10 @@ const resolver: GQLArticleResolvers['revisedAt'] = async (
   _,
   { dataSources: { articleService } }
 ) => {
+  const count = await articleService.countArticleVersions(articleId)
+  if (count === 1) {
+    return null
+  }
   const articleVersion = await articleService.loadLatestArticleVersion(
     articleId
   )
