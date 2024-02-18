@@ -181,6 +181,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
   }
 
   // invalidate articles
+  articleService.latestArticleVersionLoader.clearAll()
   ;(circle as Circle & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] =
     targetArticles.map((article) => ({
       id: article.id,
