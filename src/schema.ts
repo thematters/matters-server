@@ -36,6 +36,9 @@ const typeResolver = (type: string, result: any) => {
   return type
 }
 
+// handle null object to avoid error: Cannot read properties of null (reading 'id')
+const idResolver = (type: string, result: any) => result?.id
+
 // add directives
 
 const { typeDef: authDirectiveTypeDef, transformer: authDirectiveTransformer } =
@@ -82,9 +85,10 @@ schema = authDirectiveTransformer(schema)
 schema = rateLimitDirectiveTransformer(schema)
 schema = privateCacheDirectiveTransformer(schema)
 schema = objectCacheDirectiveTransformer(schema)
-schema = logCacheDirectiveTransformer(schema, { typeResolver })
+schema = logCacheDirectiveTransformer(schema, { typeResolver, idResolver })
 schema = purgeCacheDirectiveTransformer(schema, {
   typeResolver,
+  idResolver,
   extraNodesPath: CACHE_KEYWORD,
 })
 
