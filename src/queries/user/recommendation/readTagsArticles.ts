@@ -17,7 +17,7 @@ const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const [totalCount, tagArticle] = await Promise.all([
+  const [totalCount, tagArticles] = await Promise.all([
     atomService.count({
       table: 'recommended_articles_from_read_tags_materialized',
       where: { userId },
@@ -31,7 +31,7 @@ const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    atomService.articleIdLoader.loadMany(tagArticle.map((d) => d.articleId)),
+    atomService.articleIdLoader.loadMany(tagArticles.map((d) => d.articleId)),
     input,
     totalCount
   )
