@@ -465,6 +465,9 @@ type Article implements Node & PinnableWork {
 
   """whether readers can comment"""
   canComment: Boolean!
+
+  """history versions"""
+  versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
   oss: ArticleOSS!
   remark: String
 
@@ -491,6 +494,32 @@ type Article implements Node & PinnableWork {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+input ArticleVersionsInput {
+  after: String
+  first: Int
+}
+
+type ArticleVersionsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ArticleVersionEdge]!
+}
+
+type ArticleVersionEdge {
+  node: ArticleVersion!
+  cursor: String!
+}
+
+type ArticleVersion implements Node {
+  id: ID!
+  dataHash: String
+  mediaHash: String
+  summary: String!
+  contents: ArticleContents!
+  createdAt: DateTime!
+  description: String
 }
 
 """

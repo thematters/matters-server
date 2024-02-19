@@ -287,6 +287,8 @@ export type GQLArticle = GQLNode &
     transactionsReceivedBy: GQLUserConnection
     /** Translation of article title and content. */
     translation?: Maybe<GQLArticleTranslation>
+    /** history versions */
+    versions: GQLArticleVersionsConnection
     /** Word count of this article. */
     wordCount?: Maybe<Scalars['Int']['output']>
   }
@@ -385,6 +387,14 @@ export type GQLArticleTransactionsReceivedByArgs = {
  */
 export type GQLArticleTranslationArgs = {
   input?: InputMaybe<GQLTranslationArgs>
+}
+
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
+export type GQLArticleVersionsArgs = {
+  input: GQLArticleVersionsInput
 }
 
 export type GQLArticleAccess = {
@@ -518,6 +528,35 @@ export type GQLArticleTranslation = {
   language?: Maybe<Scalars['String']['output']>
   summary?: Maybe<Scalars['String']['output']>
   title?: Maybe<Scalars['String']['output']>
+}
+
+export type GQLArticleVersion = GQLNode & {
+  __typename?: 'ArticleVersion'
+  contents: GQLArticleContents
+  createdAt: Scalars['DateTime']['output']
+  dataHash?: Maybe<Scalars['String']['output']>
+  description?: Maybe<Scalars['String']['output']>
+  id: Scalars['ID']['output']
+  mediaHash?: Maybe<Scalars['String']['output']>
+  summary: Scalars['String']['output']
+}
+
+export type GQLArticleVersionEdge = {
+  __typename?: 'ArticleVersionEdge'
+  cursor: Scalars['String']['output']
+  node: GQLArticleVersion
+}
+
+export type GQLArticleVersionsConnection = GQLConnection & {
+  __typename?: 'ArticleVersionsConnection'
+  edges: Array<Maybe<GQLArticleVersionEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLArticleVersionsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 /** This type contains type, link and related data of an asset. */
@@ -4100,6 +4139,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLArticleConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['ArticleEdge']>>
       })
+    | (Omit<GQLArticleVersionsConnection, 'edges'> & {
+        edges: Array<Maybe<RefType['ArticleVersionEdge']>>
+      })
     | (Omit<GQLCircleConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['CircleEdge']>>
       })
@@ -4152,6 +4194,9 @@ export type GQLResolversInterfaceTypes<
       })
   Node:
     | ArticleModel
+    | (Omit<GQLArticleVersion, 'contents'> & {
+        contents: RefType['ArticleContents']
+      })
     | ChapterModel
     | CircleModel
     | CollectionModel
@@ -4241,6 +4286,22 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
+  ArticleVersion: ResolverTypeWrapper<
+    Omit<GQLArticleVersion, 'contents'> & {
+      contents: GQLResolversTypes['ArticleContents']
+    }
+  >
+  ArticleVersionEdge: ResolverTypeWrapper<
+    Omit<GQLArticleVersionEdge, 'node'> & {
+      node: GQLResolversTypes['ArticleVersion']
+    }
+  >
+  ArticleVersionsConnection: ResolverTypeWrapper<
+    Omit<GQLArticleVersionsConnection, 'edges'> & {
+      edges: Array<Maybe<GQLResolversTypes['ArticleVersionEdge']>>
+    }
+  >
+  ArticleVersionsInput: GQLArticleVersionsInput
   Asset: ResolverTypeWrapper<AssetModel>
   AssetType: GQLAssetType
   AuthResult: ResolverTypeWrapper<
@@ -4785,6 +4846,16 @@ export type GQLResolversParentTypes = ResolversObject<{
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
   ArticleTranslation: GQLArticleTranslation
+  ArticleVersion: Omit<GQLArticleVersion, 'contents'> & {
+    contents: GQLResolversParentTypes['ArticleContents']
+  }
+  ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
+    node: GQLResolversParentTypes['ArticleVersion']
+  }
+  ArticleVersionsConnection: Omit<GQLArticleVersionsConnection, 'edges'> & {
+    edges: Array<Maybe<GQLResolversParentTypes['ArticleVersionEdge']>>
+  }
+  ArticleVersionsInput: GQLArticleVersionsInput
   Asset: AssetModel
   AuthResult: Omit<GQLAuthResult, 'user'> & {
     user?: Maybe<GQLResolversParentTypes['User']>
@@ -5575,6 +5646,12 @@ export type GQLArticleResolvers<
     ContextType,
     Partial<GQLArticleTranslationArgs>
   >
+  versions?: Resolver<
+    GQLResolversTypes['ArticleVersionsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLArticleVersionsArgs, 'input'>
+  >
   wordCount?: Resolver<Maybe<GQLResolversTypes['Int']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -5761,6 +5838,59 @@ export type GQLArticleTranslationResolvers<
     ContextType
   >
   title?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleVersionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleVersion'] = GQLResolversParentTypes['ArticleVersion']
+> = ResolversObject<{
+  contents?: Resolver<
+    GQLResolversTypes['ArticleContents'],
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  dataHash?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  description?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  mediaHash?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleVersionEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleVersionEdge'] = GQLResolversParentTypes['ArticleVersionEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['ArticleVersion'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleVersionsConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleVersionsConnection'] = GQLResolversParentTypes['ArticleVersionsConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<Maybe<GQLResolversTypes['ArticleVersionEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6296,6 +6426,7 @@ export type GQLConnectionResolvers<
   __resolveType: TypeResolveFn<
     | 'AppreciationConnection'
     | 'ArticleConnection'
+    | 'ArticleVersionsConnection'
     | 'CircleConnection'
     | 'CollectionConnection'
     | 'CommentConnection'
@@ -7323,6 +7454,7 @@ export type GQLNodeResolvers<
 > = ResolversObject<{
   __resolveType: TypeResolveFn<
     | 'Article'
+    | 'ArticleVersion'
     | 'Chapter'
     | 'Circle'
     | 'Collection'
@@ -8940,6 +9072,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   ArticleOSS?: GQLArticleOssResolvers<ContextType>
   ArticleRecommendationActivity?: GQLArticleRecommendationActivityResolvers<ContextType>
   ArticleTranslation?: GQLArticleTranslationResolvers<ContextType>
+  ArticleVersion?: GQLArticleVersionResolvers<ContextType>
+  ArticleVersionEdge?: GQLArticleVersionEdgeResolvers<ContextType>
+  ArticleVersionsConnection?: GQLArticleVersionsConnectionResolvers<ContextType>
   Asset?: GQLAssetResolvers<ContextType>
   AuthResult?: GQLAuthResultResolvers<ContextType>
   Badge?: GQLBadgeResolvers<ContextType>
