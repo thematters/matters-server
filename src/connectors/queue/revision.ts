@@ -32,7 +32,7 @@ const logger = getLogger('queue-revision')
 
 interface RevisedArticleData {
   articleId: string
-  oldArticleVerisionId: string
+  oldArticleVersionId: string
   newArticleVersionId: string
   iscnPublish?: boolean
 }
@@ -67,7 +67,7 @@ export class RevisionQueue extends BaseQueue {
     async (job, done) => {
       const {
         articleId,
-        oldArticleVerisionId,
+        oldArticleVersionId,
         newArticleVersionId,
         iscnPublish,
       } = job.data as RevisedArticleData
@@ -79,7 +79,7 @@ export class RevisionQueue extends BaseQueue {
 
       const article = await atomService.articleIdLoader.load(articleId)
       const oldArticleVersion = await atomService.articleVersionIdLoader.load(
-        oldArticleVerisionId
+        oldArticleVersionId
       )
       const newArticleVersion = await atomService.articleVersionIdLoader.load(
         newArticleVersionId
@@ -93,7 +93,7 @@ export class RevisionQueue extends BaseQueue {
       }
       if (!oldArticleVersion) {
         job.progress(100)
-        done(null, `old article version ${oldArticleVerisionId} not found`)
+        done(null, `old article version ${oldArticleVersionId} not found`)
         return
       }
 

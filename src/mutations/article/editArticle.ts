@@ -300,7 +300,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     revisionQueue.publishRevisedArticle({
       articleId: article.id,
       newArticleVersionId: newArticleVersion.id,
-      oldArticleVerisionId: articleVersion.id,
+      oldArticleVersionId: articleVersion.id,
       iscnPublish,
     })
   }
