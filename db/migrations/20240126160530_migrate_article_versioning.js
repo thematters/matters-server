@@ -158,7 +158,7 @@ BEGIN
       content_md_id,
       COALESCE (draft_record.tags, '{}'),
       COALESCE (draft_record.collection, '{}'),
-      draft_record.word_count,
+      COALESCE (draft_record.word_count, 0),
       draft_record.data_hash,
       draft_record.media_hash,
       draft_record.language,
