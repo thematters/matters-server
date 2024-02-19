@@ -3,13 +3,13 @@ import type { GQLTagResolvers } from 'definitions'
 const resolver: GQLTagResolvers['creator'] = (
   { creator },
   _,
-  { dataSources: { userService } }
+  { dataSources: { atomService } }
 ) => {
   if (!creator) {
     return null
   }
 
-  return userService.loadById(creator)
+  return atomService.userIdLoader.load(creator)
 }
 
 export default resolver

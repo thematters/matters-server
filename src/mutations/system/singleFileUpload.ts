@@ -1,4 +1,4 @@
-import type { ItemData, GQLMutationResolvers } from 'definitions'
+import type { Asset, GQLMutationResolvers } from 'definitions'
 
 import axios from 'axios'
 import { FileUpload } from 'graphql-upload'
@@ -124,10 +124,8 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   // make sure both settled
   try {
     key = isImageType
-      ? // @ts-ignore
-        await systemService.cfsvc.baseUploadFile(type, upload, uuid)
-      : // @ts-ignore
-        await systemService.aws.baseUploadFile(type, upload, uuid)
+      ? await systemService.cfsvc.baseUploadFile(type, upload, uuid)
+      : await systemService.aws.baseUploadFile(type, upload, uuid)
   } catch (err) {
     logger.error('cloudflare upload image ERROR:', err)
     throw err
@@ -135,7 +133,7 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
 
   // assert both "fulfilled" ?
 
-  const asset: ItemData = {
+  const asset: Partial<Asset> = {
     uuid,
     authorId: viewer.id,
     type,

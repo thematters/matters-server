@@ -1,6 +1,4 @@
-import type { GQLArticleLicenseType } from 'definitions'
-
-import slugify from '@matters/slugify'
+import type { Article, Tag } from 'definitions'
 
 import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
@@ -12,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import canComment from './canComment'
 import canSuperLike from './canSuperLike'
 import chapterArticleCount from './chapter/articleCount'
 import chapterArticles from './chapter/articles'
@@ -22,11 +21,14 @@ import content from './content'
 import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
+import dataHash from './dataHash'
 import donationCount from './donationCount'
 import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import language from './language'
+import license from './license'
+import mediaHash from './mediaHash'
 import * as articleOSS from './oss'
 import pinned from './pinned'
 import readerCount from './readerCount'
@@ -39,11 +41,14 @@ import requestForDonation from './requestForDonation'
 import revisedAt from './revisedAt'
 import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
+import sensitiveByAuthor from './sensitiveByAuthor'
+import slug from './slug'
 import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
+import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -60,6 +65,7 @@ import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
 import tags from './tags'
+import title from './title'
 import topicArticleCount from './topic/articleCount'
 import topicArticles from './topic/articles'
 import topicAuthor from './topic/author'
@@ -70,7 +76,6 @@ import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
-// import userTags from './user/tags'
 import userTopics from './user/topics'
 
 export default {
@@ -79,14 +84,15 @@ export default {
   },
   User: {
     articles: userArticles,
-    // tags: userTags,
     topics: userTopics,
   },
   Article: {
     id: idResolver,
+    title,
     content,
-    contents: (root: any) => root,
+    contents: (root: Article) => root,
     summary,
+    summaryCustomized,
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -99,14 +105,14 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    oss: (root: any) => root,
+    oss: (root: Article) => root,
     relatedArticles,
     relatedDonationArticles,
     remark,
-    slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title),
-    dataHash: ({ dataHash }: { dataHash: string }) => dataHash || '',
-    mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
+    slug,
+    sensitiveByAuthor,
+    dataHash,
+    mediaHash,
     state,
     sticky,
     pinned,
@@ -122,9 +128,10 @@ export default {
     readTime,
     createdAt,
     revisedAt,
-    access: (root: any) => root,
+    access: (root: Article) => root,
     revisionCount,
-    license: ({ license }: { license: GQLArticleLicenseType }) => license,
+    license,
+    canComment,
     requestForDonation,
     replyToDonator,
     donationCount,
@@ -143,7 +150,7 @@ export default {
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
     followers: tagFollowers,
-    oss: (root: any) => root,
+    oss: (root: Tag) => root,
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,

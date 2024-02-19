@@ -5,7 +5,6 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import { v4 } from 'uuid'
 
 import {
   ASSET_TYPE,
@@ -122,7 +121,6 @@ export class MigrationQueue extends BaseQueue {
                 // put draft
                 const draft = await draftService.baseCreate({
                   authorId: userId,
-                  uuid: v4(),
                   title,
                   summary: content && makeSummary(content),
                   content:
@@ -164,6 +162,7 @@ export class MigrationQueue extends BaseQueue {
 
           job.progress(100)
           done(null, 'Migration has finished.')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           logger.error(err)
           done(err)

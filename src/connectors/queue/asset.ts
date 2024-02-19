@@ -4,7 +4,7 @@ import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { AtomService } from 'connectors'
+import { AtomService, aws, cfsvc } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -67,8 +67,8 @@ export class AssetQueue extends BaseQueue {
       await Promise.all(
         assets
           .map((asset) => [
-            atomService.aws.baseDeleteFile(asset.path),
-            atomService.cfsvc.baseDeleteFile(asset.path),
+            aws.baseDeleteFile(asset.path),
+            cfsvc.baseDeleteFile(asset.path),
           ])
           .flat()
       )

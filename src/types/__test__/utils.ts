@@ -28,7 +28,6 @@ import {
   RevisionQueue,
   AssetQueue,
   AppreciationQueue,
-  IPFSQueue,
   MigrationQueue,
   PayToByBlockchainQueue,
   PayToByMattersQueue,
@@ -201,7 +200,6 @@ export const testClient = async ({
   const payToByMattersQueue = new PayToByMattersQueue(connections)
   const payoutQueue = new PayoutQueue(connections)
   const userQueue = new UserQueue(connections)
-  const ipfsQueue = new IPFSQueue(connections)
   const queues = {
     publicationQueue,
     revisionQueue,
@@ -212,7 +210,6 @@ export const testClient = async ({
     payToByMattersQueue,
     payoutQueue,
     userQueue,
-    ipfsQueue,
   }
 
   const genContext = () => ({

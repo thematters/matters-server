@@ -2,7 +2,6 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 import _omit from 'lodash/omit'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -249,11 +248,11 @@ describe('query article', () => {
 
   test('query related articles', async () => {
     const server = await testClient({ connections })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_RELATED_ARTICLES,
       variables: { input: { mediaHash } },
     })
-    expect(_get(result, 'data.article.relatedArticles.edges')).toBeDefined()
+    expect(data.article.relatedArticles.edges).toBeDefined()
   })
 })
 
@@ -479,7 +478,7 @@ describe('edit article', () => {
       connections,
       isAdmin: false,
     })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -488,11 +487,11 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result, 'data.editArticle.summary')).toBe(summary)
-    expect(_get(result, 'data.editArticle.summaryCustomized')).toBe(true)
+    expect(data.editArticle.summary).toBe(summary)
+    expect(data.editArticle.summaryCustomized).toBe(true)
 
     // reset summary
-    const resetResult1 = await server.executeOperation({
+    const { data: resetData1 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -501,12 +500,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(
-      _get(resetResult1, 'data.editArticle.summary.length')
-    ).toBeGreaterThan(0)
-    expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
+    expect(resetData1.editArticle.summary.length).toBeGreaterThan(0)
+    expect(resetData1.editArticle.summaryCustomized).toBe(false)
 
-    const resetResult2 = await server.executeOperation({
+    const { data: resetData2 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -515,7 +512,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult2, 'data.editArticle.summaryCustomized')).toBe(false)
+    expect(resetData2.editArticle.summaryCustomized).toBe(false)
   })
 
   test('edit article tags', async () => {
@@ -661,10 +658,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(resetResult2, 'data.editArticle.tags.length')).toBe(0)
+    expect(resetResult2.data.editArticle.tags.length).toBe(0)
   })
 
-  test('edit article collection', async () => {
+  test('edit article connections', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
@@ -679,8 +676,8 @@ describe('edit article', () => {
     ]
     const limit = 2
 
-    // set collection within limit
-    const res = await server.executeOperation({
+    // set connections within limit
+    const { data } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -689,13 +686,13 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(res, 'data.editArticle.collection.totalCount')).toBe(limit)
+    expect(data.editArticle.collection.totalCount).toBe(limit)
     expect([
-      _get(res, 'data.editArticle.collection.edges.0.node.id'),
-      _get(res, 'data.editArticle.collection.edges.1.node.id'),
+      data.editArticle.collection.edges[0].node.id,
+      data.editArticle.collection.edges[1].node.id,
     ]).toEqual(collection.slice(0, limit))
 
-    // set collection out of limit
+    // set connections out of limit
     globalThis.mockEnums.MAX_ARTICLES_PER_CONNECTION_LIMIT = limit
     const failedRes = await server.executeOperation({
       query: EDIT_ARTICLE,
@@ -1166,17 +1163,29 @@ describe('edit article', () => {
     const { data } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
-    const articleId = _get(data, 'viewer.articles.edges.0.node.id')
+
+    const articleId = data.viewer.articles.edges[0].node.id
     const articleDbId = fromGlobalId(articleId).id
 
-    // create duplicate article with same draft
+    // create duplicate article with same content
     const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById(articleDbId)
-    const article2 = await articleService.baseCreate({
-      ..._omit(article, ['id', 'updatedAt', 'createdAt']),
-      uuid: v4(),
+    const articleVersion = await articleService.loadLatestArticleVersion(
+      article.id
+    )
+    const articleContent = await articleService.loadLatestArticleContent(
+      article.id
+    )
+    const [article2, articleVersion2] = await articleService.createArticle({
+      title: articleVersion.title,
+      content: articleContent,
+      authorId: article.authorId,
     })
     const article2Id = toGlobalId({ type: NODE_TYPES.Article, id: article2.id })
+
+    const { data: beforeData } = await server.executeOperation({
+      query: GET_VIEWER_STATUS,
+    })
 
     // archive
     const { data: archivedData } = await server.executeOperation({
@@ -1191,15 +1200,15 @@ describe('edit article', () => {
     expect(archivedData.editArticle.state).toBe(ARTICLE_STATE.archived)
 
     // refetch & expect de-duplicated
-    const { data: data2 } = await server.executeOperation({
+    const { data: afterData } = await server.executeOperation({
       query: GET_VIEWER_STATUS,
     })
-    expect(_get(data, 'viewer.status.articleCount') - 1).toBe(
-      _get(data2, 'viewer.status.articleCount')
+    expect(beforeData.viewer.status.articleCount - 1).toBe(
+      afterData.viewer.status.articleCount
     )
-    expect(_get(data, 'viewer.status.totalWordCount') - article.wordCount).toBe(
-      _get(data2, 'viewer.status.totalWordCount')
-    )
+    expect(
+      beforeData.viewer.status.totalWordCount - articleVersion2.wordCount
+    ).toBe(afterData.viewer.status.totalWordCount)
   })
 })
 
@@ -1234,8 +1243,8 @@ describe('query article readerCount/donationCount', () => {
     expect(data.article.readerCount).toBe(0)
     expect(data.article.donationCount).toBe(0)
 
-    const userService = new UserService(connections)
-    const author = await userService.loadById('1')
+    const atomService = new AtomService(connections)
+    const author = await atomService.userIdLoader.load('1')
     const authorServer = await testClient({
       connections,
       context: { viewer: author },

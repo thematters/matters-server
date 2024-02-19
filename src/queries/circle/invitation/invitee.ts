@@ -5,7 +5,7 @@ import { ServerError } from 'common/errors'
 const resolver: GQLInvitationResolvers['invitee'] = async (
   { email, userId },
   _,
-  { dataSources: { userService } }
+  { dataSources: { atomService } }
 ) => {
   if (email) {
     return { __type: 'Person', email }
@@ -15,7 +15,7 @@ const resolver: GQLInvitationResolvers['invitee'] = async (
     throw new ServerError('userId is missing')
   }
 
-  const user = await userService.loadById(userId)
+  const user = await atomService.userIdLoader.load(userId)
   if (user) {
     return { __type: 'User', ...user }
   }

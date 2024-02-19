@@ -17,7 +17,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['deleteCollectionArticles'] = async (
   _,
   { input: { collection: globalId, articles } },
-  { dataSources: { collectionService }, viewer }
+  { dataSources: { collectionService, atomService }, viewer }
 ) => {
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
@@ -35,7 +35,7 @@ const resolver: GQLMutationResolvers['deleteCollectionArticles'] = async (
     throw new UserInputError('Invalid Article ids')
   }
 
-  const collection = await collectionService.loadById(collectionId)
+  const collection = await atomService.collectionIdLoader.load(collectionId)
 
   if (!collection) {
     throw new UserInputError('Collection not found')

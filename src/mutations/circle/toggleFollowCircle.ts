@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Circle } from 'definitions'
 
 import {
   CACHE_KEYWORD,
@@ -98,7 +98,7 @@ const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
   }
 
   // invalidate cache
-  circle[CACHE_KEYWORD] = [
+  ;(circle as Circle & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
     {
       id: viewer.id,
       type: NODE_TYPES.User,

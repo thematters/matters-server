@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, EmailableUser } from 'definitions'
 
 import { polygonMumbai } from 'viem/chains'
 
@@ -303,14 +303,14 @@ describe('notifyDonation', () => {
         .dynamic_template_data.tx.donationCount
 
     const articleService = new ArticleService(connections)
-    const sender = await userService.create({
+    const sender = (await userService.create({
       userName: 'sender',
       email: 'sender@example.com',
-    })
-    const recipient = await userService.create({
+    })) as EmailableUser
+    const recipient = (await userService.create({
       userName: 'recipient',
       email: 'recipient@example.com',
-    })
+    })) as EmailableUser
     const tx = await createDonationTx(
       {
         senderId: sender.id,

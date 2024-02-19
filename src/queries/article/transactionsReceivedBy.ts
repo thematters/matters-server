@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers, Item } from 'definitions'
+import type { GQLArticleResolvers, Transaction } from 'definitions'
 
 import { TRANSACTION_PURPOSE } from 'common/enums'
 import {
@@ -11,9 +11,9 @@ const dashCase = (str: string) =>
   str.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())
 
 const resolver: GQLArticleResolvers['transactionsReceivedBy'] = async (
-  { articleId },
+  { id: articleId },
   { input },
-  { dataSources: { articleService, userService } }
+  { dataSources: { articleService, atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
@@ -41,7 +41,9 @@ const resolver: GQLArticleResolvers['transactionsReceivedBy'] = async (
   ])
 
   return connectionFromPromisedArray(
-    userService.loadByIds(txs.map(({ senderId }: Item) => senderId)),
+    atomService.userIdLoader.loadMany(
+      txs.map(({ senderId }: Transaction) => senderId)
+    ),
     input,
     totalCount
   )

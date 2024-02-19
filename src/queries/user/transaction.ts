@@ -18,10 +18,10 @@ export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
   fee: ({ fee }) => +fee || 0,
   purpose: ({ purpose }) => camelCase(purpose) as GQLTransactionPurpose,
-  sender: (trx, _, { dataSources: { userService } }) =>
-    trx.senderId ? userService.loadById(trx.senderId) : null,
-  recipient: (trx, _, { dataSources: { userService } }) =>
-    trx.recipientId ? userService.loadById(trx.recipientId) : null,
+  sender: (trx, _, { dataSources: { atomService } }) =>
+    trx.senderId ? atomService.userIdLoader.load(trx.senderId) : null,
+  recipient: (trx, _, { dataSources: { atomService } }) =>
+    trx.recipientId ? atomService.userIdLoader.load(trx.recipientId) : null,
   blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
       return null
@@ -41,11 +41,7 @@ export const Transaction: GQLTransactionResolvers = {
       txHash: blockchainTx.txHash,
     }
   },
-  target: async (
-    trx,
-    _,
-    { dataSources: { articleService, atomService, paymentService } }
-  ) => {
+  target: async (trx, _, { dataSources: { atomService } }) => {
     if (!trx.targetId || !trx.targetType) {
       return null
     }
@@ -54,7 +50,7 @@ export const Transaction: GQLTransactionResolvers = {
       article: 'Article',
       circle_price: 'Circle',
       transaction: 'Transaction',
-    }
+    } as const
 
     const { table } = (await atomService.findFirst({
       table: 'entity_type',
@@ -64,7 +60,7 @@ export const Transaction: GQLTransactionResolvers = {
     let target
     switch (table) {
       case 'article': {
-        target = await articleService.draftLoader.load(trx.targetId)
+        target = await atomService.articleIdLoader.load(trx.targetId)
         break
       }
       case 'circle_price': {
@@ -79,7 +75,7 @@ export const Transaction: GQLTransactionResolvers = {
         break
       }
       case 'transaction': {
-        target = await paymentService.dataloader.load(trx.targetId)
+        target = await atomService.transactionIdLoader.load(trx.targetId)
         break
       }
     }

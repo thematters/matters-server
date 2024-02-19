@@ -5,7 +5,7 @@ import { NODE_TYPES } from 'common/enums'
 const resolver: GQLUserResolvers['pinnedWorks'] = async (
   { id },
   _,
-  { dataSources: { articleService, collectionService, draftService } }
+  { dataSources: { articleService, collectionService } }
 ) => {
   const [articles, collections] = await Promise.all([
     articleService.findPinnedByAuthor(id),
@@ -19,16 +19,7 @@ const resolver: GQLUserResolvers['pinnedWorks'] = async (
     })),
   ].sort((a, b) => a.pinnedAt.getTime() - b.pinnedAt.getTime())
 
-  return await Promise.all(
-    pinnedWorks.map(async (work) => {
-      if (work.__type === NODE_TYPES.Article) {
-        const draft = await draftService.loadById(work.draftId)
-        return { ...draft, __type: NODE_TYPES.Article }
-      } else {
-        return work
-      }
-    })
-  )
+  return pinnedWorks
 }
 
 export default resolver

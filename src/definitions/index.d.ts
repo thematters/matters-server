@@ -30,22 +30,20 @@ import type { Request, Response } from 'express'
 import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'
 
-import {
-  PAYMENT_CURRENCY,
-  PAYMENT_PROVIDER,
-  TRANSACTION_STATE,
-  TRANSACTION_PURPOSE,
-} from 'common/enums'
-
+export * from './base'
+export * from './announcement'
+export * from './auth'
+export * from './action'
+export * from './oauth'
 export * from './user'
 export * from './article'
 export * from './draft'
 export * from './tag'
+export * from './chapter'
 export * from './circle'
 export * from './collection'
 export * from './comment'
 export * from './language'
-export * from './schema'
 export * from './notification'
 export * from './generic'
 export * from './payment'
@@ -53,6 +51,9 @@ export * from './appreciation'
 export * from './asset'
 export * from './topic'
 export * from './report'
+export * from './wallet'
+export * from './misc'
+export * from './schema'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -180,6 +181,8 @@ export type BasicTableName =
   | 'collection'
   | 'collection_article'
   | 'social_account'
+  | 'article_content'
+  | 'article_version'
 
 export type View =
   | 'tag_count_view'
@@ -207,6 +210,11 @@ export type MaterializedView =
   | 'recommended_articles_from_read_tags_materialized'
 
 export type TableName = BasicTableName | View | MaterializedView
+
+export interface EntityType {
+  id: string
+  table: TableName
+}
 
 export interface ThirdPartyAccount {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -241,50 +249,3 @@ export type TransactionTargetType = 'Article' | 'Transaction'
 export type Falsey = '' | 0 | false | null | undefined
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
-
-/**
- * Payment
- */
-export interface Customer {
-  id: string
-  userId: string
-  provider: string
-  customerId: string
-  cardLast4: string
-}
-
-export interface CircleSubscription {
-  id: string
-  state: string
-  userId: string
-  provider: string
-  providerSubscriptionId: string
-}
-
-export interface CirclePrice {
-  id: string
-  amount: number
-  currency: PAYMENT_CURRENCY
-  circleId: string
-  provider: PAYMENT_PROVIDER
-  providerPriceId: string
-}
-
-export interface Transaction {
-  id: string
-  amount: string
-  currency: PAYMENT_CURRENCY
-  state: TRANSACTION_STATE
-  purpose: TRANSACTION_PURPOSE
-  provider: PAYMENT_PROVIDER
-  providerTxId: string
-  senderId: string
-  recipientId: string
-  targetId: string
-  targetType: string
-  fee: string
-  remark: string
-  parentId: string
-  createdAt: string
-  updatedAt: string
-}

@@ -1,16 +1,13 @@
 import type { GQLQueryResolvers } from 'definitions'
 
 const resolver: GQLQueryResolvers['article'] = async (
-  root,
+  _,
   { input: { mediaHash } },
-  { viewer, dataSources: { draftService } }
+  { dataSources: { articleService, atomService } }
 ) => {
-  // since draft is becoming content container, use node here
-  // as variable name instead of article. The root naming
-  // will be changed soon in the following refactoring.
-  const node = await draftService.findByMediaHash(mediaHash)
+  const { articleId } = await articleService.findVersionByMediaHash(mediaHash)
 
-  return node
+  return atomService.articleIdLoader.load(articleId)
 }
 
 export default resolver

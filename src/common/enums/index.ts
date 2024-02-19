@@ -89,12 +89,6 @@ export const PUBLISH_STATE = {
   published: 'published',
 } as const
 
-export enum PIN_STATE {
-  pinned = 'pinned',
-  pinning = 'pinning',
-  failed = 'failed',
-}
-
 export const CIRCLE_STATE = {
   active: 'active',
   archived: 'archived',
@@ -209,7 +203,7 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
   DOMAIN: 'domain',
-}
+} as const
 
 export const LOCAL_STRIPE = {
   host: 'localhost',

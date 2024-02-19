@@ -16,6 +16,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     viewer,
     dataSources: {
       draftService,
+      atomService,
       queues: { publicationQueue },
     },
   }
@@ -34,7 +35,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const draft = await draftService.loadById(draftDBId)
+  const draft = await atomService.draftIdLoader.load(draftDBId)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {

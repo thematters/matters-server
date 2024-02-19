@@ -3,7 +3,7 @@ import type { GQLCircleResolvers } from 'definitions'
 const resolver: GQLCircleResolvers['owner'] = async (
   { owner },
   _,
-  { dataSources: { userService } }
-) => userService.loadById(owner)
+  { dataSources: { atomService } }
+) => atomService.userIdLoader.load(owner)
 
 export default resolver

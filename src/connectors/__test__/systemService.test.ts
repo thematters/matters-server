@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Asset } from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -43,11 +43,11 @@ test('findAssetUrl', async () => {
 test('create and delete asset', async () => {
   const data = {
     uuid: v4(),
-    authorId: 1,
+    authorId: '1',
     type: 'cover',
     path: 'path/to/file.txt',
   }
-  const asset = await systemService.baseCreate(data, 'asset')
+  const asset = await systemService.baseCreate<Asset>(data, 'asset')
   expect(asset).toEqual(expect.objectContaining(assetValidation))
 
   await systemService.baseDelete(asset.id, 'asset')

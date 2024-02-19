@@ -3,7 +3,7 @@ import type { GQLTopicResolvers } from 'definitions'
 const resolver: GQLTopicResolvers['articles'] = async (
   { id: topicId },
   _,
-  { dataSources: { atomService, articleService } }
+  { dataSources: { atomService } }
 ) => {
   const topicArticles = await atomService.findMany({
     table: 'article_topic',
@@ -11,7 +11,7 @@ const resolver: GQLTopicResolvers['articles'] = async (
     orderBy: [{ column: 'order', order: 'asc' }],
   })
 
-  return articleService.loadDraftsByArticles(
+  return atomService.articleIdLoader.loadMany(
     topicArticles.map((item) => item.articleId)
   )
 }

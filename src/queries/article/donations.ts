@@ -8,29 +8,29 @@ import {
 } from 'common/utils'
 
 const resolver: GQLArticleResolvers['donations'] = async (
-  { articleId },
+  { id },
   { input },
-  { dataSources: { articleService, userService } }
+  { dataSources: { articleService, atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
 
   const [totalCount, txs] = await Promise.all([
     articleService.countTransactions({
       purpose: TRANSACTION_PURPOSE.donation,
-      targetId: articleId,
+      targetId: id,
     }),
     articleService.findTransactions({
       skip,
       take,
       purpose: TRANSACTION_PURPOSE.donation,
-      targetId: articleId,
+      targetId: id,
     }),
   ])
 
   return connectionFromPromisedArray(
     txs.map((tx: Item) => ({
       id: toGlobalId({ type: NODE_TYPES.Transaction, id: tx.id }),
-      sender: tx.senderId ? userService.loadById(tx.senderId) : null,
+      sender: tx.senderId ? atomService.userIdLoader.load(tx.senderId) : null,
     })),
     input,
     totalCount

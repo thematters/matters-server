@@ -3,7 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { LANGUAGE } from 'common/enums'
 
 const resolver: GQLArticleResolvers['availableTranslations'] = async (
-  { articleId },
+  { id },
   _,
   { dataSources: { atomService } }
 ) => {
@@ -13,7 +13,7 @@ const resolver: GQLArticleResolvers['availableTranslations'] = async (
     await atomService.findMany({
       table: 'article_translation',
       select: ['language'],
-      where: { articleId },
+      where: { articleId: id },
     })
   )
     .map((t) => t.language)

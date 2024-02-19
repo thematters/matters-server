@@ -4,6 +4,7 @@ import type {
   NoticeCircleNewDiscussionCommentsParams,
   Article,
   Circle,
+  Comment,
 } from 'definitions'
 
 import {
@@ -142,7 +143,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   let parentComment: any
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
-    parentComment = await commentService.loadById(parentDbId)
+    parentComment = await atomService.commentIdLoader.load(parentDbId)
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
@@ -165,7 +166,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   let replyToComment: any
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
-    replyToComment = await commentService.loadById(replyToDBId)
+    replyToComment = await atomService.commentIdLoader.load(replyToDBId)
     if (!replyToComment) {
       throw new CommentNotFoundError('target replyToComment does not exists')
     }
@@ -289,12 +290,12 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * Update
    */
-  let newComment: any
+  let newComment: Comment
   if (id) {
     const { id: commentDbId } = fromGlobalId(id)
 
     // check permission
-    const comment = await commentService.loadById(commentDbId)
+    const comment = await atomService.commentIdLoader.load(commentDbId)
     if (comment.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
@@ -307,7 +308,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
-        updatedAt: knex.fn.now(), // new Date(),
       },
     })
   } else {
@@ -506,7 +506,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   })
 
   // invalidate extra nodes
-  newComment[CACHE_KEYWORD] = [
+  ;(newComment as Comment & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
     parentComment ? { id: parentComment.id, type: NODE_TYPES.Comment } : {},
     replyToComment ? { id: replyToComment.id, type: NODE_TYPES.Comment } : {},
     {

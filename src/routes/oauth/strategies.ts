@@ -1,3 +1,5 @@
+import type { User } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
 import { get } from 'lodash'
@@ -102,7 +104,7 @@ export default () => {
             accountType: 'general',
           })
 
-          const user = await userService.dataloader.load(viewer.id)
+          const user = (await userService.baseFindById(viewer.id)) as User
 
           // invalidate user cache
           await invalidateFQC({

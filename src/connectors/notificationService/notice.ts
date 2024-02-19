@@ -1,5 +1,6 @@
 import type {
   GQLNotificationSettingType,
+  Notice as NoticeDB,
   NoticeData,
   NoticeDetail,
   NoticeEntitiesMap,
@@ -33,7 +34,7 @@ const mergeDataCustomizer = (objValue: any, srcValue: any) => {
 const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
-export class Notice extends BaseService {
+export class Notice extends BaseService<NoticeDB> {
   public dataloader: DataLoader<string, Item>
 
   public constructor(connections: Connections) {

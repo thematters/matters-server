@@ -3,7 +3,7 @@ import type { GQLTopicResolvers } from 'definitions'
 const resolver: GQLTopicResolvers['author'] = (
   { userId },
   _,
-  { dataSources: { userService } }
-) => userService.loadById(userId)
+  { dataSources: { atomService } }
+) => atomService.userIdLoader.load(userId)
 
 export default resolver

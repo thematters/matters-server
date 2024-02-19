@@ -2,7 +2,6 @@ import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
 
 import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { Item } from 'definitions'
 
 export type ConnectionCursor = string
 
@@ -87,22 +86,22 @@ export const connectionFromArray = <T>(
 }
 
 export const connectionFromPromisedArray = <T>(
-  dataPromise: Promise<T[]> | T[],
+  dataPromise: Promise<Array<T | Error>> | Array<T | Error>,
   args: ConnectionArguments,
   totalCount?: number
 ): Promise<Connection<T>> =>
   Promise.resolve(dataPromise).then((data) =>
-    connectionFromArray(data, args, totalCount)
+    connectionFromArray(loadManyFilterError(data), args, totalCount)
   )
 
-export const loadManyFilterError = (items: Array<Item | Error>) =>
-  items.filter((item: Item | Error) => {
+export const loadManyFilterError = <T>(items: Array<T | Error>) =>
+  items.filter((item) => {
     if (item instanceof Error) {
       return false
     }
 
     return true
-  }) as Item[]
+  }) as T[]
 
 /**
  * Convert GQL curosr to query keys. For example, the GQL cursor

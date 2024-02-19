@@ -1,32 +1,34 @@
-import { PIN_STATE, PUBLISH_STATE } from 'common/enums'
+import {
+  PUBLISH_STATE,
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
+} from 'common/enums'
 
 import { LANGUAGES } from './language'
 
 export interface Draft {
   id: string
-  uuid: string
   authorId: string
   title: string
-  cover?: string
-  summary?: string
-  summaryCustomized: boolean
-  wordCount?: string
-  dataHash: string
-  mediaHash: string
+  cover: string | null
+  summary: string | null
   content: string
-  contentMd?: string
-  createdAt: string
-  updatedAt: string
-  articleId: string
-  circleId?: string
-  collection?: string[]
-  tags?: string[]
-  remark?: string
+  contentMd: string | null
+  circleId: string | null
+  collection: string[] | null
+  tags: string[]
+  language: LANGUAGES | null
+  access: keyof typeof ARTICLE_ACCESS_TYPE
+  license: keyof typeof ARTICLE_LICENSE_TYPE
+  replyToDonator: string | null
+  requestForDonation: string | null
+  canComment: boolean
+  iscnPublish: boolean | null
+  remark: string | null
   publishState: PUBLISH_STATE
-  pinState: PIN_STATE
+  articleId: string | null
+  sensitiveByAuthor: boolean
   archived: boolean
-  language?: LANGUAGES
-  replyToDonator?: string
-  requestForDonation?: string
-  iscnId?: string
+  createdAt: Date
+  updatedAt: Date
 }

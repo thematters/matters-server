@@ -4,12 +4,12 @@ import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['resetLikerId'] = async (
-  root,
+  _,
   { input: { id } },
-  { viewer, dataSources: { atomService, userService } }
+  { dataSources: { atomService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.loadById(dbId)
+  const user = await atomService.userIdLoader.load(dbId)
 
   if (!user || !user.likerId) {
     throw new ForbiddenError("user doesn't exist or have a liker id")

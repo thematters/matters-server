@@ -50,7 +50,7 @@ let paymentService: PaymentService
 beforeAll(async () => {
   connections = await genConnections()
   paymentService = new PaymentService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)

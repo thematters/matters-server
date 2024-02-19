@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { distance } from 'fastest-levenshtein'
 import { OpenCC } from 'opencc'
 
@@ -46,3 +47,6 @@ export const s2tConverter: OpenCC = new OpenCC('s2t.json')
 
 export const normalizeSearchKey = async (content: string): Promise<string> =>
   t2sConverter.convertPromise(stripSpaces(content.toLowerCase()) as string)
+
+export const genMD5 = (content: string) =>
+  crypto.createHash('md5').update(content).digest('hex')

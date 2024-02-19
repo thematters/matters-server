@@ -3,16 +3,16 @@ import type { GQLDraftResolvers } from 'definitions'
 import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 
 const resolver: GQLDraftResolvers['collection'] = (
-  { collection },
+  { collection: connections },
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { atomService } }
 ) => {
-  if (!collection || collection.length === 0) {
+  if (!connections || connections.length === 0) {
     return connectionFromArray([], input)
   }
 
   return connectionFromPromisedArray(
-    articleService.loadDraftsByArticles(collection),
+    atomService.articleIdLoader.loadMany(connections),
     input
   )
 }

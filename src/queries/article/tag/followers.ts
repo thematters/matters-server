@@ -10,7 +10,7 @@ import {
 const resolver: GQLTagResolvers['followers'] = async (
   { id },
   { input },
-  { dataSources: { tagService, userService } }
+  { dataSources: { tagService, atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -28,7 +28,7 @@ const resolver: GQLTagResolvers['followers'] = async (
     {}
   )
 
-  const users = await userService.loadByIds(
+  const users = await atomService.userIdLoader.loadMany(
     actions.map(({ userId }: { userId: string }) => userId)
   )
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))

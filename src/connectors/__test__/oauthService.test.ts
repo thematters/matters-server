@@ -1,9 +1,9 @@
-import type { User, Connections } from 'definitions'
+import type { Connections } from 'definitions'
 
 import _ from 'lodash'
 
 import { SCOPE_PREFIX } from 'common/enums'
-import { OAuthService, UserService } from 'connectors'
+import { OAuthService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -22,9 +22,10 @@ afterAll(async () => {
 const getClient = () => {
   return oauthService.getClient('test-client-id')
 }
+
 const getUser = () => {
-  const userService = new UserService(connections)
-  return userService.dataloader.load('1') as Promise<User>
+  const atomService = new AtomService(connections)
+  return atomService.userIdLoader.load('1')
 }
 
 describe('client', () => {
@@ -89,6 +90,7 @@ describe('token', () => {
         refreshToken: refreshToken || 'test-token',
         client,
         user,
+        scope: '',
       },
       client,
       user

@@ -5,7 +5,6 @@ const resolver: GQLTopicResolvers['latestArticle'] = async (
   _,
   {
     dataSources: {
-      draftService,
       connections: { knex },
     },
   }
@@ -30,11 +29,7 @@ const resolver: GQLTopicResolvers['latestArticle'] = async (
     .orderBy([{ column: 'created_at', order: 'desc' }])
     .first()
 
-  if (!latestArticle) {
-    return null
-  }
-
-  return draftService.loadById(latestArticle.draftId)
+  return latestArticle
 }
 
 export default resolver

@@ -12,7 +12,6 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   {
     viewer,
     dataSources: {
-      draftService,
       connections: { knexRO },
     },
   }
@@ -30,7 +29,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
     const query = knexRO
-      .select('article.draft_id', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('article.*', knexRO.raw('count(1) OVER() AS total_count'))
       .from(
         knexRO
           .select()
@@ -70,9 +69,5 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
 
   const totalCount = articles.length === 0 ? 0 : +articles[0].totalCount
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(articles, input, totalCount)
 }

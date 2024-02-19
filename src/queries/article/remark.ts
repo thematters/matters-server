@@ -1,12 +1,5 @@
 import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: GQLArticleResolvers['remark'] = async (
-  { articleId },
-  _,
-  { dataSources: { articleService } }
-) => {
-  const article = await articleService.dataloader.load(articleId)
-  return article.remark
-}
+const resolver: GQLArticleResolvers['remark'] = async ({ remark }) => remark
 
 export default resolver

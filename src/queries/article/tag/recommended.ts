@@ -13,7 +13,7 @@ import {
 const resolver: GQLTagResolvers['recommended'] = async (
   { id },
   { input },
-  { dataSources: { tagService } }
+  { dataSources: { tagService, atomService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input, {
     allowTakeAll: true,
@@ -28,7 +28,7 @@ const resolver: GQLTagResolvers['recommended'] = async (
   const relatedIds = await tagService.findRelatedTags({ id })
 
   const tags = (
-    await tagService.loadByIds(relatedIds.map((tag: any) => `${tag.id}`))
+    await atomService.tagIdLoader.loadMany(relatedIds.map((tag) => tag.id))
   ).filter(({ content }) => normalizeTagInput(content) === content)
 
   const totalCount = tags?.length ?? 0
@@ -46,7 +46,7 @@ const resolver: GQLTagResolvers['recommended'] = async (
     const filteredTags = chunks[index] || []
 
     return connectionFromPromisedArray(
-      tagService.loadByIds(filteredTags.map((tag: any) => `${tag.id}`)),
+      atomService.tagIdLoader.loadMany(filteredTags.map((tag) => tag.id)),
       input,
       totalCount
     )

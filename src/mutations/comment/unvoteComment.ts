@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
 import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
@@ -7,29 +7,21 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,
   { input: { id } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      articleService,
-      paymentService,
-      commentService,
-    },
-  }
+  { viewer, dataSources: { atomService, paymentService, commentService } }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.loadById(dbId)
+  const comment = await atomService.commentIdLoader.load(dbId)
 
   // check target
-  let article: any
-  let circle: any
-  let targetAuthor: any
+  let article: Article
+  let circle: Circle | undefined = undefined
+  let targetAuthor: string
   if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.loadById(comment.targetId)
+    article = await atomService.articleIdLoader.load(comment.targetId)
     targetAuthor = article.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)

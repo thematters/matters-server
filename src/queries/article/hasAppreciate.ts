@@ -3,7 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { APPRECIATION_PURPOSE } from 'common/enums'
 
 const resolver: GQLArticleResolvers['hasAppreciate'] = async (
-  { articleId },
+  { id },
   _,
   { viewer, dataSources: { atomService } }
 ) => {
@@ -11,16 +11,16 @@ const resolver: GQLArticleResolvers['hasAppreciate'] = async (
     return false
   }
 
-  const record = await atomService.findFirst({
+  const count = await atomService.count({
     table: 'appreciation',
     where: {
       senderId: viewer.id,
-      referenceId: articleId,
+      referenceId: id,
       purpose: APPRECIATION_PURPOSE.appreciate,
     },
   })
 
-  return record > 0
+  return count > 0
 }
 
 export default resolver

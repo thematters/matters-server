@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['assets'] = async (
-  { id, authorId, articleId },
+  { id, authorId },
   _,
   { viewer, dataSources: { systemService } }
 ) => {
@@ -18,22 +18,10 @@ const resolver: GQLArticleResolvers['assets'] = async (
   )
   const articleAssets = await systemService.findAssetAndAssetMap({
     entityTypeId: articleEntityTypeId,
-    entityId: articleId,
+    entityId: id,
   })
 
-  // assets belonged to linked latest draft
-  let draftAssets: any[] = []
-  if (id) {
-    const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
-      'draft'
-    )
-    draftAssets = await systemService.findAssetAndAssetMap({
-      entityTypeId: draftEntityTypeId,
-      entityId: id,
-    })
-  }
-
-  const assets = [...articleAssets, ...draftAssets].map((asset) => ({
+  const assets = articleAssets.map((asset: any) => ({
     ...asset,
     path: systemService.genAssetUrl(asset),
   }))

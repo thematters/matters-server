@@ -1,12 +1,14 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['cover'] = async (
-  { articleId },
+  { id },
   _,
   { dataSources: { articleService, systemService } }
 ) => {
-  const article = await articleService.dataloader.load(articleId)
-  return article?.cover ? systemService.findAssetUrl(article.cover) : null
+  const articleVersion = await articleService.loadLatestArticleVersion(id)
+  return articleVersion.cover
+    ? systemService.findAssetUrl(articleVersion.cover)
+    : null
 }
 
 export default resolver

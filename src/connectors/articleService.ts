@@ -1,34 +1,41 @@
 import type {
   GQLSearchExclude,
   GQLSearchFilter,
-  Item,
-  Article,
   Draft,
+  Article,
+  ArticleVersion,
+  ArticleBoost,
   Connections,
+  User,
 } from 'definitions'
 
 import {
   ArticlePageContext,
   makeArticlePage,
+  makeSummary,
 } from '@matters/ipns-site-generator'
+import { html2md } from '@matters/matters-editor/transformers'
 import DataLoader from 'dataloader'
 import { Knex } from 'knex'
+import { difference, isEqual, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
   APPRECIATION_PURPOSE,
   ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   CIRCLE_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
+  DB_NOTICE_TYPE,
   MINUTE,
-  QUEUE_URL,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   MAX_PINNED_WORKS_LIMIT,
+  MAX_ARTICLES_PER_CONNECTION_LIMIT,
   USER_ACTION,
   USER_STATE,
   NODE_TYPES,
@@ -37,18 +44,29 @@ import { environment } from 'common/environment'
 import {
   ArticleNotFoundError,
   ServerError,
+  NetworkError,
   ForbiddenError,
   ActionLimitExceededError,
+  ActionFailedError,
   InvalidCursorError,
+  EntityNotFoundError,
+  ArticleCollectionReachLimitError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { s2tConverter, t2sConverter, normalizeSearchKey } from 'common/utils'
 import {
-  AtomService,
+  countWords,
+  s2tConverter,
+  t2sConverter,
+  normalizeSearchKey,
+  genMD5,
+} from 'common/utils'
+import {
   BaseService,
   ipfsServers,
   SystemService,
   UserService,
+  TagService,
+  NotificationService,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -56,80 +74,273 @@ const logger = getLogger('service-article')
 const SEARCH_TITLE_RANK_THRESHOLD = 0.001
 const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
-export class ArticleService extends BaseService {
+export class ArticleService extends BaseService<Article> {
   private ipfsServers: typeof ipfsServers
-  public dataloader: DataLoader<string, Item>
-  public draftLoader: DataLoader<string, Item>
+  public latestArticleVersionLoader: DataLoader<string, ArticleVersion>
 
   public constructor(connections: Connections) {
     super('article', connections)
     this.ipfsServers = ipfsServers
 
-    this.dataloader = new DataLoader(async (ids: readonly string[]) => {
-      const result = await this.baseFindByIds(ids)
+    const batchFn = async (
+      keys: readonly string[]
+    ): Promise<ArticleVersion[]> => {
+      const table = 'article_version_newest'
+      const records = await this.knexRO<ArticleVersion>(table).whereIn(
+        'article_id',
+        keys
+      )
 
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new ArticleNotFoundError('Cannot find article')
+      if (records.findIndex((item: unknown) => !item) >= 0) {
+        throw new EntityNotFoundError(`Cannot find entity from ${table}`)
       }
+      // fix order based on keys
+      return keys.map(
+        (key) => records.find((r) => r.articleId === key) as ArticleVersion
+      )
+    }
 
-      return result
-    })
-
-    // load drafts by aritcle ids
-    this.draftLoader = new DataLoader(async (ids: readonly string[]) => {
-      const items = await this.baseFindByIds(ids)
-
-      if (items.findIndex((item: any) => !item) >= 0) {
-        throw new ArticleNotFoundError('Cannot find article')
-      }
-
-      const draftIds = items.map((item: any) => item.draftId)
-      const result = await this.baseFindByIds(draftIds, 'draft')
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new ArticleNotFoundError("Cannot find article's linked draft")
-      }
-
-      return result
-    })
+    this.latestArticleVersionLoader = new DataLoader(batchFn)
   }
 
-  public loadById = async (id: string): Promise<Article> =>
-    this.dataloader.load(id) as Promise<Article>
-  public loadByIds = async (ids: string[]): Promise<Article[]> =>
-    this.dataloader.loadMany(ids) as Promise<Article[]>
-
-  public loadDraftsByArticles = async (ids: string[]): Promise<Draft[]> =>
-    this.draftLoader.loadMany(ids) as Promise<Draft[]>
-
   /**
-   * Create a pending article with linked draft
+   * Create article from draft
    */
   public createArticle = async ({
-    draftId,
+    id: draftId,
     authorId,
     title,
-    slug,
-    wordCount,
     summary,
     content,
+    contentMd,
     cover,
-    dataHash,
-    mediaHash,
-  }: Record<string, any>) =>
-    this.baseCreate({
-      uuid: v4(),
-      state: ARTICLE_STATE.pending,
-      draftId,
-      authorId,
-      title,
-      slug,
-      wordCount,
-      summary,
-      content,
-      cover,
-      dataHash,
-      mediaHash,
+    tags,
+    collection,
+    circleId,
+    access,
+    license,
+    requestForDonation,
+    replyToDonator,
+    canComment,
+    sensitiveByAuthor,
+  }: Partial<Draft> & {
+    authorId: string
+    title: string
+    content: string
+  }): Promise<[Article, ArticleVersion]> => {
+    const wordCount = countWords(content)
+    const _summary = summary || makeSummary(content)
+    const summaryCustomized = !!summary
+
+    // get contentId and contentMdId
+    const { id: contentId } = await this.getOrCreateArticleContent(content)
+    let _contentMd
+    try {
+      _contentMd = contentMd || html2md(content)
+    } catch (e) {
+      logger.warn('draft %s failed to convert HTML to Markdown', draftId)
+    }
+    let contentMdId
+    if (_contentMd) {
+      const { id: _contentMdId } = await this.getOrCreateArticleContent(
+        _contentMd
+      )
+      contentMdId = _contentMdId
+    }
+
+    // create article and article version
+    const trx = await this.knex.transaction()
+    try {
+      const [article] = await trx<Article>('article')
+        .insert({ authorId, state: ARTICLE_STATE.active })
+        .returning('*')
+      const [articleVersion] = await trx<ArticleVersion>('article_version')
+        .insert({
+          articleId: article.id,
+          title,
+          summary: _summary,
+          summaryCustomized,
+          contentId,
+          contentMdId,
+          cover,
+          tags: tags ?? [],
+          connections: collection ?? [],
+          wordCount,
+          circleId,
+          access: access ?? ARTICLE_ACCESS_TYPE.public,
+          license: license ?? ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4,
+          requestForDonation,
+          replyToDonator,
+          canComment: canComment ?? true,
+          sensitiveByAuthor: sensitiveByAuthor ?? false,
+        })
+        .returning('*')
+      // copy asset_map from draft to article
+      const systemService = new SystemService(this.connections)
+      const [draftEntity, articleEntity] = await Promise.all([
+        systemService.baseFindEntityTypeId('draft'),
+        systemService.baseFindEntityTypeId('article'),
+      ])
+
+      // copy asset_map from draft to article if there is a draft
+      if (draftId) {
+        await systemService.copyAssetMapEntities({
+          source: { entityTypeId: draftEntity.id, entityId: draftId },
+          target: { entityTypeId: articleEntity.id, entityId: article.id },
+        })
+      }
+      await trx.commit()
+      return [article, articleVersion]
+    } catch (e) {
+      await trx.rollback()
+      throw e
+    }
+  }
+
+  public getOrCreateArticleContent = async (content: string) => {
+    const contentHash = genMD5(content)
+    const result = await this.models.findUnique({
+      table: 'article_content',
+      where: { hash: contentHash },
     })
+    if (result) {
+      return result
+    } else {
+      return this.models.create({
+        table: 'article_content',
+        data: { hash: contentHash, content },
+      })
+    }
+  }
+
+  public loadLatestArticleVersion = (articleId: string) =>
+    this.latestArticleVersionLoader.load(articleId)
+
+  public loadLatestArticleContent = async (articleId: string) => {
+    const { contentId } = await this.latestArticleVersionLoader.load(articleId)
+    const { content } = await this.models.articleContentIdLoader.load(contentId)
+    return content
+  }
+
+  public loadLatestArticleContentMd = async (articleId: string) => {
+    const { contentMdId } = await this.latestArticleVersionLoader.load(
+      articleId
+    )
+    if (!contentMdId) {
+      return ''
+    }
+    const { content: contentMd } =
+      await this.models.articleContentIdLoader.load(contentMdId)
+    return contentMd
+  }
+
+  public createNewArticleVersion = async (
+    articleId: string,
+    actorId: string,
+    newData: Partial<Draft>
+  ) => {
+    if (Object.keys(newData).length === 0) {
+      throw new ActionFailedError('newData is empty')
+    }
+    const lastData = await this.latestArticleVersionLoader.load(articleId)
+    let data = lastData as Partial<ArticleVersion>
+    delete data.id
+    delete data.description
+    delete data.createdAt
+    delete data.updatedAt
+
+    if (newData.content) {
+      const { id: contentId } = await this.getOrCreateArticleContent(
+        newData.content
+      )
+      data = { ...data, contentId, wordCount: countWords(newData.content) }
+      let _contentMd
+      try {
+        _contentMd = newData.contentMd || html2md(newData.content)
+      } catch (e) {
+        logger.warn(
+          'failed to convert HTML to Markdown for new article version of article %s',
+          articleId
+        )
+      }
+      if (_contentMd) {
+        const { id: _contentMdId } = await this.getOrCreateArticleContent(
+          _contentMd
+        )
+        data = { ...data, contentMdId: _contentMdId }
+        delete newData.content
+      }
+    } else {
+      data = {
+        ...data,
+        contentId: lastData.contentId,
+        contentMdId: lastData.contentMdId,
+        wordCount: lastData.wordCount,
+        dataHash: lastData.dataHash,
+        mediaHash: lastData.mediaHash,
+        iscnId: lastData.iscnId,
+      }
+    }
+    if (newData.summary || newData.summary === null || newData.summary === '') {
+      data = {
+        ...data,
+        summary: newData.summary ?? '',
+        summaryCustomized: newData.summary ? true : false,
+      }
+      delete newData.summary
+    } else {
+      data = {
+        ...data,
+        summary: lastData.summary,
+        summaryCustomized: lastData.summaryCustomized,
+      }
+    }
+    if (newData.collection || newData.collection === null) {
+      data = { ...data, connections: newData.collection ?? [] }
+      await this.updateArticleConnections({
+        articleId,
+        actorId,
+        connections: newData.collection ?? [],
+      })
+      delete newData.collection
+    }
+
+    if (newData.circleId) {
+      const _data = { articleId, circleId: newData.circleId }
+      await this.models.upsert({
+        table: 'article_circle',
+        where: _data,
+        create: { ..._data, access: newData.access || data.access },
+        update: { ..._data, access: newData.access || data.access },
+      })
+    }
+    if (newData.circleId === null) {
+      await this.models.deleteMany({
+        table: 'article_circle',
+        where: { articleId },
+      })
+    }
+
+    if (newData.tags || newData.tags === null) {
+      const tagService = new TagService(this.connections)
+      await tagService.updateArticleTags({
+        articleId,
+        actorId,
+        tags: newData.tags ?? [],
+      })
+      data = { ...data, tags: newData.tags ?? [] }
+      delete newData.tags
+    }
+
+    const articleVersion = await this.models.create({
+      table: 'article_version',
+      data: { ...data, ...newData } as Partial<ArticleVersion>,
+    })
+    return articleVersion
+  }
+
+  public countArticleVersions = async (articleId: string) =>
+    this.models.count({ table: 'article_version', where: { articleId } })
 
   /**
    * Update article's pin status and return article
@@ -158,7 +369,10 @@ export class ArticleService extends BaseService {
         `Can only pin up to ${MAX_PINNED_WORKS_LIMIT} articles/collections`
       )
     }
-    await this.baseUpdate(articleId, { pinned, pinnedAt: this.knex.fn.now() })
+    await this.baseUpdate(articleId, {
+      pinned,
+      pinnedAt: this.knex.fn.now() as unknown as Date,
+    })
     return { ...article, pinned }
   }
 
@@ -170,25 +384,19 @@ export class ArticleService extends BaseService {
   /**
    * Publish draft data to IPFS
    */
-  public publishToIPFS = async (draft: any) => {
-    const userService = new UserService(this.connections)
+  public publishToIPFS = async (
+    article: Article,
+    articleVersion: ArticleVersion,
+    content: string
+  ) => {
     const systemService = new SystemService(this.connections)
-    const atomService = new AtomService(this.connections)
 
     // prepare metadata
-    const {
-      title,
-      content,
-      summary,
-      cover,
-      tags,
-      circleId,
-      access,
-      authorId,
-      articleId,
-      updatedAt: publishedAt,
-    } = draft
-    const author = await userService.loadById(authorId)
+    const { id, title, summary, cover, tags, circleId, access, createdAt } =
+      articleVersion
+    const author = (await this.models.userIdLoader.load(
+      article.authorId
+    )) as User
     const {
       // avatar,
       displayName,
@@ -205,20 +413,21 @@ export class ArticleService extends BaseService {
     ] = await Promise.all([
       // avatar && (await systemService.findAssetUrl(avatar)),
       cover && (await systemService.findAssetUrl(cover)),
-      atomService.findFirst({
+      this.models.findFirst({
         table: 'user_ipns_keys',
-        where: { userId: authorId },
+        where: { userId: article.authorId },
       }),
     ])
     const ipnsKey = ipnsKeyRec?.ipnsKey
 
+    const publishedAt = createdAt.toISOString()
     const context: ArticlePageContext = {
       encrypted: false,
       meta: {
         title: `${title} - ${displayName} (${userName})`,
         description: summary,
         authorName: displayName,
-        image: articleCoverImg,
+        image: articleCoverImg ?? undefined,
       },
       byline: {
         date: publishedAt,
@@ -239,7 +448,7 @@ export class ArticleService extends BaseService {
           }
         : undefined,
       article: {
-        id: articleId,
+        id,
         author: {
           userName,
           displayName,
@@ -310,23 +519,12 @@ export class ArticleService extends BaseService {
 
     // re-fill dataHash & mediaHash later in IPNS-listener
     logger.error(`failed publishToIPFS after ${retries} retries.`)
+    throw new NetworkError('failed publishToIPFS')
   }
 
   // DEPRECATED, To Be Deleted
   //  moved to IPNS-Listener
-  public publishFeedToIPNS = async ({
-    userName,
-    numArticles = 50,
-    incremental = false,
-    forceReplace = false,
-    updatedDrafts,
-  }: {
-    userName: string
-    numArticles?: number
-    incremental?: boolean
-    forceReplace?: boolean
-    updatedDrafts?: Item[]
-  }) => {
+  public publishFeedToIPNS = async ({ userName }: { userName: string }) => {
     const userService = new UserService(this.connections)
 
     try {
@@ -342,75 +540,23 @@ export class ArticleService extends BaseService {
     }
   }
 
-  public sendArticleFeedMsgToSQS = async ({
-    article,
-    author,
-    ipnsData,
-  }: {
-    article: {
-      id: string
-      title: string
-      slug: string
-      dataHash: string
-      mediaHash: string
-    }
-    author: {
-      userName: string
-      displayName: string
-    }
-    ipnsData: {
-      ipnsKey: string
-      lastDataHash: string
-    }
-  }) =>
-    this.aws?.sqsSendMessage({
-      messageGroupId: `ipfs-articles-${environment.env}:articles-feed`,
-      messageBody: {
-        articleId: article.id,
-        title: article.title,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}-${article.slug}`,
-        dataHash: article.dataHash,
-        mediaHash: article.mediaHash,
-
-        // ipns info:
-        ipnsKey: ipnsData.ipnsKey,
-        lastDataHash: ipnsData.lastDataHash,
-
-        // author info:
-        userName: author.userName,
-        displayName: author.displayName,
-      },
-      queueUrl: QUEUE_URL.ipfsArticles,
-    })
-
   /**
    * Archive article
    */
-  public archive = async (id: string) => {
-    const atomService = new AtomService(this.connections)
-    const targetArticle = await atomService.findFirst({
-      table: 'article',
-      where: { id },
-    })
-    const articles = await atomService.findMany({
-      table: 'article',
-      where: { draftId: targetArticle.draftId },
+  public archive = async (id: string) =>
+    this.baseUpdate(id, {
+      state: ARTICLE_STATE.archived,
+      pinned: false,
+      updatedAt: new Date(),
     })
 
-    // update db
-    for (const article of articles) {
-      await this.baseUpdate(article.id, {
-        state: ARTICLE_STATE.archived,
-        pinned: false,
-        updatedAt: new Date(),
-      })
-    }
-  }
+  public findVersionByMediaHash = async (mediaHash: string) =>
+    this.models.findFirst({ table: 'article_version', where: { mediaHash } })
 
   public findByAuthor = async (
     authorId: string,
     {
-      columns = ['draft_id'],
+      columns = ['*'],
       orderBy = 'newest',
       state = 'active',
       skip,
@@ -427,7 +573,7 @@ export class ArticleService extends BaseService {
       skip?: number
       take?: number
     } = {}
-  ) => {
+  ): Promise<Article[]> => {
     const { id: targetTypeId } = await this.baseFindEntityTypeId('article')
     return this.knexRO(
       this.knexRO
@@ -562,28 +708,6 @@ export class ArticleService extends BaseService {
       .select(columns)
   }
 
-  public findByTitle = async ({
-    title,
-    oss = false,
-    filter,
-  }: {
-    title: string
-    oss?: boolean
-    filter?: Record<string, any>
-  }) => {
-    const query = this.knex.select().from(this.table).where({ title })
-
-    if (!oss) {
-      query.andWhere({ state: ARTICLE_STATE.active })
-    }
-
-    if (filter && Object.keys(filter).length > 0) {
-      query.andWhere(filter)
-    }
-
-    return query.orderBy('id', 'desc')
-  }
-
   public findByCommentedAuthor = async ({
     id,
     skip,
@@ -592,7 +716,7 @@ export class ArticleService extends BaseService {
     id: string
     skip?: number
     take?: number
-  }) =>
+  }): Promise<Article[]> =>
     this.knex
       .select('article.*')
       .max('comment.id', { as: '_comment_id_' })
@@ -618,36 +742,6 @@ export class ArticleService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-
-  public searchByMediaHash = async ({
-    key,
-    oss = false,
-    filter,
-  }: {
-    key: string
-    oss?: boolean
-    filter?: Record<string, any>
-  }) => {
-    const query = this.knex.select().from(this.table).where({ mediaHash: key })
-
-    if (!oss) {
-      query.andWhere({ state: ARTICLE_STATE.active })
-    }
-
-    if (filter && Object.keys(filter).length > 0) {
-      query.andWhere(filter)
-    }
-
-    const rows = await query
-    if (rows.length > 0) {
-      return {
-        nodes: rows,
-        totalCount: rows.length,
-      }
-    } else {
-      throw new ServerError('article search by media hash failed')
-    }
-  }
 
   public search = async ({
     key: keyOriginal,
@@ -700,7 +794,6 @@ export class ArticleService extends BaseService {
       environment.searchPgArticleCoefficients?.[3] ||
       1
     )
-    // const c4 = +(coeffs?.[4] || environment.searchPgArticleCoefficients?.[4] || 1)
 
     // gather users that blocked viewer
     const excludeBlocked = exclude === 'blocked' && viewerId
@@ -733,7 +826,6 @@ export class ArticleService extends BaseService {
                 this.searchKnex.raw(
                   'percent_rank() OVER (ORDER BY num_views NULLS FIRST) AS views_rank'
                 ),
-                // this.searchKnex.raw('(CASE WHEN title LIKE ? THEN 1 ELSE 0 END) ::float AS title_like_rank', [`%${key}%`]),
                 this.searchKnex.raw(
                   'ts_rank(title_jieba_ts, query) AS title_ts_rank'
                 ),
@@ -787,17 +879,15 @@ export class ArticleService extends BaseService {
         }
       })
 
-    const nodes = (await this.draftLoader.loadMany(
-      records.map((item: any) => item.id).filter(Boolean)
-    )) as Item[]
+    const nodes = await this.models.userIdLoader.loadMany(
+      records.map((item: { id: string }) => item.id).filter(Boolean)
+    )
 
-    // const totalCount = Number.parseInt(countRes?.count, 10) || nodes.length
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
 
     logger.debug(
       `articleService::searchV2 searchKnex instance got ${nodes.length} nodes from: ${totalCount} total:`,
       { key, keyOriginal, baseQuery: baseQuery.toString() },
-      // { countRes, articleIds }
       { sample: records?.slice(0, 3) }
     )
 
@@ -820,7 +910,7 @@ export class ArticleService extends BaseService {
     exclude?: GQLSearchExclude
     coefficients?: string
     quicksearch?: boolean
-  }) => {
+  }): Promise<{ nodes: Article[]; totalCount: number }> => {
     if (quicksearch) {
       return this.quicksearch({ key: keyOriginal, take, skip, filter })
     }
@@ -846,9 +936,9 @@ export class ArticleService extends BaseService {
         records[0]
       )
 
-      const nodes = (await this.draftLoader.loadMany(
-        records.map((item: any) => `${item.id}`).filter(Boolean)
-      )) as Item[]
+      const nodes = await this.models.articleIdLoader.loadMany(
+        records.map((item: { id: string }) => `${item.id}`).filter(Boolean)
+      )
 
       return { nodes, totalCount }
     } catch (err) {
@@ -867,19 +957,27 @@ export class ArticleService extends BaseService {
     take?: number
     skip?: number
     filter?: GQLSearchFilter
-  }) => {
+  }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = await t2sConverter.convertPromise(key)
     const keyTraditional = await s2tConverter.convertPromise(key)
-    const records = await this.knexRO
-      .select('id', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
-      .where(function () {
-        this.whereILike('title', `%${key}%`)
-          .orWhereILike('title', `%${keyTraditional}%`)
-          .orWhereILike('title', `%${keySimplified}%`)
-      })
-      .from('article')
-      .orderBy('id', 'desc')
+    const q = this.knexRO('article')
+      .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .whereIn(
+        'id',
+        this.knexRO
+          .select('article_id')
+          .where(function () {
+            if (filter && filter.authorId) {
+              this.where({ authorId: filter.authorId })
+            }
+            this.whereILike('title', `%${key}%`)
+              .orWhereILike('title', `%${keyTraditional}%`)
+              .orWhereILike('title', `%${keySimplified}%`)
+          })
+          .from('article_version_newest')
+      )
       .where({ state: ARTICLE_STATE.active })
+      .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {
           builder.where({ authorId: filter.authorId })
@@ -891,21 +989,19 @@ export class ArticleService extends BaseService {
           builder.offset(skip)
         }
       })
+    const records = await q
 
-    const nodes = (await this.draftLoader.loadMany(
-      records.map((item: { id: string }) => item.id).filter(Boolean)
-    )) as Draft[]
     const totalCount = +(records?.[0]?.totalCount ?? 0)
-    return { nodes, totalCount }
+    return { nodes: records as Article[], totalCount }
   }
 
   /**
    * Boost & Score
    */
   public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
-    this.baseUpdateOrCreate({
+    this.baseUpdateOrCreate<ArticleBoost>({
       where: { articleId: id },
-      data: { articleId: id, boost, updatedAt: new Date() },
+      data: { articleId: id, boost },
       table: 'article_boost',
     })
 
@@ -915,7 +1011,7 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
   /**
-   * Sum total appreciaton by a given article id.
+   * Sum total appreciation by a given article id.
    */
   public sumAppreciation = async (articleId: string) => {
     const result = await this.knex
@@ -1075,7 +1171,7 @@ export class ArticleService extends BaseService {
     id: articleId,
   }: {
     id: string
-  }): Promise<any | null> => {
+  }): Promise<string[]> => {
     const result = await this.knex
       .select('tag_id')
       .from('article_tag')
@@ -1159,7 +1255,7 @@ export class ArticleService extends BaseService {
      * create new record and return
      */
     if (!record || record.length === 0) {
-      await this.baseCreate(
+      await this.baseCreate<any>(
         {
           ...newData,
           count: 1,
@@ -1641,7 +1737,7 @@ export class ArticleService extends BaseService {
     notIn: string[]
     take?: number
     skip?: number
-  }) => {
+  }): Promise<Article[]> => {
     const { id: entityTypeId } = await this.baseFindEntityTypeId(
       TRANSACTION_TARGET_TYPE.article
     )
@@ -1667,6 +1763,23 @@ export class ArticleService extends BaseService {
    *            Access             *
    *                               *
    *********************************/
+  public getAccess = async (id: string) => {
+    const articleCircle = await this.findArticleCircle(id)
+
+    // not in circle, fallback to public
+    if (!articleCircle) {
+      return ARTICLE_ACCESS_TYPE.public
+    }
+
+    // public
+    if (articleCircle.access === ARTICLE_ACCESS_TYPE.public) {
+      return ARTICLE_ACCESS_TYPE.public
+    }
+
+    // paywall
+    return ARTICLE_ACCESS_TYPE.paywall
+  }
+
   public findArticleCircle = async (articleId: string) =>
     this.knex
       .select('article_circle.*')
@@ -1696,12 +1809,12 @@ export class ArticleService extends BaseService {
     take: number
     maxTake: number
     oss: boolean
-  }) => {
+  }): Promise<Article[]> => {
     const query = this.knexRO
-      .select('article_set.draft_id', 'article_set.id')
+      .select('article_set.*')
       .from(
         this.knexRO
-          .select('id', 'draft_id', 'author_id')
+          .select('id', 'author_id')
           .from('article')
           .where({ state: ARTICLE_STATE.active })
           .whereNotIn(
@@ -1732,5 +1845,141 @@ export class ArticleService extends BaseService {
       .orderBy('id', 'desc')
       .offset(skip)
       .limit(take)
+  }
+
+  private updateArticleConnections = async ({
+    articleId,
+    actorId,
+    connections,
+  }: {
+    articleId: string
+    actorId: string
+    connections: string[]
+  }) => {
+    const oldIds = (
+      await this.findConnections({
+        entranceId: articleId,
+      })
+    ).map(({ articleId: id }: { articleId: string }) => id)
+    const newIds = uniq(connections)
+
+    // do nothing if no change
+    if (isEqual(oldIds, newIds)) {
+      return
+    }
+
+    const newIdsToAdd = difference(newIds, oldIds)
+    const oldIdsToDelete = difference(oldIds, newIds)
+
+    // only validate new-added articles
+    if (newIdsToAdd.length) {
+      if (
+        newIds.length > MAX_ARTICLES_PER_CONNECTION_LIMIT &&
+        newIds.length >= oldIds.length
+      ) {
+        throw new ArticleCollectionReachLimitError(
+          `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in connection`
+        )
+      }
+      const userService = new UserService(this.connections)
+      await Promise.all(
+        newIdsToAdd.map(async (id) => {
+          const collectedArticle = await this.models.findUnique({
+            table: 'article',
+            where: { id: articleId },
+          })
+
+          if (!collectedArticle) {
+            throw new ArticleNotFoundError(`Cannot find article ${id}`)
+          }
+
+          if (collectedArticle.state !== ARTICLE_STATE.active) {
+            throw new ForbiddenError(`Article ${id} cannot be collected.`)
+          }
+
+          const isBlocked = await userService.blocked({
+            userId: collectedArticle.authorId,
+            targetId: actorId,
+          })
+
+          if (isBlocked) {
+            throw new ForbiddenError('viewer has no permission')
+          }
+        })
+      )
+    }
+
+    interface Item {
+      entranceId: string
+      articleId: string
+      order: number
+    }
+    const addItems: Item[] = []
+    const updateItems: Item[] = []
+
+    // gather data
+    newIds.forEach((id: string, index: number) => {
+      const isNew = newIdsToAdd.includes(id)
+      if (isNew) {
+        addItems.push({ entranceId: articleId, articleId: id, order: index })
+      }
+      if (!isNew && index !== oldIds.indexOf(id)) {
+        updateItems.push({ entranceId: articleId, articleId: id, order: index })
+      }
+    })
+
+    await Promise.all([
+      ...addItems.map((item) =>
+        this.models.create({
+          table: 'article_connection',
+          data: {
+            ...item,
+          },
+        })
+      ),
+      ...updateItems.map((item) =>
+        this.models.update({
+          table: 'article_connection',
+          where: { entranceId: item.entranceId, articleId: item.articleId },
+          data: { order: item.order },
+        })
+      ),
+    ])
+
+    // delete unwanted
+    await this.models.deleteMany({
+      table: 'article_connection',
+      where: { entranceId: articleId },
+      whereIn: ['article_id', oldIdsToDelete],
+    })
+
+    // trigger notifications
+    const article = await this.models.articleIdLoader.load(articleId)
+    const notificationService = new NotificationService(this.connections)
+    newIdsToAdd.forEach(async (id) => {
+      const targetConnection = await this.models.findUnique({
+        table: 'article',
+        where: { id },
+      })
+      if (targetConnection) {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.article_new_collected,
+          recipientId: targetConnection.authorId,
+          actorId: article.authorId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: targetConnection,
+            },
+            {
+              type: 'collection',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
+      }
+    })
   }
 }

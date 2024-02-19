@@ -4,7 +4,7 @@ import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLArticleResolvers['comments'] = async (
-  { articleId },
+  { id: articleId },
   { input: { sort, first, ...rest } },
   { dataSources: { atomService, commentService } }
 ) => {
