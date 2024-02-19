@@ -14,6 +14,8 @@ export interface Draft {
   summary: string | null
   content: string
   contentMd: string | null
+  dataHash: string | null
+  mediaHash: string | null
   circleId: string | null
   collection: string[] | null
   tags: string[]
