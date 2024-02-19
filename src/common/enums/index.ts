@@ -153,6 +153,7 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
 
 export enum NODE_TYPES {
   Article = 'Article',
+  ArticleVersion = 'ArticleVersion',
   Comment = 'Comment',
   Draft = 'Draft',
   User = 'User',

@@ -11,7 +11,10 @@ import {
 import { Tag as TagModel } from './tag'
 import { Collection as CollectionModel } from './collection'
 import { Comment as CommentModel } from './comment'
-import { Article as ArticleModel } from './article'
+import {
+  Article as ArticleModel,
+  ArticleVersion as ArticleVersionModel,
+} from './article'
 import { Draft as DraftModel } from './draft'
 import {
   Circle as CircleModel,
@@ -4194,9 +4197,7 @@ export type GQLResolversInterfaceTypes<
       })
   Node:
     | ArticleModel
-    | (Omit<GQLArticleVersion, 'contents'> & {
-        contents: RefType['ArticleContents']
-      })
+    | ArticleVersionModel
     | ChapterModel
     | CircleModel
     | CollectionModel
@@ -4254,7 +4255,7 @@ export type GQLResolversTypes = ResolversObject<{
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
     }
   >
-  ArticleContents: ResolverTypeWrapper<ArticleModel>
+  ArticleContents: ResolverTypeWrapper<ArticleVersionModel>
   ArticleDonation: ResolverTypeWrapper<
     Omit<GQLArticleDonation, 'sender'> & {
       sender?: Maybe<GQLResolversTypes['User']>
@@ -4286,11 +4287,7 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleRecommendationActivitySource: GQLArticleRecommendationActivitySource
   ArticleState: GQLArticleState
   ArticleTranslation: ResolverTypeWrapper<GQLArticleTranslation>
-  ArticleVersion: ResolverTypeWrapper<
-    Omit<GQLArticleVersion, 'contents'> & {
-      contents: GQLResolversTypes['ArticleContents']
-    }
-  >
+  ArticleVersion: ResolverTypeWrapper<ArticleVersionModel>
   ArticleVersionEdge: ResolverTypeWrapper<
     Omit<GQLArticleVersionEdge, 'node'> & {
       node: GQLResolversTypes['ArticleVersion']
@@ -4825,7 +4822,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
-  ArticleContents: ArticleModel
+  ArticleContents: ArticleVersionModel
   ArticleDonation: Omit<GQLArticleDonation, 'sender'> & {
     sender?: Maybe<GQLResolversParentTypes['User']>
   }
@@ -4846,9 +4843,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     'nodes'
   > & { nodes?: Maybe<Array<GQLResolversParentTypes['Article']>> }
   ArticleTranslation: GQLArticleTranslation
-  ArticleVersion: Omit<GQLArticleVersion, 'contents'> & {
-    contents: GQLResolversParentTypes['ArticleContents']
-  }
+  ArticleVersion: ArticleVersionModel
   ArticleVersionEdge: Omit<GQLArticleVersionEdge, 'node'> & {
     node: GQLResolversParentTypes['ArticleVersion']
   }
