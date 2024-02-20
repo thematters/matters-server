@@ -286,6 +286,16 @@ query($input: ConnectionArgs!) {
               author {
                 id
               }
+              slug
+              state
+              cover
+              summary
+              mediaHash
+              dataHash
+              iscnId
+              createdAt
+              revisedAt
+              createdAt
             }
           }
         }
@@ -1056,11 +1066,11 @@ describe('user recommendations', () => {
         connections,
       })
 
-      const result = await serverNew.executeOperation({
+      const { data, errors } = await serverNew.executeOperation({
         query: GET_VIEWER_RECOMMENDATION(list),
         variables: { input: { first: 1 } },
       })
-      const { data } = result
+      expect(errors).toBeUndefined()
       const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
       const count = _get(data, `viewer.recommendation.${list}.totalCount`)

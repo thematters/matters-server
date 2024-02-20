@@ -1870,7 +1870,7 @@ export class ArticleService extends BaseService<Article> {
       .select('article_set.*')
       .from(
         this.knexRO
-          .select('id', 'author_id')
+          .select('*')
           .from('article')
           .where({ state: ARTICLE_STATE.active })
           .whereNotIn(
