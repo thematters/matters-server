@@ -395,7 +395,7 @@ export class AtomService {
   /**
    * Find multiple records by given clauses.
    *
-   * A Prisma like mehtod for fetching records.
+   * A Prisma like method for fetching records.
    */
   public findMany: FindManyFn = async ({
     table,
