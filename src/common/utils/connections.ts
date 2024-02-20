@@ -12,11 +12,6 @@ export interface ConnectionArguments {
   last?: number
 }
 
-export interface ConnectionHelpers {
-  offset: number
-  totalCount: number
-}
-
 export interface Connection<T> {
   totalCount: number
   edges: Array<Edge<T>>
@@ -130,52 +125,41 @@ export const keysToCursor = (
 
 /**
  * Construct a GQL connection using query keys mechanism. Query keys are
- * composed of `offset` and `idCursor`. `offset` is for managing connection
- * like `merge`, and `idCursor` is for SQL querying.
- *
+ * composed of `offset` and `idCursor`.
+ * `offset` is for managing connection like `merge`,
+ * and `idCursor` is for SQL querying.
+ * (for detail explain see https://github.com/thematters/matters-server/pull/922#discussion_r409256544)
  */
 export const connectionFromArrayWithKeys = <T extends { id: string }>(
   data: T[],
   args: ConnectionArguments,
-  totalCount?: number
+  totalCount: number
 ): Connection<T> => {
-  if (totalCount) {
-    const { after } = args
-    const keys = cursorToKeys(after)
+  const { after } = args
+  const keys = cursorToKeys(after)
 
-    const edges = data.map((value, index) => ({
-      cursor: keysToCursor(
-        index + keys.offset + 1,
-        (value as any).__cursor || value.id
-      ),
-      node: value,
-    }))
+  const edges = data.map((value, index) => ({
+    cursor: keysToCursor(
+      index + keys.offset + 1,
+      (value as any).__cursor || value.id
+    ),
+    node: value,
+  }))
 
-    const firstEdge = edges[0]
-    const lastEdge = edges[edges.length - 1]
-
-    return {
-      edges,
-      totalCount,
-      pageInfo: {
-        startCursor: firstEdge ? firstEdge.cursor : '',
-        endCursor: lastEdge ? lastEdge.cursor : '',
-        hasPreviousPage: after ? keys.offset >= 0 : false,
-        hasNextPage: lastEdge
-          ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
-          : false,
-      },
-    }
-  }
-
-  const connections = connectionFromArraySlice(data, args, {
-    sliceStart: 0,
-    arrayLength: data.length,
-  })
+  const firstEdge = edges[0]
+  const lastEdge = edges[edges.length - 1]
 
   return {
-    ...connections,
-    totalCount: data.length,
+    edges,
+    totalCount,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : '',
+      endCursor: lastEdge ? lastEdge.cursor : '',
+      hasPreviousPage: after ? keys.offset >= 0 : false,
+      hasNextPage: lastEdge
+        ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
+        : false,
+    },
   }
 }
 
