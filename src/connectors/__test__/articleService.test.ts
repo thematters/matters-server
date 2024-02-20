@@ -276,6 +276,9 @@ test('latestArticles', async () => {
     oss: false,
   })
   expect(articles.length).toBeGreaterThan(0)
+  expect(articles[0].id).toBeDefined()
+  expect(articles[0].authorId).toBeDefined()
+  expect(articles[0].state).toBeDefined()
 })
 
 describe('findResponses', () => {
