@@ -53,7 +53,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeConnections(connections)
-})
+}, 50000)
 
 const GET_USER = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -94,6 +94,19 @@ const GET_ARTICLE = /* GraphQL */ `
       ... on Article {
         id
         title
+      }
+    }
+  }
+`
+const GET_ARTICLE_VERSION = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on ArticleVersion {
+        id
+        contents {
+          html
+          markdown
+        }
       }
     }
   }
@@ -290,6 +303,18 @@ describe('query nodes of different type', () => {
     expect(node).toEqual({ id, title: 'test article 1' })
   })
 
+  test('query article version node', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.ArticleVersion, id: 1 })
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: GET_ARTICLE_VERSION,
+      variables: { input: { id } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.node.id).toBe(id)
+    expect(data.node.contents.html).toBeDefined()
+  })
+
   test('query comment node', async () => {
     const id = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
     const server = await testClient({ connections })
@@ -300,6 +325,7 @@ describe('query nodes of different type', () => {
     const node = data && data.node
     expect(node.id).toBe(id)
   })
+
   test('query nodes', async () => {
     const userId = toGlobalId({ type: NODE_TYPES.User, id: 1 })
     const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
