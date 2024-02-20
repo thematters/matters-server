@@ -305,7 +305,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     })
   }
 
-  // fetch lastest article data
+  // fetch latest article data
   const node = await atomService.findUnique({
     table: 'article',
     where: { id: dbId },
