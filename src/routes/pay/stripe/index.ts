@@ -170,7 +170,7 @@ stripeRouter.post('/', async (req, res) => {
         })
         break
       }
-      case 'charge.dispute.funds_withdrawn': {
+      case 'charge.dispute.created': {
         const dispute = event.data.object as Stripe.Dispute
         await createDisputeTx(dispute, paymentService)
         slack.sendStripeAlert({
