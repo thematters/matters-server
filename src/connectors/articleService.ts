@@ -384,8 +384,8 @@ export class ArticleService extends BaseService<Article> {
             .orWhere((whereBuilder) => {
               // first version
               whereBuilder
-                .where('last_content_id', null)
-                .where('last_content_md_id', null)
+                .whereNull('last_content_id')
+                .whereNull('last_content_md_id')
             })
         }
         if (take !== undefined && Number.isFinite(take)) {
