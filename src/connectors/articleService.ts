@@ -359,10 +359,10 @@ export class ArticleService extends BaseService<Article> {
               builder.select(
                 '*',
                 this.knexRO.raw(
-                  'LAG(content_id, 1) OVER(order by id) AS last_content_id'
+                  'LAG(content_id, 1) OVER(order by id) AS pre_content_id'
                 ),
                 this.knexRO.raw(
-                  'LAG(content_md_id, 1) OVER(order by id) AS last_content_md_id'
+                  'LAG(content_md_id, 1) OVER(order by id) AS pre_content_md_id'
                 )
               )
             } else {
@@ -375,17 +375,17 @@ export class ArticleService extends BaseService<Article> {
       .modify((builder) => {
         if (onlyContentChange) {
           builder
-            .where('content_id', '!=', this.knexRO.ref('last_content_id'))
+            .where('content_id', '!=', this.knexRO.ref('pre_content_id'))
             .orWhere(
               'content_md_id',
               '!=',
-              this.knexRO.ref('last_content_md_id')
+              this.knexRO.ref('pre_content_md_id')
             )
             .orWhere((whereBuilder) => {
               // first version
               whereBuilder
-                .whereNull('last_content_id')
-                .whereNull('last_content_md_id')
+                .whereNull('pre_content_id')
+                .whereNull('pre_content_md_id')
             })
         }
         if (take !== undefined && Number.isFinite(take)) {
