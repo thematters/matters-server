@@ -243,7 +243,7 @@ export class ArticleService extends BaseService<Article> {
       throw new ActionFailedError('newData is empty')
     }
     const lastData = await this.latestArticleVersionLoader.load(articleId)
-    let data = lastData as Partial<ArticleVersion>
+    let data = { ...lastData } as Partial<ArticleVersion>
     delete data.id
     delete data.description
     delete data.createdAt
