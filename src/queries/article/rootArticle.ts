@@ -1,22 +1,28 @@
 import type { GQLQueryResolvers } from 'definitions'
 
 import { UserInputError } from 'common/errors'
+import { getLogger } from 'common/logger'
+
+const logger = getLogger('resolver-root-articles')
 
 const resolver: GQLQueryResolvers['article'] = async (
   _,
   { input: { mediaHash, shortHash } },
   { dataSources: { articleService, atomService } }
 ) => {
-  if (!mediaHash && !shortHash) {
-    throw new UserInputError('one of mediaHash or shortHash is required')
+  if (shortHash) {
+    const { id } = await articleService.findArticleByShortHash(shortHash)
+    return atomService.articleIdLoader.load(id)
   }
-  const articleId = mediaHash
-    ? (await articleService.findVersionByMediaHash(mediaHash))?.articleId // if mediaHash
-    : shortHash
-    ? (await articleService.findArticleByShortHash(shortHash))?.id
-    : '' // never
+  if (mediaHash) {
+    const node = await articleService.findVersionByMediaHash(mediaHash)
+    if (!node) {
+      logger.warn('article version by media_hash:%s not found', mediaHash)
+    }
+    return atomService.articleIdLoader.load(node.articleId)
+  }
 
-  return atomService.articleIdLoader.load(articleId)
+  throw new UserInputError('one of mediaHash or shortHash is required')
 }
 
 export default resolver
