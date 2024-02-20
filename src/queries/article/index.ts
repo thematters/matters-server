@@ -42,6 +42,7 @@ import revisedAt from './revisedAt'
 import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
 import sensitiveByAuthor from './sensitiveByAuthor'
+import shortHash from './shortHash'
 import slug from './slug'
 import state from './state'
 import sticky from './sticky'
@@ -116,6 +117,7 @@ const schema: GQLResolvers = {
     sensitiveByAuthor,
     dataHash,
     mediaHash,
+    shortHash,
     state,
     sticky,
     pinned,

@@ -17,6 +17,7 @@ export interface Article {
   createdAt: Date
   updatedAt: Date
   remark: string | null
+  shortHash: string
 }
 
 export interface ArticleVersion {

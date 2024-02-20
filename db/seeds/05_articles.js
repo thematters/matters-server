@@ -23,26 +23,32 @@ exports.seed = async function (knex, Promise) {
       {
         author_id: 1,
         state: 'active',
+        short_hash: 'short-hash-1',
       },
       {
         author_id: 2,
         state: 'active',
+        // short_hash: 'short-hash-2',
       },
       {
         author_id: 3,
         state: 'active',
+        // short_hash: 'short-hash-3',
       },
       {
         author_id: 1,
         state: 'active',
+        // short_hash: 'short-hash-4',
       },
       {
         author_id: 7,
         state: 'active',
+        // short_hash: 'short-hash-5',
       },
       {
         author_id: 1,
         state: 'active',
+        // short_hash: 'short-hash-6',
       },
     ])
     .returning('id')

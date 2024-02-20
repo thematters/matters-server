@@ -133,6 +133,9 @@ export default /* GraphQL */ `
     "Media hash, composed of cid encoding, of this article."
     mediaHash: String!
 
+    "Short hash for shorter url addressing"
+    shortHash: String! ## add non-null after all rows filled
+
     "Content (HTML) of this article."
     content: String!
 
@@ -483,7 +486,8 @@ export default /* GraphQL */ `
   }
 
   input ArticleInput {
-    mediaHash: String!
+    mediaHash: String
+    shortHash: String
   }
 
   input PublishArticleInput {

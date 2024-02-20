@@ -87,6 +87,9 @@ const GET_ARTICLE = /* GraphQL */ `
           }
         }
       }
+      dataHash
+      mediaHash
+      shortHash
     }
   }
 `
@@ -254,6 +257,33 @@ describe('query article', () => {
       variables: { input: { mediaHash } },
     })
     expect(data.article.relatedArticles.edges).toBeDefined()
+  })
+
+  test('query article by mediaHash & shortHash', async () => {
+    const anonymousServer = await testClient({ connections })
+
+    const result1 = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          mediaHash: 'someIpfsMediaHash1',
+        },
+      },
+    })
+    // console.log('result1', result1)
+    expect(_get(result1, 'data.article.shortHash')).toBe('short-hash-1')
+
+    const result2 = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          shortHash: 'short-hash-1',
+        },
+      },
+    })
+
+    // console.log('result2', result2)
+    expect(_get(result2, 'data.article.mediaHash')).toBe('someIpfsMediaHash1')
   })
 })
 

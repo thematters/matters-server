@@ -358,6 +358,9 @@ type Article implements Node & PinnableWork {
   """Media hash, composed of cid encoding, of this article."""
   mediaHash: String!
 
+  """Short hash for shorter url addressing"""
+  shortHash: String!
+
   """Content (HTML) of this article."""
   content: String!
 
@@ -727,7 +730,8 @@ type ArticleDonation {
 }
 
 input ArticleInput {
-  mediaHash: String!
+  mediaHash: String
+  shortHash: String
 }
 
 input PublishArticleInput {

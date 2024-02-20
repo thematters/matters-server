@@ -263,6 +263,8 @@ export type GQLArticle = GQLNode &
     sensitiveByAdmin: Scalars['Boolean']['output']
     /** whether content is marked as sensitive by author */
     sensitiveByAuthor: Scalars['Boolean']['output']
+    /** Short hash for shorter url addressing */
+    shortHash: Scalars['String']['output']
     /** Slugified article title. */
     slug: Scalars['String']['output']
     /** State of this article. */
@@ -468,7 +470,8 @@ export type GQLArticleEdge = {
 }
 
 export type GQLArticleInput = {
-  mediaHash: Scalars['String']['input']
+  mediaHash?: InputMaybe<Scalars['String']['input']>
+  shortHash?: InputMaybe<Scalars['String']['input']>
 }
 
 /** Enums for types of article license */
@@ -5607,6 +5610,7 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType
   >
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   slug?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   state?: Resolver<GQLResolversTypes['ArticleState'], ParentType, ContextType>
   sticky?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
