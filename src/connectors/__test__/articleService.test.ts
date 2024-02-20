@@ -369,3 +369,66 @@ test('countArticleVersions', async () => {
   const count2 = await articleService.countArticleVersions('1')
   expect(count2).toBe(2)
 })
+
+describe('createNewArticleVersion', () => {
+  test('provide description or not', async () => {
+    const articleVersion = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false }
+    )
+    expect(articleVersion.description).toBe(null)
+
+    const articleVersion2 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      undefined
+    )
+    expect(articleVersion2.description).toBe(null)
+
+    const description = 'test desc'
+    const articleVersion3 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      description
+    )
+    expect(articleVersion3.description).toBe(description)
+  })
+})
+
+describe('findArticleVersions', () => {
+  test('return content change versions', async () => {
+    const [, count1] = await articleService.findArticleVersions('2')
+    expect(count1).toBeGreaterThan(0)
+
+    const changedContent = 'text change'
+    const contentChangeVersion1 = await articleService.createNewArticleVersion(
+      '2',
+      '2',
+      {
+        content: changedContent,
+      }
+    )
+    const [, count2] = await articleService.findArticleVersions('2')
+    expect(count2).toBe(count1 + 1)
+
+    // create new version with no content change
+    await articleService.createNewArticleVersion('2', '2', { title: 'test2' })
+    const [versions3, count3] = await articleService.findArticleVersions('2')
+    // count should not change
+    expect(count3).toBe(count2)
+    // return content change versions
+    expect(versions3[0].id).toBe(contentChangeVersion1.id)
+
+    await articleService.createNewArticleVersion('2', '2', {
+      content: 'text change again',
+    })
+    await articleService.createNewArticleVersion('2', '2', {
+      content: changedContent,
+    })
+    const [_, count4] = await articleService.findArticleVersions('2')
+    expect(count4).toBe(count3 + 2)
+  })
+})

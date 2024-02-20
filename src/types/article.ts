@@ -239,11 +239,40 @@ export default /* GraphQL */ `
     "whether readers can comment"
     canComment: Boolean!
 
+    "history versions"
+    versions(input: ArticleVersionsInput!): ArticleVersionsConnection! @complexity(multipliers: ["input.first"], value: 1)
+
     ##############
     #     OSS    #
     ##############
     oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  input ArticleVersionsInput {
+    after: String
+    first: Int @constraint(min: 0)
+  }
+
+  type ArticleVersionsConnection implements Connection {
+     totalCount: Int!
+     pageInfo: PageInfo!
+     edges: [ArticleVersionEdge]!
+  }
+
+  type ArticleVersionEdge {
+     node: ArticleVersion!
+     cursor: String!
+  }
+
+  type ArticleVersion implements Node {
+    id: ID!
+    dataHash: String
+    mediaHash: String
+    summary: String!
+    contents: ArticleContents!
+    createdAt: DateTime!
+    description: String
   }
 
   "This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic."
@@ -481,6 +510,9 @@ export default /* GraphQL */ `
 
     requestForDonation: String  @constraint(maxLength: 140)
     replyToDonator: String  @constraint(maxLength: 140)
+
+    "revision description"
+    description: String @constraint(maxLength: 140)
 
     "whether publish to ISCN"
     iscnPublish: Boolean

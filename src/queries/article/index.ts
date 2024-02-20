@@ -1,4 +1,4 @@
-import type { Article, Tag } from 'definitions'
+import type { GQLResolvers } from 'definitions'
 
 import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
@@ -77,8 +77,9 @@ import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
 import userTopics from './user/topics'
+import versions from './versions'
 
-export default {
+const schema: GQLResolvers = {
   Query: {
     article: rootArticle,
   },
@@ -90,7 +91,8 @@ export default {
     id: idResolver,
     title,
     content,
-    contents: (root: Article) => root,
+    contents: ({ id }, _, { dataSources: { articleService } }) =>
+      articleService.loadLatestArticleVersion(id),
     summary,
     summaryCustomized,
     appreciationsReceived,
@@ -105,7 +107,7 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    oss: (root: Article) => root,
+    oss: (root) => root,
     relatedArticles,
     relatedDonationArticles,
     remark,
@@ -121,14 +123,14 @@ export default {
     tags,
     translation,
     availableTranslations,
-    topicScore: ({ score }: { score: number }) =>
-      score ? Math.round(score) : null,
+    topicScore: (({ score }: { score: number }) =>
+      score ? Math.round(score) : null) as any,
     transactionsReceivedBy,
     donations,
     readTime,
     createdAt,
     revisedAt,
-    access: (root: Article) => root,
+    access: (root) => root,
     revisionCount,
     license,
     canComment,
@@ -136,9 +138,10 @@ export default {
     replyToDonator,
     donationCount,
     readerCount,
+    versions,
   },
   Tag: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
     selected: tagSelected,
     creator: tagCreator,
@@ -150,13 +153,13 @@ export default {
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
     followers: tagFollowers,
-    oss: (root: Tag) => root,
+    oss: (root) => root,
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
   },
   Topic: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
     cover: topicCover,
     chapterCount: topicChapterCount,
     articleCount: topicArticleCount,
@@ -166,11 +169,14 @@ export default {
     latestArticle: topicLatestArticle,
   },
   Chapter: {
-    id: ({ id }: { id: string }) =>
-      toGlobalId({ type: NODE_TYPES.Chapter, id }),
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Chapter, id }),
     articleCount: chapterArticleCount,
     articles: chapterArticles,
     topic: chapterTopic,
+  },
+  ArticleVersion: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),
+    contents: (root) => root,
   },
   ArticleContents: {
     html: contents.html,
@@ -194,3 +200,5 @@ export default {
     selected: tagOSS.selected,
   },
 }
+
+export default schema

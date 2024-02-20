@@ -1386,3 +1386,80 @@ describe('query article donations', () => {
     ).toBe(3)
   })
 })
+
+describe('articles versions', () => {
+  const GET_ARTICLE_VERSIONS = /* GraphQL */ `
+    query (
+      $articleInput: ArticleInput!
+      $versionsInput: ArticleVersionsInput!
+    ) {
+      article(input: $articleInput) {
+        id
+        contents {
+          html
+          markdown
+        }
+        versions(input: $versionsInput) {
+          edges {
+            node {
+              id
+              description
+              dataHash
+              mediaHash
+              summary
+              contents {
+                html
+                markdown
+              }
+              createdAt
+            }
+          }
+          totalCount
+        }
+      }
+    }
+  `
+  test('query article versions', async () => {
+    const mediaHash = 'someIpfsMediaHash2'
+    const anonymousServer = await testClient({ connections })
+    const { errors, data } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE_VERSIONS,
+      variables: {
+        articleInput: { mediaHash },
+        versionsInput: { first: 1 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(fromGlobalId(data.article.versions.edges[0].node.id).type).toBe(
+      NODE_TYPES.ArticleVersion
+    )
+    expect(data.article.versions.totalCount).toBe(1)
+
+    const articleId = fromGlobalId(data.article.id).id
+
+    const articleService = new ArticleService(connections)
+    const article = await articleService.baseFindById(articleId)
+
+    const content = 'test content'
+    const description = 'test description'
+    await articleService.createNewArticleVersion(
+      article.id,
+      article.authorId,
+      { content },
+      description
+    )
+
+    const { errors: errors2, data: data2 } =
+      await anonymousServer.executeOperation({
+        query: GET_ARTICLE_VERSIONS,
+        variables: {
+          articleInput: { mediaHash },
+          versionsInput: { first: 1 },
+        },
+      })
+    expect(errors2).toBeUndefined()
+    expect(data2.article.versions.totalCount).toBe(2)
+    expect(data2.article.versions.edges[0].node.contents.html).toBe(content)
+    expect(data2.article.versions.edges[0].node.description).toBe(description)
+  })
+})

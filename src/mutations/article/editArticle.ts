@@ -51,6 +51,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       replyToDonator,
       iscnPublish,
       canComment,
+      description,
     },
   },
   {
@@ -286,7 +287,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const newArticleVersion = await articleService.createNewArticleVersion(
       article.id,
       viewer.id,
-      data
+      data,
+      description
     )
     if (updateRevisionCount) {
       await atomService.update({
@@ -298,7 +300,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     revisionQueue.publishRevisedArticle({
       articleId: article.id,
       newArticleVersionId: newArticleVersion.id,
-      oldArticleVerisionId: articleVersion.id,
+      oldArticleVersionId: articleVersion.id,
       iscnPublish,
     })
   }

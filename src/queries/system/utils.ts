@@ -11,6 +11,7 @@ export const getNode = async (globalId: string, context: Context) => {
   } = context
   const services = {
     [NODE_TYPES.Article]: atomService.articleIdLoader,
+    [NODE_TYPES.ArticleVersion]: atomService.articleVersionIdLoader,
     [NODE_TYPES.User]: atomService.userIdLoader,
     [NODE_TYPES.Comment]: atomService.commentIdLoader,
     [NODE_TYPES.Draft]: atomService.draftIdLoader,

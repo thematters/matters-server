@@ -237,7 +237,8 @@ export class ArticleService extends BaseService<Article> {
   public createNewArticleVersion = async (
     articleId: string,
     actorId: string,
-    newData: Partial<Draft>
+    newData: Partial<Draft>,
+    description?: string
   ) => {
     if (Object.keys(newData).length === 0) {
       throw new ActionFailedError('newData is empty')
@@ -334,13 +335,68 @@ export class ArticleService extends BaseService<Article> {
 
     const articleVersion = await this.models.create({
       table: 'article_version',
-      data: { ...data, ...newData } as Partial<ArticleVersion>,
+      data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
+    this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
   }
 
   public countArticleVersions = async (articleId: string) =>
     this.models.count({ table: 'article_version', where: { articleId } })
+
+  public findArticleVersions = async (
+    articleId: string,
+    { take, skip }: { take?: number; skip?: number } = {},
+    onlyContentChange = true
+  ) => {
+    const records = await this.knexRO('article_version')
+      .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
+      .from(
+        this.knexRO('article_version')
+          .where({ articleId })
+          .modify((builder) => {
+            if (onlyContentChange) {
+              builder.select(
+                '*',
+                this.knexRO.raw(
+                  'LAG(content_id, 1) OVER(order by id) AS pre_content_id'
+                ),
+                this.knexRO.raw(
+                  'LAG(content_md_id, 1) OVER(order by id) AS pre_content_md_id'
+                )
+              )
+            } else {
+              builder.select('*')
+            }
+          })
+          .orderBy('id', 'desc')
+          .as('t')
+      )
+      .modify((builder) => {
+        if (onlyContentChange) {
+          builder
+            .where('content_id', '!=', this.knexRO.ref('pre_content_id'))
+            .orWhere(
+              'content_md_id',
+              '!=',
+              this.knexRO.ref('pre_content_md_id')
+            )
+            .orWhere((whereBuilder) => {
+              // first version
+              whereBuilder
+                .whereNull('pre_content_id')
+                .whereNull('pre_content_md_id')
+            })
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+      })
+    return [records, +(records[0]?.totalCount ?? 0)]
+  }
 
   /**
    * Update article's pin status and return article
