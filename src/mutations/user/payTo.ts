@@ -225,7 +225,7 @@ const resolver: GQLMutationResolvers['payTo'] = async (
         currency: PAYMENT_CURRENCY.USDT,
         purpose: TRANSACTION_PURPOSE[purpose],
       })
-    payToByBlockchainQueue.payTo({ txId: transaction.id, chain })
+    payToByBlockchainQueue.payTo({ txId: transaction.id })
   }
 
   return { transaction, redirectUrl }

@@ -23,7 +23,7 @@ import {
 } from 'common/enums'
 import { contract, isProd } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
-import { getChainId } from 'common/utils'
+import { getChain, getChainId } from 'common/utils'
 import {
   PaymentService,
   UserService,
@@ -37,7 +37,6 @@ import { BaseQueue } from '../baseQueue'
 
 interface PaymentParams {
   txId: string
-  chain: GQLChain
 }
 
 export class PayToByBlockchainQueue extends BaseQueue {
@@ -55,10 +54,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * Producers
    *
    */
-  public payTo = ({ txId, chain }: PaymentParams) =>
+  public payTo = ({ txId }: PaymentParams) =>
     this.q.add(
       QUEUE_JOB.payTo,
-      { txId, chain },
+      { txId },
       {
         delay: this.delay,
         attempts: 8, // roughly total 20 min before giving up
@@ -107,7 +106,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
-    const { txId, chain } = data
+    const { txId } = data
 
     const paymentService = new PaymentService(this.connections)
     const userService = new UserService(this.connections)
@@ -133,8 +132,9 @@ export class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
-    const contractAddress = _contract.curationAddress
+    const chain = getChain(blockchainTx.chainId)
+    const chainContract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const contractAddress = chainContract.curationAddress
     const curation = new CurationContract(getChainId(chain), contractAddress)
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
@@ -180,8 +180,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       cid: article.dataHash,
       amount: tx.amount,
       // support USDT only for now
-      tokenAddress: _contract.tokenAddress,
-      decimals: _contract.tokenDecimals,
+      tokenAddress: chainContract.tokenAddress,
+      decimals: chainContract.tokenDecimals,
     })
     if (!isValidTx) {
       await this.updateTxAndBlockchainTxState({
@@ -259,10 +259,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
   private _handleSyncCurationEvents = async (chain: GQLChain) => {
     const atomService = new AtomService(this.connections)
     const chainId = getChainId(chain)
-    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const chainContract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
 
     // fetch events
-    const contractAddress = _contract.curationAddress
+    const contractAddress = chainContract.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
     const record = await atomService.findFirst({
       table: 'blockchain_sync_record',
@@ -270,7 +270,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     })
     const oldSavepoint = record
       ? BigInt(parseInt(record.blockNumber, 10))
-      : BigInt(parseInt(_contract.curationBlockNum, 10) || 0)
+      : BigInt(parseInt(chainContract.curationBlockNum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
@@ -316,7 +316,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
   ) => {
     const { paymentService, userService, atomService } = services
 
-    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const chainContract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
 
     // related tx record has resolved
     if (
@@ -329,7 +329,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // skip if token address or uri is invalid
     // support USDT only for now
     if (
-      !ignoreCaseMatch(event.tokenAddress || '', _contract.tokenAddress) ||
+      !ignoreCaseMatch(event.tokenAddress || '', chainContract.tokenAddress) ||
       !isValidUri(event.uri)
     ) {
       return
@@ -350,7 +350,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     const amount = parseFloat(
-      formatUnits(BigInt(event.amount), _contract.tokenDecimals)
+      formatUnits(BigInt(event.amount), chainContract.tokenDecimals)
     )
 
     let tx
@@ -386,7 +386,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       // correct invalid tx
       const isValidTx =
         tx.targetId === article.id &&
-        parseUnits(tx.amount, _contract.tokenDecimals).toString() ===
+        parseUnits(tx.amount, chainContract.tokenDecimals).toString() ===
           event.amount
       if (!isValidTx) {
         await atomService.update({
@@ -471,8 +471,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const atomService = new AtomService(this.connections)
 
     const chainId = getChainId(chain)
-    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
-    const contractAddress = _contract.curationAddress
+    const chainContract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const contractAddress = chainContract.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     // save events to `blockchain_curation_event`
