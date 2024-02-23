@@ -1,10 +1,9 @@
-import type { EmailableUser, Connections } from 'definitions'
+import type { EmailableUser, Connections, GQLChain } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
-import { polygon, polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN_SAFE_CONFIRMS,
@@ -22,14 +21,9 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import {
-  isProd,
-  polygonCurationContractAddress,
-  polygonCurationContractBlocknum,
-  polygonUSDTContractAddress,
-  polygonUSDTContractDecimals,
-} from 'common/environment'
+import { contract, isProd } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
+import { getChainId } from 'common/utils'
 import {
   PaymentService,
   UserService,
@@ -43,6 +37,7 @@ import { BaseQueue } from '../baseQueue'
 
 interface PaymentParams {
   txId: string
+  chain: GQLChain
 }
 
 export class PayToByBlockchainQueue extends BaseQueue {
@@ -60,10 +55,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * Producers
    *
    */
-  public payTo = ({ txId }: PaymentParams) =>
+  public payTo = ({ txId, chain }: PaymentParams) =>
     this.q.add(
       QUEUE_JOB.payTo,
-      { txId },
+      { txId, chain },
       {
         delay: this.delay,
         attempts: 8, // roughly total 20 min before giving up
@@ -112,7 +107,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
-    const txId = data.txId
+    const { txId, chain } = data
 
     const paymentService = new PaymentService(this.connections)
     const userService = new UserService(this.connections)
@@ -138,9 +133,9 @@ export class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = polygonCurationContractAddress
-    const curation = new CurationContract(chainId, contractAddress)
+    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const contractAddress = _contract.curationAddress
+    const curation = new CurationContract(getChainId(chain), contractAddress)
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
     // update metadata blockchain tx
@@ -185,8 +180,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
       cid: article.dataHash,
       amount: tx.amount,
       // support USDT only for now
-      tokenAddress: polygonUSDTContractAddress,
-      decimals: polygonUSDTContractDecimals,
+      tokenAddress: _contract.tokenAddress,
+      decimals: _contract.tokenDecimals,
     })
     if (!isValidTx) {
       await this.updateTxAndBlockchainTxState({
@@ -236,27 +231,38 @@ export class PayToByBlockchainQueue extends BaseQueue {
    */
   private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
     async (_) => {
-      let syncedBlocknum: number
-      try {
-        syncedBlocknum = await this._handleSyncCurationEvents()
-      } catch (error) {
-        this.slackService.sendQueueMessage({
-          data: { error },
-          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-          message: `'Failed to sync Polygon curation events`,
-          state: SLACK_MESSAGE_STATE.failed,
-        })
-        throw error
-      }
-      return syncedBlocknum
+      let syncedBlockNum: { [key: string]: number } = {}
+
+      ;['Polygon', 'Optimism'].forEach(async (chain) => {
+        try {
+          const blockNum = await this._handleSyncCurationEvents(
+            chain as GQLChain
+          )
+          syncedBlockNum = {
+            ...syncedBlockNum,
+            [chain]: blockNum,
+          }
+        } catch (error) {
+          this.slackService.sendQueueMessage({
+            data: { error },
+            title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+            message: `'Failed to sync ${chain} curation events`,
+            state: SLACK_MESSAGE_STATE.failed,
+          })
+          throw error
+        }
+      })
+
+      return syncedBlockNum
     }
 
-  private _handleSyncCurationEvents = async () => {
+  private _handleSyncCurationEvents = async (chain: GQLChain) => {
     const atomService = new AtomService(this.connections)
+    const chainId = getChainId(chain)
+    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
 
     // fetch events
-    const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = polygonCurationContractAddress
+    const contractAddress = _contract.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
     const record = await atomService.findFirst({
       table: 'blockchain_sync_record',
@@ -264,14 +270,14 @@ export class PayToByBlockchainQueue extends BaseQueue {
     })
     const oldSavepoint = record
       ? BigInt(parseInt(record.blockNumber, 10))
-      : BigInt(parseInt(polygonCurationContractBlocknum, 10) || 0)
+      : BigInt(parseInt(_contract.curationBlockNum, 10) || 0)
     const [logs, newSavepoint] = await this.fetchCurationLogs(
       curation,
       oldSavepoint
     )
 
     // update tx state and save events
-    await this._syncCurationEvents(logs)
+    await this._syncCurationEvents(logs, chain)
 
     // save progress
     await atomService.upsert({
@@ -295,6 +301,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private _handleNewEvent = async (
     event: CurationEvent,
+    chain: GQLChain,
     blockchainTx: {
       id: string
       transactionId: string
@@ -309,6 +316,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
   ) => {
     const { paymentService, userService, atomService } = services
 
+    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+
     // related tx record has resolved
     if (
       blockchainTx.transactionId &&
@@ -320,7 +329,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // skip if token address or uri is invalid
     // support USDT only for now
     if (
-      !ignoreCaseMatch(event.tokenAddress || '', polygonUSDTContractAddress) ||
+      !ignoreCaseMatch(event.tokenAddress || '', _contract.tokenAddress) ||
       !isValidUri(event.uri)
     ) {
       return
@@ -341,7 +350,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     }
 
     const amount = parseFloat(
-      formatUnits(BigInt(event.amount), polygonUSDTContractDecimals)
+      formatUnits(BigInt(event.amount), _contract.tokenDecimals)
     )
 
     let tx
@@ -377,7 +386,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       // correct invalid tx
       const isValidTx =
         tx.targetId === article.id &&
-        parseUnits(tx.amount, polygonUSDTContractDecimals).toString() ===
+        parseUnits(tx.amount, _contract.tokenDecimals).toString() ===
           event.amount
       if (!isValidTx) {
         await atomService.update({
@@ -452,14 +461,18 @@ export class PayToByBlockchainQueue extends BaseQueue {
     return [await curation.fetchLogs(fromBlockNum, safeBlockNum), safeBlockNum]
   }
 
-  private _syncCurationEvents = async (logs: Array<Log<CurationEvent>>) => {
+  private _syncCurationEvents = async (
+    logs: Array<Log<CurationEvent>>,
+    chain: GQLChain
+  ) => {
     const paymentService = new PaymentService(this.connections)
     const userService = new UserService(this.connections)
     const articleService = new ArticleService(this.connections)
     const atomService = new AtomService(this.connections)
 
-    const chainId = isProd ? polygon.id : polygonMumbai.id
-    const contractAddress = polygonCurationContractAddress
+    const chainId = getChainId(chain)
+    const _contract = contract[chain === 'Polygon' ? 'polygon' : 'optimism']
+    const contractAddress = _contract.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     // save events to `blockchain_curation_event`
@@ -486,7 +499,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
       // correct tx if needed
       try {
-        await this._handleNewEvent(log.event, blockchainTx, {
+        await this._handleNewEvent(log.event, chain, blockchainTx, {
           paymentService,
           userService,
           articleService,

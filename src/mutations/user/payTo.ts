@@ -2,7 +2,6 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
-import { polygon, polygonMumbai } from 'viem/chains'
 
 import {
   PAYMENT_CURRENCY,
@@ -13,7 +12,7 @@ import {
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { environment } from 'common/environment'
 import {
   EntityNotFoundError,
   ForbiddenByStateError,
@@ -26,7 +25,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, isValidTransactionHash } from 'common/utils'
+import { fromGlobalId, getChainId, isValidTransactionHash } from 'common/utils'
 
 const resolver: GQLMutationResolvers['payTo'] = async (
   _,
@@ -217,17 +216,16 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     if (!isValidTransactionHash(txHash)) {
       throw new UserInputError('invalid transaction hash')
     }
-    const chainId = isProd ? polygon.id : polygonMumbai.id
     transaction =
       await paymentService.findOrCreateTransactionByBlockchainTxHash({
         ...baseParams,
-        chainId,
+        chainId: getChainId(chain),
         txHash,
         state: TRANSACTION_STATE.pending,
         currency: PAYMENT_CURRENCY.USDT,
         purpose: TRANSACTION_PURPOSE[purpose],
       })
-    payToByBlockchainQueue.payTo({ txId: transaction.id })
+    payToByBlockchainQueue.payTo({ txId: transaction.id, chain })
   }
 
   return { transaction, redirectUrl }

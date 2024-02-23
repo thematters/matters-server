@@ -244,6 +244,7 @@ export default /* GraphQL */ `
 
   enum Chain {
     Polygon
+    Optimism
   }
 
   type BlockchainTransaction {

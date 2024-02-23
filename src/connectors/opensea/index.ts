@@ -1,7 +1,7 @@
 import { RESTDataSource, AugmentedRequest } from '@apollo/datasource-rest'
 
 import { CACHE_TTL } from 'common/enums'
-import { environment } from 'common/environment'
+import { contract, environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-opensea')
@@ -26,7 +26,7 @@ export class OpenSeaService extends RESTDataSource {
 
   async getAssets({
     owner,
-    asset_contract_address = environment.traveloggersContractAddress,
+    asset_contract_address = contract.ethereum.traveloggersAddress,
   }: {
     owner: string
     asset_contract_address?: string
