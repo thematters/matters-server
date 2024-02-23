@@ -15,3 +15,14 @@ export const getChainId = (chain: GQLChain) => {
 
   return chainIds[chain]
 }
+
+export const getChain = (chainId: number | string): GQLChain => {
+  const chains = {
+    [polygon.id]: 'Polygon',
+    [polygonMumbai.id]: 'Polygon',
+    [optimism.id]: 'Optimism',
+    [optimismSepolia.id]: 'Optimism',
+  }
+
+  return chains[chainId as keyof typeof chains] as GQLChain
+}

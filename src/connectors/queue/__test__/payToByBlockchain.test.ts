@@ -2,7 +2,6 @@
 import type { Connections } from 'definitions'
 
 import { Knex } from 'knex'
-import { polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN,
@@ -22,6 +21,7 @@ import { PayToByBlockchainQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
 import { contract } from 'common/environment'
+import { getChainId } from 'common/utils'
 
 // setup mock
 
@@ -66,7 +66,7 @@ const recipientId = '1'
 const senderId = '2'
 const targetId = '1'
 const targetType = TRANSACTION_TARGET_TYPE.article
-const chainId = polygonMumbai.id
+const chainId = getChainId('Polygon')
 
 const invalidTxhash =
   '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
@@ -102,7 +102,7 @@ const validEvent = {
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: contract.polygon.tokenAddress,
-  amount: '1000000000000000000',
+  amount: '1000000',
 }
 const nativeTokenEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
@@ -145,10 +145,7 @@ describe('payToByBlockchainQueue.payTo', () => {
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
-    const job = await queue.payTo({
-      txId: wrongTxId,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: wrongTxId })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
@@ -168,10 +165,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('wrong pay-to queue')
     )
@@ -191,10 +185,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not found')
     )
@@ -214,10 +205,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not mined')
     )
@@ -237,10 +225,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.failed)
@@ -264,10 +249,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.canceled)
@@ -292,10 +274,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
@@ -327,10 +306,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({
-      txId: tx.id,
-      chain: 'Polygon',
-    })
+    const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.senderId).toBeNull()
@@ -378,12 +354,12 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record
     // @ts-ignore
-    await queue._handleSyncCurationEvents()
+    await queue._handleSyncCurationEvents('Polygon')
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const oldSavepoint = await knex(syncRecordTable).first()
     // update record
     // @ts-ignore
-    await queue._handleSyncCurationEvents()
+    await queue._handleSyncCurationEvents('Polygon')
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const newSavepoint = await knex(syncRecordTable).first()
     expect(new Date(newSavepoint.updatedAt).getTime()).toBeGreaterThan(
@@ -429,7 +405,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   })
   test('handle empty logs', async () => {
     // @ts-ignore
-    await queue._syncCurationEvents([])
+    await queue._syncCurationEvents([], 'Polygon')
   })
   test('handle native token curation logs', async () => {
     const nativeTokenLog = {
@@ -440,7 +416,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       event: nativeTokenEvent,
     }
     // @ts-ignore
-    await queue._syncCurationEvents([nativeTokenLog])
+    await queue._syncCurationEvents([nativeTokenLog], 'Polygon')
     expect(
       await knex(eventTable).where({ tokenAddress: null }).count()
     ).toEqual([{ count: '1' }])
@@ -457,7 +433,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       event: validEvent,
     }
     // @ts-ignore
-    await queue._syncCurationEvents([removedLog])
+    await queue._syncCurationEvents([removedLog], 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '0' }])
     expect(await knex(eventTable).count()).toEqual([{ count: '0' }])
@@ -499,7 +475,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(invalidLogs)
+    await queue._syncCurationEvents(invalidLogs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '3' }])
     expect(await knex(eventTable).count()).toEqual([{ count: '3' }])
@@ -522,7 +498,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const tx = await knex(txTable).first()
     const blockchainTx = await knex(blockchainTxTable).first()
@@ -537,7 +513,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx = await knex(txTable).where('id', tx.id).first()
     const updatedBlockchainTx = await knex(blockchainTxTable)
@@ -559,7 +535,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     })
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx2 = await knex(txTable).where('id', tx.id).first()
     const updatedBlockchainTx2 = await knex(blockchainTxTable)
@@ -620,7 +596,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
 
     const updatedBlockchainTx =
       await paymentService.findOrCreateBlockchainTransaction({
@@ -645,7 +621,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(mockNotify).not.toHaveBeenCalled()
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
 
     expect(mockNotify).not.toHaveBeenCalled()
   })
