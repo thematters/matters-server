@@ -15,16 +15,13 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import {
-  polygonCurationContractAddress,
-  polygonUSDTContractAddress,
-} from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { PaymentService } from 'connectors'
 import { CurationContract } from 'connectors/blockchain'
 import { PayToByBlockchainQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
+import { contract } from 'common/environment'
 
 // setup mock
 
@@ -38,7 +35,7 @@ jest.mock('connectors/blockchain', () => ({
     fetchLogs: mockFetchLogs,
     fetchBlockNumber: mockFetchBlockNumber,
     chainId,
-    address: polygonCurationContractAddress,
+    address: contract.polygon.curationAddress,
   })),
 }))
 
@@ -87,7 +84,7 @@ const notMinedHash =
 const invalidTxReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.polygon.curationAddress,
   txHash: invalidTxhash,
   reverted: false,
   events: [],
@@ -95,7 +92,7 @@ const invalidTxReceipt = {
 const failedTxReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.polygon.curationAddress,
   txHash: failedTxhash,
   reverted: true,
   events: [],
@@ -104,7 +101,7 @@ const validEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
-  tokenAddress: polygonUSDTContractAddress,
+  tokenAddress: contract.polygon.tokenAddress,
   amount: '1000000000000000000',
 }
 const nativeTokenEvent = {
@@ -117,7 +114,7 @@ const nativeTokenEvent = {
 const txReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.polygon.curationAddress,
   txHash,
   reverted: false,
   events: [validEvent],
@@ -148,7 +145,10 @@ describe('payToByBlockchainQueue.payTo', () => {
 
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
-    const job = await queue.payTo({ txId: wrongTxId })
+    const job = await queue.payTo({
+      txId: wrongTxId,
+      chain: 'Polygon',
+    })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
@@ -168,7 +168,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('wrong pay-to queue')
     )
@@ -188,7 +191,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not found')
     )
@@ -208,7 +214,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('blockchain transaction not mined')
     )
@@ -228,7 +237,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.failed)
@@ -252,7 +264,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.canceled)
@@ -277,7 +292,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
@@ -309,7 +327,10 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetId,
       targetType,
     })
-    const job = await queue.payTo({ txId: tx.id })
+    const job = await queue.payTo({
+      txId: tx.id,
+      chain: 'Polygon',
+    })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
     expect(ret.senderId).toBeNull()
@@ -370,7 +391,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
   test('fetch logs', async () => {
-    const contractAddress = polygonCurationContractAddress
+    const contractAddress = contract.polygon.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     const oldSavepoint1 = BigInt(20000000)
@@ -413,7 +434,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   test('handle native token curation logs', async () => {
     const nativeTokenLog = {
       txHash: txHash2,
-      address: polygonCurationContractAddress,
+      address: contract.polygon.curationAddress,
       blockNumber: 1,
       removed: false,
       event: nativeTokenEvent,
@@ -430,7 +451,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(txTable).del()
     const removedLog = {
       txHash,
-      address: polygonCurationContractAddress,
+      address: contract.polygon.curationAddress,
       blockNumber: 1,
       removed: true,
       event: validEvent,
@@ -448,7 +469,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const invalidLogs = [
       {
         txHash: 'fakeTxhash2',
-        address: polygonCurationContractAddress,
+        address: contract.polygon.curationAddress,
         blockNumber: 2,
         removed: false,
         event: {
@@ -458,7 +479,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash3',
-        address: polygonCurationContractAddress,
+        address: contract.polygon.curationAddress,
         blockNumber: 3,
         removed: false,
         event: {
@@ -468,7 +489,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash4',
-        address: polygonCurationContractAddress,
+        address: contract.polygon.curationAddress,
         blockNumber: 4,
         removed: false,
         event: {
@@ -492,7 +513,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const logs = [
       {
         txHash,
-        address: polygonCurationContractAddress,
+        address: contract.polygon.curationAddress,
         blockNumber: 1,
         removed: false,
         event: {
@@ -590,7 +611,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const logs = [
       {
         txHash: txHash3,
-        address: polygonCurationContractAddress,
+        address: contract.polygon.curationAddress,
         blockNumber: 1,
         removed: false,
         event: {

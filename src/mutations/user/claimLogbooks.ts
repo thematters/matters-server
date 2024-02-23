@@ -17,7 +17,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { polygon, polygonMumbai } from 'viem/chains'
 
 import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { environment, isProd, contract } from 'common/environment'
 import {
   EntityNotFoundError,
   EthAddressNotFoundError,
@@ -67,7 +67,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // get Traveloggers token ids
   const traveloggersNFTs = (await alchemy.getNFTs({
     network: isProd ? AlchemyNetwork.Mainnet : AlchemyNetwork.Rinkeby,
-    contract: environment.traveloggersContractAddress,
+    contract: contract.ethereum.traveloggersAddress,
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
   const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
@@ -95,17 +95,17 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     chain: client.chain,
     transport: http(),
   })
-  const contract = getContract({
+  const logbookContract = getContract({
     publicClient: client,
     abi,
-    address: environment.logbookContractAddress as Address,
+    address: contract.polygon.logbookAddress as Address,
     walletClient,
   })
 
   const unclaimedTokenIds = []
   for (const tokenId of tokenIds) {
     try {
-      await contract.read.ownerOf([tokenId])
+      await logbookContract.read.ownerOf([tokenId])
     } catch (e) {
       unclaimedTokenIds.push(tokenId)
     }
@@ -140,7 +140,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     })
   )
 
-  const txHash = await contract.write.multicall(calldata, {
+  const txHash = await logbookContract.write.multicall(calldata, {
     maxFeePerGas,
     maxPriorityFeePerGas,
   })

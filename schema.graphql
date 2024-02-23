@@ -3449,6 +3449,7 @@ enum StripeAccountCountry {
 
 enum Chain {
   Polygon
+  Optimism
 }
 
 type BlockchainTransaction {
