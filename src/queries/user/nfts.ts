@@ -37,7 +37,7 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
     getter: () =>
       alchemy.getNFTs({
         owner,
-        contract: contract.ethereum.traveloggersAddress,
+        contract: contract.Ethereum.traveloggersAddress,
         network,
         withMetadata,
       }),
@@ -70,7 +70,7 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
       alchemy.getNFTs({
         owner,
         network,
-        contract: contract.ethereum.traveloggersAddress,
+        contract: contract.Ethereum.traveloggersAddress,
         withMetadata,
       }),
     expire: CACHE_TTL.LONG,
