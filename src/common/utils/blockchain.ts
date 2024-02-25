@@ -6,6 +6,8 @@ import { GQLChain } from 'definitions'
 export const rpcs: { [chainId: number]: string } = {
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
 }
 
 export const getChainId = (chain: GQLChain) => {
