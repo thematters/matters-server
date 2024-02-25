@@ -151,14 +151,14 @@ export const environment = {
 }
 
 export const contract = {
-  ethereum: isProd
+  Ethereum: isProd
     ? {
         traveloggersAddress: '0x8515ba8ef2cf2f2ba44b26ff20337d7a2bc5e6d8',
       }
     : {
         traveloggersAddress: '0xae89d81ab5c668661200fa9c6ed45fe1707f7097',
       },
-  polygon: isProd
+  Polygon: isProd
     ? {
         logbookAddress: '0xcdf8D568EC808de5fCBb35849B5bAFB5d444D4c0',
         curationAddress: '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8',
@@ -173,7 +173,7 @@ export const contract = {
         tokenAddress: '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1',
         tokenDecimals: 6,
       },
-  optimism: isProd
+  Optimism: isProd
     ? {
         curationAddress: '', // TODO
         curationBlockNum: '', // TODO

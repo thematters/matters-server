@@ -67,7 +67,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // get Traveloggers token ids
   const traveloggersNFTs = (await alchemy.getNFTs({
     network: isProd ? AlchemyNetwork.Mainnet : AlchemyNetwork.Rinkeby,
-    contract: contract.ethereum.traveloggersAddress,
+    contract: contract.Ethereum.traveloggersAddress,
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
   const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
@@ -98,7 +98,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   const logbookContract = getContract({
     publicClient: client,
     abi,
-    address: contract.polygon.logbookAddress as Address,
+    address: contract.Polygon.logbookAddress as Address,
     walletClient,
   })
 

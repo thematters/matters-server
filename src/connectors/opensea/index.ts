@@ -26,7 +26,7 @@ export class OpenSeaService extends RESTDataSource {
 
   public async getAssets({
     owner,
-    asset_contract_address = contract.ethereum.traveloggersAddress,
+    asset_contract_address = contract.Ethereum.traveloggersAddress,
   }: {
     owner: string
     asset_contract_address?: string
