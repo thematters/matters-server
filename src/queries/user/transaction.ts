@@ -31,7 +31,7 @@ export const Transaction: GQLTransactionResolvers = {
     )
     const chain =
       BLOCKCHAIN_CHAINNAME[
-        blockchainTx.chainId as keyof typeof BLOCKCHAIN_CHAINNAME
+        parseInt(blockchainTx.chainId, 10) as keyof typeof BLOCKCHAIN_CHAINNAME
       ]
     if (!chain) {
       throw new ServerError('chain is not supported')

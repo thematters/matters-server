@@ -1,3 +1,5 @@
+import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
+
 import { LANGUAGE } from './language'
 
 export enum TRANSACTION_STATE {
@@ -41,15 +43,19 @@ export enum PAYMENT_PROVIDER {
 
 export const BLOCKCHAIN = {
   Polygon: 'Polygon',
+  Optimism: 'Optimism',
 } as const
 
 export const BLOCKCHAIN_CHAINNAME = {
-  '137': BLOCKCHAIN.Polygon,
-  '80001': BLOCKCHAIN.Polygon,
+  [polygon.id]: BLOCKCHAIN.Polygon,
+  [polygonMumbai.id]: BLOCKCHAIN.Polygon,
+  [optimism.id]: BLOCKCHAIN.Optimism,
+  [optimismSepolia.id]: BLOCKCHAIN.Optimism,
 } as const
 
 export const BLOCKCHAIN_SAFE_CONFIRMS = {
   [BLOCKCHAIN.Polygon]: 128,
+  [BLOCKCHAIN.Optimism]: 128,
 } as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {
