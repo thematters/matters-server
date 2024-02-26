@@ -3,7 +3,6 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 
-import { AtomService } from 'connectors'
 import { NODE_TYPES } from 'common/enums'
 import { AtomService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
@@ -272,7 +271,7 @@ describe('mutations on comment', () => {
       table: 'comment',
       where: { id },
     })
-    expect(comment.articleVersionId).toBeDefined()
+    expect(comment.articleVersionId).not.toBeNull()
   })
 
   test('upvote a comment', async () => {

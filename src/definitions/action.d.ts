@@ -28,6 +28,7 @@ export interface ActionArticle {
   action: ARTICLE_ACTION
   userId: string
   targetId: string
+  articleVersionId: string
   createdAt: Date
   updatedAt: Date
 }

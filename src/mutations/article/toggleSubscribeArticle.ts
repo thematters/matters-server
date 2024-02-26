@@ -17,7 +17,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { atomService, notificationService } }
+  { viewer, dataSources: { atomService, articleService, notificationService } }
 ) => {
   // checks
   if (!viewer.userName) {
@@ -29,7 +29,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  // banned and archived articles shall still be abled to be unsubscribed
+  // banned and archived articles shall still be able to be unsubscribed
   const article =
     enabled === false
       ? await atomService.findFirst({
@@ -51,6 +51,8 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
+  const { id: articleVersionId } =
+    await articleService.loadLatestArticleVersion(article.id)
 
   // determine action
   let action: 'subscribe' | 'unsubscribe'
@@ -78,8 +80,8 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
     await atomService.upsert({
       table: 'action_article',
       where: data,
-      create: data,
-      update: { ...data, updatedAt: new Date() },
+      create: { ...data, articleVersionId },
+      update: { ...data, articleVersionId },
     })
 
     // trigger notifications

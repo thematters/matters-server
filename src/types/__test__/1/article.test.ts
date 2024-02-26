@@ -57,7 +57,8 @@ jest.mock('common/enums', () => {
 
 const mediaHash = 'someIpfsMediaHash1'
 
-const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+const ARTICLE_DB_ID = '1'
+const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: ARTICLE_DB_ID })
 
 const GET_ARTICLE = /* GraphQL */ `
   query ($input: ArticleInput!) {
@@ -365,10 +366,10 @@ describe('toggle article state', () => {
   test('subscribe an article', async () => {
     const server = await testClient({
       isAuth: true,
-      connections,
       isAdmin: true,
+      connections,
     })
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: TOGGLE_SUBSCRIBE_ARTICLE,
       variables: {
         input: {
@@ -377,7 +378,19 @@ describe('toggle article state', () => {
         },
       },
     })
-    expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(true)
+    expect(errors).toBeUndefined()
+    expect(data.toggleSubscribeArticle.subscribed).toBe(true)
+
+    console.dir(server, { depth: 10 })
+
+    const atomService = new AtomService(connections)
+    const action = await atomService.findFirst({
+      table: 'action_article',
+      where: { targetId: ARTICLE_DB_ID },
+      orderBy: [{ column: 'id', order: 'desc' }],
+    })
+    expect(action.targetId).toBe(ARTICLE_DB_ID)
+    expect(action.articleVersionId).not.toBeNull()
   })
 
   test('unsubscribe an article ', async () => {
