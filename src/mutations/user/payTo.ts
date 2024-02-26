@@ -4,6 +4,7 @@ import { compare } from 'bcrypt'
 import { v4 } from 'uuid'
 
 import {
+  BLOCKCHAIN_CHAINID,
   PAYMENT_CURRENCY,
   PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   PAYMENT_PROVIDER,
@@ -25,7 +26,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, getChainId, isValidTransactionHash } from 'common/utils'
+import { fromGlobalId, isValidTransactionHash } from 'common/utils'
 
 const resolver: GQLMutationResolvers['payTo'] = async (
   _,
@@ -219,7 +220,7 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     transaction =
       await paymentService.findOrCreateTransactionByBlockchainTxHash({
         ...baseParams,
-        chainId: getChainId(chain),
+        chainId: BLOCKCHAIN_CHAINID[chain],
         txHash,
         state: TRANSACTION_STATE.pending,
         currency: PAYMENT_CURRENCY.USDT,
