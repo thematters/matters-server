@@ -97,7 +97,16 @@ const resolver: GQLArticleResolvers['translation'] = async (
   )
 
   if (title && content) {
-    const data = { articleId, title, content, summary, language }
+    const { id: articleVersionId } =
+      await articleService.loadLatestArticleVersion(articleId)
+    const data = {
+      articleId,
+      title,
+      content,
+      summary,
+      language,
+      articleVersionId,
+    }
     await atomService.upsert({
       table: 'article_translation',
       where: { articleId, language },
