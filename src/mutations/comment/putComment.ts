@@ -55,11 +55,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     dataSources: {
       atomService,
       paymentService,
-      commentService,
       articleService,
       notificationService,
       userService,
-      connections: { knex },
     },
   }
 ) => {
@@ -72,7 +70,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     )
   }
 
-  const data: { [key: string]: any } = {
+  const data: Partial<Comment> & { mentionedUserIds?: any } = {
     content: normalizeCommentHTML(sanitizeHTML(content)),
     authorId: viewer.id,
   }
@@ -92,6 +90,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     if (!article) {
       throw new ArticleNotFoundError('target article does not exists')
     }
+    const { id: articleVersionId } =
+      await articleService.loadLatestArticleVersion(article.id)
 
     const { id: typeId } = await atomService.findFirst({
       table: 'entity_type',
@@ -99,6 +99,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     })
     data.targetTypeId = typeId
     data.targetId = article.id
+    data.articleVersionId = articleVersionId
 
     targetAuthor = article.authorId
   } else if (circleId) {
@@ -140,7 +141,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check parentComment
    */
-  let parentComment: any
+  let parentComment: Comment | undefined = undefined
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
     parentComment = await atomService.commentIdLoader.load(parentDbId)
@@ -163,7 +164,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check reply to
    */
-  let replyToComment: any
+  let replyToComment: Comment | undefined = undefined
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
     replyToComment = await atomService.commentIdLoader.load(replyToDBId)
@@ -322,6 +323,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         authorId: data.authorId,
         targetId: data.targetId,
         targetTypeId: data.targetTypeId,
+        articleVersionId: data.articleVersionId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
         type: data.type,
