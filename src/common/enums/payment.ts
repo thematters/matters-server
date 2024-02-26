@@ -49,7 +49,7 @@ export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
   Optimism: 'Optimism',
 } as const
 
-export const BLOCKCHAIN_CHAINNAME = {
+export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
   [polygon.id]: BLOCKCHAIN.Polygon,
   [polygonMumbai.id]: BLOCKCHAIN.Polygon,
   [optimism.id]: BLOCKCHAIN.Optimism,
@@ -57,11 +57,11 @@ export const BLOCKCHAIN_CHAINNAME = {
 } as const
 
 export const BLOCKCHAIN_CHAINID = {
-  [BLOCKCHAIN.Polygon]: isProd ? polygon.id : polygonMumbai.id,
-  [BLOCKCHAIN.Optimism]: isProd ? optimism.id : optimismSepolia.id,
+  [BLOCKCHAIN.Polygon]: isProd ? polygon.id + '' : polygonMumbai.id + '',
+  [BLOCKCHAIN.Optimism]: isProd ? optimism.id + '' : optimismSepolia.id + '',
 } as const
 
-export const BLOCKCHAIN_RPC: { [chainId: number]: string } = {
+export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
@@ -69,9 +69,9 @@ export const BLOCKCHAIN_RPC: { [chainId: number]: string } = {
 }
 
 // via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times
-export const BLOCKCHAIN_SAFE_CONFIRMS = {
-  [BLOCKCHAIN.Polygon]: 70,
-  [BLOCKCHAIN.Optimism]: 40,
+export const BLOCKCHAIN_SAFE_CONFIRMS: { [key in GQLChain]: number } = {
+  Polygon: 70,
+  Optimism: 40,
 } as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {

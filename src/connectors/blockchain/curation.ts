@@ -75,7 +75,7 @@ export class CurationContract extends BaseContract {
   public erc20TokenCurationEventTopic: Hex[]
   public nativeTokenCurationEventTopic: Hex[]
 
-  public constructor(chainId: number, contractAddress: string) {
+  public constructor(chainId: string, contractAddress: string) {
     super(chainId, contractAddress as Address, CURATION_ABI)
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,

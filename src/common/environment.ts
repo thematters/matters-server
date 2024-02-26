@@ -161,29 +161,36 @@ export const contract = {
   Polygon: isProd
     ? {
         logbookAddress: '0xcdf8D568EC808de5fCBb35849B5bAFB5d444D4c0',
-        curationAddress: '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8',
+        curationAddress:
+          '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8'.toLowerCase(),
         curationBlockNum: '34564355',
-        tokenAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+        tokenAddress:
+          '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'.toLowerCase(),
         tokenDecimals: 6,
       }
     : {
         logbookAddress: '0x203197e074b7a2f4ff6890815e4657a9c47c68b1',
-        curationAddress: '0xa219C6722008aa22828B31A13ab9Ba93bB91222c',
+        curationAddress:
+          '0xa219C6722008aa22828B31A13ab9Ba93bB91222c'.toLowerCase(),
         curationBlockNum: '28675517',
-        tokenAddress: '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1',
+        tokenAddress:
+          '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'.toLowerCase(),
         tokenDecimals: 6,
       },
   Optimism: isProd
     ? {
-        curationAddress: '', // TODO
+        curationAddress: ''.toLowerCase(), // TODO
         curationBlockNum: '', // TODO
-        tokenAddress: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+        tokenAddress:
+          '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
         tokenDecimals: 6,
       }
     : {
-        curationAddress: '0x92a117aeA74963Cd0CEdF9C50f99435451a291F7',
+        curationAddress:
+          '0x92a117aeA74963Cd0CEdF9C50f99435451a291F7'.toLowerCase(),
         curationBlockNum: '8438904',
-        tokenAddress: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+        tokenAddress:
+          '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'.toLowerCase(),
         tokenDecimals: 6,
       },
 }
