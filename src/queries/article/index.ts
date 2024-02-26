@@ -74,7 +74,7 @@ import topicChapters from './topic/chapters'
 import topicCover from './topic/cover'
 import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
-import translation from './translation'
+import articleTranslation from './translation/article'
 import userArticles from './user/articles'
 import userTopics from './user/topics'
 import versions from './versions'
@@ -121,7 +121,7 @@ const schema: GQLResolvers = {
     subscribed,
     subscribers,
     tags,
-    translation,
+    translation: articleTranslation,
     availableTranslations,
     topicScore: (({ score }: { score: number }) =>
       score ? Math.round(score) : null) as any,
