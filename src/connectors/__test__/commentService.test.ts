@@ -163,5 +163,20 @@ describe('find comments', () => {
     expect(comments4.map((c) => c.id)).toContain(archived.id)
     expect(comments4.map((c) => c.id)).toContain(banned.id)
     expect(count4).toBe(count + 2)
+
+    // when state is provided, filter by state
+    const [comment5, _] = await commentService.find({
+      where: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        state: 'archived',
+      },
+    })
+    expect(comment5.map((c) => c.id)).toContain(archived.id)
+    comment5.forEach((comment) => {
+      expect(comment.state).toBe('archived')
+    })
   })
 })
