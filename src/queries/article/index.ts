@@ -75,6 +75,7 @@ import topicCover from './topic/cover'
 import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import articleTranslation from './translation/article'
+import articleVersionTranslation from './translation/articleVersion'
 import userArticles from './user/articles'
 import userTopics from './user/topics'
 import versions from './versions'
@@ -177,6 +178,7 @@ const schema: GQLResolvers = {
   ArticleVersion: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),
     contents: (root) => root,
+    translation: articleVersionTranslation,
   },
   ArticleContents: {
     html: contents.html,

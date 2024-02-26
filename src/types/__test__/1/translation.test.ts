@@ -70,3 +70,33 @@ describe('article translations', () => {
     })
   })
 })
+
+describe('article version translations', () => {
+  const GET_ARTICLE_TRANSLATION = /* GraphQL */ `
+    query ($nodeInput: NodeInput!, $translationInput: TranslationArgs!) {
+      node(input: $nodeInput) {
+        id
+        ... on ArticleVersion {
+          translation(input: $translationInput) {
+            title
+            content
+          }
+        }
+      }
+    }
+  `
+  test('query article translations', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.ArticleVersion, id: 1 })
+    const server = await testClient({ connections })
+    const { error, data } = await server.executeOperation({
+      query: GET_ARTICLE_TRANSLATION,
+      variables: {
+        nodeInput: { id },
+        translationInput: { language: 'en' },
+      },
+    })
+    expect(error).toBeUndefined()
+    expect(data.node.translation.title).toBe(MOCKED_TRANSLATION)
+    expect(data.node.translation.content).toBe(MOCKED_TRANSLATION)
+  })
+})

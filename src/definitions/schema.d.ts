@@ -542,6 +542,11 @@ export type GQLArticleVersion = GQLNode & {
   id: Scalars['ID']['output']
   mediaHash?: Maybe<Scalars['String']['output']>
   summary: Scalars['String']['output']
+  translation?: Maybe<GQLArticleTranslation>
+}
+
+export type GQLArticleVersionTranslationArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLArticleVersionEdge = {
@@ -5863,6 +5868,12 @@ export type GQLArticleVersionResolvers<
     ContextType
   >
   summary?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  translation?: Resolver<
+    Maybe<GQLResolversTypes['ArticleTranslation']>,
+    ParentType,
+    ContextType,
+    Partial<GQLArticleVersionTranslationArgs>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

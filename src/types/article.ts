@@ -271,6 +271,7 @@ export default /* GraphQL */ `
     mediaHash: String
     summary: String!
     contents: ArticleContents!
+    translation(input: TranslationArgs): ArticleTranslation
     createdAt: DateTime!
     description: String
   }
