@@ -1,5 +1,8 @@
 import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
 
+import { environment, isProd } from 'common/environment'
+import { GQLChain } from 'definitions'
+
 import { LANGUAGE } from './language'
 
 export enum TRANSACTION_STATE {
@@ -41,7 +44,7 @@ export enum PAYMENT_PROVIDER {
   blockchain = 'blockchain',
 }
 
-export const BLOCKCHAIN = {
+export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
   Polygon: 'Polygon',
   Optimism: 'Optimism',
 } as const
@@ -53,9 +56,22 @@ export const BLOCKCHAIN_CHAINNAME = {
   [optimismSepolia.id]: BLOCKCHAIN.Optimism,
 } as const
 
+export const BLOCKCHAIN_CHAINID = {
+  [BLOCKCHAIN.Polygon]: isProd ? polygon.id : polygonMumbai.id,
+  [BLOCKCHAIN.Optimism]: isProd ? optimism.id : optimismSepolia.id,
+} as const
+
+export const BLOCKCHAIN_RPC: { [chainId: number]: string } = {
+  [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+}
+
+// via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times
 export const BLOCKCHAIN_SAFE_CONFIRMS = {
-  [BLOCKCHAIN.Polygon]: 128,
-  [BLOCKCHAIN.Optimism]: 128,
+  [BLOCKCHAIN.Polygon]: 70,
+  [BLOCKCHAIN.Optimism]: 40,
 } as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {

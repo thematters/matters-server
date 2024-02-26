@@ -5,6 +5,7 @@ import { Knex } from 'knex'
 
 import {
   BLOCKCHAIN,
+  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   PAYMENT_CURRENCY,
@@ -21,7 +22,6 @@ import { PayToByBlockchainQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
 import { contract } from 'common/environment'
-import { getChainId } from 'common/utils'
 
 // setup mock
 
@@ -66,7 +66,7 @@ const recipientId = '1'
 const senderId = '2'
 const targetId = '1'
 const targetType = TRANSACTION_TARGET_TYPE.article
-const chainId = getChainId('Polygon')
+const chainId = BLOCKCHAIN_CHAINID.Polygon
 
 const invalidTxhash =
   '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'

@@ -11,6 +11,8 @@ import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
 
 import {
+  BLOCKCHAIN_CHAINID,
+  BLOCKCHAIN_CHAINNAME,
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   MINUTE,
@@ -28,7 +30,6 @@ import {
 } from 'common/enums'
 import { contract, isProd } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
-import { getChain, getChainId } from 'common/utils'
 import {
   PaymentService,
   UserService,
@@ -137,9 +138,15 @@ export class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const chain = getChain(blockchainTx.chainId)
+    const chain =
+      BLOCKCHAIN_CHAINNAME[
+        parseInt(blockchainTx.chainId, 10) as keyof typeof BLOCKCHAIN_CHAINNAME
+      ]
     const contractAddress = contract[chain].curationAddress
-    const curation = new CurationContract(getChainId(chain), contractAddress)
+    const curation = new CurationContract(
+      BLOCKCHAIN_CHAINID[chain],
+      contractAddress
+    )
     const txReceipt = await curation.fetchTxReceipt(blockchainTx.txHash)
 
     // update metadata blockchain tx
@@ -266,7 +273,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
   private _handleSyncCurationEvents = async (chain: GQLChain) => {
     const atomService = new AtomService(this.connections)
-    const chainId = getChainId(chain)
+    const chainId = BLOCKCHAIN_CHAINID[chain]
 
     // fetch events
     const contractAddress = contract[chain].curationAddress
@@ -481,7 +488,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const articleService = new ArticleService(this.connections)
     const atomService = new AtomService(this.connections)
 
-    const chainId = getChainId(chain)
+    const chainId = BLOCKCHAIN_CHAINID[chain]
     const contractAddress = contract[chain].curationAddress
     const curation = new CurationContract(chainId, contractAddress)
 

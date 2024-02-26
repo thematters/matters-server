@@ -16,14 +16,13 @@ import {
 import { privateKeyToAccount } from 'viem/accounts'
 import { polygon, polygonMumbai } from 'viem/chains'
 
-import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
+import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd, contract } from 'common/environment'
 import {
   EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { rpcs } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
@@ -81,7 +80,9 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // filter unclaimed token ids
   const client = createPublicClient({
     chain: isProd ? polygon : polygonMumbai,
-    transport: http(isProd ? rpcs[polygon.id] : rpcs[polygonMumbai.id]),
+    transport: http(
+      isProd ? BLOCKCHAIN_RPC[polygon.id] : BLOCKCHAIN_RPC[polygonMumbai.id]
+    ),
   })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
