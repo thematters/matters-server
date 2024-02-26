@@ -6,6 +6,7 @@ import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
 
 import {
+  BLOCKCHAIN,
   BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_CHAINNAME,
   BLOCKCHAIN_SAFE_CONFIRMS,
@@ -133,10 +134,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       throw new PaymentQueueJobDataError('blockchain transaction not found')
     }
 
-    const chain =
-      BLOCKCHAIN_CHAINNAME[
-        parseInt(blockchainTx.chainId, 10) as keyof typeof BLOCKCHAIN_CHAINNAME
-      ]
+    const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
     const contractAddress = contract[chain].curationAddress
     const curation = new CurationContract(
       BLOCKCHAIN_CHAINID[chain],
@@ -239,15 +237,10 @@ export class PayToByBlockchainQueue extends BaseQueue {
     async (_) => {
       let syncedBlockNum: { [key: string]: number } = {}
 
-      ;['Polygon', 'Optimism'].forEach(async (chain) => {
+      ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
         try {
-          const blockNum = await this._handleSyncCurationEvents(
-            chain as GQLChain
-          )
-          syncedBlockNum = {
-            ...syncedBlockNum,
-            [chain]: blockNum,
-          }
+          const blockNum = await this._handleSyncCurationEvents(chain)
+          syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
         } catch (error) {
           this.slackService.sendQueueMessage({
             data: { error },
@@ -457,7 +450,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
   ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
     const safeBlockNum =
       BigInt(await curation.fetchBlockNumber()) -
-      BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
+      BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN_CHAINNAME[curation.chainId]])
 
     const fromBlockNum = savepoint + BigInt(1)
 

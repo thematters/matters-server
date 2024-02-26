@@ -252,7 +252,7 @@ export class PaymentService extends BaseService {
     this.baseFindById(id, 'blockchain_transaction')
 
   public findOrCreateBlockchainTransaction = async (
-    { chainId, txHash }: { chainId: number; txHash: string },
+    { chainId, txHash }: { chainId: string | number; txHash: string },
     data?: {
       state?: BLOCKCHAIN_TRANSACTION_STATE
       from?: string
@@ -292,7 +292,7 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
-    chainId: number
+    chainId: string
     txHash: string
 
     amount: number

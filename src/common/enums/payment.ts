@@ -49,7 +49,7 @@ export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
   Optimism: 'Optimism',
 } as const
 
-export const BLOCKCHAIN_CHAINNAME = {
+export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
   [polygon.id]: BLOCKCHAIN.Polygon,
   [polygonMumbai.id]: BLOCKCHAIN.Polygon,
   [optimism.id]: BLOCKCHAIN.Optimism,
@@ -57,11 +57,11 @@ export const BLOCKCHAIN_CHAINNAME = {
 } as const
 
 export const BLOCKCHAIN_CHAINID = {
-  [BLOCKCHAIN.Polygon]: isProd ? polygon.id : polygonMumbai.id,
-  [BLOCKCHAIN.Optimism]: isProd ? optimism.id : optimismSepolia.id,
+  [BLOCKCHAIN.Polygon]: isProd ? polygon.id + '' : polygonMumbai.id + '',
+  [BLOCKCHAIN.Optimism]: isProd ? optimism.id + '' : optimismSepolia.id + '',
 } as const
 
-export const BLOCKCHAIN_RPC: { [chainId: number]: string } = {
+export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
