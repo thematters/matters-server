@@ -2110,11 +2110,7 @@ export class ArticleService extends BaseService<Article> {
 
     // or translate and store to db
     const [title, content, summary] = await Promise.all(
-      [
-        originTitle,
-        originContent,
-        originSummary || makeSummary(originContent),
-      ].map((text) =>
+      [originTitle, originContent, originSummary].map((text) =>
         gcp.translate({
           content: text,
           target: language,

@@ -85,7 +85,7 @@ describe('article version translations', () => {
       }
     }
   `
-  test('query article translations', async () => {
+  test('query translations', async () => {
     const id = toGlobalId({ type: NODE_TYPES.ArticleVersion, id: 1 })
     const server = await testClient({ connections })
     const { error, data } = await server.executeOperation({
@@ -98,5 +98,36 @@ describe('article version translations', () => {
     expect(error).toBeUndefined()
     expect(data.node.translation.title).toBe(MOCKED_TRANSLATION)
     expect(data.node.translation.content).toBe(MOCKED_TRANSLATION)
+  })
+  test('query paywall article_version translations by unauthorized readers return empty string ', async () => {
+    const articleId = '1'
+    const id = toGlobalId({ type: NODE_TYPES.ArticleVersion, id: articleId })
+    const server = await testClient({ connections })
+
+    const atomService = new AtomService(connections)
+    const circle = await atomService.create({
+      table: 'circle',
+      data: {
+        name: 'test',
+        owner: '1',
+        displayName: 'test',
+        providerProductId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'article_circle',
+      data: { articleId, circleId: circle.id },
+    })
+
+    const { error, data } = await server.executeOperation({
+      query: GET_ARTICLE_TRANSLATION,
+      variables: {
+        nodeInput: { id },
+        translationInput: { language: 'en' },
+      },
+    })
+    expect(error).toBeUndefined()
+    expect(data.node.translation.title).toBe(MOCKED_TRANSLATION)
+    expect(data.node.translation.content).toBe('')
   })
 })
