@@ -9,7 +9,7 @@ import {
 } from 'viem'
 import * as chains from 'viem/chains'
 
-import { rpcs } from 'common/utils'
+import { BLOCKCHAIN_RPC } from 'common/enums'
 
 export class BaseContract {
   public chainId: number
@@ -30,7 +30,7 @@ export class BaseContract {
     }) as chains.Chain
     this.client = createPublicClient({
       chain,
-      transport: http(rpcs[chainId]),
+      transport: http(BLOCKCHAIN_RPC[chainId]),
     })
 
     this.contract = getContract({ abi, address, publicClient: this.client })

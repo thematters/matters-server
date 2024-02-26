@@ -649,7 +649,7 @@ export type GQLBoostTypes = 'Article' | 'Tag' | 'User'
 
 export type GQLCacheControlScope = 'PRIVATE' | 'PUBLIC'
 
-export type GQLChain = 'Polygon'
+export type GQLChain = 'Optimism' | 'Polygon'
 
 export type GQLChangeEmailInput = {
   newEmail: Scalars['String']['input']

@@ -2,10 +2,10 @@
 import type { Connections } from 'definitions'
 
 import { Knex } from 'knex'
-import { polygonMumbai } from 'viem/chains'
 
 import {
   BLOCKCHAIN,
+  BLOCKCHAIN_CHAINID,
   BLOCKCHAIN_SAFE_CONFIRMS,
   BLOCKCHAIN_TRANSACTION_STATE,
   PAYMENT_CURRENCY,
@@ -15,16 +15,13 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
-import {
-  polygonCurationContractAddress,
-  polygonUSDTContractAddress,
-} from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
 import { PaymentService } from 'connectors'
 import { CurationContract } from 'connectors/blockchain'
 import { PayToByBlockchainQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
+import { contract } from 'common/environment'
 
 // setup mock
 
@@ -38,7 +35,7 @@ jest.mock('connectors/blockchain', () => ({
     fetchLogs: mockFetchLogs,
     fetchBlockNumber: mockFetchBlockNumber,
     chainId,
-    address: polygonCurationContractAddress,
+    address: contract.Polygon.curationAddress,
   })),
 }))
 
@@ -69,7 +66,7 @@ const recipientId = '1'
 const senderId = '2'
 const targetId = '1'
 const targetType = TRANSACTION_TARGET_TYPE.article
-const chainId = polygonMumbai.id
+const chainId = BLOCKCHAIN_CHAINID.Polygon
 
 const invalidTxhash =
   '0x209375f2de9ee7c2eed5e24eb30d0196a416924cd956a194e7060f9dcb39515b'
@@ -87,7 +84,7 @@ const notMinedHash =
 const invalidTxReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.Polygon.curationAddress,
   txHash: invalidTxhash,
   reverted: false,
   events: [],
@@ -95,7 +92,7 @@ const invalidTxReceipt = {
 const failedTxReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.Polygon.curationAddress,
   txHash: failedTxhash,
   reverted: true,
   events: [],
@@ -104,8 +101,8 @@ const validEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
-  tokenAddress: polygonUSDTContractAddress,
-  amount: '1000000000000000000',
+  tokenAddress: contract.Polygon.tokenAddress,
+  amount: '1000000',
 }
 const nativeTokenEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
@@ -117,7 +114,7 @@ const nativeTokenEvent = {
 const txReceipt = {
   blockNumber: 1,
   from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
-  to: polygonCurationContractAddress,
+  to: contract.Polygon.curationAddress,
   txHash,
   reverted: false,
   events: [validEvent],
@@ -357,12 +354,12 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '0' }])
     // create record
     // @ts-ignore
-    await queue._handleSyncCurationEvents()
+    await queue._handleSyncCurationEvents('Polygon')
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const oldSavepoint = await knex(syncRecordTable).first()
     // update record
     // @ts-ignore
-    await queue._handleSyncCurationEvents()
+    await queue._handleSyncCurationEvents('Polygon')
     expect(await knex(syncRecordTable).count()).toEqual([{ count: '1' }])
     const newSavepoint = await knex(syncRecordTable).first()
     expect(new Date(newSavepoint.updatedAt).getTime()).toBeGreaterThan(
@@ -370,7 +367,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     )
   })
   test('fetch logs', async () => {
-    const contractAddress = polygonCurationContractAddress
+    const contractAddress = contract.Polygon.curationAddress
     const curation = new CurationContract(chainId, contractAddress)
 
     const oldSavepoint1 = BigInt(20000000)
@@ -408,18 +405,18 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   })
   test('handle empty logs', async () => {
     // @ts-ignore
-    await queue._syncCurationEvents([])
+    await queue._syncCurationEvents([], 'Polygon')
   })
   test('handle native token curation logs', async () => {
     const nativeTokenLog = {
       txHash: txHash2,
-      address: polygonCurationContractAddress,
+      address: contract.Polygon.curationAddress,
       blockNumber: 1,
       removed: false,
       event: nativeTokenEvent,
     }
     // @ts-ignore
-    await queue._syncCurationEvents([nativeTokenLog])
+    await queue._syncCurationEvents([nativeTokenLog], 'Polygon')
     expect(
       await knex(eventTable).where({ tokenAddress: null }).count()
     ).toEqual([{ count: '1' }])
@@ -430,13 +427,13 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(txTable).del()
     const removedLog = {
       txHash,
-      address: polygonCurationContractAddress,
+      address: contract.Polygon.curationAddress,
       blockNumber: 1,
       removed: true,
       event: validEvent,
     }
     // @ts-ignore
-    await queue._syncCurationEvents([removedLog])
+    await queue._syncCurationEvents([removedLog], 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '0' }])
     expect(await knex(eventTable).count()).toEqual([{ count: '0' }])
@@ -448,7 +445,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const invalidLogs = [
       {
         txHash: 'fakeTxhash2',
-        address: polygonCurationContractAddress,
+        address: contract.Polygon.curationAddress,
         blockNumber: 2,
         removed: false,
         event: {
@@ -458,7 +455,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash3',
-        address: polygonCurationContractAddress,
+        address: contract.Polygon.curationAddress,
         blockNumber: 3,
         removed: false,
         event: {
@@ -468,7 +465,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
       {
         txHash: 'fakeTxhash4',
-        address: polygonCurationContractAddress,
+        address: contract.Polygon.curationAddress,
         blockNumber: 4,
         removed: false,
         event: {
@@ -478,7 +475,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(invalidLogs)
+    await queue._syncCurationEvents(invalidLogs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '0' }])
     expect(await knex(blockchainTxTable).count()).toEqual([{ count: '3' }])
     expect(await knex(eventTable).count()).toEqual([{ count: '3' }])
@@ -492,7 +489,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const logs = [
       {
         txHash,
-        address: polygonCurationContractAddress,
+        address: contract.Polygon.curationAddress,
         blockNumber: 1,
         removed: false,
         event: {
@@ -501,7 +498,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const tx = await knex(txTable).first()
     const blockchainTx = await knex(blockchainTxTable).first()
@@ -516,7 +513,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx = await knex(txTable).where('id', tx.id).first()
     const updatedBlockchainTx = await knex(blockchainTxTable)
@@ -538,7 +535,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     })
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
     const updatedTx2 = await knex(txTable).where('id', tx.id).first()
     const updatedBlockchainTx2 = await knex(blockchainTxTable)
@@ -590,7 +587,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const logs = [
       {
         txHash: txHash3,
-        address: polygonCurationContractAddress,
+        address: contract.Polygon.curationAddress,
         blockNumber: 1,
         removed: false,
         event: {
@@ -599,7 +596,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       },
     ]
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
 
     const updatedBlockchainTx =
       await paymentService.findOrCreateBlockchainTransaction({
@@ -624,7 +621,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(mockNotify).not.toHaveBeenCalled()
 
     // @ts-ignore
-    await queue._syncCurationEvents(logs)
+    await queue._syncCurationEvents(logs, 'Polygon')
 
     expect(mockNotify).not.toHaveBeenCalled()
   })

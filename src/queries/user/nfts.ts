@@ -1,7 +1,7 @@
 import type { GQLCryptoWalletResolvers } from 'definitions'
 
 import { CACHE_PREFIX, CACHE_TTL, NODE_TYPES } from 'common/enums'
-import { environment } from 'common/environment'
+import { contract } from 'common/environment'
 import { toGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { alchemy, AlchemyNetwork } from 'connectors/alchemy'
@@ -29,13 +29,18 @@ export const hasNFTs: GQLCryptoWalletResolvers['hasNFTs'] = async (
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const contract = environment.traveloggersContractAddress
   const withMetadata = true
 
   const network = AlchemyNetwork.Mainnet
   const assets = (await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
-    getter: () => alchemy.getNFTs({ owner, contract, network, withMetadata }),
+    getter: () =>
+      alchemy.getNFTs({
+        owner,
+        contract: contract.Ethereum.traveloggersAddress,
+        network,
+        withMetadata,
+      }),
     expire: CACHE_TTL.LONG,
   })) as any
 
@@ -56,13 +61,18 @@ export const nfts: GQLCryptoWalletResolvers['nfts'] = async (
 
   const user = await userService.baseFindById(userId)
   const owner = user?.ethAddress || address
-  const contract = environment.traveloggersContractAddress
   const network = AlchemyNetwork.Mainnet
   const withMetadata = true
 
   const assets = (await cacheService.getObject({
     keys: { type: 'traveloggers', id: owner },
-    getter: () => alchemy.getNFTs({ owner, network, contract, withMetadata }),
+    getter: () =>
+      alchemy.getNFTs({
+        owner,
+        network,
+        contract: contract.Ethereum.traveloggersAddress,
+        withMetadata,
+      }),
     expire: CACHE_TTL.LONG,
   })) as any
 
