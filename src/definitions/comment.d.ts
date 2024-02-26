@@ -7,6 +7,7 @@ export interface Comment {
   uuid: string
   authorId: string
   articleId: string | null
+  articleVersionId: string | null
   parentCommentId: string | null
   content: string | null
   state: ValueOf<typeof COMMENT_STATE>

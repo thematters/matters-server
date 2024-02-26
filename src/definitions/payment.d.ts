@@ -30,6 +30,7 @@ export interface Transaction {
   senderId: string | null
   recipientId: string
   targetId: string
+  articleVersionId: string | null
   targetType: string
   fee: string
   remark: string

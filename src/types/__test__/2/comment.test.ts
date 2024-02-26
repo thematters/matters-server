@@ -4,8 +4,8 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
 import { AtomService } from 'connectors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
@@ -99,6 +99,7 @@ const GET_COMMENT = /* GraphQL */ `
 const PUT_COMMENT = /* GraphQL */ `
   mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
+      id
       replyTo {
         id
       }
@@ -248,7 +249,7 @@ describe('mutations on comment', () => {
   test('create a article comment', async () => {
     const server = await testClient({ isAuth: true, connections })
 
-    const result = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: PUT_COMMENT,
       variables: {
         input: {
@@ -262,8 +263,15 @@ describe('mutations on comment', () => {
         },
       },
     })
-
-    expect(_get(result, 'data.putComment.replyTo.id')).toBe(COMMENT_ID)
+    expect(errors).toBeUndefined()
+    expect(data.putComment.replyTo.id).toBe(COMMENT_ID)
+    const id = fromGlobalId(data.putComment.id).id
+    const atomService = new AtomService(connections)
+    const comment = await atomService.findUnique({
+      table: 'comment',
+      where: { id },
+    })
+    expect(comment.articleVersionId).not.toBeNull()
   })
 
   test('upvote a comment', async () => {

@@ -84,6 +84,8 @@ describe('Transaction CRUD', () => {
     expect(txn.targetId).toEqual(targetId)
     expect(txn.targetType).toBeDefined()
     expect(txn.remark).toEqual(txn.remark)
+    expect(txn.articleVersionId).toBeDefined()
+    expect(txn.articleVersionId).not.toBeNull()
   })
   test('get or create BlockchainTransaction', async () => {
     // create

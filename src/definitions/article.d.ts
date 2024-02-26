@@ -118,6 +118,7 @@ export interface ArticleBoost {
 export interface ArticleTranslation {
   id: string
   articleId: string
+  articleVersionId: string
   language: LANGUAGES
   title: string
   content: string
