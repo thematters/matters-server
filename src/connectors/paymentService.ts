@@ -221,6 +221,13 @@ export class PaymentService extends BaseService<Transaction> {
       const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
       targetTypeId = entityTypeId
     }
+    let articleVersionId
+    if (targetId && targetType === TRANSACTION_TARGET_TYPE.article) {
+      const articleService = new ArticleService(this.connections)
+      articleVersionId = (
+        await articleService.loadLatestArticleVersion(targetId)
+      ).id
+    }
 
     return this.baseCreate(
       {
@@ -237,6 +244,7 @@ export class PaymentService extends BaseService<Transaction> {
         senderId,
         recipientId,
         targetId,
+        articleVersionId,
         targetType: targetTypeId,
         remark,
       },
