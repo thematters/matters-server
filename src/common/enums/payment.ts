@@ -69,9 +69,9 @@ export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
 }
 
 // via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times
-export const BLOCKCHAIN_SAFE_CONFIRMS = {
-  [BLOCKCHAIN.Polygon]: 70,
-  [BLOCKCHAIN.Optimism]: 40,
+export const BLOCKCHAIN_SAFE_CONFIRMS: { [key in GQLChain]: number } = {
+  Polygon: 70,
+  Optimism: 40,
 } as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {
