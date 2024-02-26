@@ -296,7 +296,7 @@ export class PaymentService extends BaseService<Transaction> {
     targetType = TRANSACTION_TARGET_TYPE.article,
     remark,
   }: {
-    chainId: number
+    chainId: string
     txHash: string
 
     amount: number
@@ -316,7 +316,7 @@ export class PaymentService extends BaseService<Transaction> {
     const trx = await this.knex.transaction()
     try {
       const blockchainTx = await this.findOrCreateBlockchainTransaction(
-        { chainId: chainId.toString(), txHash },
+        { chainId, txHash },
         undefined,
         trx
       )

@@ -322,7 +322,8 @@ describe('payToByBlockchainQueue.payTo', () => {
 describe('payToByBlockchainQueue._syncCurationEvents', () => {
   const latestBlockNum = BigInt(30000128)
   const safeBlockNum =
-    latestBlockNum - BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN.Polygon])
+    latestBlockNum -
+    BigInt(BLOCKCHAIN_SAFE_CONFIRMS[BLOCKCHAIN_CHAINID[BLOCKCHAIN.Polygon]])
   const txTable = 'transaction'
   const blockchainTxTable = 'blockchain_transaction'
   const eventTable = 'blockchain_curation_event'
