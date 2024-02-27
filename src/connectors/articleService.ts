@@ -2096,7 +2096,7 @@ export class ArticleService extends BaseService<Article> {
     // get translation
     const translation = await this.models.findFirst({
       table: 'article_translation',
-      where: { articleId, language },
+      where: { articleId, language, articleVersionId: id },
     })
 
     if (translation) {
@@ -2129,7 +2129,7 @@ export class ArticleService extends BaseService<Article> {
       }
       await this.models.upsert({
         table: 'article_translation',
-        where: { articleId, language },
+        where: { articleId, language, articleVersionId: id },
         create: data,
         update: data,
       })
