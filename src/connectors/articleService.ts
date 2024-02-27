@@ -9,6 +9,7 @@ import type {
   User,
 } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import {
   ArticlePageContext,
   makeArticlePage,
@@ -67,6 +68,8 @@ import {
   UserService,
   TagService,
   NotificationService,
+  PaymentService,
+  GCP,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -2037,5 +2040,145 @@ export class ArticleService extends BaseService<Article> {
         })
       }
     })
+  }
+
+  public getOrCreateTranslation = async (
+    articleVersion: ArticleVersion,
+    language: string,
+    actorId?: string
+  ) => {
+    // paywalled content
+    const { id, articleId } = articleVersion
+    const { authorId } = await this.models.articleIdLoader.load(articleId)
+    let isPaywalledContent = false
+    const isAuthor = authorId === actorId
+    const articleCircle = await this.findArticleCircle(articleId)
+    if (
+      !isAuthor &&
+      articleCircle &&
+      articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
+    ) {
+      if (actorId) {
+        const paymentService = new PaymentService(this.connections)
+        const isCircleMember = await paymentService.isCircleMember({
+          userId: actorId,
+          circleId: articleCircle.circleId,
+        })
+
+        // not circle member
+        if (!isCircleMember) {
+          isPaywalledContent = true
+        }
+      } else {
+        isPaywalledContent = true
+      }
+    }
+
+    const {
+      title: originTitle,
+      summary: originSummary,
+      language: storedLanguage,
+      contentId,
+    } = articleVersion
+    const { content: originContent } =
+      await this.models.articleContentIdLoader.load(contentId)
+
+    // it's same as original language
+    if (language === storedLanguage) {
+      return {
+        content: isPaywalledContent ? '' : originContent,
+        title: originTitle,
+        summary: originSummary,
+        language,
+      }
+    }
+
+    // get translation
+    const translation = await this.models.findFirst({
+      table: 'article_translation',
+      where: { articleId, language, articleVersionId: id },
+    })
+
+    if (translation) {
+      return {
+        ...translation,
+        content: isPaywalledContent ? '' : translation.content,
+      }
+    }
+
+    const gcp = new GCP()
+
+    // or translate and store to db
+    const [title, content, summary] = await Promise.all(
+      [originTitle, originContent, originSummary].map((text) =>
+        gcp.translate({
+          content: text,
+          target: language,
+        })
+      )
+    )
+
+    if (title && content) {
+      const data = {
+        articleId,
+        title,
+        content,
+        summary,
+        language,
+        articleVersionId: id,
+      }
+      await this.models.upsert({
+        table: 'article_translation',
+        where: { articleId, language, articleVersionId: id },
+        create: data,
+        update: data,
+      })
+
+      // translate tags
+      const tagIds = await this.findTagIds({ id: articleId })
+      if (tagIds && tagIds.length > 0) {
+        try {
+          const tags = await this.models.tagIdLoader.loadMany(tagIds)
+          await Promise.all(
+            tags.map(async (tag) => {
+              if (tag instanceof Error) {
+                return
+              }
+              const translatedTag = await gcp.translate({
+                content: tag.content,
+                target: language,
+              })
+              const tagData = {
+                tagId: tag.id,
+                content: translatedTag ?? '',
+                language,
+              }
+              await this.models.upsert({
+                table: 'tag_translation',
+                where: { tagId: tag.id },
+                create: tagData,
+                update: tagData,
+              })
+            })
+          )
+        } catch (error) {
+          logger.error(error)
+        }
+      }
+
+      await invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: articleId },
+        redis: this.redis,
+      })
+
+      return {
+        title,
+        content: isPaywalledContent ? '' : content,
+        summary,
+        language,
+      }
+    } else {
+      return null
+    }
   }
 }

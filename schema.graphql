@@ -518,6 +518,7 @@ type ArticleVersion implements Node {
   mediaHash: String
   summary: String!
   contents: ArticleContents!
+  translation(input: TranslationArgs): ArticleTranslation
   createdAt: DateTime!
   description: String
 }

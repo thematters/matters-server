@@ -119,7 +119,7 @@ export interface ArticleTranslation {
   id: string
   articleId: string
   articleVersionId: string
-  language: LANGUAGES
+  language: string
   title: string
   content: string
   summary: string | null

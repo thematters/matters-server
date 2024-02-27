@@ -1,4 +1,4 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers, LANGUAGES } from 'definitions'
 
 import { LANGUAGE } from 'common/enums'
 
@@ -17,9 +17,9 @@ const resolver: GQLArticleResolvers['availableTranslations'] = async (
     })
   )
     .map((t) => t.language)
-    .filter((l) => validLanguages.includes(l))
+    .filter((l) => validLanguages.includes(l as LANGUAGES))
 
-  return languages
+  return languages as LANGUAGES[]
 }
 
 export default resolver
