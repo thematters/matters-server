@@ -12,6 +12,5 @@ export interface Collection {
 
 export interface CollectionArticle {
   articleId: string
-  draftId: string
   order: string
 }
