@@ -31,6 +31,7 @@ const schema: GQLResolvers = {
     mediaHash: ({ mediaHash }) => mediaHash ?? '',
     wordCount: ({ content }) => (content ? countWords(content) : 0),
     summary: ({ summary, content }) => summary || makeSummary(content || ''),
+    summaryCustomized: ({ summary }) => !!summary,
     content: draftContent,
     cover: draftCover,
     collection,
