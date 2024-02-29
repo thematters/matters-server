@@ -159,7 +159,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   }
 
   // assemble data
-  const resetSummary = summary === null || summary === ''
   const resetCover = cover === null
   const resetCircle = circleGlobalId === null
 
@@ -167,8 +166,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     {
       authorId: id ? undefined : viewer.id,
       title: title?.trim(),
-      summary: summary?.trim(),
-      summaryCustomized: summary === undefined ? undefined : !resetSummary,
+      summary: summary === null ? null : summary?.trim(),
       content: content && normalizeArticleHTML(sanitizeHTML(content)),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
@@ -282,7 +280,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     return draftService.baseUpdate(dbId, {
       ...data,
       // reset fields
-      summary: resetSummary ? null : data.summary,
       circleId: resetCircle ? null : data.circleId,
     })
   }
