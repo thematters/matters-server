@@ -48,7 +48,7 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         MAX(created_at) AS month_last,
         COUNT(id) ::int AS num_articles, -- COUNT(DISTINCT author_id) ::int AS num_authors
         sum(word_count) ::int AS sum_word_count,
-        (ARRAY_AGG(concat(id, '-', slug, '-', media_hash)))[1:5] AS last_5
+        (ARRAY_AGG(concat(id)))[1:5] AS last_5
       FROM article
       -- WHERE created_at >= date_trunc('month', CURRENT_DATE - '18 months'::interval)
       WHERE state IN ('active') -- NOT IN ('archived')
@@ -114,7 +114,7 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         COUNT(DISTINCT a.author_id) ::int AS num_commented_authors,
         -- SUM((SELECT COUNT(*) FROM regexp_matches(regexp_replace(c.content, '<[^\>]+>', '', 'g'), '\w', 'g'))) ::int AS sum_word_count,
         -- SUM((SELECT COUNT(*) FROM regexp_matches(regexp_replace(c.content, '<[^\>]+>', '', 'g'), '\w', 'g'))) ::int AS sum_word_count,
-        (ARRAY_AGG(concat(a.id, '-', a.slug, '-', a.media_hash, '#',
+        (ARRAY_AGG(concat(a.id, '#',
               CASE WHEN c.parent_comment_id IS NOT NULL THEN pg_temp.global_id('Comment', c.parent_comment_id ::int) || '-' ELSE '' END,
               pg_temp.global_id('Comment', c.id ::int) ))
         )[1:5] AS last_5
