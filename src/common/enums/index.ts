@@ -31,7 +31,7 @@ export * from './appreciation'
 export * from './metrics'
 export * from './badges'
 
-export const GRAPHQL_COST_LIMIT = 10e3
+export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
 
 export const BCRYPT_ROUNDS = 12
