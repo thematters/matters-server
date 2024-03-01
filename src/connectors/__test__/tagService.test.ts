@@ -26,6 +26,11 @@ test('findArticleIds', async () => {
   expect(articleIds).toBeDefined()
 })
 
+test('findArticleCovers', async () => {
+  const covers = await tagService.findArticleCovers({ id: '2' })
+  expect(covers).toBeDefined()
+})
+
 test('create', async () => {
   const content = 'foo'
   const tag = await tagService.create(
