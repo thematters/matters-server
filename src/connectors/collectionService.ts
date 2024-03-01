@@ -100,7 +100,6 @@ export class CollectionService extends BaseService<Collection> {
     const records = await this.knex('collection_article')
       .select(
         'article_id',
-        'draft_id',
         'order',
         this.knex.raw('count(1) OVER() AS total_count')
       )

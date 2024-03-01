@@ -24,13 +24,13 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
   WITH uniq_articles AS (
     SELECT DISTINCT article_id FROM article_circle
   ), circle_articles AS (
-    SELECT circle_id, a.id, a.author_id, a.title, a.slug, a.word_count, a.data_hash, a.media_hash, ac.created_at, ac.updated_at
+    SELECT circle_id, a.id, a.author_id, avn.title, '' as slug, avn.word_count, avn.data_hash, avn.media_hash, ac.created_at, ac.updated_at
     FROM article_circle ac
     JOIN public.article a ON ac.article_id=a.id AND a.state IN ('active')
+    JOIN public.article_version_newest avn ON a.id=avn.article_id
   ), circle_articles_stats AS (
     SELECT circle_id,
       count(*) ::int AS num_articles,
-      -- (array_agg(concat(id, '-', slug, '-', media_hash) ORDER BY updated_at DESC))[1:5] AS last_5,
       sum(word_count) ::int AS sum_word_count,
       max(updated_at) AS last_at
     FROM circle_articles -- article_circle ac LEFT JOIN public.article a ON ac.article_id=a.id
@@ -75,13 +75,14 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         COUNT(a.id) ::int AS num_articles, -- COUNT(DISTINCT author_id) ::int AS num_authors
         SUM(a.word_count) ::int AS sum_word_count,
         (ARRAY_AGG(jsonb_build_object(
-              'title', a.title,
-              'path', concat(a.id, '-', a.slug, '-', a.media_hash),
+              'title', avn.title,
+              'path', concat(a.id),
               'num_apprtors', num_apprtors,
               'sum_appreciations', sum_appreciations
         ) ORDER BY a.created_at DESC))[1:5] AS last_5
       FROM articles_appr -- JOIN ( SELECT circle_id, a.* FROM circle_article JOIN public.article a ON article_id=a.id)
       JOIN circle_articles a USING(id)
+      JOIN article_version_newest avn ON a.id=avn.article_id
       -- LEFT JOIN appreciation appr ON appr.reference_id = a.id
       -- WHERE a.state IN ('active') -- NOT IN ('archived', 'banned')
       GROUP BY 1, 2
@@ -100,13 +101,14 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         COUNT(*) ::int AS num_articles,
         sum(a.word_count) ::int AS sum_word_count,
         (ARRAY_AGG(jsonb_build_object(
-              'title', a.title, 'date', a.created_at ::date,
-              'path', concat(a.id, '-', a.slug, '-', a.media_hash),
+              'title', avn.title, 'date', a.created_at ::date,
+              'path', concat(a.id),
               'num_apprtors', num_apprtors,
               'sum_appreciations', sum_appreciations
           ) ORDER BY a.created_at DESC))[1:5] AS last_5
       FROM circle_articles a -- article_circle ac LEFT JOIN public.article a ON ac.article_id=a.id
       JOIN articles_appr USING(id)
+      JOIN article_version_newest avn ON a.id=avn.article_id
       LEFT JOIN article_tag at ON article_id=a.id -- AND a.state IN ('active') -- NOT IN ('archived', 'banned')
       GROUP BY 1, 2
     ) t LEFT JOIN tag ON tag_id=tag.id
@@ -124,8 +126,8 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         ORDER BY num_readers_w3m DESC, num_readers DESC, sum_read_time DESC LIMIT 5 )) AS top_5
     FROM ( SELECT circle_id,
       to_jsonb(array_agg(DISTINCT jsonb_build_object(
-            'title', a.title,
-            'path', a.id || '-' || slug || '-' || media_hash,
+            'title', avn.title,
+            'path', a.id,
             'num_readers', num_readers, 'num_readers_w3m', num_readers_w3m,
             'sum_read_time', sum_read_time, 'last_at', last_at
           ) -- ORDER BY num_readers DESC, sum_read_time DESC
@@ -145,6 +147,7 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
           AND article_id IN (SELECT article_id FROM uniq_articles)
         GROUP BY 1
       ) r JOIN circle_articles a ON r.article_id = a.id -- AND a.state IN ('active') -- NOT IN ('archived', 'banned')
+      JOIN article_version_newest avn ON r.article_id=avn.article_id
       GROUP BY 1
     ) aa
     JOIN (

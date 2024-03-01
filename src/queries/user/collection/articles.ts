@@ -18,7 +18,7 @@ const resolver: GQLCollectionResolvers['articles'] = async (
   const { skip, take } = fromConnectionArgs({ first, after })
 
   if (take === 0) {
-    const [_, count] = await collectionService.findAndCountArticlesInCollection(
+    const [, count] = await collectionService.findAndCountArticlesInCollection(
       collectionId,
       {
         skip,
