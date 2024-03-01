@@ -27,8 +27,8 @@ test('findArticleIds', async () => {
 })
 
 test('findArticleCovers', async () => {
-  const count = await tagService.findArticleCovers({ id: '2' })
-  expect(count).toBeDefined()
+  const covers = await tagService.findArticleCovers({ id: '2' })
+  expect(covers).toBeDefined()
 })
 
 test('create', async () => {
