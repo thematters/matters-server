@@ -202,10 +202,11 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     ) {
       checkRevisionCount(article.revisionCount + 1)
       updateRevisionCount = true
+      data = { ...data, circleId, access: accessType }
     }
-
-    data = { ...data, circleId, access: accessType }
   } else if (resetCircle) {
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
     data = { ...data, circleId: null }
   }
 
