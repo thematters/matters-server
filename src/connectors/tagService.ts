@@ -1051,9 +1051,14 @@ export class TagService extends BaseService<Tag> {
    */
   public findArticleCovers = async ({ id }: { id: string }) =>
     this.knexRO
-      .select('article.cover')
+      .select('article_version_newest.cover')
       .from('article_tag')
-      .join('article', 'article_id', 'article.id')
+      .join(
+        'article_version_newest',
+        'article_tag.article_id',
+        'article_version_newest.article_id'
+      )
+      .join('article', 'article_tag.article_id', 'article.id')
       .whereNotNull('cover')
       .andWhere({
         tagId: id,
