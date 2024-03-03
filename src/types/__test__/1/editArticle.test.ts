@@ -134,6 +134,17 @@ const EDIT_ARTICLE = /* GraphQL */ `
       sensitiveByAuthor
       sensitiveByAdmin
       revisionCount
+      versions(input: { first: 1 }) {
+        totalCount
+        edges {
+          node {
+            id
+            ... on ArticleVersion {
+              description
+            }
+          }
+        }
+      }
     }
   }
 `
@@ -1006,5 +1017,26 @@ describe('edit article', () => {
     expect(
       beforeData.viewer.status.totalWordCount - articleVersion2.wordCount
     ).toBe(afterData.viewer.status.totalWordCount)
+  })
+  test('add description', async () => {
+    const description = 'some description'
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          content: 'new content',
+          description,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.editArticle.versions.edges[0].node.description).toBe(
+      description
+    )
   })
 })
