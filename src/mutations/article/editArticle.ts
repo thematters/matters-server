@@ -129,7 +129,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * title
    */
-  if (title !== undefined) {
+  if (title !== undefined && (title ?? '') !== articleVersion.title) {
     if (title?.length > MAX_ARTICLE_TITLE_LENGTH) {
       throw new UserInputError('title reach length limit')
     }
@@ -141,7 +141,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * Summary
    */
-  if (summary !== undefined) {
+  if (summary !== undefined && summary !== articleVersion.summary) {
     if (summary?.length > MAX_ARTICLE_SUMMARY_LENGTH) {
       throw new UserInputError('summary reach length limit')
     }

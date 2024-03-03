@@ -206,6 +206,19 @@ describe('edit article', () => {
     expect(data.editArticle.title).toBe(title)
     expect(data.editArticle.revisionCount).toBe(1)
 
+    // same title will not update revision count
+    const { data: sameData } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          title,
+        },
+      },
+    })
+    expect(sameData.editArticle.title).toBe(title)
+    expect(sameData.editArticle.revisionCount).toBe(1)
+
     // empty string is allowed
     const { data: dataEmptyString } = await server.executeOperation({
       query: EDIT_ARTICLE,
@@ -230,7 +243,7 @@ describe('edit article', () => {
       },
     })
     expect(dataNull.editArticle.title).toBe('')
-    expect(dataNull.editArticle.revisionCount).toBe(3)
+    expect(dataNull.editArticle.revisionCount).toBe(2)
   })
   test('edit article summary', async () => {
     const summary = 'my customized summary'
@@ -276,7 +289,7 @@ describe('edit article', () => {
       },
     })
     expect(resetData2.editArticle.summaryCustomized).toBe(false)
-    expect(resetData2.editArticle.revisionCount).toBe(3)
+    expect(resetData2.editArticle.revisionCount).toBe(2)
   })
 
   test('edit article tags', async () => {
