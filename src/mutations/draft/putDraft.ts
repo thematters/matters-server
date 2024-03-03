@@ -17,8 +17,8 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
-  MAX_ARTICE_SUMMARY_LENGTH,
-  MAX_ARTICE_TITLE_LENGTH,
+  MAX_ARTICLE_SUMMARY_LENGTH,
+  MAX_ARTICLE_TITLE_LENGTH,
   MAX_ARTICLE_CONTENT_LENGTH,
   MAX_ARTICLES_PER_CONNECTION_LIMIT,
   MAX_TAGS_PER_ARTICLE_LIMIT,
@@ -184,10 +184,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   )
 
   // check for title, summary and content length limit
-  if (data?.title?.length > MAX_ARTICE_TITLE_LENGTH) {
+  if (data?.title?.length > MAX_ARTICLE_TITLE_LENGTH) {
     throw new UserInputError('title reach length limit')
   }
-  if (data?.summary?.length > MAX_ARTICE_SUMMARY_LENGTH) {
+  if (data?.summary?.length > MAX_ARTICLE_SUMMARY_LENGTH) {
     throw new UserInputError('summary reach length limit')
   }
   if (data?.content?.length > MAX_ARTICLE_CONTENT_LENGTH) {

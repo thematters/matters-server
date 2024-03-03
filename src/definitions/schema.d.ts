@@ -1284,6 +1284,7 @@ export type GQLEditArticleInput = {
   sticky?: InputMaybe<Scalars['Boolean']['input']>
   summary?: InputMaybe<Scalars['String']['input']>
   tags?: InputMaybe<Array<Scalars['String']['input']>>
+  title?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLEmailLoginInput = {
