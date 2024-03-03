@@ -292,11 +292,13 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     // check diff distances reaches limit or not
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
-    const changed =
-      normalizeArticleHTML(lastContent) === normalizeArticleHTML(content)
+    const processed = normalizeArticleHTML(sanitizeHTML(content))
+    const changed = processed !== lastContent
 
     if (changed) {
-      data = { ...data, content: normalizeArticleHTML(sanitizeHTML(content)) }
+      checkRevisionCount(article.revisionCount + 1)
+      updateRevisionCount = true
+      data = { ...data, content: processed }
     }
   }
 

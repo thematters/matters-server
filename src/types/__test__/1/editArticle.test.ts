@@ -154,6 +154,39 @@ describe('edit article', () => {
     articleId = _articleId
     articleGlobalId = toGlobalId({ type: NODE_TYPES.Article, id: articleId })
   })
+  test('edit article content', async () => {
+    const content = 'my customized content'
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          content,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.editArticle.content).toContain(content)
+    expect(data.editArticle.revisionCount).toBe(1)
+
+    // same content will not update revision count
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          content,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.editArticle.content).toContain(content)
+    expect(data2.editArticle.revisionCount).toBe(1)
+  })
   test('edit article title', async () => {
     const title = 'my customized title'
     const server = await testClient({
