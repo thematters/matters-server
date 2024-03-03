@@ -75,6 +75,7 @@ const GET_ARTICLE = /* GraphQL */ `
         dataHash
         mediaHash
         shortHash
+        revisionCount
       }
     }
   }
@@ -396,7 +397,6 @@ describe('edit article', () => {
         },
       },
     })
-    console.log(hitRevisionLimitErrors)
     expect(hitRevisionLimitErrors[0].extensions.code).toBe(
       'ARTICLE_REVISION_REACH_LIMIT'
     )
@@ -705,9 +705,8 @@ describe('edit article', () => {
     const server = await testClient({
       isAuth: true,
       connections,
-      isAdmin: false,
     })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -716,13 +715,11 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result, 'data.editArticle.license')).toBe(
-      ARTICLE_LICENSE_TYPE.cc_0
-    )
-    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
+    expect(data.editArticle.license).toBe(ARTICLE_LICENSE_TYPE.cc_0)
+    expect(data.editArticle.revisionCount).toBe(0)
 
     // change license to CC2 should throw error
-    const changeCC2Result = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -731,10 +728,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(changeCC2Result.errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
+    expect(errors?.[0].extensions.code).toBe('BAD_USER_INPUT')
 
     // change license to ARR should succeed
-    const changeResult = await server.executeOperation({
+    const { data: data2 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -743,13 +740,11 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(changeResult, 'data.editArticle.license')).toBe(
-      ARTICLE_LICENSE_TYPE.arr
-    )
-    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
+    expect(data2.editArticle.license).toBe(ARTICLE_LICENSE_TYPE.arr)
+    expect(data2.editArticle.revisionCount).toBe(0)
 
     // reset license
-    const resetResult1 = await server.executeOperation({
+    const { data: data3 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -758,13 +753,11 @@ describe('edit article', () => {
         },
       },
     })
-    expect(
-      _get(resetResult1, 'data.editArticle.summary.length')
-    ).toBeGreaterThan(0)
-    expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
+    expect(data3.editArticle.summary.length).toBeGreaterThan(0)
+    expect(data3.editArticle.summaryCustomized).toBe(false)
 
     // should be still 0, after whatever how many times changing license
-    expect(_get(result, 'data.editArticle.revisionCount')).toBe(0)
+    expect(data3.editArticle.revisionCount).toBe(0)
   })
 
   test('edit support settings', async () => {
@@ -861,7 +854,6 @@ describe('edit article', () => {
     const server = await testClient({
       isAuth: true,
       connections,
-      isAdmin: false,
     })
     const { errors, data } = await server.executeOperation({
       query: GET_ARTICLE,
@@ -893,7 +885,7 @@ describe('edit article', () => {
       where: { id: 1 },
       data: { canComment: false },
     })
-    const { data: data2 } = await server.executeOperation({
+    const { data: data3 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -902,16 +894,16 @@ describe('edit article', () => {
         },
       },
     })
-    expect(data2.editArticle.canComment).toBeTruthy()
+    expect(data3.editArticle.canComment).toBeTruthy()
+    expect(data3.editArticle.revisionCount).toBe(0)
   })
 
   test('edit sensitive settings', async () => {
     const server = await testClient({
       isAuth: true,
       connections,
-      isAdmin: false,
     })
-    const result = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_ARTICLE,
       variables: {
         input: {
@@ -919,11 +911,12 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result, 'data.article.sensitiveByAuthor')).toBeFalsy()
-    expect(_get(result, 'data.article.sensitiveByAdmin')).toBeFalsy()
+    expect(data.node.sensitiveByAuthor).toBeFalsy()
+    expect(data.node.sensitiveByAdmin).toBeFalsy()
+    expect(data.node.revisionCount).toBe(0)
 
     // turn on by author
-    const result1 = await server.executeOperation({
+    const { data: data2 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -932,13 +925,14 @@ describe('edit article', () => {
         },
       },
     })
-    expect(_get(result1, 'data.editArticle.sensitiveByAuthor')).toBeTruthy()
+    expect(data2.editArticle.sensitiveByAuthor).toBeTruthy()
+    expect(data2.editArticle.revisionCount).toBe(0)
 
     // turn on by admin
     const adminServer = await testClient({
       isAuth: true,
-      connections,
       isAdmin: true,
+      connections,
     })
     const UPDATE_ARTICLE_SENSITIVE = `
       mutation UpdateArticleSensitive($input: UpdateArticleSensitiveInput!) {
@@ -948,7 +942,7 @@ describe('edit article', () => {
         }
       }
     `
-    const result2 = await adminServer.executeOperation({
+    const { data: data3 } = await adminServer.executeOperation({
       query: UPDATE_ARTICLE_SENSITIVE,
       variables: {
         input: {
@@ -957,9 +951,19 @@ describe('edit article', () => {
         },
       },
     })
-    expect(
-      _get(result2, 'data.updateArticleSensitive.sensitiveByAdmin')
-    ).toBeTruthy()
+    expect(data3.updateArticleSensitive.sensitiveByAdmin).toBeTruthy()
+    const { data: data4 } = await server.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+        },
+      },
+    })
+    expect(data4.node.sensitiveByAuthor).toBeTruthy()
+    expect(data4.node.sensitiveByAdmin).toBeTruthy()
+    expect(data4.node.revisionCount).toBe(0)
+    expect(data4.node.revisionCount).toBe(0)
   })
 
   test('archive article', async () => {
