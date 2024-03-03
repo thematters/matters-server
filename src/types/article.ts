@@ -503,6 +503,7 @@ export default /* GraphQL */ `
     "deprecated, use pinned instead"
     sticky: Boolean
     pinned: Boolean
+    title: String
     summary: String
     tags: [String!]
     content: String
