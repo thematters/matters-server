@@ -355,22 +355,21 @@ export class ArticleService extends BaseService<Article> {
   public findArticleVersions = async (
     articleId: string,
     { take, skip }: { take?: number; skip?: number } = {},
-    onlyContentChange = true
+    all = false
   ) => {
+    const revisionCols =
+      '(title, summary, content_id, content_md_id, tags, connections, cover)'
     const records = await this.knexRO('article_version')
       .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .from(
         this.knexRO('article_version')
           .where({ articleId })
           .modify((builder) => {
-            if (onlyContentChange) {
+            if (!all) {
               builder.select(
                 '*',
                 this.knexRO.raw(
-                  'LAG(content_id, 1) OVER(order by id) AS pre_content_id'
-                ),
-                this.knexRO.raw(
-                  'LAG(content_md_id, 1) OVER(order by id) AS pre_content_md_id'
+                  `LAG(${revisionCols}, 1) OVER(order by id) AS pre_cols`
                 )
               )
             } else {
@@ -381,19 +380,16 @@ export class ArticleService extends BaseService<Article> {
           .as('t')
       )
       .modify((builder) => {
-        if (onlyContentChange) {
+        if (!all) {
           builder
-            .where('content_id', '!=', this.knexRO.ref('pre_content_id'))
-            .orWhere(
-              'content_md_id',
+            .where(
+              this.knexRO.raw(revisionCols),
               '!=',
-              this.knexRO.ref('pre_content_md_id')
+              this.knexRO.ref('pre_cols')
             )
             .orWhere((whereBuilder) => {
               // first version
-              whereBuilder
-                .whereNull('pre_content_id')
-                .whereNull('pre_content_md_id')
+              whereBuilder.whereNull('pre_cols')
             })
         }
         if (take !== undefined && Number.isFinite(take)) {
