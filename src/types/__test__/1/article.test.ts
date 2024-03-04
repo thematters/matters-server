@@ -337,8 +337,6 @@ describe('toggle article state', () => {
     expect(errors).toBeUndefined()
     expect(data.toggleSubscribeArticle.subscribed).toBe(true)
 
-    console.dir(server, { depth: 10 })
-
     const atomService = new AtomService(connections)
     const action = await atomService.findFirst({
       table: 'action_article',
@@ -633,6 +631,7 @@ describe('articles versions', () => {
               description
               dataHash
               mediaHash
+              title
               summary
               contents {
                 html
@@ -686,6 +685,7 @@ describe('articles versions', () => {
       })
     expect(errors2).toBeUndefined()
     expect(data2.article.versions.totalCount).toBe(2)
+    expect(data2.article.versions.edges[0].node.title).toBeDefined()
     expect(data2.article.versions.edges[0].node.contents.html).toBe(content)
     expect(data2.article.versions.edges[0].node.description).toBe(description)
   })
