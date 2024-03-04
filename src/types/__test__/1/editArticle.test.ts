@@ -276,15 +276,17 @@ describe('edit article', () => {
     expect(data.editArticle.revisionCount).toBe(1)
 
     // reset summary
-    const {errors: errors1,  data: resetData1 } = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          summary: null,
+    const { errors: errors1, data: resetData1 } = await server.executeOperation(
+      {
+        query: EDIT_ARTICLE,
+        variables: {
+          input: {
+            id: articleGlobalId,
+            summary: null,
+          },
         },
-      },
-    })
+      }
+    )
     expect(errors1).toBeUndefined()
     expect(resetData1.editArticle.summary.length).toBeGreaterThan(0)
     expect(resetData1.editArticle.summaryCustomized).toBe(false)
