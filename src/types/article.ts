@@ -272,6 +272,7 @@ export default /* GraphQL */ `
     id: ID!
     dataHash: String
     mediaHash: String
+    title: String!
     summary: String!
     contents: ArticleContents!
     translation(input: TranslationArgs): ArticleTranslation
