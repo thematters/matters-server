@@ -140,7 +140,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     if (_title !== articleVersion.title) {
       checkRevisionCount(article.revisionCount + 1)
       updateRevisionCount = true
-      data = { ...data, title: title ?? '' }
+      data = { ...data, title: _title }
     }
   }
 
