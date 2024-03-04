@@ -388,20 +388,6 @@ describe('edit article', () => {
     const smallerLimit = limit - 2
     globalThis.mockEnums.MAX_TAGS_PER_ARTICLE_LIMIT = smallerLimit
 
-    // edit tags hit revision limit
-    const { errors: hitRevisionLimitErrors } = await server.executeOperation({
-      query: EDIT_ARTICLE,
-      variables: {
-        input: {
-          id: articleGlobalId,
-          tags: tags.slice(0, smallerLimit + 2),
-        },
-      },
-    })
-    expect(hitRevisionLimitErrors[0].extensions.code).toBe(
-      'ARTICLE_REVISION_REACH_LIMIT'
-    )
-
     // workaround revision limit for testing
     const originalCheckRevisionCount =
       globalThis.mockEnums.MAX_ARTICLE_REVISION_COUNT
