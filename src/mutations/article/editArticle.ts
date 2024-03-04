@@ -1,6 +1,5 @@
 import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
 
-import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -12,15 +11,15 @@ import {
   ASSET_TYPE,
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  MAX_ARTICLE_TITLE_LENGTH,
+  MAX_ARTICLE_SUMMARY_LENGTH,
   MAX_ARTICLE_CONTENT_LENGTH,
-  MAX_ARTICLE_CONTENT_REVISION_LENGTH,
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
-  ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
   CircleNotFoundError,
@@ -28,7 +27,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, measureDiffs } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['editArticle'] = async (
   _,
@@ -39,6 +38,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       sticky,
       pinned,
       tags,
+      title,
       content,
       summary,
       cover,
@@ -127,9 +127,41 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   /**
+   * title
+   */
+  if (title !== undefined) {
+    const _title = (title ?? '').trim()
+    if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
+      throw new UserInputError('title reach length limit')
+    }
+    if (_title.length === 0) {
+      throw new UserInputError('title cannot be empty')
+    }
+    if (_title !== articleVersion.title) {
+      checkRevisionCount(article.revisionCount + 1)
+      updateRevisionCount = true
+      data = { ...data, title: _title }
+    }
+  }
+
+  /**
+   * Summary
+   */
+  if (summary !== undefined && summary !== articleVersion.summary) {
+    if (summary?.length > MAX_ARTICLE_SUMMARY_LENGTH) {
+      throw new UserInputError('summary reach length limit')
+    }
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
+    data = { ...data, summary: summary ? summary.trim() : null }
+  }
+
+  /**
    * Tags
    */
   if (tags !== undefined) {
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
     data = { ...data, tags }
   }
 
@@ -138,6 +170,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    */
   const resetCover = cover === null
   if (cover) {
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
     const asset = await systemService.findAssetByUUID(cover)
 
     if (
@@ -150,6 +184,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
 
     data = { ...data, cover: asset.id }
   } else if (resetCover) {
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
     data = { ...data, cover: null }
   }
 
@@ -157,6 +193,8 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    * Connection
    */
   if (collection !== undefined) {
+    checkRevisionCount(article.revisionCount + 1)
+    updateRevisionCount = true
     data = {
       ...data,
       collection: (collection ?? []).map(
@@ -200,21 +238,10 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       circle.id !== currAccess?.circleId ||
       (circle.id === currAccess?.circleId && accessType !== currAccess?.access)
     ) {
-      checkRevisionCount(article.revisionCount + 1)
-      updateRevisionCount = true
       data = { ...data, circleId, access: accessType }
     }
   } else if (resetCircle) {
-    checkRevisionCount(article.revisionCount + 1)
-    updateRevisionCount = true
     data = { ...data, circleId: null }
-  }
-
-  /**
-   * Summary
-   */
-  if (summary !== undefined) {
-    data = { ...data, summary }
   }
 
   /**
@@ -271,16 +298,13 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     // check diff distances reaches limit or not
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
-    const diffs = measureDiffs(
-      stripHtml(normalizeArticleHTML(lastContent)),
-      stripHtml(normalizeArticleHTML(content))
-    )
-    if (diffs > MAX_ARTICLE_CONTENT_REVISION_LENGTH) {
-      throw new ArticleRevisionContentInvalidError('revised content invalid')
-    }
+    const processed = normalizeArticleHTML(sanitizeHTML(content))
+    const changed = processed !== lastContent
 
-    if (diffs > 0) {
-      data = { ...data, content: normalizeArticleHTML(sanitizeHTML(content)) }
+    if (changed) {
+      checkRevisionCount(article.revisionCount + 1)
+      updateRevisionCount = true
+      data = { ...data, content: processed }
     }
   }
 

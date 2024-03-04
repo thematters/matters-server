@@ -226,8 +226,8 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
-export const MAX_ARTICE_TITLE_LENGTH = 100
-export const MAX_ARTICE_SUMMARY_LENGTH = 200
+export const MAX_ARTICLE_TITLE_LENGTH = 100
+export const MAX_ARTICLE_SUMMARY_LENGTH = 200
 export const MAX_ARTICLE_CONTENT_LENGTH = 50e3
 export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 3
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
