@@ -118,28 +118,33 @@ export const delay = (ms: number) =>
 
 export const testClient = async ({
   connections,
+  userId,
+  context,
   isAuth,
   isAdmin,
   isMatty,
   isFrozen,
   isBanned,
   noUserName,
-  context,
   dataSources,
 }: {
   connections: Connections
+  userId?: string
+  context?: any
   isAuth?: boolean
   isAdmin?: boolean
   isMatty?: boolean
   isFrozen?: boolean
   isBanned?: boolean
-  context?: any
   noUserName?: boolean
   dataSources?: any
 }) => {
   let _context: any = {}
   if (context) {
     _context = context
+  } else if (userId) {
+    const atomService = new AtomService(connections)
+    _context = { viewer: await atomService.userIdLoader.load(userId) }
   } else if (isAuth) {
     _context = await getUserContext(
       {
