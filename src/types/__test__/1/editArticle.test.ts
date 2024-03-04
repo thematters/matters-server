@@ -276,7 +276,7 @@ describe('edit article', () => {
     expect(data.editArticle.revisionCount).toBe(1)
 
     // reset summary
-    const { data: resetData1 } = await server.executeOperation({
+    const {errors: errors1,  data: resetData1 } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -285,6 +285,7 @@ describe('edit article', () => {
         },
       },
     })
+    expect(errors1).toBeUndefined()
     expect(resetData1.editArticle.summary.length).toBeGreaterThan(0)
     expect(resetData1.editArticle.summaryCustomized).toBe(false)
     expect(resetData1.editArticle.revisionCount).toBe(2)

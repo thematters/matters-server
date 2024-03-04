@@ -153,7 +153,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     }
     checkRevisionCount(article.revisionCount + 1)
     updateRevisionCount = true
-    data = { ...data, summary: summary.trim() }
+    data = { ...data, summary: summary ? summary.trim() : null }
   }
 
   /**
