@@ -231,8 +231,8 @@ describe('edit article', () => {
     expect(sameData.editArticle.title).toBe(title)
     expect(sameData.editArticle.revisionCount).toBe(1)
 
-    // empty string is allowed
-    const { data: dataEmptyString } = await server.executeOperation({
+    // empty string is not allowed
+    const { errors: errorsEmptyString } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -241,11 +241,10 @@ describe('edit article', () => {
         },
       },
     })
-    expect(dataEmptyString.editArticle.title).toBe('')
-    expect(dataEmptyString.editArticle.revisionCount).toBe(2)
+    expect(errorsEmptyString).toBeDefined()
 
     //  null same as empty string
-    const { data: dataNull } = await server.executeOperation({
+    const { errors: errorsNull } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -254,8 +253,7 @@ describe('edit article', () => {
         },
       },
     })
-    expect(dataNull.editArticle.title).toBe('')
-    expect(dataNull.editArticle.revisionCount).toBe(2)
+    expect(errorsNull).toBeDefined()
   })
   test('edit article summary', async () => {
     const summary = 'my customized summary'

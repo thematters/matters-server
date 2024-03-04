@@ -129,13 +129,19 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * title
    */
-  if (title !== undefined && (title ?? '') !== articleVersion.title) {
-    if (title?.length > MAX_ARTICLE_TITLE_LENGTH) {
+  if (title !== undefined) {
+    const _title = (title ?? '').trim()
+    if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
       throw new UserInputError('title reach length limit')
     }
-    checkRevisionCount(article.revisionCount + 1)
-    updateRevisionCount = true
-    data = { ...data, title: title ?? '' }
+    if (_title.length === 0) {
+      throw new UserInputError('title cannot be empty')
+    }
+    if (_title !== articleVersion.title) {
+      checkRevisionCount(article.revisionCount + 1)
+      updateRevisionCount = true
+      data = { ...data, title: title ?? '' }
+    }
   }
 
   /**
@@ -147,7 +153,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     }
     checkRevisionCount(article.revisionCount + 1)
     updateRevisionCount = true
-    data = { ...data, summary }
+    data = { ...data, summary: summary.trim() }
   }
 
   /**
