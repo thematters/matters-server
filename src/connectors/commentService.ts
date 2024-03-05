@@ -120,14 +120,16 @@ export class CommentService extends BaseService<Comment> {
           .where({ state: COMMENT_STATE.active })
           .orWhere({ state: COMMENT_STATE.collapsed })
           .orWhere((orWhereBuilder) => {
-            orWhereBuilder.andWhere(
-              this.knexRO.raw(
-                '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
-                [COMMENT_STATE.active, COMMENT_STATE.collapsed]
-              ),
-              '>',
-              0
-            )
+            orWhereBuilder
+              .andWhere({ state: COMMENT_STATE.archived })
+              .andWhere(
+                this.knexRO.raw(
+                  '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                  [COMMENT_STATE.active, COMMENT_STATE.collapsed]
+                ),
+                '>',
+                0
+              )
           })
       })
       .orderBy('created_at', order)

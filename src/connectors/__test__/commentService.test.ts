@@ -161,8 +161,8 @@ describe('find comments', () => {
       },
     })
     expect(comments4.map((c) => c.id)).toContain(archived.id)
-    expect(comments4.map((c) => c.id)).toContain(banned.id)
-    expect(count4).toBe(count + 2)
+    expect(comments4.map((c) => c.id)).not.toContain(banned.id)
+    expect(count4).toBe(count + 1)
 
     // when state is provided, filter by state
     const [comment5, _] = await commentService.find({
