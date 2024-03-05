@@ -112,23 +112,18 @@ export class CommentService extends BaseService<Comment> {
       .fromRaw('comment AS outer_comment')
       .where(where)
       .andWhere((andWhereBuilder) => {
-        // filter archived comments when `where.state` params is not specified
+        // filter archived/banned comments when `where.state` params is not specified
         if ('state' in where) {
           return
         }
         andWhereBuilder
           .where({ state: COMMENT_STATE.active })
           .orWhere({ state: COMMENT_STATE.collapsed })
-          .orWhere({ state: COMMENT_STATE.banned })
           .orWhere((orWhereBuilder) => {
             orWhereBuilder.andWhere(
               this.knexRO.raw(
-                '(SELECT COUNT(1) FROM comment WHERE state in (?, ?, ?) and parent_comment_id = outer_comment.id)',
-                [
-                  COMMENT_STATE.active,
-                  COMMENT_STATE.collapsed,
-                  COMMENT_STATE.banned,
-                ]
+                '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                [COMMENT_STATE.active, COMMENT_STATE.collapsed]
               ),
               '>',
               0
