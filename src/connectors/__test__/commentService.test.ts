@@ -54,7 +54,7 @@ describe('find comments', () => {
     })
     expect(count).toBeGreaterThan(0)
 
-    // archived comments should be filtered
+    // archived/banned comments should be filtered
     const archived = await atomService.create({
       table: 'comment',
       data: {
@@ -88,10 +88,10 @@ describe('find comments', () => {
       },
     })
     expect(comments2.map((c) => c.id)).not.toContain(archived.id)
-    expect(comments2.map((c) => c.id)).toContain(banned.id)
-    expect(count2).toBe(count + 1)
+    expect(comments2.map((c) => c.id)).not.toContain(banned.id)
+    expect(count2).toBe(count)
 
-    // archived comments should be included if they have active sub comments
+    // archived/banned comments should be included if they have active sub comments
     await atomService.create({
       table: 'comment',
       data: {
@@ -125,8 +125,8 @@ describe('find comments', () => {
       },
     })
     expect(comments3.map((c) => c.id)).not.toContain(archived.id)
-    expect(comments3.map((c) => c.id)).toContain(banned.id)
-    expect(count3).toBe(count + 1)
+    expect(comments3.map((c) => c.id)).not.toContain(banned.id)
+    expect(count3).toBe(count)
 
     await atomService.create({
       table: 'comment',
