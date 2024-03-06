@@ -69,6 +69,7 @@ import {
   AUDIT_LOG_ACTION,
   AUDIT_LOG_STATUS,
   METRICS_NAMES,
+  BLOCKCHAIN_RPC,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -101,7 +102,6 @@ import {
   genDisplayName,
   RatelimitCounter,
   normalizeSearchKey,
-  rpcs,
 } from 'common/utils'
 import {
   AtomService,
@@ -2292,7 +2292,7 @@ export class UserService extends BaseService {
       // try to verify signature for contract wallet
       const client = createPublicClient({
         chain: polygon,
-        transport: http(rpcs[polygon.id]),
+        transport: http(BLOCKCHAIN_RPC[polygon.id]),
       })
       const bytecode = await client.getBytecode({ address: ethAddress })
       const isSmartContract = bytecode && trim(bytecode) !== '0x'

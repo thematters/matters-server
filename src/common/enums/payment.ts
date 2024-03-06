@@ -1,3 +1,8 @@
+import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
+
+import { environment, isProd } from 'common/environment'
+import { GQLChain } from 'definitions'
+
 import { LANGUAGE } from './language'
 
 export enum TRANSACTION_STATE {
@@ -39,24 +44,34 @@ export enum PAYMENT_PROVIDER {
   blockchain = 'blockchain',
 }
 
-export const BLOCKCHAIN = {
+export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
   Polygon: 'Polygon',
+  Optimism: 'Optimism',
+} as const
+
+export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
+  [polygon.id]: BLOCKCHAIN.Polygon,
+  [polygonMumbai.id]: BLOCKCHAIN.Polygon,
+  [optimism.id]: BLOCKCHAIN.Optimism,
+  [optimismSepolia.id]: BLOCKCHAIN.Optimism,
 } as const
 
 export const BLOCKCHAIN_CHAINID = {
-  [BLOCKCHAIN.Polygon]: {
-    PolygonMainnet: '137',
-    PolygonMumbai: '80001',
-  },
+  [BLOCKCHAIN.Polygon]: isProd ? polygon.id + '' : polygonMumbai.id + '',
+  [BLOCKCHAIN.Optimism]: isProd ? optimism.id + '' : optimismSepolia.id + '',
 } as const
 
-export const BLOCKCHAIN_CHAINNAME = {
-  '137': BLOCKCHAIN.Polygon,
-  '80001': BLOCKCHAIN.Polygon,
-} as const
+export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
+  [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+  [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
+}
 
-export const BLOCKCHAIN_SAFE_CONFIRMS = {
-  [BLOCKCHAIN.Polygon]: 128,
+// via https://support.kraken.com/hc/en-us/articles/203325283-Cryptocurrency-deposit-processing-times
+export const BLOCKCHAIN_SAFE_CONFIRMS: { [key in GQLChain]: number } = {
+  Polygon: 70,
+  Optimism: 40,
 } as const
 
 export enum BLOCKCHAIN_TRANSACTION_STATE {

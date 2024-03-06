@@ -2,9 +2,6 @@ import type { Address, Hash, Hex } from 'viem'
 
 import { decodeEventLog, encodeEventTopics, parseAbiItem } from 'viem'
 
-import { BLOCKCHAIN_CHAINID } from 'common/enums'
-import { environment, isProd } from 'common/environment'
-
 import { BaseContract } from './baseContract'
 
 // type
@@ -29,6 +26,9 @@ export interface CurationTxReceipt {
   events: CurationEvent[]
   txHash: string
   reverted: boolean
+  from: Address
+  to: Address | null
+  blockNumber: number
 }
 
 // constants
@@ -48,7 +48,6 @@ const erc20TokenCurationEventABI = [
     ],
   },
 ] as const
-type Erc20Params = { from: Hex; to: Hex; uri: string; amount: bigint }
 
 // native token
 const nativeTokenCurationEventSignature =
@@ -65,38 +64,19 @@ const nativeTokenCurationEventABI = [
     ],
   },
 ] as const
-type NativeTokenParams = {
-  curator: Hex
-  creator: Hex
-  token: Hex
-  uri: string
-  amount: bigint
-}
-// typeguards for viem
-const isErc20TokenParams = (
-  t: Erc20Params | NativeTokenParams
-): t is Erc20Params => (t as Erc20Params).from !== undefined
 
 // additional constants
 const CURATION_ABI = [
   ...erc20TokenCurationEventABI,
   ...nativeTokenCurationEventABI,
 ] as const
-const contractAddress =
-  environment.polygonCurationContractAddress.toLowerCase() as Address
-
-const chainId = isProd
-  ? BLOCKCHAIN_CHAINID.Polygon.PolygonMainnet
-  : BLOCKCHAIN_CHAINID.Polygon.PolygonMumbai
-
-// CurationContract
 
 export class CurationContract extends BaseContract {
   public erc20TokenCurationEventTopic: Hex[]
   public nativeTokenCurationEventTopic: Hex[]
 
-  public constructor() {
-    super(parseInt(chainId, 10), contractAddress, CURATION_ABI)
+  public constructor(chainId: string, contractAddress: string) {
+    super(chainId, contractAddress as Address, CURATION_ABI)
     this.erc20TokenCurationEventTopic = encodeEventTopics({
       abi: erc20TokenCurationEventABI,
       eventName: 'Curation',
@@ -138,7 +118,7 @@ export class CurationContract extends BaseContract {
       })
       const baseLog = {
         txHash: log.transactionHash,
-        address: contractAddress,
+        address: this.address,
         blockNumber: Number(log.blockNumber),
         removed: log.removed,
       }
@@ -191,29 +171,32 @@ export class CurationContract extends BaseContract {
     return {
       txHash,
       reverted: txReceipt.status === 'reverted',
+      from: txReceipt.from,
+      to: txReceipt.to,
+      blockNumber: Number(txReceipt.blockNumber),
       events: targets
         .map((log) =>
           decodeEventLog({
-            abi: this.contract.abi as typeof CURATION_ABI,
-            ...log,
+            abi: CURATION_ABI,
+            data: log.data,
+            topics: log.topics as [signature: `0x${string}`, ...hex: Hex[]],
           })
         )
         .map((e) => {
+          const log = e.args
+          const isERC20 = 'curator' in log
           const curatorAddress = (
-            isErc20TokenParams(e.args) ? e.args.from : e.args.curator
+            isERC20 ? log.curator : log.from
           ).toLowerCase()
-          const creatorAddress = (
-            isErc20TokenParams(e.args) ? e.args.to : e.args.creator
-          ).toLowerCase()
-          const tokenAddress = !isErc20TokenParams(e.args)
-            ? e.args?.token?.toLowerCase()
-            : null
+          const creatorAddress = (isERC20 ? log.creator : log.to).toLowerCase()
+          const tokenAddress = isERC20 ? log.token.toLowerCase() : null
+
           return {
             curatorAddress,
             creatorAddress,
-            uri: e.args?.uri,
+            uri: log?.uri,
             tokenAddress,
-            amount: e.args?.amount?.toString(),
+            amount: log?.amount?.toString(),
           }
         }),
     }

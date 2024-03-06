@@ -16,14 +16,13 @@ import {
 import { privateKeyToAccount } from 'viem/accounts'
 import { polygon, polygonMumbai } from 'viem/chains'
 
-import { SIGNING_MESSAGE_PURPOSE } from 'common/enums'
-import { environment, isProd } from 'common/environment'
+import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from 'common/enums'
+import { environment, isProd, contract } from 'common/environment'
 import {
   EntityNotFoundError,
   EthAddressNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { rpcs } from 'common/utils'
 import { alchemy, AlchemyNetwork } from 'connectors'
 
 const resolver: GQLMutationResolvers['claimLogbooks'] = async (
@@ -67,7 +66,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // get Traveloggers token ids
   const traveloggersNFTs = (await alchemy.getNFTs({
     network: isProd ? AlchemyNetwork.Mainnet : AlchemyNetwork.Rinkeby,
-    contract: environment.traveloggersContractAddress,
+    contract: contract.Ethereum.traveloggersAddress,
     owner: ethAddress,
   })) as { ownedNfts: Array<{ id: { tokenId: string } }> }
   const tokenIds = traveloggersNFTs.ownedNfts.map((item) =>
@@ -81,7 +80,9 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   // filter unclaimed token ids
   const client = createPublicClient({
     chain: isProd ? polygon : polygonMumbai,
-    transport: http(isProd ? rpcs[polygon.id] : rpcs[polygonMumbai.id]),
+    transport: http(
+      isProd ? BLOCKCHAIN_RPC[polygon.id] : BLOCKCHAIN_RPC[polygonMumbai.id]
+    ),
   })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
@@ -95,17 +96,17 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     chain: client.chain,
     transport: http(),
   })
-  const contract = getContract({
+  const logbookContract = getContract({
     publicClient: client,
     abi,
-    address: environment.logbookContractAddress as Address,
+    address: contract.Polygon.logbookAddress as Address,
     walletClient,
   })
 
   const unclaimedTokenIds = []
   for (const tokenId of tokenIds) {
     try {
-      await contract.read.ownerOf([tokenId])
+      await logbookContract.read.ownerOf([tokenId])
     } catch (e) {
       unclaimedTokenIds.push(tokenId)
     }
@@ -140,7 +141,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     })
   )
 
-  const txHash = await contract.write.multicall(calldata, {
+  const txHash = await logbookContract.write.multicall(calldata, {
     maxFeePerGas,
     maxPriorityFeePerGas,
   })

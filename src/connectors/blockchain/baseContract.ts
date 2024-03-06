@@ -1,27 +1,37 @@
-import { Abi, PublicClient, createPublicClient, getContract, http } from 'viem'
-import { polygon, polygonMumbai } from 'viem/chains'
+import {
+  Abi,
+  Address,
+  PublicClient,
+  createPublicClient,
+  extractChain,
+  getContract,
+  http,
+} from 'viem'
+import * as chains from 'viem/chains'
 
-import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from 'common/enums'
-import { rpcs } from 'common/utils'
+import { BLOCKCHAIN_RPC } from 'common/enums'
 
 export class BaseContract {
-  public chainId: number
-  public address: string
+  public chainId: string
+  public address: Address
   public abi: Abi
+
   protected client: PublicClient
   protected contract: ReturnType<typeof getContract>
 
-  public constructor(chainId: number, address: `0x${string}`, abi: Abi) {
+  public constructor(chainId: string, address: Address, abi: Abi) {
     this.chainId = chainId
     this.address = address
     this.abi = abi
 
-    const isMainnetPolygon =
-      chainId.toString() ===
-      BLOCKCHAIN_CHAINID[BLOCKCHAIN.Polygon].PolygonMainnet
+    const chain = extractChain({
+      chains: Object.values(chains),
+      id: chainId as any,
+    }) as chains.Chain
+
     this.client = createPublicClient({
-      chain: isMainnetPolygon ? polygon : polygonMumbai,
-      transport: http(rpcs[chainId]),
+      chain,
+      transport: http(BLOCKCHAIN_RPC[chainId]),
     })
 
     this.contract = getContract({ abi, address, publicClient: this.client })

@@ -132,15 +132,9 @@ export const environment = {
       ? 'https://api.opensea.io/api/v1'
       : 'https://rinkeby-api.opensea.io/api/v1'),
   openseaAPIKey: process.env.MATTERS_OPENSEA_API_KEY || undefined,
-  traveloggersContractAddress: process.env.MATTERS_LOGRS_CONTRACT_ADDRESS || '',
-  logbookContractAddress: process.env.MATTERS_LOGBOOK_CONTRACT_ADDRESS || '',
   logbookClaimerPrivateKey:
     process.env.MATTERS_LOGBOOK_CLAIMER_PRIVATE_KEY || '',
   alchemyApiKey: process.env.MATTERS_ALCHEMY_API_KEY || '',
-  polygonCurationContractAddress:
-    process.env.MATTERS_POLYGON_CURATION_CONTRACT_ADDRESS || '',
-  polygonCurationContractBlocknum:
-    process.env.MATTERS_POLYGON_CURATION_CONTRACT_BLOCKNUM || '',
   exchangeRatesDataAPIKey:
     process.env.MATTERS_EXCHANGE_RATES_DATA_API_KEY || '',
   twitterConsumerKey: process.env.MATTERS_TWITTER_CONSUMER_KEY || '',
@@ -159,7 +153,48 @@ export const environment = {
   passphrasesSecret: process.env.MATTERS_PASSPHRASES_SECRET || '',
 }
 
-export const polygonUSDTContractAddress = isProd
-  ? '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
-  : '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'
-export const polygonUSDTContractDecimals = isProd ? 6 : 18
+export const contract = {
+  Ethereum: isProd
+    ? {
+        traveloggersAddress: '0x8515ba8ef2cf2f2ba44b26ff20337d7a2bc5e6d8',
+      }
+    : {
+        traveloggersAddress: '0xae89d81ab5c668661200fa9c6ed45fe1707f7097',
+      },
+  Polygon: isProd
+    ? {
+        logbookAddress: '0xcdf8D568EC808de5fCBb35849B5bAFB5d444D4c0',
+        curationAddress:
+          '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8'.toLowerCase(),
+        curationBlockNum: '34564355',
+        tokenAddress:
+          '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'.toLowerCase(),
+        tokenDecimals: 6,
+      }
+    : {
+        logbookAddress: '0x203197e074b7a2f4ff6890815e4657a9c47c68b1',
+        curationAddress:
+          '0xa219C6722008aa22828B31A13ab9Ba93bB91222c'.toLowerCase(),
+        curationBlockNum: '28675517',
+        tokenAddress:
+          '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1'.toLowerCase(),
+        tokenDecimals: 6,
+      },
+  Optimism: isProd
+    ? {
+        curationAddress:
+          '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8'.toLowerCase(),
+        curationBlockNum: '117058632',
+        tokenAddress:
+          '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
+        tokenDecimals: 6,
+      }
+    : {
+        curationAddress:
+          '0x92a117aeA74963Cd0CEdF9C50f99435451a291F7'.toLowerCase(),
+        curationBlockNum: '8438904',
+        tokenAddress:
+          '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'.toLowerCase(),
+        tokenDecimals: 6,
+      },
+}

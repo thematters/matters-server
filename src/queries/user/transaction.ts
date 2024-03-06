@@ -29,10 +29,7 @@ export const Transaction: GQLTransactionResolvers = {
     const blockchainTx = await paymentService.findBlockchainTransactionById(
       trx.providerTxId
     )
-    const chain =
-      BLOCKCHAIN_CHAINNAME[
-        blockchainTx.chainId as keyof typeof BLOCKCHAIN_CHAINNAME
-      ]
+    const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
     if (!chain) {
       throw new ServerError('chain is not supported')
     }
