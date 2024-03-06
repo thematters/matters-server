@@ -120,7 +120,7 @@ export const APPRECIATION_REWARD = {
 } as const
 
 export const ARTICLE_APPRECIATE_LIMIT = 5
-export const ARTICLE_PIN_COMMENT_LIMIT = 3
+export const ARTICLE_PIN_COMMENT_LIMIT = 1
 
 export const MIGRATION_DELAY = 1000
 
