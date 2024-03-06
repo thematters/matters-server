@@ -428,7 +428,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
     savepoint: number
   ): Promise<[Array<Log<CurationEvent>>, bigint]> => {
     const safeBlockNum =
-      (await curation.fetchBlockNumber()) - BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
+      (await curation.fetchBlockNumber()) -
+      BigInt(BLOCKCHAIN_SAFE_CONFIRMS.Polygon)
 
     const fromBlockNum = BigInt(savepoint + 1)
 
@@ -596,7 +597,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       const entity = await userService.baseFindEntityTypeTable(targetType)
       const entityType =
         NODE_TYPES[
-        (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
+          (_capitalize(entity?.table) as keyof typeof NODE_TYPES) || ''
         ]
       if (entityType) {
         invalidateFQC({
