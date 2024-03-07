@@ -33,6 +33,7 @@ import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
 import { Topic as TopicModel } from './topic'
 import { Report as ReportModel } from './report'
+import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -1415,6 +1416,32 @@ export type GQLGenerateSigningMessageInput = {
 
 export type GQLGrantType = 'authorization_code' | 'refresh_token'
 
+export type GQLIcymiTopic = GQLNode & {
+  __typename?: 'IcymiTopic'
+  archivedAt?: Maybe<Scalars['DateTime']['output']>
+  articles: Array<GQLArticle>
+  note?: Maybe<Scalars['String']['output']>
+  pinAmount: Scalars['Int']['output']
+  publishedAt?: Maybe<Scalars['DateTime']['output']>
+  state: GQLIcymiTopicState
+  title: Scalars['String']['output']
+}
+
+export type GQLIcymiTopicConnection = GQLConnection & {
+  __typename?: 'IcymiTopicConnection'
+  edges: Array<GQLIcymiTopicEdge>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLIcymiTopicEdge = {
+  __typename?: 'IcymiTopicEdge'
+  cursor: Scalars['String']['output']
+  node: GQLIcymiTopic
+}
+
+export type GQLIcymiTopicState = 'archived' | 'editing' | 'published'
+
 export type GQLInvitation = {
   __typename?: 'Invitation'
   /** Accepted time. */
@@ -1647,6 +1674,7 @@ export type GQLMutation = {
   putDraft: GQLDraft
   /** update tags for showing on profile page */
   putFeaturedTags?: Maybe<Array<GQLTag>>
+  putIcymiTopic?: Maybe<GQLIcymiTopic>
   /** Create or Update an OAuth Client, used in OSS. */
   putOAuthClient?: Maybe<GQLOAuthClient>
   putRemark?: Maybe<Scalars['String']['output']>
@@ -1926,6 +1954,10 @@ export type GQLMutationPutDraftArgs = {
 
 export type GQLMutationPutFeaturedTagsArgs = {
   input: GQLFeaturedTagsInput
+}
+
+export type GQLMutationPutIcymiTopicArgs = {
+  input: GQLPutIcymiTopicInput
 }
 
 export type GQLMutationPutOAuthClientArgs = {
@@ -2298,6 +2330,7 @@ export type GQLOss = {
   articles: GQLArticleConnection
   badgedUsers: GQLUserConnection
   comments: GQLCommentConnection
+  icymiTopics: GQLIcymiTopicConnection
   oauthClients: GQLOAuthClientConnection
   reports: GQLReportConnection
   restrictedUsers: GQLUserConnection
@@ -2316,6 +2349,10 @@ export type GQLOssBadgedUsersArgs = {
 }
 
 export type GQLOssCommentsArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLOssIcymiTopicsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -2550,6 +2587,15 @@ export type GQLPutDraftInput = {
   title?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLPutIcymiTopicInput = {
+  articles?: InputMaybe<Array<Scalars['ID']['input']>>
+  id?: InputMaybe<Scalars['ID']['input']>
+  note?: InputMaybe<Scalars['String']['input']>
+  pinAmount?: InputMaybe<Scalars['Int']['input']>
+  state?: InputMaybe<GQLIcymiTopicState>
+  title?: InputMaybe<Scalars['String']['input']>
+}
+
 export type GQLPutOAuthClientInput = {
   avatar?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Scalars['String']['input']>
@@ -2714,6 +2760,8 @@ export type GQLRecommendation = {
   hottestTags: GQLTagConnection
   /** 'In case you missed it' recommendation. */
   icymi: GQLArticleConnection
+  /** 'In case you missed it' topic. */
+  icymiTopic?: Maybe<GQLIcymiTopic>
   /** Global articles sort by publish time. */
   newest: GQLArticleConnection
   /** Global circles sort by created time. */
@@ -4168,6 +4216,9 @@ export type GQLResolversInterfaceTypes<
         edges?: Maybe<Array<RefType['DraftEdge']>>
       })
     | GQLFollowingActivityConnection
+    | (Omit<GQLIcymiTopicConnection, 'edges'> & {
+        edges: Array<RefType['IcymiTopicEdge']>
+      })
     | (Omit<GQLInvitationConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['InvitationEdge']>>
       })
@@ -4213,6 +4264,7 @@ export type GQLResolversInterfaceTypes<
     | CollectionModel
     | CommentModel
     | DraftModel
+    | MattersChoiceTopicModel
     | ReportModel
     | TagModel
     | TopicModel
@@ -4445,6 +4497,16 @@ export type GQLResolversTypes = ResolversObject<{
   GenerateSigningMessageInput: GQLGenerateSigningMessageInput
   GrantType: GQLGrantType
   ID: ResolverTypeWrapper<Scalars['ID']['output']>
+  IcymiTopic: ResolverTypeWrapper<MattersChoiceTopicModel>
+  IcymiTopicConnection: ResolverTypeWrapper<
+    Omit<GQLIcymiTopicConnection, 'edges'> & {
+      edges: Array<GQLResolversTypes['IcymiTopicEdge']>
+    }
+  >
+  IcymiTopicEdge: ResolverTypeWrapper<
+    Omit<GQLIcymiTopicEdge, 'node'> & { node: GQLResolversTypes['IcymiTopic'] }
+  >
+  IcymiTopicState: GQLIcymiTopicState
   Int: ResolverTypeWrapper<Scalars['Int']['output']>
   Invitation: ResolverTypeWrapper<CircleInvitationModel>
   InvitationConnection: ResolverTypeWrapper<
@@ -4516,6 +4578,7 @@ export type GQLResolversTypes = ResolversObject<{
       | 'articles'
       | 'badgedUsers'
       | 'comments'
+      | 'icymiTopics'
       | 'oauthClients'
       | 'reports'
       | 'restrictedUsers'
@@ -4526,6 +4589,7 @@ export type GQLResolversTypes = ResolversObject<{
       articles: GQLResolversTypes['ArticleConnection']
       badgedUsers: GQLResolversTypes['UserConnection']
       comments: GQLResolversTypes['CommentConnection']
+      icymiTopics: GQLResolversTypes['IcymiTopicConnection']
       oauthClients: GQLResolversTypes['OAuthClientConnection']
       reports: GQLResolversTypes['ReportConnection']
       restrictedUsers: GQLResolversTypes['UserConnection']
@@ -4562,6 +4626,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutCollectionInput: GQLPutCollectionInput
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
+  PutIcymiTopicInput: GQLPutIcymiTopicInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -4960,6 +5025,13 @@ export type GQLResolversParentTypes = ResolversObject<{
   FrequentSearchInput: GQLFrequentSearchInput
   GenerateSigningMessageInput: GQLGenerateSigningMessageInput
   ID: Scalars['ID']['output']
+  IcymiTopic: MattersChoiceTopicModel
+  IcymiTopicConnection: Omit<GQLIcymiTopicConnection, 'edges'> & {
+    edges: Array<GQLResolversParentTypes['IcymiTopicEdge']>
+  }
+  IcymiTopicEdge: Omit<GQLIcymiTopicEdge, 'node'> & {
+    node: GQLResolversParentTypes['IcymiTopic']
+  }
   Int: Scalars['Int']['output']
   Invitation: CircleInvitationModel
   InvitationConnection: Omit<GQLInvitationConnection, 'edges'> & {
@@ -5012,6 +5084,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     | 'articles'
     | 'badgedUsers'
     | 'comments'
+    | 'icymiTopics'
     | 'oauthClients'
     | 'reports'
     | 'restrictedUsers'
@@ -5022,6 +5095,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     articles: GQLResolversParentTypes['ArticleConnection']
     badgedUsers: GQLResolversParentTypes['UserConnection']
     comments: GQLResolversParentTypes['CommentConnection']
+    icymiTopics: GQLResolversParentTypes['IcymiTopicConnection']
     oauthClients: GQLResolversParentTypes['OAuthClientConnection']
     reports: GQLResolversParentTypes['ReportConnection']
     restrictedUsers: GQLResolversParentTypes['UserConnection']
@@ -5050,6 +5124,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutCollectionInput: GQLPutCollectionInput
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
+  PutIcymiTopicInput: GQLPutIcymiTopicInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -6445,6 +6520,7 @@ export type GQLConnectionResolvers<
     | 'CommentConnection'
     | 'DraftConnection'
     | 'FollowingActivityConnection'
+    | 'IcymiTopicConnection'
     | 'InvitationConnection'
     | 'MemberConnection'
     | 'NoticeConnection'
@@ -6694,6 +6770,59 @@ export type GQLFollowingActivityEdgeResolvers<
     ParentType,
     ContextType
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLIcymiTopicResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['IcymiTopic'] = GQLResolversParentTypes['IcymiTopic']
+> = ResolversObject<{
+  archivedAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  articles?: Resolver<
+    Array<GQLResolversTypes['Article']>,
+    ParentType,
+    ContextType
+  >
+  note?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
+  pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  publishedAt?: Resolver<
+    Maybe<GQLResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
+  state?: Resolver<
+    GQLResolversTypes['IcymiTopicState'],
+    ParentType,
+    ContextType
+  >
+  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLIcymiTopicConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['IcymiTopicConnection'] = GQLResolversParentTypes['IcymiTopicConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Array<GQLResolversTypes['IcymiTopicEdge']>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLIcymiTopicEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['IcymiTopicEdge'] = GQLResolversParentTypes['IcymiTopicEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['IcymiTopic'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -7087,6 +7216,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutFeaturedTagsArgs, 'input'>
   >
+  putIcymiTopic?: Resolver<
+    Maybe<GQLResolversTypes['IcymiTopic']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutIcymiTopicArgs, 'input'>
+  >
   putOAuthClient?: Resolver<
     Maybe<GQLResolversTypes['OAuthClient']>,
     ParentType,
@@ -7473,6 +7608,7 @@ export type GQLNodeResolvers<
     | 'Collection'
     | 'Comment'
     | 'Draft'
+    | 'IcymiTopic'
     | 'Report'
     | 'Tag'
     | 'Topic'
@@ -7699,6 +7835,12 @@ export type GQLOssResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLOssCommentsArgs, 'input'>
+  >
+  icymiTopics?: Resolver<
+    GQLResolversTypes['IcymiTopicConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLOssIcymiTopicsArgs, 'input'>
   >
   oauthClients?: Resolver<
     GQLResolversTypes['OAuthClientConnection'],
@@ -8014,6 +8156,11 @@ export type GQLRecommendationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLRecommendationIcymiArgs, 'input'>
+  >
+  icymiTopic?: Resolver<
+    Maybe<GQLResolversTypes['IcymiTopic']>,
+    ParentType,
+    ContextType
   >
   newest?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -9129,6 +9276,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   FollowingActivity?: GQLFollowingActivityResolvers<ContextType>
   FollowingActivityConnection?: GQLFollowingActivityConnectionResolvers<ContextType>
   FollowingActivityEdge?: GQLFollowingActivityEdgeResolvers<ContextType>
+  IcymiTopic?: GQLIcymiTopicResolvers<ContextType>
+  IcymiTopicConnection?: GQLIcymiTopicConnectionResolvers<ContextType>
+  IcymiTopicEdge?: GQLIcymiTopicEdgeResolvers<ContextType>
   Invitation?: GQLInvitationResolvers<ContextType>
   InvitationConnection?: GQLInvitationConnectionResolvers<ContextType>
   InvitationEdge?: GQLInvitationEdgeResolvers<ContextType>

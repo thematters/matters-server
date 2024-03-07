@@ -167,6 +167,7 @@ type Mutation {
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
+  putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1985,6 +1986,7 @@ type OSS {
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
   reports(input: ConnectionArgs!): ReportConnection!
+  icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2349,6 +2351,42 @@ enum ReportReason {
   other
 }
 
+type IcymiTopic implements Node {
+  title: String!
+  articles: [Article!]!
+  pinAmount: Int!
+  note: String
+  state: IcymiTopicState!
+  publishedAt: DateTime
+  archivedAt: DateTime
+}
+
+enum IcymiTopicState {
+  published
+  editing
+  archived
+}
+
+type IcymiTopicConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [IcymiTopicEdge!]!
+}
+
+type IcymiTopicEdge {
+  cursor: String!
+  node: IcymiTopic!
+}
+
+input PutIcymiTopicInput {
+  id: ID
+  title: String
+  articles: [ID!]
+  pinAmount: Int
+  note: String
+  state: IcymiTopicState
+}
+
 enum CacheControlScope {
   PUBLIC
   PRIVATE
@@ -2369,6 +2407,9 @@ type Recommendation {
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
+
+  """'In case you missed it' topic."""
+  icymiTopic: IcymiTopic
 
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!

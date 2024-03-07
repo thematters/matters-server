@@ -46,6 +46,7 @@ export default /* GraphQL */ `
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
+    putIcymiTopic(input:PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input KeywordsInput {
@@ -134,6 +135,7 @@ export default /* GraphQL */ `
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
     reports(input: ConnectionArgs!): ReportConnection!
+    icymiTopics(input:ConnectionArgs!): IcymiTopicConnection!
   }
 
 
@@ -497,6 +499,43 @@ export default /* GraphQL */ `
     pornography_involving_minors
     other
   }
+
+  type IcymiTopic implements Node {
+    title: String!
+    articles: [Article!]!
+    pinAmount: Int!
+    note: String
+    state: IcymiTopicState!
+    publishedAt: DateTime
+    archivedAt: DateTime
+  }
+
+  enum IcymiTopicState {
+    published
+    editing
+    archived
+  }
+
+  type IcymiTopicConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [IcymiTopicEdge!]!
+  }
+
+  type IcymiTopicEdge {
+    cursor: String!
+    node: IcymiTopic!
+  }
+
+  input PutIcymiTopicInput {
+   id: ID
+   title: String
+   articles: [ID!]
+   pinAmount: Int
+   note: String
+   state: IcymiTopicState
+ }
+
 
   ####################
   #    Directives    #
