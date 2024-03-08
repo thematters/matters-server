@@ -22,6 +22,7 @@ import {
   TagService,
   UserService,
   CollectionService,
+  RecommendationService,
 } from 'connectors'
 import {
   PublicationQueue,
@@ -226,6 +227,7 @@ export const testClient = async ({
       oauthService: new OAuthService(connections),
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
+      recommendationService: new RecommendationService(connections),
       connections,
       queues,
       ...dataSources,
