@@ -19,7 +19,7 @@ const resolver: GQLMutationResolvers['putIcymiTopic'] = async (
     }
     const topic = await recommendationService.createIcymiTopic({
       title,
-      articles: (articles ?? []).map((article) => fromGlobalId(article).id),
+      articleIds: (articles ?? []).map((article) => fromGlobalId(article).id),
       pinAmount,
       note,
     })
@@ -38,7 +38,7 @@ const resolver: GQLMutationResolvers['putIcymiTopic'] = async (
     }
     const topic = await recommendationService.updateIcymiTopic(id, {
       title,
-      articles: (articles ?? []).map((article) => fromGlobalId(article).id),
+      articleIds: (articles ?? []).map((article) => fromGlobalId(article).id),
       pinAmount,
       note,
     })

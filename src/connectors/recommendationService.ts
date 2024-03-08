@@ -3,6 +3,7 @@ import type { Connections } from 'definitions'
 import {
   MATTERS_CHOICE_TOPIC_STATE,
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
+  ARTICLE_STATE,
 } from 'common/enums'
 import {
   UserInputError,
@@ -23,23 +24,29 @@ export class RecommendationService {
 
   public createIcymiTopic = async ({
     title,
-    articles,
+    articleIds,
     pinAmount,
     note,
   }: {
     title: string
-    articles: string[]
+    articleIds: string[]
     pinAmount: number
     note?: string
   }) => {
     if (!MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS.includes(pinAmount)) {
       throw new UserInputError('Invalid pin amount')
     }
+    const articles = await this.models.articleIdLoader.loadMany(articleIds)
+    for (const article of articles) {
+      if (!article || article.state !== ARTICLE_STATE.active) {
+        throw new UserInputError('Invalid article')
+      }
+    }
     return this.models.create({
       table: 'matters_choice_topic',
       data: {
         title,
-        articles,
+        articles: articleIds,
         pinAmount,
         note,
         state: MATTERS_CHOICE_TOPIC_STATE.editing,
@@ -51,12 +58,12 @@ export class RecommendationService {
     id: string,
     {
       title,
-      articles,
+      articleIds,
       pinAmount,
       note,
     }: {
       title?: string
-      articles?: string[]
+      articleIds?: string[]
       pinAmount?: number
       note?: string
     }
@@ -66,6 +73,14 @@ export class RecommendationService {
       !MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS.includes(pinAmount)
     ) {
       throw new UserInputError('Invalid pin amount')
+    }
+    if (articleIds) {
+      const articles = await this.models.articleIdLoader.loadMany(articleIds)
+      for (const article of articles) {
+        if (!article || article.state !== ARTICLE_STATE.active) {
+          throw new UserInputError('Invalid article')
+        }
+      }
     }
     const topic = await this.models.findUnique({
       table: 'matters_choice_topic',
@@ -80,7 +95,7 @@ export class RecommendationService {
     return this.models.update({
       table: 'matters_choice_topic',
       where: { id },
-      data: { title, articles, pinAmount, note },
+      data: { title, articles: articleIds, pinAmount, note },
     })
   }
 
