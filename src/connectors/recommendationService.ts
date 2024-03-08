@@ -1,9 +1,11 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
+import type { Knex } from 'knex'
 
 import {
   MATTERS_CHOICE_TOPIC_STATE,
   MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS,
   ARTICLE_STATE,
+  DEFAULT_TAKE_PER_PAGE,
 } from 'common/enums'
 import {
   UserInputError,
@@ -16,9 +18,11 @@ import { AtomService } from './atomService'
 export class RecommendationService {
   private connections: Connections
   private models: AtomService
+  private knexRO: Knex
 
   public constructor(connections: Connections) {
     this.connections = connections
+    this.knexRO = connections.knexRO
     this.models = new AtomService(this.connections)
   }
 
@@ -154,5 +158,47 @@ export class RecommendationService {
     } else {
       throw new ActionFailedError('Invalid topic state')
     }
+  }
+
+  public findIcymiArticles = async ({
+    take,
+    skip,
+  }: {
+    take?: number
+    skip?: number
+  }) => {
+    const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
+    const records = await this.knexRO
+      .select(
+        'article.*',
+        this.knexRO.raw('COUNT(1) OVER() ::int AS total_count')
+      )
+      .from(
+        this.knexRO
+          .select()
+          .from('matters_choice')
+          .whereNotIn(
+            'article_id',
+            this.knexRO
+              .select(this.knexRO.raw('UNNEST(articles)'))
+              .from('matters_choice_topic')
+              .where('state', MATTERS_CHOICE_TOPIC_STATE.published)
+          )
+          .orderBy('updated_at', 'desc')
+          .limit(MAX_ITEM_COUNT)
+          .as('choice')
+      )
+      .leftJoin('article', 'choice.article_id', 'article.id')
+      .where({ state: ARTICLE_STATE.active })
+      .modify((builder) => {
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
+
+    return [records as Article[], records[0]?.totalCount || 0]
   }
 }

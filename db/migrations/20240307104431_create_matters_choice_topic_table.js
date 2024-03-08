@@ -8,7 +8,7 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.string('title').notNullable()
     t.string('note')
-    t.specificType('articles', 'text ARRAY')
+    t.specificType('articles', 'bigint ARRAY')
     t.integer('pin_amount').unsigned().notNullable()
     t.enum('state', ['published', 'editing', 'archived']).notNullable()
     t.timestamp('published_at')

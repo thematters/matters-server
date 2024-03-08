@@ -22,11 +22,12 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
+const title = 'test title'
+const pinAmount = MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS[0]
+const articleIds = ['1', '2']
+const note = 'test note'
+
 describe('IcymiTopic', () => {
-  const title = 'test title'
-  const pinAmount = MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS[0]
-  const articleIds = ['1', '2']
-  const note = 'test note'
   describe('createIcymiTopic', () => {
     test('pin amount is checked', () => {
       expect(
@@ -196,5 +197,42 @@ describe('IcymiTopic', () => {
         [...articleIds].reverse()
       )
     })
+  })
+})
+
+describe('find icymi articles', () => {
+  beforeEach(async () => {
+    await atomService.deleteMany({ table: 'matters_choice' })
+  })
+  test('find nothing', async () => {
+    const [articles, totalCount] =
+      await recommendationService.findIcymiArticles({})
+    expect(articles).toHaveLength(0)
+    expect(totalCount).toBe(0)
+  })
+  test('find articles', async () => {
+    const topic = await recommendationService.createIcymiTopic({
+      title,
+      articleIds,
+      pinAmount,
+    })
+    await recommendationService.publishIcymiTopic(topic.id)
+    await recommendationService.archiveIcymiTopic(topic.id)
+    const [articles, totalCount] =
+      await recommendationService.findIcymiArticles({})
+    expect(articles).toHaveLength(2)
+    expect(totalCount).toBe(2)
+
+    const topic2 = await recommendationService.createIcymiTopic({
+      title,
+      articleIds,
+      pinAmount,
+    })
+    await recommendationService.publishIcymiTopic(topic2.id)
+    // articles in published topic are not included
+    const [articles2, totalCount2] =
+      await recommendationService.findIcymiArticles({})
+    expect(articles2).toHaveLength(0)
+    expect(totalCount2).toBe(0)
   })
 })
