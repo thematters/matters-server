@@ -501,6 +501,7 @@ export default /* GraphQL */ `
   }
 
   type IcymiTopic implements Node {
+    id: ID!
     title: String!
     articles: [Article!]!
     pinAmount: Int!

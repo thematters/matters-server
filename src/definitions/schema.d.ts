@@ -1420,6 +1420,7 @@ export type GQLIcymiTopic = GQLNode & {
   __typename?: 'IcymiTopic'
   archivedAt?: Maybe<Scalars['DateTime']['output']>
   articles: Array<GQLArticle>
+  id: Scalars['ID']['output']
   note?: Maybe<Scalars['String']['output']>
   pinAmount: Scalars['Int']['output']
   publishedAt?: Maybe<Scalars['DateTime']['output']>
@@ -6787,6 +6788,7 @@ export type GQLIcymiTopicResolvers<
     ParentType,
     ContextType
   >
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   note?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   pinAmount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   publishedAt?: Resolver<
