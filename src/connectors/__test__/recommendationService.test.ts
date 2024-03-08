@@ -93,4 +93,108 @@ describe('IcymiTopic', () => {
       ).rejects.toThrowError('Invalid topic state')
     })
   })
+
+  describe('publishIcymiTopic', () => {
+    test('topic is checked', async () => {
+      expect(recommendationService.publishIcymiTopic('0')).rejects.toThrowError(
+        'Topic not found'
+      )
+      const topic = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+        note,
+      })
+      expect(topic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
+      const published = await recommendationService.publishIcymiTopic(topic.id)
+      expect(published.state).toBe(MATTERS_CHOICE_TOPIC_STATE.published)
+
+      expect(
+        recommendationService.publishIcymiTopic(topic.id)
+      ).rejects.toThrowError('Invalid topic state')
+    })
+    test('archive other published topics', async () => {
+      const topic1 = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+        note,
+      })
+      await recommendationService.publishIcymiTopic(topic1.id)
+
+      const topic2 = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+        note,
+      })
+      const published = await recommendationService.publishIcymiTopic(topic2.id)
+      expect(published.state).toBe(MATTERS_CHOICE_TOPIC_STATE.published)
+      expect(published.publishedAt).not.toBeNull()
+
+      const topic1AfterPublish = await atomService.findUnique({
+        table: 'matters_choice_topic',
+        where: { id: topic1.id },
+      })
+      expect(topic1AfterPublish.state).toBe(MATTERS_CHOICE_TOPIC_STATE.archived)
+    })
+  })
+  describe('archiveIcymiTopic', () => {
+    test('delete editing topic', async () => {
+      const topic = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+        note,
+      })
+      expect(topic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
+      await recommendationService.archiveIcymiTopic(topic.id)
+      const topicAfterArchive = await atomService.findUnique({
+        table: 'matters_choice_topic',
+        where: { id: topic.id },
+      })
+      expect(topicAfterArchive).toBeUndefined()
+    })
+    test('archive published topic', async () => {
+      const topic = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+        note,
+      })
+      await recommendationService.publishIcymiTopic(topic.id)
+      const archived = await recommendationService.archiveIcymiTopic(topic.id)
+      expect(archived?.state).toBe(MATTERS_CHOICE_TOPIC_STATE.archived)
+    })
+    test('update articles in archived topic to icymi articles', async () => {
+      await atomService.deleteMany({ table: 'matters_choice' })
+      const topic = await recommendationService.createIcymiTopic({
+        title,
+        articleIds,
+        pinAmount,
+      })
+      await recommendationService.publishIcymiTopic(topic.id)
+      await recommendationService.archiveIcymiTopic(topic.id)
+      const icymis = await atomService.findMany({
+        table: 'matters_choice',
+        orderBy: [{ column: 'updatedAt', order: 'desc' }],
+      })
+      expect(icymis.map(({ articleId }) => articleId)).toEqual(articleIds)
+
+      const topic2 = await recommendationService.createIcymiTopic({
+        title,
+        articleIds: [...articleIds].reverse(),
+        pinAmount,
+      })
+      await recommendationService.publishIcymiTopic(topic2.id)
+      await recommendationService.archiveIcymiTopic(topic2.id)
+      const icymis2 = await atomService.findMany({
+        table: 'matters_choice',
+        orderBy: [{ column: 'updatedAt', order: 'desc' }],
+      })
+      expect(icymis2.map(({ articleId }) => articleId)).toEqual(
+        [...articleIds].reverse()
+      )
+    })
+  })
 })

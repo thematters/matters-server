@@ -138,8 +138,8 @@ export class RecommendationService {
       })
       return null
     } else if (topic.state === MATTERS_CHOICE_TOPIC_STATE.published) {
-      for (const articleId of topic.articles) {
-        this.models.upsert({
+      for (const articleId of topic.articles.reverse()) {
+        await this.models.upsert({
           table: 'matters_choice',
           where: { articleId },
           create: { articleId },
