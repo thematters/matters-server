@@ -25,15 +25,11 @@ export const authDirective = (directiveName = 'auth') => ({
             const isQuery = operation.operation === 'query'
             const isSelf = root?.id === viewer?.id
             const errorMessage = `"${viewer.authMode}" isn't authorized for "${fieldName}"`
+
             /**
              * Query
              */
             if (isQuery) {
-              // "visitor" can only access anonymous' fields
-              if (!viewer.id && isSelf) {
-                return await resolve(root, args, context, info)
-              }
-
               // check require mode
               if (!viewer.hasAuthMode(requireMode)) {
                 throw new ForbiddenError(errorMessage)
@@ -41,7 +37,7 @@ export const authDirective = (directiveName = 'auth') => ({
 
               switch (viewer.authMode) {
                 // "oauth" can only access granted fields
-                case AUTH_MODE.oauth:
+                case AUTH_MODE.oauth: {
                   if (!isSelf) {
                     break
                   }
@@ -57,17 +53,20 @@ export const authDirective = (directiveName = 'auth') => ({
                     return await resolve(root, args, context, info)
                   }
                   break
+                }
 
                 // "user" can only access own fields
-                case AUTH_MODE.user:
+                case AUTH_MODE.user: {
                   if (isSelf) {
                     return await resolve(root, args, context, info)
                   }
                   break
+                }
 
                 // "admin" can access all user's fields
-                case AUTH_MODE.admin:
+                case AUTH_MODE.admin: {
                   return await resolve(root, args, context, info)
+                }
               }
 
               throw new ForbiddenError(errorMessage)
@@ -81,7 +80,7 @@ export const authDirective = (directiveName = 'auth') => ({
             }
 
             switch (viewer.authMode) {
-              case AUTH_MODE.oauth:
+              case AUTH_MODE.oauth: {
                 const requireMutationScope = [
                   'mutation',
                   requireGroup,
@@ -94,9 +93,11 @@ export const authDirective = (directiveName = 'auth') => ({
                   return await resolve(root, args, context, info)
                 }
                 break
+              }
               case AUTH_MODE.user:
-              case AUTH_MODE.admin:
+              case AUTH_MODE.admin: {
                 return await resolve(root, args, context, info)
+              }
             }
 
             throw new ForbiddenError(errorMessage)
