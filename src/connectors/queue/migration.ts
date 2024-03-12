@@ -8,6 +8,7 @@ import {
 
 import {
   ASSET_TYPE,
+  MAX_ARTICLE_EMPTY_PARAGRAPHS,
   MIGRATION_DELAY,
   MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
@@ -124,7 +125,12 @@ export class MigrationQueue extends BaseQueue {
                   title,
                   summary: content && makeSummary(content),
                   content:
-                    content && normalizeArticleHTML(sanitizeHTML(content)),
+                    content &&
+                    normalizeArticleHTML(
+                      sanitizeHTML(content, {
+                        maxEmptyParagraphs: MAX_ARTICLE_EMPTY_PARAGRAPHS,
+                      })
+                    ),
                 })
 
                 // add asset and assetmap
