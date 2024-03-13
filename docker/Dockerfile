@@ -12,4 +12,5 @@ WORKDIR /var/app
 COPY package*.json ./
 RUN npm install --force
 
+ENV NODE_OPTIONS="--no-experimental-fetch"
 CMD ["npm", "run", "start"]

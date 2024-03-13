@@ -63,6 +63,7 @@ jobs:
       - name: Test
         run: npm run test
         env:
+          NODE_OPTIONS: "--no-experimental-fetch"
           CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
           MATTERS_ENV: test
           MATTERS_LOGGING_LEVEL: warn
