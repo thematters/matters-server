@@ -65,7 +65,8 @@
           "Appreciation": "./appreciation#Appreciation",
           "OAuthClient": "./user#OAuthClientDB",
           "Topic": "./topic#Topic",
-          "Report": "./report#Report"
+          "Report": "./report#Report",
+          "IcymiTopic": "./misc#MattersChoiceTopic"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

@@ -42,6 +42,7 @@ import type {
   EntityType,
   FeaturedCommentMaterialized,
   MattersChoice,
+  MattersChoiceTopic,
   PayoutAccount,
   PunishRecord,
   RecommendedArticlesFromReadTagsMaterialized,
@@ -135,6 +136,7 @@ type TableTypeMap = {
   user_badge: UserBadge
   report: Report
   recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
+  matters_choice_topic: MattersChoiceTopic
 }
 
 type TableTypeMapKey = keyof TableTypeMap
@@ -249,7 +251,7 @@ type CountFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: Partial<Record<keyof D, any>>
+  where?: Partial<Record<keyof D, any>>
   whereIn?: [string, string[]]
 }) => Promise<number>
 
@@ -574,7 +576,10 @@ export class AtomService {
    * A Prisma like method for counting records.
    */
   public count: CountFn = async ({ table, where, whereIn }) => {
-    const action = this.knex.count().from(table).where(where)
+    const action = this.knex.count().from(table)
+    if (where) {
+      action.where(where)
+    }
     if (whereIn) {
       action.whereIn(...whereIn)
     }
@@ -657,4 +662,5 @@ const UPATEABLE_TABLES = [
   'blockchain_sync_record',
   'blockchain_transaction',
   'collection',
+  'matter_choice_topic',
 ]

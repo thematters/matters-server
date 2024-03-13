@@ -14,6 +14,7 @@ import type {
   CollectionService,
   LikeCoin,
   ExchangeRate,
+  RecommendationService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -82,6 +83,7 @@ export interface DataSources {
   paymentService: PaymentService
   openseaService: OpenSeaService
   collectionService: CollectionService
+  recommendationService: RecommendationService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -183,6 +185,7 @@ export type BasicTableName =
   | 'social_account'
   | 'article_content'
   | 'article_version'
+  | 'matters_choice_topic'
 
 export type View =
   | 'tag_count_view'

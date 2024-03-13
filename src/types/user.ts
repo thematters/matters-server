@@ -238,6 +238,9 @@ export default /* GraphQL */ `
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
+    "'In case you missed it' topic."
+    icymiTopic: IcymiTopic @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
