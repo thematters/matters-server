@@ -30,7 +30,7 @@ export const authDirective = (directiveName = 'auth') => ({
              */
             if (isQuery) {
               // "visitor" can only access anonymous' fields
-              if (!viewer.id && isSelf) {
+              if (!viewer.id && isSelf && !nodes.includes('oss')) {
                 return await resolve(root, args, context, info)
               }
 
