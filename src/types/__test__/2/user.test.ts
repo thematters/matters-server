@@ -571,10 +571,14 @@ describe('user query fields', () => {
 
   test('retrive UserSettings by visitors', async () => {
     const server = await testClient({ connections })
-    const { errors } = await server.executeOperation({
+    const res = await server.executeOperation({
       query: GET_VIEWER_SETTINGS,
     })
-    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+    const { data } = res
+    const settings = _get(data, 'viewer.settings')
+    expect(settings.language).toBe('en')
+    expect(settings.currency).toBe('USD')
+    expect(settings.notification).toBeNull()
   })
 
   test('retrive UserSettings', async () => {
@@ -651,11 +655,12 @@ describe('user query fields', () => {
 
   test('retrive topDonators by visitor', async () => {
     const server = await testClient({ connections })
-    const { errors } = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_TOPDONATORS,
       variables: { input: {} },
     })
-    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+    const donators = _get(data, 'viewer.analytics.topDonators')
+    expect(donators).toEqual({ edges: [], totalCount: 0 })
   })
 
   test.skip('retrive topDonators by user', async () => {
@@ -1637,12 +1642,12 @@ describe('query social accounts', () => {
       }
     }
   `
-  test('visitors can not query social accounts', async () => {
+  test('visitors do not have social accounts', async () => {
     const server = await testClient({ connections })
-    const { errors } = await server.executeOperation({
+    const { data } = await server.executeOperation({
       query: GET_VIEWER_SOCIAL_ACCOUNTS,
     })
-    expect(errors[0].extensions.code).toBe('FORBIDDEN')
+    expect(data.viewer.info.socialAccounts).toEqual([])
   })
   test('users social accounts', async () => {
     const server = await testClient({ isAuth: true, connections })
