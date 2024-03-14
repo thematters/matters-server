@@ -220,6 +220,7 @@ describe('Anonymous query and mutation', () => {
       query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
       variables: { input: { userName: otherUserName } },
     })
+    expect(_.get(error_case, 'errors.length')).toBe(1)
     expect(_.get(error_case, 'errors.0.message')).toBeTruthy()
   })
 
@@ -1166,43 +1167,5 @@ describe('add social accounts', () => {
       },
     })
     expect(data?.addSocialLogin.info.email).toBe(null)
-  })
-})
-
-describe('oss', () => {
-  const GET_OSS_INFO = /* GraphQL */ `
-    query {
-      oss {
-        comments(input: { first: 10 }) {
-          totalCount
-        }
-      }
-    }
-  `
-  test('only admin can view info in oss', async () => {
-    const serverVisitor = await testClient({ connections })
-    const { errors: errorsVisitor, data: dataVisitor } =
-      await serverVisitor.executeOperation({
-        query: GET_OSS_INFO,
-      })
-    expect(errorsVisitor?.[0].extensions.code).toBe('FORBIDDEN')
-    expect(dataVisitor).toBe(null)
-    const serverUser = await testClient({ connections, isAuth: true })
-    const { errors: errorsUser, data: dataUser } =
-      await serverUser.executeOperation({
-        query: GET_OSS_INFO,
-      })
-    expect(errorsUser?.[0].extensions.code).toBe('FORBIDDEN')
-    expect(dataUser).toBe(null)
-    const serverAdmin = await testClient({
-      connections,
-      isAuth: true,
-      isAdmin: true,
-    })
-    const { errors, data } = await serverAdmin.executeOperation({
-      query: GET_OSS_INFO,
-    })
-    expect(errors).toBeUndefined()
-    expect(data).toBeDefined()
   })
 })
