@@ -12,7 +12,11 @@ export const users: GQLOssResolvers['users'] = async (
   const totalCount = await userService.baseCount()
 
   return connectionFromPromisedArray(
-    userService.baseFind({ skip, take }),
+    userService.baseFind({
+      skip,
+      take,
+      orderBy: [{ column: 'id', order: 'desc' }],
+    }),
     input,
     totalCount
   )
