@@ -165,7 +165,7 @@ describe('find comments', () => {
     expect(count4).toBe(count + 1)
 
     // when state is provided, filter by state
-    const [comment5, _] = await commentService.find({
+    const [comments5, _] = await commentService.find({
       where: {
         type: 'article',
         targetId: '1',
@@ -174,9 +174,28 @@ describe('find comments', () => {
         state: 'archived',
       },
     })
-    expect(comment5.map((c) => c.id)).toContain(archived.id)
-    comment5.forEach((comment) => {
+    expect(comments5.map((c) => c.id)).toContain(archived.id)
+    comments5.forEach((comment) => {
       expect(comment.state).toBe('archived')
     })
+  })
+  test('return all comments when parentCommentId not specified', async () => {
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    const [comments, _] = await commentService.find({
+      where: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        state: 'archived',
+      },
+    })
+    const parentCommentIds = comments.map((c) => c.parentCommentId)
+    expect(parentCommentIds).toContain(null)
+    expect(parentCommentIds.filter((id) => id !== null).length).toBeGreaterThan(
+      0
+    )
   })
 })
