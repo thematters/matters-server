@@ -43,7 +43,6 @@ const resolver: GQLArticleResolvers['comments'] = async (
     type: COMMENT_TYPE.article,
     targetId: id,
     targetTypeId,
-    parentCommentId: null,
   }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter

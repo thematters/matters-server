@@ -19,7 +19,7 @@ export interface CommentFilter {
   type: ValueOf<typeof COMMENT_TYPE>
   targetId: string
   targetTypeId: string
-  parentCommentId: string | null
+  parentCommentId?: string | null
   authorId?: string
   state?: string
 }
@@ -113,24 +113,25 @@ export class CommentService extends BaseService<Comment> {
       .where(where)
       .andWhere((andWhereBuilder) => {
         // filter archived/banned comments when `where.state` params is not specified
-        if ('state' in where) {
-          return
+        // and where.parent_comment_id is specified
+        // as we don't want to show archived/banned comments for normal users, but not the case in oss
+        if (!('state' in where) && 'parentCommentId' in where) {
+          andWhereBuilder
+            .where({ state: COMMENT_STATE.active })
+            .orWhere({ state: COMMENT_STATE.collapsed })
+            .orWhere((orWhereBuilder) => {
+              orWhereBuilder
+                .andWhere({ state: COMMENT_STATE.archived })
+                .andWhere(
+                  this.knexRO.raw(
+                    '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                    [COMMENT_STATE.active, COMMENT_STATE.collapsed]
+                  ),
+                  '>',
+                  0
+                )
+            })
         }
-        andWhereBuilder
-          .where({ state: COMMENT_STATE.active })
-          .orWhere({ state: COMMENT_STATE.collapsed })
-          .orWhere((orWhereBuilder) => {
-            orWhereBuilder
-              .andWhere({ state: COMMENT_STATE.archived })
-              .andWhere(
-                this.knexRO.raw(
-                  '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
-                  [COMMENT_STATE.active, COMMENT_STATE.collapsed]
-                ),
-                '>',
-                0
-              )
-          })
       })
       .orderBy('created_at', order)
 
