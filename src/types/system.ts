@@ -432,7 +432,6 @@ export default /* GraphQL */ `
     circleCover
     collectionCover
     announcementCover
-    topicCover
   }
 
   enum EntityType {
@@ -442,7 +441,6 @@ export default /* GraphQL */ `
     user
     circle
     announcement
-    topic
     collection
   }
 

@@ -21,7 +21,6 @@ import {
   CircleInvitation as CircleInvitationModel,
   CircleMember as CircleMemberModel,
 } from './circle'
-import { Chapter as ChapterModel } from './chapter'
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
@@ -31,7 +30,6 @@ import { PayoutAccount as PayoutAccountModel } from './payment'
 import { Asset as AssetModel } from './asset'
 import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
-import { Topic as TopicModel } from './topic'
 import { Report as ReportModel } from './report'
 import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
 export type Maybe<T> = T | null
@@ -600,7 +598,6 @@ export type GQLAssetType =
   | 'oauthClientAvatar'
   | 'profileCover'
   | 'tagCover'
-  | 'topicCover'
 
 export type GQLAuthResult = {
   __typename?: 'AuthResult'
@@ -666,23 +663,6 @@ export type GQLChangeEmailInput = {
   newEmailCodeId: Scalars['ID']['input']
   oldEmail: Scalars['String']['input']
   oldEmailCodeId: Scalars['ID']['input']
-}
-
-/** This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic. */
-export type GQLChapter = GQLNode & {
-  __typename?: 'Chapter'
-  /** Number articles included in this chapter. */
-  articleCount: Scalars['Int']['output']
-  /** Articles included in this Chapter */
-  articles?: Maybe<Array<GQLArticle>>
-  /** Description of this chapter. */
-  description?: Maybe<Scalars['String']['output']>
-  /** Unique id of this chapter. */
-  id: Scalars['ID']['output']
-  /** Title of this chapter. */
-  title: Scalars['String']['output']
-  /** The topic that this Chapter belongs to. */
-  topic: GQLTopic
 }
 
 export type GQLCircle = GQLNode & {
@@ -1175,10 +1155,6 @@ export type GQLDeleteTagsInput = {
   ids: Array<Scalars['ID']['input']>
 }
 
-export type GQLDeleteTopicsInput = {
-  ids: Array<Scalars['ID']['input']>
-}
-
 export type GQLDirectImageUploadInput = {
   draft?: InputMaybe<Scalars['Boolean']['input']>
   entityId?: InputMaybe<Scalars['ID']['input']>
@@ -1304,7 +1280,6 @@ export type GQLEntityType =
   | 'collection'
   | 'draft'
   | 'tag'
-  | 'topic'
   | 'user'
 
 export type GQLExchangeRate = {
@@ -1355,8 +1330,6 @@ export type GQLFilterInput = {
   followed?: InputMaybe<Scalars['Boolean']['input']>
   inRangeEnd?: InputMaybe<Scalars['DateTime']['input']>
   inRangeStart?: InputMaybe<Scalars['DateTime']['input']>
-  /** Used in User.topics */
-  public?: InputMaybe<Scalars['Boolean']['input']>
   /** index of list, min: 0, max: 49 */
   random?: InputMaybe<Scalars['Int']['input']>
   /** Used in User Articles filter, by tags or by time range, or both */
@@ -1628,8 +1601,6 @@ export type GQLMutation = {
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
   deleteTags?: Maybe<Scalars['Boolean']['output']>
-  /** Delete topics */
-  deleteTopics: Scalars['Boolean']['output']
   directImageUpload: GQLAsset
   /** Edit an article. */
   editArticle: GQLArticle
@@ -1659,8 +1630,6 @@ export type GQLMutation = {
   /** Publish an article onto IPFS. */
   publishArticle: GQLDraft
   putAnnouncement: GQLAnnouncement
-  /** Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic. */
-  putChapter: GQLChapter
   /** Create or update a Circle. */
   putCircle: GQLCircle
   /**
@@ -1683,8 +1652,6 @@ export type GQLMutation = {
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
   /** Create or update tag. */
   putTag: GQLTag
-  /** Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title. */
-  putTopic: GQLTopic
   /** Read an article. */
   readArticle: GQLArticle
   /** Update state of a user, used in OSS. */
@@ -1721,8 +1688,6 @@ export type GQLMutation = {
   singleFileUpload: GQLAsset
   /** Login/Signup via social accounts. */
   socialLogin: GQLAuthResult
-  /** Sort topics */
-  sortTopics: Array<GQLTopic>
   /** Submit inappropriate content report */
   submitReport: GQLReport
   /** Subscribe a Circle. */
@@ -1873,10 +1838,6 @@ export type GQLMutationDeleteTagsArgs = {
   input: GQLDeleteTagsInput
 }
 
-export type GQLMutationDeleteTopicsArgs = {
-  input: GQLDeleteTopicsInput
-}
-
 export type GQLMutationDirectImageUploadArgs = {
   input: GQLDirectImageUploadInput
 }
@@ -1929,10 +1890,6 @@ export type GQLMutationPutAnnouncementArgs = {
   input: GQLPutAnnouncementInput
 }
 
-export type GQLMutationPutChapterArgs = {
-  input: GQLPutChapterInput
-}
-
 export type GQLMutationPutCircleArgs = {
   input: GQLPutCircleInput
 }
@@ -1979,10 +1936,6 @@ export type GQLMutationPutSkippedListItemArgs = {
 
 export type GQLMutationPutTagArgs = {
   input: GQLPutTagInput
-}
-
-export type GQLMutationPutTopicArgs = {
-  input: GQLPutTopicInput
 }
 
 export type GQLMutationReadArticleArgs = {
@@ -2051,10 +2004,6 @@ export type GQLMutationSingleFileUploadArgs = {
 
 export type GQLMutationSocialLoginArgs = {
   input: GQLSocialLoginInput
-}
-
-export type GQLMutationSortTopicsArgs = {
-  input: GQLSortTopicsInput
 }
 
 export type GQLMutationSubmitReportArgs = {
@@ -2516,14 +2465,6 @@ export type GQLPutAnnouncementInput = {
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
 
-export type GQLPutChapterInput = {
-  articles?: InputMaybe<Array<Scalars['ID']['input']>>
-  description?: InputMaybe<Scalars['String']['input']>
-  id?: InputMaybe<Scalars['ID']['input']>
-  title?: InputMaybe<Scalars['String']['input']>
-  topic?: InputMaybe<Scalars['ID']['input']>
-}
-
 export type GQLPutCircleArticlesInput = {
   /** Access Type, `public` or `paywall` only. */
   accessType: GQLArticleAccessType
@@ -2633,16 +2574,6 @@ export type GQLPutTagInput = {
   cover?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Scalars['String']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
-}
-
-export type GQLPutTopicInput = {
-  articles?: InputMaybe<Array<Scalars['ID']['input']>>
-  chapters?: InputMaybe<Array<Scalars['ID']['input']>>
-  cover?: InputMaybe<Scalars['ID']['input']>
-  description?: InputMaybe<Scalars['String']['input']>
-  id?: InputMaybe<Scalars['ID']['input']>
-  public?: InputMaybe<Scalars['Boolean']['input']>
-  title?: InputMaybe<Scalars['String']['input']>
 }
 
 export type GQLQuery = {
@@ -3106,10 +3037,6 @@ export type GQLSocialLoginInput = {
   type: GQLSocialAccountType
 }
 
-export type GQLSortTopicsInput = {
-  ids: Array<Scalars['ID']['input']>
-}
-
 export type GQLStripeAccount = {
   __typename?: 'StripeAccount'
   id: Scalars['ID']['output']
@@ -3345,52 +3272,6 @@ export type GQLTopDonatorFilter = {
 export type GQLTopDonatorInput = {
   after?: InputMaybe<Scalars['String']['input']>
   filter?: InputMaybe<GQLTopDonatorFilter>
-  first?: InputMaybe<Scalars['Int']['input']>
-}
-
-/** This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types. */
-export type GQLTopic = GQLNode & {
-  __typename?: 'Topic'
-  /** Number articles included in this topic. */
-  articleCount: Scalars['Int']['output']
-  /** List of articles included in this topic. */
-  articles?: Maybe<Array<GQLArticle>>
-  /** Author of this topic. */
-  author: GQLUser
-  /** Number of chapters included in this topic. */
-  chapterCount: Scalars['Int']['output']
-  /** List of chapters included in this topic. */
-  chapters?: Maybe<Array<GQLChapter>>
-  /** Cover of this topic. */
-  cover?: Maybe<Scalars['String']['output']>
-  /** Description of this topic. */
-  description?: Maybe<Scalars['String']['output']>
-  /** Unique id of this topic. */
-  id: Scalars['ID']['output']
-  /** Latest published article on this topic */
-  latestArticle?: Maybe<GQLArticle>
-  /** Whether this topic is public or not. */
-  public: Scalars['Boolean']['output']
-  /** Title of this topic. */
-  title: Scalars['String']['output']
-}
-
-export type GQLTopicConnection = GQLConnection & {
-  __typename?: 'TopicConnection'
-  edges?: Maybe<Array<GQLTopicEdge>>
-  pageInfo: GQLPageInfo
-  totalCount: Scalars['Int']['output']
-}
-
-export type GQLTopicEdge = {
-  __typename?: 'TopicEdge'
-  cursor: Scalars['String']['output']
-  node: GQLTopic
-}
-
-export type GQLTopicInput = {
-  after?: InputMaybe<Scalars['String']['input']>
-  filter?: InputMaybe<GQLFilterInput>
   first?: InputMaybe<Scalars['Int']['input']>
 }
 
@@ -3665,8 +3546,6 @@ export type GQLUser = GQLNode & {
   subscriptions: GQLArticleConnection
   /** Tags by by usage order of current user. */
   tags: GQLTagConnection
-  /** Topics created by current user. */
-  topics: GQLTopicConnection
   /** Global unique user name of a user. */
   userName?: Maybe<Scalars['String']['output']>
   /** User Wallet */
@@ -3719,10 +3598,6 @@ export type GQLUserSubscriptionsArgs = {
 
 export type GQLUserTagsArgs = {
   input: GQLConnectionArgs
-}
-
-export type GQLUserTopicsArgs = {
-  input: GQLTopicInput
 }
 
 export type GQLUserActivity = {
@@ -4248,9 +4123,6 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLTopDonatorConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['TopDonatorEdge']>>
       })
-    | (Omit<GQLTopicConnection, 'edges'> & {
-        edges?: Maybe<Array<RefType['TopicEdge']>>
-      })
     | (Omit<GQLTransactionConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['TransactionEdge']>>
       })
@@ -4260,7 +4132,6 @@ export type GQLResolversInterfaceTypes<
   Node:
     | ArticleModel
     | ArticleVersionModel
-    | ChapterModel
     | CircleModel
     | CollectionModel
     | CommentModel
@@ -4268,7 +4139,6 @@ export type GQLResolversInterfaceTypes<
     | MattersChoiceTopicModel
     | ReportModel
     | TagModel
-    | TopicModel
     | UserModel
   Notice:
     | NoticeItemModel
@@ -4380,7 +4250,6 @@ export type GQLResolversTypes = ResolversObject<{
   CacheControlScope: GQLCacheControlScope
   Chain: GQLChain
   ChangeEmailInput: GQLChangeEmailInput
-  Chapter: ResolverTypeWrapper<ChapterModel>
   Circle: ResolverTypeWrapper<CircleModel>
   CircleAnalytics: ResolverTypeWrapper<CircleModel>
   CircleConnection: ResolverTypeWrapper<
@@ -4460,7 +4329,6 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
-  DeleteTopicsInput: GQLDeleteTopicsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: ResolverTypeWrapper<DraftModel>
   DraftAccess: ResolverTypeWrapper<DraftModel>
@@ -4620,7 +4488,6 @@ export type GQLResolversTypes = ResolversObject<{
   PublishArticleInput: GQLPublishArticleInput
   PublishState: GQLPublishState
   PutAnnouncementInput: GQLPutAnnouncementInput
-  PutChapterInput: GQLPutChapterInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleArticlesType: GQLPutCircleArticlesType
   PutCircleInput: GQLPutCircleInput
@@ -4633,7 +4500,6 @@ export type GQLResolversTypes = ResolversObject<{
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
   PutTagInput: GQLPutTagInput
-  PutTopicInput: GQLPutTopicInput
   Query: ResolverTypeWrapper<{}>
   QuoteCurrency: GQLQuoteCurrency
   ReadArticleInput: GQLReadArticleInput
@@ -4711,7 +4577,6 @@ export type GQLResolversTypes = ResolversObject<{
   SocialAccount: ResolverTypeWrapper<GQLSocialAccount>
   SocialAccountType: GQLSocialAccountType
   SocialLoginInput: GQLSocialLoginInput
-  SortTopicsInput: GQLSortTopicsInput
   String: ResolverTypeWrapper<Scalars['String']['output']>
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
@@ -4753,16 +4618,6 @@ export type GQLResolversTypes = ResolversObject<{
   >
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  Topic: ResolverTypeWrapper<TopicModel>
-  TopicConnection: ResolverTypeWrapper<
-    Omit<GQLTopicConnection, 'edges'> & {
-      edges?: Maybe<Array<GQLResolversTypes['TopicEdge']>>
-    }
-  >
-  TopicEdge: ResolverTypeWrapper<
-    Omit<GQLTopicEdge, 'node'> & { node: GQLResolversTypes['Topic'] }
-  >
-  TopicInput: GQLTopicInput
   Transaction: ResolverTypeWrapper<TransactionModel>
   TransactionConnection: ResolverTypeWrapper<
     Omit<GQLTransactionConnection, 'edges'> & {
@@ -4938,7 +4793,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
   ChangeEmailInput: GQLChangeEmailInput
-  Chapter: ChapterModel
   Circle: CircleModel
   CircleAnalytics: CircleModel
   CircleConnection: Omit<GQLCircleConnection, 'edges'> & {
@@ -4998,7 +4852,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
   DeleteTagsInput: GQLDeleteTagsInput
-  DeleteTopicsInput: GQLDeleteTopicsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: DraftModel
   DraftAccess: DraftModel
@@ -5119,7 +4972,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   Price: CirclePriceModel
   PublishArticleInput: GQLPublishArticleInput
   PutAnnouncementInput: GQLPutAnnouncementInput
-  PutChapterInput: GQLPutChapterInput
   PutCircleArticlesInput: GQLPutCircleArticlesInput
   PutCircleInput: GQLPutCircleInput
   PutCollectionInput: GQLPutCollectionInput
@@ -5131,7 +4983,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
   PutSkippedListItemInput: GQLPutSkippedListItemInput
   PutTagInput: GQLPutTagInput
-  PutTopicInput: GQLPutTopicInput
   Query: {}
   ReadArticleInput: GQLReadArticleInput
   ReadHistory: Omit<GQLReadHistory, 'article'> & {
@@ -5188,7 +5039,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   SkippedListItemsInput: GQLSkippedListItemsInput
   SocialAccount: GQLSocialAccount
   SocialLoginInput: GQLSocialLoginInput
-  SortTopicsInput: GQLSortTopicsInput
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
   SubmitReportInput: GQLSubmitReportInput
@@ -5219,14 +5069,6 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   TopDonatorFilter: GQLTopDonatorFilter
   TopDonatorInput: GQLTopDonatorInput
-  Topic: TopicModel
-  TopicConnection: Omit<GQLTopicConnection, 'edges'> & {
-    edges?: Maybe<Array<GQLResolversParentTypes['TopicEdge']>>
-  }
-  TopicEdge: Omit<GQLTopicEdge, 'node'> & {
-    node: GQLResolversParentTypes['Topic']
-  }
-  TopicInput: GQLTopicInput
   Transaction: TransactionModel
   TransactionConnection: Omit<GQLTransactionConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['TransactionEdge']>>
@@ -6046,27 +5888,6 @@ export type GQLBlockedSearchKeywordResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLChapterResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['Chapter'] = GQLResolversParentTypes['Chapter']
-> = ResolversObject<{
-  articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  articles?: Resolver<
-    Maybe<Array<GQLResolversTypes['Article']>>,
-    ParentType,
-    ContextType
-  >
-  description?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  topic?: Resolver<GQLResolversTypes['Topic'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
 export type GQLCircleResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Circle'] = GQLResolversParentTypes['Circle']
@@ -6534,7 +6355,6 @@ export type GQLConnectionResolvers<
     | 'SkippedListItemsConnection'
     | 'TagConnection'
     | 'TopDonatorConnection'
-    | 'TopicConnection'
     | 'TransactionConnection'
     | 'UserConnection',
     ParentType,
@@ -7086,12 +6906,6 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationDeleteTagsArgs, 'input'>
   >
-  deleteTopics?: Resolver<
-    GQLResolversTypes['Boolean'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationDeleteTopicsArgs, 'input'>
-  >
   directImageUpload?: Resolver<
     GQLResolversTypes['Asset'],
     ParentType,
@@ -7176,12 +6990,6 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationPutAnnouncementArgs, 'input'>
   >
-  putChapter?: Resolver<
-    GQLResolversTypes['Chapter'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationPutChapterArgs, 'input'>
-  >
   putCircle?: Resolver<
     GQLResolversTypes['Circle'],
     ParentType,
@@ -7253,12 +7061,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutTagArgs, 'input'>
-  >
-  putTopic?: Resolver<
-    GQLResolversTypes['Topic'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationPutTopicArgs, 'input'>
   >
   readArticle?: Resolver<
     GQLResolversTypes['Article'],
@@ -7366,12 +7168,6 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSocialLoginArgs, 'input'>
-  >
-  sortTopics?: Resolver<
-    Array<GQLResolversTypes['Topic']>,
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationSortTopicsArgs, 'input'>
   >
   submitReport?: Resolver<
     GQLResolversTypes['Report'],
@@ -7605,7 +7401,6 @@ export type GQLNodeResolvers<
   __resolveType: TypeResolveFn<
     | 'Article'
     | 'ArticleVersion'
-    | 'Chapter'
     | 'Circle'
     | 'Collection'
     | 'Comment'
@@ -7613,7 +7408,6 @@ export type GQLNodeResolvers<
     | 'IcymiTopic'
     | 'Report'
     | 'Tag'
-    | 'Topic'
     | 'User',
     ParentType,
     ContextType
@@ -8521,63 +8315,6 @@ export type GQLTopDonatorEdgeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
-export type GQLTopicResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['Topic'] = GQLResolversParentTypes['Topic']
-> = ResolversObject<{
-  articleCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  articles?: Resolver<
-    Maybe<Array<GQLResolversTypes['Article']>>,
-    ParentType,
-    ContextType
-  >
-  author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
-  chapterCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  chapters?: Resolver<
-    Maybe<Array<GQLResolversTypes['Chapter']>>,
-    ParentType,
-    ContextType
-  >
-  cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
-  description?: Resolver<
-    Maybe<GQLResolversTypes['String']>,
-    ParentType,
-    ContextType
-  >
-  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  latestArticle?: Resolver<
-    Maybe<GQLResolversTypes['Article']>,
-    ParentType,
-    ContextType
-  >
-  public?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
-  title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
-export type GQLTopicConnectionResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['TopicConnection'] = GQLResolversParentTypes['TopicConnection']
-> = ResolversObject<{
-  edges?: Resolver<
-    Maybe<Array<GQLResolversTypes['TopicEdge']>>,
-    ParentType,
-    ContextType
-  >
-  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
-  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
-export type GQLTopicEdgeResolvers<
-  ContextType = Context,
-  ParentType extends GQLResolversParentTypes['TopicEdge'] = GQLResolversParentTypes['TopicEdge']
-> = ResolversObject<{
-  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  node?: Resolver<GQLResolversTypes['Topic'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}>
-
 export type GQLTransactionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Transaction'] = GQLResolversParentTypes['Transaction']
@@ -8846,12 +8583,6 @@ export type GQLUserResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLUserTagsArgs, 'input'>
-  >
-  topics?: Resolver<
-    GQLResolversTypes['TopicConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLUserTopicsArgs, 'input'>
   >
   userName?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -9243,7 +8974,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Balance?: GQLBalanceResolvers<ContextType>
   BlockchainTransaction?: GQLBlockchainTransactionResolvers<ContextType>
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
-  Chapter?: GQLChapterResolvers<ContextType>
   Circle?: GQLCircleResolvers<ContextType>
   CircleAnalytics?: GQLCircleAnalyticsResolvers<ContextType>
   CircleConnection?: GQLCircleConnectionResolvers<ContextType>
@@ -9337,9 +9067,6 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   TagOSS?: GQLTagOssResolvers<ContextType>
   TopDonatorConnection?: GQLTopDonatorConnectionResolvers<ContextType>
   TopDonatorEdge?: GQLTopDonatorEdgeResolvers<ContextType>
-  Topic?: GQLTopicResolvers<ContextType>
-  TopicConnection?: GQLTopicConnectionResolvers<ContextType>
-  TopicEdge?: GQLTopicEdgeResolvers<ContextType>
   Transaction?: GQLTransactionResolvers<ContextType>
   TransactionConnection?: GQLTransactionConnectionResolvers<ContextType>
   TransactionEdge?: GQLTransactionEdgeResolvers<ContextType>
