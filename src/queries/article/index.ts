@@ -12,9 +12,6 @@ import author from './author'
 import availableTranslations from './availableTranslations'
 import canComment from './canComment'
 import canSuperLike from './canSuperLike'
-import chapterArticleCount from './chapter/articleCount'
-import chapterArticles from './chapter/articles'
-import chapterTopic from './chapter/topic'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -67,18 +64,10 @@ import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
 import tags from './tags'
 import title from './title'
-import topicArticleCount from './topic/articleCount'
-import topicArticles from './topic/articles'
-import topicAuthor from './topic/author'
-import topicChapterCount from './topic/chapterCount'
-import topicChapters from './topic/chapters'
-import topicCover from './topic/cover'
-import topicLatestArticle from './topic/latestArticle'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import articleTranslation from './translation/article'
 import articleVersionTranslation from './translation/articleVersion'
 import userArticles from './user/articles'
-import userTopics from './user/topics'
 import versions from './versions'
 
 const schema: GQLResolvers = {
@@ -87,7 +76,6 @@ const schema: GQLResolvers = {
   },
   User: {
     articles: userArticles,
-    topics: userTopics,
   },
   Article: {
     id: idResolver,
@@ -160,22 +148,6 @@ const schema: GQLResolvers = {
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
-  },
-  Topic: {
-    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
-    cover: topicCover,
-    chapterCount: topicChapterCount,
-    articleCount: topicArticleCount,
-    chapters: topicChapters,
-    articles: topicArticles,
-    author: topicAuthor,
-    latestArticle: topicLatestArticle,
-  },
-  Chapter: {
-    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Chapter, id }),
-    articleCount: chapterArticleCount,
-    articles: chapterArticles,
-    topic: chapterTopic,
   },
   ArticleVersion: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),

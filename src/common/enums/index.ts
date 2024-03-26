@@ -161,8 +161,6 @@ export enum NODE_TYPES {
   Appreciation = 'Appreciation',
   Transaction = 'Transaction',
   Circle = 'Circle',
-  Topic = 'Topic',
-  Chapter = 'Chapter',
   Collection = 'Collection',
   Report = 'Report',
 

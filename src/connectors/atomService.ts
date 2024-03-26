@@ -8,7 +8,6 @@ import type {
   Appreciation,
   Article,
   ArticleBoost,
-  ArticleChapter,
   ArticleCircle,
   ArticleConnection,
   ArticleContent,
@@ -16,7 +15,6 @@ import type {
   ArticleReadTimeMaterialized,
   ArticleRecommendSetting,
   ArticleTag,
-  ArticleTopic,
   ArticleTranslation,
   ArticleVersion,
   Asset,
@@ -25,7 +23,6 @@ import type {
   BlockchainTransaction,
   BlockedSearchKeyword,
   Blocklist,
-  Chapter,
   Circle,
   CircleInvitation,
   CirclePrice,
@@ -51,7 +48,6 @@ import type {
   TableName,
   Tag,
   TagTranslation,
-  Topic,
   Transaction,
   User,
   UserBadge,
@@ -93,16 +89,13 @@ type TableTypeMap = {
   article_circle: ArticleCircle
   article_translation: ArticleTranslation
   article_tag: ArticleTag
-  article_topic: ArticleTopic
   article_boost: ArticleBoost
-  article_chapter: ArticleChapter
   article_connection: ArticleConnection
   article_recommend_setting: ArticleRecommendSetting
   article_count_view: ArticleCountView
   article_read_time_materialized: ArticleReadTimeMaterialized
   collection: Collection
   collection_article: CollectionArticle
-  chapter: Chapter
   comment: Comment
   featured_comment_materialized: FeaturedCommentMaterialized
   action_user: ActionUser
@@ -120,7 +113,6 @@ type TableTypeMap = {
   tag: Tag
   tag_translation: TagTranslation
   user_tags_order: UserTagsOrder
-  topic: Topic
   verification_code: VerificationCode
   punish_record: PunishRecord
   search_history: SearchHistory
@@ -281,8 +273,6 @@ export class AtomService {
   public collectionIdLoader: AtomDataLoader<string, Collection>
   public draftIdLoader: AtomDataLoader<string, Draft>
   public userIdLoader: AtomDataLoader<string, User>
-  public topicIdLoader: AtomDataLoader<string, Topic>
-  public chapterIdLoader: AtomDataLoader<string, Chapter>
   public tagIdLoader: AtomDataLoader<string, Tag>
   public transactionIdLoader: AtomDataLoader<string, Transaction>
 
@@ -314,8 +304,6 @@ export class AtomService {
     })
     this.circleIdLoader = this.initLoader({ table: 'circle', mode: 'id' })
     this.userIdLoader = this.initLoader({ table: 'user', mode: 'id' })
-    this.topicIdLoader = this.initLoader({ table: 'topic', mode: 'id' })
-    this.chapterIdLoader = this.initLoader({ table: 'chapter', mode: 'id' })
     this.tagIdLoader = this.initLoader({ table: 'tag', mode: 'id' })
     this.transactionIdLoader = this.initLoader({
       table: 'transaction',
@@ -643,10 +631,6 @@ const UPATEABLE_TABLES = [
   'circle_invoice',
   'seeding_user',
   'announcement',
-  'topic',
-  'article_topic',
-  'chapter',
-  'article_chapter',
   'crypto_wallet',
   'crypto_wallet_signature',
   'article_translation',
