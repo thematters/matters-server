@@ -83,24 +83,6 @@ export interface ArticleTag {
   updatedAt: Date
 }
 
-export interface ArticleTopic {
-  id: string
-  topicId: string
-  articleId: string
-  order: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface ArticleChapter {
-  id: string
-  chapterId: string
-  articleId: string
-  order: number
-  createdAt: Date
-  updatedAt: Date
-}
-
 export interface ArticleRecommendSetting {
   id: string
   articleId: string
