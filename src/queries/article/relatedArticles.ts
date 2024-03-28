@@ -2,10 +2,8 @@ import type { GQLArticleResolvers, Article } from 'definitions'
 
 import _ from 'lodash'
 
-import { getLogger } from 'common/logger'
+import { ARTICLE_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
-
-const logger = getLogger('related-articles')
 
 const resolver: GQLArticleResolvers['relatedArticles'] = async (
   { id: articleId, authorId },
@@ -18,13 +16,19 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
   // buffer for archived article and random draw
   const buffer = 7
 
-  // helper function to prevent duplicates and origin article
+  // helper function to prevent duplicates and exclude both origin article and articles return by `latestWorks` API
+  const latestArticles = await articleService.findByAuthor(authorId, {
+    take: 3,
+    orderBy: 'newest',
+    state: ARTICLE_STATE.active,
+  })
+  const unwantedIds = [articleId, ...latestArticles.map(({ id }) => id)]
   const addRec = (rec: Article[], extra: Article[]) =>
-    _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== articleId)
+    _.uniqBy(rec.concat(extra), 'id').filter(
+      (_rec) => !unwantedIds.includes(_rec.id)
+    )
 
   let articles: Article[] = []
-
-  let sameIdx = -1
 
   // first select from tags
   const tagIds = await articleService.findTagIds({ id: articleId })
@@ -36,7 +40,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
 
     const articleIds = await tagService.findArticleIds({
       id: tagId,
-      take, // : take - ids.length, // this ids.length is always 0??
+      take,
       skip,
     })
 
@@ -45,35 +49,19 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
       articleIds
     )
 
-    articles = addRec(articles, articlesFromTag)
-  }
-
-  if (
-    // tslint:disable-next-line
-    (sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0
-  ) {
-    logger.info(
-      `found same article at {${sameIdx}} at tagService.findArticleIds step and remove it: %j`,
-      { sameIdx, articleId }
+    articles = addRec(
+      articles,
+      articlesFromTag.filter(({ state }) => state === ARTICLE_STATE.active)
     )
-    articles.splice(sameIdx, 1)
-    sameIdx = -1
   }
 
   // fall back to author
   if (articles.length < take + buffer) {
-    const articlesFromAuthor = await articleService.findByAuthor(authorId)
-    // logger.info(`[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(({ id: aid }: { id: string }) => aid)} `)
+    const articlesFromAuthor = await articleService.findByAuthor(authorId, {
+      skip: 3,
+      state: ARTICLE_STATE.active,
+    })
     articles = addRec(articles, articlesFromAuthor)
-  }
-
-  if ((sameIdx = articles?.findIndex((item) => item.id === articleId)) >= 0) {
-    logger.info(
-      `found same article at {${sameIdx}} at articleService.findByAuthor step and remove it: %j`,
-      { sameIdx, articleId }
-    )
-    articles.splice(sameIdx, 1)
-    sameIdx = -1
   }
 
   // random pick for last few elements
@@ -83,28 +71,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
     _.sampleSize(articles.slice(take - randomPick), randomPick)
   )
 
-  if ((sameIdx = pick?.findIndex((item) => item.id === articleId)) >= 0) {
-    logger.info(
-      `found same article at {${sameIdx}} at randomPick step and remove it: %j`,
-      { sameIdx, articleId }
-    )
-    pick.splice(sameIdx, 1)
-    sameIdx = -1
-  }
-
-  const nodes = await atomService.articleIdLoader.loadMany(
-    pick.map((item) => item.id)
-  )
-
-  if ((sameIdx = nodes?.findIndex((item) => item.id === articleId)) >= 0) {
-    logger.info(
-      `found same article at {${sameIdx}} at last step and remove it: %j`,
-      { sameIdx, articleId }
-    )
-    nodes.splice(sameIdx, 1)
-  }
-
-  return connectionFromArray(nodes, input)
+  return connectionFromArray(pick, input)
 }
 
 export default resolver

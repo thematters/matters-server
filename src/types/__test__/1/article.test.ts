@@ -178,10 +178,11 @@ describe('query article', () => {
 
   test('query related articles', async () => {
     const server = await testClient({ connections })
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: GET_RELATED_ARTICLES,
       variables: { input: { mediaHash } },
     })
+    expect(errors).toBeUndefined()
     expect(data.article.relatedArticles.edges).toBeDefined()
   })
 
