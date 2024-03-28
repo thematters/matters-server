@@ -2,6 +2,7 @@ import type { GQLArticleResolvers, Article } from 'definitions'
 
 import _ from 'lodash'
 
+import { ARTICLE_STATE } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['relatedArticles'] = async (
@@ -15,9 +16,17 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
   // buffer for archived article and random draw
   const buffer = 7
 
-  // helper function to prevent duplicates and origin article
+  // helper function to prevent duplicates and exclude both origin article and articles return by `latestWorks` API
+  const latestArticles = await articleService.findByAuthor(authorId, {
+    take: 3,
+    orderBy: 'newest',
+    state: ARTICLE_STATE.active,
+  })
+  const unwantedIds = [articleId, ...latestArticles.map(({ id }) => id)]
   const addRec = (rec: Article[], extra: Article[]) =>
-    _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== articleId)
+    _.uniqBy(rec.concat(extra), 'id').filter(
+      (_rec) => !unwantedIds.includes(_rec.id)
+    )
 
   let articles: Article[] = []
 
@@ -40,12 +49,18 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
       articleIds
     )
 
-    articles = addRec(articles, articlesFromTag)
+    articles = addRec(
+      articles,
+      articlesFromTag.filter(({ state }) => state === ARTICLE_STATE.active)
+    )
   }
 
   // fall back to author
   if (articles.length < take + buffer) {
-    const articlesFromAuthor = await articleService.findByAuthor(authorId)
+    const articlesFromAuthor = await articleService.findByAuthor(authorId, {
+      skip: 3,
+      state: ARTICLE_STATE.active,
+    })
     articles = addRec(articles, articlesFromAuthor)
   }
 
@@ -56,11 +71,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
     _.sampleSize(articles.slice(take - randomPick), randomPick)
   )
 
-  const nodes = await atomService.articleIdLoader.loadMany(
-    pick.map((item) => item.id)
-  )
-
-  return connectionFromArray(nodes, input)
+  return connectionFromArray(pick, input)
 }
 
 export default resolver
