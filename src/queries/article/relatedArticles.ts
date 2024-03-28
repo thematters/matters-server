@@ -61,7 +61,9 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
 
   // fall back to author
   if (articles.length < take + buffer) {
-    const articlesFromAuthor = await articleService.findByAuthor(authorId)
+    const articlesFromAuthor = await articleService.findByAuthor(authorId, {
+      columns: ['id', 'draft_id'],
+    })
     // logger.info(`[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(({ id: aid }: { id: string }) => aid)} `)
     articles = addRec(articles, articlesFromAuthor)
   }
