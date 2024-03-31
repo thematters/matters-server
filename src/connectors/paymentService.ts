@@ -3,9 +3,9 @@ import type {
   Customer,
   BlockchainTransaction,
   Transaction,
-  EmailableUser,
   Connections,
   UserHasUsername,
+  LANGUAGES,
 } from 'definitions'
 
 import slugify from '@matters/slugify'
@@ -1056,8 +1056,20 @@ export class PaymentService extends BaseService<Transaction> {
     article,
   }: {
     tx: Transaction
-    sender?: EmailableUser
-    recipient: EmailableUser
+    sender?: {
+      id: string
+      displayName: string
+      userName: string
+      email: string | null
+      language: LANGUAGES
+    }
+    recipient: {
+      id: string
+      displayName: string
+      userName: string
+      email: string | null
+      language: LANGUAGES
+    }
     article: {
       id: string
       authorId: string
@@ -1088,7 +1100,7 @@ export class PaymentService extends BaseService<Transaction> {
     }
 
     // send email to sender
-    if (sender) {
+    if (sender && sender.email) {
       const donationCount = await this.donationCount(sender.id)
       await notificationService.mail.sendPayment({
         to: sender.email,
@@ -1122,23 +1134,26 @@ export class PaymentService extends BaseService<Transaction> {
         ? ('receivedDonationLikeCoin' as const)
         : ('receivedDonation' as const)
 
-    await notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: mailType,
-      tx: {
-        recipient,
-        sender,
-        amount,
-        currency: tx.currency,
-      },
-      article: _article,
-      language: recipient.language,
-    })
+    if (recipient.email) {
+      await notificationService.mail.sendPayment({
+        to: recipient.email,
+        recipient: {
+          displayName: recipient.displayName,
+          userName: recipient.userName,
+        },
+        type: mailType,
+        tx: {
+          recipient,
+          sender,
+          amount,
+          currency: tx.currency,
+        },
+        article: _article,
+        language: recipient.language,
+      })
+    }
   }
+
   private donationCount = async (senderId: string) => {
     const result = await this.knex('transaction')
       .where({

@@ -149,7 +149,7 @@ export class PayToByMattersQueue extends BaseQueue {
         article,
       })
 
-      // manaully invalidate cache
+      // manually invalidate cache
       if (tx.targetType) {
         const entity = await userService.baseFindEntityTypeTable(tx.targetType)
         const entityType =
