@@ -23,7 +23,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
-}, 500000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)

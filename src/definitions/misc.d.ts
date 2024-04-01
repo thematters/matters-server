@@ -1,6 +1,9 @@
 import type { ValueOf } from './generic'
 
-import { SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
+import {
+  SKIPPED_LIST_ITEM_TYPES,
+  MATTERS_CHOICE_TOPIC_STATE,
+} from 'common/enums'
 
 export interface PunishRecord {
   id: string
@@ -15,6 +18,18 @@ export interface PunishRecord {
 export interface MattersChoice {
   id: string
   articleId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface MattersChoiceTopic {
+  id: string
+  title: string
+  articles: string[]
+  pinAmount: number
+  note: string | null
+  state: KeyOf<typeof MATTERS_CHOICE_TOPIC_STATE>
+  publishedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

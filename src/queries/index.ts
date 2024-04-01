@@ -8,6 +8,7 @@ import exchangeRates from './exchangeRates'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import oauthRequestToken from './oauthRequestToken'
+import recommendation from './recommendation'
 import response from './response'
 import scalars from './scalars'
 import system from './system'
@@ -25,5 +26,6 @@ export default merge(
   response,
   oauthClient,
   oauthRequestToken,
-  exchangeRates
+  exchangeRates,
+  recommendation
 )

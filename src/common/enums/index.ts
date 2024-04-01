@@ -166,6 +166,7 @@ export enum NODE_TYPES {
   Collection = 'Collection',
   Report = 'Report',
 
+  IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',
   Invitation = 'Invitation',
@@ -205,6 +206,14 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   EMAIL: 'email',
   DOMAIN: 'domain',
 } as const
+
+export const MATTERS_CHOICE_TOPIC_STATE = {
+  published: 'published',
+  editing: 'editing',
+  archived: 'archived',
+} as const
+
+export const MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS = [3, 6]
 
 export const LOCAL_STRIPE = {
   host: 'localhost',

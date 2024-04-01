@@ -4,6 +4,7 @@ import deleteBlockedSearchKeywords from './deleteBlockedSearchKeywords'
 import directImageUpload from './directImageUpload'
 import logRecord from './logRecord'
 import putAnnouncement from './putAnnouncement'
+import putIcymiTopic from './putIcymiTopic'
 import putRemark from './putRemark'
 import putRestrictedUsers from './putRestrictedUsers'
 import putSkippedListItem from './putSkippedListItem'
@@ -29,5 +30,6 @@ export default {
     deleteBlockedSearchKeywords,
     putRestrictedUsers,
     submitReport,
+    putIcymiTopic,
   },
 }

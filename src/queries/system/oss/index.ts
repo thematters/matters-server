@@ -1,6 +1,7 @@
 import { articles } from './articles'
 import { badgedUsers } from './badgedUsers'
 import { comments } from './comments'
+import { icymiTopics } from './icymiTopics'
 import { oauthClients } from './oauthClients'
 import { reports } from './reports'
 import { restrictedUsers } from './restrictedUsers'
@@ -20,4 +21,5 @@ export default {
   skippedListItems,
   restrictedUsers,
   reports,
+  icymiTopics,
 }
