@@ -1100,7 +1100,7 @@ export class PaymentService extends BaseService<Transaction> {
     }
 
     // send email to sender
-    if (sender && sender.email) {
+    if (sender?.email) {
       const donationCount = await this.donationCount(sender.id)
       await notificationService.mail.sendPayment({
         to: sender.email,
