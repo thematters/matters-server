@@ -84,6 +84,23 @@ describe('icymi topic', () => {
         }
       }
     `
+    const GET_OSS_ICYMI_TOPIC = /* GraphQL */ `
+      query ($input: NodeInput!) {
+        node(input: $input) {
+          id
+          ... on IcymiTopic {
+            title
+            articles {
+              id
+            }
+            note
+            state
+            publishedAt
+            archivedAt
+          }
+        }
+      }
+    `
     const GET_OSS_ICYMI_TOPICS = /* GraphQL */ `
       query ($input: ConnectionArgs!) {
         oss {
@@ -150,8 +167,7 @@ describe('icymi topic', () => {
         query: GET_OSS_ICYMI_TOPICS,
         variables: { input: { first: 10 } },
       })
-      // TODO: fix this
-      console.log(dataVisitor)
+      expect(dataVisitor).toBeNull()
 
       const authedServer = await testClient({ connections, isAuth: true })
       const { data: dataAuthed } = await authedServer.executeOperation({
@@ -171,6 +187,16 @@ describe('icymi topic', () => {
       })
       expect(errors).toBeUndefined()
       expect(data.oss.icymiTopics.totalCount).toBeGreaterThan(0)
+    })
+    test('query icymi topic', async () => {
+      const server = await testClient({ connections })
+      const { data } = await server.executeOperation({
+        query: GET_OSS_ICYMI_TOPIC,
+        variables: {
+          input: { id: toGlobalId({ type: NODE_TYPES.IcymiTopic, id: 1 }) },
+        },
+      })
+      expect(data).toBeDefined()
     })
   })
 
