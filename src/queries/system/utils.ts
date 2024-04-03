@@ -20,6 +20,7 @@ export const getNode = async (globalId: string, context: Context) => {
     [NODE_TYPES.Topic]: atomService.topicIdLoader,
     [NODE_TYPES.Chapter]: atomService.chapterIdLoader,
     [NODE_TYPES.Collection]: atomService.collectionIdLoader,
+    [NODE_TYPES.IcymiTopic]: atomService.icymiTopicIdLoader,
   } as const
 
   const { type, id } = fromGlobalId(globalId)

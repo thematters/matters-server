@@ -287,6 +287,7 @@ export class AtomService {
   public chapterIdLoader: AtomDataLoader<string, Chapter>
   public tagIdLoader: AtomDataLoader<string, Tag>
   public transactionIdLoader: AtomDataLoader<string, Transaction>
+  public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -321,6 +322,10 @@ export class AtomService {
     this.tagIdLoader = this.initLoader({ table: 'tag', mode: 'id' })
     this.transactionIdLoader = this.initLoader({
       table: 'transaction',
+      mode: 'id',
+    })
+    this.icymiTopicIdLoader = this.initLoader({
+      table: 'matters_choice_topic',
       mode: 'id',
     })
   }
@@ -662,5 +667,5 @@ const UPATEABLE_TABLES = [
   'blockchain_sync_record',
   'blockchain_transaction',
   'collection',
-  'matter_choice_topic',
+  'matters_choice_topic',
 ]
