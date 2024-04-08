@@ -55,6 +55,28 @@ test('create and delete asset', async () => {
   expect(result).toBeUndefined()
 })
 
+test('copy asset map', async () => {
+  const data = {
+    uuid: v4(),
+    authorId: '1',
+    type: 'cover',
+    path: 'path/to/file.txt',
+  }
+  const draftEntityTypeId = '13'
+  const articleEntityTypeId = '4'
+  await systemService.createAssetAndAssetMap(data, draftEntityTypeId, '1')
+  const source = {
+    entityTypeId: draftEntityTypeId,
+    entityId: '1',
+  }
+  const target = {
+    entityTypeId: articleEntityTypeId,
+    entityId: '1',
+  }
+  // should not throw errors
+  await systemService.copyAssetMapEntities({ source, target })
+})
+
 test('submit report', async () => {
   const report = await systemService.submitReport({
     targetType: NODE_TYPES.Article,
