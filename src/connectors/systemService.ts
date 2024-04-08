@@ -316,6 +316,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
           table: 'asset_map',
           data: {
             ...map,
+            id: undefined,
             entityTypeId: target.entityTypeId,
             entityId: target.entityId,
           },
