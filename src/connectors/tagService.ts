@@ -9,6 +9,7 @@ import {
   DEFAULT_TAKE_PER_PAGE,
   TAG_ACTION,
   VIEW,
+  MATERIALIZED_VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
@@ -698,7 +699,7 @@ export class TagService extends BaseService<Tag> {
   }): Promise<Array<{ id: string }>> =>
     this.knex
       .select('id')
-      .from(VIEW.tags_lasts_view)
+      .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
       .modify(function (this: Knex.QueryBuilder) {
         if (minAuthors) {
           this.where('num_authors', '>=', minAuthors)
@@ -852,7 +853,7 @@ export class TagService extends BaseService<Tag> {
 
     let result: any
     try {
-      result = await this.knex(VIEW.tags_lasts_view)
+      result = await this.knex(MATERIALIZED_VIEW.tags_lasts_view_materialized)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('id', '=', tagId)
@@ -898,7 +899,7 @@ export class TagService extends BaseService<Tag> {
 
     let result: any
     try {
-      result = await this.knexRO(VIEW.tags_lasts_view)
+      result = await this.knexRO(MATERIALIZED_VIEW.tags_lasts_view_materialized)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('tag_id', tagId)
@@ -964,8 +965,7 @@ export class TagService extends BaseService<Tag> {
           builder.orWhereIn(
             'tag_id',
             this.knex
-              .from(VIEW.tags_lasts_view)
-              // .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
               .whereRaw('dup_tag_ids @> ARRAY[?] ::int[]', tagId)
               .select(this.knex.raw('UNNEST(dup_tag_ids)'))
           )
@@ -1149,7 +1149,7 @@ export class TagService extends BaseService<Tag> {
    */
   public findRelatedTags = async ({ id }: { id: string; content?: string }) =>
     this.knex
-      .from(VIEW.tags_lasts_view)
+      .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
       )
