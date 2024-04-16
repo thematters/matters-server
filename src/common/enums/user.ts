@@ -1,3 +1,5 @@
+import { isProd } from 'common/environment'
+
 export const USER_STATE = {
   frozen: 'frozen',
   active: 'active',
@@ -16,3 +18,6 @@ export const AUTHOR_TYPE = {
   default: 'default',
   trendy: 'trendy',
 } as const
+
+export const PUBLISH_ARTICLE_RATE_LIMIT = isProd ? 1 : 1000
+export const PUBLISH_ARTICLE_RATE_PERIOD = 720 // for 12 minutes;

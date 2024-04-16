@@ -31,6 +31,7 @@ import unbindLikerId from './unbindLikerId'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserExtra from './updateUserExtra'
 import updateUserInfo from './updateUserInfo'
+import updateUserPublishRate from './updateUserPublishRate'
 import updateUserRole from './updateUserRole'
 import updateUserState from './updateUserState'
 import userLogin from './userLogin'
@@ -68,6 +69,7 @@ export default {
     updateUserState,
     updateUserRole,
     updateUserExtra,
+    updateUserPublishRate,
     setEmail,
     setUserName,
     setPassword,

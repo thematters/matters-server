@@ -113,6 +113,9 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
+    "Update allowed publish rate of a user, used in OSS."
+    updateUserPublishRate(input: UpdateUserPublishRateInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
+
     "Update referralCode of a user, used in OSS."
     updateUserExtra(input: UpdateUserExtraInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
@@ -815,6 +818,12 @@ export default /* GraphQL */ `
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
+  }
+
+  input UpdateUserPublishRateInput {
+    id: ID!
+    limit:  Int! @constraint(min: 1, max: 1000)  ## how many allowed
+    period: Int! @constraint(min: 60, max: 3600) ## in how many seconds
   }
 
   input UpdateUserExtraInput {

@@ -1,13 +1,19 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
+  PUBLISH_ARTICLE_RATE_LIMIT,
+  PUBLISH_ARTICLE_RATE_PERIOD,
+  PUBLISH_STATE,
+  USER_STATE,
+} from 'common/enums'
+import {
+  ActionLimitExceededError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { checkOperationLimit, fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
   _,
@@ -18,6 +24,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
       draftService,
       atomService,
       queues: { publicationQueue },
+      connections: { redis },
     },
   }
 ) => {
@@ -48,6 +55,21 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   if (!draft.content) {
     throw new UserInputError('content is required')
+  }
+
+  const fieldName = 'publishArticle'
+  const pass = await checkOperationLimit({
+    user: viewer.id || viewer.ip,
+    operation: fieldName,
+    limit: viewer?.publishRate?.limit ?? PUBLISH_ARTICLE_RATE_LIMIT,
+    period: viewer?.publishRate?.period ?? PUBLISH_ARTICLE_RATE_PERIOD,
+    redis, // : connections.redis,
+  })
+
+  if (!pass) {
+    throw new ActionLimitExceededError(
+      `rate exceeded for operation ${fieldName}`
+    )
   }
 
   if (

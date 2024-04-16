@@ -30,6 +30,7 @@ interface UserBase {
   currency: 'HKD' | 'TWD' | 'USD' | null
   profileCover?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  publishRate: any | null // jsonb saved here
   extra: any | null // jsonb saved here
   remark: string | null
   createdAt: Date

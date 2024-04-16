@@ -279,6 +279,30 @@ describe('publish article', () => {
     expect(publishState).toBe(PUBLISH_STATE.pending)
     expect(article).toBeNull()
   })
+  test('publish again should trigger rate limit', async () => {
+    jest.setTimeout(10000)
+    const draft = {
+      title: Math.random().toString(),
+      content: Math.random().toString(),
+    }
+    const { id } = await putDraft({ draft }, connections)
+    const { publishState, article } = await publishArticle({ id }, connections)
+    expect(publishState).toBe(PUBLISH_STATE.pending)
+    expect(article).toBeNull()
+
+    const { id: nextDraftId } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+    const res2Publish = await publishArticle({ id }, connections)
+    expect(res2Publish.publishState).toBe(PUBLISH_STATE.pending)
+    expect(res2Publish.article).toBeNull()
+  })
 
   test('create a draft & publish with iscn', async () => {
     jest.setTimeout(10000)

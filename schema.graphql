@@ -253,6 +253,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
+  """Update allowed publish rate of a user, used in OSS."""
+  updateUserPublishRate(input: UpdateUserPublishRateInput!): User!
+
   """Update referralCode of a user, used in OSS."""
   updateUserExtra(input: UpdateUserExtraInput!): User!
 
@@ -2877,6 +2880,12 @@ input UpdateUserStateInput {
 input UpdateUserRoleInput {
   id: ID!
   role: UserRole!
+}
+
+input UpdateUserPublishRateInput {
+  id: ID!
+  limit: Int!
+  period: Int!
 }
 
 input UpdateUserExtraInput {

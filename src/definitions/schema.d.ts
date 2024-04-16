@@ -1736,6 +1736,8 @@ export type GQLMutation = {
   updateUserExtra: GQLUser
   /** Update user information. */
   updateUserInfo: GQLUser
+  /** Update allowed publish rate of a user, used in OSS. */
+  updateUserPublishRate: GQLUser
   /** Update state of a user, used in OSS. */
   updateUserRole: GQLUser
   /** Update state of a user, used in OSS. */
@@ -2106,6 +2108,10 @@ export type GQLMutationUpdateUserExtraArgs = {
 
 export type GQLMutationUpdateUserInfoArgs = {
   input: GQLUpdateUserInfoInput
+}
+
+export type GQLMutationUpdateUserPublishRateArgs = {
+  input: GQLUpdateUserPublishRateInput
 }
 
 export type GQLMutationUpdateUserRoleArgs = {
@@ -3468,6 +3474,12 @@ export type GQLUpdateUserInfoInput = {
   userName?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLUpdateUserPublishRateInput = {
+  id: Scalars['ID']['input']
+  limit: Scalars['Int']['input']
+  period: Scalars['Int']['input']
+}
+
 export type GQLUpdateUserRoleInput = {
   id: Scalars['ID']['input']
   role: GQLUserRole
@@ -4658,6 +4670,7 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateTagSettingType: GQLUpdateTagSettingType
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
+  UpdateUserPublishRateInput: GQLUpdateUserPublishRateInput
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>
@@ -5098,6 +5111,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateTagSettingInput: GQLUpdateTagSettingInput
   UpdateUserExtraInput: GQLUpdateUserExtraInput
   UpdateUserInfoInput: GQLUpdateUserInfoInput
+  UpdateUserPublishRateInput: GQLUpdateUserPublishRateInput
   UpdateUserRoleInput: GQLUpdateUserRoleInput
   UpdateUserStateInput: GQLUpdateUserStateInput
   Upload: Scalars['Upload']['output']
@@ -7321,6 +7335,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateUserInfoArgs, 'input'>
+  >
+  updateUserPublishRate?: Resolver<
+    GQLResolversTypes['User'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUpdateUserPublishRateArgs, 'input'>
   >
   updateUserRole?: Resolver<
     GQLResolversTypes['User'],
