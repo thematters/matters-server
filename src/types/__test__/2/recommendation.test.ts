@@ -249,7 +249,7 @@ describe('icymi topic', () => {
   })
   test('query', async () => {
     const title = 'test title 2'
-    const articleIds = ['1']
+    const articleIds = ['1', '2', '3']
     const topic = await recommendationService.createIcymiTopic({
       title,
       articleIds,

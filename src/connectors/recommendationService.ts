@@ -114,6 +114,9 @@ export class RecommendationService {
     if (topic.state !== MATTERS_CHOICE_TOPIC_STATE.editing) {
       throw new ActionFailedError('Invalid topic state')
     }
+    if (topic.articles.length < topic.pinAmount) {
+      throw new ActionFailedError('Articles amount less than pinAmount')
+    }
     const publisheds = await this.models.findMany({
       table: 'matters_choice_topic',
       where: { state: MATTERS_CHOICE_TOPIC_STATE.published },
