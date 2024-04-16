@@ -37,7 +37,6 @@
           "Draft": "./draft#Draft",
           "DraftAccess": "./draft#Draft",
           "Circle": "./circle#Circle",
-          "Chapter": "./chapter#Chapter",
           "Invites": "./circle#Circle",
           "Invitation": "./circle#CircleInvitation",
           "CircleAnalytics": "./circle#Circle",
@@ -64,7 +63,6 @@
           "OfficialAnnouncementNotice": "./notification#NoticeItem",
           "Appreciation": "./appreciation#Appreciation",
           "OAuthClient": "./user#OAuthClientDB",
-          "Topic": "./topic#Topic",
           "Report": "./report#Report",
           "IcymiTopic": "./misc#MattersChoiceTopic"
         },
