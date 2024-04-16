@@ -78,6 +78,7 @@ describe('icymi topic', () => {
             id
           }
           note
+          pinAmount
           state
           publishedAt
           archivedAt
@@ -157,9 +158,23 @@ describe('icymi topic', () => {
       })
       expect(errors).toBeUndefined()
       expect(data.putIcymiTopic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
+      expect(data.putIcymiTopic.pinAmount).toBe(3)
       expect(data.putIcymiTopic.articles.length).toBe(3)
       expect(data.putIcymiTopic.publishedAt).toBeNull()
       expect(data.putIcymiTopic.archivedAt).toBeNull()
+
+      // only update fields provided
+      const { data: data2, errors: errors2 } =
+        await adminServer.executeOperation({
+          query: PUT_ICYMI_TOPIC,
+          variables: { input: { id: data.putIcymiTopic.id, pinAmount: 6 } },
+        })
+      expect(errors2).toBeUndefined()
+      expect(data2.putIcymiTopic.pinAmount).toBe(6)
+      expect(data2.putIcymiTopic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
+      expect(data2.putIcymiTopic.articles.length).toBe(3)
+      expect(data2.putIcymiTopic.publishedAt).toBeNull()
+      expect(data2.putIcymiTopic.archivedAt).toBeNull()
     })
     test('only admin can views icymit topics list', async () => {
       const server = await testClient({ connections })
@@ -234,7 +249,7 @@ describe('icymi topic', () => {
   })
   test('query', async () => {
     const title = 'test title 2'
-    const articleIds = ['1']
+    const articleIds = ['1', '2', '3']
     const topic = await recommendationService.createIcymiTopic({
       title,
       articleIds,

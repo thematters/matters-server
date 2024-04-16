@@ -24,7 +24,7 @@ afterAll(async () => {
 
 const title = 'test title'
 const pinAmount = MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS[0]
-const articleIds = ['1', '2']
+const articleIds = ['1', '2', '3']
 const note = 'test note'
 
 describe('IcymiTopic', () => {
@@ -102,11 +102,20 @@ describe('IcymiTopic', () => {
       )
       const topic = await recommendationService.createIcymiTopic({
         title,
-        articleIds,
+        articleIds: ['1', '2'],
         pinAmount,
         note,
       })
       expect(topic.state).toBe(MATTERS_CHOICE_TOPIC_STATE.editing)
+
+      // articles amount should more than or equal to pinAmount
+      expect(
+        recommendationService.publishIcymiTopic(topic.id)
+      ).rejects.toThrowError('Articles amount less than pinAmount')
+
+      await recommendationService.updateIcymiTopic(topic.id, {
+        articleIds,
+      })
       const published = await recommendationService.publishIcymiTopic(topic.id)
       expect(published.state).toBe(MATTERS_CHOICE_TOPIC_STATE.published)
 
@@ -114,7 +123,7 @@ describe('IcymiTopic', () => {
         recommendationService.publishIcymiTopic(topic.id)
       ).rejects.toThrowError('Invalid topic state')
     })
-    test('archive other published topics', async () => {
+    test('archive other published topics when published', async () => {
       const topic1 = await recommendationService.createIcymiTopic({
         title,
         articleIds,
@@ -220,8 +229,8 @@ describe('find icymi articles', () => {
     await recommendationService.archiveIcymiTopic(topic.id)
     const [articles, totalCount] =
       await recommendationService.findIcymiArticles({})
-    expect(articles).toHaveLength(2)
-    expect(totalCount).toBe(2)
+    expect(articles).toHaveLength(3)
+    expect(totalCount).toBe(3)
 
     const topic2 = await recommendationService.createIcymiTopic({
       title,
