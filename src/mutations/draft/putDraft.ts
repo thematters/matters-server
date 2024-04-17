@@ -25,7 +25,6 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-  MAX_ARTICLE_EMPTY_PARAGRAPHS,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -170,11 +169,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       summary: summary === null ? null : summary?.trim(),
       content:
         content &&
-        normalizeArticleHTML(
-          sanitizeHTML(content, {
-            maxEmptyParagraphs: MAX_ARTICLE_EMPTY_PARAGRAPHS,
-          })
-        ),
+        normalizeArticleHTML(sanitizeHTML(content, { maxEmptyParagraphs: -1 })),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
