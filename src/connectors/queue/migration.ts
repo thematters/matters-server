@@ -8,7 +8,6 @@ import {
 
 import {
   ASSET_TYPE,
-  MAX_ARTICLE_EMPTY_PARAGRAPHS,
   MIGRATION_DELAY,
   MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
@@ -127,9 +126,7 @@ export class MigrationQueue extends BaseQueue {
                   content:
                     content &&
                     normalizeArticleHTML(
-                      sanitizeHTML(content, {
-                        maxEmptyParagraphs: MAX_ARTICLE_EMPTY_PARAGRAPHS,
-                      })
+                      sanitizeHTML(content, { maxEmptyParagraphs: -1 })
                     ),
                 })
 

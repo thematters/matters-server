@@ -17,7 +17,6 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   USER_STATE,
-  MAX_ARTICLE_EMPTY_PARAGRAPHS,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
@@ -300,9 +299,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
     const processed = normalizeArticleHTML(
-      sanitizeHTML(content, {
-        maxEmptyParagraphs: MAX_ARTICLE_EMPTY_PARAGRAPHS,
-      })
+      sanitizeHTML(content, { maxEmptyParagraphs: -1 })
     )
     const changed = processed !== lastContent
 
