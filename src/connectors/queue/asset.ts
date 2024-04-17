@@ -63,7 +63,7 @@ export class AssetQueue extends BaseQueue {
         await trx('asset').whereIn('id', ids).del()
       })
 
-      // delete s3 object
+      // delete files in S3/Cloudflare Images
       await Promise.all(
         assets
           .map((asset) => [
