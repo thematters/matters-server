@@ -1,4 +1,4 @@
-import { polygonMumbai } from 'viem/chains'
+import { polygon } from 'viem/chains'
 
 import { CurationContract } from 'connectors/blockchain'
 import { contract } from 'common/environment'
@@ -7,7 +7,7 @@ import { BLOCKCHAIN, BLOCKCHAIN_CHAINID } from 'common/enums'
 describe('curationContract', () => {
   test('compute topics correctly', async () => {
     const curation = new CurationContract(
-      polygonMumbai.id.toString(),
+      polygon.id.toString(),
       contract.Polygon.curationAddress
     )
     expect(curation.erc20TokenCurationEventTopic[0]).toBe(

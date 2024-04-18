@@ -7,7 +7,6 @@ export enum AlchemyNetwork {
   Mainnet = 'eth-mainnet.g',
   Rinkeby = 'eth-rinkeby.g',
   PolygonMainnet = 'polygon-mainnet.g',
-  PolygonMumbai = 'polygon-mumbai.g',
 }
 
 export class Alchemy {
