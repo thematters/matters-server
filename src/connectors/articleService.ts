@@ -183,15 +183,14 @@ export class ArticleService extends BaseService<Article> {
           sensitiveByAuthor: sensitiveByAuthor ?? false,
         })
         .returning('*')
-      // copy asset_map from draft to article
-      const systemService = new SystemService(this.connections)
-      const [draftEntity, articleEntity] = await Promise.all([
-        systemService.baseFindEntityTypeId('draft'),
-        systemService.baseFindEntityTypeId('article'),
-      ])
 
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
+        const systemService = new SystemService(this.connections)
+        const [draftEntity, articleEntity] = await Promise.all([
+          systemService.baseFindEntityTypeId('draft'),
+          systemService.baseFindEntityTypeId('article'),
+        ])
         await systemService.copyAssetMapEntities({
           source: { entityTypeId: draftEntity.id, entityId: draftId },
           target: { entityTypeId: articleEntity.id, entityId: article.id },
