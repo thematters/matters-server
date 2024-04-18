@@ -211,6 +211,9 @@ const resolver: GQLMutationResolvers['payTo'] = async (
     if (!chain) {
       throw new UserInputError('`chain` is required if `currency` is `USDT`')
     }
+    if (chain === 'Polygon') {
+      throw new UserInputError('Polygon is deprecated')
+    }
     if (!txHash) {
       throw new UserInputError('`txHash` is required if `currency` is `USDT`')
     }

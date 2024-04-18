@@ -247,6 +247,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
       let syncedBlockNum: { [key: string]: number } = {}
 
       ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
+        // FIXME: pause support for the Polygon testnet
+        // @see {src/common/enums/payment.ts:L59}
+        if (chain === BLOCKCHAIN.Polygon && !isProd) {
+          return
+        }
+
         try {
           const blockNum = await this._handleSyncCurationEvents(chain)
           syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
