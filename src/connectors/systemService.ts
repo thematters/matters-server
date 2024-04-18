@@ -182,6 +182,9 @@ export class SystemService extends BaseService<BaseDBSchema> {
   public findAssetByPath = async (path: string) =>
     this.knex('asset').where('path', path).first()
 
+  /**
+   * Find or create asset and asset_map record by path
+   */
   public findAssetOrCreateByPath = async (
     // path: string,
     data: ItemData,
@@ -297,6 +300,12 @@ export class SystemService extends BaseService<BaseDBSchema> {
 
   /**
    * Copy entity of asset map by given ids
+   *
+   * @remarks
+   *
+   * Delete actual assets carefully after using this method,
+   * only delete the actual asset when all other related asset_map record have been removed
+   *
    */
   public copyAssetMapEntities = async ({
     source,
