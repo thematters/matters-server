@@ -179,8 +179,9 @@ export const contract = {
       },
   Optimism: isProd
     ? {
-        curationAddress: ''.toLowerCase(), // TODO
-        curationBlockNum: '', // TODO
+        curationAddress:
+          '0x5edebbdae7B5C79a69AaCF7873796bb1Ec664DB8'.toLowerCase(),
+        curationBlockNum: '117058632',
         tokenAddress:
           '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'.toLowerCase(),
         tokenDecimals: 6,
