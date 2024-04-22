@@ -12,7 +12,11 @@ export const comments: GQLOssResolvers['comments'] = async (
   const totalCount = await commentService.baseCount()
 
   return connectionFromPromisedArray(
-    commentService.baseFind({ skip, take }),
+    commentService.baseFind({
+      skip,
+      take,
+      orderBy: [{ column: 'id', order: 'desc' }],
+    }),
     input,
     totalCount
   )

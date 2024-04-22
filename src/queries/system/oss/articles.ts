@@ -11,7 +11,11 @@ export const articles: GQLOssResolvers['articles'] = async (
 
   const [totalCount, items] = await Promise.all([
     articleService.baseCount(),
-    articleService.baseFind({ skip, take }),
+    articleService.baseFind({
+      skip,
+      take,
+      orderBy: [{ column: 'id', order: 'desc' }],
+    }),
   ])
   return connectionFromPromisedArray(
     draftService.loadByIds(items.map((item) => item.draftId)),
