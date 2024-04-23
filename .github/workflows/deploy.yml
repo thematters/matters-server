@@ -127,13 +127,15 @@ jobs:
       # === [END] predeploy ===
 
       # === `develop` branch ===
-      - name: Start VPN
+      - name: Start VPN (develop)
         if: github.base_ref == 'test-migration-master'
         run: |
           sudo apt-get update \
           && sudo apt-get install openvpn \
-          && echo $VPN_CONFIG | base64 -d >> $VPN_CONFIG_PATH \
-          && echo $VPN_AUTH | base64 -d >> $VPN_AUTH_PATH \
+          && echo $VPN_AUTH > /tmp/debug.txt \
+          && tail /tmp/debug.txt \
+          && echo $VPN_AUTH | base64 -d > $VPN_AUTH_PATH \
+          && echo $VPN_CONFIG | base64 -d > $VPN_CONFIG_PATH \
           && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
           && sleep 15s
         env:
