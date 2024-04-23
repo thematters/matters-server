@@ -11,12 +11,11 @@ import { getLogger } from 'common/logger'
 const logger = getLogger('service-aws')
 
 export class AWSService {
-  s3: AWS.S3
-  sqs: AWS.SQS
-  sns?: AWS.SNS
-  cloudwatch: AWS.CloudWatch
-  s3Bucket: string
-  s3Endpoint: string
+  public s3: AWS.S3
+  public sqs: AWS.SQS
+  public cloudwatch: AWS.CloudWatch
+  public s3Bucket: string
+  public s3Endpoint: string
 
   public constructor() {
     AWS.config.update(this.getAWSConfig())
@@ -24,9 +23,6 @@ export class AWSService {
     this.s3Bucket = this.getS3Bucket()
     this.s3Endpoint = this.getS3Endpoint()
     this.sqs = new AWS.SQS()
-    if (environment.awsArticlesSnsTopic) {
-      this.sns = new AWS.SNS()
-    }
     this.cloudwatch = new AWS.CloudWatch()
   }
 
@@ -92,6 +88,7 @@ export class AWSService {
       ) {
         return key
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       switch (err.code) {
         case 'NotFound':
@@ -151,38 +148,6 @@ export class AWSService {
     logger.debug(
       'SQS sent message %j with request-id %s',
       payload,
-      res.ResponseMetadata.RequestId
-    )
-  }
-
-  public snsPublishMessage = async ({
-    // MessageGroupId,
-    MessageBody,
-  }: {
-    // MessageGroupId: string
-    // Message: any
-    MessageBody: any
-  }) => {
-    if (isTest) {
-      return
-    }
-    const res = (await this.sns
-      ?.publish({
-        Message: JSON.stringify({
-          default: JSON.stringify(MessageBody),
-        }),
-        MessageStructure: 'json',
-        // MessageGroupId,
-        // MessageAttributes: {},
-        // MessageDeduplicationId
-        // MessageBody: JSON.stringify(MessageBody),
-        // QueueUrl: environment.awsIpfsArticlesQueueUrl,
-        TopicArn: environment.awsArticlesSnsTopic,
-      })
-      .promise()) as any
-    logger.info(
-      'SNS sent message %j with request-id %s',
-      MessageBody,
       res.ResponseMetadata.RequestId
     )
   }

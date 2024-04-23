@@ -92,7 +92,7 @@ const _walletLogin: Exclude<
       userService,
       atomService,
       systemService,
-      connections: { knex, redis },
+      connections: { redis },
     },
   } = context
 
@@ -118,7 +118,6 @@ const _walletLogin: Exclude<
       data: {
         signature,
         userId: viewer.id,
-        updatedAt: knex.fn.now(),
       },
     })
 

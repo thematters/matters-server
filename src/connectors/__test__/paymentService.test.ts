@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, EmailableUser } from 'definitions'
 
 import {
   BLOCKCHAIN,
@@ -55,7 +55,7 @@ describe('Transaction CRUD', () => {
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae876f7be'
   const txHashUppercase =
     '0xD65DC6BF6DCC111237F9ACFBFA6003EA4A4D88F2E071F4307D3AF81AE876F7BE'
-  const chainId = BLOCKCHAIN_CHAINID[BLOCKCHAIN.Polygon]
+  const chainId = BLOCKCHAIN_CHAINID[BLOCKCHAIN.Optimism]
 
   test('create Transaction', async () => {
     const txn = await paymentService.createTransaction({
@@ -84,6 +84,8 @@ describe('Transaction CRUD', () => {
     expect(txn.targetId).toEqual(targetId)
     expect(txn.targetType).toBeDefined()
     expect(txn.remark).toEqual(txn.remark)
+    expect(txn.articleVersionId).toBeDefined()
+    expect(txn.articleVersionId).not.toBeNull()
   })
   test('get or create BlockchainTransaction', async () => {
     // create
@@ -303,14 +305,14 @@ describe('notifyDonation', () => {
         .dynamic_template_data.tx.donationCount
 
     const articleService = new ArticleService(connections)
-    const sender = await userService.create({
+    const sender = (await userService.create({
       userName: 'sender',
       email: 'sender@example.com',
-    })
-    const recipient = await userService.create({
+    })) as EmailableUser
+    const recipient = (await userService.create({
       userName: 'recipient',
       email: 'recipient@example.com',
-    })
+    })) as EmailableUser
     const tx = await createDonationTx(
       {
         senderId: sender.id,

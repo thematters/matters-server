@@ -9,7 +9,7 @@ const resolver: GQLMutationResolvers['resetWallet'] = async (
   { dataSources: { atomService, userService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.loadById(dbId)
+  const user = await atomService.userIdLoader.load(dbId)
 
   if (!user || !user.ethAddress) {
     throw new ForbiddenError("user doesn't exist or have a crypto wallet")

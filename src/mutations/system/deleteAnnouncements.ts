@@ -4,7 +4,7 @@ import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteAnnouncements'] = async (
-  root,
+  _,
   { input: { ids } },
   { dataSources: { atomService } }
 ) => {

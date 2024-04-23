@@ -15,7 +15,7 @@ const resolver: GQLMutationResolvers['setBoost'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const entity = await serviceMap[type].loadById(dbId)
+  const entity = await serviceMap[type].baseFindById(dbId)
   if (!entity) {
     throw new EntityNotFoundError(`target ${type} does not exists`)
   }

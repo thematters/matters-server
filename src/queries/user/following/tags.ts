@@ -10,7 +10,7 @@ import {
 const resolver: GQLFollowingResolvers['tags'] = async (
   { id },
   { input },
-  { dataSources: { atomService, tagService } }
+  { dataSources: { atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -25,7 +25,7 @@ const resolver: GQLFollowingResolvers['tags'] = async (
     }),
     atomService.findMany({
       table: 'action_tag',
-      select: ['target_id'],
+      select: ['targetId'],
       where: { userId: id, action: TAG_ACTION.follow },
       skip,
       take,
@@ -33,7 +33,7 @@ const resolver: GQLFollowingResolvers['tags'] = async (
   ])
 
   return connectionFromPromisedArray(
-    tagService.loadByIds(actions.map(({ targetId }) => targetId)),
+    atomService.tagIdLoader.loadMany(actions.map(({ targetId }) => targetId)),
     input,
     totalCount
   )

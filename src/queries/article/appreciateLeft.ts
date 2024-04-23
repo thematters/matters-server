@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['appreciateLeft'] = async (
-  { articleId },
+  { id },
   _,
   { viewer, dataSources: { articleService } }
 ) => {
@@ -10,7 +10,7 @@ const resolver: GQLArticleResolvers['appreciateLeft'] = async (
   }
 
   return articleService.appreciateLeftByUser({
-    articleId,
+    articleId: id,
     userId: viewer.id,
   })
 }

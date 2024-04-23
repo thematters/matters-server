@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Tag } from 'definitions'
 
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
@@ -24,7 +24,9 @@ const resolver: GQLMutationResolvers['mergeTags'] = async (
   })
 
   // invalidate extra nodes
-  newTag[CACHE_KEYWORD] = tagIds.map((id) => ({ id, type: NODE_TYPES.Tag }))
+  ;(newTag as Tag & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = tagIds.map(
+    (id) => ({ id, type: NODE_TYPES.Tag })
+  )
   return newTag
 }
 

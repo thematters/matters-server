@@ -1,8 +1,14 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['requestForDonation'] = async (
-  { requestForDonation },
-  _
-) => requestForDonation ?? null
+  { id: articleId },
+  _,
+  { dataSources: { articleService } }
+) => {
+  const { requestForDonation } = await articleService.loadLatestArticleVersion(
+    articleId
+  )
+  return requestForDonation
+}
 
 export default resolver

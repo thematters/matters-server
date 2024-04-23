@@ -9,7 +9,7 @@ import {
 const resolver: GQLTagResolvers['participants'] = async (
   { id, owner },
   { input },
-  { dataSources: { tagService, userService } }
+  { dataSources: { tagService, atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -27,7 +27,7 @@ const resolver: GQLTagResolvers['participants'] = async (
   })
 
   return connectionFromPromisedArray(
-    userService.loadByIds(userIds.map(({ authorId }) => authorId)),
+    atomService.userIdLoader.loadMany(userIds.map(({ authorId }) => authorId)),
     input,
     totalCount
   )

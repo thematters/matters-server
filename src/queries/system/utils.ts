@@ -1,4 +1,4 @@
-import type { Context } from 'definitions'
+import type { Context, Draft } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { EntityNotFoundError, ForbiddenError } from 'common/errors'
@@ -7,26 +7,18 @@ import { fromGlobalId } from 'common/utils'
 export const getNode = async (globalId: string, context: Context) => {
   const {
     viewer,
-    dataSources: {
-      articleService,
-      atomService,
-      collectionService,
-      userService,
-      commentService,
-      draftService,
-      tagService,
-    },
+    dataSources: { atomService },
   } = context
   const services = {
-    [NODE_TYPES.Article]: articleService.draftLoader,
-    [NODE_TYPES.User]: userService.dataloader,
-    [NODE_TYPES.Comment]: commentService.dataloader,
-    [NODE_TYPES.Draft]: draftService.dataloader,
-    [NODE_TYPES.Tag]: tagService.dataloader,
+    [NODE_TYPES.Article]: atomService.articleIdLoader,
+    [NODE_TYPES.ArticleVersion]: atomService.articleVersionIdLoader,
+    [NODE_TYPES.User]: atomService.userIdLoader,
+    [NODE_TYPES.Comment]: atomService.commentIdLoader,
+    [NODE_TYPES.Draft]: atomService.draftIdLoader,
+    [NODE_TYPES.Tag]: atomService.tagIdLoader,
     [NODE_TYPES.Circle]: atomService.circleIdLoader,
-    [NODE_TYPES.Topic]: atomService.topicIdLoader,
-    [NODE_TYPES.Chapter]: atomService.chapterIdLoader,
-    [NODE_TYPES.Collection]: collectionService.dataloader,
+    [NODE_TYPES.Collection]: atomService.collectionIdLoader,
+    [NODE_TYPES.IcymiTopic]: atomService.icymiTopicIdLoader,
   } as const
 
   const { type, id } = fromGlobalId(globalId)
@@ -43,7 +35,7 @@ export const getNode = async (globalId: string, context: Context) => {
     throw new EntityNotFoundError('target does not exist')
   }
 
-  if (type === 'Draft' && viewer.id !== node.authorId) {
+  if (type === 'Draft' && viewer.id !== (node as Draft).authorId) {
     throw new ForbiddenError('only author is allowed to view draft')
   }
 

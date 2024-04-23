@@ -220,7 +220,7 @@ const resolver: GQLMutationResolvers['invite'] = async (
         sender: {
           displayName: viewer.displayName,
         },
-        to: recipient?.email || email,
+        to: (recipient?.email || email) as string,
       })
     }
   }

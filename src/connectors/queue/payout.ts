@@ -17,7 +17,6 @@ import {
   AtomService,
   ExchangeRate,
   PaymentService,
-  UserService,
   NotificationService,
 } from 'connectors'
 import SlackService from 'connectors/slack'
@@ -90,7 +89,6 @@ export class PayoutQueue extends BaseQueue {
     const slack = new SlackService()
     const atomService = new AtomService(this.connections)
     const paymentService = new PaymentService(this.connections)
-    const userService = new UserService(this.connections)
     const notificationService = new NotificationService(this.connections)
 
     const data = job.data as PaymentParams
@@ -149,6 +147,7 @@ export class PayoutQueue extends BaseQueue {
       const exchangeRate = new ExchangeRate(this.connections.redis)
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         slack.sendStripeAlert({
           data,
@@ -188,12 +187,12 @@ export class PayoutQueue extends BaseQueue {
       // update tx
       await paymentService.baseUpdate(tx.id, {
         state: TRANSACTION_STATE.succeeded,
-        provider_tx_id: transfer.id,
+        providerTxId: transfer.id,
         updatedAt: new Date(),
       })
 
       // notifications
-      const user = await userService.loadById(tx.senderId)
+      const user = await atomService.userIdLoader.load(tx.senderId)
 
       if (user.email && user.userName && user.displayName) {
         notificationService.mail.sendPayment({
@@ -204,7 +203,6 @@ export class PayoutQueue extends BaseQueue {
           },
           type: 'payout',
           tx: {
-            recipient,
             amount: net,
             currency: tx.currency,
           },

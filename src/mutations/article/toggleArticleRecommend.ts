@@ -4,25 +4,25 @@ import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
-  root,
+  _,
   { input: { id, enabled, type = 'icymi' } },
-  { viewer, dataSources: { atomService, articleService, draftService } }
+  { dataSources: { atomService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await atomService.articleIdLoader.load(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
 
   switch (type) {
-    case 'icymi':
+    case 'icymi': {
       if (enabled) {
         const data = { articleId: dbId }
         await atomService.upsert({
           table: 'matters_choice',
           where: data,
           create: data,
-          update: { ...data, updatedAt: new Date() },
+          update: data,
         })
       } else {
         await atomService.deleteMany({
@@ -31,7 +31,8 @@ const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
         })
       }
       break
-    case 'hottest':
+    }
+    case 'hottest': {
       await atomService.upsert({
         table: 'article_recommend_setting',
         where: { articleId: dbId },
@@ -39,7 +40,8 @@ const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
         update: { inHottest: enabled },
       })
       break
-    case 'newest':
+    }
+    case 'newest': {
       await atomService.upsert({
         table: 'article_recommend_setting',
         where: { articleId: dbId },
@@ -47,10 +49,9 @@ const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
         update: { inNewest: enabled },
       })
       break
+    }
   }
-
-  const node = await draftService.baseFindById(article.draftId)
-  return node
+  return article
 }
 
 export default resolver

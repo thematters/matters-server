@@ -1,16 +1,21 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
 
-import { ArticleService, UserService } from 'connectors'
+import { v4 } from 'uuid'
 
-import { genConnections, closeConnections, createArticle } from './utils'
+import { COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import { ArticleService, UserService, AtomService } from 'connectors'
+
+import { genConnections, closeConnections } from './utils'
 
 let articleId: string
 let connections: Connections
 let articleService: ArticleService
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
+  atomService = new AtomService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -19,27 +24,21 @@ afterAll(async () => {
 
 test('publish', async () => {
   // publish article to IPFS
-  const publishedDraft = await articleService.draftLoader.load('1')
-  const { mediaHash, contentHash: dataHash } =
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    (await articleService.publishToIPFS(publishedDraft))!
-  const articlePublished = await articleService.createArticle({
-    draftId: '1',
+  // const publishedDraft = await atomService.articleIdLoader.load('1')
+  // const { mediaHash, contentHash: dataHash } =
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  // (await articleService.publishToIPFS(publishedDraft))!
+  const [article] = await articleService.createArticle({
     authorId: '1',
     title: 'test',
-    slug: 'test',
     cover: '1',
-    wordCount: 0,
-    summary: 'test-summary',
     content: '<div>test-html-string</div>',
-    dataHash,
-    mediaHash,
   })
-  expect(mediaHash).toBeDefined()
-  expect(dataHash).toBeDefined()
-  expect(articlePublished.state).toBe('pending')
+  // expect(mediaHash).toBeDefined()
+  // expect(dataHash).toBeDefined()
+  expect(article.state).toBe('active')
 
-  articleId = articlePublished.id
+  articleId = article.id
   // publish to IPNS
   // await articleService.publishFeedToIPNS({ userName: 'test1' })
 })
@@ -55,20 +54,20 @@ describe('findByAuthor', () => {
     expect(draftIds.length).toBeDefined()
   })
   test('order by num of readers', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       orderBy: 'mostReaders',
     })
-    expect(draftIds.length).toBeDefined()
-    expect(draftIds[0].draftId).not.toBe('1')
+    expect(articles.length).toBeDefined()
+    expect(articles[0].id).not.toBe('1')
     await connections.knex('article_ga4_data').insert({
       articleId: '1',
       totalUsers: '1',
       dateRange: '[2023-10-24,2023-10-24]',
     })
-    const draftIds2 = await articleService.findByAuthor('1', {
+    const articles2 = await articleService.findByAuthor('1', {
       orderBy: 'mostReaders',
     })
-    expect(draftIds2[0].draftId).toBe('1')
+    expect(articles2[0].id).toBe('1')
   })
   test('order by amount of appreciations', async () => {
     const draftIds = await articleService.findByAuthor('1', {
@@ -130,7 +129,8 @@ test('findSubscriptions', async () => {
 })
 
 describe('updatePinned', () => {
-  const getArticleFromDb = async (id: string) => articleService.baseFindById(id)
+  const getArticleFromDb = async (id: string) =>
+    articleService.baseFindById(id) as Promise<Article>
   test('invaild article id will throw error', async () => {
     await expect(articleService.updatePinned('999', '1', true)).rejects.toThrow(
       'Cannot find article'
@@ -184,11 +184,12 @@ describe('quicksearch', () => {
     expect(nodes.length).toBe(1)
     expect(totalCount).toBeGreaterThan(0)
 
-    // both case insensitive and chinese simplified/traditional insensitive
-    await createArticle(
-      { title: 'Uppercase', content: '', authorId: '1' },
-      connections
-    )
+    // both case insensitive and Chinese simplified/traditional insensitive
+    await articleService.createArticle({
+      title: 'Uppercase',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes2 } = await articleService.searchV3({
       key: 'uppercase',
       take: 1,
@@ -197,10 +198,11 @@ describe('quicksearch', () => {
     })
     expect(nodes2.length).toBe(1)
 
-    await createArticle(
-      { title: '測試', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '測試',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes3 } = await articleService.searchV3({
       key: '测试',
       take: 1,
@@ -209,10 +211,11 @@ describe('quicksearch', () => {
     })
     expect(nodes3.length).toBe(1)
 
-    await createArticle(
-      { title: '试测', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '试测',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes4 } = await articleService.searchV3({
       key: '試測',
       take: 1,
@@ -221,10 +224,11 @@ describe('quicksearch', () => {
     })
     expect(nodes4.length).toBe(1)
 
-    await createArticle(
-      { title: '測测', content: '', authorId: '1' },
-      connections
-    )
+    await articleService.createArticle({
+      title: '測测',
+      content: '',
+      authorId: '1',
+    })
     const { nodes: nodes5 } = await articleService.searchV3({
       key: '測测',
       take: 1,
@@ -250,7 +254,6 @@ describe('quicksearch', () => {
       quicksearch: true,
       filter: { authorId: '2' },
     })
-    console.log(nodes)
     nodes.forEach((node) => {
       expect(node.authorId).toBe('2')
     })
@@ -273,4 +276,176 @@ test('latestArticles', async () => {
     oss: false,
   })
   expect(articles.length).toBeGreaterThan(0)
+  expect(articles[0].id).toBeDefined()
+  expect(articles[0].authorId).toBeDefined()
+  expect(articles[0].state).toBeDefined()
+})
+
+describe('findResponses', () => {
+  const createComment = async (
+    state?: keyof typeof COMMENT_STATE,
+    parentCommentId?: string
+  ) => {
+    return atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '1',
+        targetId: '1',
+        targetTypeId: '4',
+        type: 'article',
+        parentCommentId,
+        state: state ?? COMMENT_STATE.active,
+      },
+    })
+  }
+  test('do not return archived comment not having any not-archived child comments', async () => {
+    const res1 = await articleService.findResponses({ id: '1' })
+    expect(res1.length).toBeGreaterThan(0)
+
+    // active comment will be returned
+    await createComment()
+    const res2 = await articleService.findResponses({ id: '1' })
+    expect(res2.length).toBe(res1.length + 1)
+
+    // archived comment will not be returned
+    const archived = await createComment(COMMENT_STATE.archived)
+    const res3 = await articleService.findResponses({ id: '1' })
+    expect(res3.length).toBe(res2.length)
+
+    // archived comment w/o active/collapsed child comments will not be returned
+    await createComment(COMMENT_STATE.archived, archived.id)
+    await createComment(COMMENT_STATE.banned, archived.id)
+    const res4 = await articleService.findResponses({ id: '1' })
+    expect(res4.length).toBe(res3.length)
+
+    // archived comment w active/collapsed child comments will be returned
+    await createComment(COMMENT_STATE.active, archived.id)
+    const res5 = await articleService.findResponses({ id: '1' })
+    expect(res5.length).toBe(res4.length + 1)
+
+    // banned comment will not be returned
+    const banned = await createComment(COMMENT_STATE.archived)
+    const res6 = await articleService.findResponses({ id: '1' })
+    expect(res6.length).toBe(res5.length)
+
+    // banned comment w/o active/collapsed child comments will not be returned
+    await createComment(COMMENT_STATE.archived, banned.id)
+    await createComment(COMMENT_STATE.banned, banned.id)
+    const res7 = await articleService.findResponses({ id: '1' })
+    expect(res7.length).toBe(res6.length)
+
+    // banned comment w active/collapsed child comments will be returned
+    await createComment(COMMENT_STATE.collapsed, banned.id)
+    const res8 = await articleService.findResponses({ id: '1' })
+    expect(res8.length).toBe(res7.length + 1)
+  })
+  test('count is right', async () => {
+    const res = await articleService.findResponses({ id: '1' })
+    expect(+res[0].totalCount).toBe(res.length)
+
+    const res1 = await articleService.findResponses({ id: '1', first: 1 })
+    expect(+res1[0].totalCount).toBe(res.length)
+  })
+
+  test('cursor works', async () => {
+    const res = await articleService.findResponses({ id: '1' })
+    const res1 = await articleService.findResponses({
+      id: '1',
+      after: { type: NODE_TYPES.Comment, id: res[0].entityId },
+    })
+    expect(res1.length).toBe(res.length - 1)
+    expect(+res1[0].totalCount).toBe(res.length)
+  })
+})
+
+test('loadLatestArticleVersion', async () => {
+  const articleVersion = await articleService.loadLatestArticleVersion('1')
+  expect(articleVersion.articleId).toBe('1')
+})
+
+test('countArticleVersions', async () => {
+  const count = await articleService.countArticleVersions('1')
+  expect(count).toBe(1)
+  await articleService.createNewArticleVersion('1', '1', { content: 'test2' })
+  const count2 = await articleService.countArticleVersions('1')
+  expect(count2).toBe(2)
+})
+
+describe('createNewArticleVersion', () => {
+  test('provide description or not', async () => {
+    const articleVersion = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false }
+    )
+    expect(articleVersion.description).toBe(null)
+
+    const articleVersion2 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      undefined
+    )
+    expect(articleVersion2.description).toBe(null)
+
+    const description = 'test desc'
+    const articleVersion3 = await articleService.createNewArticleVersion(
+      '1',
+      '1',
+      { canComment: false },
+      description
+    )
+    expect(articleVersion3.description).toBe(description)
+  })
+})
+
+describe('findArticleVersions', () => {
+  test('return content change versions', async () => {
+    const [, count1] = await articleService.findArticleVersions('2')
+    expect(count1).toBeGreaterThan(0)
+
+    const changedContent = 'text change'
+    await articleService.createNewArticleVersion('2', '2', {
+      content: changedContent,
+    })
+    const [, count2] = await articleService.findArticleVersions('2')
+    expect(count2).toBe(count1 + 1)
+
+    await articleService.createNewArticleVersion('2', '2', {
+      title: 'new title',
+    })
+    const [, count3] = await articleService.findArticleVersions('2')
+    expect(count3).toBe(count2 + 1)
+
+    await articleService.createNewArticleVersion('2', '2', {
+      summary: 'new summary',
+    })
+    const [, count4] = await articleService.findArticleVersions('2')
+    expect(count4).toBe(count3 + 1)
+
+    await articleService.createNewArticleVersion('2', '2', { cover: '1' })
+    const [, count5] = await articleService.findArticleVersions('2')
+    expect(count5).toBe(count4 + 1)
+
+    await articleService.createNewArticleVersion('2', '2', {
+      tags: ['new tags'],
+    })
+    const [, count6] = await articleService.findArticleVersions('2')
+    expect(count6).toBe(count5 + 1)
+
+    await articleService.createNewArticleVersion('2', '2', {
+      collection: ['1'],
+    })
+    const [, count7] = await articleService.findArticleVersions('2')
+    expect(count7).toBe(count6 + 1)
+
+    // create new version with no content change
+    await articleService.createNewArticleVersion('2', '2', {
+      sensitiveByAuthor: true,
+    })
+    const [, count8] = await articleService.findArticleVersions('2')
+    expect(count8).toBe(count7)
+  })
 })

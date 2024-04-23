@@ -1,7 +1,6 @@
 import { environment } from 'common/environment'
 
 export const QUEUE_URL = {
-  ipfsArticles: environment?.awsIpfsArticlesQueueUrl,
   archiveUser: environment?.awsArchiveUserQueueUrl,
   // likecoin
   likecoinLike: environment?.awsLikecoinLikeUrl,

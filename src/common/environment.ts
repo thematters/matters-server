@@ -41,8 +41,6 @@ export const environment = {
   awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
-  awsIpfsArticlesQueueUrl:
-    process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
@@ -51,7 +49,6 @@ export const environment = {
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
-  awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,

@@ -31,7 +31,7 @@ let connections: Connections
 beforeAll(async () => {
   connections = await genConnections()
   globalThis.connections = connections
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)

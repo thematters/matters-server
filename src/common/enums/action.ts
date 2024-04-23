@@ -6,6 +6,10 @@ export enum USER_ACTION {
   downVote = 'down_vote',
 }
 
+export enum ARTICLE_ACTION {
+  subscribe = 'subscribe',
+}
+
 export enum TAG_ACTION {
   follow = 'follow',
   pin = 'pin',

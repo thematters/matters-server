@@ -6,7 +6,7 @@ import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 export const announcements: GQLOfficialResolvers['announcements'] = async (
-  root,
+  _,
   { input: { id, visible } },
   { dataSources: { atomService, systemService }, viewer }
 ) => {
@@ -45,5 +45,5 @@ export const announcements: GQLOfficialResolvers['announcements'] = async (
       }
     })
   )
-  return items
+  return items as any
 }

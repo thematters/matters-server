@@ -1,3 +1,5 @@
+import type { EmailableUser } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
@@ -92,7 +94,6 @@ likecoinRouter.get('/', async (req, res) => {
       id: tx.id,
       provider_tx_id: tx_hash,
       state: cosmosState,
-      updatedAt: new Date(),
     }
 
     // correct amount if it changed via LikePay
@@ -260,18 +261,23 @@ likecoinRouter.post('/', async (req, res, next) => {
     }
 
     // notification
-    const sender = await userService.baseFindById(resultTx.senderId)
+    const sender = resultTx.senderId
+      ? await userService.baseFindById(resultTx.senderId)
+      : null
     const recipient = await userService.baseFindById(resultTx.recipientId)
     const article = await atomService.findFirst({
       table: 'article',
       where: { id: resultTx.targetId },
     })
-    await paymentService.notifyDonation({
-      tx: resultTx,
-      sender,
-      recipient,
-      article,
-    })
+
+    if (sender && recipient) {
+      await paymentService.notifyDonation({
+        tx: resultTx,
+        sender: sender as EmailableUser,
+        recipient: recipient as EmailableUser,
+        article,
+      })
+    }
 
     // manaully invalidate cache
     invalidateCache({

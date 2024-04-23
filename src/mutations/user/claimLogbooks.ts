@@ -14,7 +14,7 @@ import {
   recoverMessageAddress,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { polygon, polygonMumbai } from 'viem/chains'
+import { polygon } from 'viem/chains'
 
 import { BLOCKCHAIN_RPC, SIGNING_MESSAGE_PURPOSE } from 'common/enums'
 import { environment, isProd, contract } from 'common/environment'
@@ -77,12 +77,16 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
     throw new EntityNotFoundError('no logbooks to claim')
   }
 
+  // FIXME: pause support for the Polygon testnet
+  // @see {src/common/enums/payment.ts:L59}
+  if (!isProd) {
+    throw new UserInputError('Polygon Mumbai is deprecated')
+  }
+
   // filter unclaimed token ids
   const client = createPublicClient({
-    chain: isProd ? polygon : polygonMumbai,
-    transport: http(
-      isProd ? BLOCKCHAIN_RPC[polygon.id] : BLOCKCHAIN_RPC[polygonMumbai.id]
-    ),
+    chain: polygon,
+    transport: http(BLOCKCHAIN_RPC[polygon.id]),
   })
   const abi = [
     'function ownerOf(uint256 tokenId) view returns (address)',
@@ -122,9 +126,7 @@ const resolver: GQLMutationResolvers['claimLogbooks'] = async (
   try {
     const { data } = await axios({
       method: 'get',
-      url: isProd
-        ? 'https://gasstation-mainnet.matic.network/v2'
-        : 'https://gasstation-mumbai.matic.today/v2',
+      url: 'https://gasstation-mainnet.matic.network/v2',
     })
     maxFeePerGas = parseGwei(Math.ceil(data.fast.maxFee) + '')
     maxPriorityFeePerGas = parseGwei(Math.ceil(data.fast.maxPriorityFee) + '')

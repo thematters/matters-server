@@ -5,9 +5,9 @@ import { chunk } from 'lodash'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
-  { articleId },
+  { id: articleId },
   { input },
-  { dataSources: { articleService, draftService } }
+  { dataSources: { articleService } }
 ) => {
   const { random } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -32,9 +32,7 @@ const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
     const filteredArticles = chunks[index] || []
 
     return connectionFromPromisedArray(
-      draftService.loadByIds(
-        filteredArticles.map((article) => article.draftId)
-      ),
+      filteredArticles,
       input,
       articlePool.length
     )
@@ -50,11 +48,7 @@ const resolver: GQLArticleResolvers['relatedDonationArticles'] = async (
     }),
   ])
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map((article) => article.draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(articles, input, totalCount)
 }
 
 export default resolver

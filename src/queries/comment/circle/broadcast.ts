@@ -1,16 +1,18 @@
+import type { CommentFilter } from 'connectors'
 import type { GQLCircleResolvers } from 'definitions'
 
-import { COMMENT_STATE, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
+import { COMMENT_TYPE } from 'common/enums'
 import {
-  connectionFromArray, // fromConnectionArgs
+  connectionFromArray,
+  connectionFromArrayWithKeys,
+  cursorToKeys,
   fromGlobalId,
-  toGlobalId,
 } from 'common/utils'
 
 const resolver: GQLCircleResolvers['broadcast'] = async (
   { id },
   { input: { sort, first, ...rest } },
-  { dataSources: { commentService } }
+  { dataSources: { atomService, commentService } }
 ) => {
   if (!id) {
     return connectionFromArray([], rest)
@@ -29,19 +31,23 @@ const resolver: GQLCircleResolvers['broadcast'] = async (
   let before
   let after
   if (rest.after) {
-    after = fromGlobalId(rest.after).id
+    after = cursorToKeys(rest.after).idCursor?.toString()
   }
   if (rest.before) {
-    before = fromGlobalId(rest.before).id
+    before = cursorToKeys(rest.before).idCursor?.toString()
   }
 
-  // const { take, skip } = fromConnectionArgs(input)
+  // handle filter
+  const { id: targetTypeId } = await atomService.findFirst({
+    table: 'entity_type',
+    where: { table: 'circle' },
+  })
 
-  const where: Record<string, string | null> = {
-    state: COMMENT_STATE.active,
-    parentCommentId: null,
+  const where: CommentFilter = {
     targetId: id,
+    targetTypeId,
     type: COMMENT_TYPE.circleBroadcast,
+    parentCommentId: null,
   }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter
@@ -58,68 +64,22 @@ const resolver: GQLCircleResolvers['broadcast'] = async (
     }
   }
 
-  const [comments, range] = await Promise.all([
-    commentService.find({
-      sort,
-      before,
-      after,
-      first,
-      where,
-      order,
-      includeAfter: rest.includeAfter,
-      includeBefore: rest.includeBefore,
-    }),
-    commentService.range(where),
-  ])
+  const [comments, totalCount] = await commentService.find({
+    sort,
+    before,
+    after,
+    first,
+    where,
+    order,
+    includeAfter: rest.includeAfter,
+    includeBefore: rest.includeBefore,
+  })
 
-  const edges = comments.map((comment) => ({
-    cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
-    node: comment,
-  }))
-
-  const firstEdge = edges[0]
-  const firstId = firstEdge && parseInt(firstEdge.node.id, 10)
-
-  const lastEdge = edges[edges.length - 1]
-  const lastId = lastEdge && parseInt(lastEdge.node.id, 10)
-
-  return {
-    edges,
-    totalCount: range.count,
-    pageInfo: {
-      startCursor: firstEdge ? firstEdge.cursor : '',
-      endCursor: lastEdge ? lastEdge.cursor : '',
-      hasPreviousPage:
-        order === 'asc' ? firstId > range.min : firstId < range.max,
-      hasNextPage: order === 'asc' ? lastId < range.max : lastId > range.min,
-    },
+  if (!comments.length) {
+    return connectionFromArray([], rest)
   }
 
-  /*
-  const [totalCount, comments] = await Promise.all([
-    atomService.count({
-      table: 'comment',
-      where,
-    }),
-    atomService.findMany({
-      table: 'comment',
-      where,
-      skip,
-      take,
-      orderByRaw: `
-        pinned DESC,
-        CASE pinned
-        WHEN true THEN
-          pinned_at
-        WHEN false THEN
-          created_at
-        END DESC
-      `,
-    }),
-  ])
-
-  return connectionFromArray(comments, input, totalCount)
-  */
+  return connectionFromArrayWithKeys(comments, rest, totalCount)
 }
 
 export default resolver

@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, UserNotifySetting } from 'definitions'
 
 import {
   BUNDLED_NOTICE_TYPE,
@@ -6,13 +6,8 @@ import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { BaseService, UserService } from 'connectors'
-import {
-  LANGUAGES,
-  NotificationPrarms,
-  PutNoticeParams,
-  User,
-} from 'definitions'
+import { UserService, AtomService } from 'connectors'
+import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -20,12 +15,13 @@ import trans from './translations'
 
 const logger = getLogger('service-notification')
 
-export class NotificationService extends BaseService {
-  mail: typeof mail
-  notice: Notice
+export class NotificationService {
+  public mail: typeof mail
+  public notice: Notice
+  private connections: Connections
 
   public constructor(connections: Connections) {
-    super('noop', connections)
+    this.connections = connections
     this.mail = mail
     this.notice = new Notice(connections)
   }
@@ -188,10 +184,8 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const userService = new UserService(this.connections)
-    const recipient = (await userService.dataloader.load(
-      params.recipientId
-    )) as User
+    const atomService = new AtomService(this.connections)
+    const recipient = await atomService.userIdLoader.load(params.recipientId)
 
     if (!recipient) {
       logger.warn(`recipient ${params.recipientId} not found, skipped`)
@@ -213,10 +207,11 @@ export class NotificationService extends BaseService {
     }
 
     // skip if user disable notify
+    const userService = new UserService(this.connections)
     const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
-      setting: notifySetting,
+      setting: notifySetting as UserNotifySetting,
     })
 
     if (!enable) {

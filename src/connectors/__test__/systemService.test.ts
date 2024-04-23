@@ -1,7 +1,8 @@
-import type { Connections } from 'definitions'
+import type { Connections, Asset } from 'definitions'
 
 import { v4 } from 'uuid'
 
+import { NODE_TYPES } from 'common/enums'
 import { SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -22,7 +23,7 @@ let systemService: SystemService
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -42,14 +43,48 @@ test('findAssetUrl', async () => {
 test('create and delete asset', async () => {
   const data = {
     uuid: v4(),
-    authorId: 1,
+    authorId: '1',
     type: 'cover',
     path: 'path/to/file.txt',
   }
-  const asset = await systemService.baseCreate(data, 'asset')
+  const asset = await systemService.baseCreate<Asset>(data, 'asset')
   expect(asset).toEqual(expect.objectContaining(assetValidation))
 
   await systemService.baseDelete(asset.id, 'asset')
   const result = await systemService.baseFindById(asset.id, 'asset')
   expect(result).toBeUndefined()
+})
+
+test('copy asset map', async () => {
+  const data = {
+    uuid: v4(),
+    authorId: '1',
+    type: 'cover',
+    path: 'path/to/file.txt',
+  }
+  const draftEntityTypeId = '13'
+  const articleEntityTypeId = '4'
+  await systemService.createAssetAndAssetMap(data, draftEntityTypeId, '1')
+  const source = {
+    entityTypeId: draftEntityTypeId,
+    entityId: '1',
+  }
+  const target = {
+    entityTypeId: articleEntityTypeId,
+    entityId: '1',
+  }
+  // should not throw errors
+  await systemService.copyAssetMapEntities({ source, target })
+})
+
+test('submit report', async () => {
+  const report = await systemService.submitReport({
+    targetType: NODE_TYPES.Article,
+    targetId: '1',
+    reporterId: '1',
+    reason: 'other',
+  })
+  expect(report.id).toBeDefined()
+  expect(report.articleId).not.toBeNull()
+  expect(report.commentId).toBeNull()
 })

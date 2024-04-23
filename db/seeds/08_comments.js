@@ -15,6 +15,7 @@ exports.seed = function (knex, Promise) {
           content: '<div>Test comment 1</div>',
           target_id: 1,
           target_type_id: 4,
+          type: 'article',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000012',
@@ -23,6 +24,7 @@ exports.seed = function (knex, Promise) {
           content: '<div>Test comment 2</div>',
           target_id: 2,
           target_type_id: 4,
+          type: 'article',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000013',
@@ -31,6 +33,7 @@ exports.seed = function (knex, Promise) {
           content: '<div>Test comment 3</div>',
           target_id: 3,
           target_type_id: 4,
+          type: 'article',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000014',
@@ -41,6 +44,7 @@ exports.seed = function (knex, Promise) {
           content: '<div>Test comment 4</div>',
           target_id: 3,
           target_type_id: 4,
+          type: 'article',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000015',
@@ -51,6 +55,7 @@ exports.seed = function (knex, Promise) {
           reply_to: 1,
           target_id: 1,
           target_type_id: 4,
+          type: 'article',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000016',
@@ -59,6 +64,7 @@ exports.seed = function (knex, Promise) {
           content: '<div>Test comment 4</div>',
           target_id: 5,
           target_type_id: 4,
+          type: 'article',
         },
       ])
     })

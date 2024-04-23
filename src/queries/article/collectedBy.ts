@@ -2,19 +2,17 @@ import type { GQLArticleResolvers } from 'definitions'
 
 import { ARTICLE_STATE } from 'common/enums'
 import {
-  connectionFromPromisedArray,
+  connectionFromArray,
   fromConnectionArgs,
   loadManyFilterError,
 } from 'common/utils'
 
 const resolver: GQLArticleResolvers['collectedBy'] = async (
-  { articleId },
+  { id },
   { input },
   {
     dataSources: {
       atomService,
-      articleService,
-      draftService,
       connections: { knex },
     },
   }
@@ -23,12 +21,12 @@ const resolver: GQLArticleResolvers['collectedBy'] = async (
 
   const [countRecord, connections] = await Promise.all([
     knex('article_connection')
-      .where({ articleId })
+      .where({ articleId: id })
       .countDistinct('entrance_id')
       .first(),
     atomService.findMany({
       table: 'article_connection',
-      where: { articleId },
+      where: { articleId: id },
       skip,
       take,
     }),
@@ -39,18 +37,14 @@ const resolver: GQLArticleResolvers['collectedBy'] = async (
     10
   )
 
-  const articles = await articleService.dataloader
+  const articles = await atomService.articleIdLoader
     .loadMany(connections.map((connection) => connection.entranceId))
     .then(loadManyFilterError)
     .then((items) =>
       items.filter(({ state }) => state === ARTICLE_STATE.active)
     )
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map((article) => article.draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromArray(articles, input, totalCount)
 }
 
 export default resolver

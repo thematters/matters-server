@@ -1,3 +1,5 @@
+import type { GQLResolvers } from 'definitions'
+
 import { makeSummary } from '@matters/ipns-site-generator'
 import slugify from '@matters/slugify'
 
@@ -14,7 +16,7 @@ import draftContent from './content'
 import draftCover from './cover'
 import drafts from './drafts'
 
-export default {
+const schema: GQLResolvers = {
   Article: {
     drafts: articleDrafts,
     newestUnpublishedDraft: articleNewestUnpublishedDraft,
@@ -24,23 +26,25 @@ export default {
     drafts,
   },
   Draft: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Draft, id }),
-    slug: ({ title }: { title: string }) => slugify(title),
-    mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
-    wordCount: ({ content }: { content?: string }) =>
-      content ? countWords(content) : 0,
-    summary: ({ summary, content }: { summary?: string; content: string }) =>
-      summary || makeSummary(content || ''),
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Draft, id }),
+    slug: ({ title }) => slugify(title),
+    mediaHash: ({ mediaHash }) => mediaHash ?? '',
+    wordCount: ({ content }) => (content ? countWords(content) : 0),
+    summary: ({ summary, content }) => summary || makeSummary(content || ''),
+    summaryCustomized: ({ summary }) => !!summary,
     content: draftContent,
     cover: draftCover,
     collection,
     assets,
-    article: (root: any) => (root.articleId ? root : null),
-    access: (root: any) => root,
-    license: ({ license }: { license: any }) => license,
+    article: (root, _, { dataSources: { atomService } }) =>
+      root.articleId ? atomService.articleIdLoader.load(root.articleId) : null,
+    access: (root) => root,
+    license: ({ license }) => license,
   },
   DraftAccess: {
-    type: ({ access }: { access: string }) => access,
+    type: ({ access }) => access,
     circle: draftAccess.circle,
   },
 }
+
+export default schema

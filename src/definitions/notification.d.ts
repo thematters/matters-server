@@ -397,3 +397,24 @@ export interface PutNoticeParams {
     mergeData: boolean // used by circle bundled notice
   }
 }
+
+// DB schema
+
+export interface Notice {
+  id: string
+  uuid: string
+  unread: boolean
+  deleted: boolean
+  noticeDetailId: string
+  recipientId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface NoticeDetail {
+  id: string
+  noticeType: string
+  message: string
+  data: any
+  createdAt: Date
+}

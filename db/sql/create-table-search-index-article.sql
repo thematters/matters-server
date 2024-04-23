@@ -4,14 +4,16 @@ DROP TABLE IF EXISTS search_index.article ;
 
 CREATE TABLE IF NOT EXISTS search_index.article AS
 SELECT * FROM (
-  SELECT DISTINCT ON (draft.article_id) article.id,
-    draft.article_id, draft_id, draft.author_id, draft.title AS title_orig, draft.title AS title, -- to be processed by opencc in JS
-    article.slug, draft.summary, draft.content AS content_orig,
-    draft.content AS content, '' AS text_content_orig, '' AS text_content, '' AS text_content_converted, -- to be processed by opencc in JS
-    draft.created_at, article.state, draft.publish_state
-  FROM draft JOIN article ON article_id=article.id AND article_id IS NOT NULL
-  WHERE state='active' AND publish_state='published'
-  ORDER BY draft.article_id DESC NULLS LAST
+  SELECT DISTINCT ON (article_version.article_id) article.id,
+    article_version.article_id, article.author_id, article_version.title AS title_orig, article_version.title AS title, -- to be processed by opencc in JS
+    '' as slug, article_version.summary, article_content.content AS content_orig,
+    article_content.content AS content, '' AS text_content_orig, '' AS text_content, '' AS text_content_converted, -- to be processed by opencc in JS
+    article_version.created_at, article.state
+  FROM public.article_version
+    JOIN public.article ON article_id=article.id AND article_id IS NOT NULL
+    JOIN public.article_content ON content_id=article_content.id
+  WHERE state='active'
+  ORDER BY article_version.article_id DESC NULLS LAST
 ) a
 LEFT JOIN (
   SELECT article_id, COUNT(*) ::int AS num_views, MAX(created_at) AS last_read_at

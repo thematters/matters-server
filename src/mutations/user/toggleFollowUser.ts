@@ -18,7 +18,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService, atomService } }
 ) => {
   // checks
   if (!viewer.userName) {
@@ -30,7 +30,7 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const user = await userService.loadById(dbId)
+  const user = await atomService.userIdLoader.load(dbId)
 
   if (!user) {
     throw new UserNotFoundError('target user does not exists')

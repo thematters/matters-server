@@ -33,7 +33,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       atomService,
       userService,
       articleService,
-      draftService,
       paymentService,
       systemService,
       queues: { appreciationQueue },
@@ -67,12 +66,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
-  const node = await draftService.baseFindById(article.draftId)
-  if (!node) {
-    throw new ArticleNotFoundError(
-      'target article linked draft does not exists'
-    )
-  }
 
   // check author
   const isAuthor = article.authorId === viewer.id
@@ -80,7 +73,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
-  const author = await userService.loadById(article.authorId)
+  const author = await atomService.userIdLoader.load(article.authorId)
 
   if (author.state === USER_STATE.frozen) {
     throw new ForbiddenByTargetStateError(
@@ -112,6 +105,9 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     throw new ForbiddenError('viewer is blocked by target author')
   }
 
+  const articleVersion = await articleService.loadLatestArticleVersion(
+    article.id
+  )
   /**
    * Super Like
    */
@@ -122,7 +118,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       // const slug = slugify(node.title)
       const superLikeData = {
         liker,
-        iscn_id: article.iscn_id,
+        iscn_id: articleVersion.iscnId,
         url: `https://${environment.siteDomain}/@${author.userName}/${article.id}`,
         likerIp: viewer.ip,
         userAgent: viewer.userAgent,
@@ -153,7 +149,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
         data: { ...appreciation, uuid: v4(), amount },
       })
 
-      return node
+      return article
     }
   }
 
@@ -195,7 +191,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     context
   )
 
-  return node
+  return article
 }
 
 export default resolver

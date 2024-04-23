@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Customer } from 'definitions'
 import type Stripe from 'stripe'
 
 import {
@@ -39,10 +39,10 @@ const createPayment = async () => {
     id: '1',
     email: 'test@matters.news',
   }
-  const customer = await paymentServce.createCustomer({
+  const customer = (await paymentServce.createCustomer({
     user,
     provider: PAYMENT_PROVIDER.stripe,
-  })
+  })) as Customer
   return await paymentServce.createPayment({
     userId: user.id,
     customerId: customer.id,
@@ -137,7 +137,7 @@ describe('create or update dispute', () => {
     ).rejects.toThrow('Related payment transaction is not succeeded')
 
     await paymentServce.markTransactionStateAs({
-      id: data?.transaction.id,
+      id: data?.transaction.id as string,
       state: TRANSACTION_STATE.succeeded,
     })
 

@@ -1,10 +1,10 @@
-import type { GQLArticleResolvers } from 'definitions'
+import type { GQLArticleResolvers, Comment } from 'definitions'
 
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromArray } from 'common/utils'
 
 const resolver: GQLArticleResolvers['featuredComments'] = async (
-  { articleId },
+  { id: articleId },
   { input: { first, after } },
   { dataSources: { atomService } }
 ) => {
@@ -22,7 +22,10 @@ const resolver: GQLArticleResolvers['featuredComments'] = async (
   })
 
   // use simple pagination for now
-  return connectionFromArray(featuredsComments, { first, after })
+  return connectionFromArray(featuredsComments as unknown as Comment[], {
+    first,
+    after,
+  })
 }
 
 export default resolver

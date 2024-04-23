@@ -39,7 +39,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     }
 
     // sync
-    const user = await userService.loadById(id)
+    const user = await atomService.userIdLoader.load(id)
     const archivedUser = await userService.archive(id)
 
     // async
@@ -72,7 +72,6 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
         where: { id: user.id },
         data: {
           state,
-          updatedAt: knex.fn.now(),
         },
       })
     }
@@ -87,7 +86,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
   }
 
   if (id) {
-    const user = (await userService.loadById(id)) as User
+    const user = (await atomService.userIdLoader.load(id)) as User
     validateUserState(user)
     return [await handleUpdateUserState(user)]
   }
