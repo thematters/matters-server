@@ -140,12 +140,17 @@ jobs:
           && echo /tmp/debug2.txt \
           && wc /tmp/debug2.txt \
           && md5sum /tmp/debug2.txt \
+          && echo $VPN_CONFIG_PROD > /tmp/debug3.txt \
+          && echo /tmp/debug3.txt \
+          && wc /tmp/debug3.txt \
+          && md5sum /tmp/debug3.txt \
           && echo $VPN_AUTH | base64 -d > $VPN_AUTH_PATH \
           && echo $VPN_CONFIG | base64 -d > $VPN_CONFIG_PATH \
           && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
           && sleep 15s
         env:
           VPN_CONFIG: ${{ secrets.DEVELOP_VPN_CONFIG }}
+          VPN_CONFIG_PROD: ${{ secrets.VPN_CONFIG }}
           VPN_CONFIG_PATH: '.github/config.ovpn'
           VPN_AUTH: ${{ secrets.DEVELOP_VPN_AUTH }}
           VPN_AUTH_PATH: '.github/auth.txt'
