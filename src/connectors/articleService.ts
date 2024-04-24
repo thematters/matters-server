@@ -220,8 +220,15 @@ export class ArticleService extends BaseService<Article> {
     }
   }
 
-  public loadLatestArticleVersion = (articleId: string) =>
-    this.latestArticleVersionLoader.load(articleId)
+  public loadLatestArticleVersion = async (articleId: string) => {
+    const version = await this.latestArticleVersionLoader.load(articleId)
+    return version
+      ? version
+      : await this.knexRO('draft')
+          .where({ articleId })
+          .orderBy('id', 'desc')
+          .first()
+  }
 
   public loadLatestArticleContent = async (articleId: string) => {
     const { contentId } = await this.latestArticleVersionLoader.load(articleId)
