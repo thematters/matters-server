@@ -20,7 +20,7 @@ export const seedingUsers: GQLOssResolvers['seedingUsers'] = async (
   const [totalCount, users] = await Promise.all([countQuery, usersQuery])
 
   return connectionFromPromisedArray(
-    userService.loadByIds(users.map(({ userId }) => userId)),
+    atomService.userIdLoader.loadMany(users.map(({ userId }) => userId)),
     input,
     totalCount
   )

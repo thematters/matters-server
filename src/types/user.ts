@@ -155,12 +155,15 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "Topics created by current user."
-    topics(input: TopicInput!): TopicConnection! @complexity(multipliers: ["input.first"], value: 1)
-
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
+
+    """user latest articles or collections"""
+    latestWorks: [PinnableWork!]!
+
+    """user pinned articles or collections"""
     pinnedWorks: [PinnableWork!]!
+
     "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
@@ -232,6 +235,9 @@ export default /* GraphQL */ `
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
+    "'In case you missed it' topic."
+    icymiTopic: IcymiTopic @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+
     "Global tag list, sort by activities in recent 14 days."
     tags(input: RecommendInput!): TagConnection! @complexity(multipliers: ["input.first"], value: 1) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
@@ -259,21 +265,12 @@ export default /* GraphQL */ `
     type: AuthorsType
   }
 
-  input TopicInput {
-    after: String
-    first: Int @constraint(min: 0)
-    filter: FilterInput
-  }
-
   input FilterInput {
     "index of list, min: 0, max: 49"
     random: Int @constraint(min: 0, max: 49)
 
     "Used in RecommendInput"
     followed: Boolean
-
-    "Used in User.topics"
-    public: Boolean
 
     "Used in User Articles filter, by tags or by time range, or both"
     tagIds: [ID!]

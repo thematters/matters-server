@@ -7,9 +7,9 @@ import { getLogger } from 'common/logger'
 const logger = getLogger('service-opensea')
 
 export class OpenSeaService extends RESTDataSource {
-  apiKey?: string | undefined
+  private apiKey?: string | undefined
 
-  constructor() {
+  public constructor() {
     super()
     // Sets the base URL for the REST API
     // https://rinkeby-api.opensea.io/api
@@ -18,13 +18,13 @@ export class OpenSeaService extends RESTDataSource {
     this.apiKey = environment.openseaAPIKey
   }
 
-  override willSendRequest(_: string, request: AugmentedRequest) {
+  public override willSendRequest(_: string, request: AugmentedRequest) {
     if (this.apiKey) {
       request.headers['X-API-KEY'] = this.apiKey
     }
   }
 
-  async getAssets({
+  public async getAssets({
     owner,
     asset_contract_address = contract.Ethereum.traveloggersAddress,
   }: {

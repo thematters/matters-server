@@ -5,7 +5,7 @@ import { environment } from 'common/environment'
 const resolver: GQLTagResolvers['editors'] = (
   { editors, owner },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { atomService } }
 ) => {
   let ids = editors || []
 
@@ -17,7 +17,7 @@ const resolver: GQLTagResolvers['editors'] = (
     ids = ids.filter((editor: string) => editor !== owner)
   }
 
-  return userService.loadByIds(ids)
+  return atomService.userIdLoader.loadMany(ids)
 }
 
 export default resolver

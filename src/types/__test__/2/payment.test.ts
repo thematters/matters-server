@@ -52,7 +52,7 @@ describe('donation', () => {
   const recipientId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
   const wrongRecipientId = toGlobalId({ type: NODE_TYPES.User, id: 3 })
   const targetId = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
-  const chain = BLOCKCHAIN.Polygon
+  const chain = BLOCKCHAIN.Optimism
   const txHash =
     '0xd65dc6bf6dcc111237f9acfbfa6003ea4a4d88f2e071f4307d3af81ae877f7be'
   test('cannot donate yourself', async () => {

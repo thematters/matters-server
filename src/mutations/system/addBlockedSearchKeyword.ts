@@ -3,15 +3,15 @@ import type { GQLMutationResolvers } from 'definitions'
 import { UserInputError } from 'common/errors'
 
 const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
-  root,
+  _,
   { input: { keyword } },
-  { dataSources: { atomService, systemService }, viewer }
+  { dataSources: { atomService } }
 ) => {
   const table = 'blocked_search_keyword'
 
   const search_key = await atomService.findFirst({
     table,
-    where: { search_key: keyword },
+    where: { searchKey: keyword },
   })
 
   if (search_key) {
@@ -20,7 +20,7 @@ const resolver: GQLMutationResolvers['addBlockedSearchKeyword'] = async (
 
   const newItem = await atomService.create({
     table,
-    data: { search_key: keyword },
+    data: { searchKey: keyword },
   })
 
   const newAddedKeyword = {

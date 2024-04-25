@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['commentCount'] = (
-  { articleId },
+  { id: articleId },
   _,
   { dataSources: { commentService } }
 ) => commentService.countByArticle(articleId)

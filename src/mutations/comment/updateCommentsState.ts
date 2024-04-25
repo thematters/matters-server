@@ -1,4 +1,9 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type {
+  GQLMutationResolvers,
+  Circle,
+  Article,
+  ValueOf,
+} from 'definitions'
 
 import {
   COMMENT_STATE,
@@ -12,28 +17,19 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   _,
   { input: { ids, state } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      userService,
-      articleService,
-      commentService,
-      notificationService,
-    },
-  }
+  { viewer, dataSources: { atomService, commentService, notificationService } }
 ) => {
   const dbIds = (ids || []).map((id) => fromGlobalId(id).id)
 
   const updateCommentState = async (id: string) => {
-    const comment = await commentService.loadById(id)
+    const comment = await atomService.commentIdLoader.load(id)
 
     // check target
-    let article: any
-    let circle: any
-    let targetAuthor: any
+    let article: Article
+    let circle: Circle
+    let targetAuthor: string
     if (comment.type === COMMENT_TYPE.article) {
-      article = await articleService.dataloader.load(comment.targetId)
+      article = await atomService.articleIdLoader.load(comment.targetId)
       targetAuthor = article.authorId
     } else {
       circle = await atomService.circleIdLoader.load(comment.targetId)
@@ -42,14 +38,16 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
 
     // check permission
     const isTargetAuthor = targetAuthor === viewer.id
-    const isValidFromState = [
-      COMMENT_STATE.active,
-      COMMENT_STATE.collapsed,
-    ].includes(comment.state)
-    const isValidToState = [
-      COMMENT_STATE.active,
-      COMMENT_STATE.collapsed,
-    ].includes(state as any)
+    const isValidFromState = (
+      [COMMENT_STATE.active, COMMENT_STATE.collapsed] as Array<
+        ValueOf<typeof COMMENT_STATE>
+      >
+    ).includes(comment.state)
+    const isValidToState = (
+      [COMMENT_STATE.active, COMMENT_STATE.collapsed] as Array<
+        ValueOf<typeof COMMENT_STATE>
+      >
+    ).includes(state)
 
     if (!isTargetAuthor || !isValidFromState || !isValidToState) {
       throw new ForbiddenError(
@@ -87,7 +85,7 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   if (state === COMMENT_STATE.banned) {
     await Promise.all(
       comments.map(async (comment) => {
-        const user = await userService.loadById(comment.authorId)
+        const user = await atomService.userIdLoader.load(comment.authorId)
 
         notificationService.trigger({
           event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,

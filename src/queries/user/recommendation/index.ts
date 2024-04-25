@@ -6,6 +6,7 @@ import { hottest } from './hottest'
 import hottestCircles from './hottestCircles'
 import { hottestTags } from './hottestTags'
 import { icymi } from './icymi'
+import { icymiTopic } from './icymiTopic'
 import { newest } from './newest'
 import newestCircles from './newestCircles'
 import readTagsArticles from './readTagsArticles'
@@ -18,6 +19,7 @@ const resolvers: GQLRecommendationResolvers = {
   readTagsArticles,
   hottest,
   icymi,
+  icymiTopic,
   newest,
   tags,
   hottestTags,

@@ -1,4 +1,4 @@
-import type { GQLNode, GQLQueryResolvers } from 'definitions'
+import type { GQLNode, GQLQueryResolvers, SearchHistory } from 'definitions'
 
 import { compact } from 'lodash'
 
@@ -34,7 +34,7 @@ const resolver: GQLQueryResolvers['search'] = async (
   }
 
   if (input.key && input.record) {
-    systemService.baseCreate(
+    systemService.baseCreate<SearchHistory>(
       { userId: viewer ? viewer.id : null, searchKey: input.key },
       'search_history'
     )

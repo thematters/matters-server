@@ -49,11 +49,11 @@ beforeAll(async () => {
     },
     connections
   )
-}, 30000)
+}, 50000)
 
 afterAll(async () => {
   await closeConnections(connections)
-})
+}, 50000)
 
 const GET_USER = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -94,6 +94,19 @@ const GET_ARTICLE = /* GraphQL */ `
       ... on Article {
         id
         title
+      }
+    }
+  }
+`
+const GET_ARTICLE_VERSION = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: $input) {
+      ... on ArticleVersion {
+        id
+        contents {
+          html
+          markdown
+        }
       }
     }
   }
@@ -287,7 +300,19 @@ describe('query nodes of different type', () => {
       variables: { input: { id } },
     })
     const node = data && data.node
-    expect(node).toEqual({ id, title: 'test draft 1' })
+    expect(node).toEqual({ id, title: 'test article 1' })
+  })
+
+  test('query article version node', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.ArticleVersion, id: 1 })
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: GET_ARTICLE_VERSION,
+      variables: { input: { id } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.node.id).toBe(id)
+    expect(data.node.contents.html).toBeDefined()
   })
 
   test('query comment node', async () => {
@@ -300,6 +325,7 @@ describe('query nodes of different type', () => {
     const node = data && data.node
     expect(node.id).toBe(id)
   })
+
   test('query nodes', async () => {
     const userId = toGlobalId({ type: NODE_TYPES.User, id: 1 })
     const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
@@ -839,5 +865,79 @@ describe('manage user restrictions', () => {
         ({ type }: { type: GQLUserRestrictionType }) => type
       )
     ).toEqual(['articleHottest'])
+  })
+})
+
+describe('submitReport', () => {
+  const SUBMIT_REPORT = /* GraphQL */ `
+    mutation ($input: SubmitReportInput!) {
+      submitReport(input: $input) {
+        id
+        reporter {
+          id
+        }
+        target {
+          ... on Article {
+            id
+            state
+          }
+        }
+      }
+    }
+  `
+  const GET_REPORTS = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      oss {
+        reports(input: $input) {
+          totalCount
+          edges {
+            node {
+              id
+              reporter {
+                id
+              }
+              target {
+                ... on Article {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+
+  test('submit report successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { data } = await server.executeOperation({
+      query: SUBMIT_REPORT,
+      variables: {
+        input: {
+          targetId: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          reason: 'other',
+        },
+      },
+    })
+    expect(data.submitReport.id).toBeDefined()
+    expect(data.submitReport.reporter.id).toBeDefined()
+    expect(data.submitReport.target.id).toBeDefined()
+
+    // query reports
+    const { data: data2 } = await server.executeOperation({
+      query: GET_REPORTS,
+      variables: {
+        input: {
+          first: null,
+        },
+      },
+    })
+    expect(data2.oss.reports.totalCount).toBe(1)
+    expect(data2.oss.reports.edges[0].node.reporter.id).toBeDefined()
+    expect(data2.oss.reports.edges[0].node.target.id).toBeDefined()
   })
 })

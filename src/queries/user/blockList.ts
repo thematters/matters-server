@@ -9,7 +9,7 @@ import {
 const resolver: GQLUserResolvers['blockList'] = async (
   { id },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { atomService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -21,7 +21,7 @@ const resolver: GQLUserResolvers['blockList'] = async (
   const actions = await userService.findBlockList({ userId: id, skip, take })
 
   return connectionFromPromisedArray(
-    userService.loadByIds(
+    atomService.userIdLoader.loadMany(
       actions.map(({ targetId }: { targetId: string }) => targetId)
     ),
     input,

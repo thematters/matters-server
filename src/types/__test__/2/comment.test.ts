@@ -1,9 +1,11 @@
+import { v4 as uuidv4 } from 'uuid'
 import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { AtomService } from 'connectors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
@@ -42,6 +44,14 @@ const GET_ARTILCE_COMMENTS = /* GraphQL */ `
                 id
               }
             }
+            cursor
+          }
+          totalCount
+          pageInfo {
+            startCursor
+            endCursor
+            hasPreviousPage
+            hasNextPage
           }
         }
       }
@@ -89,6 +99,7 @@ const GET_COMMENT = /* GraphQL */ `
 const PUT_COMMENT = /* GraphQL */ `
   mutation ($input: PutCommentInput!) {
     putComment(input: $input) {
+      id
       replyTo {
         id
       }
@@ -120,14 +131,15 @@ describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
     const server = await testClient({ connections })
-    const result = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
         nodeInput: { id: ARTICLE_ID },
         commentsInput: { filter: { author: authorId } },
       },
     })
-    const comments = result!.data!.node.comments.edges
+    expect(errors).toBeUndefined()
+    const comments = data!.node.comments.edges
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
     }
@@ -135,13 +147,14 @@ describe('query comment list on article', () => {
 
   test('sort comments by newest', async () => {
     const server = await testClient({ connections })
-    const { data } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: GET_ARTILCE_COMMENTS,
       variables: {
         nodeInput: { id: ARTICLE_ID },
         commentsInput: { sort: 'newest' },
       },
     })
+    expect(errors).toBeUndefined()
     const comments = _get(data, 'node.comments.edges')
 
     const commentTimestamps = comments.map(
@@ -149,6 +162,66 @@ describe('query comment list on article', () => {
         new Date(createdAt).getTime()
     )
     expect(isDesc(commentTimestamps)).toBe(true)
+  })
+
+  test('pagination', async () => {
+    const atomService = new AtomService(connections)
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        state: 'active',
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: null,
+        state: 'collapsed',
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: GET_ARTILCE_COMMENTS,
+      variables: {
+        nodeInput: { id: ARTICLE_ID },
+        commentsInput: { first: 1 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.node.comments.edges.length).toBe(1)
+    expect(data.node.comments.pageInfo.hasPreviousPage).toBe(false)
+    expect(data.node.comments.pageInfo.hasNextPage).toBe(true)
+    expect(data.node.comments.totalCount).toBeGreaterThan(1)
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_ARTILCE_COMMENTS,
+      variables: {
+        nodeInput: { id: ARTICLE_ID },
+        commentsInput: {
+          first: 1,
+          after: data.node.comments.pageInfo.endCursor,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.node.comments.pageInfo.hasPreviousPage).toBe(true)
+    expect(data2.node.comments.pageInfo.hasNextPage).toBe(true)
+    expect(data.node.comments.totalCount).toBeGreaterThan(1)
   })
 })
 
@@ -176,7 +249,7 @@ describe('mutations on comment', () => {
   test('create a article comment', async () => {
     const server = await testClient({ isAuth: true, connections })
 
-    const result = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: PUT_COMMENT,
       variables: {
         input: {
@@ -190,8 +263,15 @@ describe('mutations on comment', () => {
         },
       },
     })
-
-    expect(_get(result, 'data.putComment.replyTo.id')).toBe(COMMENT_ID)
+    expect(errors).toBeUndefined()
+    expect(data.putComment.replyTo.id).toBe(COMMENT_ID)
+    const id = fromGlobalId(data.putComment.id).id
+    const atomService = new AtomService(connections)
+    const comment = await atomService.findUnique({
+      table: 'comment',
+      where: { id },
+    })
+    expect(comment.articleVersionId).not.toBeNull()
   })
 
   test('upvote a comment', async () => {
@@ -271,5 +351,65 @@ describe('mutations on comment', () => {
       },
     })
     expect(_get(data, 'togglePinComment.pinned')).toBe(false)
+  })
+})
+
+describe('query responses list on article', () => {
+  const GET_ARTILCE_RESPONSES = /* GraphQL */ `
+    query ($nodeInput: NodeInput!, $responsesInput: ResponsesInput!) {
+      node(input: $nodeInput) {
+        ... on Article {
+          id
+          responses(input: $responsesInput) {
+            edges {
+              node {
+                __typename
+                ... on Comment {
+                  id
+                  content
+                  state
+                }
+                ... on Article {
+                  id
+                  title
+                }
+              }
+            }
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+  `
+  test('query responses', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: ARTICLE_ID },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
+  })
+  test('query empty responses', async () => {
+    const articleId = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: GET_ARTILCE_RESPONSES,
+      variables: {
+        nodeInput: { id: articleId },
+        responsesInput: {},
+      },
+    })
+    expect(data).toBeDefined()
+    expect(errors).toBeUndefined()
   })
 })

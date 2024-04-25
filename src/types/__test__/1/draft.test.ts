@@ -2,10 +2,16 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 
+import { AtomService } from 'connectors'
 import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import { putDraft, genConnections, closeConnections } from '../utils'
+import {
+  testClient,
+  putDraft,
+  genConnections,
+  closeConnections,
+} from '../utils'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -28,6 +34,36 @@ jest.mock('common/enums', () => {
     __esModule: true,
   }
   return globalThis.mockEnums
+})
+
+describe('query draft', () => {
+  const GET_DRAFT_ARTICLE = /* GraphQL */ `
+    query ($input: NodeInput!) {
+      node(input: $input) {
+        ... on Draft {
+          id
+          article {
+            title
+          }
+        }
+      }
+    }
+  `
+  test('get draft article', async () => {
+    const id = toGlobalId({ type: NODE_TYPES.Draft, id: 4 })
+    const atomService = new AtomService(connections)
+    const author = await atomService.userIdLoader.load('1')
+    const server = await testClient({
+      connections,
+      context: { viewer: author },
+    })
+    const { errors, data } = await server.executeOperation({
+      query: GET_DRAFT_ARTICLE,
+      variables: { input: { id } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.node.article.title).toBeDefined()
+  })
 })
 
 describe('put draft', () => {
@@ -219,7 +255,7 @@ describe('put draft', () => {
       _get(editRes, 'collection.edges.3.node.id'),
     ]).toEqual(collection.slice(0, limit))
 
-    // edit draft settting collection out of limit
+    // edit draft setting collection out of limit
     const editFailedRes = await putDraft(
       {
         draft: {
@@ -233,7 +269,7 @@ describe('put draft', () => {
       `Not allow more than ${limit} articles in collection`
     )
 
-    // edit draft settting collection within limit
+    // edit draft setting collection within limit
     const editSucceedRes = await putDraft(
       {
         draft: {

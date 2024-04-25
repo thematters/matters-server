@@ -1,6 +1,4 @@
-import type { GQLRecommendationResolvers, Draft } from 'definitions'
-
-import _last from 'lodash/last'
+import type { GQLRecommendationResolvers } from 'definitions'
 
 import {
   connectionFromArray,
@@ -11,7 +9,7 @@ import {
 const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
   { id: userId },
   { input },
-  { dataSources: { articleService, atomService } }
+  { dataSources: { atomService } }
 ) => {
   if (!userId) {
     return connectionFromArray([], input)
@@ -19,7 +17,7 @@ const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const [totalCount, tagDrafts] = await Promise.all([
+  const [totalCount, tagArticles] = await Promise.all([
     atomService.count({
       table: 'recommended_articles_from_read_tags_materialized',
       where: { userId },
@@ -33,9 +31,7 @@ const resolver: GQLRecommendationResolvers['readTagsArticles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    articleService.loadDraftsByArticles(
-      tagDrafts.map(({ articleId }) => articleId)
-    ) as Promise<Draft[]>,
+    atomService.articleIdLoader.loadMany(tagArticles.map((d) => d.articleId)),
     input,
     totalCount
   )

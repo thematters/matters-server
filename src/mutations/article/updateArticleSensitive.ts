@@ -6,21 +6,27 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateArticleSensitive'] = async (
   _,
   { input: { id, sensitive } },
-  { dataSources: { articleService, draftService } }
+  { dataSources: { atomService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
 
-  const article = await articleService.baseFindById(dbId)
+  const article = await atomService.findUnique({
+    table: 'article',
+    where: { id: dbId },
+  })
   if (!article) {
     throw new ArticleNotFoundError('article does not exist')
   }
 
-  const draft = await draftService.baseUpdate(article.draftId, {
-    sensitiveByAdmin: sensitive,
-    updatedAt: new Date(),
+  const updated = await atomService.update({
+    data: {
+      sensitiveByAdmin: sensitive,
+    },
+    table: 'article',
+    where: { id: dbId },
   })
 
-  return draft
+  return updated
 }
 
 export default resolver

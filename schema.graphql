@@ -49,22 +49,6 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
-  """
-  Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title.
-  """
-  putTopic(input: PutTopicInput!): Topic!
-
-  """
-  Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic.
-  """
-  putChapter(input: PutChapterInput!): Chapter!
-
-  """Delete topics"""
-  deleteTopics(input: DeleteTopicsInput!): Boolean!
-
-  """Sort topics"""
-  sortTopics(input: SortTopicsInput!): [Topic!]!
-
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
@@ -156,6 +140,9 @@ type Mutation {
 
   """Delete blocked search keywords from search_history db"""
   deleteBlockedSearchKeywords(input: KeywordsInput!): Boolean
+
+  """Submit inappropriate content report"""
+  submitReport(input: SubmitReportInput!): Report!
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
@@ -164,6 +151,7 @@ type Mutation {
   putAnnouncement(input: PutAnnouncementInput!): Announcement!
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
+  putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -355,6 +343,9 @@ type Article implements Node & PinnableWork {
   """Media hash, composed of cid encoding, of this article."""
   mediaHash: String!
 
+  """Short hash for shorter url addressing"""
+  shortHash: String!
+
   """Content (HTML) of this article."""
   content: String!
 
@@ -462,6 +453,9 @@ type Article implements Node & PinnableWork {
 
   """whether readers can comment"""
   canComment: Boolean!
+
+  """history versions"""
+  versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
   oss: ArticleOSS!
   remark: String
 
@@ -490,65 +484,32 @@ type Article implements Node & PinnableWork {
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
-"""
-This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic.
-"""
-type Chapter implements Node {
-  """Unique id of this chapter."""
-  id: ID!
-
-  """Title of this chapter."""
-  title: String!
-
-  """Description of this chapter."""
-  description: String
-
-  """Number articles included in this chapter."""
-  articleCount: Int!
-
-  """Articles included in this Chapter"""
-  articles: [Article!]
-
-  """The topic that this Chapter belongs to."""
-  topic: Topic!
+input ArticleVersionsInput {
+  after: String
+  first: Int
 }
 
-"""
-This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types.
-"""
-type Topic implements Node {
-  """Unique id of this topic."""
+type ArticleVersionsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ArticleVersionEdge]!
+}
+
+type ArticleVersionEdge {
+  node: ArticleVersion!
+  cursor: String!
+}
+
+type ArticleVersion implements Node {
   id: ID!
-
-  """Title of this topic."""
+  dataHash: String
+  mediaHash: String
   title: String!
-
-  """Cover of this topic."""
-  cover: String
-
-  """Description of this topic."""
+  summary: String!
+  contents: ArticleContents!
+  translation(input: TranslationArgs): ArticleTranslation
+  createdAt: DateTime!
   description: String
-
-  """Number of chapters included in this topic."""
-  chapterCount: Int!
-
-  """Number articles included in this topic."""
-  articleCount: Int!
-
-  """List of chapters included in this topic."""
-  chapters: [Chapter!]
-
-  """List of articles included in this topic."""
-  articles: [Article!]
-
-  """Author of this topic."""
-  author: User!
-
-  """Whether this topic is public or not."""
-  public: Boolean!
-
-  """Latest published article on this topic"""
-  latestArticle: Article
 }
 
 """This type contains content, count and related data of an article tag."""
@@ -655,17 +616,6 @@ type ArticleEdge {
   node: Article!
 }
 
-type TopicConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TopicEdge!]
-}
-
-type TopicEdge {
-  cursor: String!
-  node: Topic!
-}
-
 type TagConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
@@ -694,7 +644,8 @@ type ArticleDonation {
 }
 
 input ArticleInput {
-  mediaHash: String!
+  mediaHash: String
+  shortHash: String
 }
 
 input PublishArticleInput {
@@ -711,6 +662,7 @@ input EditArticleInput {
   """deprecated, use pinned instead"""
   sticky: Boolean
   pinned: Boolean
+  title: String
   summary: String
   tags: [String!]
   content: String
@@ -722,6 +674,9 @@ input EditArticleInput {
   license: ArticleLicenseType
   requestForDonation: String
   replyToDonator: String
+
+  """revision description"""
+  description: String
 
   """whether publish to ISCN"""
   iscnPublish: Boolean
@@ -739,32 +694,6 @@ input AppreciateArticleInput {
 
 input ReadArticleInput {
   id: ID!
-}
-
-input PutTopicInput {
-  id: ID
-  title: String
-  description: String
-  cover: ID
-  public: Boolean
-  articles: [ID!]
-  chapters: [ID!]
-}
-
-input PutChapterInput {
-  id: ID
-  title: String
-  description: String
-  topic: ID
-  articles: [ID!]
-}
-
-input DeleteTopicsInput {
-  ids: [ID!]!
-}
-
-input SortTopicsInput {
-  ids: [ID!]!
 }
 
 input ToggleRecommendInput {
@@ -1018,11 +947,13 @@ type User implements Node {
   """Articles authored by current user."""
   articles(input: UserArticlesInput!): ArticleConnection!
 
-  """Topics created by current user."""
-  topics(input: TopicInput!): TopicConnection!
-
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
+
+  """user latest articles or collections"""
+  latestWorks: [PinnableWork!]!
+
+  """user pinned articles or collections"""
   pinnedWorks: [PinnableWork!]!
 
   """Tags by by usage order of current user."""
@@ -1937,6 +1868,8 @@ type OSS {
   seedingUsers(input: ConnectionArgs!): UserConnection!
   badgedUsers(input: BadgedUsersInput!): UserConnection!
   restrictedUsers(input: ConnectionArgs!): UserConnection!
+  reports(input: ConnectionArgs!): ReportConnection!
+  icymiTopics(input: ConnectionArgs!): IcymiTopicConnection!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -2009,6 +1942,25 @@ type SkippedListItem {
 type UserRestriction {
   type: UserRestrictionType!
   createdAt: DateTime!
+}
+
+type Report implements Node {
+  id: ID!
+  reporter: User!
+  target: Response!
+  reason: ReportReason!
+  createdAt: DateTime!
+}
+
+type ReportConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ReportEdge!]
+}
+
+type ReportEdge {
+  cursor: String!
+  node: Report!
 }
 
 input NodeInput {
@@ -2157,6 +2109,11 @@ input PutRestrictedUsersInput {
   restrictions: [UserRestrictionType!]!
 }
 
+input SubmitReportInput {
+  targetId: ID!
+  reason: ReportReason!
+}
+
 enum SearchTypes {
   Article
   User
@@ -2209,7 +2166,6 @@ enum AssetType {
   circleCover
   collectionCover
   announcementCover
-  topicCover
 }
 
 enum EntityType {
@@ -2219,7 +2175,6 @@ enum EntityType {
   user
   circle
   announcement
-  topic
   collection
 }
 
@@ -2269,6 +2224,51 @@ enum UserRestrictionType {
   articleNewest
 }
 
+enum ReportReason {
+  tort
+  illegal_advertising
+  discrimination_insult_hatred
+  pornography_involving_minors
+  other
+}
+
+type IcymiTopic implements Node {
+  id: ID!
+  title: String!
+  articles: [Article!]!
+  pinAmount: Int!
+  note: String
+  state: IcymiTopicState!
+  publishedAt: DateTime
+  archivedAt: DateTime
+}
+
+enum IcymiTopicState {
+  published
+  editing
+  archived
+}
+
+type IcymiTopicConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [IcymiTopicEdge!]!
+}
+
+type IcymiTopicEdge {
+  cursor: String!
+  node: IcymiTopic!
+}
+
+input PutIcymiTopicInput {
+  id: ID
+  title: String
+  articles: [ID!]
+  pinAmount: Int
+  note: String
+  state: IcymiTopicState
+}
+
 enum CacheControlScope {
   PUBLIC
   PRIVATE
@@ -2289,6 +2289,9 @@ type Recommendation {
 
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
+
+  """'In case you missed it' topic."""
+  icymiTopic: IcymiTopic
 
   """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
@@ -2317,21 +2320,12 @@ input RecommendInput {
   type: AuthorsType
 }
 
-input TopicInput {
-  after: String
-  first: Int
-  filter: FilterInput
-}
-
 input FilterInput {
   """index of list, min: 0, max: 49"""
   random: Int
 
   """Used in RecommendInput"""
   followed: Boolean
-
-  """Used in User.topics"""
-  public: Boolean
 
   """Used in User Articles filter, by tags or by time range, or both"""
   tagIds: [ID!]

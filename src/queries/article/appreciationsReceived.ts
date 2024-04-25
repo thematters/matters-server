@@ -3,7 +3,7 @@ import type { GQLArticleResolvers } from 'definitions'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['appreciationsReceived'] = async (
-  { articleId },
+  { id },
   { input },
   { dataSources: { articleService } }
 ) => {
@@ -13,12 +13,12 @@ const resolver: GQLArticleResolvers['appreciationsReceived'] = async (
     return connectionFromArray(
       [],
       input,
-      await articleService.countAppreciations(articleId)
+      await articleService.countAppreciations(id)
     )
   }
 
   const records = await articleService.findAppreciations({
-    referenceId: articleId,
+    referenceId: id,
     take,
     skip,
   })

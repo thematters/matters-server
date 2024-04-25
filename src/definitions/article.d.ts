@@ -1,28 +1,134 @@
-import { ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
+} from 'common/enums'
 
 import { LANGUAGES } from './language'
 
 export interface Article {
   id: string
-  uuid: string
   authorId: string
+  state: ARTICLE_STATE
+  revisionCount: number
+  sensitiveByAdmin: boolean
+  pinned: boolean
+  pinnedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+  remark: string | null
+  shortHash: string
+}
+
+export interface ArticleVersion {
+  id: string
+  articleId: string
   title: string
-  slug: string
-  cover?: string
+  cover: string | null
   summary: string
-  wordCount: string
+  contentId: string
+  contentMdId: string | null
+  summaryCustomized: boolean
+  wordCount: number
   dataHash: string
   mediaHash: string
-  content: string
-  state: ARTICLE_STATE
-  public: boolean
-  live: boolean
-  createdAt: string
-  updatedAt: string
-  draftId: string
-  remark?: string
+  tags: string[]
+  connections: string[]
+  access: keyof typeof ARTICLE_ACCESS_TYPE
+  license: keyof typeof ARTICLE_LICENSE_TYPE
+  replyToDonator: string | null
+  requestForDonation: string | null
+  canComment: boolean
+  sensitiveByAuthor: boolean
   sticky: boolean
-  language?: LANGUAGES
-  revisionCount: string
-  iscnId?: string
+  language: string | null
+  iscnId: string | null
+  circleId: string | null
+  description: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleContent {
+  id: string
+  content: string
+  hash: string
+}
+
+export interface ArticleCircle {
+  id: string
+  articleId: string
+  circleId: string
+  access: keyof typeof ARTICLE_ACCESS_TYPE
+  secret?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleConnection {
+  id: string
+  entranceId: string
+  articleId: string
+  order: number
+  createdAt: Date
+}
+
+export interface ArticleTag {
+  id: string
+  articleId: string
+  tagId: string
+  selected: boolean | null
+  creator: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleRecommendSetting {
+  id: string
+  articleId: string
+  inHottest: boolean
+  inNewest: boolean
+}
+
+export interface ArticleBoost {
+  id: string
+  articleId: string
+  boost: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleTranslation {
+  id: string
+  articleId: string
+  articleVersionId: string
+  language: string
+  title: string
+  content: string
+  summary: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ArticleCountView {
+  id
+  commentsTotal
+  commenters7d
+  commenters1d
+  recentCommentSince
+  score
+}
+
+export interface ArticleReadTimeMaterialized {
+  id: string
+  articleId: string
+  sumReadTime: string
+}
+
+export interface RecommendedArticlesFromReadTagsMaterialized {
+  id: string
+  userId: string
+  articleId: string
+  tagsBased: string[]
+  score: number
 }

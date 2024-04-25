@@ -22,7 +22,7 @@ const resolver: GQLMutationResolvers['userLogin'] = async (
     password,
     archivedCallback,
   })
-  await userService.verifyPassword({ password, hash: user.passwordHash })
+  await userService.verifyPassword({ password, hash: user.passwordHash ?? '' })
 
   setCookie({ req, res, token, user })
 

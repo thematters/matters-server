@@ -3,7 +3,7 @@ import type { GQLMutationResolvers } from 'definitions'
 import { UserInputError } from 'common/errors'
 
 const resolver: GQLMutationResolvers['deleteBlockedSearchKeywords'] = async (
-  root,
+  _,
   { input: { keywords } },
   { dataSources: { atomService } }
 ) => {

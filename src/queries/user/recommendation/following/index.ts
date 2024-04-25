@@ -62,15 +62,15 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   const nodeLoader = ({ id, type }: { id: string; type: string }) => {
     switch (type) {
       case 'Article':
-        return articleService.draftLoader.load(id)
+        return atomService.articleIdLoader.load(id)
       case 'Comment':
-        return commentService.dataloader.load(id)
+        return atomService.commentIdLoader.load(id)
       case 'Circle':
         return atomService.findFirst({ table: 'circle', where: { id } })
       case 'User':
-        return userService.dataloader.load(id)
+        return atomService.userIdLoader.load(id)
       case 'Tag':
-        return tagService.dataloader.load(id)
+        return atomService.tagIdLoader.load(id)
     }
   }
   const activityLoader = async ({
@@ -83,7 +83,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     createdAt,
   }: any) => ({
     __type: type,
-    actor: await userService.dataloader.load(actorId),
+    actor: await atomService.userIdLoader.load(actorId),
     node: await nodeLoader({ id: nodeId, type: nodeType }),
     target: await nodeLoader({ id: targetId, type: targetType }),
     createdAt,
@@ -171,7 +171,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
           node: {
             __type: 'UserRecommendationActivity',
             source,
-            nodes: await userService.dataloader.loadMany(
+            nodes: await atomService.userIdLoader.loadMany(
               recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
             ),
           },
@@ -183,7 +183,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
           node: {
             __type: 'ArticleRecommendationActivity',
             source,
-            nodes: await articleService.draftLoader.loadMany(
+            nodes: await atomService.articleIdLoader.loadMany(
               recommendation.map(({ nodeId }: { nodeId: string }) => nodeId)
             ),
           },
@@ -195,7 +195,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
           node: {
             __type: 'ArticleRecommendationActivity',
             source,
-            nodes: await articleService.draftLoader.loadMany(
+            nodes: await atomService.articleIdLoader.loadMany(
               recommendation.map(({ articleId }) => articleId)
             ),
           },

@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Tag } from 'definitions'
 
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
@@ -66,7 +66,7 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
         owner: viewer.id,
-        editors: _uniq([...tag.editors, viewer.id]),
+        editors: _uniq([...(tag.editors ?? []), viewer.id]),
       })
 
       break
@@ -104,14 +104,14 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
         (editors
           .map((editor) => {
             const { id: editorId } = fromGlobalId(editor)
-            if (!tag.editors.includes(editorId)) {
+            if (!(tag.editors ?? []).includes(editorId)) {
               return editorId
             }
           })
           .filter((editorId) => editorId !== undefined) as string[]) || []
 
       // editors composed by 4 editors, matty and owner
-      const dedupedEditors = _uniq([...tag.editors, ...newEditors])
+      const dedupedEditors = _uniq([...(tag.editors ?? []), ...newEditors])
       if (dedupedEditors.length > 6) {
         throw new TagEditorsReachLimitError('number of editors reaches limit')
       }
@@ -173,7 +173,9 @@ const resolver: GQLMutationResolvers['updateTagSetting'] = async (
 
   if (updatedTag) {
     // invalidate extra nodes
-    updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.User }]
+    ;(updatedTag as Tag & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
+      { id: viewer.id, type: NODE_TYPES.User },
+    ]
   }
   return updatedTag
 }

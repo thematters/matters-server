@@ -3,7 +3,7 @@ import type { GQLCommentResolvers } from 'definitions'
 const resolver: GQLCommentResolvers['replyTo'] = (
   { replyTo },
   _,
-  { dataSources: { commentService } }
-) => (replyTo ? commentService.loadById(replyTo) : null)
+  { dataSources: { atomService } }
+) => (replyTo ? atomService.commentIdLoader.load(replyTo) : null)
 
 export default resolver

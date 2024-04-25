@@ -11,7 +11,7 @@ import {
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putAnnouncement'] = async (
-  root,
+  _,
   { input },
   { dataSources: { atomService, systemService }, viewer }
 ) => {
@@ -27,7 +27,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   const toAnnouncementId = (dbId: string) =>
     toGlobalId({ type: NODE_TYPES.Announcement, id: dbId })
 
-  const toCoverURL = async (coverId: any) =>
+  const toCoverURL = async (coverId: string | null) =>
     coverId ? systemService.findAssetUrl(coverId) : null
 
   // preparation
@@ -138,7 +138,7 @@ const resolver: GQLMutationResolvers['putAnnouncement'] = async (
   return {
     ...ret,
     id: toAnnouncementId(ret.id),
-    cover: toCoverURL(ret.cover),
+    cover: (await toCoverURL(ret.cover)) ?? '',
     translations:
       translations &&
       transResults.map((tr: any) => ({

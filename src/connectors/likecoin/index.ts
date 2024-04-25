@@ -443,7 +443,7 @@ export class LikeCoin {
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
-    iscn_id?: string
+    iscn_id?: string | null
     url: string
     likerIp?: string
     userAgent: string
@@ -480,7 +480,7 @@ export class LikeCoin {
     userAgent,
   }: {
     liker: UserOAuthLikeCoin
-    iscn_id?: string
+    iscn_id?: string | null
     url: string
     likerIp?: string
     userAgent: string
@@ -531,7 +531,7 @@ export class LikeCoin {
     userName: string
     title: string
     description: string
-    datePublished: string // in format like 'YYYY-mm-dd' // "datePublished": "2019-04-19",
+    datePublished: string // in format like 'YYYY-mm-dd'
     url: string
     tags: string[]
     liker: UserOAuthLikeCoin
@@ -571,12 +571,12 @@ export class LikeCoin {
         },
       ],
       type: 'Article',
-      name: title, // "使用矩陣計算遞歸關係式",
-      description, // "description": "An article on computing recursive function with matrix multiplication.",
-      datePublished, // "datePublished": "2019-04-19",
-      url, // "url": "https://nnkken.github.io/post/recursive-relation/",
+      name: title,
+      description,
+      datePublished,
+      url,
       // "usageInfo": "https://creativecommons.org/licenses/by/4.0",
-      keywords: tags, // ["matrix","recursion","keyword3"]
+      keywords: tags,
     }
 
     const res = await this.request({

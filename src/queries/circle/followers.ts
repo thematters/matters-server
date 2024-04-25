@@ -10,7 +10,7 @@ import {
 const resolver: GQLCircleResolvers['followers'] = async (
   { id },
   { input },
-  { dataSources: { atomService, userService } }
+  { dataSources: { atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -25,7 +25,7 @@ const resolver: GQLCircleResolvers['followers'] = async (
     }),
     atomService.findMany({
       table: 'action_circle',
-      select: ['user_id'],
+      select: ['userId'],
       where: { targetId: id, action: CIRCLE_ACTION.follow },
       skip,
       take,
@@ -33,7 +33,7 @@ const resolver: GQLCircleResolvers['followers'] = async (
   ])
 
   return connectionFromPromisedArray(
-    userService.loadByIds(actions.map(({ userId }) => userId)),
+    atomService.userIdLoader.loadMany(actions.map(({ userId }) => userId)),
     input,
     totalCount
   )

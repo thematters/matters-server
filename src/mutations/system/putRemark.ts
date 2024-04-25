@@ -20,11 +20,7 @@ const resolver: GQLMutationResolvers['putRemark'] = async (
     : id
   const table = tableMap[type]
 
-  const entity = await systemService.baseUpdate(
-    dbId,
-    { remark, updatedAt: new Date() },
-    table
-  )
+  const entity = await systemService.baseUpdate<any>(dbId, { remark }, table)
 
   return entity.remark
 }

@@ -20,7 +20,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
   _,
   { input: { collections: rawCollections, articles: rawArticles } },
-  { dataSources: { collectionService, articleService }, viewer }
+  { dataSources: { collectionService, articleService, atomService }, viewer }
 ) => {
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
@@ -111,7 +111,7 @@ const resolver: GQLMutationResolvers['addCollectionsArticles'] = async (
     }
   }
 
-  return await collectionService.loadByIds(collectionIds)
+  return await atomService.collectionIdLoader.loadMany(collectionIds)
 }
 
 export default resolver

@@ -5,13 +5,12 @@ export interface Collection {
   cover?: string
   description?: string
   pinned: boolean
-  pinnedAt: string
-  createdAt: string
-  updatedAt: string
+  pinnedAt: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface CollectionArticle {
   articleId: string
-  draftId: string
   order: string
 }

@@ -16,7 +16,7 @@ import { environment } from 'common/environment'
 import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { clearCookie, getLanguage } from 'common/utils'
-import { OAuthService, SystemService, UserService } from 'connectors'
+import { OAuthService, SystemService, AtomService } from 'connectors'
 
 const logger = getLogger('utils-auth')
 
@@ -82,7 +82,7 @@ const getUser = async (
   agentHash: string,
   connections: Connections
 ) => {
-  const userService = new UserService(connections)
+  const atomService = new AtomService(connections)
   const systemService = new SystemService(connections)
 
   try {
@@ -90,7 +90,7 @@ const getUser = async (
     const source = jwt.verify(token, environment.jwtSecret) as {
       id: string
     }
-    const user = await userService.dataloader.load(source.id)
+    const user = await atomService.userIdLoader.load(source.id)
 
     if (user.state === USER_STATE.archived) {
       if (agentHash) {

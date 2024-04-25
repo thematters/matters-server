@@ -8,7 +8,7 @@ const logger = getLogger('resolver-user-articles')
 const resolver: GQLUserResolvers['articles'] = async (
   { id },
   { input },
-  { dataSources: { articleService, draftService }, viewer }
+  { dataSources: { articleService }, viewer }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -33,10 +33,7 @@ const resolver: GQLUserResolvers['articles'] = async (
     orderBy: input.sort,
   })
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map((article: any) => article.draftId)),
-    input
-  )
+  return connectionFromPromisedArray(articles, input)
 }
 
 export default resolver

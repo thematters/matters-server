@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, PunishRecord } from 'definitions'
 
 import Queue from 'bull'
 
@@ -22,7 +22,7 @@ interface ArchiveUserData {
 }
 
 export class UserQueue extends BaseQueue {
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super(QUEUE_NAME.user, connections)
     this.addConsumers()
   }
@@ -89,7 +89,7 @@ export class UserQueue extends BaseQueue {
               data,
             })
 
-            await userService.baseUpdate(
+            await userService.baseUpdate<PunishRecord>(
               record.id,
               { archived: true },
               'punish_record'
@@ -100,6 +100,7 @@ export class UserQueue extends BaseQueue {
             })
             users.push(record.userId)
             job.progress(((index + 1) / records.length) * 100)
+            // eslint-disable-next-line  @typescript-eslint/no-explicit-any
           } catch (err: any) {
             logger.error(err)
           }
@@ -107,6 +108,7 @@ export class UserQueue extends BaseQueue {
       )
 
       done(null, users)
+      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     } catch (err: any) {
       done(err)
     }

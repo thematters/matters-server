@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Comment } from 'definitions'
 
 import {
   CACHE_KEYWORD,
@@ -17,7 +17,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService, commentService, articleService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -28,16 +28,13 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.loadById(dbId)
+  const comment = await atomService.commentIdLoader.load(dbId)
 
   // check target
-  let article: any
-  let circle: any
-  if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.dataloader.load(comment.targetId)
-  } else {
-    circle = await atomService.circleIdLoader.load(comment.targetId)
-  }
+  const node =
+    comment.type === COMMENT_TYPE.article
+      ? await atomService.articleIdLoader.load(comment.targetId)
+      : await atomService.circleIdLoader.load(comment.targetId)
 
   // check permission
   if (comment.authorId !== viewer.id) {
@@ -47,14 +44,16 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   // archive comment
   const newComment = await commentService.baseUpdate(dbId, {
     state: COMMENT_STATE.archived,
-    updatedAt: new Date(),
   })
 
   // invalidate extra nodes
-  newComment[CACHE_KEYWORD] = [
+  ;(newComment as Comment & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
     {
-      id: article ? article.id : circle.id,
-      type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
+      id: node.id,
+      type:
+        comment.type === COMMENT_TYPE.article
+          ? NODE_TYPES.Article
+          : NODE_TYPES.Circle,
     },
   ]
 

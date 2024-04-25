@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, UserHasUsername } from 'definitions'
 
 import _ from 'lodash'
 import Stripe from 'stripe'
@@ -11,7 +11,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { numRound, toDBAmount } from 'common/utils'
-import { NotificationService, PaymentService, UserService } from 'connectors'
+import { NotificationService, PaymentService, AtomService } from 'connectors'
 
 const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
   switch (type) {
@@ -38,7 +38,7 @@ export const updateTxState = async (
   },
   connections: Connections
 ) => {
-  const userService = new UserService(connections)
+  const atomService = new AtomService(connections)
   const paymentService = new PaymentService(connections)
   const notificationService = new NotificationService(connections)
 
@@ -70,21 +70,25 @@ export const updateTxState = async (
   // trigger notifications
   const mailType = mappingTxPurposeToMailType(tx.purpose)
   if (eventType === 'payment_intent.succeeded' && mailType) {
-    const recipient = await userService.baseFindById(tx.recipientId)
-    notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: mailType,
-      tx: {
-        recipient,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
-      },
-      language: recipient.language,
-    })
+    const recipient = (await atomService.userIdLoader.load(
+      tx.recipientId
+    )) as UserHasUsername
+    if (recipient.email) {
+      notificationService.mail.sendPayment({
+        to: recipient.email,
+        recipient: {
+          displayName: recipient.displayName,
+          userName: recipient.userName,
+        },
+        type: mailType,
+        tx: {
+          recipient,
+          amount: numRound(+tx.amount),
+          currency: tx.currency,
+        },
+        language: recipient.language,
+      })
+    }
   }
 }
 

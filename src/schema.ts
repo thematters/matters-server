@@ -36,19 +36,8 @@ const typeResolver = (type: string, result: any) => {
   return type
 }
 
-const idResolver = (type: string, result: any) => {
-  // correct the article id since we return draft as article in resolver
-  if (
-    [NODE_TYPES.Article, NODE_TYPES.Draft, NODE_TYPES.Node].includes(
-      type as NODE_TYPES
-    ) &&
-    result?.articleId
-  ) {
-    return result.articleId
-  }
-
-  return result?.id
-}
+// handle null object to avoid error: Cannot read properties of null (reading 'id')
+const idResolver = (type: string, result: any) => result?.id
 
 // add directives
 

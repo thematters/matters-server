@@ -11,7 +11,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['reorderCollectionArticles'] = async (
   _,
   { input: { collection: globalId, moves: rawMoves } },
-  { dataSources: { collectionService }, viewer }
+  { dataSources: { collectionService, atomService }, viewer }
 ) => {
   if (!viewer.id) {
     throw new ForbiddenError('Viewer has no permission')
@@ -26,7 +26,7 @@ const resolver: GQLMutationResolvers['reorderCollectionArticles'] = async (
     throw new UserInputError('Invalid Collection id')
   }
 
-  const collection = await collectionService.loadById(collectionId)
+  const collection = await atomService.collectionIdLoader.load(collectionId)
 
   if (!collection) {
     throw new UserInputError('Collection not found')

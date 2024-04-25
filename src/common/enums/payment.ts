@@ -1,4 +1,4 @@
-import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
+import { optimism, optimismSepolia, polygon } from 'viem/chains'
 
 import { environment, isProd } from 'common/environment'
 import { GQLChain } from 'definitions'
@@ -51,19 +51,21 @@ export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
 
 export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
   [polygon.id]: BLOCKCHAIN.Polygon,
-  [polygonMumbai.id]: BLOCKCHAIN.Polygon,
   [optimism.id]: BLOCKCHAIN.Optimism,
   [optimismSepolia.id]: BLOCKCHAIN.Optimism,
 } as const
 
 export const BLOCKCHAIN_CHAINID = {
-  [BLOCKCHAIN.Polygon]: isProd ? polygon.id + '' : polygonMumbai.id + '',
+  // Temporarily pause support for the Polygon testnet
+  // since Polygon Mumbai has migrated to Polygon Amoy
+  // and the `Curation` contract on Mumbai is being deprecated.
+  // For `Logbook` contract, we can migrate it to Polygon Amoy if needed.
+  [BLOCKCHAIN.Polygon]: polygon.id + '',
   [BLOCKCHAIN.Optimism]: isProd ? optimism.id + '' : optimismSepolia.id + '',
 } as const
 
 export const BLOCKCHAIN_RPC: { [chainId: string]: string } = {
   [polygon.id]: `https://polygon-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
-  [polygonMumbai.id]: `https://polygon-mumbai.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimism.id]: `https://opt-mainnet.g.alchemy.com/v2/${environment.alchemyApiKey}`,
   [optimismSepolia.id]: `https://opt-sepolia.g.alchemy.com/v2/${environment.alchemyApiKey}`,
 }
