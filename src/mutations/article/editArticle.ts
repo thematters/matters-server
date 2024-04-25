@@ -119,7 +119,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   let data: Partial<Draft> = {}
   let updateRevisionCount = false
   const checkRevisionCount = (newRevisionCount: number) => {
-    if (newRevisionCount > MAX_ARTICLE_REVISION_COUNT) {
+    if (newRevisionCount >= MAX_ARTICLE_REVISION_COUNT) {
       throw new ArticleRevisionReachLimitError(
         'number of revisions reach limit'
       )
