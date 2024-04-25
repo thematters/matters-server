@@ -16,6 +16,7 @@ exports.up = async (knex) => {
           JOIN draft ON draft.id = asset_map.entity_id
             AND entity_type_id=${draftEntityTypeId}
             AND entity_id IN (SELECT id FROM draft WHERE publish_state='published')
+            AND draft.article_id IS NOT NULL
     ON CONFLICT DO NOTHING;
 `)
 }

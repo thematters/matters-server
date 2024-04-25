@@ -14,7 +14,7 @@ DECLARE
 BEGIN
   RAISE NOTICE 'start data migration';
   FOR draft_record IN
-    SELECT * FROM draft WHERE article_id IS NOT NULL AND publish_state='published' AND created_at > (SELECT MAX(created_at) FROM article_version)
+    SELECT * FROM draft WHERE publish_state='published' AND article_id in (SELECT id FROM article where state='active' EXCEPT SELECT article_id FROM article_version_newest)
   LOOP
     RAISE NOTICE '  processing draft %', draft_record.id;
 

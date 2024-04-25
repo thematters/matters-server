@@ -13,6 +13,7 @@ const resolver: GQLArticleResolvers['language'] = async (
     id: versionId,
     language: storedLanguage,
     contentId,
+    content: draftContent,
   } = await articleService.loadLatestArticleVersion(articleId)
   if (storedLanguage) {
     return storedLanguage
@@ -20,7 +21,9 @@ const resolver: GQLArticleResolvers['language'] = async (
 
   const gcp = new GCP()
 
-  const { content } = await atomService.articleContentIdLoader.load(contentId)
+  const content = draftContent
+    ? draftContent
+    : (await atomService.articleContentIdLoader.load(contentId)).content
 
   gcp.detectLanguage(stripHtml(content.slice(0, 300))).then((language) => {
     language &&

@@ -1059,7 +1059,7 @@ export class TagService extends BaseService<Tag> {
         'article_version_newest.article_id'
       )
       .join('article', 'article_tag.article_id', 'article.id')
-      .whereNotNull('cover')
+      .whereNotNull('article_version_newest.cover')
       .andWhere({
         tagId: id,
         state: ARTICLE_STATE.active,
