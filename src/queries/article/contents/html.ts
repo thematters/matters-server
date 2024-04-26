@@ -3,8 +3,7 @@ import type { GQLArticleContentsResolvers } from 'definitions'
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
 
 export const html: GQLArticleContentsResolvers['html'] = async (
-  // @ts-ignore
-  { articleId, contentId, content: draftContent },
+  { articleId, contentId },
   _,
   { viewer, dataSources: { articleService, paymentService, atomService } }
 ) => {
@@ -15,10 +14,7 @@ export const html: GQLArticleContentsResolvers['html'] = async (
 
   // check viewer
   if (isAdmin || isAuthor) {
-    return (
-      draftContent ??
-      (await atomService.articleContentIdLoader.load(contentId)).content
-    )
+    return (await atomService.articleContentIdLoader.load(contentId)).content
   }
 
   // check article state
@@ -30,20 +26,14 @@ export const html: GQLArticleContentsResolvers['html'] = async (
 
   // not in circle
   if (!articleCircle) {
-    return (
-      draftContent ??
-      (await atomService.articleContentIdLoader.load(contentId)).content
-    )
+    return (await atomService.articleContentIdLoader.load(contentId)).content
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
 
   // public
   if (isPublic) {
-    return (
-      draftContent ??
-      (await atomService.articleContentIdLoader.load(contentId)).content
-    )
+    return (await atomService.articleContentIdLoader.load(contentId)).content
   }
 
   if (!viewer.id) {
@@ -60,8 +50,5 @@ export const html: GQLArticleContentsResolvers['html'] = async (
     return ''
   }
 
-  return (
-    draftContent ??
-    (await atomService.articleContentIdLoader.load(contentId)).content
-  )
+  return (await atomService.articleContentIdLoader.load(contentId)).content
 }
