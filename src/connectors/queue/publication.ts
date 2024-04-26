@@ -353,7 +353,7 @@ export class PublicationQueue extends BaseQueue {
 
     const items = articleVersion.connections.map(
       (articleId: string, index: number) => ({
-        entranceId: articleId,
+        entranceId: article.id,
         articleId,
         order: index,
       })
