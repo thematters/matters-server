@@ -5,22 +5,22 @@ import Redis from 'ioredis'
 
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
 import { environment } from 'common/environment'
-import { DraftService, ArticleService } from 'connectors'
+import { AtomService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
 
+// NOTE: because redis is not mocked here, this test may fail (expect "published" but received: "pending") before `flushall` resetting the queue
+
 describe('publicationQueue.publishArticle', () => {
   let connections: Connections
   let queue: PublicationQueue
-  let draftService: DraftService
-  let articleService: ArticleService
+  let atomService: AtomService
   let knex: Knex
   beforeAll(async () => {
     connections = await genConnections()
     knex = connections.knex
-    draftService = new DraftService(connections)
-    articleService = new ArticleService(connections)
+    atomService = new AtomService(connections)
     queue = new PublicationQueue(connections, {
       createClient: () => {
         return new Redis({
@@ -39,7 +39,10 @@ describe('publicationQueue.publishArticle', () => {
 
   test('publish not pending draft', async () => {
     const notPendingDraftId = '1'
-    const draft = await draftService.baseFindById(notPendingDraftId)
+    const draft = await atomService.findUnique({
+      table: 'draft',
+      where: { id: notPendingDraftId },
+    })
     expect(draft.publishState).not.toBe(PUBLISH_STATE.pending)
 
     const job = await queue.publishArticle({
@@ -50,25 +53,35 @@ describe('publicationQueue.publishArticle', () => {
   })
 
   test('publish pending draft successfully', async () => {
-    const { draft, contentHTML } = await createPendingDraft(draftService)
+    const { draft } = await createPendingDraft(atomService)
     const job = await queue.publishArticle({
       draftId: draft.id,
     })
     await job.finished()
     expect(await job.getState()).toBe('completed')
 
-    const updatedDraft = await draftService.baseFindById(draft.id)
-    const updatedArticle = await articleService.baseFindById(
-      updatedDraft.articleId as string
-    )
-    expect(updatedDraft.content).toBe(contentHTML)
+    const updatedDraft = await atomService.findUnique({
+      table: 'draft',
+      where: { id: draft.id },
+    })
+    const updatedArticle = await atomService.findUnique({
+      table: 'article',
+      where: { id: updatedDraft.articleId as string },
+    })
     expect(updatedDraft.publishState).toBe(PUBLISH_STATE.published)
     expect(updatedArticle.state).toBe(ARTICLE_STATE.active)
+
+    // article connections are handled
+    const connections = await atomService.findMany({
+      table: 'article_connection',
+      where: { entranceId: updatedArticle.id },
+    })
+    expect(connections).toHaveLength(3)
   })
 
   test('publish pending draft concurrently', async () => {
     const countBefore = (await knex('article').count().first())!.count
-    const { draft } = await createPendingDraft(draftService)
+    const { draft } = await createPendingDraft(atomService)
     const job1 = await queue.publishArticle({
       draftId: draft.id,
     })
@@ -82,19 +95,22 @@ describe('publicationQueue.publishArticle', () => {
   })
 })
 
-const createPendingDraft = async (draftService: DraftService) => {
+const createPendingDraft = async (atomService: AtomService) => {
   const content = Math.random().toString()
   const contentHTML = `<p>${content} <strong>abc</strong></p>`
+  const connections = ['1', '2', '3']
 
   return {
-    draft: await draftService.baseCreate({
-      authorId: '1',
-      title: 'test title',
-      summary: 'test summary',
-      content: contentHTML,
-      publishState: PUBLISH_STATE.pending,
+    draft: await atomService.create({
+      table: 'draft',
+      data: {
+        authorId: '1',
+        title: 'test title',
+        summary: 'test summary',
+        content: contentHTML,
+        publishState: PUBLISH_STATE.pending,
+        collection: connections,
+      },
     }),
-    content,
-    contentHTML,
   }
 }
