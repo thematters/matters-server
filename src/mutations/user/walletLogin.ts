@@ -257,7 +257,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         : AUDIT_LOG_ACTION.walletSignup,
       status: AUDIT_LOG_STATUS.failed,
       remark: `eth address: ${args.input.ethAddress} error message: ${
-        (err as any).message
+        (err as Error).message
       }`,
     })
     throw err
