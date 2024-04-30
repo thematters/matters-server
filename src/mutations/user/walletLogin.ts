@@ -2,6 +2,7 @@ import type {
   AuthMode,
   GQLAuthResultType,
   GQLMutationResolvers,
+  GQLResolversTypes,
   User,
 } from 'definitions'
 
@@ -30,6 +31,7 @@ import { getViewerFromUser, setCookie } from 'common/utils'
 
 const sigTable = 'crypto_wallet_signature'
 
+// audit logging
 export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
   root,
   args,
@@ -37,7 +39,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
   info
 ) => {
   let result
-  const getAction = (res: any) =>
+  const getAction = (res: Awaited<GQLResolversTypes['AuthResult']>) =>
     res?.type === AUTH_RESULT_TYPE.Signup
       ? AUDIT_LOG_ACTION.walletSignup
       : AUDIT_LOG_ACTION.walletLogin
@@ -49,7 +51,7 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
       status: AUDIT_LOG_STATUS.succeeded,
     })
     return result
-  } catch (err: any) {
+  } catch (err: unknown) {
     const user = await context.dataSources.userService.findByEthAddress(
       args.input.ethAddress
     )
@@ -59,7 +61,9 @@ export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
         ? AUDIT_LOG_ACTION.walletLogin
         : AUDIT_LOG_ACTION.walletSignup,
       status: AUDIT_LOG_STATUS.failed,
-      remark: `eth address: ${args.input.ethAddress} error message: ${err.message}`,
+      remark: `eth address: ${args.input.ethAddress} error message: ${
+        (err as any).message
+      }`,
     })
     throw err
   }
@@ -178,7 +182,7 @@ const _walletLogin: Exclude<
       }
     }
   } else {
-    // signup
+    // sign up
     if (email) {
       if (!codeId) {
         throw new UserInputError('email and codeId are required')
