@@ -20,6 +20,7 @@ export const AUDIT_LOG_ACTION = {
   removeSocialAccountTwitter: 'remove_social_account_twitter',
   removeSocialAccountFacebook: 'remove_social_account_facebook',
   addWallet: 'add_wallet',
+  addWalletAfterDonation: 'add_wallet_after_donation',
   removeWallet: 'remove_wallet',
   socialLoginGoogle: 'social_login_google',
   socialSignupGoogle: 'social_signup_google',

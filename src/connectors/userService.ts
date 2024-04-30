@@ -2305,6 +2305,10 @@ export class UserService extends BaseService<User> {
     userId: string,
     ethAddress: string
   ): Promise<User> => {
+    const donationCount = await this.models.count({
+      table: 'blockchain_transaction',
+      where: { from: ethAddress },
+    })
     try {
       const res = await this._addWallet(userId, ethAddress)
       auditLog({
@@ -2313,6 +2317,15 @@ export class UserService extends BaseService<User> {
         newValue: ethAddress,
         status: AUDIT_LOG_STATUS.succeeded,
       })
+      if (donationCount > 0) {
+        auditLog({
+          actorId: userId,
+          action: AUDIT_LOG_ACTION.addWalletAfterDonation,
+          newValue: ethAddress,
+          status: AUDIT_LOG_STATUS.succeeded,
+          remark: `Donation count: ${donationCount}`,
+        })
+      }
       return res
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -2323,6 +2336,15 @@ export class UserService extends BaseService<User> {
         remark: err.message,
         status: AUDIT_LOG_STATUS.failed,
       })
+      if (donationCount > 0) {
+        auditLog({
+          actorId: userId,
+          action: AUDIT_LOG_ACTION.addWalletAfterDonation,
+          newValue: ethAddress,
+          status: AUDIT_LOG_STATUS.failed,
+          remark: `Donation count: ${donationCount}`,
+        })
+      }
       throw err
     }
   }
