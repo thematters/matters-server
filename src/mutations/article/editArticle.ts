@@ -17,6 +17,8 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   USER_STATE,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
@@ -27,9 +29,10 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: GQLMutationResolvers['editArticle'] = async (
+const _resolver: GQLMutationResolvers['editArticle'] = async (
   _,
   {
     input: {
@@ -354,6 +357,40 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   return node
+}
+
+// audit logging
+export const resolver: GQLMutationResolvers['editArticle'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  const fromEditor = context.req.body.operationName === 'EditArticle'
+  console.log(context.req.body.operationName)
+
+  const result = await _resolver(root, args, context, info)
+  if ('requestForDonation' in args.input) {
+    auditLog({
+      actorId: context.viewer.id,
+      action: fromEditor
+        ? AUDIT_LOG_ACTION.setupSupportRequestInEditor
+        : AUDIT_LOG_ACTION.setupSupportRequestInArticlePage,
+      newValue: args.input.requestForDonation,
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+  }
+  if ('replyToDonator' in args.input) {
+    auditLog({
+      actorId: context.viewer.id,
+      action: fromEditor
+        ? AUDIT_LOG_ACTION.setupSupportReplyInEditor
+        : AUDIT_LOG_ACTION.setupSupportReplyInArticlePage,
+      newValue: args.input.replyToDonator,
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+  }
+  return result
 }
 
 export default resolver

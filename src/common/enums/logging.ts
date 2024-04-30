@@ -40,6 +40,10 @@ export const AUDIT_LOG_ACTION = {
   removeCollection: 'remove_collection',
   addArticleIntoCollection: 'add_article_into_collection',
   removeArticleFromCollection: 'remove_article_from_collection',
+  setupSupportRequestInEditor: 'setup_support_request_in_editor',
+  setupSupportRequestInArticlePage: 'setup_support_request_in_article_page',
+  setupSupportReplyInEditor: 'setup_support_reply_in_editor',
+  setupSupportReplyInArticlePage: 'setup_support_reply_in_article_page',
 } as const
 
 export const AUDIT_LOG_STATUS = {
