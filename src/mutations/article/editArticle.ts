@@ -366,7 +366,7 @@ export const resolver: GQLMutationResolvers['editArticle'] = async (
   context,
   info
 ) => {
-  const fromEditor = context.req.body.operationName === 'EditArticle'
+  const fromEditor = context.req?.body?.operationName === 'EditArticle'
 
   const result = await _resolver(root, args, context, info)
   if ('requestForDonation' in args.input) {
