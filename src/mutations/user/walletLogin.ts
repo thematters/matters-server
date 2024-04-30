@@ -31,43 +31,28 @@ import { getViewerFromUser, setCookie } from 'common/utils'
 
 const sigTable = 'crypto_wallet_signature'
 
-// audit logging
-export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
-  root,
-  args,
-  context,
-  info
+export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
+  _,
+  { input: { ethAddress, nonce, signedMessage, signature } },
+  { viewer, dataSources: { userService } }
 ) => {
-  let result
-  const getAction = (res: Awaited<GQLResolversTypes['AuthResult']>) =>
-    res?.type === AUTH_RESULT_TYPE.Signup
-      ? AUDIT_LOG_ACTION.walletSignup
-      : AUDIT_LOG_ACTION.walletLogin
-  try {
-    result = await _walletLogin(root, args, context, info)
-    auditLog({
-      actorId: context.viewer.id,
-      action: getAction(result),
-      status: AUDIT_LOG_STATUS.succeeded,
-    })
-    return result
-  } catch (err: unknown) {
-    const user = await context.dataSources.userService.findByEthAddress(
-      args.input.ethAddress
-    )
-    auditLog({
-      actorId: user?.id || null,
-      action: user?.id
-        ? AUDIT_LOG_ACTION.walletLogin
-        : AUDIT_LOG_ACTION.walletSignup,
-      status: AUDIT_LOG_STATUS.failed,
-      remark: `eth address: ${args.input.ethAddress} error message: ${
-        (err as any).message
-      }`,
-    })
-    throw err
+  if (viewer.ethAddress) {
+    throw new UserInputError('User has already linked a wallet')
   }
+  await userService.verifyWalletSignature({
+    ethAddress,
+    nonce,
+    signedMessage: signedMessage as Hex,
+    signature: signature as Hex,
+    validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
+  })
+  return userService.addWallet(viewer.id, ethAddress)
 }
+
+export const removeWalletLogin: GQLMutationResolvers['removeWalletLogin'] =
+  async (_, __, { viewer, dataSources: { userService } }) => {
+    return userService.removeWallet(viewer.id)
+  }
 
 const _walletLogin: Exclude<
   GQLMutationResolvers['walletLogin'],
@@ -240,25 +225,41 @@ const _walletLogin: Exclude<
   return tryLogin(AUTH_RESULT_TYPE.Signup, user)
 }
 
-export const addWalletLogin: GQLMutationResolvers['addWalletLogin'] = async (
-  _,
-  { input: { ethAddress, nonce, signedMessage, signature } },
-  { viewer, dataSources: { userService } }
-) => {
-  if (viewer.ethAddress) {
-    throw new UserInputError('User has already linked a wallet')
-  }
-  await userService.verifyWalletSignature({
-    ethAddress,
-    nonce,
-    signedMessage: signedMessage as Hex,
-    signature: signature as Hex,
-    validPurposes: [SIGNING_MESSAGE_PURPOSE.connect],
-  })
-  return userService.addWallet(viewer.id, ethAddress)
-}
+// audit logging
 
-export const removeWalletLogin: GQLMutationResolvers['removeWalletLogin'] =
-  async (_, __, { viewer, dataSources: { userService } }) => {
-    return userService.removeWallet(viewer.id)
+export const walletLogin: GQLMutationResolvers['walletLogin'] = async (
+  root,
+  args,
+  context,
+  info
+) => {
+  let result
+  const getAction = (res: Awaited<GQLResolversTypes['AuthResult']>) =>
+    res?.type === AUTH_RESULT_TYPE.Signup
+      ? AUDIT_LOG_ACTION.walletSignup
+      : AUDIT_LOG_ACTION.walletLogin
+  try {
+    result = await _walletLogin(root, args, context, info)
+    auditLog({
+      actorId: context.viewer.id,
+      action: getAction(result),
+      status: AUDIT_LOG_STATUS.succeeded,
+    })
+    return result
+  } catch (err: unknown) {
+    const user = await context.dataSources.userService.findByEthAddress(
+      args.input.ethAddress
+    )
+    auditLog({
+      actorId: user?.id || null,
+      action: user?.id
+        ? AUDIT_LOG_ACTION.walletLogin
+        : AUDIT_LOG_ACTION.walletSignup,
+      status: AUDIT_LOG_STATUS.failed,
+      remark: `eth address: ${args.input.ethAddress} error message: ${
+        (err as any).message
+      }`,
+    })
+    throw err
   }
+}
