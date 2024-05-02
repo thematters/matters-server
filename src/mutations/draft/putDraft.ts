@@ -1,3 +1,4 @@
+import type { AtomService } from 'connectors'
 import type {
   DataSources,
   ItemData,
@@ -44,16 +45,7 @@ import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
   { input },
-  {
-    viewer,
-    dataSources: {
-      articleService,
-      atomService,
-      draftService,
-      systemService,
-      userService,
-    },
-  }
+  { viewer, dataSources: { atomService, draftService, systemService } }
 ) => {
   const {
     id,
@@ -125,10 +117,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       ).filter((articleId) => !!articleId)
     : collectionGlobalId // do not convert null or undefined
   if (collection) {
-    await validateCollection({
-      viewerId: viewer.id,
-      collection,
-      dataSources: { userService, articleService },
+    await validateConnections({
+      connections: collection,
+      atomService,
     })
   }
 
@@ -335,18 +326,19 @@ const validateTags = async ({
   }
 }
 
-const validateCollection = async ({
-  viewerId,
-  collection,
-  dataSources: { userService, articleService },
+const validateConnections = async ({
+  connections,
+  atomService,
 }: {
-  viewerId: string
-  collection: string[]
-  dataSources: Pick<DataSources, 'userService' | 'articleService'>
+  connections: string[]
+  atomService: AtomService
 }) => {
   await Promise.all(
-    collection.map(async (articleId) => {
-      const article = await articleService.baseFindById(articleId)
+    connections.map(async (articleId) => {
+      const article = await atomService.findUnique({
+        table: 'article',
+        where: { id: articleId },
+      })
 
       if (!article) {
         throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
@@ -354,14 +346,6 @@ const validateCollection = async ({
 
       if (article.state !== ARTICLE_STATE.active) {
         throw new ForbiddenError(`Article ${articleId} cannot be collected.`)
-      }
-
-      const isBlocked = await userService.blocked({
-        userId: article.authorId,
-        targetId: viewerId,
-      })
-      if (isBlocked) {
-        throw new ForbiddenError('viewer has no permission')
       }
     })
   )
