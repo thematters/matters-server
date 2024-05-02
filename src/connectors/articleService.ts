@@ -307,7 +307,6 @@ export class ArticleService extends BaseService<Article> {
       data = { ...data, connections: newData.collection ?? [] }
       await this.updateArticleConnections({
         articleId,
-        actorId,
         connections: newData.collection ?? [],
       })
       delete newData.collection
@@ -1910,11 +1909,9 @@ export class ArticleService extends BaseService<Article> {
 
   private updateArticleConnections = async ({
     articleId,
-    actorId,
     connections,
   }: {
     articleId: string
-    actorId: string
     connections: string[]
   }) => {
     const oldIds = (
@@ -1942,7 +1939,6 @@ export class ArticleService extends BaseService<Article> {
           `Not allow more than ${MAX_ARTICLES_PER_CONNECTION_LIMIT} articles in connection`
         )
       }
-      const userService = new UserService(this.connections)
       await Promise.all(
         newIdsToAdd.map(async (id) => {
           const collectedArticle = await this.models.findUnique({
@@ -1956,15 +1952,6 @@ export class ArticleService extends BaseService<Article> {
 
           if (collectedArticle.state !== ARTICLE_STATE.active) {
             throw new ForbiddenError(`Article ${id} cannot be collected.`)
-          }
-
-          const isBlocked = await userService.blocked({
-            userId: collectedArticle.authorId,
-            targetId: actorId,
-          })
-
-          if (isBlocked) {
-            throw new ForbiddenError('viewer has no permission')
           }
         })
       )
