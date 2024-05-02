@@ -11,8 +11,7 @@ const resolver: GQLQueryResolvers['article'] = async (
   { dataSources: { articleService, atomService } }
 ) => {
   if (shortHash) {
-    const { id } = await articleService.findArticleByShortHash(shortHash)
-    return atomService.articleIdLoader.load(id)
+    return articleService.findArticleByShortHash(shortHash)
   }
   if (mediaHash) {
     const node = await articleService.findVersionByMediaHash(mediaHash)
