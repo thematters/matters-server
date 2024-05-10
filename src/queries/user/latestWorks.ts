@@ -1,6 +1,6 @@
 import type { GQLUserResolvers } from 'definitions'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, LATEST_WORKS_NUM } from 'common/enums'
 
 const resolver: GQLUserResolvers['latestWorks'] = async (
   { id },
@@ -9,9 +9,9 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
 ) => {
   const [articles, collections] = await Promise.all([
     articleService.findByAuthor(id, {
-      take: 4,
+      take: LATEST_WORKS_NUM,
     }),
-    collectionService.findByAuthor(id, { take: 3 }),
+    collectionService.findByAuthor(id, { take: LATEST_WORKS_NUM }),
   ])
   const works = [
     ...articles.map((article) => ({
@@ -24,7 +24,7 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
     })),
   ]
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    .slice(0, 4)
+    .slice(0, LATEST_WORKS_NUM)
 
   return works
 }

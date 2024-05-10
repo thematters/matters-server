@@ -2,7 +2,7 @@ import type { GQLArticleResolvers, Article } from 'definitions'
 
 import _ from 'lodash'
 
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, LATEST_WORKS_NUM } from 'common/enums'
 import { connectionFromArray, fromConnectionArgs } from 'common/utils'
 
 const resolver: GQLArticleResolvers['relatedArticles'] = async (
@@ -18,7 +18,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
 
   // helper function to prevent duplicates and exclude both origin article and articles return by `latestWorks` API
   const latestArticles = await articleService.findByAuthor(authorId, {
-    take: 3,
+    take: LATEST_WORKS_NUM,
     orderBy: 'newest',
     state: ARTICLE_STATE.active,
   })
