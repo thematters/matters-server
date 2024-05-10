@@ -9,7 +9,7 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
 ) => {
   const [articles, collections] = await Promise.all([
     articleService.findByAuthor(id, {
-      take: 3,
+      take: 4,
     }),
     collectionService.findByAuthor(id, { take: 3 }),
   ])
@@ -24,7 +24,7 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
     })),
   ]
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    .slice(0, 3)
+    .slice(0, 4)
 
   return works
 }

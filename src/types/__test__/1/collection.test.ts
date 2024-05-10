@@ -838,5 +838,5 @@ test('get latest works', async () => {
   const { data } = await server.executeOperation({
     query: GET_LATEST_WORKS,
   })
-  expect(data?.viewer?.latestWorks.length).toBeLessThan(4)
+  expect(data?.viewer?.latestWorks.length).toBeLessThan(5)
 })
