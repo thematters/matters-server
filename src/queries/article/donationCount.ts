@@ -7,6 +7,7 @@ const resolver: GQLArticleResolvers['donationCount'] = async (
   _,
   { dataSources: { articleService }, viewer }
 ) => {
+  // only author can see donation count
   if (viewer?.id !== authorId) {
     return 0
   }

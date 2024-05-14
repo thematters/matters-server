@@ -3,6 +3,7 @@ import type { EmailableUser } from 'definitions'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
+import _capitalize from 'lodash/capitalize'
 import NP from 'number-precision'
 
 import {
@@ -34,7 +35,8 @@ const invalidateCache = async ({
 }) => {
   if (typeId) {
     const result = await userService.baseFindEntityTypeTable(typeId)
-    const type = NODE_TYPES[(result?.table as keyof typeof NODE_TYPES) || '']
+    const type =
+      NODE_TYPES[(_capitalize(result?.table) as keyof typeof NODE_TYPES) || '']
     if (type) {
       await invalidateFQC({
         node: { type, id },
