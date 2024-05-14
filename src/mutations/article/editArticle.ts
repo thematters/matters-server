@@ -159,7 +159,10 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * Tags
    */
-  if (tags !== undefined) {
+  if (
+    tags !== undefined &&
+    (tags ?? []).toString() !== articleVersion.tags.toString()
+  ) {
     checkRevisionCount(article.revisionCount + 1)
     updateRevisionCount = true
     data = { ...data, tags }
@@ -168,38 +171,45 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   /**
    * Cover
    */
-  const resetCover = cover === null
-  if (cover) {
+  if (cover !== undefined && cover !== articleVersion.cover) {
     checkRevisionCount(article.revisionCount + 1)
     updateRevisionCount = true
-    const asset = await systemService.findAssetByUUID(cover)
 
-    if (
-      !asset ||
-      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
-      asset.authorId !== viewer.id
-    ) {
-      throw new AssetNotFoundError('article cover does not exists')
+    const resetCover = cover === null
+
+    if (resetCover) {
+      data = { ...data, cover: null }
+    } else {
+      const asset = await systemService.findAssetByUUID(cover)
+
+      if (
+        !asset ||
+        [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+        asset.authorId !== viewer.id
+      ) {
+        throw new AssetNotFoundError('article cover does not exists')
+      }
+
+      data = { ...data, cover: asset.id }
     }
-
-    data = { ...data, cover: asset.id }
-  } else if (resetCover) {
-    checkRevisionCount(article.revisionCount + 1)
-    updateRevisionCount = true
-    data = { ...data, cover: null }
   }
 
   /**
    * Connection
    */
   if (collection !== undefined) {
-    checkRevisionCount(article.revisionCount + 1)
-    updateRevisionCount = true
+    const connections = (collection ?? []).map(
+      (globalId) => fromGlobalId(globalId as unknown as string).id
+    )
+
+    if (connections.toString() !== articleVersion.connections.toString()) {
+      checkRevisionCount(article.revisionCount + 1)
+      updateRevisionCount = true
+    }
+
     data = {
       ...data,
-      collection: (collection ?? []).map(
-        (globalId) => fromGlobalId(globalId as unknown as string).id
-      ),
+      collection: connections,
     }
   }
 
