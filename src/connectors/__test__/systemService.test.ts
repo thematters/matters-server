@@ -2,8 +2,8 @@ import type { Connections, Asset } from 'definitions'
 
 import { v4 } from 'uuid'
 
-import { NODE_TYPES } from 'common/enums'
-import { SystemService } from 'connectors'
+import { NODE_TYPES, COMMENT_TYPE, COMMENT_STATE } from 'common/enums'
+import { SystemService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -19,11 +19,13 @@ const assetValidation = {
 
 let connections: Connections
 let systemService: SystemService
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   systemService = new SystemService(connections)
-}, 50000)
+  atomService = new AtomService(connections)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -77,14 +79,105 @@ test('copy asset map', async () => {
   await systemService.copyAssetMapEntities({ source, target })
 })
 
-test('submit report', async () => {
-  const report = await systemService.submitReport({
-    targetType: NODE_TYPES.Article,
-    targetId: '1',
-    reporterId: '1',
-    reason: 'other',
+describe('report', () => {
+  test('submit report', async () => {
+    const report = await systemService.submitReport({
+      targetType: NODE_TYPES.Article,
+      targetId: '1',
+      reporterId: '1',
+      reason: 'other',
+    })
+    expect(report.id).toBeDefined()
+    expect(report.articleId).not.toBeNull()
+    expect(report.commentId).toBeNull()
   })
-  expect(report.id).toBeDefined()
-  expect(report.articleId).not.toBeNull()
-  expect(report.commentId).toBeNull()
+  test('collapse comment if more than 3 different users report it', async () => {
+    const commentId = '1'
+    const comment = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+    expect(comment.type).toBe(COMMENT_TYPE.article)
+    expect(comment.state).toBe(COMMENT_STATE.active)
+
+    // only 2 reports, comment should not be collapsed
+
+    await systemService.submitReport({
+      targetType: NODE_TYPES.Comment,
+      targetId: commentId,
+      reporterId: '2',
+      reason: 'other',
+    })
+    await systemService.submitReport({
+      targetType: NODE_TYPES.Comment,
+      targetId: commentId,
+      reporterId: '3',
+      reason: 'other',
+    })
+
+    const commentAfter2Reports = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+    expect(commentAfter2Reports.state).toBe(COMMENT_STATE.active)
+
+    // only 3 reports from 2 different users, comment should not be collapsed
+
+    await systemService.submitReport({
+      targetType: NODE_TYPES.Comment,
+      targetId: commentId,
+      reporterId: '3',
+      reason: 'other',
+    })
+
+    const commentAfter3Reports = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+    expect(commentAfter3Reports.state).toBe(COMMENT_STATE.active)
+
+    // 4 reports from 3 different users, comment should be collapsed
+
+    await systemService.submitReport({
+      targetType: NODE_TYPES.Comment,
+      targetId: commentId,
+      reporterId: '4',
+      reason: 'other',
+    })
+
+    const commentAfter4Reports = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+    expect(commentAfter4Reports.state).toBe(COMMENT_STATE.collapsed)
+  })
+
+  test('collapse comment if article author report it', async () => {
+    const commentId = '2'
+    const comment = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+    expect(comment.type).toBe(COMMENT_TYPE.article)
+    expect(comment.state).toBe(COMMENT_STATE.active)
+
+    const { authorId } = await atomService.findUnique({
+      table: 'article',
+      where: { id: comment.targetId },
+    })
+
+    await systemService.submitReport({
+      targetType: NODE_TYPES.Comment,
+      targetId: commentId,
+      reporterId: authorId,
+      reason: 'other',
+    })
+
+    const commentAfterReport = await atomService.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+
+    expect(commentAfterReport.state).toBe(COMMENT_STATE.collapsed)
+  })
 })
