@@ -13,6 +13,7 @@ import type {
 } from 'definitions'
 import type { Knex } from 'knex'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
 
 import {
@@ -23,6 +24,8 @@ import {
   USER_ROLE,
   FEATURE_NAME,
   FEATURE_FLAG,
+  COMMENT_STATE,
+  COMMENT_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
@@ -475,6 +478,13 @@ export class SystemService extends BaseService<BaseDBSchema> {
     return updateItem
   }
 
+  /**
+   * Create a report of target.
+   *
+   * @remarks
+   * The target could be an article or a comment.
+   * When the target is a comment, collapse the comment base on reports amount and reporters.
+   */
   public submitReport = async ({
     targetType,
     targetId,
@@ -503,7 +513,69 @@ export class SystemService extends BaseService<BaseDBSchema> {
           reason,
         })
         .returning('*')
+
+      await this.tryCollapseComment(targetId)
+
       return ret[0]
     }
+  }
+
+  /**
+   * Collapse the article comment if its reports are created by more than 3 different users or 1 article author
+   *
+   * @returns true if the comment is collapsed, otherwise false
+   *
+   */
+  private tryCollapseComment = async (commentId: string): Promise<boolean> => {
+    const comment = await this.models.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+
+    if (
+      !comment ||
+      comment.state === COMMENT_STATE.collapsed ||
+      comment.type !== COMMENT_TYPE.article
+    ) {
+      return false
+    }
+
+    const reports = await this.knex<Report>('report')
+      .select(['id', 'reporterId'])
+      .distinctOn('reporterId')
+      .where({ commentId })
+
+    if (reports.length >= 3) {
+      await this.models.update({
+        table: 'comment',
+        where: { id: commentId },
+        data: { state: COMMENT_STATE.collapsed },
+      })
+      await invalidateFQC({
+        node: { id: commentId, type: NODE_TYPES.Comment },
+        redis: this.redis,
+      })
+      return true
+    }
+
+    const { authorId } = await this.models.findUnique({
+      table: 'article',
+      where: { id: comment.targetId },
+    })
+
+    if (authorId && reports.find((r) => r.reporterId === authorId)) {
+      await this.models.update({
+        table: 'comment',
+        where: { id: commentId },
+        data: { state: COMMENT_STATE.collapsed },
+      })
+      await invalidateFQC({
+        node: { id: commentId, type: NODE_TYPES.Comment },
+        redis: this.redis,
+      })
+      return true
+    }
+
+    return false
   }
 }
