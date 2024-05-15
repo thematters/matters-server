@@ -26,7 +26,7 @@ import type {
   PayToByMattersQueue,
   PayoutQueue,
   UserQueue,
-} from 'connectors/queues'
+} from 'connectors/queue'
 import type { Request, Response } from 'express'
 import type { Redis } from 'ioredis'
 import type { Knex } from 'knex'

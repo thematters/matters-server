@@ -43,7 +43,7 @@ interface AppreciationParams {
 
 export class AppreciationQueue extends BaseQueue {
   public constructor(connections: Connections) {
-    // make it a bit slower on handling jobs in order to reduce courrent operations
+    // make it a bit slower on handling jobs in order to reduce concurrent operations
     super(QUEUE_NAME.appreciation, connections, {
       limiter: { max: 1, duration: 500 },
     })
