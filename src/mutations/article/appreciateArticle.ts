@@ -154,16 +154,13 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   }
 
   // insert appreciation job
-  appreciationQueue.appreciate(
-    {
-      amount: validAmount,
-      articleId: article.id,
-      senderId: viewer.id,
-      senderIP: viewer.ip,
-      userAgent: viewer.userAgent,
-    },
-    context
-  )
+  appreciationQueue.appreciate({
+    amount: validAmount,
+    articleId: article.id,
+    senderId: viewer.id,
+    senderIP: viewer.ip,
+    userAgent: viewer.userAgent,
+  })
 
   return article
 }

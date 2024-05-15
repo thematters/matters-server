@@ -2,7 +2,7 @@ import { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['appreciationsReceivedTotal'] = async (
   { id },
-  _: any,
+  _,
   { dataSources: { articleService } }
 ) => articleService.sumAppreciation(id)
 
