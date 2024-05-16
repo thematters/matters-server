@@ -67,5 +67,7 @@ export interface Customer {
   provider: string
   customerId: string
   cardLast4: string
+  // used as params only, `catLast4` will transform to `card_last4` in knex, not the `card_last_4` in actual
+  card_last_4: string
   archived: boolean
 }
