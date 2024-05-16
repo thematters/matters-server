@@ -71,7 +71,7 @@ export const updateCustomerCard = async (
     table: 'customer',
     where: { id: customer.id },
     data: {
-      cardLast4,
+      card_last_4: cardLast4,
     },
   })
 
