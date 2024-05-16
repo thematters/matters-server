@@ -23,7 +23,7 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
       __type: NODE_TYPES.Collection,
     })),
   ]
-    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
     .slice(0, LATEST_WORKS_NUM)
 
   return works
