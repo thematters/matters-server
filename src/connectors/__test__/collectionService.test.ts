@@ -375,6 +375,23 @@ describe('findByAuthor', () => {
     const records2 = await collectionService.findByAuthor('3', { take: 1 })
     expect(records2.length).toBe(1)
   })
+  test('filter empty collections', async () => {
+    const records = await collectionService.findByAuthor('3', { take: 1 }, true)
+    expect(records.length).toBe(0)
+
+    const collection = await collectionService.createCollection({
+      authorId: '3',
+      title: 'test3',
+    })
+    await collectionService.addArticles(collection.id, ['1'])
+
+    const records2 = await collectionService.findByAuthor(
+      '3',
+      { take: 1 },
+      true
+    )
+    expect(records2.length).toBe(1)
+  })
 })
 
 test('updatePinned', async () => {

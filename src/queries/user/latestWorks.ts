@@ -11,7 +11,7 @@ const resolver: GQLUserResolvers['latestWorks'] = async (
     articleService.findByAuthor(id, {
       take: LATEST_WORKS_NUM,
     }),
-    collectionService.findByAuthor(id, { take: LATEST_WORKS_NUM }),
+    collectionService.findByAuthor(id, { take: LATEST_WORKS_NUM }, true),
   ])
   const works = [
     ...articles.map((article) => ({

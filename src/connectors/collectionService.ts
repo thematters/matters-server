@@ -272,16 +272,27 @@ export class CollectionService extends BaseService<Collection> {
 
   public findByAuthor = async (
     authorId: string,
-    { skip, take }: { skip?: number; take?: number } = {}
-  ) =>
-    this.baseFind({
-      where: {
-        authorId,
-      },
-      skip,
-      take,
-      orderBy: [{ column: 'id', order: 'desc' }],
-    })
+    { skip, take }: { skip?: number; take?: number } = {},
+    filterEmpty = false
+  ): Promise<Collection[]> =>
+    this.knexRO<Collection>('collection')
+      .where({ authorId })
+      .orderBy('updatedAt', 'desc')
+      .modify((builder) => {
+        if (filterEmpty) {
+          builder.whereExists(
+            this.knexRO('collection_article')
+              .select(this.knex.raw(1))
+              .whereRaw('collection.id = collection_article.collection_id')
+          )
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   public findPinnedByAuthor = async (authorId: string) =>
     this.baseFind({ where: { authorId, pinned: true } })
