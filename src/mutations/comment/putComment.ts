@@ -7,6 +7,7 @@ import type {
   Comment,
 } from 'definitions'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeCommentHTML,
   sanitizeHTML,
@@ -21,6 +22,7 @@ import {
   CACHE_KEYWORD,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_COMMENT_LENGTH,
   MAX_COMMENT_EMPTY_PARAGRAPHS,
   NODE_TYPES,
   USER_STATE,
@@ -141,6 +143,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     )
   } else {
     data.type = COMMENT_TYPE[type]
+  }
+
+  if (isArticleType && stripHtml(content).length > MAX_ARTICLE_COMMENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
   }
 
   /**

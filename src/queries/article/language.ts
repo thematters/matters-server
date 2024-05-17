@@ -25,7 +25,7 @@ const resolver: GQLArticleResolvers['language'] = async (
     ? draftContent
     : (await atomService.articleContentIdLoader.load(contentId)).content
 
-  gcp.detectLanguage(stripHtml(content.slice(0, 300))).then((language) => {
+  gcp.detectLanguage(stripHtml(content).slice(0, 300)).then((language) => {
     language &&
       atomService.update({
         table: 'article_version',

@@ -6,6 +6,7 @@ import type {
   Draft,
 } from 'definitions'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -183,7 +184,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   if (data?.summary?.length > MAX_ARTICLE_SUMMARY_LENGTH) {
     throw new UserInputError('summary reach length limit')
   }
-  if (data?.content?.length > MAX_ARTICLE_CONTENT_LENGTH) {
+  if (stripHtml(data?.content || '').length > MAX_ARTICLE_CONTENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
 
