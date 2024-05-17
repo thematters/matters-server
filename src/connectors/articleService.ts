@@ -498,6 +498,8 @@ export class ArticleService extends BaseService<Article> {
         date: publishedAt,
         author: {
           name: `${displayName} (${userName})`,
+          userName,
+          displayName,
           uri: `https://${environment.siteDomain}/@${userName}`,
         },
         website: {
@@ -507,7 +509,6 @@ export class ArticleService extends BaseService<Article> {
       },
       rss: ipnsKey
         ? {
-            ipnsKey,
             xml: '../rss.xml',
             json: '../feed.json',
           }

@@ -1,5 +1,6 @@
 import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeArticleHTML,
   sanitizeHTML,
@@ -301,7 +302,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
    * Republish article if content or access is changed
    */
   if (content) {
-    if (content.length > MAX_ARTICLE_CONTENT_LENGTH) {
+    if (stripHtml(content).length > MAX_ARTICLE_CONTENT_LENGTH) {
       throw new UserInputError('content reach length limit')
     }
 
