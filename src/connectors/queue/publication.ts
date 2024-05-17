@@ -10,7 +10,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
@@ -280,9 +279,7 @@ export class PublicationQueue extends BaseQueue {
           title: articleVersion.title,
           description: articleVersion.summary,
           datePublished: article.createdAt?.toISOString().substring(0, 10),
-          url: `https://${environment.siteDomain}/@${userName}/${
-            article.id
-          }-${slugify(articleVersion.title)}-${mediaHash}`,
+          url: `https://${environment.siteDomain}/a/${article.shortHash}`,
           tags,
           liker,
         })

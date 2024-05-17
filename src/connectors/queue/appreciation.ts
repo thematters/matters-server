@@ -1,7 +1,6 @@
 import type { Connections } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import slugify from '@matters/slugify'
 import Queue from 'bull'
 
 import {
@@ -142,18 +141,13 @@ export class AppreciationQueue extends BaseQueue {
 
       // insert record to LikeCoin
       const likecoin = new LikeCoin(this.connections)
-      const articleVersion = await articleService.loadLatestArticleVersion(
-        article.id
-      )
       if (author.likerId && sender.likerId) {
         likecoin.like({
           likerId: sender.likerId,
           likerIp: senderIP,
           userAgent,
           authorLikerId: author.likerId,
-          url: `https://${environment.siteDomain}/@${author.userName}/${slugify(
-            articleVersion.title
-          )}-${articleVersion.mediaHash}`,
+          url: `https://${environment.siteDomain}/a/${article.shortHash}`,
           amount: validAmount,
         })
       }
