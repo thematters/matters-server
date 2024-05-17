@@ -1,7 +1,6 @@
 import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
@@ -217,9 +216,7 @@ export class RevisionQueue extends BaseQueue {
             title: newArticleVersion.title,
             description: newArticleVersion.summary,
             datePublished: article.createdAt.toISOString().substring(0, 10),
-            url: `https://${environment.siteDomain}/@${userName}/${
-              article.id
-            }-${slugify(newArticleVersion.title)}-${mediaHash}`,
+            url: `https://${environment.siteDomain}/a/${article.shortHash}`,
             tags: newArticleVersion.tags,
 
             // for liker auth&headers info

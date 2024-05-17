@@ -1073,6 +1073,7 @@ export class PaymentService extends BaseService<Transaction> {
     article: {
       id: string
       authorId: string
+      shortHash: string
     }
   }) => {
     const notificationService = new NotificationService(this.connections)
@@ -1092,6 +1093,7 @@ export class PaymentService extends BaseService<Transaction> {
       title: articleVersion.title,
       slug: slugify(articleVersion.title),
       mediaHash: articleVersion.mediaHash,
+      shortHash: article.shortHash,
       author: {
         displayName: author.displayName,
         userName: author.userName,
