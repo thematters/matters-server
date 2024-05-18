@@ -50,7 +50,7 @@
     "@keyv/redis": "^2.6.1",
     "@matters/apollo-response-cache": "^2.0.0-alpha.0",
     "@matters/ipns-site-generator": "^0.1.6",
-    "@matters/matters-editor": "^0.2.3",
+    "@matters/matters-editor": "^0.2.4",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@sendgrid/helpers": "^7.7.0",
