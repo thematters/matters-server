@@ -348,7 +348,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       return
     }
 
-    // skip if recipeint or article is not found
+    // skip if recipient or article is not found
     const creatorUser = await userService.findByEthAddress(event.creatorAddress)
     if (!creatorUser) {
       return
@@ -625,7 +625,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     targetId: string,
     userService: UserService
   ) => {
-    // manaully invalidate cache
+    // manually invalidate cache
     if (targetType) {
       const entity = await userService.baseFindEntityTypeTable(targetType)
       const entityType =
