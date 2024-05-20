@@ -5,6 +5,8 @@ import type {
   ValueOf,
 } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
 import {
   COMMENT_STATE,
   COMMENT_TYPE,
@@ -17,7 +19,15 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   _,
   { input: { ids, state } },
-  { viewer, dataSources: { atomService, commentService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      commentService,
+      notificationService,
+      connections,
+    },
+  }
 ) => {
   const dbIds = (ids || []).map((id) => fromGlobalId(id).id)
 
@@ -62,6 +72,13 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
       state,
       updatedAt: new Date(),
     })
+
+    if (comment.type === COMMENT_TYPE.article) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Article, id: comment.targetId },
+        redis: connections.redis,
+      })
+    }
 
     return newComment
   }
