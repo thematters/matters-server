@@ -110,7 +110,7 @@ export class NotificationService {
           data: params.data, // update latest comment to DB `data` field
           bundle: { mergeData: true },
         }
-      // act as official annonuncement
+      // act as official announcement
       case DB_NOTICE_TYPE.official_announcement:
         return {
           type: DB_NOTICE_TYPE.official_announcement,
