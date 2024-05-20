@@ -57,7 +57,7 @@ const notice: {
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
         circle_new_article: NOTICE_TYPE.ArticleNotice, // deprecated
 
-        // article-artilce
+        // article-article
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
 
         // comment

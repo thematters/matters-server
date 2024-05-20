@@ -6,7 +6,7 @@ import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { UserService, AtomService } from 'connectors'
+import { UserService, AtomService, ArticleService } from 'connectors'
 import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
@@ -38,6 +38,7 @@ export class NotificationService {
     params: NotificationPrarms,
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
+    const articleService = new ArticleService(this.connections)
     switch (params.event) {
       // entity-free
       case DB_NOTICE_TYPE.user_new_follower:
@@ -110,7 +111,7 @@ export class NotificationService {
           data: params.data, // update latest comment to DB `data` field
           bundle: { mergeData: true },
         }
-      // act as official annonuncement
+      // act as official announcement
       case DB_NOTICE_TYPE.official_announcement:
         return {
           type: DB_NOTICE_TYPE.official_announcement,
@@ -156,7 +157,11 @@ export class NotificationService {
           type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_banned(language, {
-            title: params.entities[0].entity.title,
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
           }),
           entities: params.entities,
         }
@@ -174,7 +179,11 @@ export class NotificationService {
           type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_reported(language, {
-            title: params.entities[0].entity.title,
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
           }),
           entities: params.entities,
         }
