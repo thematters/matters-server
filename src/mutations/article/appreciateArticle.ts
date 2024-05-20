@@ -1,14 +1,6 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { v4 } from 'uuid'
-
-import {
-  APPRECIATION_PURPOSE,
-  APPRECIATION_TYPES,
-  ARTICLE_STATE,
-  USER_STATE,
-} from 'common/enums'
-import { environment } from 'common/environment'
+import { ARTICLE_STATE, USER_STATE } from 'common/enums'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
@@ -17,11 +9,11 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, verifyCaptchaToken } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
-  { input: { id, amount, token, superLike } },
+  { input: { id, amount } },
   context
 ) => {
   const {
@@ -30,7 +22,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       atomService,
       userService,
       articleService,
-      systemService,
       queues: { appreciationQueue },
     },
   } = context
@@ -80,56 +71,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
     throw new ForbiddenError('viewer is blocked by target author')
   }
 
-  const articleVersion = await articleService.loadLatestArticleVersion(
-    article.id
-  )
-  /**
-   * Super Like
-   */
-  if (superLike) {
-    const liker = await userService.findLiker({ userId: viewer.id })
-
-    if (liker?.likerId && author.likerId) {
-      const superLikeData = {
-        liker,
-        iscn_id: articleVersion.iscnId,
-        url: `https://${environment.siteDomain}/@${author.userName}/${article.id}`,
-        likerIp: viewer.ip,
-        userAgent: viewer.userAgent,
-      }
-      const canSuperLike = await userService.likecoin.canSuperLike(
-        superLikeData
-      )
-
-      if (!canSuperLike) {
-        throw new ForbiddenError('cannot super like')
-      }
-
-      await userService.likecoin.superlike({
-        ...superLikeData,
-        authorLikerId: author.likerId,
-      })
-
-      // insert record
-      const appreciation = {
-        senderId: viewer.id,
-        recipientId: article.authorId,
-        referenceId: article.id,
-        purpose: APPRECIATION_PURPOSE.superlike,
-        type: APPRECIATION_TYPES.like,
-      }
-      await atomService.create({
-        table: 'appreciation',
-        data: { ...appreciation, uuid: v4(), amount },
-      })
-
-      return article
-    }
-  }
-
-  /**
-   * Like
-   */
   const appreciateLeft = await articleService.appreciateLeftByUser({
     articleId: dbId,
     userId: viewer.id,
@@ -140,18 +81,6 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
 
   // Check if amount exceeded limit. if yes, then use the left amount.
   const validAmount = Math.min(amount, appreciateLeft)
-
-  // protect from scripting
-  const feature = await systemService.getFeatureFlag('verify_appreciate')
-
-  if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
-    // for a transition period, we may check both, and pass if any one pass siteverify
-    // after the transition period, can turn off the one no longer in use
-    const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
-    if (!isHuman) {
-      throw new ForbiddenError('appreciate via script is not allowed')
-    }
-  }
 
   // insert appreciation job
   appreciationQueue.appreciate({
