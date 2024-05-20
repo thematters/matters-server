@@ -1,18 +1,24 @@
 import type { NotificationType, Connections } from 'definitions'
 
-import { MONTH, NOTIFICATION_TYPES } from 'common/enums'
-import { NotificationService, UserService } from 'connectors'
+import {
+  MONTH,
+  NOTIFICATION_TYPES,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from 'common/enums'
+import { NotificationService, UserService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let userService: UserService
+let atomService: AtomService
 let notificationService: NotificationService
 const recipientId = '1'
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
+  atomService = new AtomService(connections)
   notificationService = new NotificationService(connections)
 }, 30000)
 
@@ -126,6 +132,34 @@ const getBundleableUserNewFollowerNotice = async () => {
   })
   return bundleables[0]
 }
+
+describe('create notice', () => {
+  test('article title in messages is not `undefined`', async () => {
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+
+    await notificationService.trigger({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.article_banned,
+      entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      recipientId: article.authorId,
+    })
+    await notificationService.trigger({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.article_reported,
+      entities: [{ type: 'target', entityTable: 'article', entity: article }],
+      recipientId: article.authorId,
+    })
+
+    const notices = await notificationService.notice.findByUser({
+      userId: article.authorId,
+    })
+
+    expect(notices[0].message).not.toContain('undefined')
+    expect(notices[1].message).not.toContain('undefined')
+  })
+})
+
 describe('find notice', () => {
   test('find one notice', async () => {
     const notice = await notificationService.notice.dataloader.load('1')
