@@ -34,7 +34,10 @@ const resolver: GQLArticleResolvers['replyToDonator'] = async (
         targetId: articleId,
         senderId: viewer.id,
       },
-      whereIn: ['state', [TRANSACTION_STATE.succeeded, TRANSACTION_STATE.pending]],
+      whereIn: [
+        'state',
+        [TRANSACTION_STATE.succeeded, TRANSACTION_STATE.pending],
+      ],
     })
     return count > 0
   }
