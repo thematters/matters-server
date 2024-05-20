@@ -30,11 +30,11 @@ const resolver: GQLArticleResolvers['replyToDonator'] = async (
       table: 'transaction',
       where: {
         purpose: TRANSACTION_PURPOSE.donation,
-        state: TRANSACTION_STATE.succeeded,
         targetType: entityTypeId,
         targetId: articleId,
         senderId: viewer.id,
       },
+      whereIn: ['state', [TRANSACTION_STATE.succeeded, TRANSACTION_STATE.pending]],
     })
     return count > 0
   }
