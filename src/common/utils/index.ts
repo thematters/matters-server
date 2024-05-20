@@ -40,6 +40,7 @@ export const makeUserName = (email: string): string => {
   return matched.join('').substring(0, 12).toLowerCase()
 }
 
+// TOFIX: uuid extract logic is broken after editor upgrade
 export const extractAssetDataFromHtml = (
   html: string,
   type?: 'image' | 'audio'
