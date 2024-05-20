@@ -3,7 +3,6 @@ import type { BasicAcceptedElems } from 'cheerio'
 import type {
   Connections,
   UserOAuthLikeCoin,
-  Draft,
   Article,
   ArticleVersion,
   ArticleConnection,
@@ -25,11 +24,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import {
-  extractAssetDataFromHtml,
-  fromGlobalId,
-  normalizeTagInput,
-} from 'common/utils'
+import { fromGlobalId, normalizeTagInput } from 'common/utils'
 import {
   TagService,
   DraftService,
@@ -181,7 +176,7 @@ export class PublicationQueue extends BaseQueue {
         ])
 
       // Remove unused assets
-      await this.deleteUnusedAssets({ draftEntityTypeId, draft })
+      // await this.deleteUnusedAssets({ draftEntityTypeId, draft })
       await job.progress(70)
 
       // Swap cover assets from draft to article
@@ -523,40 +518,41 @@ export class PublicationQueue extends BaseQueue {
   /**
    * Delete unused assets from S3 and DB, skip if error is thrown.
    */
-  private deleteUnusedAssets = async ({
-    draftEntityTypeId,
-    draft,
-  }: {
-    draftEntityTypeId: string
-    draft: Draft
-  }) => {
-    const systemService = new SystemService(this.connections)
-    try {
-      const [assets, uuids] = await Promise.all([
-        systemService.findAssetAndAssetMap({
-          entityTypeId: draftEntityTypeId,
-          entityId: draft.id,
-        }),
-        extractAssetDataFromHtml(draft.content),
-      ])
+  // TOFIX: `extractAssetDataFromHtml` and `systemService.deleteAssetAndAssetMap` are broken
+  // private deleteUnusedAssets = async ({
+  //   draftEntityTypeId,
+  //   draft,
+  // }: {
+  //   draftEntityTypeId: string
+  //   draft: Draft
+  // }) => {
+  //   const systemService = new SystemService(this.connections)
+  //   try {
+  //     const [assets, uuids] = await Promise.all([
+  //       systemService.findAssetAndAssetMap({
+  //         entityTypeId: draftEntityTypeId,
+  //         entityId: draft.id,
+  //       }),
+  //       extractAssetDataFromHtml(draft.content),
+  //     ])
 
-      const unusedAssetPaths: { [id: string]: string } = {}
-      assets.forEach((asset: any) => {
-        const isCover = draft.cover === asset.assetId
-        const isEmbed = uuids && uuids.includes(asset.uuid)
+  //     const unusedAssetPaths: { [id: string]: string } = {}
+  //     assets.forEach((asset: any) => {
+  //       const isCover = draft.cover === asset.assetId
+  //       const isEmbed = uuids && uuids.includes(asset.uuid)
 
-        if (!isCover && !isEmbed) {
-          unusedAssetPaths[`${asset.assetId}`] = asset.path
-        }
-      })
+  //       if (!isCover && !isEmbed) {
+  //         unusedAssetPaths[`${asset.assetId}`] = asset.path
+  //       }
+  //     })
 
-      if (Object.keys(unusedAssetPaths).length > 0) {
-        await systemService.deleteAssetAndAssetMap(unusedAssetPaths)
-      }
-    } catch (e) {
-      logger.error(e)
-    }
-  }
+  //     if (Object.keys(unusedAssetPaths).length > 0) {
+  //       await systemService.deleteAssetAndAssetMap(unusedAssetPaths)
+  //     }
+  //   } catch (e) {
+  //     logger.error(e)
+  //   }
+  // }
 
   private handleRefreshIPNSFeed: Queue.ProcessCallbackFunction<unknown> =
     async (
