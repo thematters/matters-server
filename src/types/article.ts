@@ -217,6 +217,9 @@ export default /* GraphQL */ `
     license: ArticleLicenseType!
 
     "creator message asking for support"
+    donated: Boolean! @privateCache
+
+    "creator message asking for support"
     requestForDonation: String
 
     "creator message after support"
