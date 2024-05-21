@@ -78,7 +78,7 @@ export class PublicationQueue extends BaseQueue {
     })
 
   /**
-   * Cusumers
+   * Consumers
    */
   private addConsumers = () => {
     // publish article
