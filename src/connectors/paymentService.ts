@@ -1045,9 +1045,29 @@ export class PaymentService extends BaseService<Transaction> {
 
   /*********************************
    *                               *
-   *           notification        *
+   *           Donation            *
    *                               *
    *********************************/
+
+  public isDonator = async (userId: string, articleId: string) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+    const count = await this.models.count({
+      table: 'transaction',
+      where: {
+        purpose: TRANSACTION_PURPOSE.donation,
+        targetType: entityTypeId,
+        targetId: articleId,
+        senderId: userId,
+      },
+      whereIn: [
+        'state',
+        [TRANSACTION_STATE.succeeded, TRANSACTION_STATE.pending],
+      ],
+    })
+    return count > 0
+  }
 
   public notifyDonation = async ({
     tx,

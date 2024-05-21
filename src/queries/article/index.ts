@@ -19,6 +19,7 @@ import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
 import dataHash from './dataHash'
+import donated from './donated'
 import donationCount from './donationCount'
 import donations from './donations'
 import hasAppreciate from './hasAppreciate'
@@ -125,6 +126,7 @@ const schema: GQLResolvers = {
     revisionCount,
     license,
     canComment,
+    donated,
     requestForDonation,
     replyToDonator,
     donationCount,

@@ -54,6 +54,7 @@ const GET_ARTICLE = /* GraphQL */ `
           html
           markdown
         }
+        donated
         requestForDonation
         replyToDonator
         canComment
@@ -841,12 +842,13 @@ describe('edit article', () => {
     })
     expect(data4.node.requestForDonation).toBe(requestForDonation2)
     expect(data4.node.replyToDonator).toBe(null)
+    expect(data4.node.donated).toBe(false)
 
     // donators can view replyToDonator
     const paymentService = new PaymentService(connections)
     await paymentService.createTransaction({
       amount: 1,
-      state: TRANSACTION_STATE.succeeded,
+      state: TRANSACTION_STATE.pending,
       purpose: TRANSACTION_PURPOSE.donation,
       senderId: context.viewer.id,
       targetId: articleId,
@@ -864,6 +866,7 @@ describe('edit article', () => {
     })
     expect(data5.node.requestForDonation).toBe(requestForDonation2)
     expect(data5.node.replyToDonator).toBe(replyToDonator)
+    expect(data5.node.donated).toBe(true)
   })
 
   test('edit comment settings', async () => {
