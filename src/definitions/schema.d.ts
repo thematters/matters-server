@@ -202,6 +202,8 @@ export type GQLArticle = GQLNode &
     createdAt: Scalars['DateTime']['output']
     /** IPFS hash of this article. */
     dataHash: Scalars['String']['output']
+    /** creator message asking for support */
+    donated: Scalars['Boolean']['output']
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
     /** Donations of this article, grouped by sender */
@@ -5427,6 +5429,7 @@ export type GQLArticleResolvers<
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   dataHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  donated?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   donationCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   donations?: Resolver<
     GQLResolversTypes['ArticleDonationConnection'],
