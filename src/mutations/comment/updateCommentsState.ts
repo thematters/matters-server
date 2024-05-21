@@ -102,14 +102,12 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
   if (state === COMMENT_STATE.banned) {
     await Promise.all(
       comments.map(async (comment) => {
-        const user = await atomService.userIdLoader.load(comment.authorId)
-
         notificationService.trigger({
           event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
           entities: [
             { type: 'target', entityTable: 'comment', entity: comment },
           ],
-          recipientId: user.id,
+          recipientId: comment.authorId,
         })
       })
     )
