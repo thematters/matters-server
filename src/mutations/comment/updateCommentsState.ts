@@ -98,22 +98,27 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
     updatedAt: new Date(),
   })
 
-  // trigger notification
-  if (state === COMMENT_STATE.banned) {
-    await Promise.all(
-      comments.map(async (comment) => {
-        const user = await atomService.userIdLoader.load(comment.authorId)
-
+  await Promise.all(
+    comments.map(async (comment) => {
+      // trigger notification
+      if (state === COMMENT_STATE.banned) {
         notificationService.trigger({
           event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
           entities: [
             { type: 'target', entityTable: 'comment', entity: comment },
           ],
-          recipientId: user.id,
+          recipientId: comment.authorId,
         })
-      })
-    )
-  }
+      }
+      // invalidate cache
+      if (comment.type === COMMENT_TYPE.article) {
+        invalidateFQC({
+          node: { type: NODE_TYPES.Article, id: comment.targetId },
+          redis: connections.redis,
+        })
+      }
+    })
+  )
 
   return comments
 }
