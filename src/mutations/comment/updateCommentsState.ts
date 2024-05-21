@@ -98,10 +98,10 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
     updatedAt: new Date(),
   })
 
-  // trigger notification
-  if (state === COMMENT_STATE.banned) {
-    await Promise.all(
-      comments.map(async (comment) => {
+  await Promise.all(
+    comments.map(async (comment) => {
+      // trigger notification
+      if (state === COMMENT_STATE.banned) {
         notificationService.trigger({
           event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
           entities: [
@@ -109,9 +109,16 @@ const resolver: GQLMutationResolvers['updateCommentsState'] = async (
           ],
           recipientId: comment.authorId,
         })
-      })
-    )
-  }
+      }
+      // invalidate cache
+      if (comment.type === COMMENT_TYPE.article) {
+        invalidateFQC({
+          node: { type: NODE_TYPES.Article, id: comment.targetId },
+          redis: connections.redis,
+        })
+      }
+    })
+  )
 
   return comments
 }
