@@ -216,7 +216,7 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
-    "creator message asking for support"
+    "whether current viewer has donated to this article"
     donated: Boolean! @privateCache
 
     "creator message asking for support"

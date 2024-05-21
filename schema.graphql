@@ -442,7 +442,7 @@ type Article implements Node & PinnableWork {
   """License Type"""
   license: ArticleLicenseType!
 
-  """creator message asking for support"""
+  """whether current viewer has donated to this article"""
   donated: Boolean!
 
   """creator message asking for support"""

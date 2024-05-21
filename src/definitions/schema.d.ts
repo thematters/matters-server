@@ -202,7 +202,7 @@ export type GQLArticle = GQLNode &
     createdAt: Scalars['DateTime']['output']
     /** IPFS hash of this article. */
     dataHash: Scalars['String']['output']
-    /** creator message asking for support */
+    /** whether current viewer has donated to this article */
     donated: Scalars['Boolean']['output']
     /** Total number of donation recieved of this article. */
     donationCount: Scalars['Int']['output']
