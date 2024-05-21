@@ -16,7 +16,6 @@ import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
-  ForbiddenError,
   UserNotFoundError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
@@ -104,9 +103,6 @@ export class AppreciationQueue extends BaseQueue {
       })
       if (!article) {
         throw new ArticleNotFoundError('article does not exist')
-      }
-      if (article.authorId === senderId) {
-        throw new ForbiddenError('cannot appreciate your own article')
       }
 
       // check appreciate left
