@@ -947,7 +947,7 @@ export class ArticleService extends BaseService<Article> {
         }
       })
 
-    const nodes = await this.models.userIdLoader.loadMany(
+    const nodes = await this.models.articleIdLoader.loadMany(
       records.map((item: { id: string }) => item.id).filter(Boolean)
     )
 
