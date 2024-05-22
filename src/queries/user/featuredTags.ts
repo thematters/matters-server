@@ -3,7 +3,7 @@ import type { GQLUserInfoResolvers } from 'definitions'
 const resolver: GQLUserInfoResolvers['featuredTags'] = async (
   { id },
   _,
-  { dataSources: { atomService, tagService } }
+  { dataSources: { atomService } }
 ) => {
   if (id === undefined) {
     return null
@@ -14,7 +14,7 @@ const resolver: GQLUserInfoResolvers['featuredTags'] = async (
     where: { userId: id },
   })
 
-  return tagService.loadByIds(userTags?.tagIds)
+  return atomService.tagIdLoader.loadMany(userTags?.tagIds)
 }
 
 export default resolver

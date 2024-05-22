@@ -1,7 +1,7 @@
 import type { GQLArticleOssResolvers } from 'definitions'
 
 export const boost: GQLArticleOssResolvers['boost'] = async (
-  { articleId },
+  { id: articleId },
   _,
   { dataSources: { atomService } }
 ) => {
@@ -18,11 +18,11 @@ export const boost: GQLArticleOssResolvers['boost'] = async (
 }
 
 export const score: GQLArticleOssResolvers['score'] = async (
-  { articleId },
+  { id: articleId },
   _,
   { dataSources: { atomService } }
 ) => {
-  const article = await atomService.findFirst({
+  const article = await atomService.findUnique({
     table: 'article_count_view',
     where: { id: articleId },
   })
@@ -30,7 +30,7 @@ export const score: GQLArticleOssResolvers['score'] = async (
 }
 
 export const inRecommendIcymi: GQLArticleOssResolvers['inRecommendIcymi'] =
-  async ({ articleId }, _, { dataSources: { atomService } }) => {
+  async ({ id: articleId }, _, { dataSources: { atomService } }) => {
     const record = await atomService.findFirst({
       table: 'matters_choice',
       where: { articleId },
@@ -39,7 +39,7 @@ export const inRecommendIcymi: GQLArticleOssResolvers['inRecommendIcymi'] =
   }
 
 export const inRecommendHottest: GQLArticleOssResolvers['inRecommendHottest'] =
-  async ({ articleId }, _, { dataSources: { atomService } }) => {
+  async ({ id: articleId }, _, { dataSources: { atomService } }) => {
     const setting = await atomService.findFirst({
       table: 'article_recommend_setting',
       where: { articleId },
@@ -53,7 +53,7 @@ export const inRecommendHottest: GQLArticleOssResolvers['inRecommendHottest'] =
   }
 
 export const inRecommendNewest: GQLArticleOssResolvers['inRecommendNewest'] =
-  async ({ articleId }, _, { dataSources: { atomService } }) => {
+  async ({ id: articleId }, _, { dataSources: { atomService } }) => {
     const setting = await atomService.findFirst({
       table: 'article_recommend_setting',
       where: { articleId },

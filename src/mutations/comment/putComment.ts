@@ -2,8 +2,12 @@ import type {
   GQLMutationResolvers,
   NoticeCircleNewBroadcastCommentsParams,
   NoticeCircleNewDiscussionCommentsParams,
+  Article,
+  Circle,
+  Comment,
 } from 'definitions'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeCommentHTML,
   sanitizeHTML,
@@ -18,6 +22,8 @@ import {
   CACHE_KEYWORD,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_COMMENT_LENGTH,
+  MAX_COMMENT_EMPTY_PARAGRAPHS,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -52,11 +58,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     dataSources: {
       atomService,
       paymentService,
-      commentService,
       articleService,
       notificationService,
       userService,
-      connections: { knex },
     },
   }
 ) => {
@@ -69,17 +73,21 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     )
   }
 
-  const data: { [key: string]: any } = {
-    content: normalizeCommentHTML(sanitizeHTML(content)),
+  const data: Partial<Comment> & { mentionedUserIds?: any } = {
+    content: normalizeCommentHTML(
+      sanitizeHTML(content, {
+        maxEmptyParagraphs: MAX_COMMENT_EMPTY_PARAGRAPHS,
+      })
+    ),
     authorId: viewer.id,
   }
 
   /**
    * check target
    */
-  let article: any
-  let circle: any
-  let targetAuthor: any
+  let article: Article | undefined
+  let circle: Circle | undefined
+  let targetAuthor: string | undefined
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
     article = await atomService.findFirst({
@@ -89,6 +97,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     if (!article) {
       throw new ArticleNotFoundError('target article does not exists')
     }
+    const { id: articleVersionId } =
+      await articleService.loadLatestArticleVersion(article.id)
 
     const { id: typeId } = await atomService.findFirst({
       table: 'entity_type',
@@ -96,11 +106,12 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     })
     data.targetTypeId = typeId
     data.targetId = article.id
+    data.articleVersionId = articleVersionId
 
     targetAuthor = article.authorId
   } else if (circleId) {
     const { id: circleDbId } = fromGlobalId(circleId)
-    circle = await atomService.circleIdLoader.load(circleDbId)
+    circle = (await atomService.circleIdLoader.load(circleDbId)) as Circle
 
     if (!circle) {
       throw new CircleNotFoundError('target circle does not exists')
@@ -134,13 +145,17 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     data.type = COMMENT_TYPE[type]
   }
 
+  if (isArticleType && stripHtml(content).length > MAX_ARTICLE_COMMENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+
   /**
    * check parentComment
    */
-  let parentComment: any
+  let parentComment: Comment | undefined = undefined
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
-    parentComment = await commentService.loadById(parentDbId)
+    parentComment = await atomService.commentIdLoader.load(parentDbId)
     if (!parentComment) {
       throw new CommentNotFoundError('target parentComment does not exists')
     }
@@ -160,10 +175,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check reply to
    */
-  let replyToComment: any
+  let replyToComment: Comment | undefined = undefined
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
-    replyToComment = await commentService.loadById(replyToDBId)
+    replyToComment = await atomService.commentIdLoader.load(replyToDBId)
     if (!replyToComment) {
       throw new CommentNotFoundError('target replyToComment does not exists')
     }
@@ -287,12 +302,12 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * Update
    */
-  let newComment: any
+  let newComment: Comment
   if (id) {
     const { id: commentDbId } = fromGlobalId(id)
 
     // check permission
-    const comment = await commentService.loadById(commentDbId)
+    const comment = await atomService.commentIdLoader.load(commentDbId)
     if (comment.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
@@ -305,7 +320,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
-        updatedAt: knex.fn.now(), // new Date(),
       },
     })
   } else {
@@ -320,6 +334,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         authorId: data.authorId,
         targetId: data.targetId,
         targetTypeId: data.targetTypeId,
+        articleVersionId: data.articleVersionId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
         type: data.type,
@@ -504,11 +519,11 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   })
 
   // invalidate extra nodes
-  newComment[CACHE_KEYWORD] = [
+  ;(newComment as Comment & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
     parentComment ? { id: parentComment.id, type: NODE_TYPES.Comment } : {},
     replyToComment ? { id: replyToComment.id, type: NODE_TYPES.Comment } : {},
     {
-      id: article ? article.id : circle.id,
+      id: article ? article.id : circle?.id,
       type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
     },
   ]

@@ -16,7 +16,6 @@ import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
-  ForbiddenError,
   UserNotFoundError,
 } from 'common/errors'
 import { getLogger } from 'common/logger'
@@ -42,7 +41,7 @@ interface AppreciationParams {
 
 export class AppreciationQueue extends BaseQueue {
   public constructor(connections: Connections) {
-    // make it a bit slower on handling jobs in order to reduce courrent operations
+    // make it a bit slower on handling jobs in order to reduce concurrent operations
     super(QUEUE_NAME.appreciation, connections, {
       limiter: { max: 1, duration: 500 },
     })
@@ -105,9 +104,6 @@ export class AppreciationQueue extends BaseQueue {
       if (!article) {
         throw new ArticleNotFoundError('article does not exist')
       }
-      if (article.authorId === senderId) {
-        throw new ForbiddenError('cannot appreciate your own article')
-      }
 
       // check appreciate left
       const appreciateLeft = await articleService.appreciateLeftByUser({
@@ -147,7 +143,7 @@ export class AppreciationQueue extends BaseQueue {
           likerIp: senderIP,
           userAgent,
           authorLikerId: author.likerId,
-          url: `https://${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+          url: `https://${environment.siteDomain}/a/${article.shortHash}`,
           amount: validAmount,
         })
       }
@@ -172,6 +168,7 @@ export class AppreciationQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       logger.error(err)
       done(err)

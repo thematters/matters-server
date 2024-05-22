@@ -1,9 +1,7 @@
 import { v3 as TranslateAPI } from '@google-cloud/translate'
-import axios from 'axios'
 
 import { LANGUAGE } from 'common/enums'
-import { environment, isTest } from 'common/environment'
-import { ActionFailedError, UserInputError } from 'common/errors'
+import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
 
 const logger = getLogger('service-gcp')
@@ -13,7 +11,7 @@ const { zh_hans, zh_hant, en } = LANGUAGE
 export class GCP {
   private translateAPI: TranslateAPI.TranslationServiceClient
 
-  constructor() {
+  public constructor() {
     this.translateAPI = new TranslateAPI.TranslationServiceClient({
       projectId: environment.gcpProjectId,
       keyFilename: environment.translateCertPath,
@@ -89,45 +87,6 @@ export class GCP {
       logger.error(err)
       return
     }
-  }
-
-  public recaptcha = async ({ token, ip }: { token?: string; ip?: string }) => {
-    // skip test
-    if (isTest) {
-      return true
-    }
-
-    if (!token) {
-      throw new UserInputError(
-        'operation is only allowed on matters.{town,news}'
-      )
-    }
-
-    // Turing test with recaptcha
-    const { data } = await axios({
-      method: 'post',
-      url: 'https://www.google.com/recaptcha/api/siteverify',
-      params: {
-        secret: environment.recaptchaSecret,
-        response: token,
-        remoteip: ip,
-      },
-    })
-
-    const { success, score } = data
-
-    if (!success) {
-      logger.warn('gcp recaptcha no success: %j', data)
-      throw new ActionFailedError(`please try again: ${data['error-codes']}`)
-    }
-
-    // fail for less than 0.5
-    if (score < 0.5) {
-      logger.info('very likely bot traffic: %j', data)
-    }
-
-    // pass
-    return score > 0.0
   }
 }
 

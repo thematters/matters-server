@@ -1,6 +1,9 @@
+import type { EmailableUser } from 'definitions'
+
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
+import _capitalize from 'lodash/capitalize'
 import NP from 'number-precision'
 
 import {
@@ -32,7 +35,8 @@ const invalidateCache = async ({
 }) => {
   if (typeId) {
     const result = await userService.baseFindEntityTypeTable(typeId)
-    const type = NODE_TYPES[(result?.table as keyof typeof NODE_TYPES) || '']
+    const type =
+      NODE_TYPES[(_capitalize(result?.table) as keyof typeof NODE_TYPES) || '']
     if (type) {
       await invalidateFQC({
         node: { type, id },
@@ -92,7 +96,6 @@ likecoinRouter.get('/', async (req, res) => {
       id: tx.id,
       provider_tx_id: tx_hash,
       state: cosmosState,
-      updatedAt: new Date(),
     }
 
     // correct amount if it changed via LikePay
@@ -260,18 +263,23 @@ likecoinRouter.post('/', async (req, res, next) => {
     }
 
     // notification
-    const sender = await userService.baseFindById(resultTx.senderId)
+    const sender = resultTx.senderId
+      ? await userService.baseFindById(resultTx.senderId)
+      : null
     const recipient = await userService.baseFindById(resultTx.recipientId)
     const article = await atomService.findFirst({
       table: 'article',
       where: { id: resultTx.targetId },
     })
-    await paymentService.notifyDonation({
-      tx: resultTx,
-      sender,
-      recipient,
-      article,
-    })
+
+    if (sender && recipient) {
+      await paymentService.notifyDonation({
+        tx: resultTx,
+        sender: sender as EmailableUser,
+        recipient: recipient as EmailableUser,
+        article,
+      })
+    }
 
     // manaully invalidate cache
     invalidateCache({

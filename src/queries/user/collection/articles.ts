@@ -9,7 +9,7 @@ import {
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
   { input: { first, after, reversed } },
-  { dataSources: { draftService, collectionService } }
+  { dataSources: { atomService, collectionService } }
 ) => {
   if (!collectionId) {
     return connectionFromArray([], { first, after })
@@ -18,7 +18,7 @@ const resolver: GQLCollectionResolvers['articles'] = async (
   const { skip, take } = fromConnectionArgs({ first, after })
 
   if (take === 0) {
-    const [_, count] = await collectionService.findAndCountArticlesInCollection(
+    const [, count] = await collectionService.findAndCountArticlesInCollection(
       collectionId,
       {
         skip,
@@ -37,7 +37,9 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     })
 
   return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
+    atomService.articleIdLoader.loadMany(
+      articles.map(({ articleId }) => articleId)
+    ),
     { first, after },
     totalCount
   )

@@ -4,10 +4,8 @@ import type {
   GQLVote,
   Comment,
   Connections,
-  Item,
+  ValueOf,
 } from 'definitions'
-
-import DataLoader from 'dataloader'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
@@ -15,36 +13,21 @@ import {
   COMMENT_TYPE,
   USER_ACTION,
 } from 'common/enums'
-import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
 
-interface CommentFilter {
-  targetId?: string
-  targetTypeId?: string
+export interface CommentFilter {
+  type: ValueOf<typeof COMMENT_TYPE>
+  targetId: string
+  targetTypeId: string
+  parentCommentId?: string | null
   authorId?: string
   state?: string
-  parentCommentId?: string | null
 }
 
-export class CommentService extends BaseService {
-  public dataloader: DataLoader<string, Item>
-
+export class CommentService extends BaseService<Comment> {
   public constructor(connections: Connections) {
     super('comment', connections)
-    this.dataloader = new DataLoader(async (ids: readonly string[]) => {
-      const result = await this.baseFindByIds(ids)
-
-      if (result.findIndex((item: any) => !item) >= 0) {
-        throw new CommentNotFoundError('Cannot find comment')
-      }
-      return result
-    })
   }
-
-  public loadById = async (id: string): Promise<Comment> =>
-    this.dataloader.load(id) as Promise<Comment>
-  public loadByIds = async (ids: string[]): Promise<Comment[]> =>
-    this.dataloader.loadMany(ids) as Promise<Comment[]>
 
   /**
    * Count comments by a given article id.
@@ -74,14 +57,18 @@ export class CommentService extends BaseService {
     id: string
     skip?: number
     take?: number
-  }) => {
+  }): Promise<[Comment[], number]> => {
     let where: { [key: string]: string | boolean } = {
       parentCommentId: id,
     }
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex.select().from(this.table).where(where).orderBy('created_at', by)
+      this.knex
+        .select(['*', this.knex.raw('count(1) OVER() AS total_count')])
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
 
     if (author) {
       where = { ...where, authorId: author }
@@ -101,8 +88,9 @@ export class CommentService extends BaseService {
     if (take || take === 0) {
       query.limit(take)
     }
+    const records = await query
 
-    return query
+    return [records, records[0] ? parseInt(records[0].totalCount, 10) : 0]
   }
 
   /**
@@ -117,21 +105,36 @@ export class CommentService extends BaseService {
     includeAfter = false,
     includeBefore = false,
   }: GQLCommentsInput & { where: CommentFilter; order?: string }): Promise<
-    Comment[]
+    [Comment[], number]
   > => {
-    const query = this.knex
-      .select()
-      .from(this.table)
+    const subQuery = this.knexRO
+      .select(this.knexRO.raw('COUNT(id) OVER() AS total_count'), '*')
+      .fromRaw('comment AS outer_comment')
       .where(where)
+      .andWhere((andWhereBuilder) => {
+        // filter archived/banned comments when `where.state` params is not specified
+        // and where.parent_comment_id is specified
+        // as we don't want to show archived/banned comments for normal users, but not the case in oss
+        if (!('state' in where) && 'parentCommentId' in where) {
+          andWhereBuilder
+            .where({ state: COMMENT_STATE.active })
+            .orWhere({ state: COMMENT_STATE.collapsed })
+            .orWhere((orWhereBuilder) => {
+              orWhereBuilder
+                .andWhere(
+                  this.knexRO.raw(
+                    '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                    [COMMENT_STATE.active, COMMENT_STATE.collapsed]
+                  ),
+                  '>',
+                  0
+                )
+            })
+        }
+      })
       .orderBy('created_at', order)
 
-    if (before) {
-      if (includeBefore) {
-        query.andWhere('id', order === 'asc' ? '<=' : '>=', before)
-      } else {
-        query.andWhere('id', order === 'asc' ? '<' : '>', before)
-      }
-    }
+    const query = this.knexRO.from(subQuery.as('t1'))
 
     if (after) {
       if (includeAfter) {
@@ -140,32 +143,18 @@ export class CommentService extends BaseService {
         query.andWhere('id', order === 'asc' ? '>' : '<', after)
       }
     }
-
+    if (before) {
+      if (includeBefore) {
+        query.andWhere('id', order === 'asc' ? '<=' : '>=', before)
+      } else {
+        query.andWhere('id', order === 'asc' ? '<' : '>', before)
+      }
+    }
     if (first) {
       query.limit(first)
     }
-
-    return query
-  }
-
-  /**
-   * Find id range with given filter
-   */
-  public range = async (where: CommentFilter) => {
-    const { count, max, min } = (await this.knex
-      .select()
-      .from(this.table)
-      .where(where)
-      .min('id')
-      .max('id')
-      .count()
-      .first()) as Record<string, any>
-
-    return {
-      count: parseInt(count, 10),
-      min: parseInt(min, 10),
-      max: parseInt(max, 10),
-    }
+    const records = await query
+    return [records, +records[0]?.totalCount || 0]
   }
 
   /*********************************
@@ -190,7 +179,7 @@ export class CommentService extends BaseService {
 
     return this.baseUpdateOrCreate({
       where: data,
-      data: { updatedAt: new Date(), ...data },
+      data: data,
       table: 'action_comment',
     })
   }

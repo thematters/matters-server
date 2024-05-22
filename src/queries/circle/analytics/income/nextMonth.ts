@@ -21,7 +21,7 @@ const resolver: GQLCircleIncomeAnalyticsResolvers['nextMonth'] = async (
     atomService.findFirst({
       table: 'circle_price',
       where: {
-        circle_id: id,
+        circleId: id,
         state: 'active',
       },
     }),

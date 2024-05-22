@@ -5,7 +5,7 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 const resolver: GQLTagResolvers['articles'] = async (
   root,
   { input },
-  { dataSources: { tagService, articleService } }
+  { dataSources: { tagService, atomService } }
 ) => {
   const { selected, sortBy } = input
   const { take, skip } = fromConnectionArgs(input)
@@ -30,7 +30,7 @@ const resolver: GQLTagResolvers['articles'] = async (
   ])
 
   return connectionFromPromisedArray(
-    articleService.loadDraftsByArticles(articleIds),
+    atomService.articleIdLoader.loadMany(articleIds),
     input,
     totalCount
   )

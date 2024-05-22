@@ -9,22 +9,22 @@ CREATE OR REPLACE FUNCTION pg_temp.slug(input text) RETURNS text AS $f$
 $f$ LANGUAGE SQL IMMUTABLE RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION pg_temp.array_distinct(
-  anyarray, -- input array 
+  anyarray, -- input array
   boolean DEFAULT false -- flag to ignore nulls
 ) RETURNS anyarray AS $f$
-  SELECT array_agg(DISTINCT x) 
-  FROM unnest($1) t(x) 
+  SELECT array_agg(DISTINCT x)
+  FROM unnest($1) t(x)
   WHERE CASE WHEN $2 THEN x IS NOT NULL ELSE true END;
 $f$ LANGUAGE SQL IMMUTABLE RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION pg_temp.array_uniq_stable(anyarray) RETURNS anyarray AS $f$
 SELECT
     array_agg(distinct_value ORDER BY first_index)
-FROM 
+FROM
     (SELECT
-        value AS distinct_value, 
-        min(index) AS first_index 
-    FROM 
+        value AS distinct_value,
+        min(index) AS first_index
+    FROM
         unnest($1) WITH ORDINALITY AS input(value, index)
     GROUP BY
         value
@@ -238,7 +238,7 @@ WITH article_tag_stats_by_slug AS (
     SELECT t.slug, author_id, -- date_trunc('month', at.created_at) ::date AS month,
       MAX(at.created_at) AS last_use,
       COUNT(DISTINCT article_id) ::int AS num_articles, -- , COUNT(*) ::int -- COUNT(DISTINCT author_id) ::int AS num_authors
-      (ARRAY_AGG(concat(a.id, '-', a.slug, '-', a.media_hash) ORDER BY a.created_at DESC))[1:5] AS last_5
+      (ARRAY_AGG(concat(a.id) ORDER BY a.created_at DESC))[1:5] AS last_5
     FROM public.article_tag at JOIN public.article a ON article_id=a.id AND a.state IN ('active')
     JOIN pg_temp.tag t ON tag_id=t.id
     -- WHERE at.created_at >= date_trunc('month', CURRENT_DATE - '18 months'::interval)
@@ -297,10 +297,11 @@ SELECT slug,
   -- SELECT t.id, asset.path AS cover
   -- FROM (
     SELECT id, COALESCE(t.cover,
-      (SELECT article.cover
+      (SELECT avn.cover
         FROM public.article_tag at
         LEFT JOIN public.article ON at.article_id=article.id AND article.state IN ('active') -- NOT IN ('archived', 'banned')
-        WHERE at.tag_id = t.id AND article.cover IS NOT NULL
+        LEFT JOIN public.article_version_newest avn ON at.article_id=avn.article_id
+        WHERE at.tag_id = t.id AND avn.cover IS NOT NULL
         ORDER BY at.id ASC
         LIMIT 1 -- find the earliest one article with cover, re-use as tagCover
       )

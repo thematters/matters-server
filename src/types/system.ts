@@ -32,6 +32,9 @@ export default /* GraphQL */ `
     "Delete blocked search keywords from search_history db"
     deleteBlockedSearchKeywords(input:KeywordsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
 
+    "Submit inappropriate content report"
+    submitReport(input: SubmitReportInput!): Report! @auth(mode: "${AUTH_MODE.oauth}")
+
     ##############
     #     OSS    #
     ##############
@@ -43,6 +46,7 @@ export default /* GraphQL */ `
     putAnnouncement(input: PutAnnouncementInput!): Announcement! @auth(mode: "${AUTH_MODE.admin}")
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
+    putIcymiTopic(input:PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input KeywordsInput {
@@ -130,6 +134,8 @@ export default /* GraphQL */ `
     seedingUsers(input: ConnectionArgs!): UserConnection!
     badgedUsers(input: BadgedUsersInput!): UserConnection!
     restrictedUsers(input: ConnectionArgs!): UserConnection!
+    reports(input: ConnectionArgs!): ReportConnection!
+    icymiTopics(input:ConnectionArgs!): IcymiTopicConnection!
   }
 
 
@@ -206,6 +212,25 @@ export default /* GraphQL */ `
   type UserRestriction {
     type: UserRestrictionType!
     createdAt: DateTime!
+  }
+
+  type Report implements Node {
+    id: ID!
+    reporter: User!
+    target: Response!
+    reason: ReportReason!
+    createdAt: DateTime!
+  }
+
+  type ReportConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [ReportEdge!]
+  }
+
+  type ReportEdge {
+    cursor: String!
+    node: Report!
   }
 
   input NodeInput {
@@ -350,6 +375,11 @@ export default /* GraphQL */ `
     restrictions: [UserRestrictionType!]!
   }
 
+  input SubmitReportInput {
+    targetId: ID!
+    reason: ReportReason!
+  }
+
   enum SearchTypes {
     Article
     User
@@ -402,7 +432,6 @@ export default /* GraphQL */ `
     circleCover
     collectionCover
     announcementCover
-    topicCover
   }
 
   enum EntityType {
@@ -412,7 +441,6 @@ export default /* GraphQL */ `
     user
     circle
     announcement
-    topic
     collection
   }
 
@@ -461,6 +489,52 @@ export default /* GraphQL */ `
     articleHottest
     articleNewest
   }
+
+  enum ReportReason {
+    tort
+    illegal_advertising
+    discrimination_insult_hatred
+    pornography_involving_minors
+    other
+  }
+
+  type IcymiTopic implements Node {
+    id: ID!
+    title: String!
+    articles: [Article!]!
+    pinAmount: Int!
+    note: String
+    state: IcymiTopicState!
+    publishedAt: DateTime
+    archivedAt: DateTime
+  }
+
+  enum IcymiTopicState {
+    published
+    editing
+    archived
+  }
+
+  type IcymiTopicConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [IcymiTopicEdge!]!
+  }
+
+  type IcymiTopicEdge {
+    cursor: String!
+    node: IcymiTopic!
+  }
+
+  input PutIcymiTopicInput {
+   id: ID
+   title: String
+   articles: [ID!]
+   pinAmount: Int
+   note: String
+   state: IcymiTopicState
+ }
+
 
   ####################
   #    Directives    #

@@ -7,13 +7,18 @@ const resolver: GQLUserStatusResolvers['totalWordCount'] = async (
   _,
   {
     dataSources: {
-      connections: { knex },
+      connections: { knexRO },
     },
   }
 ) => {
-  const record = await knex('article')
+  const record = await knexRO('article_version_newest')
     .sum('word_count')
-    .where({ authorId: id, state: ARTICLE_STATE.active })
+    .whereIn(
+      'articleId',
+      knexRO('article')
+        .where({ authorId: id, state: ARTICLE_STATE.active })
+        .select('id')
+    )
     .first()
 
   return parseInt(record && record.sum ? (record.sum as string) : '0', 10) || 0

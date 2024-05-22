@@ -1,20 +1,25 @@
 import type {
-  GQLUserRestriction,
+  UserRestriction,
+  Article,
   Item,
   ItemData,
   UserOAuthLikeCoin,
+  UserOauthLikecoinDB,
   UserOAuthLikeCoinAccountType,
+  UserNotifySetting,
   User,
-  VerficationCode,
+  ActionUser,
+  VerificationCode,
   ValueOf,
   SocialAccount,
   Connections,
+  PunishRecord,
   LANGUAGES,
+  UserBoost,
 } from 'definitions'
 
 import axios from 'axios'
 import { compare } from 'bcrypt'
-import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
 import { Knex } from 'knex'
 import _, { random } from 'lodash'
@@ -120,17 +125,15 @@ const logger = getLogger('service-user')
 
 // const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
-export class UserService extends BaseService {
+export class UserService extends BaseService<User> {
   private ipfs: typeof ipfsServers
   public likecoin: LikeCoin
-  public dataloader: DataLoader<string, Item>
 
-  constructor(connections: Connections) {
+  public constructor(connections: Connections) {
     super('user', connections)
 
     this.ipfs = ipfsServers
     this.likecoin = new LikeCoin(connections)
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
   /*********************************
@@ -138,16 +141,10 @@ export class UserService extends BaseService {
    *            Account            *
    *                               *
    *********************************/
-  public loadById = async (id: string): Promise<User> =>
-    this.dataloader.load(id) as Promise<User>
-  public loadByIds = async (ids: string[]): Promise<User[]> =>
-    this.dataloader.loadMany(ids) as Promise<User[]>
-
   public create = async (
     {
       userName,
       displayName,
-      // description,
       password,
       email,
       ethAddress,
@@ -157,7 +154,6 @@ export class UserService extends BaseService {
     }: {
       userName?: string
       displayName?: string
-      // description?: string
       password?: string
       email?: string
       ethAddress?: string
@@ -182,8 +178,6 @@ export class UserService extends BaseService {
           emailVerified,
           userName,
           displayName,
-          // description,
-          // avatar,
           passwordHash,
           agreeOn: new Date(),
           state: USER_STATE.active,
@@ -198,7 +192,7 @@ export class UserService extends BaseService {
       undefined,
       trx
     )
-    await this.baseCreate(
+    await this.baseCreate<UserNotifySetting>(
       { userId: user.id },
       'user_notify_setting',
       undefined,
@@ -392,7 +386,6 @@ export class UserService extends BaseService {
         : { passwordHash }
     const user = await this.baseUpdate(userId, {
       ...data,
-      updatedAt: new Date(),
     })
     return user
   }
@@ -436,7 +429,7 @@ export class UserService extends BaseService {
       .first()
 
   public setEmail = async (userId: string, email: string): Promise<User> => {
-    const user = await this.loadById(userId)
+    const user = await this.models.userIdLoader.load(userId)
     try {
       const res = await this._setEmail(user, email)
       auditLog({
@@ -447,6 +440,7 @@ export class UserService extends BaseService {
         status: 'succeeded',
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -525,6 +519,7 @@ export class UserService extends BaseService {
         status: 'succeeded',
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: user.id,
@@ -566,6 +561,7 @@ export class UserService extends BaseService {
         status: 'succeeded',
       })
       return res
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       auditLog({
         actorId: userId,
@@ -598,7 +594,7 @@ export class UserService extends BaseService {
 
     let data: Partial<User> = { userName }
     if (fillDisplayName) {
-      const user = await this.loadById(userId)
+      const user = await this.models.userIdLoader.load(userId)
       data = { ...data, displayName: genDisplayName(user) ?? userName }
     }
 
@@ -864,7 +860,7 @@ export class UserService extends BaseService {
       { sample: records?.slice(0, 3) }
     )
 
-    const nodes = (await this.dataloader.loadMany(
+    const nodes = (await this.models.userIdLoader.loadMany(
       records.map(({ id }) => id)
     )) as Item[]
 
@@ -910,10 +906,8 @@ export class UserService extends BaseService {
         records[0]
       )
 
-      const nodes = (await this.dataloader.loadMany(
-        // records.map(({ id }) => id)
-        // records.map((item: any) => item.id).filter(Boolean)
-        records.map((item: any) => `${item.id}`).filter(Boolean)
+      const nodes = (await this.models.userIdLoader.loadMany(
+        records.map((item: { id: string }) => `${item.id}`).filter(Boolean)
       )) as Item[]
 
       return { nodes, totalCount }
@@ -1063,7 +1057,7 @@ export class UserService extends BaseService {
     }
     return this.baseUpdateOrCreate({
       where: data,
-      data: { updatedAt: new Date(), ...data },
+      data: data,
       table: 'action_user',
     })
   }
@@ -1205,9 +1199,9 @@ export class UserService extends BaseService {
       action: USER_ACTION.block,
     }
 
-    return this.baseUpdateOrCreate({
+    return this.baseUpdateOrCreate<ActionUser>({
       where: data,
-      data: { updatedAt: new Date(), ...data },
+      data,
       table: 'action_user',
     })
   }
@@ -1369,9 +1363,9 @@ export class UserService extends BaseService {
   }
 
   public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
-    this.baseUpdateOrCreate({
+    this.baseUpdateOrCreate<UserBoost>({
       where: { userId: id },
-      data: { userId: id, boost, updatedAt: new Date() },
+      data: { userId: id, boost },
       table: 'user_boost',
     })
 
@@ -1468,18 +1462,16 @@ export class UserService extends BaseService {
    *         Notify Setting        *
    *                               *
    *********************************/
-  public findNotifySetting = async (userId: string): Promise<any | null> =>
+  public findNotifySetting = async (
+    userId: string
+  ): Promise<UserNotifySetting> =>
     this.knex.select().from('user_notify_setting').where({ userId }).first()
 
   public updateNotifySetting = async (
     id: string,
     data: ItemData
-  ): Promise<any | null> =>
-    this.baseUpdate(
-      id,
-      { updatedAt: new Date(), ...data },
-      'user_notify_setting'
-    )
+  ): Promise<UserNotifySetting> =>
+    this.baseUpdate(id, data, 'user_notify_setting')
 
   /*********************************
    *                               *
@@ -1541,7 +1533,7 @@ export class UserService extends BaseService {
     take: number
     skip: number
   }) => {
-    const result = await this.knex('article')
+    const result = await this.knexRO('article')
       .select('read.read_at', 'article.*')
       .rightJoin(
         this.knex
@@ -1557,7 +1549,10 @@ export class UserService extends BaseService {
       .limit(take)
       .offset(skip)
 
-    return result.map(({ readAt, ...article }: any) => ({ readAt, article }))
+    return result.map(({ readAt, ...article }: { readAt: Date } & Article) => ({
+      readAt,
+      article,
+    }))
   }
 
   public clearReadHistory = async ({
@@ -1596,7 +1591,7 @@ export class UserService extends BaseService {
   }: {
     userId?: string | null
     email: string
-    type: string
+    type: keyof typeof VERIFICATION_CODE_TYPE
     strong?: boolean
     expiredAt?: Date
   }) => {
@@ -1608,7 +1603,7 @@ export class UserService extends BaseService {
           8
         )()
 
-    return this.baseCreate(
+    return this.baseCreate<VerificationCode>(
       {
         uuid: v4(),
         userId,
@@ -1680,7 +1675,7 @@ export class UserService extends BaseService {
     await trx.commit()
   }
 
-  public confirmVerificationCode = async (code: VerficationCode) => {
+  public confirmVerificationCode = async (code: VerificationCode) => {
     if (code.status !== VERIFICATION_CODE_STATUS.active) {
       throw new Error('cannot verfiy a not-active code')
     }
@@ -1709,11 +1704,7 @@ export class UserService extends BaseService {
   public findVerificationCodes = async ({
     where,
   }: {
-    where?: {
-      [key: string]: any
-      type?: keyof typeof VERIFICATION_CODE_TYPE
-      status?: VERIFICATION_CODE_STATUS
-    }
+    where?: Partial<VerificationCode>
   }) => {
     const query = this.knex
       .select()
@@ -1737,7 +1728,7 @@ export class UserService extends BaseService {
     },
     trx?: Knex.Transaction
   ) => {
-    let data: any = { status }
+    let data: Partial<VerificationCode> = { status }
 
     if (status === VERIFICATION_CODE_STATUS.used) {
       data = { ...data, usedAt: new Date() }
@@ -1745,12 +1736,7 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    return this.baseUpdate(
-      codeId,
-      { updatedAt: new Date(), ...data },
-      'verification_code',
-      trx
-    )
+    return this.baseUpdate(codeId, data, 'verification_code', trx)
   }
 
   /*********************************
@@ -1872,8 +1858,10 @@ export class UserService extends BaseService {
   }): Promise<UserOAuthLikeCoin | null> => {
     let userLikerId = likerId
     if (userId) {
-      const user = await this.dataloader.load(userId)
-      userLikerId = user.likerId
+      const user = await this.models.userIdLoader.load(userId)
+      if (user.likerId) {
+        userLikerId = user.likerId
+      }
     }
 
     if (!userLikerId) {
@@ -1901,10 +1889,10 @@ export class UserService extends BaseService {
     accountType: UserOAuthLikeCoinAccountType
     accessToken: string
     refreshToken?: string
-    expires?: number
+    expires?: Date
     scope?: string[]
   }) => {
-    let user = await this.dataloader.load(userId)
+    let user = await this.models.userIdLoader.load(userId)
 
     await this.knex
       .select()
@@ -1913,14 +1901,12 @@ export class UserService extends BaseService {
       .del()
 
     user = await this.baseUpdate(userId, {
-      updatedAt: new Date(),
       likerId,
     })
 
-    await this.baseUpdateOrCreate({
+    await this.baseUpdateOrCreate<UserOauthLikecoinDB>({
       where: { likerId },
       data: {
-        updatedAt: new Date(),
         likerId,
         accountType,
         accessToken,
@@ -2078,9 +2064,7 @@ export class UserService extends BaseService {
     if (!user) {
       return
     }
-    const atomService = new AtomService(this.connections)
-
-    const ipnsKeyRec = await atomService.findFirst({
+    const ipnsKeyRec = await this.models.findFirst({
       table: 'user_ipns_keys',
       where: { userId: user.id },
     })
@@ -2101,7 +2085,7 @@ export class UserService extends BaseService {
     // if (!ipnsKey && res) { ipnsKey = res?.Id }
     const ipnsKey = imported.Id
 
-    return atomService.create({
+    return this.models.create({
       table: 'user_ipns_keys',
       data: {
         userId: user.id,
@@ -2117,14 +2101,11 @@ export class UserService extends BaseService {
    *        Restrictions           *
    *                               *
    *********************************/
-  public findRestrictions = async (
-    id: string
-  ): Promise<GQLUserRestriction[]> => {
+  public findRestrictions = async (id: string): Promise<UserRestriction[]> => {
     const table = 'user_restriction'
-    const atomService = new AtomService(this.connections)
-    return atomService.findMany({
+    return this.models.findMany({
       table,
-      select: ['type', 'created_at'],
+      select: ['type', 'createdAt'],
       where: { userId: id },
     })
   }
@@ -2148,8 +2129,7 @@ export class UserService extends BaseService {
     type: keyof typeof USER_RESTRICTION_TYPE
   ) => {
     const table = 'user_restriction'
-    const atomService = new AtomService(this.connections)
-    await atomService.create({ table, data: { userId: id, type } })
+    await this.models.create({ table, data: { userId: id, type } })
   }
 
   public removeRestriction = async (
@@ -2157,8 +2137,7 @@ export class UserService extends BaseService {
     type: keyof typeof USER_RESTRICTION_TYPE
   ) => {
     const table = 'user_restriction'
-    const atomService = new AtomService(this.connections)
-    await atomService.deleteMany({ table, where: { userId: id, type } })
+    await this.models.deleteMany({ table, where: { userId: id, type } })
   }
 
   public findRestrictedUsersAndCount = async ({
@@ -2205,7 +2184,7 @@ export class UserService extends BaseService {
     // insert record into punish_record
     if (typeof banDays === 'number') {
       const expiredAt = getPunishExpiredDate(banDays)
-      await this.baseCreate(
+      await this.baseCreate<PunishRecord>(
         {
           userId,
           state: USER_STATE.banned,
@@ -2360,7 +2339,6 @@ export class UserService extends BaseService {
       throw new CryptoWalletExistsError('eth address already has a user')
     }
     const updatedUser = await this.baseUpdate(userId, {
-      updatedAt: this.knex.fn.now(),
       ethAddress: ethAddress.toLowerCase(), // save the lower case ones
     })
 
@@ -2369,7 +2347,7 @@ export class UserService extends BaseService {
     await atomService.update({
       table: 'crypto_wallet',
       where: { userId, archived: false },
-      data: { updatedAt: this.knex.fn.now(), archived: true },
+      data: { archived: true },
     })
 
     return updatedUser
@@ -2397,7 +2375,7 @@ export class UserService extends BaseService {
   }
 
   private _removeWallet = async (userId: string): Promise<User> => {
-    const user = await this.loadById(userId)
+    const user = await this.models.userIdLoader.load(userId)
     if (!user.ethAddress) {
       throw new ActionFailedError('user does not have a wallet')
     }
@@ -2510,7 +2488,7 @@ export class UserService extends BaseService {
     })
     let user
     if (socialAcount) {
-      user = await this.loadById(socialAcount.userId)
+      user = await this.models.userIdLoader.load(socialAcount.userId)
       if (user && user.state === USER_STATE.archived) {
         throw new ForbiddenByStateError('social account is archived')
       }
@@ -2636,7 +2614,7 @@ export class UserService extends BaseService {
           providerAccountId,
         })
         if (socialAccount) {
-          const user = await this.loadById(socialAccount.userId)
+          const user = await this.models.userIdLoader.load(socialAccount.userId)
           if (user.state === USER_STATE.archived) {
             throw new ForbiddenByStateError('social account is archived')
           }
@@ -2947,7 +2925,7 @@ export class UserService extends BaseService {
   }
 
   private countLoginMethods = async (userId: string) => {
-    const user = await this.loadById(userId)
+    const user = await this.models.userIdLoader.load(userId)
     const email = user.email ? 1 : 0
     const wallet = user.ethAddress ? 1 : 0
     const socialAccounts = await this.findSocialAccountsByUserId(userId)

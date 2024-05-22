@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['revisionCount'] = async (
-  { articleId },
+  { id: articleId },
   _,
   { dataSources: { atomService } }
 ) => {

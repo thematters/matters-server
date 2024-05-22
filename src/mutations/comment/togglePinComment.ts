@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
 import {
   CACHE_KEYWORD,
@@ -19,29 +19,21 @@ const resolver: Exclude<
 > = async (
   _,
   { input: { id, enabled } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      commentService,
-      articleService,
-      notificationService,
-    },
-  }
+  { viewer, dataSources: { atomService, commentService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.loadById(dbId)
+  const comment = await atomService.commentIdLoader.load(dbId)
 
   // check target
-  let article: any
-  let circle: any
-  let targetAuthor: any
+  let article: Article | undefined = undefined
+  let circle: Circle | undefined = undefined
+  let targetAuthor: string
   if (comment.type === COMMENT_TYPE.article) {
-    article = await articleService.dataloader.load(comment.targetId)
+    article = await atomService.articleIdLoader.load(comment.targetId)
     targetAuthor = article.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
@@ -90,7 +82,6 @@ const resolver: Exclude<
         },
         data: {
           pinned: false,
-          updatedAt: new Date(),
           pinnedAt: null,
         },
       })
@@ -102,7 +93,6 @@ const resolver: Exclude<
       where: { id: dbId },
       data: {
         pinned: true,
-        updatedAt: new Date(),
         pinnedAt: new Date(),
       },
     })
@@ -127,9 +117,11 @@ const resolver: Exclude<
   }
 
   // invalidate extra nodes
-  pinnedComment[CACHE_KEYWORD] = [
+  ;(pinnedComment as unknown as Comment & { [CACHE_KEYWORD]: any })[
+    CACHE_KEYWORD
+  ] = [
     {
-      id: article ? article.id : circle.id,
+      id: article ? article.id : circle?.id,
       type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
     },
   ]

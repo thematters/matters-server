@@ -1,33 +1,28 @@
-import type { Connections, Item, ItemData, Tag } from 'definitions'
+import type { Connections, Item, ItemData, Tag, TagBoost } from 'definitions'
 
-import DataLoader from 'dataloader'
 import { Knex } from 'knex'
+import { difference } from 'lodash'
 
 import {
   ARTICLE_STATE,
+  MAX_TAGS_PER_ARTICLE_LIMIT,
   DEFAULT_TAKE_PER_PAGE,
   TAG_ACTION,
   VIEW,
+  MATERIALIZED_VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { normalizeSearchKey } from 'common/utils'
+import { normalizeSearchKey, normalizeTagInput } from 'common/utils'
 import { BaseService } from 'connectors'
 
 const logger = getLogger('service-tag')
 
-export class TagService extends BaseService {
-  public dataloader: DataLoader<string, Item>
-
+export class TagService extends BaseService<Tag> {
   public constructor(connections: Connections) {
     super('tag', connections)
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
-
-  public loadById = async (id: string): Promise<Tag> =>
-    this.dataloader.load(id) as Promise<Tag>
-  public loadByIds = async (ids: string[]): Promise<Tag[]> =>
-    this.dataloader.loadMany(ids) as Promise<Tag[]>
 
   /**
    * Find tags
@@ -203,7 +198,7 @@ export class TagService extends BaseService {
     userId: string
     skip?: number
     take?: number
-  }) =>
+  }): Promise<Array<{ id: string }>> =>
     this.knex
       .select('target_id AS id')
       .from('action_tag')
@@ -233,7 +228,7 @@ export class TagService extends BaseService {
       owner,
     }: {
       content: string
-      cover?: string
+      cover?: string | null
       creator: string
       description?: string
       editors: string[]
@@ -379,7 +374,7 @@ export class TagService extends BaseService {
     }
     return this.baseUpdateOrCreate({
       where: data,
-      data: { updatedAt: new Date(), ...data },
+      data: data,
       table: 'action_tag',
     })
   }
@@ -468,7 +463,6 @@ export class TagService extends BaseService {
           where: data,
           data,
           table: 'action_tag',
-          updateUpdatedAt: true,
         })
       : this.knex.from('action_tag').where(data).del()
   }
@@ -646,11 +640,9 @@ export class TagService extends BaseService {
         records[0]
       )
 
-      const nodes = (await this.dataloader.loadMany(
-        // records.map(({ id }) => id)
-        // records.map((item: any) => item.id).filter(Boolean)
+      const nodes = await this.models.tagIdLoader.loadMany(
         records.map((item: any) => `${item.id}`).filter(Boolean)
-      )) as Item[]
+      )
 
       return { nodes, totalCount }
     } catch (err) {
@@ -679,9 +671,9 @@ export class TagService extends BaseService {
   }
 
   public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
-    this.baseUpdateOrCreate({
+    this.baseUpdateOrCreate<TagBoost>({
       where: { tagId: id },
-      data: { tagId: id, boost, updatedAt: new Date() },
+      data: { tagId: id, boost },
       table: 'tag_boost',
     })
 
@@ -704,10 +696,10 @@ export class TagService extends BaseService {
     // recent 1 week, 1 month, or 3 months?
     top?: 'r1w' | 'r2w' | 'r1m' | 'r3m'
     minAuthors?: number
-  }) =>
+  }): Promise<Array<{ id: string }>> =>
     this.knex
       .select('id')
-      .from(VIEW.tags_lasts_view)
+      .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
       .modify(function (this: Knex.QueryBuilder) {
         if (minAuthors) {
           this.where('num_authors', '>=', minAuthors)
@@ -787,7 +779,7 @@ export class TagService extends BaseService {
   }
 
   public addTagRecommendation = (tagId: string) =>
-    this.baseFindOrCreate({
+    this.baseFindOrCreate<any>({
       where: { tagId },
       data: { tagId },
       table: 'matters_choice_tag',
@@ -861,7 +853,7 @@ export class TagService extends BaseService {
 
     let result: any
     try {
-      result = await this.knex(VIEW.tags_lasts_view)
+      result = await this.knex(MATERIALIZED_VIEW.tags_lasts_view_materialized)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('id', '=', tagId)
@@ -907,7 +899,7 @@ export class TagService extends BaseService {
 
     let result: any
     try {
-      result = await this.knexRO(VIEW.tags_lasts_view)
+      result = await this.knexRO(MATERIALIZED_VIEW.tags_lasts_view_materialized)
         .select('id', 'content', 'id_slug', 'num_authors', 'num_articles')
         .where(function (this: Knex.QueryBuilder) {
           this.where('tag_id', tagId)
@@ -973,8 +965,7 @@ export class TagService extends BaseService {
           builder.orWhereIn(
             'tag_id',
             this.knex
-              .from(VIEW.tags_lasts_view)
-              // .joinRaw('CROSS JOIN unnest(dup_tag_ids) AS x(id)')
+              .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
               .whereRaw('dup_tag_ids @> ARRAY[?] ::int[]', tagId)
               .select(this.knex.raw('UNNEST(dup_tag_ids)'))
           )
@@ -1060,10 +1051,15 @@ export class TagService extends BaseService {
    */
   public findArticleCovers = async ({ id }: { id: string }) =>
     this.knexRO
-      .select('article.cover')
+      .select('article_version_newest.cover')
       .from('article_tag')
-      .join('article', 'article_id', 'article.id')
-      .whereNotNull('cover')
+      .join(
+        'article_version_newest',
+        'article_tag.article_id',
+        'article_version_newest.article_id'
+      )
+      .join('article', 'article_tag.article_id', 'article.id')
+      .whereNotNull('article_version_newest.cover')
       .andWhere({
         tagId: id,
         state: ARTICLE_STATE.active,
@@ -1082,7 +1078,7 @@ export class TagService extends BaseService {
   }: {
     tagId: string
     content: string
-  }) => this.baseUpdate(tagId, { content, updatedAt: this.knex.fn.now() })
+  }) => this.baseUpdate(tagId, { content })
 
   public mergeTags = async ({
     tagIds,
@@ -1153,11 +1149,83 @@ export class TagService extends BaseService {
    */
   public findRelatedTags = async ({ id }: { id: string; content?: string }) =>
     this.knex
-      .from(VIEW.tags_lasts_view)
+      .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
       .joinRaw(
         'CROSS JOIN jsonb_to_recordset(top_rels) AS x(tag_rel_id int, count_rel int, count_common int, similarity float)'
       )
       .where(this.knex.raw(`dup_tag_ids @> ARRAY[?] ::int[]`, [id]))
       .select('x.tag_rel_id AS id')
       .orderByRaw('x.count_rel * x.similarity DESC NULLS LAST')
+
+  public updateArticleTags = async ({
+    articleId,
+    actorId,
+    tags,
+  }: {
+    articleId: string
+    actorId: string
+    tags: string[]
+  }) => {
+    const article = await this.models.articleIdLoader.load(articleId)
+    // validate
+    const oldIds = (await this.findByArticleId({ articleId: article.id })).map(
+      ({ id: tagId }: { id: string }) => tagId
+    )
+
+    if (
+      tags &&
+      tags.length > MAX_TAGS_PER_ARTICLE_LIMIT &&
+      tags.length > oldIds.length
+    ) {
+      throw new TooManyTagsForArticleError(
+        `Not allow more than ${MAX_TAGS_PER_ARTICLE_LIMIT} tags on an article`
+      )
+    }
+
+    // create tag records
+    const tagEditors = environment.mattyId
+      ? [environment.mattyId, article.authorId]
+      : [article.authorId]
+    const dbTags = (
+      await Promise.all(
+        tags.filter(Boolean).map(async (content: string) =>
+          this.create(
+            {
+              content,
+              creator: article.authorId,
+              editors: tagEditors,
+              owner: article.authorId,
+            },
+            {
+              columns: ['id', 'content'],
+              skipCreate: normalizeTagInput(content) !== content, // || content.length > MAX_TAG_CONTENT_LENGTH,
+            }
+          )
+        )
+      )
+    ).map(({ id, content }) => ({ id: `${id}`, content }))
+
+    const newIds = dbTags.map(({ id: tagId }) => tagId)
+
+    // check if add tags include matty's tag
+    const mattyTagId = environment.mattyChoiceTagId || ''
+    const isMatty = environment.mattyId === actorId
+    const addIds = difference(newIds, oldIds)
+    if (addIds.includes(mattyTagId) && !isMatty) {
+      throw new ForbiddenError('not allow to add official tag')
+    }
+
+    // add
+    await this.createArticleTags({
+      articleIds: [article.id],
+      creator: article.authorId,
+      tagIds: addIds,
+    })
+
+    // delete unwanted
+    await this.deleteArticleTagsByTagIds({
+      articleId: article.id,
+      tagIds: difference(oldIds, newIds),
+    })
+  }
 }

@@ -1,6 +1,4 @@
-import type { GQLArticleLicenseType } from 'definitions'
-
-import slugify from '@matters/slugify'
+import type { GQLResolvers } from 'definitions'
 
 import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
@@ -12,21 +10,23 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import canComment from './canComment'
 import canSuperLike from './canSuperLike'
-import chapterArticleCount from './chapter/articleCount'
-import chapterArticles from './chapter/articles'
-import chapterTopic from './chapter/topic'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
 import * as contents from './contents'
 import articleCover from './cover'
 import createdAt from './createdAt'
+import dataHash from './dataHash'
+import donated from './donated'
 import donationCount from './donationCount'
 import donations from './donations'
 import hasAppreciate from './hasAppreciate'
 import idResolver from './id'
 import language from './language'
+import license from './license'
+import mediaHash from './mediaHash'
 import * as articleOSS from './oss'
 import pinned from './pinned'
 import readerCount from './readerCount'
@@ -39,11 +39,15 @@ import requestForDonation from './requestForDonation'
 import revisedAt from './revisedAt'
 import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
+import sensitiveByAuthor from './sensitiveByAuthor'
+import shortHash from './shortHash'
+import slug from './slug'
 import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
+import summaryCustomized from './summaryCustomized'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -60,33 +64,28 @@ import tagParticipants from './tag/participants'
 import tagsRecommended from './tag/recommended'
 import tagSelected from './tag/selected'
 import tags from './tags'
-import topicArticleCount from './topic/articleCount'
-import topicArticles from './topic/articles'
-import topicAuthor from './topic/author'
-import topicChapterCount from './topic/chapterCount'
-import topicChapters from './topic/chapters'
-import topicCover from './topic/cover'
-import topicLatestArticle from './topic/latestArticle'
+import title from './title'
 import transactionsReceivedBy from './transactionsReceivedBy'
-import translation from './translation'
+import articleTranslation from './translation/article'
+import articleVersionTranslation from './translation/articleVersion'
 import userArticles from './user/articles'
-// import userTags from './user/tags'
-import userTopics from './user/topics'
+import versions from './versions'
 
-export default {
+const schema: GQLResolvers = {
   Query: {
     article: rootArticle,
   },
   User: {
     articles: userArticles,
-    // tags: userTags,
-    topics: userTopics,
   },
   Article: {
     id: idResolver,
+    title,
     content,
-    contents: (root: any) => root,
+    contents: ({ id }, _, { dataSources: { articleService } }) =>
+      articleService.loadLatestArticleVersion(id),
     summary,
+    summaryCustomized,
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -99,39 +98,43 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    oss: (root: any) => root,
+    oss: (root) => root,
     relatedArticles,
     relatedDonationArticles,
     remark,
-    slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title),
-    dataHash: ({ dataHash }: { dataHash: string }) => dataHash || '',
-    mediaHash: ({ mediaHash }: { mediaHash: string }) => mediaHash || '',
+    slug,
+    sensitiveByAuthor,
+    dataHash,
+    mediaHash,
+    shortHash,
     state,
     sticky,
     pinned,
     subscribed,
     subscribers,
     tags,
-    translation,
+    translation: articleTranslation,
     availableTranslations,
-    topicScore: ({ score }: { score: number }) =>
-      score ? Math.round(score) : null,
+    topicScore: (({ score }: { score: number }) =>
+      score ? Math.round(score) : null) as any,
     transactionsReceivedBy,
     donations,
     readTime,
     createdAt,
     revisedAt,
-    access: (root: any) => root,
+    access: (root) => root,
     revisionCount,
-    license: ({ license }: { license: GQLArticleLicenseType }) => license,
+    license,
+    canComment,
+    donated,
     requestForDonation,
     replyToDonator,
     donationCount,
     readerCount,
+    versions,
   },
   Tag: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
     selected: tagSelected,
     creator: tagCreator,
@@ -143,27 +146,15 @@ export default {
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
     followers: tagFollowers,
-    oss: (root: any) => root,
+    oss: (root) => root,
     cover: tagCover,
     participants: tagParticipants,
     recommended: tagsRecommended,
   },
-  Topic: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Topic, id }),
-    cover: topicCover,
-    chapterCount: topicChapterCount,
-    articleCount: topicArticleCount,
-    chapters: topicChapters,
-    articles: topicArticles,
-    author: topicAuthor,
-    latestArticle: topicLatestArticle,
-  },
-  Chapter: {
-    id: ({ id }: { id: string }) =>
-      toGlobalId({ type: NODE_TYPES.Chapter, id }),
-    articleCount: chapterArticleCount,
-    articles: chapterArticles,
-    topic: chapterTopic,
+  ArticleVersion: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.ArticleVersion, id }),
+    contents: (root) => root,
+    translation: articleVersionTranslation,
   },
   ArticleContents: {
     html: contents.html,
@@ -187,3 +178,5 @@ export default {
     selected: tagOSS.selected,
   },
 }
+
+export default schema

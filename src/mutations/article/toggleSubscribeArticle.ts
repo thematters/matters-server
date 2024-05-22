@@ -5,6 +5,7 @@ import {
   DB_NOTICE_TYPE,
   USER_ACTION,
   USER_STATE,
+  ARTICLE_ACTION,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
@@ -16,7 +17,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { atomService, draftService, notificationService } }
+  { viewer, dataSources: { atomService, articleService, notificationService } }
 ) => {
   // checks
   if (!viewer.userName) {
@@ -28,7 +29,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  // banned and archived articles shall still be abled to be unsubscribed
+  // banned and archived articles shall still be able to be unsubscribed
   const article =
     enabled === false
       ? await atomService.findFirst({
@@ -50,6 +51,8 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
+  const { id: articleVersionId } =
+    await articleService.loadLatestArticleVersion(article.id)
 
   // determine action
   let action: 'subscribe' | 'unsubscribe'
@@ -59,7 +62,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
       where: {
         targetId: article.id,
         userId: viewer.id,
-        action: USER_ACTION.subscribe,
+        action: ARTICLE_ACTION.subscribe,
       },
     })
     action = userSubscribe ? 'unsubscribe' : 'subscribe'
@@ -72,13 +75,13 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
     const data = {
       targetId: article.id,
       userId: viewer.id,
-      action: USER_ACTION.subscribe,
+      action: ARTICLE_ACTION.subscribe,
     }
     await atomService.upsert({
       table: 'action_article',
       where: data,
-      create: data,
-      update: { ...data, updatedAt: new Date() },
+      create: { ...data, articleVersionId },
+      update: { ...data, articleVersionId },
     })
 
     // trigger notifications
@@ -99,8 +102,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
     })
   }
 
-  const node = await draftService.baseFindById(article.draftId)
-  return node
+  return article
 }
 
 export default resolver

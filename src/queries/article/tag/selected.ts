@@ -6,15 +6,15 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLTagResolvers['selected'] = async (
   { id },
   { input },
-  { dataSources: { tagService, articleService, draftService } }
+  { dataSources: { tagService, articleService } }
 ) => {
   let articleId: string | undefined
 
   if (input.id) {
     articleId = fromGlobalId(input.id).id
   } else if (input.mediaHash) {
-    const node = await draftService.findByMediaHash(input.mediaHash)
-    articleId = node.id
+    const node = await articleService.findVersionByMediaHash(input.mediaHash)
+    articleId = node.articleId
   }
 
   if (!articleId) {

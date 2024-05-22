@@ -140,6 +140,16 @@ const GET_PINNED_WORKS = /* GraphQL */ `
     }
   }
 `
+const GET_LATEST_WORKS = /* GraphQL */ `
+  query {
+    viewer {
+      latestWorks {
+        id
+        title
+      }
+    }
+  }
+`
 
 describe('get viewer collections', () => {
   test('not logged-in user', async () => {
@@ -821,4 +831,12 @@ describe('check article if in collections', () => {
     })
     expect(data2?.viewer?.collections?.edges[0].node.contains).toBe(false)
   })
+})
+
+test('get latest works', async () => {
+  const server = await testClient({ isAuth: true, connections })
+  const { data } = await server.executeOperation({
+    query: GET_LATEST_WORKS,
+  })
+  expect(data?.viewer?.latestWorks.length).toBeLessThan(5)
 })

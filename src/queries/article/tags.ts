@@ -1,12 +1,12 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['tags'] = async (
-  { articleId },
+  { id: articleId },
   _,
-  { dataSources: { articleService, tagService } }
+  { dataSources: { articleService, atomService } }
 ) => {
   const tagIds = await articleService.findTagIds({ id: articleId })
-  return tagService.loadByIds(tagIds)
+  return atomService.tagIdLoader.loadMany(tagIds)
 }
 
 export default resolver

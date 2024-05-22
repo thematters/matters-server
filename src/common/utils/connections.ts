@@ -2,7 +2,6 @@ import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
 
 import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
-import { Item } from 'definitions'
 
 export type ConnectionCursor = string
 
@@ -11,11 +10,6 @@ export interface ConnectionArguments {
   after?: ConnectionCursor
   first?: number
   last?: number
-}
-
-export interface ConnectionHelpers {
-  offset: number
-  totalCount: number
 }
 
 export interface Connection<T> {
@@ -37,9 +31,6 @@ export interface PageInfo {
 }
 
 const PREFIX = 'arrayconnection'
-
-export const cursorToOffset = (cursor: ConnectionCursor | undefined): number =>
-  cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 
 export const cursorToIndex = (cursor: ConnectionCursor | undefined): number =>
   cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
@@ -90,22 +81,22 @@ export const connectionFromArray = <T>(
 }
 
 export const connectionFromPromisedArray = <T>(
-  dataPromise: Promise<T[]> | T[],
+  dataPromise: Promise<Array<T | Error>> | Array<T | Error>,
   args: ConnectionArguments,
   totalCount?: number
 ): Promise<Connection<T>> =>
   Promise.resolve(dataPromise).then((data) =>
-    connectionFromArray(data, args, totalCount)
+    connectionFromArray(loadManyFilterError(data), args, totalCount)
   )
 
-export const loadManyFilterError = (items: Array<Item | Error>) =>
-  items.filter((item: Item | Error) => {
+export const loadManyFilterError = <T>(items: Array<T | Error>) =>
+  items.filter((item) => {
     if (item instanceof Error) {
       return false
     }
 
     return true
-  }) as Item[]
+  }) as T[]
 
 /**
  * Convert GQL curosr to query keys. For example, the GQL cursor
@@ -134,52 +125,41 @@ export const keysToCursor = (
 
 /**
  * Construct a GQL connection using query keys mechanism. Query keys are
- * composed of `offset` and `idCursor`. `offset` is for managing connection
- * like `merge`, and `idCursor` is for SQL querying.
- *
+ * composed of `offset` and `idCursor`.
+ * `offset` is for managing connection like `merge`,
+ * and `idCursor` is for SQL querying.
+ * (for detail explain see https://github.com/thematters/matters-server/pull/922#discussion_r409256544)
  */
 export const connectionFromArrayWithKeys = <T extends { id: string }>(
   data: T[],
   args: ConnectionArguments,
-  totalCount?: number
+  totalCount: number
 ): Connection<T> => {
-  if (totalCount) {
-    const { after } = args
-    const keys = cursorToKeys(after)
+  const { after } = args
+  const keys = cursorToKeys(after)
 
-    const edges = data.map((value, index) => ({
-      cursor: keysToCursor(
-        index + keys.offset + 1,
-        (value as any).__cursor || value.id
-      ),
-      node: value,
-    }))
+  const edges = data.map((value, index) => ({
+    cursor: keysToCursor(
+      index + keys.offset + 1,
+      (value as any).__cursor || value.id
+    ),
+    node: value,
+  }))
 
-    const firstEdge = edges[0]
-    const lastEdge = edges[edges.length - 1]
-
-    return {
-      edges,
-      totalCount,
-      pageInfo: {
-        startCursor: firstEdge ? firstEdge.cursor : '',
-        endCursor: lastEdge ? lastEdge.cursor : '',
-        hasPreviousPage: after ? keys.offset >= 0 : false,
-        hasNextPage: lastEdge
-          ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
-          : false,
-      },
-    }
-  }
-
-  const connections = connectionFromArraySlice(data, args, {
-    sliceStart: 0,
-    arrayLength: data.length,
-  })
+  const firstEdge = edges[0]
+  const lastEdge = edges[edges.length - 1]
 
   return {
-    ...connections,
-    totalCount: data.length,
+    edges,
+    totalCount,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : '',
+      endCursor: lastEdge ? lastEdge.cursor : '',
+      hasPreviousPage: after ? keys.offset >= 0 : false,
+      hasNextPage: lastEdge
+        ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
+        : false,
+    },
   }
 }
 

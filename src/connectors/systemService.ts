@@ -3,9 +3,17 @@ import type {
   SkippedListItemType,
   Viewer,
   Connections,
+  ReportType,
+  ReportReason,
+  Report,
+  Asset,
+  BaseDBSchema,
+  LogRecord,
+  Blocklist,
 } from 'definitions'
+import type { Knex } from 'knex'
 
-import { Knex } from 'knex'
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { v4 } from 'uuid'
 
 import {
@@ -16,14 +24,17 @@ import {
   USER_ROLE,
   FEATURE_NAME,
   FEATURE_FLAG,
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  NODE_TYPES,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 
 const logger = getLogger('service-system')
 
-export class SystemService extends BaseService {
-  featureFlagTable: string
+export class SystemService extends BaseService<BaseDBSchema> {
+  private featureFlagTable: string
 
   public constructor(connections: Connections) {
     super('noop', connections)
@@ -168,12 +179,15 @@ export class SystemService extends BaseService {
   /**
    * Find asset by a given uuid
    */
-  public findAssetByUUID = async (uuid: string) =>
+  public findAssetByUUID = async (uuid: string): Promise<Asset | null> =>
     this.baseFindByUUID(uuid, 'asset')
 
   public findAssetByPath = async (path: string) =>
     this.knex('asset').where('path', path).first()
 
+  /**
+   * Find or create asset and asset_map record by path
+   */
   public findAssetOrCreateByPath = async (
     // path: string,
     data: ItemData,
@@ -241,7 +255,7 @@ export class SystemService extends BaseService {
    * Find the url of an asset by a given id.
    */
   public findAssetUrl = async (id: string): Promise<string | null> => {
-    const result = await this.baseFindById(id, 'asset')
+    const result = await this.baseFindById<Asset>(id, 'asset')
     return result ? this.genAssetUrl(result) : null
   }
 
@@ -289,27 +303,36 @@ export class SystemService extends BaseService {
 
   /**
    * Copy entity of asset map by given ids
+   *
+   * @remarks
+   *
+   * Delete actual assets carefully after using this method,
+   * only delete the actual asset when all other related asset_map record have been removed
+   *
    */
   public copyAssetMapEntities = async ({
     source,
     target,
-    entityTypeId,
   }: {
-    source: string
-    target: string
-    entityTypeId: string
+    source: { entityTypeId: string; entityId: string }
+    target: { entityTypeId: string; entityId: string }
   }) => {
     const maps = await this.knex
       .select()
       .from('asset_map')
-      .where({ entityTypeId, entityId: source })
+      .where({ entityTypeId: source.entityTypeId, entityId: source.entityId })
 
     await Promise.all(
       maps.map((map) =>
-        this.baseCreate(
-          { ...map, id: undefined, entityId: target },
-          'asset_map'
-        )
+        this.models.create({
+          table: 'asset_map',
+          data: {
+            ...map,
+            id: undefined,
+            entityTypeId: target.entityTypeId,
+            entityId: target.entityId,
+          },
+        })
       )
     )
   }
@@ -357,7 +380,7 @@ export class SystemService extends BaseService {
     this.knex.select().from('log_record').where(where).first()
 
   public logRecord = async (data: { userId: string; type: string }) =>
-    this.baseUpdateOrCreate({
+    this.baseUpdateOrCreate<LogRecord>({
       where: data,
       data: { readAt: new Date(), ...data },
       table: 'log_record',
@@ -418,7 +441,7 @@ export class SystemService extends BaseService {
   }) => {
     const where = { type, value }
 
-    return this.baseUpdateOrCreate({
+    return this.baseUpdateOrCreate<Blocklist>({
       where,
       data: {
         type,
@@ -426,7 +449,6 @@ export class SystemService extends BaseService {
         note,
         archived,
         uuid: uuid || v4(),
-        updatedAt: new Date(),
       },
       table: 'blocklist',
     })
@@ -445,14 +467,115 @@ export class SystemService extends BaseService {
   }
 
   public updateSkippedItem = async (
-    where: Record<string, any>,
-    data: Record<string, any>
-  ) => {
+    where: Partial<Blocklist>,
+    data: Partial<Blocklist>
+  ): Promise<Blocklist> => {
     const [updateItem] = await this.knex
       .where(where)
       .update(data)
       .into('blocklist')
       .returning('*')
     return updateItem
+  }
+
+  /**
+   * Create a report of target.
+   *
+   * @remarks
+   * The target could be an article or a comment.
+   * When the target is a comment, collapse the comment base on reports amount and reporters.
+   */
+  public submitReport = async ({
+    targetType,
+    targetId,
+    reporterId,
+    reason,
+  }: {
+    targetType: ReportType
+    targetId: string
+    reporterId: string
+    reason: ReportReason
+  }): Promise<Report> => {
+    if (targetType === NODE_TYPES.Article) {
+      const ret = await this.knex('report')
+        .insert({
+          articleId: targetId,
+          reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
+    } else {
+      const ret = await this.knex('report')
+        .insert({
+          commentId: targetId,
+          reporterId,
+          reason,
+        })
+        .returning('*')
+
+      await this.tryCollapseComment(targetId)
+
+      return ret[0]
+    }
+  }
+
+  /**
+   * Collapse the article comment if its reports are created by more than 3 different users or 1 article author
+   *
+   * @returns true if the comment is collapsed, otherwise false
+   *
+   */
+  private tryCollapseComment = async (commentId: string): Promise<boolean> => {
+    const comment = await this.models.findUnique({
+      table: 'comment',
+      where: { id: commentId },
+    })
+
+    if (
+      !comment ||
+      comment.state === COMMENT_STATE.collapsed ||
+      comment.type !== COMMENT_TYPE.article
+    ) {
+      return false
+    }
+
+    const reports = await this.knex<Report>('report')
+      .select(['id', 'reporterId'])
+      .distinctOn('reporterId')
+      .where({ commentId })
+
+    if (reports.length >= 3) {
+      await this.models.update({
+        table: 'comment',
+        where: { id: commentId },
+        data: { state: COMMENT_STATE.collapsed },
+      })
+      await invalidateFQC({
+        node: { id: commentId, type: NODE_TYPES.Comment },
+        redis: this.redis,
+      })
+      return true
+    }
+
+    const { authorId } = await this.models.findUnique({
+      table: 'article',
+      where: { id: comment.targetId },
+    })
+
+    if (authorId && reports.find((r) => r.reporterId === authorId)) {
+      await this.models.update({
+        table: 'comment',
+        where: { id: commentId },
+        data: { state: COMMENT_STATE.collapsed },
+      })
+      await invalidateFQC({
+        node: { id: commentId, type: NODE_TYPES.Comment },
+        redis: this.redis,
+      })
+      return true
+    }
+
+    return false
   }
 }

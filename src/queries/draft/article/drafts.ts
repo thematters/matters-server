@@ -1,20 +1,32 @@
-import type { GQLArticleResolvers, Draft } from 'definitions'
-
-import publishedResolver from './newestPublishedDraft'
-import unpublishedResolver from './newestUnpublishedDraft'
+import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['drafts'] = async (
-  parent,
-  args,
-  context,
-  info
+  { id: articleId, authorId },
+  _,
+  { dataSources: { atomService } }
 ) => {
-  const drafts = await Promise.all([
-    unpublishedResolver(parent, args, context, info), // keep pending unpublished before published
-    publishedResolver(parent, args, context, info),
-  ])
-
-  return drafts.filter((draft) => draft) as Draft[]
+  const versions = await atomService.findMany({
+    table: 'article_version',
+    where: { articleId },
+    orderBy: [{ column: 'created_at', order: 'desc' }],
+  })
+  return versions.map(async (version) => {
+    return {
+      ...version,
+      authorId,
+      content: (
+        await atomService.articleContentIdLoader.load(version.contentId)
+      ).content,
+      publishState: 'published',
+      // unused fields in front-end
+      contentMd: '',
+      iscnPublish: false,
+      collection: null,
+      remark: null,
+      archived: false,
+      language: null,
+    }
+  })
 }
 
 export default resolver

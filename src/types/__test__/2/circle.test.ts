@@ -711,12 +711,10 @@ describe('circle CRUD', () => {
       license: ARTICLE_LICENSE_TYPE.cc_0,
     }
 
-    const { data: data2, errors } = await server.executeOperation({
+    const { data: data2 } = await server.executeOperation({
       query: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-
-    console.log(errors)
 
     expect(data2.putCircleArticles.works.totalCount).toBe(1)
     expect(data2.putCircleArticles.works.edges[0].node.access.type).toBe(

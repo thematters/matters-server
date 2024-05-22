@@ -7,7 +7,7 @@ import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 export const newest: GQLRecommendationResolvers['newest'] = async (
   _,
   { input },
-  { viewer, dataSources: { articleService, draftService } }
+  { viewer, dataSources: { articleService } }
 ) => {
   const { oss = false } = input
 
@@ -28,7 +28,7 @@ export const newest: GQLRecommendationResolvers['newest'] = async (
   })
 
   return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
+    articles,
     input,
     MAX_ITEM_COUNT // totalCount
   )

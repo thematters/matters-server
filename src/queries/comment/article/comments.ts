@@ -1,10 +1,16 @@
+import type { CommentFilter } from 'connectors'
 import type { GQLArticleResolvers } from 'definitions'
 
-import { NODE_TYPES } from 'common/enums'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { COMMENT_TYPE } from 'common/enums'
+import {
+  connectionFromArray,
+  connectionFromArrayWithKeys,
+  cursorToKeys,
+  fromGlobalId,
+} from 'common/utils'
 
 const resolver: GQLArticleResolvers['comments'] = async (
-  { articleId },
+  { id },
   { input: { sort, first, ...rest } },
   { dataSources: { atomService, commentService } }
 ) => {
@@ -21,10 +27,10 @@ const resolver: GQLArticleResolvers['comments'] = async (
   let before
   let after
   if (rest.after) {
-    after = fromGlobalId(rest.after).id
+    after = cursorToKeys(rest.after).idCursor?.toString()
   }
   if (rest.before) {
-    before = fromGlobalId(rest.before).id
+    before = cursorToKeys(rest.before).idCursor?.toString()
   }
 
   // handle filter
@@ -32,65 +38,43 @@ const resolver: GQLArticleResolvers['comments'] = async (
     table: 'entity_type',
     where: { table: 'article' },
   })
-  let where = { targetId: articleId, targetTypeId } as { [key: string]: any }
+
+  const where: CommentFilter = {
+    type: COMMENT_TYPE.article,
+    targetId: id,
+    targetTypeId,
+  }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter
     if (parentComment || parentComment === null) {
-      where = {
-        parentCommentId: parentComment ? fromGlobalId(parentComment).id : null,
-        ...where,
-      }
+      where.parentCommentId = parentComment
+        ? fromGlobalId(parentComment).id
+        : null
     }
     if (author) {
-      where = {
-        authorId: fromGlobalId(author).id,
-        ...where,
-      }
+      where.authorId = fromGlobalId(author).id
     }
     if (state) {
-      where = {
-        state,
-        ...where,
-      }
+      where.state = state
     }
   }
 
-  const [comments, range] = await Promise.all([
-    commentService.find({
-      sort,
-      before,
-      after,
-      first,
-      where,
-      order,
-      includeAfter: rest.includeAfter,
-      includeBefore: rest.includeBefore,
-    }),
-    commentService.range(where),
-  ])
+  const [comments, totalCount] = await commentService.find({
+    sort,
+    before,
+    after,
+    first,
+    where,
+    order,
+    includeAfter: rest.includeAfter,
+    includeBefore: rest.includeBefore,
+  })
 
-  const edges = comments.map((comment) => ({
-    cursor: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
-    node: comment,
-  }))
-
-  const firstEdge = edges[0]
-  const firstId = firstEdge && parseInt(firstEdge.node.id, 10)
-
-  const lastEdge = edges[edges.length - 1]
-  const lastId = lastEdge && parseInt(lastEdge.node.id, 10)
-
-  return {
-    edges,
-    totalCount: range.count,
-    pageInfo: {
-      startCursor: firstEdge ? firstEdge.cursor : '',
-      endCursor: lastEdge ? lastEdge.cursor : '',
-      hasPreviousPage:
-        order === 'asc' ? firstId > range.min : firstId < range.max,
-      hasNextPage: order === 'asc' ? lastId < range.max : lastId > range.min,
-    },
+  if (!comments.length) {
+    return connectionFromArray([], rest)
   }
+
+  return connectionFromArrayWithKeys(comments, rest, totalCount)
 }
 
 export default resolver

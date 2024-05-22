@@ -83,7 +83,6 @@ const ENDPOINTS = {
   total: '/like/info/like/amount',
   like: '/like/likebutton',
   rate: '/misc/price',
-  superlike: '/like/share',
   iscnPublish: '/iscn/new?claim=1',
   cosmosTx: '/cosmos/lcd/cosmos/tx/v1beta1/txs',
 }
@@ -430,87 +429,6 @@ export class LikeCoin {
       messageDeduplicationId: v4(),
     })
 
-  /**
-   * Super Like
-   */
-  public superlike = async ({
-    authorLikerId,
-    liker,
-    iscn_id,
-    url,
-    likerIp,
-    userAgent,
-  }: {
-    authorLikerId: string
-    liker: UserOAuthLikeCoin
-    iscn_id?: string
-    url: string
-    likerIp?: string
-    userAgent: string
-  }) => {
-    const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
-    const result = await this.request({
-      ip: likerIp,
-      userAgent,
-      endpoint,
-      withClientCredential: true,
-      method: 'POST',
-      liker,
-      data: _.omitBy(
-        {
-          iscn_id,
-          referrer: url, // encodeURI(url),
-        },
-        _.isNil
-      ),
-    })
-    const data = _.get(result, 'data')
-    if (data) {
-      return data
-    } else {
-      throw result
-    }
-  }
-
-  public canSuperLike = async ({
-    liker,
-    iscn_id,
-    url,
-    likerIp,
-    userAgent,
-  }: {
-    liker: UserOAuthLikeCoin
-    iscn_id?: string
-    url: string
-    likerIp?: string
-    userAgent: string
-  }) => {
-    const endpoint = `${ENDPOINTS.superlike}/self`
-
-    const res = await this.request({
-      endpoint,
-      method: 'GET',
-      ip: likerIp,
-      userAgent,
-      withClientCredential: true,
-      params: _.omitBy(
-        {
-          iscn_id,
-          referrer: url, // encodeURI(url),
-        },
-        _.isNil
-      ),
-      liker,
-    })
-    const data = _.get(res, 'data')
-
-    if (!data) {
-      throw res
-    }
-
-    return data.canSuperLike
-  }
-
   public iscnPublish = async ({
     mediaHash,
     ipfsHash,
@@ -531,7 +449,7 @@ export class LikeCoin {
     userName: string
     title: string
     description: string
-    datePublished: string // in format like 'YYYY-mm-dd' // "datePublished": "2019-04-19",
+    datePublished: string // in format like 'YYYY-mm-dd'
     url: string
     tags: string[]
     liker: UserOAuthLikeCoin
@@ -571,12 +489,12 @@ export class LikeCoin {
         },
       ],
       type: 'Article',
-      name: title, // "使用矩陣計算遞歸關係式",
-      description, // "description": "An article on computing recursive function with matrix multiplication.",
-      datePublished, // "datePublished": "2019-04-19",
-      url, // "url": "https://nnkken.github.io/post/recursive-relation/",
+      name: title,
+      description,
+      datePublished,
+      url,
       // "usageInfo": "https://creativecommons.org/licenses/by/4.0",
-      keywords: tags, // ["matrix","recursion","keyword3"]
+      keywords: tags,
     }
 
     const res = await this.request({

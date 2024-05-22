@@ -6,11 +6,7 @@ import {
 import { GQLUserActivityResolvers } from 'definitions'
 
 const resolver: GQLUserActivityResolvers = {
-  history: async (
-    { id },
-    { input },
-    { dataSources: { userService, draftService } }
-  ) => {
+  history: async ({ id }, { input }, { dataSources: { userService } }) => {
     if (!id) {
       return connectionFromArray([], input)
     }
@@ -21,14 +17,8 @@ const resolver: GQLUserActivityResolvers = {
       userService.countReadHistory(id),
       userService.findReadHistory({ userId: id, skip, take }),
     ])
-    const nodes = await Promise.all(
-      reads.map(async ({ article, readAt }) => {
-        const node = await draftService.loadById(article.draftId)
-        return { readAt, article: node }
-      })
-    )
 
-    return connectionFromArray(nodes, input, totalCount)
+    return connectionFromArray(reads, input, totalCount)
   },
 
   recentSearches: async (

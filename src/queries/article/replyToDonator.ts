@@ -1,44 +1,26 @@
 import type { GQLArticleResolvers } from 'definitions'
 
-import {
-  TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
-  TRANSACTION_TARGET_TYPE,
-} from 'common/enums'
-
 const resolver: GQLArticleResolvers['replyToDonator'] = async (
-  { authorId, articleId, replyToDonator },
+  { authorId, id: articleId },
   _,
-  { viewer, dataSources }
+  { viewer, dataSources: { articleService, paymentService } }
 ) => {
   if (!viewer.id) {
     return null
   }
 
-  const isAuthor = viewer.id === authorId
-  const isDonator = await _isDonator(viewer.id, articleId, dataSources)
-  return isAuthor || isDonator ? replyToDonator ?? null : null
-}
+  const getReplyToDonator = async () => {
+    const { replyToDonator } = await articleService.loadLatestArticleVersion(
+      articleId
+    )
+    return replyToDonator
+  }
 
-const _isDonator = async (
-  viewerId: string,
-  articleId: string,
-  { atomService, paymentService }: any
-) => {
-  const { id: entityTypeId } = await paymentService.baseFindEntityTypeId(
-    TRANSACTION_TARGET_TYPE.article
-  )
-  const count = await atomService.count({
-    table: 'transaction',
-    where: {
-      purpose: TRANSACTION_PURPOSE.donation,
-      state: TRANSACTION_STATE.succeeded,
-      targetType: entityTypeId,
-      targetId: articleId,
-      senderId: viewerId,
-    },
-  })
-  return count > 0
+  const isAuthor = viewer.id === authorId
+
+  return isAuthor || (await paymentService.isDonator(viewer.id, articleId))
+    ? await getReplyToDonator()
+    : null
 }
 
 export default resolver

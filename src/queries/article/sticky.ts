@@ -1,12 +1,5 @@
 import type { GQLArticleResolvers } from 'definitions'
 
-const resolver: GQLArticleResolvers['sticky'] = async (
-  { articleId },
-  _,
-  { dataSources: { articleService } }
-) => {
-  const article = await articleService.dataloader.load(articleId)
-  return article.pinned
-}
+const resolver: GQLArticleResolvers['sticky'] = async ({ pinned }) => pinned
 
 export default resolver

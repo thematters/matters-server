@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, UserNotifySetting } from 'definitions'
 
 import {
   BUNDLED_NOTICE_TYPE,
@@ -6,13 +6,8 @@ import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { BaseService, UserService } from 'connectors'
-import {
-  LANGUAGES,
-  NotificationPrarms,
-  PutNoticeParams,
-  User,
-} from 'definitions'
+import { UserService, AtomService, ArticleService } from 'connectors'
+import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -20,12 +15,13 @@ import trans from './translations'
 
 const logger = getLogger('service-notification')
 
-export class NotificationService extends BaseService {
-  mail: typeof mail
-  notice: Notice
+export class NotificationService {
+  public mail: typeof mail
+  public notice: Notice
+  private connections: Connections
 
   public constructor(connections: Connections) {
-    super('noop', connections)
+    this.connections = connections
     this.mail = mail
     this.notice = new Notice(connections)
   }
@@ -42,6 +38,7 @@ export class NotificationService extends BaseService {
     params: NotificationPrarms,
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
+    const articleService = new ArticleService(this.connections)
     switch (params.event) {
       // entity-free
       case DB_NOTICE_TYPE.user_new_follower:
@@ -114,7 +111,7 @@ export class NotificationService extends BaseService {
           data: params.data, // update latest comment to DB `data` field
           bundle: { mergeData: true },
         }
-      // act as official annonuncement
+      // act as official announcement
       case DB_NOTICE_TYPE.official_announcement:
         return {
           type: DB_NOTICE_TYPE.official_announcement,
@@ -160,7 +157,11 @@ export class NotificationService extends BaseService {
           type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_banned(language, {
-            title: params.entities[0].entity.title,
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
           }),
           entities: params.entities,
         }
@@ -178,7 +179,11 @@ export class NotificationService extends BaseService {
           type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_reported(language, {
-            title: params.entities[0].entity.title,
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
           }),
           entities: params.entities,
         }
@@ -188,10 +193,8 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const userService = new UserService(this.connections)
-    const recipient = (await userService.dataloader.load(
-      params.recipientId
-    )) as User
+    const atomService = new AtomService(this.connections)
+    const recipient = await atomService.userIdLoader.load(params.recipientId)
 
     if (!recipient) {
       logger.warn(`recipient ${params.recipientId} not found, skipped`)
@@ -213,10 +216,11 @@ export class NotificationService extends BaseService {
     }
 
     // skip if user disable notify
+    const userService = new UserService(this.connections)
     const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
-      setting: notifySetting,
+      setting: notifySetting as UserNotifySetting,
     })
 
     if (!enable) {

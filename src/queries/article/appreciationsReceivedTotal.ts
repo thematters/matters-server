@@ -1,9 +1,9 @@
 import { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['appreciationsReceivedTotal'] = async (
-  { articleId },
-  _: any,
+  { id },
+  _,
   { dataSources: { articleService } }
-) => articleService.sumAppreciation(articleId)
+) => articleService.sumAppreciation(id)
 
 export default resolver

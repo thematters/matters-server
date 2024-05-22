@@ -5,6 +5,7 @@ import node from './node'
 import nodes from './nodes'
 import { announcements, features, translations } from './official'
 import OSS from './oss'
+import report from './report'
 import search from './search'
 
 const system: GQLResolvers = {
@@ -33,6 +34,7 @@ const system: GQLResolvers = {
     translations,
   },
   OSS,
+  Report: report,
 }
 
 export default system

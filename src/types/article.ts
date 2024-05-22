@@ -27,20 +27,6 @@ export default /* GraphQL */ `
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
-    ######################
-    # Article Containers #
-    ######################
-    "Create a Topic when no id is given, update fields when id is given. Throw error if no id & no title."
-    putTopic(input: PutTopicInput!): Topic! @purgeCache(type: "${NODE_TYPES.Topic}")
-
-    "Create a Chapter when no id is given, update fields when id is given. Throw error if no id & no title, or no id & no topic."
-    putChapter(input: PutChapterInput!): Chapter! @purgeCache(type: "${NODE_TYPES.Chapter}")
-
-    "Delete topics"
-    deleteTopics(input: DeleteTopicsInput!): Boolean! @complexity(value: 10, multipliers: ["input.ids"])
-
-    "Sort topics"
-    sortTopics(input: SortTopicsInput!): [Topic!]! @complexity(value: 10, multipliers: ["input.ids"]) @purgeCache(type: "${NODE_TYPES.Topic}")
 
     ##############
     #     Tag    #
@@ -132,6 +118,9 @@ export default /* GraphQL */ `
 
     "Media hash, composed of cid encoding, of this article."
     mediaHash: String!
+
+    "Short hash for shorter url addressing"
+    shortHash: String! ## add non-null after all rows filled
 
     "Content (HTML) of this article."
     content: String!
@@ -227,6 +216,9 @@ export default /* GraphQL */ `
     "License Type"
     license: ArticleLicenseType!
 
+    "whether current viewer has donated to this article"
+    donated: Boolean! @privateCache
+
     "creator message asking for support"
     requestForDonation: String
 
@@ -239,6 +231,9 @@ export default /* GraphQL */ `
     "whether readers can comment"
     canComment: Boolean!
 
+    "history versions"
+    versions(input: ArticleVersionsInput!): ArticleVersionsConnection! @complexity(multipliers: ["input.first"], value: 1)
+
     ##############
     #     OSS    #
     ##############
@@ -246,62 +241,34 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
-  "This type contains metadata, content and related data of Chapter type, which is a container for Article type. A Chapter belong to a Topic."
-  type Chapter implements Node {
-    "Unique id of this chapter."
-    id: ID!
-
-    "Title of this chapter."
-    title: String!
-
-    "Description of this chapter."
-    description: String
-
-    "Number articles included in this chapter."
-    articleCount: Int!
-
-    "Articles included in this Chapter"
-    articles: [Article!]
-
-    "The topic that this Chapter belongs to."
-    topic: Topic! @logCache(type: "${NODE_TYPES.Topic}")
+  input ArticleVersionsInput {
+    after: String
+    first: Int @constraint(min: 0)
   }
 
-  "This type contains metadata, content and related data of a topic, which is a container for Article and Chapter types."
-  type Topic implements Node {
-    "Unique id of this topic."
-    id: ID!
-
-    "Title of this topic."
-    title: String!
-
-    "Cover of this topic."
-    cover: String
-
-    "Description of this topic."
-    description: String
-
-    "Number of chapters included in this topic."
-    chapterCount: Int!
-
-    "Number articles included in this topic."
-    articleCount: Int!
-
-    "List of chapters included in this topic."
-    chapters: [Chapter!]
-
-    "List of articles included in this topic."
-    articles: [Article!]
-
-    "Author of this topic."
-    author: User!
-
-    "Whether this topic is public or not."
-    public: Boolean!
-
-    "Latest published article on this topic"
-    latestArticle: Article
+  type ArticleVersionsConnection implements Connection {
+     totalCount: Int!
+     pageInfo: PageInfo!
+     edges: [ArticleVersionEdge]!
   }
+
+  type ArticleVersionEdge {
+     node: ArticleVersion!
+     cursor: String!
+  }
+
+  type ArticleVersion implements Node {
+    id: ID!
+    dataHash: String
+    mediaHash: String
+    title: String!
+    summary: String!
+    contents: ArticleContents!
+    translation(input: TranslationArgs): ArticleTranslation
+    createdAt: DateTime!
+    description: String
+  }
+
 
   "This type contains content, count and related data of an article tag."
   type Tag implements Node {
@@ -414,17 +381,6 @@ export default /* GraphQL */ `
     node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
-  type TopicConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [TopicEdge!]
-  }
-
-  type TopicEdge {
-    cursor: String!
-    node: Topic! @logCache(type: "${NODE_TYPES.Topic}")
-  }
-
   type TagConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -453,7 +409,8 @@ export default /* GraphQL */ `
   }
 
   input ArticleInput {
-    mediaHash: String!
+    mediaHash: String
+    shortHash: String
   }
 
   input PublishArticleInput {
@@ -469,6 +426,7 @@ export default /* GraphQL */ `
     "deprecated, use pinned instead"
     sticky: Boolean
     pinned: Boolean
+    title: String
     summary: String
     tags: [String!]
     content: String
@@ -481,6 +439,9 @@ export default /* GraphQL */ `
 
     requestForDonation: String  @constraint(maxLength: 140)
     replyToDonator: String  @constraint(maxLength: 140)
+
+    "revision description"
+    description: String @constraint(maxLength: 140)
 
     "whether publish to ISCN"
     iscnPublish: Boolean
@@ -498,32 +459,6 @@ export default /* GraphQL */ `
 
   input ReadArticleInput {
     id: ID!
-  }
-
-  input PutTopicInput {
-    id: ID
-    title: String
-    description: String
-    cover: ID
-    public: Boolean
-    articles: [ID!]
-    chapters: [ID!]
-  }
-
-  input PutChapterInput {
-    id: ID
-    title: String
-    description: String
-    topic: ID
-    articles: [ID!]
-  }
-
-  input DeleteTopicsInput {
-    ids: [ID!]!
-  }
-
-  input SortTopicsInput {
-    ids: [ID!]!
   }
 
   input ToggleRecommendInput {

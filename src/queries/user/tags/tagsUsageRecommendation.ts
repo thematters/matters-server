@@ -9,7 +9,7 @@ import {
 const resolver: GQLUserResolvers['tags'] = async (
   { id },
   { input },
-  { dataSources: { tagService } }
+  { dataSources: { tagService, atomService } }
 ) => {
   if (id === null) {
     return connectionFromArray([], input)
@@ -24,7 +24,7 @@ const resolver: GQLUserResolvers['tags'] = async (
   })
 
   return connectionFromPromisedArray(
-    tagService.loadByIds(
+    atomService.tagIdLoader.loadMany(
       items.filter((item: any) => item?.id).map((item: any) => `${item.id}`)
     ),
     input,

@@ -57,7 +57,7 @@ const notice: {
         revised_article_not_published: NOTICE_TYPE.ArticleNotice,
         circle_new_article: NOTICE_TYPE.ArticleNotice, // deprecated
 
-        // article-artilce
+        // article-article
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
 
         // comment
@@ -122,11 +122,11 @@ const notice: {
       }
       throw new ServerError(`Unknown ArticleNotice type: ${type}`)
     },
-    target: ({ entities }, _, { dataSources: { draftService } }) => {
+    target: ({ entities }, _, { dataSources: { atomService } }) => {
       if (!entities) {
         throw new ServerError('entities is empty')
       }
-      return draftService.loadById(entities.target.draftId)
+      return atomService.articleIdLoader.load(entities.target.id)
     },
   },
   ArticleArticleNotice: {
@@ -137,18 +137,18 @@ const notice: {
       }
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
-    target: ({ entities }, _, { dataSources: { draftService } }) => {
+    target: ({ entities }, _, { dataSources: { atomService } }) => {
       if (!entities) {
         throw new ServerError('entities is empty')
       }
-      return draftService.loadById(entities.target.draftId)
+      return atomService.articleIdLoader.load(entities.target.id)
     },
-    article: ({ entities, type }, _, { dataSources: { draftService } }) => {
+    article: ({ entities, type }, _, { dataSources: { atomService } }) => {
       if (type === DB_NOTICE_TYPE.article_new_collected) {
         if (!entities) {
           throw new ServerError('entities is empty')
         }
-        return draftService.loadById(entities.collection.draftId)
+        return atomService.articleIdLoader.load(entities.collection.id)
       }
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
     },
@@ -247,41 +247,45 @@ const notice: {
       }
       return entities.target
     },
-    comments: async ({ data }, _, { dataSources: { commentService } }) => {
+    comments: async ({ data }, _, { dataSources: { atomService } }) => {
       const { comments } = data || {}
 
       if (!comments || comments.length <= 0) {
         return null
       }
 
-      return (await commentService.loadByIds(comments)).map((c) => ({
-        ...c,
-        __typename: NODE_TYPES.Comment,
-      }))
+      return (await atomService.commentIdLoader.loadMany(comments)).map(
+        (c) => ({
+          ...c,
+          __typename: NODE_TYPES.Comment,
+        })
+      )
     },
-    replies: async ({ data }, _, { dataSources: { commentService } }) => {
+    replies: async ({ data }, _, { dataSources: { atomService } }) => {
       const { replies } = data || {}
 
       if (!replies || replies.length <= 0) {
         return null
       }
 
-      return (await commentService.loadByIds(replies)).map((c) => ({
+      return (await atomService.commentIdLoader.loadMany(replies)).map((c) => ({
         ...c,
         __typename: NODE_TYPES.Comment,
       }))
     },
-    mentions: async ({ data }, _, { dataSources: { commentService } }) => {
+    mentions: async ({ data }, _, { dataSources: { atomService } }) => {
       const { mentions } = data || {}
 
       if (!mentions || mentions.length <= 0) {
         return null
       }
 
-      return (await commentService.loadByIds(mentions)).map((c) => ({
-        ...c,
-        __typename: NODE_TYPES.Comment,
-      }))
+      return (await atomService.commentIdLoader.loadMany(mentions)).map(
+        (c) => ({
+          ...c,
+          __typename: NODE_TYPES.Comment,
+        })
+      )
     },
   },
   OfficialAnnouncementNotice: {

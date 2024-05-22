@@ -53,6 +53,7 @@ stripeRouter.post('/', async (req, res) => {
       sig,
       environment.stripeWebhookSecret
     )
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     logger.error(err)
     slack.sendStripeAlert({
@@ -116,9 +117,9 @@ stripeRouter.post('/', async (req, res) => {
             remark: USER_BAN_REMARK.paymentHighRisk,
             noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
           })
-          const user = await userService.loadById(tx.recipientId)
+          const user = await userService.baseFindById(tx.recipientId)
           slack.sendPaymentAlert({
-            message: `user ${user.userName} banned due to high risk payment`,
+            message: `user ${user?.userName} banned due to high risk payment`,
           })
         }
         break
@@ -200,9 +201,9 @@ stripeRouter.post('/', async (req, res) => {
           remark: USER_BAN_REMARK.payoutReversedByAdmin,
           noticeType: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment,
         })
-        const user = await userService.loadById(payoutTx.senderId)
+        const user = await userService.baseFindById(payoutTx.senderId)
         slack.sendPaymentAlert({
-          message: `user ${user.userName} banned due to payout reversed`,
+          message: `user ${user?.userName} banned due to payout reversed`,
         })
         break
       }

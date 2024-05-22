@@ -41,8 +41,6 @@ export const environment = {
   awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
-  awsIpfsArticlesQueueUrl:
-    process.env.MATTERS_AWS_IPFS_ARTICLES_QUEUE_URL || '',
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',
@@ -51,7 +49,6 @@ export const environment = {
     process.env.MATTERS_AWS_LIKECOIN_SEND_PV_QUEUE_URL || '',
   awsLikecoinUpdateCivicLikerCache:
     process.env.MATTERS_AWS_LIKECOIN_UPDATE_CIVIC_LIKER_CACHE_QUEUE_URL || '',
-  awsArticlesSnsTopic: process.env.MATTERS_AWS_ARTICLES_SNS_TOPIC || '',
   tsQiServerUrl: process.env.MATTERS_TSQI_SERVER_URL || '',
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
   cloudflareAccountId: process.env.MATTERS_CLOUDFLARE_ACCOUNT_ID,
@@ -59,9 +56,6 @@ export const environment = {
   cloudflareApiToken: process.env.MATTERS_CLOUDFLARE_API_TOKEN,
   cloudflareTurnstileSecretKey:
     process.env.MATTERS_CLOUDFLARE_TURNSTILE_SECRET_KEY,
-  verifyCaptchaTokenThresholds: JSON.parse(
-    process.env.MATTERS_VERIFY_CAPTCHA_TOKENS_THRESHOLDS || '[0.5, 1.0]'
-  ),
   pgHost: process.env.MATTERS_PG_HOST,
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
@@ -102,7 +96,6 @@ export const environment = {
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
   translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
-  recaptchaSecret: process.env.MATTERS_RECAPTCHA_KEY,
   OICDPrivateKey,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',

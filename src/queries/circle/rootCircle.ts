@@ -8,7 +8,7 @@ const resolver: GQLQueryResolvers['circle'] = async (
   { dataSources: { atomService } }
 ) => {
   if (!name) {
-    return
+    return null
   }
 
   const circle = await atomService.findFirst({

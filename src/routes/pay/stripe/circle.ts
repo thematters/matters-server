@@ -312,7 +312,7 @@ export const completeCircleInvoice = async (
     const customer = (await atomService.findFirst({
       table: 'customer',
       where: {
-        customer_id: invoice.customer,
+        customerId: invoice.customer,
         provider: PAYMENT_PROVIDER.stripe,
         archived: false,
       },
@@ -355,6 +355,7 @@ export const completeCircleInvoice = async (
     } else {
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     logger.error(err)
     slack.sendStripeAlert({

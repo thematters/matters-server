@@ -1,11 +1,5 @@
-import type {
-  Item,
-  Collection,
-  CollectionArticle,
-  Connections,
-} from 'definitions'
+import type { Collection, CollectionArticle, Connections } from 'definitions'
 
-import DataLoader from 'dataloader'
 import { Knex } from 'knex'
 
 import { ARTICLE_STATE, MAX_PINNED_WORKS_LIMIT } from 'common/enums'
@@ -17,23 +11,11 @@ import {
   ActionLimitExceededError,
 } from 'common/errors'
 import { BaseService, UserService } from 'connectors'
-// import { getLogger } from 'common/logger'
 
-// const logger = getLogger('service-collection')
-
-export class CollectionService extends BaseService {
-  public dataloader: DataLoader<string, Item>
-
+export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {
     super('collection', connections)
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
-
-  public loadById = async (id: string): Promise<Collection> =>
-    this.dataloader.load(id) as Promise<Collection>
-
-  public loadByIds = async (ids: readonly string[]): Promise<Collection[]> =>
-    this.dataloader.loadMany(ids) as Promise<Collection[]>
 
   public addArticles = async (
     collectionId: string,
@@ -50,7 +32,7 @@ export class CollectionService extends BaseService {
         order: initOrder + index,
       }))
     )
-    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
+    await this.baseUpdate(collectionId, {})
   }
 
   public createCollection = async ({
@@ -90,7 +72,6 @@ export class CollectionService extends BaseService {
       title,
       cover,
       description,
-      updatedAt: this.knex.fn.now(),
     })
 
   public findAndCountCollectionsByUser = async (
@@ -119,7 +100,6 @@ export class CollectionService extends BaseService {
     const records = await this.knex('collection_article')
       .select(
         'article_id',
-        'draft_id',
         'order',
         this.knex.raw('count(1) OVER() AS total_count')
       )
@@ -156,7 +136,7 @@ export class CollectionService extends BaseService {
     if (ids.length === 0) {
       return false
     }
-    const collections = await this.loadByIds(ids)
+    const collections = await this.models.collectionIdLoader.loadMany(ids)
 
     for (const collection of collections) {
       if (!collection) {
@@ -186,7 +166,7 @@ export class CollectionService extends BaseService {
       .where('collection_id', collectionId)
       .whereIn('article_id', articleIds)
       .del()
-    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
+    await this.baseUpdate(collectionId, {})
   }
 
   public reorderArticles = async (
@@ -207,7 +187,7 @@ export class CollectionService extends BaseService {
       throw new UserInputError('Invalid articleId')
     }
 
-    await this.baseUpdate(collectionId, { updatedAt: this.knex.fn.now() })
+    await this.baseUpdate(collectionId, {})
 
     for (const { articleId, newPosition } of moves) {
       if (
@@ -266,7 +246,7 @@ export class CollectionService extends BaseService {
     userId: string,
     pinned: boolean
   ) => {
-    const collection = await this.loadById(collectionId)
+    const collection = await this.models.collectionIdLoader.load(collectionId)
     if (!collection) {
       throw new EntityNotFoundError('Collection not found')
     }
@@ -285,10 +265,34 @@ export class CollectionService extends BaseService {
     }
     await this.baseUpdate(collectionId, {
       pinned,
-      pinnedAt: this.knex.fn.now(),
+      pinnedAt: this.knex.fn.now() as unknown as Date,
     })
     return { ...collection, pinned }
   }
+
+  public findByAuthor = async (
+    authorId: string,
+    { skip, take }: { skip?: number; take?: number } = {},
+    filterEmpty = false
+  ): Promise<Collection[]> =>
+    this.knexRO<Collection>('collection')
+      .where({ authorId })
+      .orderBy('updatedAt', 'desc')
+      .modify((builder) => {
+        if (filterEmpty) {
+          builder.whereExists(
+            this.knexRO('collection_article')
+              .select(this.knex.raw(1))
+              .whereRaw('collection.id = collection_article.collection_id')
+          )
+        }
+        if (skip !== undefined && Number.isFinite(skip)) {
+          builder.offset(skip)
+        }
+        if (take !== undefined && Number.isFinite(take)) {
+          builder.limit(take)
+        }
+      })
 
   public findPinnedByAuthor = async (authorId: string) =>
     this.baseFind({ where: { authorId, pinned: true } })

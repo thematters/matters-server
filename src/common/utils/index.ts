@@ -24,6 +24,7 @@ export * from './IERC1271'
 export * from './genDisplayName'
 export * from './counter'
 export * from './verify'
+export * from './nanoid'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
@@ -39,6 +40,7 @@ export const makeUserName = (email: string): string => {
   return matched.join('').substring(0, 12).toLowerCase()
 }
 
+// TOFIX: uuid extract logic is broken after editor upgrade
 export const extractAssetDataFromHtml = (
   html: string,
   type?: 'image' | 'audio'

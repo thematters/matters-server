@@ -1,7 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
 const resolver: GQLArticleResolvers['readerCount'] = async (
-  { articleId, authorId },
+  { id: articleId, authorId },
   _,
   { dataSources: { articleService }, viewer }
 ) => {

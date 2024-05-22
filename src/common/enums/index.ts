@@ -31,7 +31,7 @@ export * from './appreciation'
 export * from './metrics'
 export * from './badges'
 
-export const GRAPHQL_COST_LIMIT = 10e3
+export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
 
 export const BCRYPT_ROUNDS = 12
@@ -88,12 +88,6 @@ export const PUBLISH_STATE = {
   error: 'error',
   published: 'published',
 } as const
-
-export enum PIN_STATE {
-  pinned = 'pinned',
-  pinning = 'pinning',
-  failed = 'failed',
-}
 
 export const CIRCLE_STATE = {
   active: 'active',
@@ -159,6 +153,7 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
 
 export enum NODE_TYPES {
   Article = 'Article',
+  ArticleVersion = 'ArticleVersion',
   Comment = 'Comment',
   Draft = 'Draft',
   User = 'User',
@@ -166,10 +161,10 @@ export enum NODE_TYPES {
   Appreciation = 'Appreciation',
   Transaction = 'Transaction',
   Circle = 'Circle',
-  Topic = 'Topic',
-  Chapter = 'Chapter',
   Collection = 'Collection',
+  Report = 'Report',
 
+  IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
   Price = 'Price',
   Invitation = 'Invitation',
@@ -208,7 +203,15 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
   DOMAIN: 'domain',
-}
+} as const
+
+export const MATTERS_CHOICE_TOPIC_STATE = {
+  published: 'published',
+  editing: 'editing',
+  archived: 'archived',
+} as const
+
+export const MATTERS_CHOICE_TOPIC_VALID_PIN_AMOUNTS = [3, 6]
 
 export const LOCAL_STRIPE = {
   host: 'localhost',
@@ -230,11 +233,14 @@ export enum ActivityType {
   UserAddArticleTagActivity = 'UserAddArticleTagActivity',
 }
 
-export const MAX_ARTICE_TITLE_LENGTH = 100
-export const MAX_ARTICE_SUMMARY_LENGTH = 200
+export const MAX_ARTICLE_TITLE_LENGTH = 100
+export const MAX_ARTICLE_SUMMARY_LENGTH = 200
 export const MAX_ARTICLE_CONTENT_LENGTH = 50e3
 export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 3
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
+
+export const MAX_ARTICLE_COMMENT_LENGTH = 1200
+export const MAX_COMMENT_EMPTY_PARAGRAPHS = 1
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 3
 export const TAGS_RECOMMENDED_LIMIT = 100
@@ -243,3 +249,5 @@ export const MAX_TAG_CONTENT_LENGTH = 50
 export const MAX_TAG_DESCRIPTION_LENGTH = 200
 
 export const MAX_PINNED_WORKS_LIMIT = 3
+
+export const LATEST_WORKS_NUM = 4

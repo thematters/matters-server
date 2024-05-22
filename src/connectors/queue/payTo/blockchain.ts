@@ -1,4 +1,9 @@
-import type { EmailableUser, Connections, GQLChain } from 'definitions'
+import type {
+  EmailableUser,
+  Connections,
+  BlockchainTransaction,
+  GQLChain,
+} from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
@@ -150,7 +155,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         data: {
           from: txReceipt.from,
           to: txReceipt.to,
-          blockNumber: txReceipt.blockNumber,
+          blockNumber: txReceipt.blockNumber.toString(),
         },
       })
     } else {
@@ -171,17 +176,21 @@ export class PayToByBlockchainQueue extends BaseQueue {
 
     const [recipient, sender, article] = await Promise.all([
       userService.baseFindById(tx.recipientId),
-      userService.baseFindById(tx.senderId),
+      userService.baseFindById(tx.senderId as string),
       atomService.findFirst({
         table: 'article',
         where: { id: tx.targetId },
       }),
     ])
+    const articleService = new ArticleService(this.connections)
+    const articleVersion = await articleService.loadLatestArticleVersion(
+      article.id
+    )
 
     // cancel tx and success blockchain tx if it's invalid
     // Note: sender and recipient's ETH address may change after tx is created
     const isValidTx = await this.containMatchedEvent(txReceipt.events, {
-      cid: article.dataHash,
+      cid: articleVersion.dataHash,
       amount: tx.amount,
       // support USDT only for now
       tokenAddress: contract[chain].tokenAddress,
@@ -201,7 +210,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // anonymize tx if sender's ETH address is not matched
     const isSenderMatched = txReceipt.events
       .map((e) => e.curatorAddress)
-      .every((address) => ignoreCaseMatch(address, sender.ethAddress || ''))
+      .every((address) => ignoreCaseMatch(address, sender?.ethAddress || ''))
     if (!isSenderMatched) {
       await atomService.update({
         table: 'transaction',
@@ -216,8 +225,8 @@ export class PayToByBlockchainQueue extends BaseQueue {
     // notify recipient and sender (if needed)
     await paymentService.notifyDonation({
       tx,
-      sender: isSenderMatched ? sender : undefined,
-      recipient,
+      sender: isSenderMatched ? (sender as EmailableUser) : undefined,
+      recipient: recipient as EmailableUser,
       article,
     })
 
@@ -238,6 +247,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
       let syncedBlockNum: { [key: string]: number } = {}
 
       ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
+        // FIXME: pause support for the Polygon testnet
+        // @see {src/common/enums/payment.ts:L59}
+        if (chain === BLOCKCHAIN.Polygon && !isProd) {
+          return
+        }
+
         try {
           const blockNum = await this._handleSyncCurationEvents(chain)
           syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
@@ -284,13 +299,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
       update: {
         chainId,
         contractAddress,
-        blockNumber: newSavepoint,
-        updatedAt: this.connections.knex.fn.now(),
+        blockNumber: newSavepoint.toString(),
       },
       create: {
         chainId,
         contractAddress,
-        blockNumber: newSavepoint,
+        blockNumber: newSavepoint.toString(),
       },
     })
 
@@ -302,7 +316,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     chain: GQLChain,
     blockchainTx: {
       id: string
-      transactionId: string
+      transactionId: string | null
       state: BLOCKCHAIN_TRANSACTION_STATE
     },
     services: {
@@ -334,15 +348,19 @@ export class PayToByBlockchainQueue extends BaseQueue {
       return
     }
 
-    // skip if recipeint or article is not found
+    // skip if recipient or article is not found
     const creatorUser = await userService.findByEthAddress(event.creatorAddress)
     if (!creatorUser) {
       return
     }
     const cid = extractCid(event.uri)
+    const articleVersion = await atomService.findFirst({
+      table: 'article_version',
+      where: { dataHash: cid },
+    })
     const article = await atomService.findFirst({
       table: 'article',
-      where: { authorId: creatorUser.id, dataHash: cid },
+      where: { id: articleVersion?.articleId, authorId: creatorUser.id },
     })
     if (!article) {
       return
@@ -392,7 +410,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
           table: 'transaction',
           where: { id: tx.id },
           data: {
-            amount,
+            amount: amount.toString(),
             targetId: article.id,
             currency: PAYMENT_CURRENCY.USDT,
             provider: PAYMENT_PROVIDER.blockchain,
@@ -421,7 +439,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
           },
           trx
         )
-        await paymentService.baseUpdate(
+        await paymentService.baseUpdate<BlockchainTransaction>(
           blockchainTx.id,
           { transactionId: tx.id },
           'blockchain_transaction',
@@ -607,7 +625,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
     targetId: string,
     userService: UserService
   ) => {
-    // manaully invalidate cache
+    // manually invalidate cache
     if (targetType) {
       const entity = await userService.baseFindEntityTypeTable(targetType)
       const entityType =

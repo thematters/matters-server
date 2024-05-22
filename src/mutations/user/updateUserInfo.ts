@@ -262,7 +262,7 @@ const resolver: GQLMutationResolvers['updateUserInfo'] = async (
   }
 
   // trigger notifications
-  if (updateParams.paymentPasswordHash) {
+  if (updateParams.paymentPasswordHash && user.email) {
     notificationService.mail.sendPayment({
       to: user.email,
       recipient: {

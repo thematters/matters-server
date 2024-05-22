@@ -12,7 +12,6 @@ const resolver: GQLCircleResolvers['works'] = async (
   { input },
   {
     dataSources: {
-      draftService,
       connections: { knex },
     },
   }
@@ -36,11 +35,7 @@ const resolver: GQLCircleResolvers['works'] = async (
   ])
   const totalCount = parseInt(count ? (count.count as string) : '0', 10)
 
-  return connectionFromPromisedArray(
-    draftService.loadByIds(articles.map(({ draftId }) => draftId)),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(articles, input, totalCount)
 }
 
 export default resolver

@@ -1,4 +1,4 @@
-import type { Customer, GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
@@ -99,20 +99,19 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
   }
 
   // retrieve or create a Customer
-  let customer = (await atomService.findFirst({
-    table: 'customer',
-    where: {
-      userId: viewer.id,
-      provider: PAYMENT_PROVIDER.stripe,
-      archived: false,
-    },
-  })) as Customer
-  if (!customer) {
-    customer = (await paymentService.createCustomer({
+  const customer =
+    (await atomService.findFirst({
+      table: 'customer',
+      where: {
+        userId: viewer.id,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      },
+    })) ||
+    (await paymentService.createCustomer({
       user: viewer,
       provider: PAYMENT_PROVIDER.stripe,
-    })) as Customer
-  }
+    }))
 
   // check subscription
   const subscriptions = await paymentService.findActiveSubscriptions({

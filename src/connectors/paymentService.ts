@@ -1,12 +1,14 @@
 import type {
   CirclePrice,
+  Customer,
+  BlockchainTransaction,
   Transaction,
-  EmailableUser,
   Connections,
-  Item,
+  UserHasUsername,
+  LANGUAGES,
 } from 'definitions'
 
-import DataLoader from 'dataloader'
+import slugify from '@matters/slugify'
 import { Knex } from 'knex'
 import { v4 } from 'uuid'
 
@@ -25,22 +27,19 @@ import {
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
-import { AtomService, BaseService, NotificationService } from 'connectors'
+import { ArticleService, BaseService, NotificationService } from 'connectors'
 
 import { stripe } from './stripe'
 
 const logger = getLogger('service-payment')
 
-export class PaymentService extends BaseService {
+export class PaymentService extends BaseService<Transaction> {
   public stripe: typeof stripe
-  public dataloader: DataLoader<string, Item>
 
   public constructor(connections: Connections) {
     super('transaction', connections)
 
     this.stripe = stripe
-
-    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
   /*********************************
@@ -222,11 +221,18 @@ export class PaymentService extends BaseService {
       const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
       targetTypeId = entityTypeId
     }
+    let articleVersionId
+    if (targetId && targetType === TRANSACTION_TARGET_TYPE.article) {
+      const articleService = new ArticleService(this.connections)
+      articleVersionId = (
+        await articleService.loadLatestArticleVersion(targetId)
+      ).id
+    }
 
     return this.baseCreate(
       {
-        amount,
-        fee,
+        amount: amount.toString(),
+        fee: fee ? fee.toString() : undefined,
 
         state,
         currency,
@@ -238,6 +244,7 @@ export class PaymentService extends BaseService {
         senderId,
         recipientId,
         targetId,
+        articleVersionId,
         targetType: targetTypeId,
         remark,
       },
@@ -249,7 +256,7 @@ export class PaymentService extends BaseService {
   }
 
   public findBlockchainTransactionById = async (id: string) =>
-    this.baseFindById(id, 'blockchain_transaction')
+    this.models.findUnique({ table: 'blockchain_transaction', where: { id } })
 
   public findOrCreateBlockchainTransaction = async (
     { chainId, txHash }: { chainId: string | number; txHash: string },
@@ -271,7 +278,12 @@ export class PaymentService extends BaseService {
       ...(data || {}),
     }
 
-    return this.baseFindOrCreate({ where, data: toInsert, table, trx })
+    return this.baseFindOrCreate<BlockchainTransaction>({
+      where,
+      data: toInsert as unknown as BlockchainTransaction,
+      table,
+      trx,
+    })
   }
 
   public findOrCreateTransactionByBlockchainTxHash = async ({
@@ -369,9 +381,9 @@ export class PaymentService extends BaseService {
     },
     trx?: Knex.Transaction
   ) =>
-    this.baseUpdate(
+    this.baseUpdate<BlockchainTransaction>(
       id,
-      { updatedAt: new Date(), state },
+      { state },
       'blockchain_transaction',
       trx
     )
@@ -398,12 +410,7 @@ export class PaymentService extends BaseService {
           state,
         }
 
-    return this.baseUpdate(
-      id,
-      { updatedAt: new Date(), ...data },
-      'transaction',
-      trx
-    )
+    return this.baseUpdate(id, data, 'transaction', trx)
   }
 
   /**
@@ -456,7 +463,7 @@ export class PaymentService extends BaseService {
         throw new ServerError('failed to create customer')
       }
 
-      return this.baseCreate(
+      return this.baseCreate<Customer>(
         {
           userId: user.id,
           provider,
@@ -699,7 +706,10 @@ export class PaymentService extends BaseService {
         TRANSACTION_TARGET_TYPE.circlePrice
       )
       for (const p of prices) {
-        const circle = await this.baseFindById(p.circleId, 'circle')
+        const circle = await this.baseFindById<{ owner: string }>(
+          p.circleId,
+          'circle'
+        )
         await trx('transaction').insert({
           amount: p.amount,
           currency: p.currency,
@@ -710,7 +720,7 @@ export class PaymentService extends BaseService {
           providerTxId: v4(),
 
           senderId: userId,
-          recipientId: circle.owner,
+          recipientId: circle?.owner,
 
           targetType: entityTypeId,
           targetId: p.id,
@@ -1035,9 +1045,29 @@ export class PaymentService extends BaseService {
 
   /*********************************
    *                               *
-   *           notification        *
+   *           Donation            *
    *                               *
    *********************************/
+
+  public isDonator = async (userId: string, articleId: string) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+    const count = await this.models.count({
+      table: 'transaction',
+      where: {
+        purpose: TRANSACTION_PURPOSE.donation,
+        targetType: entityTypeId,
+        targetId: articleId,
+        senderId: userId,
+      },
+      whereIn: [
+        'state',
+        [TRANSACTION_STATE.succeeded, TRANSACTION_STATE.pending],
+      ],
+    })
+    return count > 0
+  }
 
   public notifyDonation = async ({
     tx,
@@ -1046,34 +1076,44 @@ export class PaymentService extends BaseService {
     article,
   }: {
     tx: Transaction
-    sender?: EmailableUser
-    recipient: EmailableUser
+    sender?: {
+      id: string
+      displayName: string
+      userName: string
+      email: string | null
+      language: LANGUAGES
+    }
+    recipient: {
+      id: string
+      displayName: string
+      userName: string
+      email: string | null
+      language: LANGUAGES
+    }
     article: {
-      title: string
-      slug: string
+      id: string
       authorId: string
-      mediaHash: string
-      draftId: string
+      shortHash: string
     }
   }) => {
-    const atomService = new AtomService(this.connections)
     const notificationService = new NotificationService(this.connections)
+    const articleService = new ArticleService(this.connections)
     const amount = parseFloat(tx.amount)
-    const author = await atomService.findFirst({
+    const author = (await this.models.findUnique({
       table: 'user',
       where: { id: article.authorId },
-    })
-    const draft = await atomService.findFirst({
-      table: 'draft',
-      where: { id: article.draftId },
-    })
+    })) as UserHasUsername
+    const articleVersion = await articleService.loadLatestArticleVersion(
+      article.id
+    )
 
-    const hasReplyToDonator = !!draft.replyToDonator
+    const hasReplyToDonator = !!articleVersion.replyToDonator
     const _article = {
       id: tx.targetId,
-      title: article.title,
-      slug: article.slug,
-      mediaHash: article.mediaHash,
+      title: articleVersion.title,
+      slug: slugify(articleVersion.title),
+      mediaHash: articleVersion.mediaHash,
+      shortHash: article.shortHash,
       author: {
         displayName: author.displayName,
         userName: author.userName,
@@ -1082,7 +1122,7 @@ export class PaymentService extends BaseService {
     }
 
     // send email to sender
-    if (sender) {
+    if (sender?.email) {
       const donationCount = await this.donationCount(sender.id)
       await notificationService.mail.sendPayment({
         to: sender.email,
@@ -1116,23 +1156,26 @@ export class PaymentService extends BaseService {
         ? ('receivedDonationLikeCoin' as const)
         : ('receivedDonation' as const)
 
-    await notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: mailType,
-      tx: {
-        recipient,
-        sender,
-        amount,
-        currency: tx.currency,
-      },
-      article: _article,
-      language: recipient.language,
-    })
+    if (recipient.email) {
+      await notificationService.mail.sendPayment({
+        to: recipient.email,
+        recipient: {
+          displayName: recipient.displayName,
+          userName: recipient.userName,
+        },
+        type: mailType,
+        tx: {
+          recipient,
+          sender,
+          amount,
+          currency: tx.currency,
+        },
+        article: _article,
+        language: recipient.language,
+      })
+    }
   }
+
   private donationCount = async (senderId: string) => {
     const result = await this.knex('transaction')
       .where({

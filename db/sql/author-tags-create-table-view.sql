@@ -24,7 +24,6 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
   WITH author_articles AS (
     SELECT author_id,
       count(*) ::int AS num_articles,
-      -- (array_agg(concat(id, '-', slug, '-', media_hash) ORDER BY updated_at DESC))[1:5] AS last_5,
       sum(word_count) ::int AS sum_word_count,
       max(updated_at) AS last_at
     FROM public.article
@@ -44,19 +43,19 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         ) ORDER BY month DESC)) -- [1:18]
       ) AS stats
     FROM (
-      SELECT author_id, date_trunc('month', created_at) ::date AS month,
+      SELECT author_id, date_trunc('month', a.created_at) ::date AS month,
         MAX(created_at) AS month_last,
         COUNT(a.id) ::int AS num_articles, -- COUNT(DISTINCT author_id) ::int AS num_authors
         sum(a.word_count) ::int AS sum_word_count,
         (ARRAY_AGG(jsonb_build_object(
-              'title', a.title,
-              'path', concat(a.id, '-', a.slug, '-', a.media_hash),
+              'title', avn.title,
+              'path', concat(a.id),
               'num_apprtors', num_apprtors,
               'sum_appreciations', sum_appreciations
           ) ORDER BY a.created_at DESC))[1:5] AS last_5
-      FROM articles_appr JOIN public.article a USING(id)
-      -- LEFT JOIN appreciation appr ON appr.reference_id = a.id
-      -- WHERE a.state IN ('active') -- NOT IN ('archived', 'banned')
+      FROM articles_appr
+      JOIN public.article a USING(id)
+      JOIN public.article_version_newest avn ON a.id=avn.article_id
       GROUP BY 1, 2
     ) st
     GROUP BY 1
@@ -73,12 +72,14 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         COUNT(*) ::int AS num_articles,
         sum(a.word_count) ::int AS sum_word_count,
         (ARRAY_AGG(jsonb_build_object(
-              'title', a.title, 'date', a.created_at ::date,
-              'path', concat(a.id, '-', a.slug, '-', a.media_hash),
+              'title', avn.title, 'date', a.created_at ::date,
+              'path', concat(a.id),
               'num_apprtors', num_apprtors,
               'sum_appreciations', sum_appreciations
           ) ORDER BY a.created_at DESC))[1:5] AS last_5
-      FROM public.article a JOIN articles_appr USING(id)
+      FROM public.article a
+      JOIN articles_appr USING(id)
+      JOIN public.article_version_newest avn ON a.id=avn.article_id
       LEFT JOIN article_tag at ON article_id=a.id -- AND a.state IN ('active') -- NOT IN ('archived', 'banned')
       GROUP BY 1, 2
     ) t LEFT JOIN tag ON tag_id=tag.id
@@ -97,8 +98,8 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
       SELECT a.author_id,
         -- (array_agg(a.id || '-' || slug || '-' || media_hash ORDER BY num_readers DESC, sum_read_time DESC))[1:5] AS top_5
         to_jsonb(array_agg(DISTINCT jsonb_build_object(
-              'title', a.title,
-              'path', concat(a.id, '-', slug, '-', media_hash),
+              'title', avn.title,
+              'path', concat(a.id),
               'num_readers', num_readers, 'num_readers_w3m', num_readers_w3m,
               'sum_read_time', sum_read_time, 'last_at', last_at
             ) -- ORDER BY num_readers DESC, sum_read_time DESC
@@ -115,7 +116,9 @@ EXPLAIN (ANALYZE, BUFFERS, VERBOSE) CREATE TABLE :schema.:tablename AS
         FROM article_read_count
         WHERE user_id IS NOT NULL
         GROUP BY 1
-      ) r JOIN public.article a ON r.article_id = a.id AND a.state IN ('active') -- NOT IN ('archived', 'banned')
+      ) r
+      JOIN public.article a ON r.article_id = a.id AND a.state IN ('active') -- NOT IN ('archived', 'banned')
+      JOIN public.article_version_newest avn ON a.id=avn.article_id
       GROUP BY 1
     ) aa
     JOIN (

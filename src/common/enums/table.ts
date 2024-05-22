@@ -11,6 +11,7 @@ export enum VIEW {
 
 export enum MATERIALIZED_VIEW {
   tag_count_materialized = 'tag_count_materialized',
+  tags_lasts_view_materialized = 'mat_views.tags_lasts_view_materialized',
   user_reader_materialized = 'user_reader_materialized',
   featured_comment_materialized = 'featured_comment_materialized',
   curation_tag_materialized = 'curation_tag_materialized',

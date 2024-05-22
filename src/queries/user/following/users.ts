@@ -9,7 +9,7 @@ import {
 const resolver: GQLFollowingResolvers['users'] = async (
   { id },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { userService, atomService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -21,7 +21,7 @@ const resolver: GQLFollowingResolvers['users'] = async (
   const actions = await userService.findFollowees({ userId: id, skip, take })
 
   return connectionFromPromisedArray(
-    userService.loadByIds(
+    atomService.userIdLoader.loadMany(
       actions.map(({ targetId }: { targetId: string }) => targetId)
     ),
     input,

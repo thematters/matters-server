@@ -1,11 +1,6 @@
-import type { GQLMutationResolvers } from 'definitions'
+import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
-import {
-  normalizeArticleHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
 import { uniq } from 'lodash'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_LICENSE_TYPE,
@@ -17,9 +12,8 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PRICE_STATE,
-  PUBLISH_STATE,
-  SUBSCRIPTION_STATE,
   USER_STATE,
+  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
@@ -40,8 +34,6 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     dataSources: {
       atomService,
       systemService,
-      draftService,
-      tagService,
       articleService,
       notificationService,
       connections: { knex },
@@ -94,7 +86,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     throw new ArticleNotFoundError('articles not found')
   }
 
-  const republish = async (article: any) => {
+  const republish = async (article: Article) => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
       throw new ArticleRevisionReachLimitError(
@@ -103,63 +95,20 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     }
 
     // fetch updated data before create draft
-    const [
-      currDraft,
-      currArticle,
-      currCollections,
-      currTags,
-      currArticleCircle,
-    ] = await Promise.all([
-      draftService.baseFindById(article.draftId), // fetch latest draft
-      articleService.baseFindById(article.id), // fetch latest article
+    const [oldArticleVersion] = await Promise.all([
+      articleService.loadLatestArticleVersion(article.id),
       articleService.findConnections({ entranceId: article.id }),
-      tagService.findByArticleId({ articleId: article.id }),
-      articleService.findArticleCircle(article.id),
     ])
-    const currTagContents = currTags.map((currTag) => currTag.content)
-    const currCollectionIds = currCollections.map(
-      ({ articleId }: { articleId: string }) => articleId
-    )
-
-    // create draft linked to this article
-    const data: Record<string, any> = {
-      uuid: v4(),
-      authorId: currDraft.authorId,
-      articleId: currArticle.id,
-      title: currDraft.title,
-      summary: currDraft.summary,
-      summaryCustomized: currDraft.summaryCustomized,
-      content: normalizeArticleHTML(sanitizeHTML(currDraft.content)),
-      tags: currTagContents,
-      cover: currArticle.cover,
-      collection: currCollectionIds,
-      archived: false,
-      publishState: PUBLISH_STATE.pending,
-      circleId: currArticleCircle?.circleId,
-      access: currArticleCircle?.access,
-      sensitiveByAuthor: currDraft?.sensitiveByAuthor,
-      license: currDraft.license,
-      requestForDonation: currDraft?.requestForDonation,
-      replyToDonator: currDraft?.replyToDonator,
-      canComment: currDraft?.canComment,
-      iscnPublish: currDraft.iscnPublish,
-    }
-    const revisedDraft = await draftService.baseCreate(data)
-
     // add job to publish queue
+    const newArticleVersion = await articleService.createNewArticleVersion(
+      article.id,
+      viewer.id,
+      { license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4 }
+    )
     revisionQueue.publishRevisedArticle({
-      draftId: revisedDraft.id,
-    })
-  }
-
-  const editLicense = async (draftId: string) => {
-    await atomService.update({
-      table: 'draft',
-      where: { id: draftId },
-      data: {
-        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_4,
-        updatedAt: knex.fn.now(), // new Date(),
-      },
+      articleId: article.id,
+      oldArticleVersionId: oldArticleVersion.id,
+      newArticleVersionId: newArticleVersion.id,
     })
   }
 
@@ -184,7 +133,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
       ])
     const followers = await atomService.findMany({
       table: 'action_circle',
-      select: ['user_id'],
+      select: ['userId'],
       where: { targetId: circleId, action: CIRCLE_ACTION.follow },
     })
     const recipients = uniq([
@@ -201,16 +150,13 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
         update: {
           ...data,
           access: accessType,
-          updatedAt: knex.fn.now(),
-          // new Date(),
         },
       })
 
-      await editLicense(article.draftId)
       await republish(article)
 
       // notify
-      recipients.forEach((recipientId: any) => {
+      recipients.forEach((recipientId: string) => {
         notificationService.trigger({
           event: DB_NOTICE_TYPE.circle_new_article,
           recipientId,
@@ -230,16 +176,17 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
     })
 
     for (const article of targetArticles) {
-      await editLicense(article.draftId)
       await republish(article)
     }
   }
 
   // invalidate articles
-  circle[CACHE_KEYWORD] = targetArticles.map((article) => ({
-    id: article.id,
-    type: NODE_TYPES.Article,
-  }))
+  articleService.latestArticleVersionLoader.clearAll()
+  ;(circle as Circle & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] =
+    targetArticles.map((article) => ({
+      id: article.id,
+      type: NODE_TYPES.Article,
+    }))
   return circle
 }
 
