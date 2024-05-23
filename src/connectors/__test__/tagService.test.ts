@@ -29,6 +29,9 @@ test('findArticleIds', async () => {
 test('findArticleCovers', async () => {
   const covers = await tagService.findArticleCovers({ id: '2' })
   expect(covers).toBeDefined()
+
+  const cached = await tagService.findArticleCovers({ id: '2' })
+  expect(cached).toEqual(covers)
 })
 
 test('create', async () => {
