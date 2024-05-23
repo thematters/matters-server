@@ -35,7 +35,7 @@ export class CacheService {
   private prefix: string
   private redis: Redis
 
-  constructor(prefix: string, redis: Redis) {
+  public constructor(prefix: string, redis: Redis) {
     this.prefix = prefix
     this.redis = redis
   }
@@ -73,15 +73,15 @@ export class CacheService {
   /**
    * Get object from cache, or get object then cache.
    */
-  public getObject = async ({
+  public getObject = async <T>({
     keys,
     getter,
     expire = CACHE_TTL.SHORT,
   }: KeyInfo & {
     keys: KeyInfo
-    getter: () => Promise<any>
+    getter: () => Promise<T>
     expire?: number
-  }) => {
+  }): Promise<T> => {
     const isNil = (tested: any) => {
       if (_.isNil(tested)) {
         return true
@@ -101,8 +101,8 @@ export class CacheService {
 
     const key = this.genKey(keys)
 
-    let data = await this.redis.get(key)
-    data = JSON.parse(data as string)
+    const raw = await this.redis.get(key)
+    let data = JSON.parse(raw as string) as unknown as T
 
     // get the data if there is none
     if (isNil(data) && getter) {
@@ -121,7 +121,7 @@ export class CacheService {
   }
 
   /**
-   * Remvoe object from cache
+   * Remove object from cache
    */
   public removeObject = async ({
     keys,

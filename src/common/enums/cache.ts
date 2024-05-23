@@ -28,6 +28,7 @@ export const CACHE_PREFIX = {
   LIKECOIN: 'likecoin',
   CIVIC_LIKER: 'civic-liker',
   USER_LAST_SEEN: 'cache-user-last-seen',
+  TAG_COVERS: 'cache-tag-covers',
 }
 
 export const DEFAULT_IPNS_LIFETIME = '7200h' // the maximum, is 300days, almost 1 year
