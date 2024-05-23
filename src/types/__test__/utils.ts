@@ -28,7 +28,6 @@ import {
   PublicationQueue,
   RevisionQueue,
   AssetQueue,
-  AppreciationQueue,
   MigrationQueue,
   PayToByBlockchainQueue,
   PayToByMattersQueue,
@@ -195,7 +194,6 @@ export const testClient = async ({
   const publicationQueue = new PublicationQueue(connections)
   const revisionQueue = new RevisionQueue(connections)
   const assetQueue = new AssetQueue(connections)
-  const appreciationQueue = new AppreciationQueue(connections)
   const migrationQueue = new MigrationQueue(connections)
   const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
   const payToByMattersQueue = new PayToByMattersQueue(connections)
@@ -205,7 +203,6 @@ export const testClient = async ({
     publicationQueue,
     revisionQueue,
     assetQueue,
-    appreciationQueue,
     migrationQueue,
     payToByBlockchainQueue,
     payToByMattersQueue,

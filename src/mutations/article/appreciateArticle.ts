@@ -1,6 +1,15 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { ARTICLE_STATE, USER_STATE } from 'common/enums'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import {
+  ARTICLE_STATE,
+  USER_STATE,
+  APPRECIATION_TYPES,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
+import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
@@ -10,6 +19,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { LikeCoin } from 'connectors'
 
 const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   _,
@@ -22,7 +32,8 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       atomService,
       userService,
       articleService,
-      queues: { appreciationQueue },
+      notificationService,
+      connections,
     },
   } = context
 
@@ -61,6 +72,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
       `cannot appreciate ${author.state} user`
     )
   }
+  const sender = await atomService.userIdLoader.load(viewer.id)
 
   // check if viewer is blocked by article owner
   const isBlocked = await userService.blocked({
@@ -82,13 +94,44 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
   // Check if amount exceeded limit. if yes, then use the left amount.
   const validAmount = Math.min(amount, appreciateLeft)
 
-  // insert appreciation job
-  appreciationQueue.appreciate({
-    amount: validAmount,
+  // insert appreciation record
+  await articleService.appreciate({
     articleId: article.id,
     senderId: viewer.id,
-    senderIP: viewer.ip,
-    userAgent: viewer.userAgent,
+    recipientId: article.authorId,
+    amount: validAmount,
+    type: APPRECIATION_TYPES.like,
+  })
+
+  // insert record to LikeCoin
+  const likecoin = new LikeCoin(connections)
+  if (author.likerId && sender.likerId) {
+    likecoin.like({
+      likerId: sender.likerId,
+      likerIp: viewer.ip,
+      userAgent: viewer.userAgent,
+      authorLikerId: author.likerId,
+      url: `https://${environment.siteDomain}/a/${article.shortHash}`,
+      amount: validAmount,
+    })
+  }
+
+  // trigger notifications
+  notificationService.trigger({
+    event: DB_NOTICE_TYPE.article_new_appreciation,
+    actorId: sender.id,
+    recipientId: author.id,
+    entities: [{ type: 'target', entityTable: 'article', entity: article }],
+  })
+
+  // invalidate cache
+  invalidateFQC({
+    node: { type: NODE_TYPES.Article, id: article.id },
+    redis: connections.redis,
+  })
+  invalidateFQC({
+    node: { type: NODE_TYPES.User, id: article.authorId },
+    redis: connections.redis,
   })
 
   return article
