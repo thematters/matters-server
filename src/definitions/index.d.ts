@@ -20,7 +20,6 @@ import type {
   PublicationQueue,
   RevisionQueue,
   AssetQueue,
-  AppreciationQueue,
   MigrationQueue,
   PayToByBlockchainQueue,
   PayToByMattersQueue,
@@ -89,7 +88,6 @@ export interface DataSources {
     publicationQueue: PublicationQueue
     revisionQueue: RevisionQueue
     assetQueue: AssetQueue
-    appreciationQueue: AppreciationQueue
     migrationQueue: MigrationQueue
     payToByBlockchainQueue: PayToByBlockchainQueue
     payToByMattersQueue: PayToByMattersQueue
