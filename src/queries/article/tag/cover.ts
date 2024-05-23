@@ -16,7 +16,7 @@ const resolver: GQLTagResolvers['cover'] = async (
       await tagService.findArticleCovers({ id }),
       (item) => !_isNil(item.cover)
     )
-    coverId = articleCover?.cover
+    coverId = articleCover?.cover ?? null
   }
   return coverId ? systemService.findAssetUrl(coverId) : null
 }

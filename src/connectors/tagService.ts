@@ -10,12 +10,14 @@ import {
   TAG_ACTION,
   VIEW,
   MATERIALIZED_VIEW,
+  CACHE_PREFIX,
+  CACHE_TTL,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { normalizeSearchKey, normalizeTagInput } from 'common/utils'
-import { BaseService } from 'connectors'
+import { BaseService, CacheService } from 'connectors'
 
 const logger = getLogger('service-tag')
 
@@ -1049,23 +1051,34 @@ export class TagService extends BaseService<Tag> {
   /**
    * Find article covers by tag id.
    */
-  public findArticleCovers = async ({ id }: { id: string }) =>
-    this.knexRO
-      .select('article_version_newest.cover')
-      .from('article_tag')
-      .join(
-        'article_version_newest',
-        'article_tag.article_id',
-        'article_version_newest.article_id'
-      )
-      .join('article', 'article_tag.article_id', 'article.id')
-      .whereNotNull('article_version_newest.cover')
-      .andWhere({
-        tagId: id,
-        state: ARTICLE_STATE.active,
-      })
-      .limit(DEFAULT_TAKE_PER_PAGE)
-      .orderBy('article_tag.id', 'asc')
+  public findArticleCovers = async ({
+    id,
+  }: {
+    id: string
+  }): Promise<Array<{ cover: string }>> => {
+    const cache = new CacheService(CACHE_PREFIX.TAG_COVERS, this.redis)
+    return cache.getObject({
+      keys: { id },
+      expire: CACHE_TTL.MEDIUM,
+      getter: async () =>
+        this.knexRO
+          .select('article_version_newest.cover')
+          .from('article_tag')
+          .join(
+            'article_version_newest',
+            'article_tag.article_id',
+            'article_version_newest.article_id'
+          )
+          .join('article', 'article_tag.article_id', 'article.id')
+          .whereNotNull('article_version_newest.cover')
+          .andWhere({
+            tagId: id,
+            state: ARTICLE_STATE.active,
+          })
+          .limit(DEFAULT_TAKE_PER_PAGE)
+          .orderBy('article_tag.id', 'asc'),
+    })
+  }
 
   /*********************************
    *                               *
