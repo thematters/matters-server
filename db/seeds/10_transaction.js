@@ -16,6 +16,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 1,
           recipient_id: 1,
+          type: 'LIKE',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
@@ -24,6 +25,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 1,
           recipient_id: 1,
+          type: 'LIKE',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -32,6 +34,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 1,
           recipient_id: 1,
+          type: 'LIKE',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -40,6 +43,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 2,
           recipient_id: 2,
+          type: 'LIKE',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000005',
@@ -48,6 +52,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 3,
           recipient_id: 3,
+          type: 'LIKE',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000006',
@@ -56,6 +61,7 @@ exports.seed = function (knex, Promise) {
           purpose: 'appreciate',
           reference_id: 1,
           recipient_id: 1,
+          type: 'LIKE',
         },
       ])
     })

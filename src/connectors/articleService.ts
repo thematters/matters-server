@@ -1208,17 +1208,43 @@ export class ArticleService extends BaseService<Article> {
     if (bundle) {
       result = await this.knex('appreciation')
         .where({ id: bundle.id })
+        .where(
+          ARTICLE_APPRECIATE_LIMIT,
+          '>=',
+          this.knex('appreciation')
+            .select()
+            .where({
+              senderId,
+              referenceId: articleId,
+              purpose: APPRECIATION_PURPOSE.appreciate,
+            })
+            .sum('amount')
+        )
         .update({
           amount: Math.min(bundle.amount + amount, ARTICLE_APPRECIATE_LIMIT),
           createdAt: this.knex.fn.now(),
         })
+        .returning('*')
     } else {
       const uuid = v4()
+      const validAmount = Math.min(amount, ARTICLE_APPRECIATE_LIMIT)
       result = await this.knex('appreciation')
+        .where(
+          ARTICLE_APPRECIATE_LIMIT,
+          '>=',
+          this.knex('appreciation')
+            .select()
+            .where({
+              senderId,
+              referenceId: articleId,
+              purpose: APPRECIATION_PURPOSE.appreciate,
+            })
+            .sum('amount')
+        )
         .insert({
           ...appreciation,
           uuid,
-          amount,
+          amount: validAmount,
         })
         .into('appreciation')
         .returning('*')
