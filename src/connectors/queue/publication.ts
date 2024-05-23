@@ -21,6 +21,7 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
   METRICS_NAMES,
+  MINUTE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
@@ -59,6 +60,12 @@ export class PublicationQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.CRITICAL,
         jobId: `${QUEUE_JOB.publishArticle}:${draftId}`,
+        // last attempt will be at 1 hour
+        attempts: 7,
+        backoff: {
+          type: 'exponential',
+          delay: MINUTE,
+        },
       }
     )
 
