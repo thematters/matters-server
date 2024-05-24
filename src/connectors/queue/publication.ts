@@ -490,7 +490,7 @@ export class PublicationQueue extends BaseQueue {
   }) => {
     const $ = cheerio.load(content)
     const mentionIds = $('a.mention')
-      .map((node: BasicAcceptedElems<any>) => {
+      .map((index: number, node: BasicAcceptedElems<any>) => {
         const id = $(node).attr('data-id')
         if (id) {
           return id
