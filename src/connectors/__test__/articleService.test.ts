@@ -2,7 +2,12 @@ import type { Connections, Article } from 'definitions'
 
 import { v4 } from 'uuid'
 
-import { COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import {
+  COMMENT_STATE,
+  NODE_TYPES,
+  APPRECIATION_TYPES,
+  ARTICLE_APPRECIATE_LIMIT,
+} from 'common/enums'
 import { ArticleService, UserService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -46,6 +51,70 @@ test('publish', async () => {
 test('sumAppreciation', async () => {
   const appreciation = await articleService.sumAppreciation('1')
   expect(appreciation).toBeDefined()
+})
+
+describe('appreciation', () => {
+  test('bundle', async () => {
+    const appreciation = await articleService.appreciate({
+      articleId: '1',
+      senderId: '4',
+      amount: 1,
+      recipientId: '1',
+      type: APPRECIATION_TYPES.like,
+    })
+    expect(appreciation[0].amount).toBe(1)
+
+    const bundled1 = await articleService.appreciate({
+      articleId: '1',
+      senderId: '4',
+      amount: 1,
+      recipientId: '1',
+      type: APPRECIATION_TYPES.like,
+    })
+    expect(bundled1[0].amount).toBe(2)
+
+    // can not appreciate more than limit
+    const bundled2 = await articleService.appreciate({
+      articleId: '1',
+      senderId: '4',
+      amount: ARTICLE_APPRECIATE_LIMIT + 1,
+      recipientId: '1',
+      type: APPRECIATION_TYPES.like,
+    })
+    expect(bundled2[0].amount).toBe(ARTICLE_APPRECIATE_LIMIT)
+  })
+
+  test('can not appreciate more than limit', async () => {
+    const appreciation = await articleService.appreciate({
+      articleId: '1',
+      senderId: '5',
+      amount: ARTICLE_APPRECIATE_LIMIT + 1,
+      recipientId: '1',
+      type: APPRECIATION_TYPES.like,
+    })
+    expect(appreciation[0].amount).toBe(ARTICLE_APPRECIATE_LIMIT)
+
+    // can not appreciate more than limit when call concurrently
+    const [appreciation1, appreciation2] = await Promise.all([
+      articleService.appreciate({
+        articleId: '1',
+        senderId: '5',
+        amount: ARTICLE_APPRECIATE_LIMIT - 1,
+        recipientId: '1',
+        type: APPRECIATION_TYPES.like,
+      }),
+      articleService.appreciate({
+        articleId: '1',
+        senderId: '5',
+        amount: ARTICLE_APPRECIATE_LIMIT - 1,
+        recipientId: '1',
+        type: APPRECIATION_TYPES.like,
+      }),
+    ])
+    expect(appreciation1[0]?.amount ?? appreciation2[0]?.ammount).toBe(
+      ARTICLE_APPRECIATE_LIMIT
+    )
+  })
 })
 
 describe('findByAuthor', () => {
@@ -100,7 +169,7 @@ test('findByCommentedAuthor', async () => {
   expect(articles.length).toBeDefined()
 })
 test('countAppreciations', async () => {
-  expect(await articleService.countAppreciations('1')).toBe(3)
+  expect(await articleService.countAppreciations('1')).toBe(5)
   expect(await articleService.countAppreciations('0')).toBe(0)
 })
 
@@ -108,14 +177,14 @@ test('findAppreciations', async () => {
   const appreciations = await articleService.findAppreciations({
     referenceId: '1',
   })
-  expect(appreciations.length).toBe(3)
+  expect(appreciations.length).toBe(5)
 
   const appreciations2 = await articleService.findAppreciations({
     referenceId: '1',
     take: 1,
   })
   expect(appreciations2.length).toBe(1)
-  expect(appreciations[0].totalCount).toBe('3')
+  expect(appreciations[0].totalCount).toBe('5')
 })
 
 test('findTagIds', async () => {
