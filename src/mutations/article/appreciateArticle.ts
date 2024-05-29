@@ -105,7 +105,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
 
   // insert record to LikeCoin
   const likecoin = new LikeCoin(connections)
-  if (author.likerId && sender.likerId) {
+  if (author.likerId && sender.likerId && author.likerId !== sender.likerId) {
     likecoin.like({
       likerId: sender.likerId,
       likerIp: viewer.ip,
