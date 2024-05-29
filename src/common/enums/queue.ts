@@ -11,9 +11,6 @@ export const QUEUE_JOB = {
   publishArticle: 'publishArticle',
   publishPendingDrafts: 'publishPendingDrafts',
 
-  // refresh IPNS Feed
-  refreshIPNSFeed: 'refreshIPNSFeed',
-
   // User
   unbanUsers: 'unbanUsers',
 
@@ -51,7 +48,6 @@ export const QUEUE_NAME = {
 export const QUEUE_CONCURRENCY = {
   publishArticle: 100,
   publishRevisedArticle: 100,
-  refreshIPNSFeed: 2,
   migration: 2,
   payToByBlockchain: 25,
 }

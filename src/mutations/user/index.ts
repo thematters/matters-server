@@ -12,7 +12,6 @@ import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
 import putFeaturedTags from './putFeaturedTags'
-import refreshIPNSFeed from './refreshIPNSFeed'
 import resetLikerId from './resetLikerId'
 import resetPassword from './resetPassword'
 import resetWallet from './resetWallet'
@@ -71,7 +70,6 @@ export default {
     setEmail,
     setUserName,
     setPassword,
-    refreshIPNSFeed,
     migration,
     addCredit,
     payTo,

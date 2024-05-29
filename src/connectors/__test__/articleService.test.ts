@@ -39,13 +39,8 @@ test('publish', async () => {
     cover: '1',
     content: '<div>test-html-string</div>',
   })
-  // expect(mediaHash).toBeDefined()
-  // expect(dataHash).toBeDefined()
-  expect(article.state).toBe('active')
 
-  articleId = article.id
-  // publish to IPNS
-  // await articleService.publishFeedToIPNS({ userName: 'test1' })
+  expect(article.state).toBe('active')
 })
 
 test('sumAppreciation', async () => {
