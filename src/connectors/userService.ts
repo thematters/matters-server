@@ -2057,6 +2057,11 @@ export class UserService extends BaseService<User> {
       return ipnsKeyRec
     }
 
+    if (!user.ethAddress) {
+      // stop create IPNS for users without wallet
+      return
+    }
+
     // create it if not existed
     const kname = `for-${user.userName}-${user.uuid}`
     const {
