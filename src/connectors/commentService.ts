@@ -31,14 +31,16 @@ export class CommentService extends BaseService<Comment> {
 
   /**
    * Count comments by a given article id.
+   *
+   * @remarks only count active and collapsed comments
    */
   public countByArticle = async (articleId: string) => {
-    const result = await this.knex(this.table)
+    const result = await this.knexRO(this.table)
       .where({
         targetId: articleId,
-        state: COMMENT_STATE.active,
         type: COMMENT_TYPE.article,
       })
+      .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -46,6 +48,8 @@ export class CommentService extends BaseService<Comment> {
 
   /**
    * Find comments by a given comment id.
+   *
+   * @remarks only find active and collapsed comments
    */
   public findByParent = async ({
     id,
@@ -64,10 +68,11 @@ export class CommentService extends BaseService<Comment> {
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex
+      this.knexRO
         .select(['*', this.knex.raw('count(1) OVER() AS total_count')])
         .from(this.table)
         .where(where)
+        .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
         .orderBy('created_at', by)
 
     if (author) {

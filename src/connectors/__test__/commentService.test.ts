@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Connections } from 'definitions'
 
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+
 import { CommentService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -29,6 +31,39 @@ describe('find subcomments by parent comment id', () => {
     const [comments, count] = await commentService.findByParent({ id: '1' })
     expect(comments.length).toBeGreaterThan(0)
     expect(count).toBeGreaterThan(0)
+
+    // archived/banned comments excluded
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: '1',
+        state: COMMENT_STATE.archived,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: '1',
+        state: COMMENT_STATE.banned,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+
+    const [_, count2] = await commentService.findByParent({ id: '1' })
+    expect(count2).toBe(count)
   })
 })
 
@@ -198,4 +233,70 @@ describe('find comments', () => {
       0
     )
   })
+})
+
+test('count comments', async () => {
+  const { id: targetTypeId } = await atomService.findFirst({
+    table: 'entity_type',
+    where: { table: 'article' },
+  })
+
+  const originalCount = await commentService.countByArticle('1')
+
+  // archived/banned comments should be filtered
+  await atomService.create({
+    table: 'comment',
+    data: {
+      type: COMMENT_TYPE.article,
+      targetId: '1',
+      targetTypeId,
+      parentCommentId: null,
+      state: COMMENT_STATE.archived,
+      uuid: uuidv4(),
+      authorId: '1',
+    },
+  })
+  await atomService.create({
+    table: 'comment',
+    data: {
+      type: COMMENT_TYPE.article,
+      targetId: '1',
+      targetTypeId,
+      parentCommentId: null,
+      state: COMMENT_STATE.banned,
+      uuid: uuidv4(),
+      authorId: '1',
+    },
+  })
+
+  const count1 = await commentService.countByArticle('1')
+  expect(count1).toBe(originalCount)
+
+  // active/collapsed comments should be included
+  await atomService.create({
+    table: 'comment',
+    data: {
+      type: COMMENT_TYPE.article,
+      targetId: '1',
+      targetTypeId,
+      parentCommentId: null,
+      state: COMMENT_STATE.active,
+      uuid: uuidv4(),
+      authorId: '1',
+    },
+  })
+  await atomService.create({
+    table: 'comment',
+    data: {
+      type: COMMENT_TYPE.article,
+      targetId: '1',
+      targetTypeId,
+      parentCommentId: null,
+      state: COMMENT_STATE.collapsed,
+      uuid: uuidv4(),
+      authorId: '1',
+    },
+  })
+  const count2 = await commentService.countByArticle('1')
+  expect(count2).toBe(originalCount + 2)
 })
