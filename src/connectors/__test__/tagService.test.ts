@@ -1,15 +1,17 @@
 import type { Connections } from 'definitions'
 
-import { TagService } from 'connectors'
+import { TagService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let tagService: TagService
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   tagService = new TagService(connections)
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -21,9 +23,57 @@ test('countArticles', async () => {
   expect(count).toBeDefined()
 })
 
-test('findArticleIds', async () => {
-  const articleIds = await tagService.findArticleIds({ id: '2' })
-  expect(articleIds).toBeDefined()
+describe('findArticleIds', () => {
+  test('id', async () => {
+    const articleIds = await tagService.findArticleIds({ id: '2' })
+    expect(articleIds).toBeDefined()
+  })
+  test('excludeRestricted', async () => {
+    const articleIds = await tagService.findArticleIds({
+      id: '2',
+      excludeRestricted: true,
+    })
+    expect(articleIds).toBeDefined()
+
+    // create a restricted article
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: articleIds[0], inNewest: true },
+    })
+    const excluded1 = await tagService.findArticleIds({
+      id: '2',
+      excludeRestricted: true,
+    })
+    expect(excluded1).not.toContain(articleIds[0])
+
+    // create a non-restricted article with record in article_recommend_setting
+    await atomService.deleteMany({ table: 'article_recommend_setting' })
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: articleIds[0], inNewest: false, inHottest: false },
+    })
+    const excluded2 = await tagService.findArticleIds({
+      id: '2',
+      excludeRestricted: true,
+    })
+    expect(excluded2).toContain(articleIds[0])
+
+    // create a restricted user
+    await atomService.deleteMany({ table: 'article_recommend_setting' })
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: articleIds[0] },
+    })
+    await atomService.create({
+      table: 'user_restriction',
+      data: { userId: article?.authorId, type: 'articleNewest' },
+    })
+    const excluded3 = await tagService.findArticleIds({
+      id: '2',
+      excludeRestricted: true,
+    })
+    expect(excluded3).not.toContain(articleIds[0])
+  })
 })
 
 test('findArticleCovers', async () => {

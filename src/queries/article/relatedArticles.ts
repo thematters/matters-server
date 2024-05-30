@@ -40,6 +40,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
 
     const articleIds = await tagService.findArticleIds({
       id: tagId,
+      excludeRestricted: true,
       take,
       skip,
     })
@@ -60,6 +61,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
     const articlesFromAuthor = await articleService.findByAuthor(authorId, {
       skip: 3,
       state: ARTICLE_STATE.active,
+      excludeRestricted: true,
     })
     articles = addRec(articles, articlesFromAuthor)
   }
