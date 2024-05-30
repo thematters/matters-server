@@ -31,6 +31,39 @@ describe('find subcomments by parent comment id', () => {
     const [comments, count] = await commentService.findByParent({ id: '1' })
     expect(comments.length).toBeGreaterThan(0)
     expect(count).toBeGreaterThan(0)
+
+    // archived/banned comments excluded
+    const { id: targetTypeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'article' },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: '1',
+        state: COMMENT_STATE.archived,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: 'article',
+        targetId: '1',
+        targetTypeId,
+        parentCommentId: '1',
+        state: COMMENT_STATE.banned,
+        uuid: uuidv4(),
+        authorId: '1',
+      },
+    })
+
+    const [_, count2] = await commentService.findByParent({ id: '1' })
+    expect(count2).toBe(count)
   })
 })
 
