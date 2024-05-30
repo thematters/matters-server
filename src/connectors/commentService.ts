@@ -36,9 +36,9 @@ export class CommentService extends BaseService<Comment> {
     const result = await this.knex(this.table)
       .where({
         targetId: articleId,
-        state: COMMENT_STATE.active,
         type: COMMENT_TYPE.article,
       })
+      .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
