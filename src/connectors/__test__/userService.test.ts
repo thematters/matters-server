@@ -677,6 +677,15 @@ describe('recommendAuthors', () => {
       expect(author.userName).not.toBe(null)
     }
   })
+  test('exclude restircted users', async () => {
+    const authors = await userService.recommendAuthors({ oss: true })
+    await atomService.create({
+      table: 'user_restriction',
+      data: { userId: authors[0].id, type: 'articleHottest' },
+    })
+    const excluded = await userService.recommendAuthors({ oss: true })
+    expect(excluded).not.toContain(authors[0])
+  })
 })
 
 describe('updateUserExtra', () => {
