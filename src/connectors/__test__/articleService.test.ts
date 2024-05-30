@@ -139,28 +139,43 @@ describe('findByAuthor', () => {
     expect(articles2[0].id).toBe('1')
   })
   test('order by amount of appreciations', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       orderBy: 'mostAppreciations',
     })
-    expect(draftIds.length).toBeDefined()
+    expect(articles.length).toBeDefined()
   })
   test('order by num of comments', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       orderBy: 'mostComments',
     })
-    expect(draftIds.length).toBeDefined()
+    expect(articles.length).toBeDefined()
   })
   test('order by num of donations', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       orderBy: 'mostDonations',
     })
-    expect(draftIds.length).toBeDefined()
+    expect(articles.length).toBeDefined()
   })
   test('filter by state', async () => {
-    const draftIds = await articleService.findByAuthor('1', {
+    const articles = await articleService.findByAuthor('1', {
       state: 'archived',
     })
-    expect(draftIds.length).toBeDefined()
+    expect(articles.length).toBeDefined()
+  })
+  test('excludeRestricted', async () => {
+    const articles = await articleService.findByAuthor('1', {
+      excludeRestricted: true,
+    })
+    expect(articles.length).toBeDefined()
+
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: articles[0].id, inNewest: true, inHottest: false },
+    })
+    const excluded = await articleService.findByAuthor('1', {
+      excludeRestricted: true,
+    })
+    expect(excluded).not.toContain(articles[0])
   })
 })
 
