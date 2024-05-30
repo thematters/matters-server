@@ -35,7 +35,7 @@ export class CommentService extends BaseService<Comment> {
    * @remarks only count active and collapsed comments
    */
   public countByArticle = async (articleId: string) => {
-    const result = await this.knex(this.table)
+    const result = await this.knexRO(this.table)
       .where({
         targetId: articleId,
         type: COMMENT_TYPE.article,
