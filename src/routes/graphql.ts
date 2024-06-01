@@ -1,4 +1,5 @@
 import type { Context } from 'definitions'
+import type { Redis } from 'ioredis'
 
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
@@ -193,7 +194,7 @@ export const graphql = async (app: Express) => {
         defaultMaxAge: CACHE_TTL.PUBLIC_QUERY,
       }),
       responseCachePlugin({
-        redis: connections.redis,
+        redis: connections.redis as Redis,
         sessionId: async ({ contextValue }) => {
           const viewerId = contextValue.viewer.id ?? ''
           const viewerGroup = contextValue.viewer.group ?? ''

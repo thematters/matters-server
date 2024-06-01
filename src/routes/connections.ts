@@ -25,7 +25,15 @@ const searchKnexDB = knex({
   ...{ connection: environment.searchPgConnectionString },
 })
 
-const cacheRedis = new Redis(environment.cachePort, environment.cacheHost)
+const cacheRedis =
+  environment.cacheClusterHost && environment.cacheClusterPort
+    ? new Redis.Cluster([
+        {
+          port: environment.cacheClusterPort,
+          host: environment.cacheClusterHost,
+        },
+      ])
+    : new Redis(environment.cachePort, environment.cacheHost)
 
 export const connections = {
   knex: mainKnex,

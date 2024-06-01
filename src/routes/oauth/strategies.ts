@@ -2,6 +2,7 @@ import type { User } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
+import { Redis } from 'ioredis'
 import { get } from 'lodash'
 import passport from 'passport'
 
@@ -109,7 +110,7 @@ export default () => {
           // invalidate user cache
           await invalidateFQC({
             node: { type: NODE_TYPES.User, id: userId },
-            redis: connections.redis,
+            redis: connections.redis as Redis,
           })
 
           return done(null, user)

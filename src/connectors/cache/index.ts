@@ -1,4 +1,4 @@
-import Redis from 'ioredis'
+import Redis, { Cluster } from 'ioredis'
 import _ from 'lodash'
 
 import { CACHE_TTL } from 'common/enums'
@@ -33,9 +33,9 @@ export const genCacheKey = ({
 
 export class CacheService {
   private prefix: string
-  private redis: Redis
+  private redis: Redis | Cluster
 
-  public constructor(prefix: string, redis: Redis) {
+  public constructor(prefix: string, redis: Redis | Cluster) {
     this.prefix = prefix
     this.redis = redis
   }

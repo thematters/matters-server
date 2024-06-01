@@ -64,7 +64,7 @@ export interface Connections {
   knex: Knex
   knexRO: Knex
   knexSearch: Knex
-  redis: Redis
+  redis: Redis | Cluster
 }
 
 export interface DataSources {
