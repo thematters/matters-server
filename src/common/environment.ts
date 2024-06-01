@@ -87,6 +87,8 @@ export const environment = {
   ipfsServers: process.env.MATTERS_IPFS_SERVERS || '',
   queueHost: process.env.MATTERS_QUEUE_HOST as string,
   queuePort: (process.env.MATTERS_QUEUE_PORT || 6379) as number,
+  cacheClusterHost: process.env.MATTERS_CACHE_CLUSTER_HOST || '',
+  cacheClusterPort: (process.env.MATTERS_CACHE_CLUSTER_PORT || 6379) as number,
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
   mattyId: process.env.MATTERS_MATTY_ID || '',
