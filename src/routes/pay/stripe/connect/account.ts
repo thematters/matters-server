@@ -1,6 +1,6 @@
 import type { AtomService } from 'connectors'
 import type SlackService from 'connectors/slack'
-import type { Redis } from 'ioredis'
+import type { Cluster, Redis } from 'ioredis'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import _ from 'lodash'
@@ -23,7 +23,7 @@ export const updateAccount = async (
   }: {
     atomService: AtomService
     slack: SlackService
-    redis: Redis
+    redis: Redis | Cluster
   }
 ) => {
   const slackEventData = {
@@ -71,6 +71,6 @@ export const updateAccount = async (
   // invalidate user cache
   await invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
-    redis,
+    redis: redis as Redis,
   })
 }

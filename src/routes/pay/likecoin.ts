@@ -3,6 +3,7 @@ import type { EmailableUser } from 'definitions'
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
 import { RequestHandler, Router } from 'express'
+import { Redis } from 'ioredis'
 import _capitalize from 'lodash/capitalize'
 import NP from 'number-precision'
 
@@ -40,7 +41,7 @@ const invalidateCache = async ({
     if (type) {
       await invalidateFQC({
         node: { type, id },
-        redis: connections.redis,
+        redis: connections.redis as Redis,
       })
     }
   }
