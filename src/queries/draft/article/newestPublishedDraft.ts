@@ -1,29 +1,18 @@
 import type { GQLArticleResolvers } from 'definitions'
 
+import { PUBLISH_STATE } from 'common/enums'
+
 const resolver: GQLArticleResolvers['newestPublishedDraft'] = async (
-  { id: articleId, authorId },
+  { id: articleId },
   _,
   { dataSources: { atomService } }
 ) => {
-  const version = await atomService.findFirst({
-    table: 'article_version',
-    where: { articleId },
+  const draft = await atomService.findFirst({
+    table: 'draft',
+    where: { articleId, publishState: PUBLISH_STATE.published },
     orderBy: [{ column: 'created_at', order: 'desc' }],
   })
-  return {
-    ...version,
-    authorId,
-    content: (await atomService.articleContentIdLoader.load(version.contentId))
-      .content,
-    publishState: 'published',
-    // unused fields in front-end
-    contentMd: '',
-    iscnPublish: false,
-    collection: null,
-    remark: null,
-    archived: false,
-    language: null,
-  }
+  return draft
 }
 
 export default resolver
