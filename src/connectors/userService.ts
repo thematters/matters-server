@@ -63,7 +63,6 @@ import {
   VERIFICATION_CODE_TYPE,
   USER_RESTRICTION_TYPE,
   VIEW,
-  AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
@@ -112,7 +111,6 @@ import {
   AtomService,
   BaseService,
   CacheService,
-  TagService,
   ipfsServers,
   OAuthService,
   NotificationService,
@@ -228,10 +226,6 @@ export class UserService extends BaseService<User> {
     const atomService = new AtomService(this.connections)
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
-
-    // auto follow tags
-    const tagService = new TagService(this.connections)
-    await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
 
     // send email
     if (user.email && user.displayName) {
