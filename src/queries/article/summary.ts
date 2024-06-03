@@ -9,12 +9,8 @@ const resolver: GQLArticleResolvers['summary'] = async (
   _,
   { dataSources: { articleService, atomService } }
 ) => {
-  const {
-    summary,
-    contentId,
-    summaryCustomized,
-    content: draftContent,
-  } = await articleService.loadLatestArticleVersion(id)
+  const { summary, contentId, summaryCustomized } =
+    await articleService.loadLatestArticleVersion(id)
 
   const accessType = await articleService.getAccess(id)
 
@@ -23,10 +19,6 @@ const resolver: GQLArticleResolvers['summary'] = async (
       return '' // drop pre-computed summary if not summaryCustomized
     }
     return summary || ''
-  }
-
-  if (draftContent) {
-    return summary || makeSummary(draftContent)
   }
 
   const { content } = await atomService.articleContentIdLoader.load(contentId)
