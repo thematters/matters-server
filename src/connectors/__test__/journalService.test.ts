@@ -1,7 +1,11 @@
 import type { Connections } from 'definitions'
 
 import { USER_STATE, JOURNAL_STATE } from 'common/enums'
-import { ForbiddenError, ForbiddenByStateError } from 'common/errors'
+import {
+  ForbiddenError,
+  ForbiddenByStateError,
+  UserInputError,
+} from 'common/errors'
 import { AtomService, JournalService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -80,5 +84,72 @@ describe('delete journals', () => {
     )
     const updated = await journalService.delete(journal.id, author)
     expect(updated.state).toBe(JOURNAL_STATE.archived)
+  })
+})
+
+describe('like/unklike journals', () => {
+  test('not active user will fail', async () => {
+    const actor = { id: '1', state: USER_STATE.banned }
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: '2', state: USER_STATE.active }
+    )
+    expect(journalService.like(journal.id, actor)).rejects.toThrowError(
+      ForbiddenByStateError
+    )
+  })
+  test('author will fail', async () => {
+    const author = { id: '1', state: USER_STATE.active }
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: author.id, state: USER_STATE.active }
+    )
+    expect(journalService.like(journal.id, author)).rejects.toThrowError(
+      ForbiddenError
+    )
+  })
+  test('archived journal will fail', async () => {
+    const actor = { id: '1', state: USER_STATE.active }
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: '2', state: USER_STATE.active }
+    )
+    await journalService.delete(journal.id, {
+      id: '2',
+      state: USER_STATE.active,
+    })
+    expect(journalService.like(journal.id, actor)).rejects.toThrowError(
+      UserInputError
+    )
+  })
+  test('success', async () => {
+    const actor = { id: '1', state: USER_STATE.active }
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: '2', state: USER_STATE.active }
+    )
+    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+      false
+    )
+    await journalService.like(journal.id, actor)
+    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+      true
+    )
+
+    // like multiple times is idempotent
+    await journalService.like(journal.id, actor)
+    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+      true
+    )
+
+    // unlike multiple times is idempotent
+    await journalService.unlike(journal.id, actor)
+    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+      false
+    )
+    await journalService.unlike(journal.id, actor)
+    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+      false
+    )
   })
 })

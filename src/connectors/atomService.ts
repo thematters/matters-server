@@ -551,4 +551,5 @@ const UPATEABLE_TABLES = [
   'matters_choice_topic',
   'journal',
   'journal_asset',
+  'action_journal',
 ]

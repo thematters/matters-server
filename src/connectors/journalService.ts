@@ -2,7 +2,11 @@ import type { User, Connections } from 'definitions'
 // import type { Knex } from 'knex'
 
 import { USER_STATE, JOURNAL_STATE } from 'common/enums'
-import { ForbiddenError, ForbiddenByStateError } from 'common/errors'
+import {
+  ForbiddenError,
+  ForbiddenByStateError,
+  UserInputError,
+} from 'common/errors'
 import { AtomService } from 'connectors'
 
 type Actor = Pick<User, 'id' | 'state'>
@@ -26,7 +30,7 @@ export class JournalService {
   ) => {
     if (actor.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${actor.state} user is not allowed to create journal`
+        `${actor.state} user is not allowed to create journals`
       )
     }
     const journal = await this.models.create({
@@ -53,7 +57,7 @@ export class JournalService {
   public delete = async (id: string, actor: Actor) => {
     if (actor.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${actor.state} user is not allowed to delete journal`
+        `${actor.state} user is not allowed to delete journals`
       )
     }
     const journal = await this.models.journalIdLoader.load(id)
@@ -67,5 +71,40 @@ export class JournalService {
       where: { id, authorId: actor.id },
       data: { state: JOURNAL_STATE.archived },
     })
+  }
+
+  public like = async (id: string, actor: Actor) => {
+    if (actor.state !== USER_STATE.active) {
+      throw new ForbiddenByStateError(
+        `${actor.state} user is not allowed to like journals`
+      )
+    }
+    const journal = await this.models.journalIdLoader.load(id)
+    if (journal.authorId === actor.id) {
+      throw new ForbiddenError(`user ${actor.id} cannot like own journal`)
+    }
+    if (journal.state !== JOURNAL_STATE.active) {
+      throw new UserInputError(`journal ${id} is not active, cannot be liked`)
+    }
+    return this.models.upsert({
+      table: 'action_journal',
+      where: { targetId: id, userId: actor.id },
+      create: { targetId: id, userId: actor.id, action: 'like' },
+      update: {},
+    })
+  }
+
+  public unlike = async (id: string, actor: Actor) =>
+    this.models.deleteMany({
+      table: 'action_journal',
+      where: { targetId: id, userId: actor.id, action: 'like' },
+    })
+
+  public checkIfLiked = async (journalId: string, userId: string) => {
+    const count = await this.models.count({
+      table: 'action_journal',
+      where: { targetId: journalId, userId: userId, action: 'like' },
+    })
+    return count > 0
   }
 }
