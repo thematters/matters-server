@@ -37,14 +37,17 @@ export class JournalService {
         state: JOURNAL_STATE.active,
       },
     })
-    if (data.assetIds.length) {
-      for (const assetId of data.assetIds) {
-        await this.models.create({
-          table: 'journal_asset',
-          data: { assetId, journalId: journal.id },
-        })
-      }
+    if (data.assetIds.length > 0) {
+      await Promise.all(
+        data.assetIds.map((assetId) =>
+          this.models.create({
+            table: 'journal_asset',
+            data: { assetId, journalId: journal.id },
+          })
+        )
+      )
     }
+    return journal
   }
 
   public delete = async (id: string, actor: Actor) => {
@@ -53,16 +56,13 @@ export class JournalService {
         `${actor.state} user is not allowed to delete journal`
       )
     }
-    const journal = await this.models.findUnique({
-      table: 'journal',
-      where: { id },
-    })
+    const journal = await this.models.journalIdLoader.load(id)
     if (journal.authorId !== actor.id) {
       throw new ForbiddenError(
         `journal ${id} is not created by user ${actor.id}`
       )
     }
-    await this.models.update({
+    return this.models.update({
       table: 'journal',
       where: { id, authorId: actor.id },
       data: { state: JOURNAL_STATE.archived },

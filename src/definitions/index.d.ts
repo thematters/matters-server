@@ -117,6 +117,7 @@ export * from './report'
 export * from './wallet'
 export * from './misc'
 export * from './schema'
+export * from './journal'
 
 export interface Context extends BasedContext {
   viewer: Viewer

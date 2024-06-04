@@ -12,6 +12,7 @@ import type {
   Tag,
   Transaction,
   User,
+  Journal,
   TableTypeMap,
   TableTypeMapKey,
 } from 'definitions'
@@ -172,6 +173,7 @@ export class AtomService {
   public tagIdLoader: AtomDataLoader<string, Tag>
   public transactionIdLoader: AtomDataLoader<string, Transaction>
   public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
+  public journalIdLoader: AtomDataLoader<string, Journal>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -210,6 +212,7 @@ export class AtomService {
       table: 'matters_choice_topic',
       mode: 'id',
     })
+    this.journalIdLoader = this.initLoader({ table: 'journal', mode: 'id' })
   }
 
   /* Data Loader */
@@ -546,4 +549,6 @@ const UPATEABLE_TABLES = [
   'blockchain_transaction',
   'collection',
   'matters_choice_topic',
+  'journal',
+  'journal_asset',
 ]
