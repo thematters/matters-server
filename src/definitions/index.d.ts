@@ -1,20 +1,83 @@
+import type {
+  ActionArticle,
+  ActionCircle,
+  ActionTag,
+  ActionUser,
+} from './action'
+import type { Announcement, AnnouncementTranslation } from './announcement'
+import type { Appreciation } from './appreciation'
+import type {
+  Article,
+  ArticleBoost,
+  ArticleCircle,
+  ArticleConnection,
+  ArticleContent,
+  ArticleCountView,
+  ArticleReadTimeMaterialized,
+  ArticleRecommendSetting,
+  ArticleTag,
+  ArticleTranslation,
+  ArticleVersion,
+  RecommendedArticlesFromReadTagsMaterialized,
+} from './article'
+import type { Asset, AssetMap } from './asset'
+import type { VerificationCode } from './auth'
+import type { EntityType } from './base'
+import type {
+  Circle,
+  CircleInvitation,
+  CirclePrice,
+  CircleSubscription,
+  CircleSubscriptionItem,
+} from './circle'
+import type { Collection, CollectionArticle } from './collection'
+import type { Comment, FeaturedCommentMaterialized } from './comment'
+import type { Draft } from './draft'
+import type {
+  BlockedSearchKeyword,
+  Blocklist,
+  MattersChoice,
+  MattersChoiceTopic,
+  PunishRecord,
+  SearchHistory,
+} from './misc'
+import type { UserOauthLikecoinDB } from './oauth'
+import type {
+  BlockchainSyncRecord,
+  BlockchainTransaction,
+  Customer,
+  PayoutAccount,
+  Transaction,
+} from './payment'
+import type { Report } from './report'
+import type { Tag, TagTranslation, UserTagsOrder } from './tag'
+import type {
+  SeedingUser,
+  User,
+  UserBadge,
+  UserIpnsKeys,
+  UserIpnsKeys,
+  UserRestriction,
+  UsernameEditHistory,
+} from './user'
+import type { CryptoWallet, CryptoWalletSignature } from './wallet'
 import type { BasedContext } from '@apollo/server'
 import type {
   ArticleService,
   AtomService,
+  CollectionService,
   CommentService,
   DraftService,
+  ExchangeRate,
+  LikeCoin,
   NotificationService,
   OAuthService,
   OpenSeaService,
   PaymentService,
+  RecommendationService,
   SystemService,
   TagService,
   UserService,
-  CollectionService,
-  LikeCoin,
-  ExchangeRate,
-  RecommendationService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -96,88 +159,86 @@ export interface DataSources {
   }
 }
 
-export type BasicTableName =
-  | 'action'
-  | 'article_boost'
-  | 'action_user'
+export type TableTypeMap = {
+  action_article: ActionArticle
+  action_circle: ActionCircle
+  action_tag: ActionTag
+  action_user: ActionUser
+  announcement: Announcement
+  announcement_translation: AnnouncementTranslation
+  appreciation: Appreciation
+  article: Article
+  article_boost: ArticleBoost
+  article_circle: ArticleCircle
+  article_connection: ArticleConnection
+  article_content: ArticleContent
+  article_count_view: ArticleCountView
+  article_read_time_materialized: ArticleReadTimeMaterialized
+  article_recommend_setting: ArticleRecommendSetting
+  article_tag: ArticleTag
+  article_translation: ArticleTranslation
+  article_version: ArticleVersion
+  asset: Asset
+  asset_map: AssetMap
+  blockchain_sync_record: BlockchainSyncRecord
+  blockchain_transaction: BlockchainTransaction
+  blocked_search_keyword: BlockedSearchKeyword
+  blocklist: Blocklist
+  circle: Circle
+  circle_invitation: CircleInvitation
+  circle_price: CirclePrice
+  circle_subscription: CircleSubscription
+  circle_subscription_item: CircleSubscriptionItem
+  collection: Collection
+  collection_article: CollectionArticle
+  comment: Comment
+  crypto_wallet: CryptoWallet
+  crypto_wallet_signature: CryptoWalletSignature
+  customer: Customer
+  draft: Draft
+  entity_type: EntityType
+  featured_comment_materialized: FeaturedCommentMaterialized
+  matters_choice: MattersChoice
+  matters_choice_topic: MattersChoiceTopic
+  payout_account: PayoutAccount
+  punish_record: PunishRecord
+  recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
+  report: Report
+  search_history: SearchHistory
+  seeding_user: SeedingUser
+  tag: Tag
+  tag_translation: TagTranslation
+  transaction: Transaction
+  user: User
+  user_badge: UserBadge
+  user_ipns_keys: UserIpnsKeys
+  user_oauth_likecoin: UserOauthLikecoinDB
+  user_restriction: UserRestriction
+  user_tags_order: UserTagsOrder
+  username_edit_history: UsernameEditHistory
+  verification_code: VerificationCode
+}
+
+export type TableTypeMapKey = keyof TableTypeMap
+
+// table not in TableTypeMap
+type OtherTable =
   | 'action_comment'
-  | 'action_article'
-  | 'action_tag'
-  | 'transaction'
-  | 'appreciation'
-  | 'asset'
-  | 'asset_map'
-  | 'article'
   | 'article_read_count'
-  | 'article_tag'
-  | 'audio_draft'
-  | 'comment'
-  | 'article_connection'
-  | 'draft'
-  | 'noop'
-  | 'user'
-  | 'user_oauth'
-  | 'user_badge'
-  | 'user_notify_setting'
-  | 'user_restriction'
-  | 'username_edit_history'
-  | 'notice_detail'
-  | 'notice'
-  | 'notice_actor'
-  | 'notice_entity'
-  | 'push_device'
-  | 'report'
+  | 'blockchain_curation_event'
   | 'feedback'
-  | 'feedback_asset'
-  | 'invitation'
-  | 'verification_code'
-  | 'search_history'
-  | 'tag'
-  | 'tag_boost'
-  | 'user_boost'
-  | 'matters_today'
-  | 'matters_choice'
-  | 'matters_choice_tag'
-  | 'article_recommend_setting'
   | 'log_record'
-  | 'oauth_client'
+  | 'matters_choice_tag'
+  | 'notice'
   | 'oauth_access_token'
   | 'oauth_authorization_code'
+  | 'oauth_client'
   | 'oauth_refresh_token'
-  | 'user_oauth_likecoin'
-  | 'blocklist'
-  | 'blocked_search_keyword'
-  | 'transaction'
-  | 'customer'
-  | 'payout_account'
-  | 'punish_record'
-  | 'entity_type'
-  | 'circle'
-  | 'circle_invitation'
-  | 'circle_price'
-  | 'circle_subscription'
-  | 'circle_subscription_item'
-  | 'action_circle'
-  | 'article_circle'
-  | 'feature_flag'
-  | 'seeding_user'
-  | 'announcement'
-  | 'announcement_translation'
-  | 'crypto_wallet'
-  | 'crypto_wallet_signature'
-  | 'article_translation'
-  | 'tag_translation'
-  | 'user_ipns_keys'
-  | 'user_tags_order'
-  | 'blockchain_transaction'
-  | 'blockchain_curation_event'
-  | 'blockchain_sync_record'
-  | 'collection'
-  | 'collection_article'
+  | 'oauth_refresh_token'
   | 'social_account'
-  | 'article_content'
-  | 'article_version'
-  | 'matters_choice_topic'
+  | 'tag_boost'
+  | 'user_boost'
+  | 'user_notify_setting'
 
 export type View =
   | 'tag_count_view'
@@ -204,24 +265,7 @@ export type MaterializedView =
   | 'article_read_time_materialized'
   | 'recommended_articles_from_read_tags_materialized'
 
-export type TableName = BasicTableName | View | MaterializedView
-
-export interface EntityType {
-  id: string
-  table: TableName
-}
-
-export interface ThirdPartyAccount {
-  accountName: 'facebook' | 'wechat' | 'google'
-  baseUrl: string
-  token: string
-}
-
-export interface BatchParams {
-  input: {
-    [key: string]: any
-  }
-}
+export type TableName = TableTypeMapKey | View | MaterializedView | OtherTable
 
 export type S3Bucket =
   | 'matters-server-dev'
