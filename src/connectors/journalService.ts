@@ -60,7 +60,10 @@ export class JournalService {
         `${actor.state} user is not allowed to delete journals`
       )
     }
-    const journal = await this.models.journalIdLoader.load(id)
+    const journal = await this.models.findUnique({
+      table: 'journal',
+      where: { id },
+    })
     if (journal.authorId !== actor.id) {
       throw new ForbiddenError(
         `journal ${id} is not created by user ${actor.id}`
@@ -79,7 +82,10 @@ export class JournalService {
         `${actor.state} user is not allowed to like journals`
       )
     }
-    const journal = await this.models.journalIdLoader.load(id)
+    const journal = await this.models.findUnique({
+      table: 'journal',
+      where: { id },
+    })
     if (journal.authorId === actor.id) {
       throw new ForbiddenError(`user ${actor.id} cannot like own journal`)
     }
