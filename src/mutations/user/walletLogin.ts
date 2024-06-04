@@ -5,11 +5,9 @@ import type {
   User,
 } from 'definitions'
 
-import { invalidateFQC } from '@matters/apollo-response-cache'
 import { Hex } from 'viem'
 
 import {
-  NODE_TYPES,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPE,
   AUTH_RESULT_TYPE,
@@ -88,12 +86,7 @@ const _walletLogin: Exclude<
     viewer,
     req,
     res,
-    dataSources: {
-      userService,
-      atomService,
-      systemService,
-      connections: { redis },
-    },
+    dataSources: { userService, atomService, systemService },
   } = context
 
   const lastSigning = await userService.verifyWalletSignature({
@@ -107,34 +100,6 @@ const _walletLogin: Exclude<
       SIGNING_MESSAGE_PURPOSE.connect,
     ],
   })
-
-  /**
-   * Link
-   */
-  if (viewer.id && viewer.token && !viewer.ethAddress) {
-    await atomService.update({
-      table: sigTable,
-      where: { id: lastSigning.id },
-      data: {
-        signature,
-        userId: viewer.id,
-      },
-    })
-
-    await userService.addWallet(viewer.id, ethAddress)
-
-    await invalidateFQC({
-      node: { type: NODE_TYPES.User, id: viewer.id },
-      redis,
-    })
-
-    return {
-      token: viewer.token,
-      auth: true,
-      type: AUTH_RESULT_TYPE.LinkAccount,
-      user: viewer,
-    }
-  }
 
   const archivedCallback = async () =>
     systemService.saveAgentHash(viewer.agentHash || '')
