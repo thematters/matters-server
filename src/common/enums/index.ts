@@ -30,6 +30,7 @@ export * from './search'
 export * from './appreciation'
 export * from './metrics'
 export * from './badges'
+export * from './journal'
 
 export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100

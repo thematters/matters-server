@@ -1,6 +1,7 @@
 import type {
   ActionArticle,
   ActionCircle,
+  ActionJournal,
   ActionTag,
   ActionUser,
 } from './action'
@@ -33,6 +34,7 @@ import type {
 import type { Collection, CollectionArticle } from './collection'
 import type { Comment, FeaturedCommentMaterialized } from './comment'
 import type { Draft } from './draft'
+import type { Journal, JournalAsset } from './journal'
 import type {
   BlockedSearchKeyword,
   Blocklist,
@@ -162,6 +164,7 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
+  action_journal: ActionJournal
   action_tag: ActionTag
   action_user: ActionUser
   announcement: Announcement
@@ -198,6 +201,8 @@ export type TableTypeMap = {
   draft: Draft
   entity_type: EntityType
   featured_comment_materialized: FeaturedCommentMaterialized
+  journal: Journal
+  journal_asset: JournalAsset
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   payout_account: PayoutAccount
