@@ -26,23 +26,23 @@ afterAll(async () => {
 
 describe('create journals', () => {
   test('not active user will fail', async () => {
-    const actor = { id: '1', state: USER_STATE.banned }
+    const user = { id: '1', state: USER_STATE.banned }
     const data = { content: 'test', assetIds: [] }
-    expect(journalService.create(data, actor)).rejects.toThrowError(
+    expect(journalService.create(data, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('active user will success', async () => {
-    const actor = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active }
     const data = { content: 'test', assetIds: [] }
-    const journal = await journalService.create(data, actor)
+    const journal = await journalService.create(data, user)
     expect(journal).toBeDefined()
     expect(journal.content).toBe(data.content)
   })
   test('active user with assetIds will success', async () => {
-    const actor = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active }
     const data = { content: 'test', assetIds: ['1', '2'] }
-    const journal = await journalService.create(data, actor)
+    const journal = await journalService.create(data, user)
     expect(journal).toBeDefined()
     expect(journal.content).toBe(data.content)
 
@@ -56,12 +56,12 @@ describe('create journals', () => {
 
 describe('delete journals', () => {
   test('not active user will fail', async () => {
-    const actor = { id: '1', state: USER_STATE.banned }
+    const user = { id: '1', state: USER_STATE.banned }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: actor.id, state: USER_STATE.active }
+      { id: user.id, state: USER_STATE.active }
     )
-    expect(journalService.delete(journal.id, actor)).rejects.toThrowError(
+    expect(journalService.delete(journal.id, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
@@ -89,12 +89,12 @@ describe('delete journals', () => {
 
 describe('like/unklike journals', () => {
   test('not active user will fail', async () => {
-    const actor = { id: '1', state: USER_STATE.banned }
+    const user = { id: '1', state: USER_STATE.banned }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active }
     )
-    expect(journalService.like(journal.id, actor)).rejects.toThrowError(
+    expect(journalService.like(journal.id, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
@@ -109,7 +109,7 @@ describe('like/unklike journals', () => {
     )
   })
   test('archived journal will fail', async () => {
-    const actor = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active }
@@ -118,37 +118,33 @@ describe('like/unklike journals', () => {
       id: '2',
       state: USER_STATE.active,
     })
-    expect(journalService.like(journal.id, actor)).rejects.toThrowError(
+    expect(journalService.like(journal.id, user)).rejects.toThrowError(
       UserInputError
     )
   })
   test('success', async () => {
-    const actor = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active }
     )
-    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
       false
     )
-    await journalService.like(journal.id, actor)
-    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
-      true
-    )
+    await journalService.like(journal.id, user)
+    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(true)
 
     // like multiple times is idempotent
-    await journalService.like(journal.id, actor)
-    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
-      true
-    )
+    await journalService.like(journal.id, user)
+    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(true)
 
     // unlike multiple times is idempotent
-    await journalService.unlike(journal.id, actor)
-    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+    await journalService.unlike(journal.id, user)
+    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
       false
     )
-    await journalService.unlike(journal.id, actor)
-    expect(journalService.checkIfLiked(journal.id, actor.id)).resolves.toBe(
+    await journalService.unlike(journal.id, user)
+    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
       false
     )
   })

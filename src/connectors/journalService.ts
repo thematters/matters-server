@@ -1,4 +1,4 @@
-import type { User, Connections } from 'definitions'
+import type { User as UserFull, Connections } from 'definitions'
 // import type { Knex } from 'knex'
 
 import { USER_STATE, JOURNAL_STATE } from 'common/enums'
@@ -9,7 +9,7 @@ import {
 } from 'common/errors'
 import { AtomService } from 'connectors'
 
-type Actor = Pick<User, 'id' | 'state'>
+type User = Pick<UserFull, 'id' | 'state'>
 
 export class JournalService {
   // private connections: Connections
@@ -26,17 +26,17 @@ export class JournalService {
 
   public create = async (
     data: { content: string; assetIds: string[] },
-    actor: Actor
+    user: User
   ) => {
-    if (actor.state !== USER_STATE.active) {
+    if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${actor.state} user is not allowed to create journals`
+        `${user.state} user is not allowed to create journals`
       )
     }
     const journal = await this.models.create({
       table: 'journal',
       data: {
-        authorId: actor.id,
+        authorId: user.id,
         content: data.content,
         state: JOURNAL_STATE.active,
       },
@@ -54,56 +54,56 @@ export class JournalService {
     return journal
   }
 
-  public delete = async (id: string, actor: Actor) => {
-    if (actor.state !== USER_STATE.active) {
+  public delete = async (id: string, user: User) => {
+    if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${actor.state} user is not allowed to delete journals`
+        `${user.state} user is not allowed to delete journals`
       )
     }
     const journal = await this.models.findUnique({
       table: 'journal',
       where: { id },
     })
-    if (journal.authorId !== actor.id) {
+    if (journal.authorId !== user.id) {
       throw new ForbiddenError(
-        `journal ${id} is not created by user ${actor.id}`
+        `journal ${id} is not created by user ${user.id}`
       )
     }
     return this.models.update({
       table: 'journal',
-      where: { id, authorId: actor.id },
+      where: { id, authorId: user.id },
       data: { state: JOURNAL_STATE.archived },
     })
   }
 
-  public like = async (id: string, actor: Actor) => {
-    if (actor.state !== USER_STATE.active) {
+  public like = async (id: string, user: User) => {
+    if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${actor.state} user is not allowed to like journals`
+        `${user.state} user is not allowed to like journals`
       )
     }
     const journal = await this.models.findUnique({
       table: 'journal',
       where: { id },
     })
-    if (journal.authorId === actor.id) {
-      throw new ForbiddenError(`user ${actor.id} cannot like own journal`)
+    if (journal.authorId === user.id) {
+      throw new ForbiddenError(`user ${user.id} cannot like own journal`)
     }
     if (journal.state !== JOURNAL_STATE.active) {
       throw new UserInputError(`journal ${id} is not active, cannot be liked`)
     }
     return this.models.upsert({
       table: 'action_journal',
-      where: { targetId: id, userId: actor.id },
-      create: { targetId: id, userId: actor.id, action: 'like' },
+      where: { targetId: id, userId: user.id },
+      create: { targetId: id, userId: user.id, action: 'like' },
       update: {},
     })
   }
 
-  public unlike = async (id: string, actor: Actor) =>
+  public unlike = async (id: string, user: User) =>
     this.models.deleteMany({
       table: 'action_journal',
-      where: { targetId: id, userId: actor.id, action: 'like' },
+      where: { targetId: id, userId: user.id, action: 'like' },
     })
 
   public checkIfLiked = async (journalId: string, userId: string) => {
