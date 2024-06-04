@@ -13,6 +13,9 @@ exports.up = async (knex) => {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
     t.foreign('author_id').references('id').inTable('user')
+
+    t.index('author_id')
+    t.index('created_at')
   })
 }
 

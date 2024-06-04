@@ -13,6 +13,10 @@ exports.up = async (knex) => {
 
     t.foreign('journal_id').references('id').inTable('journal')
     t.foreign('asset_id').references('id').inTable('asset')
+
+    t.index('journal_id')
+    t.index('asset_id')
+    t.index('created_at')
   })
 }
 
