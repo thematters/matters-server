@@ -6,17 +6,15 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { AtomService, JournalService } from 'connectors'
+import { JournalService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
-let atomService: AtomService
 let journalService: JournalService
 
 beforeAll(async () => {
   connections = await genConnections()
-  atomService = new AtomService(connections)
   journalService = new JournalService(connections)
 }, 30000)
 
@@ -46,10 +44,7 @@ describe('create journals', () => {
     expect(journal).toBeDefined()
     expect(journal.content).toBe(data.content)
 
-    const assets = await atomService.findMany({
-      table: 'journal_asset',
-      where: { journalId: journal.id },
-    })
+    const assets = await journalService.getAssets(journal.id)
     expect(assets).toHaveLength(2)
   })
 })

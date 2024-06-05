@@ -120,4 +120,17 @@ export class JournalService {
       table: 'action_journal',
       where: { targetId: journalId, action: 'like' },
     })
+
+  public getAssets = async (journalId: string) => {
+    const journalAssets = await this.models.findMany({
+      table: 'journal_asset',
+      where: { journalId },
+      orderBy: [{ column: 'createdAt', order: 'asc' }],
+    })
+    return Promise.all(
+      journalAssets.map((journalAsset) =>
+        this.models.assetIdLoader.load(journalAsset.assetId)
+      )
+    )
+  }
 }

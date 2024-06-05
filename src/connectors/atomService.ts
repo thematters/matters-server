@@ -1,4 +1,5 @@
 import type {
+  Asset,
   Article,
   ArticleContent,
   ArticleVersion,
@@ -174,6 +175,7 @@ export class AtomService {
   public transactionIdLoader: AtomDataLoader<string, Transaction>
   public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
   public journalIdLoader: AtomDataLoader<string, Journal>
+  public assetIdLoader: AtomDataLoader<string, Asset>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -213,6 +215,7 @@ export class AtomService {
       mode: 'id',
     })
     this.journalIdLoader = this.initLoader({ table: 'journal', mode: 'id' })
+    this.assetIdLoader = this.initLoader({ table: 'asset', mode: 'id' })
   }
 
   /* Data Loader */
