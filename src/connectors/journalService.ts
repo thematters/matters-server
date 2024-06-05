@@ -1,5 +1,7 @@
 import type { User as UserFull, Connections } from 'definitions'
 
+import { sanitizeHTML } from '@matters/matters-editor/transformers'
+
 import { USER_STATE, JOURNAL_STATE } from 'common/enums'
 import {
   ForbiddenError,
@@ -23,17 +25,17 @@ export class JournalService {
     data: { content: string; assetIds?: string[] },
     user: User
   ) => {
-    // TODO: sanitizeHTML content
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to create journals`
       )
     }
+    const content = sanitizeHTML(data.content)
     const journal = await this.models.create({
       table: 'journal',
       data: {
         authorId: user.id,
-        content: data.content,
+        content: content,
         state: JOURNAL_STATE.active,
       },
     })
