@@ -30,15 +30,18 @@ export class CommentService extends BaseService<Comment> {
   }
 
   /**
-   * Count comments by a given article id.
+   * Count comments by a given id and comment type.
    *
    * @remarks only count active and collapsed comments
    */
-  public countByArticle = async (articleId: string) => {
+  public count = async (
+    targetId: string,
+    type: ValueOf<typeof COMMENT_TYPE>
+  ) => {
     const result = await this.knexRO(this.table)
       .where({
-        targetId: articleId,
-        type: COMMENT_TYPE.article,
+        targetId,
+        type,
       })
       .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
       .count()

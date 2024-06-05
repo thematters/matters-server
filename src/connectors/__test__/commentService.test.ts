@@ -241,7 +241,7 @@ test('count comments', async () => {
     where: { table: 'article' },
   })
 
-  const originalCount = await commentService.countByArticle('1')
+  const originalCount = await commentService.count('1', COMMENT_TYPE.article)
 
   // archived/banned comments should be filtered
   await atomService.create({
@@ -269,7 +269,7 @@ test('count comments', async () => {
     },
   })
 
-  const count1 = await commentService.countByArticle('1')
+  const count1 = await commentService.count('1', COMMENT_TYPE.article)
   expect(count1).toBe(originalCount)
 
   // active/collapsed comments should be included
@@ -297,6 +297,6 @@ test('count comments', async () => {
       authorId: '1',
     },
   })
-  const count2 = await commentService.countByArticle('1')
+  const count2 = await commentService.count('1', COMMENT_TYPE.article)
   expect(count2).toBe(originalCount + 2)
 })
