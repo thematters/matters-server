@@ -28,6 +28,7 @@ export class JournalService {
     data: { content: string; assetIds: string[] },
     user: User
   ) => {
+    // TODO: sanitizeHTML content
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to create journals`

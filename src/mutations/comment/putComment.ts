@@ -5,6 +5,7 @@ import type {
   Article,
   Circle,
   Comment,
+  Journal,
 } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -23,13 +24,17 @@ import {
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
+  MAX_JOURNAL_COMMENT_LENGTH,
+  MAX_COMMENT_EMPTY_PARAGRAPHS,
   NODE_TYPES,
   USER_STATE,
+  JOURNAL_STATE,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
   CircleNotFoundError,
   CommentNotFoundError,
+  JournalNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
@@ -48,6 +53,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         type,
         articleId,
         circleId,
+        journalId,
       },
       id,
     },
@@ -66,11 +72,6 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
   }
-  if (!content || content.length <= 0) {
-    throw new UserInputError(
-      `"content" is required and must be at least 1 character`
-    )
-  }
 
   const data: Partial<Comment> & { mentionedUserIds?: any } = {
     content: normalizeCommentHTML(
@@ -83,10 +84,45 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   }
 
   /**
+   * check comment type
+   */
+  const isArticleType = type === 'article'
+  const isCircleDiscussion = type === 'circleDiscussion'
+  const isCircleBroadcast = type === 'circleBroadcast'
+  const isJournal = type === 'journal'
+  if (isArticleType && !articleId) {
+    throw new UserInputError('`articleId` is required if `type` is `article`')
+  } else if ((isCircleDiscussion || isCircleBroadcast) && !circleId) {
+    throw new UserInputError(
+      '`circleId` is required if `type` is `circleBroadcast` or `circleDiscussion`'
+    )
+  } else if (isJournal && !journalId) {
+    throw new UserInputError('`journalId` is required if `type` is `journal`')
+  } else {
+    data.type = COMMENT_TYPE[type]
+  }
+
+  /**
+   * check content
+   */
+  if (!content || content.length <= 0) {
+    throw new UserInputError(
+      `"content" is required and must be at least 1 character`
+    )
+  }
+  if (isArticleType && stripHtml(content).length > MAX_ARTICLE_COMMENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+  if (isJournal && stripHtml(content).length > MAX_JOURNAL_COMMENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+
+  /**
    * check target
    */
   let article: Article | undefined
   let circle: Circle | undefined
+  let journal: Journal | undefined
   let targetAuthor: string | undefined
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
@@ -111,7 +147,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     targetAuthor = article.authorId
   } else if (circleId) {
     const { id: circleDbId } = fromGlobalId(circleId)
-    circle = (await atomService.circleIdLoader.load(circleDbId)) as Circle
+    circle = await atomService.circleIdLoader.load(circleDbId)
 
     if (!circle) {
       throw new CircleNotFoundError('target circle does not exists')
@@ -125,28 +161,26 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     data.targetId = circle.id
 
     targetAuthor = circle.owner
-  } else {
-    throw new UserInputError('`articleId` or `circleId` is required')
-  }
+  } else if (journalId) {
+    const { id: journalDbId } = fromGlobalId(journalId)
+    journal = await atomService.journalIdLoader.load(journalDbId)
 
-  /**
-   * check comment type
-   */
-  const isArticleType = type === 'article'
-  const isCircleDiscussion = type === 'circleDiscussion'
-  const isCircleBroadcast = type === 'circleBroadcast'
-  if (isArticleType && !article) {
-    throw new UserInputError('`articleId` is required if `type` is `article`')
-  } else if ((isCircleDiscussion || isCircleBroadcast) && !circle) {
+    if (!journal || journal.state !== JOURNAL_STATE.active) {
+      throw new JournalNotFoundError('target journal does not exists')
+    }
+
+    const { id: typeId } = await atomService.findFirst({
+      table: 'entity_type',
+      where: { table: 'journal' },
+    })
+    data.targetTypeId = typeId
+    data.targetId = journal.id
+
+    targetAuthor = journal.authorId
+  } else {
     throw new UserInputError(
-      '`circleId` is required if `type` is `circleBroadcast` or `circleDiscussion`'
+      '`articleId` or `circleId` or `journalId` is required'
     )
-  } else {
-    data.type = COMMENT_TYPE[type]
-  }
-
-  if (isArticleType && stripHtml(content).length > MAX_ARTICLE_COMMENT_LENGTH) {
-    throw new UserInputError('content reach length limit')
   }
 
   /**

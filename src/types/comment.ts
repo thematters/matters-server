@@ -150,6 +150,7 @@ export default /* GraphQL */ `
     # one of the following ids is required
     articleId: ID
     circleId: ID
+    journalId: ID
   }
 
   input CommentCommentsInput {
@@ -231,5 +232,6 @@ export default /* GraphQL */ `
     article
     circleDiscussion
     circleBroadcast
+    journal
   }
 `

@@ -1366,6 +1366,7 @@ input CommentInput {
   type: CommentType!
   articleId: ID
   circleId: ID
+  journalId: ID
 }
 
 input CommentCommentsInput {
@@ -1447,6 +1448,7 @@ enum CommentType {
   article
   circleDiscussion
   circleBroadcast
+  journal
 }
 
 """

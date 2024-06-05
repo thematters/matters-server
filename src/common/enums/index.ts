@@ -57,6 +57,7 @@ export const COMMENT_TYPE = {
   article: 'article',
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
+  journal: 'journal',
 } as const
 
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
@@ -164,6 +165,7 @@ export enum NODE_TYPES {
   Circle = 'Circle',
   Collection = 'Collection',
   Report = 'Report',
+  Journal = 'Journal',
 
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
@@ -241,6 +243,8 @@ export const MAX_ARTICLES_PER_CONNECTION_LIMIT = 3
 export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_ARTICLE_COMMENT_LENGTH = 1200
+
+export const MAX_JOURNAL_COMMENT_LENGTH = 240
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 3
 export const TAGS_RECOMMENDED_LIMIT = 100

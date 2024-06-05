@@ -168,6 +168,12 @@ export class CircleNotFoundError extends GraphQLError {
   }
 }
 
+export class JournalNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'JOURNAL_NOT_FOUND' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

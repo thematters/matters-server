@@ -1034,6 +1034,7 @@ export type GQLCommentInput = {
   articleId?: InputMaybe<Scalars['ID']['input']>
   circleId?: InputMaybe<Scalars['ID']['input']>
   content: Scalars['String']['input']
+  journalId?: InputMaybe<Scalars['ID']['input']>
   mentions?: InputMaybe<Array<Scalars['ID']['input']>>
   parentId?: InputMaybe<Scalars['ID']['input']>
   replyTo?: InputMaybe<Scalars['ID']['input']>
@@ -1067,7 +1068,11 @@ export type GQLCommentSort = 'newest' | 'oldest'
 /** Enums for comment state. */
 export type GQLCommentState = 'active' | 'archived' | 'banned' | 'collapsed'
 
-export type GQLCommentType = 'article' | 'circleBroadcast' | 'circleDiscussion'
+export type GQLCommentType =
+  | 'article'
+  | 'circleBroadcast'
+  | 'circleDiscussion'
+  | 'journal'
 
 export type GQLCommentsFilter = {
   author?: InputMaybe<Scalars['ID']['input']>
