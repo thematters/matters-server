@@ -123,25 +123,19 @@ describe('like/unklike journals', () => {
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active }
     )
-    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
-      false
-    )
+    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
     await journalService.like(journal.id, user)
-    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(true)
+    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(true)
 
     // like multiple times is idempotent
     await journalService.like(journal.id, user)
-    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(true)
+    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(true)
 
     // unlike multiple times is idempotent
     await journalService.unlike(journal.id, user)
-    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
-      false
-    )
+    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
     await journalService.unlike(journal.id, user)
-    expect(journalService.checkIfLiked(journal.id, user.id)).resolves.toBe(
-      false
-    )
+    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
   })
   test('count likes', async () => {
     const journal = await journalService.create(

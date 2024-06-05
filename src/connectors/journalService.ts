@@ -107,7 +107,7 @@ export class JournalService {
       where: { targetId: id, userId: user.id, action: 'like' },
     })
 
-  public checkIfLiked = async (journalId: string, userId: string) => {
+  public isLiked = async (journalId: string, userId: string) => {
     const count = await this.models.count({
       table: 'action_journal',
       where: { targetId: journalId, userId: userId, action: 'like' },
