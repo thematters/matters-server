@@ -506,6 +506,15 @@ export class SystemService extends BaseService<BaseDBSchema> {
         })
         .returning('*')
       return ret[0]
+    } else if (targetType === NODE_TYPES.Journal) {
+      const ret = await this.knex('report')
+        .insert({
+          journalId: targetId,
+          reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
     } else {
       const ret = await this.knex('report')
         .insert({

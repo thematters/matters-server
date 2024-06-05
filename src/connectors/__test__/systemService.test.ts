@@ -3,7 +3,7 @@ import type { Connections, Asset } from 'definitions'
 import { v4 } from 'uuid'
 
 import { NODE_TYPES, COMMENT_TYPE, COMMENT_STATE } from 'common/enums'
-import { SystemService, AtomService } from 'connectors'
+import { SystemService, AtomService, JournalService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -90,6 +90,23 @@ describe('report', () => {
     expect(report.id).toBeDefined()
     expect(report.articleId).not.toBeNull()
     expect(report.commentId).toBeNull()
+  })
+  test('submit report on journals', async () => {
+    const journalService = new JournalService(connections)
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: '1', state: 'active' }
+    )
+    const report = await systemService.submitReport({
+      targetType: NODE_TYPES.Journal,
+      targetId: journal.id,
+      reporterId: '1',
+      reason: 'other',
+    })
+    expect(report.id).toBeDefined()
+    expect(report.journalId).not.toBeNull()
+    expect(report.commentId).toBeNull()
+    expect(report.articleId).toBeNull()
   })
   test('collapse comment if more than 3 different users report it', async () => {
     const commentId = '1'
