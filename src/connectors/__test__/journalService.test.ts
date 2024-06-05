@@ -148,4 +148,14 @@ describe('like/unklike journals', () => {
       false
     )
   })
+  test('count likes', async () => {
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      { id: '1', state: USER_STATE.active }
+    )
+    expect(journalService.countLikes(journal.id)).resolves.toBe(0)
+    await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
+    await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
+    expect(journalService.countLikes(journal.id)).resolves.toBe(1)
+  })
 })

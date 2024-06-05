@@ -113,4 +113,10 @@ export class JournalService {
     })
     return count > 0
   }
+
+  public countLikes = async (journalId: string) =>
+    this.models.count({
+      table: 'action_journal',
+      where: { targetId: journalId, action: 'like' },
+    })
 }

@@ -15,7 +15,7 @@ exports.up = async (knex) => {
     t.foreign('user_id').references('id').inTable('user')
     t.foreign('target_id').references('id').inTable('journal')
 
-    t.unique(['user_id', 'target_id', 'action'])
+    t.unique(['target_id', 'action', 'user_id'])
   })
 }
 
