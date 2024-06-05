@@ -50,8 +50,8 @@ describe('create journals', () => {
 })
 
 describe('delete journals', () => {
-  test('not active user will fail', async () => {
-    const user = { id: '1', state: USER_STATE.banned }
+  test('not active/banned user will fail', async () => {
+    const user = { id: '1', state: USER_STATE.archived }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       { id: user.id, state: USER_STATE.active }
