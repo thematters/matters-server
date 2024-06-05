@@ -6,16 +6,18 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { JournalService } from 'connectors'
+import { JournalService, UserService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let journalService: JournalService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   journalService = new JournalService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -146,5 +148,17 @@ describe('like/unklike journals', () => {
     await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
     await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
     expect(journalService.countLikes(journal.id)).resolves.toBe(1)
+  })
+  test('blocked user will fail', async () => {
+    const user = { id: '3', state: USER_STATE.active }
+    const author = { id: '4', state: USER_STATE.active }
+    const journal = await journalService.create(
+      { content: 'test', assetIds: [] },
+      author
+    )
+    await userService.block(author.id, user.id)
+    expect(journalService.like(journal.id, user)).rejects.toThrowError(
+      ForbiddenError
+    )
   })
 })

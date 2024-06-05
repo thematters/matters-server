@@ -1,5 +1,4 @@
 import type { User as UserFull, Connections } from 'definitions'
-// import type { Knex } from 'knex'
 
 import { USER_STATE, JOURNAL_STATE } from 'common/enums'
 import {
@@ -7,20 +6,16 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { AtomService } from 'connectors'
+import { AtomService, UserService } from 'connectors'
 
 type User = Pick<UserFull, 'id' | 'state'>
 
 export class JournalService {
-  // private connections: Connections
-  // private knex: Knex
-  // private knexRO: Knex
+  private connections: Connections
   private models: AtomService
 
   public constructor(connections: Connections) {
-    // this.connections = connections
-    // this.knex = connections.knex
-    // this.knexRO = connections.knexRO
+    this.connections = connections
     this.models = new AtomService(connections)
   }
 
@@ -92,6 +87,14 @@ export class JournalService {
     }
     if (journal.state !== JOURNAL_STATE.active) {
       throw new UserInputError(`journal ${id} is not active, cannot be liked`)
+    }
+    const userService = new UserService(this.connections)
+    const isBlocked = await userService.blocked({
+      userId: journal.authorId,
+      targetId: user.id,
+    })
+    if (isBlocked) {
+      throw new ForbiddenError(`user ${id} is blocked by target author`)
     }
     return this.models.upsert({
       table: 'action_journal',
