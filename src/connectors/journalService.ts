@@ -25,7 +25,7 @@ export class JournalService {
   }
 
   public create = async (
-    data: { content: string; assetIds: string[] },
+    data: { content: string; assetIds?: string[] },
     user: User
   ) => {
     // TODO: sanitizeHTML content
@@ -42,7 +42,7 @@ export class JournalService {
         state: JOURNAL_STATE.active,
       },
     })
-    if (data.assetIds.length > 0) {
+    if (data.assetIds && data.assetIds.length > 0) {
       await Promise.all(
         data.assetIds.map((assetId) =>
           this.models.create({

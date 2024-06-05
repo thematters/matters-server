@@ -1173,7 +1173,7 @@ export class UserService extends BaseService<User> {
     userId: string
     targetId: string
   }) => {
-    const result = await this.knex
+    const result = await this.knexRO
       .select()
       .from('action_user')
       .where({ userId, targetId, action: USER_ACTION.follow })
