@@ -19,17 +19,18 @@ export const getNode = async (globalId: string, context: Context) => {
     [NODE_TYPES.Circle]: atomService.circleIdLoader,
     [NODE_TYPES.Collection]: atomService.collectionIdLoader,
     [NODE_TYPES.IcymiTopic]: atomService.icymiTopicIdLoader,
+    [NODE_TYPES.Journal]: atomService.journalIdLoader,
   } as const
 
   const { type, id } = fromGlobalId(globalId)
 
-  const nodeService = services[type as keyof typeof services]
+  const dataloader = services[type as keyof typeof services]
 
-  if (!nodeService) {
+  if (!dataloader) {
     throw new EntityNotFoundError(`${type} is not supported yet`)
   }
 
-  const node = await nodeService.load(id)
+  const node = await dataloader.load(id)
 
   if (!node) {
     throw new EntityNotFoundError('target does not exist')
