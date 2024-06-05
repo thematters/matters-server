@@ -2173,6 +2173,7 @@ enum AssetType {
   circleCover
   collectionCover
   announcementCover
+  journal
 }
 
 enum EntityType {
@@ -2183,6 +2184,7 @@ enum EntityType {
   circle
   announcement
   collection
+  journal
 }
 
 """Enums for user roles."""

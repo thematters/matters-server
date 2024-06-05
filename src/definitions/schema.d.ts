@@ -598,6 +598,7 @@ export type GQLAssetType =
   | 'cover'
   | 'embed'
   | 'embedaudio'
+  | 'journal'
   | 'oauthClientAvatar'
   | 'profileCover'
   | 'tagCover'
@@ -1287,6 +1288,7 @@ export type GQLEntityType =
   | 'circle'
   | 'collection'
   | 'draft'
+  | 'journal'
   | 'tag'
   | 'user'
 

@@ -1,5 +1,4 @@
 import FormData from 'form-data'
-// import _ from 'lodash'
 import mime from 'mime-types'
 import fetch from 'node-fetch'
 import path from 'path'
@@ -19,7 +18,7 @@ const CLOUDFLARE_IMAGES_DIRECT_UPLOAD_ENDPOINT = `https://api.cloudflare.com/cli
 const CLOUDFLARE_IMAGE_ENDPOINT = `https://imagedelivery.net/${environment.cloudflareAccountHash}/${envPrefix}`
 
 export class CloudflareService {
-  baseUploadFileByUrl = async (
+  public baseUploadFileByUrl = async (
     folder: GQLAssetType,
     url: string,
     uuid?: string
@@ -65,7 +64,11 @@ export class CloudflareService {
     return key
   }
 
-  baseUploadFile = async (folder: GQLAssetType, upload: any, uuid: string) => {
+  public baseUploadFile = async (
+    folder: GQLAssetType,
+    upload: any,
+    uuid: string
+  ) => {
     const { createReadStream, mimetype, filename } = upload
     const stream = createReadStream()
     // const buffer = await getStream.buffer(stream)
@@ -153,7 +156,7 @@ export class CloudflareService {
   /**
    * Delete file from Cloudflare Images by a given path key.
    */
-  baseDeleteFile = async (id: string) => {
+  public baseDeleteFile = async (id: string) => {
     const res = await fetch(CLOUDFLARE_IMAGES_URL + `/${id}`, {
       method: 'DELETE',
       headers: {
@@ -168,7 +171,8 @@ export class CloudflareService {
   /**
    * Gen full url from keys (asset path in db).
    */
-  genUrl = (key: string): string => `${CLOUDFLARE_IMAGE_ENDPOINT}/${key}/public`
+  public genUrl = (key: string): string =>
+    `${CLOUDFLARE_IMAGE_ENDPOINT}/${key}/public`
 
   // internal helpers
 
