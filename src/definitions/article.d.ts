@@ -88,6 +88,7 @@ export interface ArticleRecommendSetting {
   articleId: string
   inHottest: boolean
   inNewest: boolean
+  inSearch: boolean
 }
 
 export interface ArticleBoost {

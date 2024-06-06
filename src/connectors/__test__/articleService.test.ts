@@ -242,6 +242,31 @@ test('update', async () => {
   expect(article.state).toEqual('archived')
 })
 
+describe('search', () => {
+  test('exclude articles in article_recommend_setting table', async () => {
+    const { nodes } = await articleService.search({
+      key: '1',
+      take: 1,
+      skip: 0,
+    })
+    expect(nodes.length).toBe(1)
+
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: nodes[0].id, inSearch: false },
+    })
+
+    const { nodes: excluded } = await articleService.search({
+      key: '1',
+      take: 1,
+      skip: 0,
+    })
+    expect(nodes.length).toBe(1)
+
+    expect(excluded.length).toBe(0)
+  })
+})
+
 describe('quicksearch', () => {
   test('search by title', async () => {
     const { nodes, totalCount } = await articleService.searchV3({
@@ -326,6 +351,34 @@ describe('quicksearch', () => {
     nodes.forEach((node) => {
       expect(node.authorId).toBe('2')
     })
+  })
+  test('exclude articles in article_recommend_setting table', async () => {
+    const [article] = await articleService.createArticle({
+      title: 'test article_recommend_setting',
+      content: '',
+      authorId: '1',
+    })
+    const { nodes: nodes } = await articleService.searchV3({
+      key: 'article_recommend_setting',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes.length).toBe(1)
+    expect(nodes[0].id).toBe(article.id)
+
+    await atomService.create({
+      table: 'article_recommend_setting',
+      data: { articleId: article.id, inSearch: false },
+    })
+
+    const { nodes: excluded } = await articleService.searchV3({
+      key: 'article_recommend_setting',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(excluded.length).toBe(0)
   })
 })
 
