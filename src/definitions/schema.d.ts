@@ -511,6 +511,7 @@ export type GQLArticleOss = {
   inRecommendHottest: Scalars['Boolean']['output']
   inRecommendIcymi: Scalars['Boolean']['output']
   inRecommendNewest: Scalars['Boolean']['output']
+  inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
 }
 
@@ -2678,7 +2679,7 @@ export type GQLRecommendInput = {
 }
 
 /** Enums for types of recommend articles. */
-export type GQLRecommendTypes = 'hottest' | 'icymi' | 'newest'
+export type GQLRecommendTypes = 'hottest' | 'icymi' | 'newest' | 'search'
 
 export type GQLRecommendation = {
   __typename?: 'Recommendation'
@@ -5724,6 +5725,7 @@ export type GQLArticleOssResolvers<
     ParentType,
     ContextType
   >
+  inSearch?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>

@@ -171,6 +171,7 @@ const schema: GQLResolvers = {
     inRecommendIcymi: articleOSS.inRecommendIcymi,
     inRecommendHottest: articleOSS.inRecommendHottest,
     inRecommendNewest: articleOSS.inRecommendNewest,
+    inSearch: articleOSS.inSearch,
   },
   TagOSS: {
     boost: tagOSS.boost,

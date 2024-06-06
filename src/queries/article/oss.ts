@@ -65,3 +65,20 @@ export const inRecommendNewest: GQLArticleOssResolvers['inRecommendNewest'] =
 
     return setting.inNewest
   }
+
+export const inSearch: GQLArticleOssResolvers['inSearch'] = async (
+  { id: articleId },
+  _,
+  { dataSources: { atomService } }
+) => {
+  const setting = await atomService.findFirst({
+    table: 'article_recommend_setting',
+    where: { articleId },
+  })
+
+  if (!setting) {
+    return true
+  }
+
+  return setting.inSearch
+}

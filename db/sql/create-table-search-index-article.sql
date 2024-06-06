@@ -8,11 +8,12 @@ SELECT * FROM (
     article_version.article_id, article.author_id, article_version.title AS title_orig, article_version.title AS title, -- to be processed by opencc in JS
     '' as slug, article_version.summary, article_content.content AS content_orig,
     article_content.content AS content, '' AS text_content_orig, '' AS text_content, '' AS text_content_converted, -- to be processed by opencc in JS
-    article_version.created_at, article.state
+    article_version.created_at, article.state, u.state AS author_state
   FROM public.article_version
     JOIN public.article ON article_id=article.id AND article_id IS NOT NULL
     JOIN public.article_content ON content_id=article_content.id
-  WHERE state='active'
+    JOIN public.user as u ON article.author_id=u.id
+  WHERE article.state='active'
   ORDER BY article_version.article_id DESC NULLS LAST
 ) a
 LEFT JOIN (
@@ -22,7 +23,7 @@ LEFT JOIN (
   GROUP BY 1
 ) t USING (article_id)
 -- ORDER BY article_id DESC
-LIMIT 0 -- 10000s
+LIMIT 5 -- 10000s
 ;
 
 ALTER TABLE search_index.article ADD PRIMARY KEY (id), ALTER COLUMN title SET NOT NULL ;

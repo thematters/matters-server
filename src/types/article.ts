@@ -355,6 +355,7 @@ export default /* GraphQL */ `
     inRecommendIcymi: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendHottest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type ArticleTranslation {
@@ -590,6 +591,7 @@ export default /* GraphQL */ `
     icymi
     hottest
     newest
+    search
   }
 
   enum UpdateTagSettingType {
