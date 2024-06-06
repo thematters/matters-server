@@ -867,16 +867,23 @@ export class ArticleService extends BaseService<Article> {
       1
     )
 
+    // TODO: add below logic to searchV3
     // gather users that blocked viewer
     const excludeBlocked = exclude === 'blocked' && viewerId
     let blockedIds: string[] = []
     if (excludeBlocked) {
       blockedIds = (
-        await this.knex('action_user')
+        await this.knexRO('action_user')
           .select('user_id')
           .where({ action: USER_ACTION.block, targetId: viewerId })
       ).map(({ userId }) => userId)
     }
+    // gather articles blocked by admin
+    const articleIds = (
+      await this.knexRO('article_recommend_setting')
+        .where({ inSearch: false })
+        .select('articleId')
+    ).map(({ articleId }) => articleId)
 
     const baseQuery = this.searchKnex
       .from(
@@ -912,6 +919,7 @@ export class ArticleService extends BaseService<Article> {
               .crossJoin(
                 this.searchKnex.raw("plainto_tsquery('jiebacfg', ?) query", key)
               )
+              .whereNotIn('id', articleIds)
               .whereIn('state', [ARTICLE_STATE.active])
               .andWhere('author_state', 'NOT IN', [
                 // USER_STATE.active
@@ -1038,6 +1046,12 @@ export class ArticleService extends BaseService<Article> {
         'id',
         this.knexRO
           .select('article_id')
+          .whereNotIn(
+            'article_id',
+            this.knexRO('article_recommend_setting')
+              .where({ inSearch: false })
+              .select('articleId')
+          )
           .where(function () {
             if (filter && filter.authorId) {
               this.where({ authorId: filter.authorId })

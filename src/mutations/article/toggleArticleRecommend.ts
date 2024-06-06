@@ -50,6 +50,15 @@ const resolver: GQLMutationResolvers['toggleArticleRecommend'] = async (
       })
       break
     }
+    case 'search': {
+      await atomService.upsert({
+        table: 'article_recommend_setting',
+        where: { articleId: dbId },
+        create: { inSearch: enabled, articleId: dbId },
+        update: { inSearch: enabled },
+      })
+      break
+    }
   }
   return article
 }

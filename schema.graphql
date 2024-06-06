@@ -593,6 +593,7 @@ type ArticleOSS {
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
+  inSearch: Boolean!
 }
 
 type ArticleTranslation {
@@ -828,6 +829,7 @@ enum RecommendTypes {
   icymi
   hottest
   newest
+  search
 }
 
 enum UpdateTagSettingType {
