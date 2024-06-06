@@ -286,6 +286,10 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
+  putJournal(input: PutJournalInput!): Journal!
+  deleteJournal(input: DeleteJournalInput!): Boolean!
+  likeJournal(input: LikeJournalInput!): Journal!
+  unlikeJournal(input: UnlikeJournalInput!): Journal!
 }
 
 """
@@ -3520,4 +3524,45 @@ input ReorderMoveInput {
 input ReorderCollectionArticlesInput {
   collection: ID!
   moves: [ReorderMoveInput!]!
+}
+
+input PutJournalInput {
+  content: String!
+  assets: [ID!]!
+}
+
+input DeleteJournalInput {
+  id: ID!
+}
+
+input LikeJournalInput {
+  id: ID!
+}
+
+input UnlikeJournalInput {
+  id: ID!
+}
+
+"""
+This type contains content, author, descendant comments and related data of a comment.
+"""
+type Journal implements Node {
+  id: ID!
+  content: String
+  asset: [Asset!]!
+  author: User!
+  state: JournalState!
+  commentCount: Int!
+  commentedFollowees: [User!]!
+  comments(input: CommentsInput!): CommentConnection!
+  likeCount: Int!
+
+  """whether current user has liked it"""
+  liked: Boolean!
+  createdAt: DateTime!
+}
+
+enum JournalState {
+  active
+  archived
 }

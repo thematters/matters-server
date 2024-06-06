@@ -1160,6 +1160,10 @@ export type GQLDeleteDraftInput = {
   id: Scalars['ID']['input']
 }
 
+export type GQLDeleteJournalInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLDeleteTagsInput = {
   ids: Array<Scalars['ID']['input']>
 }
@@ -1496,12 +1500,40 @@ export type GQLInvitesPendingArgs = {
   input: GQLConnectionArgs
 }
 
+/** This type contains content, author, descendant comments and related data of a comment. */
+export type GQLJournal = GQLNode & {
+  __typename?: 'Journal'
+  asset: Array<GQLAsset>
+  author: GQLUser
+  commentCount: Scalars['Int']['output']
+  commentedFollowees: Array<GQLUser>
+  comments: GQLCommentConnection
+  content?: Maybe<Scalars['String']['output']>
+  createdAt: Scalars['DateTime']['output']
+  id: Scalars['ID']['output']
+  likeCount: Scalars['Int']['output']
+  /** whether current user has liked it */
+  liked: Scalars['Boolean']['output']
+  state: GQLJournalState
+}
+
+/** This type contains content, author, descendant comments and related data of a comment. */
+export type GQLJournalCommentsArgs = {
+  input: GQLCommentsInput
+}
+
+export type GQLJournalState = 'active' | 'archived'
+
 export type GQLKeywordInput = {
   keyword: Scalars['String']['input']
 }
 
 export type GQLKeywordsInput = {
   keywords?: InputMaybe<Array<Scalars['String']['input']>>
+}
+
+export type GQLLikeJournalInput = {
+  id: Scalars['ID']['input']
 }
 
 export type GQLLiker = {
@@ -1610,6 +1642,7 @@ export type GQLMutation = {
   deleteComment: GQLComment
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
+  deleteJournal: Scalars['Boolean']['output']
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   directImageUpload: GQLAsset
   /** Edit an article. */
@@ -1624,6 +1657,7 @@ export type GQLMutation = {
   generateSigningMessage: GQLSigningMessageResult
   /** Invite others to join circle */
   invite?: Maybe<Array<GQLInvitation>>
+  likeJournal: GQLJournal
   /** Add specific user behavior record. */
   logRecord?: Maybe<Scalars['Boolean']['output']>
   /** Mark all received notices as read. */
@@ -1655,6 +1689,7 @@ export type GQLMutation = {
   /** update tags for showing on profile page */
   putFeaturedTags?: Maybe<Array<GQLTag>>
   putIcymiTopic?: Maybe<GQLIcymiTopic>
+  putJournal: GQLJournal
   /** Create or Update an OAuth Client, used in OSS. */
   putOAuthClient?: Maybe<GQLOAuthClient>
   putRemark?: Maybe<Scalars['String']['output']>
@@ -1724,6 +1759,7 @@ export type GQLMutation = {
   toggleTagRecommend: GQLTag
   toggleUsersBadge: Array<Maybe<GQLUser>>
   unbindLikerId: GQLUser
+  unlikeJournal: GQLJournal
   /** Unpin a comment. */
   unpinComment: GQLComment
   /** Unsubscribe a Circle. */
@@ -1844,6 +1880,10 @@ export type GQLMutationDeleteDraftArgs = {
   input: GQLDeleteDraftInput
 }
 
+export type GQLMutationDeleteJournalArgs = {
+  input: GQLDeleteJournalInput
+}
+
 export type GQLMutationDeleteTagsArgs = {
   input: GQLDeleteTagsInput
 }
@@ -1866,6 +1906,10 @@ export type GQLMutationGenerateSigningMessageArgs = {
 
 export type GQLMutationInviteArgs = {
   input: GQLInviteCircleInput
+}
+
+export type GQLMutationLikeJournalArgs = {
+  input: GQLLikeJournalInput
 }
 
 export type GQLMutationLogRecordArgs = {
@@ -1926,6 +1970,10 @@ export type GQLMutationPutFeaturedTagsArgs = {
 
 export type GQLMutationPutIcymiTopicArgs = {
   input: GQLPutIcymiTopicInput
+}
+
+export type GQLMutationPutJournalArgs = {
+  input: GQLPutJournalInput
 }
 
 export type GQLMutationPutOAuthClientArgs = {
@@ -2070,6 +2118,10 @@ export type GQLMutationToggleUsersBadgeArgs = {
 
 export type GQLMutationUnbindLikerIdArgs = {
   input: GQLUnbindLikerIdInput
+}
+
+export type GQLMutationUnlikeJournalArgs = {
+  input: GQLUnlikeJournalInput
 }
 
 export type GQLMutationUnpinCommentArgs = {
@@ -2546,6 +2598,11 @@ export type GQLPutIcymiTopicInput = {
   pinAmount?: InputMaybe<Scalars['Int']['input']>
   state?: InputMaybe<GQLIcymiTopicState>
   title?: InputMaybe<Scalars['String']['input']>
+}
+
+export type GQLPutJournalInput = {
+  assets: Array<Scalars['ID']['input']>
+  content: Scalars['String']['input']
 }
 
 export type GQLPutOAuthClientInput = {
@@ -3405,6 +3462,10 @@ export type GQLUnbindLikerIdInput = {
   likerId: Scalars['String']['input']
 }
 
+export type GQLUnlikeJournalInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLUnpinCommentInput = {
   id: Scalars['ID']['input']
 }
@@ -4147,6 +4208,15 @@ export type GQLResolversInterfaceTypes<
     | CommentModel
     | DraftModel
     | MattersChoiceTopicModel
+    | (Omit<
+        GQLJournal,
+        'asset' | 'author' | 'commentedFollowees' | 'comments'
+      > & {
+        asset: Array<RefType['Asset']>
+        author: RefType['User']
+        commentedFollowees: Array<RefType['User']>
+        comments: RefType['CommentConnection']
+      })
     | ReportModel
     | TagModel
     | UserModel
@@ -4338,6 +4408,7 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
+  DeleteJournalInput: GQLDeleteJournalInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: ResolverTypeWrapper<DraftModel>
@@ -4403,8 +4474,18 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversUnionTypes<GQLResolversTypes>['Invitee']
   >
   Invites: ResolverTypeWrapper<CircleModel>
+  Journal: ResolverTypeWrapper<
+    Omit<GQLJournal, 'asset' | 'author' | 'commentedFollowees' | 'comments'> & {
+      asset: Array<GQLResolversTypes['Asset']>
+      author: GQLResolversTypes['User']
+      commentedFollowees: Array<GQLResolversTypes['User']>
+      comments: GQLResolversTypes['CommentConnection']
+    }
+  >
+  JournalState: GQLJournalState
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeJournalInput: GQLLikeJournalInput
   Liker: ResolverTypeWrapper<UserModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
@@ -4505,6 +4586,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
   PutIcymiTopicInput: GQLPutIcymiTopicInput
+  PutJournalInput: GQLPutJournalInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -4654,6 +4736,7 @@ export type GQLResolversTypes = ResolversObject<{
   TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeJournalInput: GQLUnlikeJournalInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
   UnvoteCommentInput: GQLUnvoteCommentInput
@@ -4861,6 +4944,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
+  DeleteJournalInput: GQLDeleteJournalInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: DraftModel
@@ -4908,8 +4992,18 @@ export type GQLResolversParentTypes = ResolversObject<{
   InviteCircleInvitee: GQLInviteCircleInvitee
   Invitee: GQLResolversUnionTypes<GQLResolversParentTypes>['Invitee']
   Invites: CircleModel
+  Journal: Omit<
+    GQLJournal,
+    'asset' | 'author' | 'commentedFollowees' | 'comments'
+  > & {
+    asset: Array<GQLResolversParentTypes['Asset']>
+    author: GQLResolversParentTypes['User']
+    commentedFollowees: Array<GQLResolversParentTypes['User']>
+    comments: GQLResolversParentTypes['CommentConnection']
+  }
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeJournalInput: GQLLikeJournalInput
   Liker: UserModel
   LogRecordInput: GQLLogRecordInput
   Member: CircleMemberModel
@@ -4988,6 +5082,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
   PutIcymiTopicInput: GQLPutIcymiTopicInput
+  PutJournalInput: GQLPutJournalInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -5095,6 +5190,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeJournalInput: GQLUnlikeJournalInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
   UnvoteCommentInput: GQLUnvoteCommentInput
@@ -6733,6 +6829,37 @@ export type GQLInvitesResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLJournalResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Journal'] = GQLResolversParentTypes['Journal']
+> = ResolversObject<{
+  asset?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
+  author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  commentedFollowees?: Resolver<
+    Array<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType
+  >
+  comments?: Resolver<
+    GQLResolversTypes['CommentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLJournalCommentsArgs, 'input'>
+  >
+  content?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  state?: Resolver<GQLResolversTypes['JournalState'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLLikerResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Liker'] = GQLResolversParentTypes['Liker']
@@ -6912,6 +7039,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationDeleteDraftArgs, 'input'>
   >
+  deleteJournal?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDeleteJournalArgs, 'input'>
+  >
   deleteTags?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
@@ -6948,6 +7081,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationInviteArgs, 'input'>
+  >
+  likeJournal?: Resolver<
+    GQLResolversTypes['Journal'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationLikeJournalArgs, 'input'>
   >
   logRecord?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
@@ -7043,6 +7182,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutIcymiTopicArgs, 'input'>
+  >
+  putJournal?: Resolver<
+    GQLResolversTypes['Journal'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutJournalArgs, 'input'>
   >
   putOAuthClient?: Resolver<
     Maybe<GQLResolversTypes['OAuthClient']>,
@@ -7265,6 +7410,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationUnbindLikerIdArgs, 'input'>
   >
+  unlikeJournal?: Resolver<
+    GQLResolversTypes['Journal'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUnlikeJournalArgs, 'input'>
+  >
   unpinComment?: Resolver<
     GQLResolversTypes['Comment'],
     ParentType,
@@ -7418,6 +7569,7 @@ export type GQLNodeResolvers<
     | 'Comment'
     | 'Draft'
     | 'IcymiTopic'
+    | 'Journal'
     | 'Report'
     | 'Tag'
     | 'User',
@@ -9028,6 +9180,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   InvitationEdge?: GQLInvitationEdgeResolvers<ContextType>
   Invitee?: GQLInviteeResolvers<ContextType>
   Invites?: GQLInvitesResolvers<ContextType>
+  Journal?: GQLJournalResolvers<ContextType>
   Liker?: GQLLikerResolvers<ContextType>
   Member?: GQLMemberResolvers<ContextType>
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
