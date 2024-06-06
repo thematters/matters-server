@@ -5,6 +5,7 @@ import circle from './circle'
 import comment from './comment'
 import draft from './draft'
 import exchangeRates from './exchangeRates'
+import journal from './journal'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import oauthRequestToken from './oauthRequestToken'
@@ -27,5 +28,6 @@ export default merge(
   oauthClient,
   oauthRequestToken,
   exchangeRates,
-  recommendation
+  recommendation,
+  journal
 )

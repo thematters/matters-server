@@ -30,7 +30,7 @@ export default /* GraphQL */ `
   type Journal implements Node {
     id: ID!
     content: String
-    asset: [Asset!]!
+    assets: [Asset!]!
     author: User! @logCache(type: "${NODE_TYPES.User}")
 
     state: JournalState!

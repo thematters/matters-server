@@ -32,6 +32,7 @@ import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
 import { Report as ReportModel } from './report'
 import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
+import { Journal as JournalModel } from './journal'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -1503,7 +1504,7 @@ export type GQLInvitesPendingArgs = {
 /** This type contains content, author, descendant comments and related data of a comment. */
 export type GQLJournal = GQLNode & {
   __typename?: 'Journal'
-  asset: Array<GQLAsset>
+  assets: Array<GQLAsset>
   author: GQLUser
   commentCount: Scalars['Int']['output']
   commentedFollowees: Array<GQLUser>
@@ -4208,15 +4209,7 @@ export type GQLResolversInterfaceTypes<
     | CommentModel
     | DraftModel
     | MattersChoiceTopicModel
-    | (Omit<
-        GQLJournal,
-        'asset' | 'author' | 'commentedFollowees' | 'comments'
-      > & {
-        asset: Array<RefType['Asset']>
-        author: RefType['User']
-        commentedFollowees: Array<RefType['User']>
-        comments: RefType['CommentConnection']
-      })
+    | JournalModel
     | ReportModel
     | TagModel
     | UserModel
@@ -4474,14 +4467,7 @@ export type GQLResolversTypes = ResolversObject<{
     GQLResolversUnionTypes<GQLResolversTypes>['Invitee']
   >
   Invites: ResolverTypeWrapper<CircleModel>
-  Journal: ResolverTypeWrapper<
-    Omit<GQLJournal, 'asset' | 'author' | 'commentedFollowees' | 'comments'> & {
-      asset: Array<GQLResolversTypes['Asset']>
-      author: GQLResolversTypes['User']
-      commentedFollowees: Array<GQLResolversTypes['User']>
-      comments: GQLResolversTypes['CommentConnection']
-    }
-  >
+  Journal: ResolverTypeWrapper<JournalModel>
   JournalState: GQLJournalState
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
@@ -4992,15 +4978,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   InviteCircleInvitee: GQLInviteCircleInvitee
   Invitee: GQLResolversUnionTypes<GQLResolversParentTypes>['Invitee']
   Invites: CircleModel
-  Journal: Omit<
-    GQLJournal,
-    'asset' | 'author' | 'commentedFollowees' | 'comments'
-  > & {
-    asset: Array<GQLResolversParentTypes['Asset']>
-    author: GQLResolversParentTypes['User']
-    commentedFollowees: Array<GQLResolversParentTypes['User']>
-    comments: GQLResolversParentTypes['CommentConnection']
-  }
+  Journal: JournalModel
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
   LikeJournalInput: GQLLikeJournalInput
@@ -6833,7 +6811,7 @@ export type GQLJournalResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Journal'] = GQLResolversParentTypes['Journal']
 > = ResolversObject<{
-  asset?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
+  assets?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
   author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
   commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   commentedFollowees?: Resolver<

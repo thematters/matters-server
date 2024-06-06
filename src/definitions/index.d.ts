@@ -71,6 +71,7 @@ import type {
   CommentService,
   DraftService,
   ExchangeRate,
+  JournalService,
   LikeCoin,
   NotificationService,
   OAuthService,
@@ -136,6 +137,7 @@ export interface Connections {
 export interface DataSources {
   atomService: AtomService
   articleService: ArticleService
+  journalService: JournalService
   commentService: CommentService
   draftService: DraftService
   userService: UserService

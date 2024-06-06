@@ -3549,7 +3549,7 @@ This type contains content, author, descendant comments and related data of a co
 type Journal implements Node {
   id: ID!
   content: String
-  asset: [Asset!]!
+  assets: [Asset!]!
   author: User!
   state: JournalState!
   commentCount: Int!
