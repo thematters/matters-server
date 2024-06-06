@@ -23,7 +23,6 @@ import {
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
-  MAX_COMMENT_EMPTY_PARAGRAPHS,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -76,7 +75,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   const data: Partial<Comment> & { mentionedUserIds?: any } = {
     content: normalizeCommentHTML(
       sanitizeHTML(content, {
-        maxEmptyParagraphs: MAX_COMMENT_EMPTY_PARAGRAPHS,
+        maxHardBreaks: 0,
+        maxSoftBreaks: 1,
       })
     ),
     authorId: viewer.id,

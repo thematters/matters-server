@@ -310,7 +310,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
     const processed = normalizeArticleHTML(
-      sanitizeHTML(content, { maxEmptyParagraphs: -1 })
+      sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
     )
     const changed = processed !== lastContent
 
