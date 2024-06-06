@@ -126,7 +126,10 @@ export class MigrationQueue extends BaseQueue {
                   content:
                     content &&
                     normalizeArticleHTML(
-                      sanitizeHTML(content, { maxEmptyParagraphs: -1 })
+                      sanitizeHTML(content, {
+                        maxHardBreaks: -1,
+                        maxSoftBreaks: -1,
+                      })
                     ),
                 })
 
