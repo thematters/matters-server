@@ -66,7 +66,12 @@ export class CloudflareService {
 
   public baseUploadFile = async (
     folder: GQLAssetType,
-    upload: any,
+    upload: {
+      createReadStream: () => NodeJS.ReadableStream
+      mimetype: string
+      filename?: string
+      encoding?: string
+    },
     uuid: string
   ) => {
     const { createReadStream, mimetype, filename } = upload

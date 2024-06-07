@@ -44,12 +44,7 @@ const resolver: GQLJournalResolvers['comments'] = async (
     targetTypeId,
   }
   if (rest.filter) {
-    const { parentComment, author, state } = rest.filter
-    if (parentComment || parentComment === null) {
-      where.parentCommentId = parentComment
-        ? fromGlobalId(parentComment).id
-        : null
-    }
+    const { author, state } = rest.filter
     if (author) {
       where.authorId = fromGlobalId(author).id
     }
