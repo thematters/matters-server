@@ -319,7 +319,7 @@ describe('find commented followees', () => {
   test('found nothing', async () => {
     const journal = await journalService.create(
       { content: 'test' },
-      { id: journalAuthorId, state: USER_STATE.active }
+      { id: journalAuthorId, state: USER_STATE.active, userName: 'test' }
     )
     const followees = await commentService.findCommentedFollowees(
       {
@@ -334,7 +334,7 @@ describe('find commented followees', () => {
   test('found', async () => {
     const journal = await journalService.create(
       { content: 'test' },
-      { id: journalAuthorId, state: USER_STATE.active }
+      { id: journalAuthorId, state: USER_STATE.active, userName: 'test' }
     )
     await atomService.create({
       table: 'comment',

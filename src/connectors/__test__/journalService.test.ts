@@ -26,21 +26,21 @@ afterAll(async () => {
 
 describe('create journals', () => {
   test('not active user will fail', async () => {
-    const user = { id: '1', state: USER_STATE.banned }
+    const user = { id: '1', state: USER_STATE.banned, userName: 'testuser' }
     const data = { content: 'test', assetIds: [] }
     expect(journalService.create(data, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('active user will success', async () => {
-    const user = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
     const data = { content: 'test', assetIds: [] }
     const journal = await journalService.create(data, user)
     expect(journal).toBeDefined()
     expect(journal.content).toBe(data.content)
   })
   test('active user with assetIds will success', async () => {
-    const user = { id: '1', state: USER_STATE.active }
+    const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
     const data = { content: 'test', assetIds: ['1', '2'] }
     const journal = await journalService.create(data, user)
     expect(journal).toBeDefined()
@@ -56,14 +56,14 @@ describe('delete journals', () => {
     const user = { id: '1', state: USER_STATE.archived }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: user.id, state: USER_STATE.active }
+      { id: user.id, state: USER_STATE.active, userName: 'testuser' }
     )
     expect(journalService.delete(journal.id, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('not author will fail', async () => {
-    const author = { id: '1', state: USER_STATE.active }
+    const author = { id: '1', state: USER_STATE.active, userName: 'testuser' }
     const other = { id: '2', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
@@ -74,7 +74,7 @@ describe('delete journals', () => {
     )
   })
   test('author will success', async () => {
-    const author = { id: '1', state: USER_STATE.active }
+    const author = { id: '1', state: USER_STATE.active, userName: 'testuser' }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       author
@@ -89,7 +89,7 @@ describe('like/unklike journals', () => {
     const user = { id: '1', state: USER_STATE.banned }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '2', state: USER_STATE.active }
+      { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
     expect(journalService.like(journal.id, user)).rejects.toThrowError(
       ForbiddenByStateError
@@ -99,7 +99,7 @@ describe('like/unklike journals', () => {
     const author = { id: '1', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: author.id, state: USER_STATE.active }
+      { id: author.id, state: USER_STATE.active, userName: 'testuser' }
     )
     expect(journalService.like(journal.id, author)).rejects.toThrowError(
       ForbiddenError
@@ -109,7 +109,7 @@ describe('like/unklike journals', () => {
     const user = { id: '1', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '2', state: USER_STATE.active }
+      { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
     await journalService.delete(journal.id, {
       id: '2',
@@ -123,7 +123,7 @@ describe('like/unklike journals', () => {
     const user = { id: '1', state: USER_STATE.active }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '2', state: USER_STATE.active }
+      { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
     expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
     await journalService.like(journal.id, user)
@@ -142,7 +142,7 @@ describe('like/unklike journals', () => {
   test('count likes', async () => {
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '1', state: USER_STATE.active }
+      { id: '1', state: USER_STATE.active, userName: 'testuser' }
     )
     expect(journalService.countLikes(journal.id)).resolves.toBe(0)
     await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
@@ -151,7 +151,7 @@ describe('like/unklike journals', () => {
   })
   test('blocked user will fail', async () => {
     const user = { id: '3', state: USER_STATE.active }
-    const author = { id: '4', state: USER_STATE.active }
+    const author = { id: '4', state: USER_STATE.active, userName: 'testuser' }
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
       author

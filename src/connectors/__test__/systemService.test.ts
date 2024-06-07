@@ -95,7 +95,7 @@ describe('report', () => {
     const journalService = new JournalService(connections)
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '1', state: 'active' }
+      { id: '1', state: 'active', userName: 'test' }
     )
     const report = await systemService.submitReport({
       targetType: NODE_TYPES.Journal,

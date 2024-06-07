@@ -278,7 +278,7 @@ describe('mutations on comment', () => {
     const journalService = new JournalService(connections)
     const journal = await journalService.create(
       { content: 'test', assetIds: [] },
-      { id: '1', state: 'active' }
+      { id: '1', state: 'active', userName: 'test' }
     )
     const journalGlobalId = toGlobalId({
       type: NODE_TYPES.Journal,

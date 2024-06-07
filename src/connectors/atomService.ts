@@ -176,6 +176,7 @@ export class AtomService {
   public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
   public journalIdLoader: AtomDataLoader<string, Journal>
   public assetIdLoader: AtomDataLoader<string, Asset>
+  public assetUUIDLoader: AtomDataLoader<string, Asset>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -216,6 +217,7 @@ export class AtomService {
     })
     this.journalIdLoader = this.initLoader({ table: 'journal', mode: 'id' })
     this.assetIdLoader = this.initLoader({ table: 'asset', mode: 'id' })
+    this.assetUUIDLoader = this.initLoader({ table: 'asset', mode: 'uuid' })
   }
 
   /* Data Loader */

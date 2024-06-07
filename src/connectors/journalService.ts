@@ -23,12 +23,15 @@ export class JournalService {
 
   public create = async (
     data: { content: string; assetIds?: string[] },
-    user: User
+    user: Pick<UserFull, 'id' | 'state' | 'userName'>
   ) => {
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to create journals`
       )
+    }
+    if (!user.userName) {
+      throw new ForbiddenError('user has no username')
     }
     const content = sanitizeHTML(data.content)
     const journal = await this.models.create({
