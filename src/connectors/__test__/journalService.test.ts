@@ -1,23 +1,32 @@
 import type { Connections } from 'definitions'
 
-import { USER_STATE, JOURNAL_STATE } from 'common/enums'
+import { v4 } from 'uuid'
+
+import {
+  USER_STATE,
+  JOURNAL_STATE,
+  MAX_JOURNAL_LENGTH,
+  IMAGE_ASSET_TYPE,
+} from 'common/enums'
 import {
   ForbiddenError,
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { JournalService, UserService } from 'connectors'
+import { JournalService, UserService, SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let journalService: JournalService
 let userService: UserService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   journalService = new JournalService(connections)
   userService = new UserService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -25,29 +34,60 @@ afterAll(async () => {
 })
 
 describe('create journals', () => {
+  const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
+  const data = { content: 'test', assetIds: [] }
   test('not active user will fail', async () => {
-    const user = { id: '1', state: USER_STATE.banned, userName: 'testuser' }
-    const data = { content: 'test', assetIds: [] }
-    expect(journalService.create(data, user)).rejects.toThrowError(
+    const bannedUser = {
+      id: '1',
+      state: USER_STATE.banned,
+      userName: 'testuser',
+    }
+    expect(journalService.create(data, bannedUser)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
-  test('active user will success', async () => {
-    const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
-    const data = { content: 'test', assetIds: [] }
-    const journal = await journalService.create(data, user)
-    expect(journal).toBeDefined()
-    expect(journal.content).toBe(data.content)
+  test('content length is checked', async () => {
+    expect(journalService.create({ content: '' }, user)).rejects.toThrowError(
+      UserInputError
+    )
+    expect(
+      journalService.create(
+        { content: 'a'.repeat(MAX_JOURNAL_LENGTH + 1) },
+        user
+      )
+    ).rejects.toThrowError(UserInputError)
+    expect(
+      journalService.create({ content: 'a'.repeat(MAX_JOURNAL_LENGTH) }, user)
+    ).resolves.toBeDefined()
   })
-  test('active user with assetIds will success', async () => {
-    const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
-    const data = { content: 'test', assetIds: ['1', '2'] }
+  test('assets are checked', async () => {
+    // wrong author
+    expect(
+      journalService.create({ content: 'test', assetIds: ['2'] }, user)
+    ).rejects.toThrowError(UserInputError)
+    // wrong type
+    expect(
+      journalService.create({ content: 'test', assetIds: ['1'] }, user)
+    ).rejects.toThrowError(UserInputError)
+
+    const asset = await systemService.findAssetOrCreateByPath(
+      {
+        uuid: v4(),
+        authorId: user.id,
+        type: IMAGE_ASSET_TYPE.journal,
+        path: 'test.jpg',
+      },
+      '1',
+      '1'
+    )
+    expect(
+      journalService.create({ content: 'test', assetIds: [asset.id] }, user)
+    ).resolves.toBeDefined()
+  })
+  test('active user will success', async () => {
     const journal = await journalService.create(data, user)
     expect(journal).toBeDefined()
     expect(journal.content).toBe(data.content)
-
-    const assets = await journalService.getAssets(journal.id)
-    expect(assets).toHaveLength(2)
   })
 })
 

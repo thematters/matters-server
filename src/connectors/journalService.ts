@@ -1,8 +1,14 @@
 import type { User as UserFull, Connections } from 'definitions'
 
+import { stripHtml } from '@matters/ipns-site-generator'
 import { sanitizeHTML } from '@matters/matters-editor/transformers'
 
-import { USER_STATE, JOURNAL_STATE } from 'common/enums'
+import {
+  USER_STATE,
+  JOURNAL_STATE,
+  MAX_JOURNAL_LENGTH,
+  IMAGE_ASSET_TYPE,
+} from 'common/enums'
 import {
   ForbiddenError,
   ForbiddenByStateError,
@@ -25,6 +31,7 @@ export class JournalService {
     data: { content: string; assetIds?: string[] },
     user: Pick<UserFull, 'id' | 'state' | 'userName'>
   ) => {
+    // check user
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to create journals`
@@ -33,12 +40,31 @@ export class JournalService {
     if (!user.userName) {
       throw new ForbiddenError('user has no username')
     }
-    const content = sanitizeHTML(data.content)
+    // check content length
+    const contentLength = stripHtml(data.content).length
+    if (contentLength > MAX_JOURNAL_LENGTH || contentLength < 1) {
+      throw new UserInputError('invalid journal content length')
+    }
+    // check assets
+    if (data.assetIds && data.assetIds.length > 0) {
+      const assets = await this.models.assetIdLoader.loadMany(data.assetIds)
+      for (const asset of assets) {
+        if (asset.authorId !== user.id) {
+          throw new UserInputError(
+            `asset ${asset.id} is not created by user ${user.id}`
+          )
+        }
+        if (asset.type !== IMAGE_ASSET_TYPE.journal) {
+          throw new UserInputError(`asset ${asset.id} is not a journal asset`)
+        }
+      }
+    }
+
     const journal = await this.models.create({
       table: 'journal',
       data: {
         authorId: user.id,
-        content: content,
+        content: sanitizeHTML(data.content),
         state: JOURNAL_STATE.active,
       },
     })

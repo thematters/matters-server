@@ -1,17 +1,21 @@
 import type { Connections } from 'definitions'
 
-import { NODE_TYPES, USER_STATE } from 'common/enums'
+import { v4 } from 'uuid'
+
+import { NODE_TYPES, USER_STATE, IMAGE_ASSET_TYPE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { JournalService } from 'connectors'
+import { JournalService, SystemService } from 'connectors'
 
 import { genConnections, closeConnections, testClient } from '../utils'
 
 let connections: Connections
 let journalService: JournalService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   journalService = new JournalService(connections)
+  systemService = new SystemService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -52,7 +56,7 @@ describe('query journal', () => {
   `
   test('visitors can query', async () => {
     const journal = await journalService.create(
-      { content: 'test', assetIds: ['1', '2'] },
+      { content: 'test' },
       { id: '1', state: USER_STATE.active, userName: 'test' }
     )
     const journalId = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
@@ -68,7 +72,7 @@ describe('query journal', () => {
   })
   test('logged-in users can query', async () => {
     const journal = await journalService.create(
-      { content: 'test', assetIds: ['1', '2'] },
+      { content: 'test' },
       { id: '1', state: USER_STATE.active, userName: 'test' }
     )
     const journalId = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
@@ -93,15 +97,26 @@ describe('create journal', () => {
     }
   `
   test('success', async () => {
-    const server = await testClient({ isAuth: true, connections })
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
     const content = 'test'
-    const assetIds = [
-      '00000000-0000-0000-0000-000000000001',
-      '00000000-0000-0000-0000-000000000002',
-    ]
+    const asset = await systemService.findAssetOrCreateByPath(
+      {
+        uuid: v4(),
+        authorId: viewer.id,
+        type: IMAGE_ASSET_TYPE.journal,
+        path: 'test.jpg',
+      },
+      '1',
+      '1'
+    )
     const { errors } = await server.executeOperation({
       query: PUT_JOURNAL,
-      variables: { input: { content, assets: assetIds } },
+      variables: { input: { content, assets: [asset.uuid] } },
     })
     expect(errors).toBeUndefined()
   })
@@ -116,7 +131,11 @@ describe('delete journal', () => {
   test('success', async () => {
     const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
     const journal = await journalService.create({ content: 'test' }, viewer)
-    const server = await testClient({ connections, context: { viewer } })
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
     const id = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
     const { errors, data } = await server.executeOperation({
       query: DELETE_JOURNAL,
