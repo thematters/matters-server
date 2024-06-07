@@ -82,7 +82,11 @@ export class JournalService {
   }
 
   public delete = async (id: string, user: User) => {
-    if (![USER_STATE.active, USER_STATE.banned].includes(user.state as any)) {
+    if (
+      ![USER_STATE.active as string, USER_STATE.banned as string].includes(
+        user.state
+      )
+    ) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to delete journals`
       )
