@@ -1,6 +1,6 @@
 import type { Connections } from 'definitions'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, USER_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { JournalService } from 'connectors'
 
@@ -53,7 +53,7 @@ describe('query journal', () => {
   test('visitors can query', async () => {
     const journal = await journalService.create(
       { content: 'test', assetIds: ['1', '2'] },
-      { id: '1', state: 'active', userName: 'test' }
+      { id: '1', state: USER_STATE.active, userName: 'test' }
     )
     const journalId = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
     const server = await testClient({ connections })
@@ -69,7 +69,7 @@ describe('query journal', () => {
   test('logged-in users can query', async () => {
     const journal = await journalService.create(
       { content: 'test', assetIds: ['1', '2'] },
-      { id: '1', state: 'active', userName: 'test' }
+      { id: '1', state: USER_STATE.active, userName: 'test' }
     )
     const journalId = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
     const server = await testClient({ isAuth: true, connections })
@@ -99,11 +99,30 @@ describe('create journal', () => {
       '00000000-0000-0000-0000-000000000001',
       '00000000-0000-0000-0000-000000000002',
     ]
-    const { errors, data } = await server.executeOperation({
+    const { errors } = await server.executeOperation({
       query: PUT_JOURNAL,
       variables: { input: { content, assets: assetIds } },
     })
     expect(errors).toBeUndefined()
-    console.dir(data, { depth: null })
+  })
+})
+
+describe('delete journal', () => {
+  const DELETE_JOURNAL = /* GraphQL */ `
+    mutation ($input: DeleteJournalInput!) {
+      deleteJournal(input: $input)
+    }
+  `
+  test('success', async () => {
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    const journal = await journalService.create({ content: 'test' }, viewer)
+    const server = await testClient({ connections, context: { viewer } })
+    const id = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
+    const { errors, data } = await server.executeOperation({
+      query: DELETE_JOURNAL,
+      variables: { input: { id } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.deleteJournal).toBeTruthy()
   })
 })
