@@ -126,3 +126,44 @@ describe('delete journal', () => {
     expect(data.deleteJournal).toBeTruthy()
   })
 })
+
+describe('like/unlike journal', () => {
+  const LIKE_JOURNAL = /* GraphQL */ `
+    mutation ($input: LikeJournalInput!) {
+      likeJournal(input: $input) {
+        id
+        liked
+      }
+    }
+  `
+  const UNLIKE_JOURNAL = /* GraphQL */ `
+    mutation ($input: UnlikeJournalInput!) {
+      unlikeJournal(input: $input) {
+        id
+        liked
+      }
+    }
+  `
+  test('success', async () => {
+    const author = { id: '5', state: USER_STATE.active, userName: 'test' }
+    const journal = await journalService.create({ content: 'test' }, author)
+    const server = await testClient({ isAuth: true, connections })
+    const id = toGlobalId({ type: NODE_TYPES.Journal, id: journal.id })
+
+    const { errors: errorsLike, data: dataLike } =
+      await server.executeOperation({
+        query: LIKE_JOURNAL,
+        variables: { input: { id } },
+      })
+    expect(errorsLike).toBeUndefined()
+    expect(dataLike.likeJournal.liked).toBeTruthy()
+
+    const { errors: errorsUnlike, data: dataUnlike } =
+      await server.executeOperation({
+        query: UNLIKE_JOURNAL,
+        variables: { input: { id } },
+      })
+    expect(errorsUnlike).toBeUndefined()
+    expect(dataUnlike.unlikeJournal.liked).toBeFalsy()
+  })
+})
