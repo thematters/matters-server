@@ -2,7 +2,7 @@ import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
-    putJournal(input: PutJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}")
+    putJournal(input: PutJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:2, period:300)
     deleteJournal(input: DeleteJournalInput!): Boolean!
 
     likeJournal(input: LikeJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Journal}")
