@@ -135,7 +135,7 @@ export class JournalService {
       table: 'action_journal',
       where: { targetId: id, userId: user.id },
       create: { targetId: id, userId: user.id, action: 'like' },
-      update: {},
+      update: { updatedAt: new Date() },
     })
   }
 
