@@ -1501,7 +1501,6 @@ export type GQLInvitesPendingArgs = {
   input: GQLConnectionArgs
 }
 
-/** This type contains content, author, descendant comments and related data of a comment. */
 export type GQLJournal = GQLNode & {
   __typename?: 'Journal'
   assets: Array<GQLAsset>
@@ -1518,7 +1517,6 @@ export type GQLJournal = GQLNode & {
   state: GQLJournalState
 }
 
-/** This type contains content, author, descendant comments and related data of a comment. */
 export type GQLJournalCommentsArgs = {
   input: GQLCommentsInput
 }

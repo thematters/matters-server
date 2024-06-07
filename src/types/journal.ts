@@ -24,9 +24,6 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  """
-  This type contains content, author, descendant comments and related data of a comment.
-  """
   type Journal implements Node {
     id: ID!
     content: String
