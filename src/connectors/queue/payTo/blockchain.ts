@@ -182,15 +182,16 @@ export class PayToByBlockchainQueue extends BaseQueue {
         where: { id: tx.targetId },
       }),
     ])
-    const articleService = new ArticleService(this.connections)
-    const articleVersion = await articleService.loadLatestArticleVersion(
-      article.id
-    )
+    const articleVersions = await atomService.findMany({
+      table: 'article_version',
+      where: { articleId: article.id },
+    })
+    const articleCids = articleVersions.map((v) => v.dataHash)
 
     // cancel tx and success blockchain tx if it's invalid
     // Note: sender and recipient's ETH address may change after tx is created
     const isValidTx = await this.containMatchedEvent(txReceipt.events, {
-      cid: articleVersion.dataHash,
+      cids: articleCids,
       amount: tx.amount,
       // support USDT only for now
       tokenAddress: contract[chain].tokenAddress,
@@ -591,12 +592,12 @@ export class PayToByBlockchainQueue extends BaseQueue {
   private containMatchedEvent = async (
     events: CurationEvent[],
     {
-      cid,
+      cids,
       tokenAddress,
       amount,
       decimals,
     }: {
-      cid: string
+      cids: string[]
       tokenAddress: string
       amount: string
       decimals: number
@@ -611,7 +612,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
         ignoreCaseMatch(event.tokenAddress || '', tokenAddress) &&
         event.amount === parseUnits(amount, decimals).toString() &&
         isValidUri(event.uri) &&
-        extractCid(event.uri) === cid
+        cids.includes(extractCid(event.uri))
       ) {
         return true
       }
