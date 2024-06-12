@@ -63,6 +63,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       atomService,
       systemService,
       queues: { revisionQueue },
+      connections: { redis },
     },
   }
 ) => {
@@ -109,7 +110,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     // purge author cache, article cache invalidation already in directive
     invalidateFQC({
       node: { type: NODE_TYPES.User, id: article.authorId },
-      redis: connections.redis,
+      redis,
     })
     return articleService.archive(dbId)
   }

@@ -1000,7 +1000,11 @@ describe('edit article', () => {
 
     // create duplicate article with same content
     const articleService = new ArticleService(connections)
-    const article = await articleService.baseFindById(articleDbId)
+    const atomService = new AtomService(connections)
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: articleDbId },
+    })
     const articleVersion = await articleService.loadLatestArticleVersion(
       article.id
     )
@@ -1019,7 +1023,7 @@ describe('edit article', () => {
     })
 
     // archive
-    const { data: archivedData } = await server.executeOperation({
+    const { data: archivedData, errors } = await server.executeOperation({
       query: EDIT_ARTICLE,
       variables: {
         input: {
@@ -1028,6 +1032,7 @@ describe('edit article', () => {
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(archivedData.editArticle.state).toBe(ARTICLE_STATE.archived)
 
     // refetch & expect de-duplicated
