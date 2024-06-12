@@ -700,15 +700,13 @@ describe('recommendAuthors', () => {
       { recipientId: authorId, senderId: '2', targetId: article.id },
       paymentService
     )
-    await connections
-      .knex('article_read_count')
-      .insert({
-        articleId: article.id,
-        count: 1,
-        timedCount: 1,
-        readTime: 100,
-        userId: '2',
-      })
+    await connections.knex('article_read_count').insert({
+      articleId: article.id,
+      count: 1,
+      timedCount: 1,
+      readTime: 100,
+      userId: '2',
+    })
 
     const authors = await userService.recommendAuthors({ oss: true })
     for (const author of authors) {
