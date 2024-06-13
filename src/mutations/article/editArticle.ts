@@ -1,5 +1,6 @@
 import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
   normalizeArticleHTML,
@@ -62,6 +63,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       atomService,
       systemService,
       queues: { revisionQueue },
+      connections: { redis },
     },
   }
 ) => {
@@ -105,6 +107,11 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     )
   }
   if (state === ARTICLE_STATE.archived) {
+    // purge author cache, article cache invalidation already in directive
+    invalidateFQC({
+      node: { type: NODE_TYPES.User, id: article.authorId },
+      redis,
+    })
     return articleService.archive(dbId)
   }
 
@@ -310,7 +317,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
     const processed = normalizeArticleHTML(
-      sanitizeHTML(content, { maxEmptyParagraphs: -1 })
+      sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
     )
     const changed = processed !== lastContent
 

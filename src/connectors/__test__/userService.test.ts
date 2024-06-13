@@ -7,6 +7,7 @@ import {
   CacheService,
   UserService,
   PaymentService,
+  ArticleService,
 } from 'connectors'
 
 import { createDonationTx } from './utils'
@@ -17,12 +18,14 @@ let connections: Connections
 let atomService: AtomService
 let userService: UserService
 let paymentService: PaymentService
+let articleService: ArticleService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
+  articleService = new ArticleService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -677,13 +680,59 @@ describe('recommendAuthors', () => {
       expect(author.userName).not.toBe(null)
     }
   })
+  test('exclude restircted users', async () => {
+    const authors = await userService.recommendAuthors({ oss: true })
+    await atomService.create({
+      table: 'user_restriction',
+      data: { userId: authors[0].id, type: 'articleHottest' },
+    })
+    const excluded = await userService.recommendAuthors({ oss: true })
+    expect(excluded).not.toContain(authors[0])
+  })
+  test('exclude archived articles when calculating authorScore', async () => {
+    const authorId = '1'
+    const [article] = await articleService.createArticle({
+      authorId,
+      title: 'test',
+      content: 'test',
+    })
+    await createDonationTx(
+      { recipientId: authorId, senderId: '2', targetId: article.id },
+      paymentService
+    )
+    await connections.knex('article_read_count').insert({
+      articleId: article.id,
+      count: 1,
+      timedCount: 1,
+      readTime: 100,
+      userId: '2',
+    })
+
+    const authors = await userService.recommendAuthors({ oss: true })
+    for (const author of authors) {
+      if (author.id === authorId) {
+        expect(author.authorScore).toBeGreaterThan(0)
+      }
+    }
+    await articleService.archive(article.id)
+
+    const authors2 = await userService.recommendAuthors({ oss: true })
+    for (const author of authors) {
+      if (author.id === authorId) {
+        expect(authors2[0].authorScore).toBe(0)
+      }
+    }
+  })
 })
 
 describe('updateUserExtra', () => {
   const userId = '1'
 
   test('set extra jsonb column', async () => {
-    let user = await userService.baseFindById(userId)
+    let user = await atomService.findUnique({
+      table: 'user',
+      where: { id: userId },
+    })
     expect(user.extra).toBeNull()
 
     const referralCode = 'code1'

@@ -941,23 +941,23 @@ export class TagService extends BaseService<Tag> {
     selected,
     sortBy,
     withSynonyms,
+    excludeRestricted,
     skip,
     take,
   }: {
     id: string
-    // filter?: { [key: string]: any }
     selected?: boolean
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
+    excludeRestricted?: boolean
     skip?: number
     take?: number
   }) => {
-    const results = await this.knex
+    const results = await this.knexRO
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
       .where({
-        // tagId,
         state: ARTICLE_STATE.active,
         ...(selected === true ? { selected } : {}),
       })
@@ -966,7 +966,7 @@ export class TagService extends BaseService<Tag> {
         if (withSynonyms) {
           builder.orWhereIn(
             'tag_id',
-            this.knex
+            this.knexRO
               .from(MATERIALIZED_VIEW.tags_lasts_view_materialized)
               .whereRaw('dup_tag_ids @> ARRAY[?] ::int[]', tagId)
               .select(this.knex.raw('UNNEST(dup_tag_ids)'))
@@ -974,6 +974,21 @@ export class TagService extends BaseService<Tag> {
         }
       })
       .modify((builder: Knex.QueryBuilder) => {
+        if (excludeRestricted) {
+          builder
+            .whereNotIn(
+              'article.id',
+              this.knexRO
+                .select('articleId')
+                .from('article_recommend_setting')
+                .where({ inHottest: true })
+                .orWhere({ inNewest: true })
+            )
+            .whereNotIn(
+              'article.authorId',
+              this.knexRO.select('userId').from('user_restriction')
+            )
+        }
         if (sortBy === 'byHottestDesc') {
           builder
             .join(

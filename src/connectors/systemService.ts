@@ -37,6 +37,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
   private featureFlagTable: string
 
   public constructor(connections: Connections) {
+    // @ts-ignore
     super('noop', connections)
 
     this.featureFlagTable = 'feature_flag'

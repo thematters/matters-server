@@ -161,7 +161,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       summary: summary === null ? null : summary?.trim(),
       content:
         content &&
-        normalizeArticleHTML(sanitizeHTML(content, { maxEmptyParagraphs: -1 })),
+        normalizeArticleHTML(
+          sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
+        ),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,

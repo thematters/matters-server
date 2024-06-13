@@ -1,63 +1,19 @@
 import type {
-  ActionArticle,
-  ActionCircle,
-  ActionTag,
-  ActionUser,
-  Announcement,
-  AnnouncementTranslation,
-  Appreciation,
   Article,
-  ArticleBoost,
-  ArticleCircle,
-  ArticleConnection,
   ArticleContent,
-  ArticleCountView,
-  ArticleReadTimeMaterialized,
-  ArticleRecommendSetting,
-  ArticleTag,
-  ArticleTranslation,
   ArticleVersion,
-  Asset,
-  AssetMap,
-  BlockchainSyncRecord,
-  BlockchainTransaction,
-  BlockedSearchKeyword,
-  Blocklist,
   Circle,
-  CircleInvitation,
-  CirclePrice,
-  CircleSubscription,
-  CircleSubscriptionItem,
   Collection,
-  CollectionArticle,
   Comment,
   Connections,
-  CryptoWallet,
-  CryptoWalletSignature,
-  Customer,
   Draft,
-  EntityType,
-  FeaturedCommentMaterialized,
-  MattersChoice,
   MattersChoiceTopic,
-  PayoutAccount,
-  PunishRecord,
-  RecommendedArticlesFromReadTagsMaterialized,
-  Report,
-  SearchHistory,
-  SeedingUser,
   TableName,
   Tag,
-  TagTranslation,
   Transaction,
   User,
-  UserBadge,
-  UserIpnsKeys,
-  UserOauthLikecoinDB,
-  UserRestriction,
-  UserTagsOrder,
-  UsernameEditHistory,
-  VerificationCode,
+  TableTypeMap,
+  TableTypeMapKey,
 } from 'definitions'
 import type { Knex } from 'knex'
 
@@ -70,68 +26,6 @@ import {
 } from 'common/errors'
 
 type Mode = 'id' | 'uuid'
-
-type TableTypeMap = {
-  announcement: Announcement
-  announcement_translation: AnnouncementTranslation
-  blocked_search_keyword: BlockedSearchKeyword
-  blocklist: Blocklist
-  matters_choice: MattersChoice
-  user: User
-  user_ipns_keys: UserIpnsKeys
-  username_edit_history: UsernameEditHistory
-  user_restriction: UserRestriction
-  asset: Asset
-  asset_map: AssetMap
-  draft: Draft
-  article: Article
-  article_version: ArticleVersion
-  article_content: ArticleContent
-  article_circle: ArticleCircle
-  article_translation: ArticleTranslation
-  article_tag: ArticleTag
-  article_boost: ArticleBoost
-  article_connection: ArticleConnection
-  article_recommend_setting: ArticleRecommendSetting
-  article_count_view: ArticleCountView
-  article_read_time_materialized: ArticleReadTimeMaterialized
-  collection: Collection
-  collection_article: CollectionArticle
-  comment: Comment
-  featured_comment_materialized: FeaturedCommentMaterialized
-  action_user: ActionUser
-  action_article: ActionArticle
-  action_circle: ActionCircle
-  action_tag: ActionTag
-  circle: Circle
-  circle_price: CirclePrice
-  circle_invitation: CircleInvitation
-  circle_subscription: CircleSubscription
-  circle_subscription_item: CircleSubscriptionItem
-  customer: Customer
-  crypto_wallet: CryptoWallet
-  crypto_wallet_signature: CryptoWalletSignature
-  tag: Tag
-  tag_translation: TagTranslation
-  user_tags_order: UserTagsOrder
-  verification_code: VerificationCode
-  punish_record: PunishRecord
-  search_history: SearchHistory
-  payout_account: PayoutAccount
-  transaction: Transaction
-  blockchain_transaction: BlockchainTransaction
-  blockchain_sync_record: BlockchainSyncRecord
-  entity_type: EntityType
-  appreciation: Appreciation
-  seeding_user: SeedingUser
-  user_oauth_likecoin: UserOauthLikecoinDB
-  user_badge: UserBadge
-  report: Report
-  recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
-  matters_choice_topic: MattersChoiceTopic
-}
-
-type TableTypeMapKey = keyof TableTypeMap
 
 interface InitLoaderInput {
   table: TableTypeMapKey

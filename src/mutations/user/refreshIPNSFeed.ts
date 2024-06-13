@@ -10,14 +10,15 @@ const resolver: GQLMutationResolvers['refreshIPNSFeed'] = async (
     },
   }
 ) => {
-  // const ipnsKeyRec =
-  await userService.findOrCreateIPNSKey(userName)
+  const ipnsKeyRec = await userService.findOrCreateIPNSKey(userName)
 
-  publicationQueue.refreshIPNSFeed({
-    userName,
-    numArticles,
-    forceReplace: true,
-  })
+  if (ipnsKeyRec) {
+    publicationQueue.refreshIPNSFeed({
+      userName,
+      numArticles,
+      forceReplace: true,
+    })
+  }
 
   return userService.findByUserName(userName)
 }

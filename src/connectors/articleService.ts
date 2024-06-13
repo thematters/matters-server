@@ -220,15 +220,8 @@ export class ArticleService extends BaseService<Article> {
     }
   }
 
-  public loadLatestArticleVersion = async (articleId: string) => {
-    const version = await this.latestArticleVersionLoader.load(articleId)
-    return version
-      ? version
-      : await this.knexRO('draft')
-          .where({ articleId })
-          .orderBy('id', 'desc')
-          .first()
-  }
+  public loadLatestArticleVersion = (articleId: string) =>
+    this.latestArticleVersionLoader.load(articleId)
 
   public loadLatestArticleContent = async (articleId: string) => {
     const { contentId } = await this.latestArticleVersionLoader.load(articleId)
@@ -627,6 +620,7 @@ export class ArticleService extends BaseService<Article> {
       columns = ['*'],
       orderBy = 'newest',
       state = 'active',
+      excludeRestricted,
       skip,
       take,
     }: {
@@ -638,6 +632,7 @@ export class ArticleService extends BaseService<Article> {
         | 'mostAppreciations'
         | 'mostComments'
         | 'mostDonations'
+      excludeRestricted?: boolean
       skip?: number
       take?: number
     } = {}
@@ -655,6 +650,15 @@ export class ArticleService extends BaseService<Article> {
       .modify((builder: Knex.QueryBuilder) => {
         if (state) {
           builder.andWhere({ 't1.state': state })
+        }
+        if (excludeRestricted) {
+          builder.whereNotIn(
+            't1.id',
+            this.knexRO('article_recommend_setting')
+              .select('articleId')
+              .where({ inHottest: true })
+              .orWhere({ inNewest: true })
+          )
         }
 
         switch (orderBy) {

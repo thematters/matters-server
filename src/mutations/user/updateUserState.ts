@@ -13,7 +13,6 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
       userService,
       notificationService,
       atomService,
-      connections: { knex },
       queues: { userQueue },
     },
   }

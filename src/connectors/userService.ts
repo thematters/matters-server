@@ -63,7 +63,6 @@ import {
   VERIFICATION_CODE_TYPE,
   USER_RESTRICTION_TYPE,
   VIEW,
-  AUTO_FOLLOW_TAGS,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   INVITATION_STATE,
@@ -112,7 +111,6 @@ import {
   AtomService,
   BaseService,
   CacheService,
-  TagService,
   ipfsServers,
   OAuthService,
   NotificationService,
@@ -228,10 +226,6 @@ export class UserService extends BaseService<User> {
     const atomService = new AtomService(this.connections)
     // auto follow matty
     await this.follow(user.id, environment.mattyId)
-
-    // auto follow tags
-    const tagService = new TagService(this.connections)
-    await tagService.followTags(user.id, AUTO_FOLLOW_TAGS)
 
     // send email
     if (user.email && user.displayName) {
@@ -1284,34 +1278,18 @@ export class UserService extends BaseService<User> {
     type?: keyof typeof AUTHOR_TYPE
     count?: boolean
   }) => {
+    let query: Knex.QueryBuilder
     switch (type) {
       case AUTHOR_TYPE.default: {
-        const table = oss
+        const view = oss
           ? VIEW.user_reader_view
           : MATERIALIZED_VIEW.user_reader_materialized
-        const query = this.knexRO(table)
+        query = this.knexRO
+          .from({ view })
           .orderByRaw('author_score DESC NULLS LAST')
           .orderBy('id', 'desc')
-          .where({ state: USER_STATE.active })
           .whereNot({ userName: null })
-          .whereNotIn('id', notIn)
-
-        if (skip) {
-          query.offset(skip)
-        }
-        if (take || take === 0) {
-          query.limit(take)
-        }
-        if (count) {
-          query.select(
-            '*',
-            this.knexRO.raw('COUNT(id) OVER() ::int AS total_count')
-          )
-        } else {
-          query.select('*')
-        }
-
-        return query
+        break
       }
       case AUTHOR_TYPE.active:
       case AUTHOR_TYPE.appreciated:
@@ -1323,30 +1301,30 @@ export class UserService extends BaseService<User> {
             ? 'most_appreciated_author_materialized'
             : 'most_trendy_author_materialized'
 
-        const query = this.knexRO
+        query = this.knexRO
           .from({ view })
           .innerJoin('user', 'view.id', 'user.id')
-          .where({ state: USER_STATE.active })
-          .whereNotIn('view.id', notIn)
-
-        if (skip) {
-          query.offset(skip)
-        }
-        if (take || take === 0) {
-          query.limit(take)
-        }
-        if (count) {
-          query.select(
-            '*',
-            this.knexRO.raw('COUNT(id) OVER() ::int AS total_count')
-          )
-        } else {
-          query.select('*')
-        }
-
-        return query
       }
     }
+    query
+      .where({ state: USER_STATE.active })
+      .whereNotIn('view.id', notIn)
+      .whereNotIn('view.id', this.knexRO('user_restriction').select('user_id'))
+    if (skip) {
+      query.offset(skip)
+    }
+    if (take || take === 0) {
+      query.limit(take)
+    }
+    if (count) {
+      query.select(
+        '*',
+        this.knexRO.raw('COUNT(id) OVER() ::int AS total_count')
+      )
+    } else {
+      query.select('*')
+    }
+    return query
   }
 
   public findBoost = async (userId: string) => {
@@ -2071,6 +2049,11 @@ export class UserService extends BaseService<User> {
 
     if (ipnsKeyRec) {
       return ipnsKeyRec
+    }
+
+    if (!user.ethAddress) {
+      // stop create IPNS for users without wallet
+      return
     }
 
     // create it if not existed
