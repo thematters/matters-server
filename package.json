@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "5.0.2",
+  "version": "5.0.4",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
