@@ -29,34 +29,39 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const loadArticles = async (articles: CollectionArticle[], totalCount: number, pageNumber: number | null = 1) => {
+  const loadArticles = async (
+    articles: CollectionArticle[],
+    totalCount: number,
+    pageNumber: number | null = 1
+  ) => {
     const connection = await connectionFromPromisedArray(
       atomService.articleIdLoader.loadMany(
         articles.map(({ articleId: aid }) => aid)
       ),
       { first, after },
       totalCount
-    );
+    )
 
-    return pageNumber ? { ...connection, pageNumber } : connection;
+    return pageNumber ? { ...connection, pageNumber } : connection
   }
 
   if (articleId) {
-    const [articles, totalCount, pageNumber] = await collectionService.findArticleInCollection(
-      collectionId,
-      articleId, {
-      take, reversed
-    });
+    const [articles, totalCount, pageNumber] =
+      await collectionService.findArticleInCollection(collectionId, articleId, {
+        take,
+        reversed,
+      })
 
-    return loadArticles(articles, totalCount, pageNumber);
+    return loadArticles(articles, totalCount, pageNumber)
   } else {
-    const [articles, totalCount] = await collectionService.findAndCountArticlesInCollection(collectionId, {
-      skip,
-      take,
-      reversed,
-    });
+    const [articles, totalCount] =
+      await collectionService.findAndCountArticlesInCollection(collectionId, {
+        skip,
+        take,
+        reversed,
+      })
 
-    return loadArticles(articles, totalCount);
+    return loadArticles(articles, totalCount)
   }
 }
 
