@@ -19,6 +19,7 @@ import {
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   USER_STATE,
+  MAX_CONTENT_LINK_TEXT_LENGTH,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
@@ -317,7 +318,13 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const { content: lastContent } =
       await atomService.articleContentIdLoader.load(articleVersion.contentId)
     const processed = normalizeArticleHTML(
-      sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
+      sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 }),
+      {
+        truncate: {
+          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+          keepProtocol: false,
+        },
+      }
     )
     const changed = processed !== lastContent
 

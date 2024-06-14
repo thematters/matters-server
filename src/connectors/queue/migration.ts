@@ -8,6 +8,7 @@ import {
 
 import {
   ASSET_TYPE,
+  MAX_CONTENT_LINK_TEXT_LENGTH,
   MIGRATION_DELAY,
   MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
@@ -129,7 +130,13 @@ export class MigrationQueue extends BaseQueue {
                       sanitizeHTML(content, {
                         maxHardBreaks: -1,
                         maxSoftBreaks: -1,
-                      })
+                      }),
+                      {
+                        truncate: {
+                          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+                          keepProtocol: false,
+                        },
+                      }
                     ),
                 })
 
