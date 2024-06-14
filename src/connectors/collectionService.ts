@@ -94,6 +94,62 @@ export class CollectionService extends BaseService<Collection> {
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     return [records, totalCount]
   }
+  /**
+   * Private function to get the position of an article in a collection
+   *
+   * @param collectionId
+   * @param articleId
+   * @returns
+   */
+  private getArticlePosition = async (
+    collectionId: string,
+    articleId: string
+  ): Promise<number> => {
+    const articlePosition = await this.knex('collection_article')
+      .count('* as position')
+      .where({ collectionId, article_id: articleId, state: ARTICLE_STATE.active })
+      .first();
+
+    if (articlePosition === undefined) {
+      throw new Error('Article not found in the collection');
+    }
+
+    return Number(articlePosition.position);
+  }
+
+  /**
+   * find articles in collection with its position
+   *
+   * @param collectionId
+   * @param articleId
+   * @param { take: number, reversed: boolean }
+   * @returns
+   */
+  public findArticleInCollection = async (
+    collectionId: string,
+    articleId: string,
+    {
+      take,
+      reversed = true,
+    }: { take: number; reversed?: boolean }
+  ): Promise<[CollectionArticle[], number, number]> => {
+    // Find the position of the specified article in the collection
+    let pageNumber = 1;
+    try {
+      const articlePosition = await this.getArticlePosition(collectionId, articleId);
+      // Calculate the page number the article belongs to
+      pageNumber = Math.ceil(Number(articlePosition) / take);
+    } catch (error) {
+      console.error(error);
+    }
+
+    // Calculate the new skip value to get the articles on the page
+    const newSkip = (pageNumber - 1) * take;
+
+    const [records, totalCount] = await this.findAndCountArticlesInCollection(collectionId, { skip: newSkip, take, reversed });
+
+    return [records, totalCount, pageNumber];
+  }
 
   public findAndCountArticlesInCollection = async (
     collectionId: string,

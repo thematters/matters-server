@@ -1,4 +1,4 @@
-import type { GQLCollectionResolvers } from 'definitions'
+import type { CollectionArticle, GQLCollectionResolvers } from 'definitions'
 
 import {
   connectionFromArray,
@@ -8,7 +8,7 @@ import {
 
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
-  { input: { first, after, reversed } },
+  { input: { first, after, reversed, articleId } },
   { dataSources: { atomService, collectionService } }
 ) => {
   if (!collectionId) {
@@ -29,20 +29,35 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const [articles, totalCount] =
-    await collectionService.findAndCountArticlesInCollection(collectionId, {
+  const loadArticles = async (articles: CollectionArticle[], totalCount: number, pageNumber: number | null = 1) => {
+    const connection = await connectionFromPromisedArray(
+      atomService.articleIdLoader.loadMany(
+        articles.map(({ articleId: aid }) => aid)
+      ),
+      { first, after },
+      totalCount
+    );
+
+    return pageNumber ? { ...connection, pageNumber } : connection;
+  }
+
+  if (articleId) {
+    const [articles, totalCount, pageNumber] = await collectionService.findArticleInCollection(
+      collectionId,
+      articleId, {
+      take, reversed
+    });
+
+    return loadArticles(articles, totalCount, pageNumber);
+  } else {
+    const [articles, totalCount] = await collectionService.findAndCountArticlesInCollection(collectionId, {
       skip,
       take,
       reversed,
-    })
+    });
 
-  return connectionFromPromisedArray(
-    atomService.articleIdLoader.loadMany(
-      articles.map(({ articleId }) => articleId)
-    ),
-    { first, after },
-    totalCount
-  )
+    return loadArticles(articles, totalCount);
+  }
 }
 
 export default resolver
