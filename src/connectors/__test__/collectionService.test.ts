@@ -122,7 +122,7 @@ test('findArticleInCollection', async () => {
   expect(pageNumber).toBe(2)
   expect(articles[0].articleId).toBe('3')
   expect(articles[1].articleId).toBe('2')
-});
+})
 
 test('findArticleInCollectionNotFound', async () => {
   const { id: collectionId } = await collectionService.createCollection({
@@ -134,7 +134,7 @@ test('findArticleInCollectionNotFound', async () => {
   const [articles, totalCount, pageNumber] =
     await collectionService.findArticleInCollection(collectionId, '5', {
       take: 2,
-      reversed: false
+      reversed: false,
     })
 
   expect(articles.length).toBe(2)
@@ -142,7 +142,7 @@ test('findArticleInCollectionNotFound', async () => {
   expect(pageNumber).toBe(1)
   expect(articles[0].articleId).toBe('1')
   expect(articles[1].articleId).toBe('2')
-});
+})
 
 test('deleteCollections', async () => {
   const authorId = '3'
