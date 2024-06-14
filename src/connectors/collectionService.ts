@@ -107,14 +107,18 @@ export class CollectionService extends BaseService<Collection> {
   ): Promise<number> => {
     const articlePosition = await this.knex('collection_article')
       .count('* as position')
-      .where({ collectionId, article_id: articleId, state: ARTICLE_STATE.active })
-      .first();
+      .where({
+        collectionId,
+        article_id: articleId,
+        state: ARTICLE_STATE.active,
+      })
+      .first()
 
     if (articlePosition === undefined) {
-      throw new Error('Article not found in the collection');
+      throw new Error('Article not found in the collection')
     }
 
-    return Number(articlePosition.position);
+    return Number(articlePosition.position)
   }
 
   /**
@@ -128,27 +132,30 @@ export class CollectionService extends BaseService<Collection> {
   public findArticleInCollection = async (
     collectionId: string,
     articleId: string,
-    {
-      take,
-      reversed = true,
-    }: { take: number; reversed?: boolean }
+    { take, reversed = true }: { take: number; reversed?: boolean }
   ): Promise<[CollectionArticle[], number, number]> => {
     // Find the position of the specified article in the collection
-    let pageNumber = 1;
+    let pageNumber = 1
     try {
-      const articlePosition = await this.getArticlePosition(collectionId, articleId);
+      const articlePosition = await this.getArticlePosition(
+        collectionId,
+        articleId
+      )
       // Calculate the page number the article belongs to
-      pageNumber = Math.ceil(Number(articlePosition) / take);
+      pageNumber = Math.ceil(Number(articlePosition) / take)
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
 
     // Calculate the new skip value to get the articles on the page
-    const newSkip = (pageNumber - 1) * take;
+    const newSkip = (pageNumber - 1) * take
 
-    const [records, totalCount] = await this.findAndCountArticlesInCollection(collectionId, { skip: newSkip, take, reversed });
+    const [records, totalCount] = await this.findAndCountArticlesInCollection(
+      collectionId,
+      { skip: newSkip, take, reversed }
+    )
 
-    return [records, totalCount, pageNumber];
+    return [records, totalCount, pageNumber]
   }
 
   public findAndCountArticlesInCollection = async (

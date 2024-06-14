@@ -68,6 +68,7 @@ export default /* GraphQL */ `
     after: String
     first: Int
     reversed: Boolean = True
+    articleId: ID
   }
 
   input PutCollectionInput {

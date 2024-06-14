@@ -3787,6 +3787,7 @@ input CollectionArticlesInput {
   after: String
   first: Int
   reversed: Boolean
+  articleId: ID
 }
 
 input PutCollectionInput {
