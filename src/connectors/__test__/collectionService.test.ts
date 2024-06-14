@@ -109,6 +109,45 @@ test('findAndCountCollectionsByUser', async () => {
   expect(records3[1].id).toBe(id1)
 })
 
+test('findArticleInCollection', async () => {
+  const { id: collectionId } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
+
+  const [articles, totalCount, pageNumber] =
+    await collectionService.findArticleInCollection(collectionId, '3', {
+      take: 2,
+    })
+
+  expect(articles.length).toBe(2)
+  expect(totalCount).toBe(4)
+  expect(pageNumber).toBe(2)
+  expect(articles[0].articleId).toBe('3')
+  expect(articles[1].articleId).toBe('2')
+});
+
+test('findArticleInCollectionNotFound', async () => {
+  const { id: collectionId } = await collectionService.createCollection({
+    authorId: '1',
+    title: 'test',
+  })
+  await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
+
+  const [articles, totalCount, pageNumber] =
+    await collectionService.findArticleInCollection(collectionId, '5', {
+      take: 2,
+      reversed: false
+    })
+
+  expect(articles.length).toBe(2)
+  expect(totalCount).toBe(4)
+  expect(pageNumber).toBe(1)
+  expect(articles[0].articleId).toBe('1')
+  expect(articles[1].articleId).toBe('2')
+});
+
 test('deleteCollections', async () => {
   const authorId = '3'
   const { id } = await collectionService.createCollection({
