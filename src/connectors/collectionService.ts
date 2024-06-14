@@ -125,6 +125,7 @@ export class CollectionService extends BaseService<Collection> {
       )
       .from(articlePositions)
       .where('ap.article_id', articleId)
+    console.log('**** positionMeta ******: ', positionMeta)
 
     if (positionMeta.length === 0) {
       logger.error(`Article not found in collection: ${articleId}`)
