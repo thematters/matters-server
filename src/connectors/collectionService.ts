@@ -111,21 +111,30 @@ export class CollectionService extends BaseService<Collection> {
     { take, reversed = true }: { take: number; reversed?: boolean }
   ): Promise<[CollectionArticle[], number, number]> => {
     const articlePositions = this.knex('collection_article as ca')
-      .select('ca.article_id', this.knex.raw('ROW_NUMBER() OVER (ORDER BY ca."order") AS position'))
+      .select(
+        'ca.article_id',
+        this.knex.raw('ROW_NUMBER() OVER (ORDER BY ca."order") AS position')
+      )
       .where('ca.collection_id', collectionId)
       .orderBy('ca.order', reversed ? 'desc' : 'asc')
-      .as('ap');
+      .as('ap')
 
     const positionMeta = await this.knex
       .select(
         this.knex.raw(`CEIL(ap.position::float / ${take}::float) AS pageNumber`)
       )
       .from(articlePositions)
-      .where('ap.article_id', articleId);
+      .where('ap.article_id', articleId)
 
     if (positionMeta.length === 0) {
       logger.error(`Article not found in collection: ${articleId}`)
-      return [...await this.findAndCountArticlesInCollection(collectionId, { take, reversed }), 1]
+      return [
+        ...(await this.findAndCountArticlesInCollection(collectionId, {
+          take,
+          reversed,
+        })),
+        1,
+      ]
     }
     const { pageNumber } = positionMeta[0]
 
