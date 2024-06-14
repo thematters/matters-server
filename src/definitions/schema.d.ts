@@ -918,6 +918,7 @@ export type GQLCollection = GQLNode &
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
+    pageNumber?: Maybe<Scalars['Int']['output']>
     pinned: Scalars['Boolean']['output']
     title: Scalars['String']['output']
     updatedAt: Scalars['DateTime']['output']
@@ -6192,6 +6193,11 @@ export type GQLCollectionResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  pageNumber?: Resolver<
+    Maybe<GQLResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>

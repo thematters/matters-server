@@ -26,6 +26,7 @@ export default /* GraphQL */ `
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
+     pageNumber: Int
 
      "Check if the collection contains the article"
      contains(input: NodeInput!): Boolean!
