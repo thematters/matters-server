@@ -137,7 +137,7 @@ test('findArticleInCollectionNotFound', async () => {
 
   const [articles, totalCount, pageNumber] =
     await collectionService.findArticleInCollection(collectionId, '5', {
-      take: 2,
+      take: 2, // its this line that causes the error
       reversed: false,
     })
 

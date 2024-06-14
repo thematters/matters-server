@@ -121,7 +121,7 @@ export class CollectionService extends BaseService<Collection> {
 
     const positionMeta = await this.knex
       .select(
-        this.knex.raw(`CEIL(ap.position::float / ${take}::float) AS pageNumber`)
+        this.knex.raw(`CEIL(ap.position::float / ${take}::float) AS page_number`)
       )
       .from(articlePositions)
       .where('ap.article_id', articleId)
@@ -129,15 +129,16 @@ export class CollectionService extends BaseService<Collection> {
 
     if (positionMeta.length === 0) {
       logger.error(`Article not found in collection: ${articleId}`)
+      const r = await this.findAndCountArticlesInCollection(collectionId, {
+        take,
+        reversed,
+      })
       return [
-        ...(await this.findAndCountArticlesInCollection(collectionId, {
-          take,
-          reversed,
-        })),
+        ...r,
         1,
       ]
     }
-    const { pageNumber } = positionMeta[0]
+    const { page_number: pageNumber } = positionMeta[0]
 
     const [records, totalCount] = await this.findAndCountArticlesInCollection(
       collectionId,
