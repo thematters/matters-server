@@ -8,7 +8,7 @@ import {
   APPRECIATION_TYPES,
   ARTICLE_APPRECIATE_LIMIT,
 } from 'common/enums'
-import { ArticleService, UserService, AtomService } from 'connectors'
+import { ArticleService, UserWorkService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -241,8 +241,8 @@ describe('updatePinned', () => {
     await articleService.updatePinned('4', '1', true)
     await articleService.updatePinned('6', '1', true)
 
-    const userService = new UserService(connections)
-    const total = await userService.totalPinnedWorks('1')
+    const userWorkService = new UserWorkService(connections)
+    const total = await userWorkService.totalPinnedWorks('1')
     expect(total).toBe(3)
     await expect(
       articleService.updatePinned(articleId, '1', true)

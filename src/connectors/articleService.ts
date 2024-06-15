@@ -67,6 +67,7 @@ import {
   ipfsServers,
   SystemService,
   UserService,
+  UserWorkService,
   TagService,
   NotificationService,
   PaymentService,
@@ -417,8 +418,8 @@ export class ArticleService extends BaseService<Article> {
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
-    const userService = new UserService(this.connections)
-    const totalPinned = await userService.totalPinnedWorks(userId)
+    const userWorkService = new UserWorkService(this.connections)
+    const totalPinned = await userWorkService.totalPinnedWorks(userId)
     if (pinned === article.pinned) {
       return article
     }
