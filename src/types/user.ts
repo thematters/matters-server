@@ -155,6 +155,9 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "Articles and journals authored by current user."
+    writings(input:WritingInput ): WritingConnection!
+
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
 
@@ -1076,5 +1079,23 @@ export default /* GraphQL */ `
 
   input UserArticlesFilter {
     state: ArticleState = active
+  }
+
+  input WritingInput {
+    after: String
+    first: Int
+  }
+
+  union Writing = Article | Journal
+
+  type WritingConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [WritingEdge!]
+  }
+
+  type WritingEdge {
+    cursor: String!
+    node: Writing!
   }
 `
