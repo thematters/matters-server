@@ -226,6 +226,7 @@ export const MAX_ARTICLE_REVISION_COUNT = 4
 
 export enum ActivityType {
   UserPublishArticleActivity = 'UserPublishArticleActivity',
+  UserPostJournalActivity = 'UserPostJournalActivity',
   UserBroadcastCircleActivity = 'UserBroadcastCircleActivity',
   UserCreateCircleActivity = 'UserCreateCircleActivity',
   UserCollectArticleActivity = 'UserCollectArticleActivity',

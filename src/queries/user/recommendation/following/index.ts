@@ -81,6 +81,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     target: await nodeLoader({ id: targetId, type: targetType }),
     createdAt,
   })
+
   const recommenders = [
     {
       source: RecommendationSource.ReadArticlesTags,
@@ -144,6 +145,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     const recommendationTake = 5
     const recommendationSkip =
       (Math.ceil(position / step / recommenderCount) - 1) * recommendationTake
+    // invalid cursor, client MUST never use this cursor as query input
     const recommendationCursor = indexToCursor(
       `recommendation:${recommendationSkip}`
     )
