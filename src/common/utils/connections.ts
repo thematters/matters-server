@@ -99,7 +99,7 @@ export const loadManyFilterError = <T>(items: Array<T | Error>) =>
   }) as T[]
 
 /**
- * Convert GQL curosr to query keys. For example, the GQL cursor
+ * Convert GQL cursors to query keys. For example, the GQL cursor
  * `YXJyYXljb25uZWN0aW9uOjEwOjM5` will be parsed as `arrayconnection:10:39`.
  *
  */
@@ -114,7 +114,7 @@ export const cursorToKeys = (
 }
 
 /**
- * Convert query keys to GQL curosr. For example, the query keys
+ * Convert query keys to GQL cursor. For example, the query keys
  * `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
  *
  */

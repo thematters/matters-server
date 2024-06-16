@@ -1,8 +1,5 @@
 import type { GQLRecommendationResolvers } from 'definitions'
 
-import _chunk from 'lodash/chunk'
-import _times from 'lodash/times'
-
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -31,11 +28,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   { input },
   {
     dataSources: {
-      userService,
-      commentService,
-      tagService,
       atomService,
-      articleService,
       connections: { knexRO },
     },
   }
