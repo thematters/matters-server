@@ -86,12 +86,14 @@ export const makeBaseActivityQuery = async (
     )
 
   if (articleOnly !== true) {
+    // First group records with same activity type and actor_id (what lagged, diffed, type_grouped CTE is for),
+    // then subgroup records according time window (4 hours as a group, and start from first record in outer group)
     const records = await knexRO
       .with('base', baseQuery)
       .with(
         'lagged',
         knexRO.raw(
-          'SELECT *, lag(type, actor_id) OVER (ORDER BY created_at) AS prev_type FROM base ORDER BY created_at'
+          'SELECT *, lag((type, actor_id)) OVER (ORDER BY created_at) AS prev_type FROM base ORDER BY created_at'
         )
       )
       .with(
@@ -109,7 +111,7 @@ export const makeBaseActivityQuery = async (
       .with(
         'time_grouped',
         knexRO.raw(
-          'SELECT *, (extract(minute FROM created_at - first_value(created_at) OVER (PARTITION BY type_group ORDER BY created_at))::integer)/2 AS time_group FROM type_grouped'
+          'SELECT *, (extract(hour FROM created_at - first_value(created_at) OVER (PARTITION BY type_group ORDER BY created_at))::integer)/4 AS time_group FROM type_grouped'
         )
       )
       .with(
@@ -119,6 +121,7 @@ export const makeBaseActivityQuery = async (
         )
       )
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .from('agged')
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)

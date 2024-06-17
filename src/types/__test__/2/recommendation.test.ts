@@ -1,7 +1,11 @@
 import type { Connections } from 'definitions'
 
-import { NODE_TYPES, MATTERS_CHOICE_TOPIC_STATE } from 'common/enums'
-import { RecommendationService, AtomService } from 'connectors'
+import {
+  NODE_TYPES,
+  MATTERS_CHOICE_TOPIC_STATE,
+  USER_STATE,
+} from 'common/enums'
+import { RecommendationService, AtomService, JournalService } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -9,10 +13,12 @@ import { testClient, genConnections, closeConnections } from '../utils'
 let connections: Connections
 let atomService: AtomService
 let recommendationService: RecommendationService
+let journalService: JournalService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  journalService = new JournalService(connections)
   recommendationService = new RecommendationService(connections)
 }, 30000)
 
@@ -269,7 +275,7 @@ describe('icymi topic', () => {
 })
 
 describe('following', () => {
-  const GET_VIEWER_RECOMMENDATION_ICYMI = /* GraphQL */ `
+  const GET_VIEWER_RECOMMENDATION_FOLLOWING = /* GraphQL */ `
     query ($input: RecommendationFollowingInput!) {
       viewer {
         recommendation {
@@ -306,12 +312,22 @@ describe('following', () => {
     }
   `
   test('query', async () => {
-    const server = await testClient({ connections })
+    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
+    await journalService.create({ content: 'test' }, viewer)
+    const server = await testClient({
+      connections,
+      context: { viewer },
+      isAuth: true,
+    })
+    await connections.knex.raw(
+      'refresh materialized view user_activity_materialized'
+    )
     const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_ICYMI,
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
       variables: { input: { first: 10 } },
     })
     expect(errors).toBeUndefined()
     expect(data.viewer.recommendation.following.totalCount).toBeGreaterThan(0)
   })
+  test('visitor return empty result', async () => {})
 })
