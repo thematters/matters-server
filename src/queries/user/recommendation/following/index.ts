@@ -8,6 +8,7 @@ import {
 } from 'common/utils'
 
 import {
+  type Activity,
   makeBaseActivityQuery,
   makeCircleActivityQuery,
   makeReadArticlesTagsActivityQuery,
@@ -73,11 +74,20 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     targetId,
     targetType,
     createdAt,
-  }: any) => ({
+    actNode2,
+    actNode3,
+  }: Activity) => ({
     __type: type,
     actor: await atomService.userIdLoader.load(actorId),
     node: await nodeLoader({ id: nodeId, type: nodeType }),
-    target: await nodeLoader({ id: targetId, type: targetType }),
+    target:
+      targetId && targetType
+        ? await nodeLoader({ id: targetId, type: targetType })
+        : null,
+    more: [
+      actNode2 ? await nodeLoader({ id: actNode2, type: nodeType }) : null,
+      actNode3 ? await nodeLoader({ id: actNode3, type: nodeType }) : null,
+    ],
     createdAt,
   })
 
@@ -101,7 +111,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   ]
 
   const connections = await connectionFromPromisedArray(
-    Promise.all(activities.map((acty: any) => activityLoader(acty))),
+    Promise.all(activities.map((acty) => activityLoader(acty))),
     input,
     totalCount
   )

@@ -7,9 +7,22 @@ import {
   MATERIALIZED_VIEW,
   TAG_ACTION,
   USER_ACTION,
+  NODE_TYPES,
 } from 'common/enums'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
+
+export interface Activity {
+  type: ActivityType
+  actorId: string
+  nodeId: string
+  nodeType: NODE_TYPES
+  targetId: string | null
+  targetType: string | null
+  actNode2: string | null
+  actNode3: string | null
+  createdAt: Date
+}
 
 export const withExcludedUsers = (
   { userId }: { userId: string },
@@ -31,7 +44,7 @@ export const makeBaseActivityQuery = async (
   { skip, take }: { skip: number; take: number },
   articleOnly = false,
   knexRO: Knex
-): Promise<[any, number]> => {
+): Promise<[Activity[], number]> => {
   const baseQuery = withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
@@ -102,7 +115,7 @@ export const makeBaseActivityQuery = async (
       .with(
         'agged',
         knexRO.raw(
-          'SELECT *, row_number() OVER act_group AS rn, count(1) OVER (PARTITION BY type_group, time_group ) AS group_size, nth_value(id, 2) OVER act_group as act_2,  nth_value(id, 3) OVER act_group AS act_3 FROM time_grouped WINDOW act_group AS (PARTITION BY type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)'
+          'SELECT *, row_number() OVER act_group AS rn, count(1) OVER (PARTITION BY type_group, time_group ) AS group_size, nth_value(node_id, 2) OVER act_group as act_node_2,  nth_value(node_id, 3) OVER act_group AS act_node_3 FROM time_grouped WINDOW act_group AS (PARTITION BY type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)'
         )
       )
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
