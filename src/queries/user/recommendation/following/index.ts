@@ -40,6 +40,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
   const articleOnly = input?.filter?.type === 'article'
+  console.log('articleOnly: ', articleOnly)
 
   // Retrieve activities
   const [activities, totalCount] = await makeBaseActivityQuery(
@@ -48,6 +49,8 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     articleOnly,
     knexRO
   )
+
+  console.log(activities)
 
   /**
    * Utils
@@ -64,6 +67,8 @@ const resolver: GQLRecommendationResolvers['following'] = async (
         return atomService.userIdLoader.load(id)
       case 'Tag':
         return atomService.tagIdLoader.load(id)
+      case 'Journal':
+        return atomService.journalIdLoader.load(id)
     }
   }
   const activityLoader = async ({
@@ -74,8 +79,8 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     targetId,
     targetType,
     createdAt,
-    actNode2,
-    actNode3,
+    actyNode2,
+    actyNode3,
   }: Activity) => ({
     __type: type,
     actor: await atomService.userIdLoader.load(actorId),
@@ -85,9 +90,9 @@ const resolver: GQLRecommendationResolvers['following'] = async (
         ? await nodeLoader({ id: targetId, type: targetType })
         : null,
     more: [
-      actNode2 ? await nodeLoader({ id: actNode2, type: nodeType }) : null,
-      actNode3 ? await nodeLoader({ id: actNode3, type: nodeType }) : null,
-    ],
+      actyNode2 ? await nodeLoader({ id: actyNode2, type: nodeType }) : null,
+      actyNode3 ? await nodeLoader({ id: actyNode3, type: nodeType }) : null,
+    ].filter(Boolean),
     createdAt,
   })
 

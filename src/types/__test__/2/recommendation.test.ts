@@ -5,20 +5,27 @@ import {
   MATTERS_CHOICE_TOPIC_STATE,
   USER_STATE,
 } from 'common/enums'
-import { RecommendationService, AtomService, JournalService } from 'connectors'
+import {
+  RecommendationService,
+  AtomService,
+  JournalService,
+  UserService,
+} from 'connectors'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let atomService: AtomService
-let recommendationService: RecommendationService
 let journalService: JournalService
+let userService: UserService
+let recommendationService: RecommendationService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   journalService = new JournalService(connections)
+  userService = new UserService(connections)
   recommendationService = new RecommendationService(connections)
 }, 30000)
 
@@ -311,23 +318,44 @@ describe('following', () => {
       }
     }
   `
+  const viewer = { id: '4', state: USER_STATE.active, userName: 'test' }
+  const followee1 = { id: '5', state: USER_STATE.active, userName: 'test' }
+  const followee2 = { id: '6', state: USER_STATE.active, userName: 'test' }
+  const refreshView = () =>
+    connections.knex.raw('refresh materialized view user_activity_materialized')
+
+  beforeAll(async () => {
+    await userService.follow(viewer.id, followee1.id)
+    await userService.follow(viewer.id, followee2.id)
+    await refreshView()
+  })
+
   test('query', async () => {
-    const viewer = { id: '1', state: USER_STATE.active, userName: 'test' }
-    await journalService.create({ content: 'test' }, viewer)
+    // no activities
     const server = await testClient({
       connections,
       context: { viewer },
       isAuth: true,
     })
-    await connections.knex.raw(
-      'refresh materialized view user_activity_materialized'
-    )
-    const { errors, data } = await server.executeOperation({
+    const { errors: emptyErrors, data: emptyData } =
+      await server.executeOperation({
+        query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+        variables: { input: { first: 10 } },
+      })
+    expect(emptyErrors).toBeUndefined()
+    expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
+
+    // one journal activity
+    const journal1 = await journalService.create({ content: 'test' }, followee1)
+    await refreshView()
+
+    const { errors: errors1, data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
       variables: { input: { first: 10 } },
     })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.following.totalCount).toBeGreaterThan(0)
+    expect(errors1).toBeUndefined()
+    console.log(data1)
+    expect(data1.viewer.recommendation.following.totalCount).toBe(1)
   })
   test('visitor return empty result', async () => {})
 })

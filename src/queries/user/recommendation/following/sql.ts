@@ -19,8 +19,8 @@ export interface Activity {
   nodeType: NODE_TYPES
   targetId: string | null
   targetType: string | null
-  actNode2: string | null
-  actNode3: string | null
+  actyNode2: string | null
+  actyNode3: string | null
   createdAt: Date
 }
 
@@ -80,44 +80,67 @@ export const makeBaseActivityQuery = async (
                   'at.action': TAG_ACTION.follow,
                   'acty.type': ActivityType.UserAddArticleTagActivity,
                 }),
+              // retrieve UserPostJournalActivity based on user's following user
+              knexRO
+                .select('acty.*')
+                .from('action_user as au')
+                .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
+                .leftJoin(
+                  'excluded_users',
+                  'acty.actor_id',
+                  'excluded_users.user_id'
+                )
+                .where({
+                  'excluded_users.user_id': null,
+                  'au.user_id': userId,
+                  'au.action': USER_ACTION.follow,
+                  'acty.type': ActivityType.UserPostJournalActivity,
+                }),
             ])
           }
         })
     )
 
   if (articleOnly !== true) {
-    // First group records with same activity type and actor_id (what lagged, diffed, type_grouped CTE is for),
+    // First group records with same activity type (what lagged, diffed, type_grouped CTE is for),
     // then subgroup records according time window (4 hours as a group, and start from first record in outer group)
     const records = await knexRO
       .with('base', baseQuery)
       .with(
         'lagged',
         knexRO.raw(
-          'SELECT *, lag((type, actor_id)) OVER (ORDER BY created_at) AS prev_type FROM base ORDER BY created_at'
+          'SELECT *, lag(type) OVER (PARTITION BY actor_id ORDER BY created_at) AS prev_type FROM base ORDER BY created_at'
         )
       )
       .with(
         'diffed',
         knexRO.raw(
-          'SELECT *, CASE WHEN (type, actor_id) = prev_type THEN 0 ELSE 1 END AS change_flag FROM lagged'
+          'SELECT *, CASE WHEN type = prev_type THEN 0 ELSE 1 END AS change_flag FROM lagged'
         )
       )
       .with(
         'type_grouped',
         knexRO.raw(
-          'SELECT *, SUM(change_flag) OVER (ORDER BY created_at) AS type_group FROM diffed'
+          'SELECT *, SUM(change_flag) OVER (PARTITION BY actor_id ORDER BY created_at) AS type_group FROM diffed'
         )
       )
       .with(
         'time_grouped',
         knexRO.raw(
-          'SELECT *, (extract(hour FROM created_at - first_value(created_at) OVER (PARTITION BY type_group ORDER BY created_at))::integer)/4 AS time_group FROM type_grouped'
+          'SELECT *, (extract(hour FROM created_at - first_value(created_at) OVER (PARTITION BY actor_id, type_group ORDER BY created_at))::integer)/4 AS time_group FROM type_grouped'
         )
       )
       .with(
         'agged',
         knexRO.raw(
-          'SELECT *, row_number() OVER act_group AS rn, count(1) OVER (PARTITION BY type_group, time_group ) AS group_size, nth_value(node_id, 2) OVER act_group as act_node_2,  nth_value(node_id, 3) OVER act_group AS act_node_3 FROM time_grouped WINDOW act_group AS (PARTITION BY type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)'
+          `SELECT
+              *,
+              row_number() OVER acty_group AS rn,
+              count(1) OVER (PARTITION BY actor_id, type_group, time_group ) AS group_size,
+              nth_value(node_id, 2) OVER acty_group AS acty_node_2,
+              nth_value(node_id, 3) OVER acty_group AS acty_node_3
+          FROM time_grouped
+          WINDOW acty_group AS (PARTITION BY actor_id, type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)`
         )
       )
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
