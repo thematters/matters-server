@@ -221,7 +221,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Activities based on user's following, sort by creation time."
-    following(input: ConnectionArgs!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
+    following(input: RecommendationFollowingInput!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles recommended based on recently read article tags."
     readTagsArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Merged into following")
@@ -567,6 +567,7 @@ export default /* GraphQL */ `
 
   union FollowingActivity = UserPublishArticleActivity
   | UserAddArticleTagActivity
+  | UserPostJournalActivity
 
   # circle activities
   | UserBroadcastCircleActivity
@@ -595,6 +596,17 @@ export default /* GraphQL */ `
 
     "Tag added by article"
     target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
+  }
+
+  type UserPostJournalActivity {
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
+    createdAt: DateTime!
+
+    "Journal posted by actor"
+    node: Journal! @logCache(type: "${NODE_TYPES.Journal}")
+
+    "Another 2 journals posted by actor"
+    more: [Journal!]!
   }
 
   type UserBroadcastCircleActivity {
@@ -1076,5 +1088,19 @@ export default /* GraphQL */ `
 
   input UserArticlesFilter {
     state: ArticleState = active
+  }
+
+  input RecommendationFollowingInput {
+    first: Int
+    after: String
+    filter: RecommendationFollowingFilterInput
+  }
+
+  input RecommendationFollowingFilterInput {
+    type:RecommendationFollowingFilterType!
+  }
+
+  enum RecommendationFollowingFilterType {
+    article
   }
 `

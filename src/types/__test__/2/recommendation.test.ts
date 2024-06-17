@@ -267,3 +267,51 @@ describe('icymi topic', () => {
     )
   })
 })
+
+describe('following', () => {
+  const GET_VIEWER_RECOMMENDATION_ICYMI = /* GraphQL */ `
+    query ($input: RecommendationFollowingInput!) {
+      viewer {
+        recommendation {
+          following(input: $input) {
+            totalCount
+            edges {
+              node {
+                ... on UserPublishArticleActivity {
+                  actor {
+                    id
+                  }
+                  node {
+                    id
+                  }
+                  createdAt
+                }
+                ... on UserPostJournalActivity {
+                  actor {
+                    id
+                  }
+                  node {
+                    id
+                  }
+                  more {
+                    id
+                  }
+                  createdAt
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  test('query', async () => {
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_ICYMI,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.viewer.recommendation.following.totalCount).toBeGreaterThan(0)
+  })
+})
