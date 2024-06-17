@@ -40,7 +40,6 @@ const resolver: GQLRecommendationResolvers['following'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
   const articleOnly = input?.filter?.type === 'article'
-  console.log('articleOnly: ', articleOnly)
 
   // Retrieve activities
   const [activities, totalCount] = await makeBaseActivityQuery(
@@ -49,8 +48,6 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     articleOnly,
     knexRO
   )
-
-  console.log(activities)
 
   /**
    * Utils
