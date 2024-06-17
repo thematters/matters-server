@@ -26,11 +26,13 @@ export const withExcludedUsers = (
   })
 
 // retrieve base activities
-export const makeBaseActivityQuery = (
+export const makeBaseActivityQuery = async (
   { userId }: { userId: string },
+  { skip, take }: { skip: number; take: number },
+  articleOnly = false,
   knexRO: Knex
-) =>
-  withExcludedUsers({ userId }, knexRO)
+): Promise<[any, number]> => {
+  const baseQuery = withExcludedUsers({ userId }, knexRO)
     .select()
     .from(
       // retrieve UserPublishArticleActivity based on user's following user
@@ -46,25 +48,78 @@ export const makeBaseActivityQuery = (
           'au.action': USER_ACTION.follow,
           'acty.type': ActivityType.UserPublishArticleActivity,
         })
-        .union([
-          // retrieve UserAddArticleTagActivity based on viewer's following tag
-          knexRO
-            .select('acty.*')
-            .from('action_tag as at')
-            .join(`${viewName} as acty`, 'acty.target_id', 'at.target_id')
-            .leftJoin(
-              'excluded_users',
-              'acty.actor_id',
-              'excluded_users.user_id'
-            )
-            .where({
-              'excluded_users.user_id': null,
-              'at.user_id': userId,
-              'at.action': TAG_ACTION.follow,
-              'acty.type': ActivityType.UserAddArticleTagActivity,
-            }),
-        ])
+        .modify((builder: Knex.QueryBuilder) => {
+          if (articleOnly !== true) {
+            builder.union([
+              // retrieve UserAddArticleTagActivity based on viewer's following tag
+              knexRO
+                .select('acty.*')
+                .from('action_tag as at')
+                .join(`${viewName} as acty`, 'acty.target_id', 'at.target_id')
+                .leftJoin(
+                  'excluded_users',
+                  'acty.actor_id',
+                  'excluded_users.user_id'
+                )
+                .where({
+                  'excluded_users.user_id': null,
+                  'at.user_id': userId,
+                  'at.action': TAG_ACTION.follow,
+                  'acty.type': ActivityType.UserAddArticleTagActivity,
+                }),
+            ])
+          }
+        })
     )
+
+  if (articleOnly !== true) {
+    const records = await knexRO
+      .with('base', baseQuery)
+      .with(
+        'lagged',
+        knexRO.raw(
+          'SELECT *, lag(type, actor_id) OVER (ORDER BY created_at) AS prev_type FROM base ORDER BY created_at'
+        )
+      )
+      .with(
+        'diffed',
+        knexRO.raw(
+          'SELECT *, CASE WHEN (type, actor_id) = prev_type THEN 0 ELSE 1 END AS change_flag FROM lagged'
+        )
+      )
+      .with(
+        'type_grouped',
+        knexRO.raw(
+          'SELECT *, SUM(change_flag) OVER (ORDER BY created_at) AS type_group FROM diffed'
+        )
+      )
+      .with(
+        'time_grouped',
+        knexRO.raw(
+          'SELECT *, (extract(minute FROM created_at - first_value(created_at) OVER (PARTITION BY type_group ORDER BY created_at))::integer)/2 AS time_group FROM type_grouped'
+        )
+      )
+      .with(
+        'agged',
+        knexRO.raw(
+          'SELECT *, row_number() OVER act_group AS rn, count(1) OVER (PARTITION BY type_group, time_group ) AS group_size, nth_value(id, 2) OVER act_group as act_2,  nth_value(id, 3) OVER act_group AS act_3 FROM time_grouped WINDOW act_group AS (PARTITION BY type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)'
+        )
+      )
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .orderBy('created_at', 'desc')
+      .offset(skip)
+      .limit(take)
+    return [records, +(records[0]?.totalCount ?? 0)]
+  } else {
+    const records = await knexRO
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .from(baseQuery)
+      .orderBy('created_at', 'desc')
+      .offset(skip)
+      .limit(take)
+    return [records, +(records[0]?.totalCount ?? 0)]
+  }
+}
 
 // retrieve circle activities
 export const makeCircleActivityQuery = (

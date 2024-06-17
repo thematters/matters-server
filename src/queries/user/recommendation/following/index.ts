@@ -38,16 +38,15 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   }
 
   const { take, skip } = fromConnectionArgs(input)
+  const articleOnly = input?.filter?.type === 'article'
 
   // Retrieve activities
-  const [count, activities] = await Promise.all([
-    makeBaseActivityQuery({ userId }, knexRO).count().first(),
-    makeBaseActivityQuery({ userId }, knexRO)
-      .orderBy('created_at', 'desc')
-      .offset(skip)
-      .limit(take),
-  ])
-  const totalCount = parseInt(count ? (count.count as string) : '0', 10)
+  const [activities, totalCount] = await makeBaseActivityQuery(
+    { userId },
+    { take, skip },
+    articleOnly,
+    knexRO
+  )
 
   /**
    * Utils
@@ -102,7 +101,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   ]
 
   const connections = await connectionFromPromisedArray(
-    Promise.all(activities.map((acty) => activityLoader(acty))),
+    Promise.all(activities.map((acty: any) => activityLoader(acty))),
     input,
     totalCount
   )
