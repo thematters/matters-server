@@ -86,7 +86,7 @@ exports.up = async (knex) => {
           author_id AS actor_id,
           id AS node_id,
           'Journal' AS node_type,
-          null as target_id,
+          null::bigint AS target_id,
           null AS target_type,
           created_at
         FROM journal_period
