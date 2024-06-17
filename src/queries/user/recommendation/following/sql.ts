@@ -135,7 +135,7 @@ export const makeBaseActivityQuery = async (
         knexRO.raw(
           `SELECT
               *,
-              row_number() OVER acty_group AS rn,
+              row_number() OVER acty_group AS rank,
               count(1) OVER (PARTITION BY actor_id, type_group, time_group ) AS group_size,
               nth_value(node_id, 2) OVER acty_group AS acty_node_2,
               nth_value(node_id, 3) OVER acty_group AS acty_node_3
@@ -145,6 +145,18 @@ export const makeBaseActivityQuery = async (
       )
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
       .from('agged')
+      .where((whereBuilder) => {
+        whereBuilder
+          .where('type', '=', ActivityType.UserPostJournalActivity)
+          .andWhere('group_size', '<=', 2)
+      })
+      .orWhere((orWhereBuilder) => {
+        orWhereBuilder
+          .where('type', '=', ActivityType.UserPostJournalActivity)
+          .andWhere('group_size', '>', 2)
+          .andWhere('rank', '=', 1)
+      })
+      .orWhere('type', '!=', ActivityType.UserPostJournalActivity)
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)
@@ -152,7 +164,7 @@ export const makeBaseActivityQuery = async (
   } else {
     const records = await knexRO
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .from(baseQuery)
+      .from(baseQuery.as('base'))
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)

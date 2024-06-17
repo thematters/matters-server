@@ -8,6 +8,7 @@ import {
 import {
   RecommendationService,
   AtomService,
+  ArticleService,
   JournalService,
   UserService,
 } from 'connectors'
@@ -16,17 +17,19 @@ import { toGlobalId } from 'common/utils'
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
+let recommendationService: RecommendationService
 let atomService: AtomService
+let articleService: ArticleService
 let journalService: JournalService
 let userService: UserService
-let recommendationService: RecommendationService
 
 beforeAll(async () => {
   connections = await genConnections()
+  recommendationService = new RecommendationService(connections)
+  articleService = new ArticleService(connections)
   atomService = new AtomService(connections)
   journalService = new JournalService(connections)
   userService = new UserService(connections)
-  recommendationService = new RecommendationService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -354,8 +357,115 @@ describe('following', () => {
       variables: { input: { first: 10 } },
     })
     expect(errors1).toBeUndefined()
-    console.log(data1)
     expect(data1.viewer.recommendation.following.totalCount).toBe(1)
+    expect(data1.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+    )
+
+    // two same actor journal activities in series
+    const journal2 = await journalService.create({ content: 'test' }, followee1)
+    await refreshView()
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.viewer.recommendation.following.totalCount).toBe(2)
+    expect(data2.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal2.id })
+    )
+    expect(data2.viewer.recommendation.following.edges[1].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+    )
+
+    // three same actor journal activities in series will be combined into one activity
+    const journal3 = await journalService.create({ content: 'test' }, followee1)
+    await refreshView()
+
+    const { errors: errors3, data: data3 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors3).toBeUndefined()
+    expect(data3.viewer.recommendation.following.totalCount).toBe(1)
+    expect(data3.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal3.id })
+    )
+    expect(data3.viewer.recommendation.following.edges[0].node.more[0].id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal2.id })
+    )
+    expect(data3.viewer.recommendation.following.edges[0].node.more[1].id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+    )
+
+    // other actor journal activities will not reset the combination time window
+    const journal4 = await journalService.create({ content: 'test' }, followee2)
+    const journal5 = await journalService.create({ content: 'test' }, followee1)
+    await refreshView()
+
+    const { errors: errors4, data: data4 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors4).toBeUndefined()
+    expect(data4.viewer.recommendation.following.totalCount).toBe(2)
+    expect(data4.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal5.id })
+    )
+    expect(data4.viewer.recommendation.following.edges[1].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal4.id })
+    )
+
+    // same actor other activities will  reset the combination time window
+    const [article] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: followee1.id,
+    })
+    const journal6 = await journalService.create({ content: 'test' }, followee1)
+    await refreshView()
+
+    const { errors: errors5, data: data5 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors5).toBeUndefined()
+    expect(data5.viewer.recommendation.following.totalCount).toBe(4)
+    expect(data5.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal6.id })
+    )
+    expect(data5.viewer.recommendation.following.edges[1].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
+    expect(data5.viewer.recommendation.following.edges[2].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal5.id })
+    )
+    expect(data5.viewer.recommendation.following.edges[3].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Journal, id: journal4.id })
+    )
+
+    // article only
+    const { errors: errors6, data: data6 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10, filter: { type: 'article' } } },
+    })
+    expect(errors6).toBeUndefined()
+    expect(data6.viewer.recommendation.following.totalCount).toBe(1)
+    expect(data6.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
   })
-  test('visitor return empty result', async () => {})
+  test('visitor return empty result', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const { errors: emptyErrors, data: emptyData } =
+      await server.executeOperation({
+        query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+        variables: { input: { first: 10 } },
+      })
+    expect(emptyErrors).toBeUndefined()
+    expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
+  })
 })
