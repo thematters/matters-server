@@ -75,7 +75,7 @@ import {
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import {
   EmailNotFoundError,
   CryptoWalletExistsError,
@@ -197,24 +197,26 @@ export class UserService extends BaseService<User> {
     )
 
     // no await to put data async
-    this.aws.putMetricData({
-      MetricData: [
-        {
-          MetricName: METRICS_NAMES.UserRegistrationCount,
-          // Counts: [1],
-          Dimensions: [
-            {
-              Name: 'reg_type' /* required */,
-              Value: ethAddress ? 'wallet' : 'email' /* required */,
-            },
-            /* more items */
-          ],
-          Timestamp: new Date(),
-          Unit: 'Count',
-          Value: 1,
-        },
-      ],
-    })
+    if (isProd) {
+      this.aws.putMetricData({
+        MetricData: [
+          {
+            MetricName: METRICS_NAMES.UserRegistrationCount,
+            // Counts: [1],
+            Dimensions: [
+              {
+                Name: 'reg_type' /* required */,
+                Value: ethAddress ? 'wallet' : 'email' /* required */,
+              },
+              /* more items */
+            ],
+            Timestamp: new Date(),
+            Unit: 'Count',
+            Value: 1,
+          },
+        ],
+      })
+    }
 
     return user
   }
