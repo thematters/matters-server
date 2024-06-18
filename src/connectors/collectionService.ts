@@ -129,7 +129,7 @@ export class CollectionService extends BaseService<Collection> {
         reversed,
       })
     }
-    const { page_number: pageNumber } = positionMeta[0]
+    const { pageNumber } = positionMeta[0]
 
     const [records, totalCount] = await this.findAndCountArticlesInCollection(
       collectionId,
