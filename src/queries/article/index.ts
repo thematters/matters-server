@@ -55,7 +55,6 @@ import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import tagIsOfficial from './tag/isOfficial'
-import tagIsPinned from './tag/isPinned'
 import tagNumArticles from './tag/numArticles'
 import tagNumAuthors from './tag/numAuthors'
 import * as tagOSS from './tag/oss'
@@ -141,7 +140,6 @@ const schema: GQLResolvers = {
     editors: tagEditors,
     owner: tagOwner,
     isFollower: tagIsFollower,
-    isPinned: tagIsPinned,
     isOfficial: tagIsOfficial,
     numArticles: tagNumArticles,
     numAuthors: tagNumAuthors,
