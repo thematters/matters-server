@@ -91,8 +91,12 @@ export class UserWorkService {
         records[records.length - 1].createdAt > records[0].minCursor
       return [records, totalCount, hasNextPage]
     } else {
-      const [{ count }] = await knexRO.from(subQuery).count()
-      return [[], +count, false]
+      if (after || take === 0) {
+        const [{ count }] = await knexRO.from(subQuery).count()
+        return [[], +count, false]
+      } else {
+        return [[], 0, false]
+      }
     }
   }
 }
