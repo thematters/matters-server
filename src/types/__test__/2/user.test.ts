@@ -1643,7 +1643,6 @@ describe('query user writings', () => {
     expect(data.viewer.writings.totalCount).toBe(1)
     expect(data.viewer.writings.pageInfo.hasPreviousPage).toBeFalsy()
     expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
-    console.dir(data, { depth: null })
 
     const { data: dataAfter, errors: errorsAfter } =
       await server.executeOperation({
@@ -1652,7 +1651,6 @@ describe('query user writings', () => {
           input: { first: 5, after: data.viewer.writings.pageInfo.endCursor },
         },
       })
-    console.dir(dataAfter, { depth: null })
     expect(errorsAfter).toBeUndefined()
     expect(dataAfter.viewer.writings.totalCount).toBe(1)
     expect(dataAfter.viewer.writings.pageInfo.hasPreviousPage).toBeTruthy()
