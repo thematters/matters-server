@@ -6,7 +6,6 @@ import { InvalidCursorError } from 'common/errors'
 interface Writing {
   type: NODE_TYPES.Article | NODE_TYPES.Journal
   id: string
-  createdAt: Date
 }
 
 /**
@@ -92,7 +91,8 @@ export class UserWorkService {
         records[records.length - 1].createdAt > records[0].minCursor
       return [records, totalCount, hasNextPage]
     } else {
-      return [[], 0, false]
+      const [{ count }] = await knexRO.from(subQuery).count()
+      return [[], +count, false]
     }
   }
 }

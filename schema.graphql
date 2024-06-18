@@ -957,7 +957,7 @@ type User implements Node {
   articles(input: UserArticlesInput!): ArticleConnection!
 
   """Articles and journals authored by current user."""
-  writings(input: WritingInput): WritingConnection!
+  writings(input: WritingInput!): WritingConnection!
 
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!

@@ -56,6 +56,15 @@ describe('findWritings', () => {
     expect(records[0].type).toBe('Journal')
     expect(totalCount).toBe(1)
     expect(hasNextPage).toBeFalsy()
+
+    const [records1, totalCount1, hasNextPage1] =
+      await userWorkService.findWritings(user.id, {
+        take: 2,
+        after: { type: NODE_TYPES.Journal, id: records[0].id },
+      })
+    expect(records1).toEqual([])
+    expect(totalCount1).toBe(1)
+    expect(hasNextPage1).toBeFalsy()
   })
   test('find multi records', async () => {
     const user = await userService.create({ userName: 'testFindWritings3' })

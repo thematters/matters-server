@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, User } from 'definitions'
 import type { Knex } from 'knex'
 
 import _get from 'lodash/get'
@@ -14,7 +14,12 @@ import {
   VERIFICATION_CODE_STATUS,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { refreshView, UserService, PaymentService } from 'connectors'
+import {
+  refreshView,
+  UserService,
+  PaymentService,
+  JournalService,
+} from 'connectors'
 import { createDonationTx, createTx } from 'connectors/__test__/utils'
 
 import {
@@ -29,11 +34,13 @@ import {
 
 let connections: Connections
 let userService: UserService
+let journalService: JournalService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
+  journalService = new JournalService(connections)
   paymentService = new PaymentService(connections)
 }, 50000)
 
@@ -1570,5 +1577,85 @@ describe('update user email', () => {
       query: QUERY_VIEWER_CHANGE_EMAIL_TIMES_LEFT,
     })
     expect(data.viewer.status.changeEmailTimesLeft).toBe(3)
+  })
+})
+
+describe('query user writings', () => {
+  const QUERY_VIEWER_WRITINGS = /* GraphQL */ `
+    query ($input: WritingInput!) {
+      viewer {
+        id
+        writings(input: $input) {
+          edges {
+            node {
+              ... on Article {
+                id
+              }
+              ... on Journal {
+                id
+              }
+            }
+          }
+          totalCount
+          pageInfo {
+            startCursor
+            endCursor
+            hasNextPage
+            hasPreviousPage
+          }
+        }
+      }
+    }
+  `
+  let user: User
+  let idx: number = 1
+  beforeEach(async () => {
+    user = await userService.create({ userName: `test-writings-${idx}` })
+    idx += 1
+  })
+  test('find no writings', async () => {
+    const server = await testClient({
+      isAuth: true,
+      connections,
+      context: { viewer: user },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_VIEWER_WRITINGS,
+      variables: { input: { first: 5 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.viewer.writings.totalCount).toBe(0)
+    expect(data.viewer.writings.pageInfo.hasPreviousPage).toBeFalsy()
+    expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
+  })
+  test('find some writings', async () => {
+    await journalService.create({ content: 'test' }, user)
+    const server = await testClient({
+      isAuth: true,
+      connections,
+      context: { viewer: user },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_VIEWER_WRITINGS,
+      variables: { input: { first: 5 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.viewer.writings.totalCount).toBe(1)
+    expect(data.viewer.writings.pageInfo.hasPreviousPage).toBeFalsy()
+    expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
+    console.dir(data, { depth: null })
+
+    const { data: dataAfter, errors: errorsAfter } =
+      await server.executeOperation({
+        query: QUERY_VIEWER_WRITINGS,
+        variables: {
+          input: { first: 5, after: data.viewer.writings.pageInfo.endCursor },
+        },
+      })
+    console.dir(dataAfter, { depth: null })
+    expect(errorsAfter).toBeUndefined()
+    expect(dataAfter.viewer.writings.totalCount).toBe(1)
+    expect(dataAfter.viewer.writings.pageInfo.hasPreviousPage).toBeTruthy()
+    expect(dataAfter.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
   })
 })

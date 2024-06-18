@@ -24,6 +24,7 @@ import {
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
+  Writing as WritingModel,
   Context,
 } from './index'
 import { PayoutAccount as PayoutAccountModel } from './payment'
@@ -3673,7 +3674,7 @@ export type GQLUserTagsArgs = {
 }
 
 export type GQLUserWritingsArgs = {
-  input?: InputMaybe<GQLWritingInput>
+  input: GQLWritingInput
 }
 
 export type GQLUserActivity = {
@@ -4226,7 +4227,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLUserConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['UserEdge']>>
       })
-    | GQLWritingConnection
+    | (Omit<GQLWritingConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['WritingEdge']>>
+      })
   Node:
     | ArticleModel
     | ArticleVersionModel
@@ -4832,10 +4835,12 @@ export type GQLResolversTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
-  Writing: ResolverTypeWrapper<
-    GQLResolversUnionTypes<GQLResolversTypes>['Writing']
+  Writing: ResolverTypeWrapper<WritingModel>
+  WritingConnection: ResolverTypeWrapper<
+    Omit<GQLWritingConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['WritingEdge']>>
+    }
   >
-  WritingConnection: ResolverTypeWrapper<GQLWritingConnection>
   WritingEdge: ResolverTypeWrapper<
     Omit<GQLWritingEdge, 'node'> & { node: GQLResolversTypes['Writing'] }
   >
@@ -5274,8 +5279,10 @@ export type GQLResolversParentTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
-  Writing: GQLResolversUnionTypes<GQLResolversParentTypes>['Writing']
-  WritingConnection: GQLWritingConnection
+  Writing: WritingModel
+  WritingConnection: Omit<GQLWritingConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['WritingEdge']>>
+  }
   WritingEdge: Omit<GQLWritingEdge, 'node'> & {
     node: GQLResolversParentTypes['Writing']
   }
@@ -8777,7 +8784,7 @@ export type GQLUserResolvers<
     GQLResolversTypes['WritingConnection'],
     ParentType,
     ContextType,
-    Partial<GQLUserWritingsArgs>
+    RequireFields<GQLUserWritingsArgs, 'input'>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>

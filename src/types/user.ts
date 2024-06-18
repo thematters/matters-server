@@ -156,7 +156,7 @@ export default /* GraphQL */ `
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles and journals authored by current user."
-    writings(input:WritingInput ): WritingConnection!
+    writings(input:WritingInput!): WritingConnection!
 
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
