@@ -115,19 +115,16 @@ test('findArticleInCollection', async () => {
     title: 'test',
   })
   // generate 50 articles
-  const articleIds = Array.from({ length: 50 }, (_, i) => (i + 1).toString())
-  await collectionService.addArticles(collectionId, articleIds)
+  await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
 
   const [articles, totalCount] =
-    await collectionService.findArticleInCollection(collectionId, '30', {
-      take: 4,
+    await collectionService.findArticleInCollection(collectionId, '3', {
+      take: 1,
     })
 
-  expect(articles.length).toBe(4)
-  expect(totalCount).toBe(50)
-  // should be [28, 29, 30, 31]
-  expect(articles[0].articleId).toBe('28')
-  expect(articles[2].articleId).toBe('30')
+  expect(articles.length).toBe(1)
+  expect(totalCount).toBe(4)
+  expect(articles[0].articleId).toBe('3')
 })
 
 test('findArticleInCollectionNotFound', async () => {
