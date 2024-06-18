@@ -119,10 +119,11 @@ test('findArticleInCollection', async () => {
 
   const [articles, totalCount] =
     await collectionService.findArticleInCollection(collectionId, '3', {
-      take: 1,
+      take: 2,
+      reversed: false,
     })
 
-  expect(articles.length).toBe(1)
+  expect(articles.length).toBe(2)
   expect(totalCount).toBe(4)
   expect(articles[0].articleId).toBe('3')
 })
