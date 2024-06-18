@@ -3524,8 +3524,6 @@ export type GQLUser = GQLNode & {
   liker: GQLLiker
   /** LikerID of LikeCoin, being used by LikeCoin OAuth */
   likerId?: Maybe<Scalars['String']['output']>
-  /** Tags owned and maintained by current user. */
-  maintainedTags: GQLTagConnection
   notices: GQLNoticeConnection
   oss: GQLUserOss
   /** Circles belong to current user. */
@@ -3576,10 +3574,6 @@ export type GQLUserDraftsArgs = {
 }
 
 export type GQLUserFollowersArgs = {
-  input: GQLConnectionArgs
-}
-
-export type GQLUserMaintainedTagsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -8520,12 +8514,6 @@ export type GQLUserResolvers<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType
-  >
-  maintainedTags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLUserMaintainedTagsArgs, 'input'>
   >
   notices?: Resolver<
     GQLResolversTypes['NoticeConnection'],

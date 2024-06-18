@@ -63,7 +63,6 @@ import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
-import maintainedTags from './tags/maintainedTags'
 import pinnedTags from './tags/pinnedTags'
 import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
 import totalWordCount from './totalWordCount'
@@ -135,7 +134,6 @@ const user: {
     isBlocked,
     ownCircles,
     subscribedCircles,
-    maintainedTags,
     pinnedTags,
     tags: tagsUsageRecommendation,
   },

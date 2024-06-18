@@ -167,9 +167,6 @@ export default /* GraphQL */ `
     "Tags by by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "Tags owned and maintained by current user."
-    maintainedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
-
     "Tags pinned by current user."
     pinnedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
