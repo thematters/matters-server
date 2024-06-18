@@ -8,7 +8,6 @@ import {
   MAX_TAGS_PER_ARTICLE_LIMIT,
   DEFAULT_TAKE_PER_PAGE,
   TAG_ACTION,
-  VIEW,
   MATERIALIZED_VIEW,
   CACHE_PREFIX,
   CACHE_TTL,
@@ -145,16 +144,6 @@ export class TagService extends BaseService<Tag> {
       .orWhere(this.knex.raw(`editors @> ARRAY[?]`, [userId]))
       .orderBy('id', 'desc')
 
-  public findTotalTagsByAuthorUsage = async (userId: string) =>
-    // Math.min(100 // the authors_lasts table is only populating the top 100 tags for each author
-    (
-      await this.knex
-        .select('num_tags')
-        .from(this.knex.ref(VIEW.authors_lasts_view).as('al'))
-        .where('al.id', userId)
-        .first()
-    )?.numTags ?? 0
-
   public findByAuthorUsage = async ({
     userId,
     skip,
@@ -163,26 +152,37 @@ export class TagService extends BaseService<Tag> {
     userId: string
     skip?: number
     take?: number
-  }) =>
-    this.knex
+  }) => {
+    const baseQuery = this.knexRO.raw(
+      `
+        (SELECT
+            tag.*,
+            count(1) AS num_articles,
+            MAX(article.created_at) AS last_use
+        FROM article
+        JOIN article_tag ON article.id = article_tag.article_id
+        JOIN tag ON article_tag.tag_id = tag.id
+        WHERE article.author_id=? GROUP BY tag.id) AS base
+    `,
+      userId
+    )
+
+    const tags = await this.knexRO
       .select(
-        'x.*',
-        this.knex.raw(
+        '*',
+        this.knexRO.raw('count(1) OVER() AS total_count'),
+        this.knexRO.raw(
           `(age(last_use) <= '3 months' ::interval) AS recent_inuse`
         )
       )
-      .from(this.knex.ref(VIEW.authors_lasts_view).as('al'))
-      .joinRaw(
-        `CROSS JOIN jsonb_to_recordset(top_tags) AS x(id INT, content TEXT, id_tag TEXT, last_use timestamptz, num_articles INT, sum_word_count INT)`
-      )
-      .where('al.id', userId)
+      .from(baseQuery)
       .andWhere((builder: Knex.QueryBuilder) => {
-        builder.whereNotIn('x.id', [environment.mattyChoiceTagId])
+        builder.whereNotIn('id', [environment.mattyChoiceTagId])
       })
       .orderByRaw(`recent_inuse DESC NULLS LAST`)
       .orderByRaw(`num_articles DESC`)
       .orderByRaw(`last_use DESC NULLS LAST`)
-      .orderByRaw(`x.id DESC`)
+      .orderByRaw(`id DESC`)
       .modify((builder: Knex.QueryBuilder) => {
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
@@ -191,6 +191,8 @@ export class TagService extends BaseService<Tag> {
           builder.limit(take)
         }
       })
+    return [tags, +(tags[0]?.totalCount ?? 0)]
+  }
 
   public findPinnedTagsByUserId = async ({
     userId,

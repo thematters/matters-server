@@ -16,6 +16,11 @@ fi
 # find a way to run this only on AnalyticsDB
 # ${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' --file=./sql/create-indexes.sql
 
+UPDATING_TS="Create text search configuration started at ${started}"
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
+       -v schemaname=search_index \
+       -v comment="'schemaname=search_index created ${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
+       --file=./sql/create-schema-grant-all-select.sql
 
 UPDATING_TS="Create text search configuration started at ${started}"
 ${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
@@ -42,5 +47,3 @@ ${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v schemaname=search_index \
 	-v comment="'alias tablename=search_index.tag: ${UPDATING_TS}'" \
 	--file=./sql/create-table-search-index-tag.sql
-
-echo "updated done: $(date -R)"
