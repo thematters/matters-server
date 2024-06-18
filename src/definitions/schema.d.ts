@@ -918,7 +918,6 @@ export type GQLCollection = GQLNode &
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
-    pageNumber?: Maybe<Scalars['Int']['output']>
     pinned: Scalars['Boolean']['output']
     title: Scalars['String']['output']
     updatedAt: Scalars['DateTime']['output']
@@ -934,7 +933,10 @@ export type GQLCollectionContainsArgs = {
 
 export type GQLCollectionArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  /** In order to query where the article is at in the collection */
   articleId?: InputMaybe<Scalars['ID']['input']>
+  /** To enable pagination to the query before this article. */
+  before?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   reversed?: InputMaybe<Scalars['Boolean']['input']>
 }
@@ -6193,11 +6195,6 @@ export type GQLCollectionResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  pageNumber?: Resolver<
-    Maybe<GQLResolversTypes['Int']>,
-    ParentType,
-    ContextType
-  >
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>

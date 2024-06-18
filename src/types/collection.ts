@@ -26,7 +26,6 @@ export default /* GraphQL */ `
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
-     pageNumber: Int
 
      "Check if the collection contains the article"
      contains(input: NodeInput!): Boolean!
@@ -44,9 +43,12 @@ export default /* GraphQL */ `
   }
 
   input CollectionArticlesInput {
+    "To enable pagination to the query before this article."
+    before: String
     after: String
     first: Int
     reversed: Boolean = True
+    "In order to query where the article is at in the collection"
     articleId: ID
   }
 

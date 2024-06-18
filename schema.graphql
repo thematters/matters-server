@@ -3460,7 +3460,6 @@ type Collection implements Node & PinnableWork {
   articles(input: CollectionArticlesInput!): ArticleConnection!
   pinned: Boolean!
   updatedAt: DateTime!
-  pageNumber: Int
 
   """Check if the collection contains the article"""
   contains(input: NodeInput!): Boolean!
@@ -3478,9 +3477,13 @@ type CollectionConnection implements Connection {
 }
 
 input CollectionArticlesInput {
+  """To enable pagination to the query before this article."""
+  before: String
   after: String
   first: Int
   reversed: Boolean
+
+  """In order to query where the article is at in the collection"""
   articleId: ID
 }
 
