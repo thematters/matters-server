@@ -35,7 +35,7 @@ const resolver: GQLUserResolvers['writings'] = async (
 
   // gen edges
   const isArticle = (node: Article | Journal): node is Article =>
-    'short_hash' in node
+    'shortHash' in node
   const edges = nodes.map((node) => {
     const type = isArticle(node) ? NODE_TYPES.Article : NODE_TYPES.Journal
     return {

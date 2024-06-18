@@ -17,6 +17,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
   refreshView,
   UserService,
+  ArticleService,
   PaymentService,
   JournalService,
 } from 'connectors'
@@ -34,12 +35,14 @@ import {
 
 let connections: Connections
 let userService: UserService
+let articleService: ArticleService
 let journalService: JournalService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
+  articleService = new ArticleService(connections)
   journalService = new JournalService(connections)
   paymentService = new PaymentService(connections)
 }, 50000)
@@ -1630,6 +1633,11 @@ describe('query user writings', () => {
   })
   test('find some writings', async () => {
     await journalService.create({ content: 'test' }, user)
+    await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: user.id,
+    })
     const server = await testClient({
       isAuth: true,
       connections,
@@ -1640,7 +1648,13 @@ describe('query user writings', () => {
       variables: { input: { first: 5 } },
     })
     expect(errors).toBeUndefined()
-    expect(data.viewer.writings.totalCount).toBe(1)
+    expect(data.viewer.writings.totalCount).toBe(2)
+    expect(fromGlobalId(data.viewer.writings.edges[0].node.id).type).toBe(
+      NODE_TYPES.Article
+    )
+    expect(fromGlobalId(data.viewer.writings.edges[1].node.id).type).toBe(
+      NODE_TYPES.Journal
+    )
     expect(data.viewer.writings.pageInfo.hasPreviousPage).toBeFalsy()
     expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
 
@@ -1652,7 +1666,7 @@ describe('query user writings', () => {
         },
       })
     expect(errorsAfter).toBeUndefined()
-    expect(dataAfter.viewer.writings.totalCount).toBe(1)
+    expect(dataAfter.viewer.writings.totalCount).toBe(2)
     expect(dataAfter.viewer.writings.pageInfo.hasPreviousPage).toBeTruthy()
     expect(dataAfter.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
   })
