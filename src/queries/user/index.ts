@@ -63,7 +63,6 @@ import socialAccounts from './socialAccounts'
 import StripeAccount from './stripeAccount'
 import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
-import pinnedTags from './tags/pinnedTags'
 import tagsUsageRecommendation from './tags/tagsUsageRecommendation'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -134,7 +133,6 @@ const user: {
     isBlocked,
     ownCircles,
     subscribedCircles,
-    pinnedTags,
     tags: tagsUsageRecommendation,
   },
   UserInfo: {
