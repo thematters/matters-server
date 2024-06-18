@@ -176,14 +176,14 @@ export class TagService extends BaseService<Tag> {
         )
       )
       .from(baseQuery)
-      .andWhere((builder: Knex.QueryBuilder) => {
-        builder.whereNotIn('id', [environment.mattyChoiceTagId])
-      })
       .orderByRaw(`recent_inuse DESC NULLS LAST`)
       .orderByRaw(`num_articles DESC`)
       .orderByRaw(`last_use DESC NULLS LAST`)
       .orderByRaw(`id DESC`)
       .modify((builder: Knex.QueryBuilder) => {
+        if (environment.mattyChoiceTagId) {
+          builder.whereNotIn('id', [environment.mattyChoiceTagId])
+        }
         if (skip !== undefined && Number.isFinite(skip)) {
           builder.offset(skip)
         }
