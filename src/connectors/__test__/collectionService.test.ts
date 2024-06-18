@@ -115,7 +115,7 @@ test('findArticleInCollection', async () => {
     title: 'test',
   })
   // generate 50 articles
-  const articleIds = Array.from({ length: 50 }, (_, i) => (i + 1).toString());
+  const articleIds = Array.from({ length: 50 }, (_, i) => (i + 1).toString())
   await collectionService.addArticles(collectionId, articleIds)
 
   const [articles, totalCount] =

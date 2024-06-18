@@ -161,7 +161,7 @@ export const connectionFromArrayWithKeys = <
 }
 
 export const fromConnectionArgs = (
-  input: { first?: number | null; after?: string, before?: string },
+  input: { first?: number | null; after?: string; before?: string },
   options?: {
     allowTakeAll?: boolean
     defaultTake?: number
@@ -189,7 +189,9 @@ export const fromConnectionArgs = (
   }
 
   // if the `before` cursor is provided, go to the previous page
-  const skip = before ? Math.max(0, cursorToIndex(before) - take) : Math.min(cursorToIndex(after) + 1, maxSkip)
+  const skip = before
+    ? Math.max(0, cursorToIndex(before) - take)
+    : Math.min(cursorToIndex(after) + 1, maxSkip)
 
   return { take, skip }
 }
