@@ -4,6 +4,7 @@ import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  fromGlobalId,
 } from 'common/utils'
 
 const resolver: GQLCollectionResolvers['articles'] = async (
@@ -30,9 +31,11 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const [articles, totalCount] = articleId
+  const parsedArticleId = articleId ? fromGlobalId(articleId).id : undefined; // need to parse input ID from global ID
+
+  const [articles, totalCount] = parsedArticleId
     ? // if articleId is provided, we need to use that as the cursor
-    await collectionService.findArticleInCollection(collectionId, articleId, {
+    await collectionService.findArticleInCollection(collectionId, parsedArticleId, {
       take,
       reversed,
     })
@@ -44,7 +47,7 @@ const resolver: GQLCollectionResolvers['articles'] = async (
 
   return connectionFromPromisedArray(
     atomService.articleIdLoader.loadMany(
-      articles.map(article => article.articleId)
+      articles.map((article) => article.articleId)
     ),
     { before, first, after },
     totalCount

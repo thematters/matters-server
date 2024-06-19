@@ -114,18 +114,37 @@ test('findArticleInCollection with the id', async () => {
     authorId: '1',
     title: 'test',
   })
-  // generate 50 articles
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
 
-  const [articles, totalCount] =
+  const [articles1, totalCount] =
     await collectionService.findArticleInCollection(collectionId, '3', {
       take: 2,
       reversed: false,
     })
 
-  expect(articles.length).toBe(2)
+  expect(articles1.length).toBe(2)
   expect(totalCount).toBe(4)
-  expect(articles[0].articleId).toBe('3')
+  expect(articles1[0].articleId).toBe('3')
+
+  const [articles2] = await collectionService.findArticleInCollection(
+    collectionId,
+    '1',
+    {
+      take: 1,
+    }
+  )
+  expect(articles2.length).toBe(1)
+  expect(articles2[0].articleId).toBe('1')
+
+  const [articles3] = await collectionService.findArticleInCollection(
+    collectionId,
+    '2',
+    {
+      take: 2,
+    }
+  )
+  expect(articles3.length).toBe(2)
+  expect(articles3[0].articleId).toBe('2')
 })
 
 test('findArticleInCollectionNotFound', async () => {
@@ -135,10 +154,12 @@ test('findArticleInCollectionNotFound', async () => {
     title: 'test',
   })
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
-  await expect(collectionService.findArticleInCollection(collectionId, articleId, {
-    take: 2,
-    reversed: false,
-  })).rejects.toThrowError(`Article not found in collection: ${articleId}`)
+  await expect(
+    collectionService.findArticleInCollection(collectionId, articleId, {
+      take: 2,
+      reversed: false,
+    })
+  ).rejects.toThrowError(`Article not found in collection: ${articleId}`)
 })
 
 test('deleteCollections', async () => {
