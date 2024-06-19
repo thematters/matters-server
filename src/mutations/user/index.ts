@@ -25,7 +25,6 @@ import { socialLogin, addSocialLogin, removeSocialLogin } from './socialLogin'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
-import togglePinTag from './togglePinTag'
 import toggleUsersBadge from './toggleUsersBadge'
 import unbindLikerId from './unbindLikerId'
 import updateNotificationSetting from './updateNotificationSetting'
@@ -61,7 +60,6 @@ export default {
     setCurrency,
     toggleBlockUser,
     toggleFollowTag,
-    togglePinTag,
     toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,

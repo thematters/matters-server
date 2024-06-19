@@ -52,9 +52,6 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
-  """pin or unpin tag."""
-  togglePinTag(input: ToggleItemInput!): Tag!
-
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
@@ -550,9 +547,6 @@ type Tag implements Node {
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
-  """This value determines if the tag is pinned by current viewer."""
-  isPinned: Boolean
-
   """Followers of this tag."""
   followers(input: ConnectionArgs!): UserConnection!
 
@@ -961,14 +955,8 @@ type User implements Node {
   """user pinned articles or collections"""
   pinnedWorks: [PinnableWork!]!
 
-  """Tags by by usage order of current user."""
+  """Tags by usage order of current user."""
   tags(input: ConnectionArgs!): TagConnection!
-
-  """Tags owned and maintained by current user."""
-  maintainedTags(input: ConnectionArgs!): TagConnection!
-
-  """Tags pinned by current user."""
-  pinnedTags(input: ConnectionArgs!): TagConnection!
 
   """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!

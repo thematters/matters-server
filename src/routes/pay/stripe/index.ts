@@ -53,17 +53,24 @@ stripeRouter.post('/', async (req, res) => {
       sig,
       environment.stripeWebhookSecret
     )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    logger.error(err)
-    slack.sendStripeAlert({
-      data: {
-        id: event?.id,
-        type: event?.type,
-      },
-      message: 'Signature verification failed',
-    })
-    res.status(400).send(`Webhook Error: ${err.message}`)
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      logger.error(err)
+      slack.sendStripeAlert({
+        data: {
+          id: event?.id,
+          type: event?.type,
+        },
+        message: 'Signature verification failed',
+      })
+      res.status(400).send(`Webhook Error: ${err.message}`)
+    } else {
+      logger.error('Unknown error', err)
+      slack.sendStripeAlert({
+        message: 'Unknown error',
+      })
+      res.status(400).send(`Webhook Error: unknown error`)
+    }
   }
   logger.info('Received event', event)
 

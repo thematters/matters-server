@@ -355,13 +355,14 @@ export const completeCircleInvoice = async (
     } else {
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    logger.error(err)
-    slack.sendStripeAlert({
-      data: slackEventData,
-      message: err.message,
-    })
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      logger.error(err)
+      slack.sendStripeAlert({
+        data: slackEventData,
+        message: err.message,
+      })
+    }
     throw err
   }
 }
