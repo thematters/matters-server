@@ -147,12 +147,13 @@ export class PayoutQueue extends BaseQueue {
       const exchangeRate = new ExchangeRate(this.connections.redis)
       try {
         HKDtoUSD = (await exchangeRate.getRate('HKD', 'USD')).rate
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        slack.sendStripeAlert({
-          data,
-          message: err?.message || 'failed to get currency rate.',
-        })
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          slack.sendStripeAlert({
+            data,
+            message: err?.message || 'failed to get currency rate.',
+          })
+        }
         throw err
       }
 
@@ -225,22 +226,25 @@ export class PayoutQueue extends BaseQueue {
 
       job.progress(100)
       done(null, { txId, stripeTxId: transfer.id })
-    } catch (err: any) {
-      slack.sendStripeAlert({
-        data,
-        message: `failed to payout: ${data.txId}.`,
-      })
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        slack.sendStripeAlert({
+          data,
+          message: `failed to payout: ${data.txId}.`,
+        })
 
-      if (txId && err.name !== 'PaymentQueueJobDataError') {
-        try {
-          await this.failTx(txId, paymentService)
-        } catch (error) {
-          logger.error(error)
+        if (txId && err.name !== 'PaymentQueueJobDataError') {
+          try {
+            await this.failTx(txId, paymentService)
+          } catch (error) {
+            logger.error(error)
+          }
         }
-      }
 
-      logger.error(err)
-      done(err)
+        logger.error(err)
+        done(err)
+      }
     }
   }
 }
+

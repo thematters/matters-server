@@ -174,10 +174,8 @@ test('loadByIds', async () => {
   })
   const res2 = await atomService.collectionIdLoader.loadMany([id1, id2])
   expect(res2.length).toBe(2)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  expect((res2[0] as any).id).toBe(id1)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  expect((res2[1] as any).id).toBe(id2)
+  expect(res2[0].id).toBe(id1)
+  expect(res2[1].id).toBe(id2)
 })
 
 test('addArticles', async () => {
