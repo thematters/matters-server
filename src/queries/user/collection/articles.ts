@@ -31,19 +31,23 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const parsedArticleId = articleId ? fromGlobalId(articleId).id : undefined; // need to parse input ID from global ID
+  const parsedArticleId = articleId ? fromGlobalId(articleId).id : undefined // need to parse input ID from global ID
 
   const [articles, totalCount] = parsedArticleId
     ? // if articleId is provided, we need to use that as the cursor
-    await collectionService.findArticleInCollection(collectionId, parsedArticleId, {
-      take,
-      reversed,
-    })
+      await collectionService.findArticleInCollection(
+        collectionId,
+        parsedArticleId,
+        {
+          take,
+          reversed,
+        }
+      )
     : await collectionService.findAndCountArticlesInCollection(collectionId, {
-      skip,
-      take,
-      reversed,
-    })
+        skip,
+        take,
+        reversed,
+      })
 
   return connectionFromPromisedArray(
     atomService.articleIdLoader.loadMany(

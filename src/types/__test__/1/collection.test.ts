@@ -54,24 +54,28 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
   }
 `
 
-// const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
-//   query ($input: NodeInput!) {
-//     node(input: $input) {
-//       ... on Collection {
-//         id
-//         title
-//         articles(input: { first: null, articleId: '1' }) {
-//           totalCount
-//           edges {
-//             node {
-//               id
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// `
+const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
+  query ($input: NodeInput!) {
+    node(input: { id: $input.id }) {
+      ... on Collection {
+        id
+        title
+        articles(input: { first: null, articleId: $input.articleId }) {
+          pageInfo {
+            endCursor
+            hasNextPage
+          }
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
 
 // const GET_COLLECTION_PREV = /* GraphQL */ `
 //   query ($input: NodeInput!) {
@@ -824,6 +828,37 @@ describe('update pinned', () => {
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
     expect(data3?.viewer.pinnedWorks.length).toEqual(2)
     expect(data3?.viewer.pinnedWorks[0].id).toEqual(collectionId)
+  })
+})
+
+describe('get collection by article id', () => {
+  let server: Awaited<ReturnType<typeof testClient>>
+  let collectionId: string
+
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true, connections })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: { input: { title: 'test' } },
+    })
+    collectionId = data?.putCollection?.id
+    await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [articleGlobalId1],
+        },
+      },
+    })
+  })
+  test('get collection by article id', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: { input: { id: collectionId, articleId: articleGlobalId1 } },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    expect(data?.node?.edges?.[0].id).toBe(articleGlobalId1)
   })
 })
 
