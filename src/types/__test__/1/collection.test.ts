@@ -55,12 +55,12 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
 `
 
 const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
-  query ($input: NodeInput!) {
-    node(input: { id: $input.id }) {
+  query ($input1: NodeInput!, $input2: CollectionArticlesInput!) {
+    node(input: $input1) {
       ... on Collection {
         id
         title
-        articles(input: { first: null, articleId: $input.articleId }) {
+        articles(input: $input2) {
           pageInfo {
             endCursor
             hasNextPage
@@ -77,24 +77,24 @@ const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
   }
 `
 
-// const GET_COLLECTION_PREV = /* GraphQL */ `
-//   query ($input: NodeInput!) {
-//     node(input: $input) {
-//       ... on Collection {
-//         id
-//         title
-//         articles(input: { first: 1, before: "MQ==" }) {
-//           totalCount
-//           edges {
-//             node {
-//               id
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// `
+const GET_COLLECTION_PREV = /* GraphQL */ `
+  query ($input1: NodeInput!, $input2: CollectionArticlesInput!){
+    node(input: $input1) {
+      ... on Collection {
+        id
+        title
+        articles(input: $input2) {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
 
 const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -847,7 +847,7 @@ describe('get collection by article id', () => {
       variables: {
         input: {
           collections: [collectionId],
-          articles: [articleGlobalId1],
+          articles: [articleGlobalId1, articleGlobalId4],
         },
       },
     })
@@ -855,10 +855,35 @@ describe('get collection by article id', () => {
   test('get collection by article id', async () => {
     const { data } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
-      variables: { input: { id: collectionId, articleId: articleGlobalId1 } },
+      variables: { input1: { id: collectionId }, input2: { articleId: articleGlobalId1 } },
     })
     expect(data?.node?.id).toBe(collectionId)
-    expect(data?.node?.edges?.[0].id).toBe(articleGlobalId1)
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)
+    expect(data?.node?.articles?.edges?.[1]?.node?.id).toBe(articleGlobalId1)
+  })
+  test('get collection by article id with invalid article id', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: { input1: { id: collectionId }, input2: { articleId: 'invalid' } },
+    })
+    expect(data?.node).toBeNull()
+  })
+  test('get collection by article id and paginate it to the previous page', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: { input1: { id: collectionId }, input2: { articleId: articleGlobalId1, first: 1 } },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION_PREV,
+      variables: {
+        input1: { id: collectionId },
+        input2: { before: data?.node?.articles?.pageInfo?.endCursor },
+      },
+    })
+    expect(data2?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)
   })
 })
 
