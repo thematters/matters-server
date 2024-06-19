@@ -75,10 +75,11 @@ export class AssetQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error(err)
-      done(err)
+      if (err instanceof Error) {
+        done(err)
+      }
     }
   }
 }

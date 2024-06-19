@@ -1,7 +1,7 @@
 import { HOUR } from 'common/enums'
 
-export const timeout = (ms: number, promise: any) =>
-  new Promise((resolve, reject) => {
+export const timeout = <T>(ms: number, promise: Promise<T>) =>
+  new Promise<T>((resolve, reject) => {
     setTimeout(() => {
       reject(new Error('timeout'))
     }, ms)
