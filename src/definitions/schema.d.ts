@@ -1377,6 +1377,7 @@ export type GQLFollowingActivity =
   | GQLUserAddArticleTagActivity
   | GQLUserBroadcastCircleActivity
   | GQLUserCreateCircleActivity
+  | GQLUserPostJournalActivity
   | GQLUserPublishArticleActivity
   | GQLUserRecommendationActivity
 
@@ -2781,7 +2782,7 @@ export type GQLRecommendationAuthorsArgs = {
 }
 
 export type GQLRecommendationFollowingArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendationFollowingInput
 }
 
 export type GQLRecommendationHottestArgs = {
@@ -2818,6 +2819,18 @@ export type GQLRecommendationSelectedTagsArgs = {
 
 export type GQLRecommendationTagsArgs = {
   input: GQLRecommendInput
+}
+
+export type GQLRecommendationFollowingFilterInput = {
+  type: GQLRecommendationFollowingFilterType
+}
+
+export type GQLRecommendationFollowingFilterType = 'article'
+
+export type GQLRecommendationFollowingInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLRecommendationFollowingFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 export type GQLRefreshIpnsFeedInput = {
@@ -3857,6 +3870,16 @@ export type GQLUserOss = {
   score: Scalars['Float']['output']
 }
 
+export type GQLUserPostJournalActivity = {
+  __typename?: 'UserPostJournalActivity'
+  actor: GQLUser
+  createdAt: Scalars['DateTime']['output']
+  /** Another 2 journals posted by actor */
+  more: Array<GQLJournal>
+  /** Journal posted by actor */
+  node: GQLJournal
+}
+
 export type GQLUserPublishArticleActivity = {
   __typename?: 'UserPublishArticleActivity'
   actor: GQLUser
@@ -4149,6 +4172,11 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
       | (Omit<GQLUserCreateCircleActivity, 'actor' | 'node'> & {
           actor: RefType['User']
           node: RefType['Circle']
+        })
+      | (Omit<GQLUserPostJournalActivity, 'actor' | 'more' | 'node'> & {
+          actor: RefType['User']
+          more: Array<RefType['Journal']>
+          node: RefType['Journal']
         })
       | (Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
           actor: RefType['User']
@@ -4628,6 +4656,9 @@ export type GQLResolversTypes = ResolversObject<{
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
   Recommendation: ResolverTypeWrapper<UserModel>
+  RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
+  RecommendationFollowingFilterType: GQLRecommendationFollowingFilterType
+  RecommendationFollowingInput: GQLRecommendationFollowingInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -4810,6 +4841,13 @@ export type GQLResolversTypes = ResolversObject<{
   UserNotice: ResolverTypeWrapper<NoticeItemModel>
   UserNoticeType: GQLUserNoticeType
   UserOSS: ResolverTypeWrapper<UserModel>
+  UserPostJournalActivity: ResolverTypeWrapper<
+    Omit<GQLUserPostJournalActivity, 'actor' | 'more' | 'node'> & {
+      actor: GQLResolversTypes['User']
+      more: Array<GQLResolversTypes['Journal']>
+      node: GQLResolversTypes['Journal']
+    }
+  >
   UserPublishArticleActivity: ResolverTypeWrapper<
     Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
       actor: GQLResolversTypes['User']
@@ -5120,6 +5158,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecentSearchEdge: GQLRecentSearchEdge
   RecommendInput: GQLRecommendInput
   Recommendation: UserModel
+  RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
+  RecommendationFollowingInput: GQLRecommendationFollowingInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
@@ -5261,6 +5301,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserLoginInput: GQLUserLoginInput
   UserNotice: NoticeItemModel
   UserOSS: UserModel
+  UserPostJournalActivity: Omit<
+    GQLUserPostJournalActivity,
+    'actor' | 'more' | 'node'
+  > & {
+    actor: GQLResolversParentTypes['User']
+    more: Array<GQLResolversParentTypes['Journal']>
+    node: GQLResolversParentTypes['Journal']
+  }
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
     'actor' | 'node'
@@ -6694,6 +6742,7 @@ export type GQLFollowingActivityResolvers<
     | 'UserAddArticleTagActivity'
     | 'UserBroadcastCircleActivity'
     | 'UserCreateCircleActivity'
+    | 'UserPostJournalActivity'
     | 'UserPublishArticleActivity'
     | 'UserRecommendationActivity',
     ParentType,
@@ -8999,6 +9048,17 @@ export type GQLUserOssResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLUserPostJournalActivityResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserPostJournalActivity'] = GQLResolversParentTypes['UserPostJournalActivity']
+> = ResolversObject<{
+  actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  more?: Resolver<Array<GQLResolversTypes['Journal']>, ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Journal'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLUserPublishArticleActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserPublishArticleActivity'] = GQLResolversParentTypes['UserPublishArticleActivity']
@@ -9312,6 +9372,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
   UserOSS?: GQLUserOssResolvers<ContextType>
+  UserPostJournalActivity?: GQLUserPostJournalActivityResolvers<ContextType>
   UserPublishArticleActivity?: GQLUserPublishArticleActivityResolvers<ContextType>
   UserRecommendationActivity?: GQLUserRecommendationActivityResolvers<ContextType>
   UserRestriction?: GQLUserRestrictionResolvers<ContextType>

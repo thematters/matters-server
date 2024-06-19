@@ -2292,7 +2292,7 @@ enum CacheControlScope {
 
 type Recommendation {
   """Activities based on user's following, sort by creation time."""
-  following(input: ConnectionArgs!): FollowingActivityConnection!
+  following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
   """Articles recommended based on recently read article tags."""
   readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
@@ -2651,7 +2651,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserPostJournalActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2670,6 +2670,17 @@ type UserAddArticleTagActivity {
 
   """Tag added by article"""
   target: Tag!
+}
+
+type UserPostJournalActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Journal posted by actor"""
+  node: Journal!
+
+  """Another 2 journals posted by actor"""
+  more: [Journal!]!
 }
 
 type UserBroadcastCircleActivity {
@@ -3153,6 +3164,7 @@ input UserArticlesFilter {
   state: ArticleState = active
 }
 
+
 input WritingInput {
   after: String
   first: Int
@@ -3169,6 +3181,19 @@ type WritingConnection implements Connection {
 type WritingEdge {
   cursor: String!
   node: Writing!
+
+input RecommendationFollowingInput {
+  first: Int
+  after: String
+  filter: RecommendationFollowingFilterInput
+}
+
+input RecommendationFollowingFilterInput {
+  type: RecommendationFollowingFilterType!
+}
+
+enum RecommendationFollowingFilterType {
+  article
 }
 
 union Response = Article | Comment
