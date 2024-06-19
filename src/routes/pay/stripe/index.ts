@@ -172,8 +172,9 @@ stripeRouter.post('/', async (req, res) => {
 
         await createOrUpdateFailedRefundTx(refund, paymentService)
         slack.sendStripeAlert({
-          message: `Refund for ${toDBAmount({ amount: refund.amount })} ${refund.currency
-            } failed`,
+          message: `Refund for ${toDBAmount({ amount: refund.amount })} ${
+            refund.currency
+          } failed`,
         })
         break
       }

@@ -247,4 +247,3 @@ export class PayoutQueue extends BaseQueue {
     }
   }
 }
-
