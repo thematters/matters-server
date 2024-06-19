@@ -78,7 +78,7 @@ const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
 `
 
 const GET_COLLECTION_PREV = /* GraphQL */ `
-  query ($input1: NodeInput!, $input2: CollectionArticlesInput!){
+  query ($input1: NodeInput!, $input2: CollectionArticlesInput!) {
     node(input: $input1) {
       ... on Collection {
         id
@@ -855,7 +855,10 @@ describe('get collection by article id', () => {
   test('get collection by article id', async () => {
     const { data } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
-      variables: { input1: { id: collectionId }, input2: { articleId: articleGlobalId1 } },
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: articleGlobalId1 },
+      },
     })
     expect(data?.node?.id).toBe(collectionId)
     expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)
@@ -864,14 +867,20 @@ describe('get collection by article id', () => {
   test('get collection by article id with invalid article id', async () => {
     const { data } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
-      variables: { input1: { id: collectionId }, input2: { articleId: 'invalid' } },
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: 'invalid' },
+      },
     })
     expect(data?.node).toBeNull()
   })
   test('get collection by article id and paginate it to the previous page', async () => {
     const { data } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
-      variables: { input1: { id: collectionId }, input2: { articleId: articleGlobalId1, first: 1 } },
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: articleGlobalId1, first: 1 },
+      },
     })
     expect(data?.node?.id).toBe(collectionId)
     expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
