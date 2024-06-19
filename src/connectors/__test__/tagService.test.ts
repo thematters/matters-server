@@ -1,17 +1,26 @@
 import type { Connections } from 'definitions'
 
-import { TagService, AtomService } from 'connectors'
+import {
+  TagService,
+  AtomService,
+  ArticleService,
+  UserService,
+} from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let tagService: TagService
 let atomService: AtomService
+let articleService: ArticleService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   tagService = new TagService(connections)
   atomService = new AtomService(connections)
+  articleService = new ArticleService(connections)
+  userService = new UserService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -167,5 +176,60 @@ describe('search', () => {
     })
     expect(res3.nodes.length).toBe(3)
     expect(res3.totalCount).toBe(4)
+  })
+})
+
+describe('findByAuthorUsage', () => {
+  test('find nothing', async () => {
+    const user = await userService.create({
+      userName: 'test-findByAuthorUsage1',
+    })
+    const [tags, totalCount] = await tagService.findByAuthorUsage({
+      userId: user.id,
+    })
+    expect(tags.length).toBe(0)
+    expect(totalCount).toBe(0)
+  })
+  test('find tags orders by usage', async () => {
+    const user = await userService.create({
+      userName: 'test-findByAuthorUsage2',
+    })
+    const [article1] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: user.id,
+    })
+    const [article2] = await articleService.createArticle({
+      title: 'test',
+      content: 'test',
+      authorId: user.id,
+    })
+
+    await tagService.createArticleTags({
+      articleIds: [article1.id],
+      creator: article1.authorId,
+      tagIds: ['1', '2'],
+    })
+    await tagService.createArticleTags({
+      articleIds: [article2.id],
+      creator: article2.authorId,
+      tagIds: ['2', '3'],
+    })
+
+    const [tags, totalCount] = await tagService.findByAuthorUsage({
+      userId: user.id,
+    })
+    expect(tags[0].id).toBe('2')
+    expect(totalCount).toBe(3)
+
+    // test pagination
+    const [tags2, totalCount2] = await tagService.findByAuthorUsage({
+      userId: user.id,
+      take: 1,
+      skip: 1,
+    })
+    expect(tags2[0].id).toBe('3')
+    expect(tags2.length).toBe(1)
+    expect(totalCount2).toBe(3)
   })
 })
