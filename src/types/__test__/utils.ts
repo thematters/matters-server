@@ -21,6 +21,7 @@ import {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
   CollectionService,
   RecommendationService,
   JournalService,
@@ -216,6 +217,7 @@ export const testClient = async ({
     dataSources: {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
+      userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),

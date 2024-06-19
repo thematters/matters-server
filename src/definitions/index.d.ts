@@ -81,6 +81,7 @@ import type {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -141,6 +142,7 @@ export interface DataSources {
   commentService: CommentService
   draftService: DraftService
   userService: UserService
+  userWorkService: UserWorkService
   systemService: SystemService
   tagService: TagService
   notificationService: NotificationService
@@ -296,3 +298,5 @@ export type TransactionTargetType = 'Article' | 'Transaction'
 export type Falsey = '' | 0 | false | null | undefined
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
+
+export type Writing = Article | Journal

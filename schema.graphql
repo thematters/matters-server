@@ -956,6 +956,9 @@ type User implements Node {
   """Articles authored by current user."""
   articles(input: UserArticlesInput!): ArticleConnection!
 
+  """Articles and journals authored by current user."""
+  writings(input: WritingInput!): WritingConnection!
+
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
 
@@ -3160,6 +3163,24 @@ enum UserArticlesSort {
 input UserArticlesFilter {
   state: ArticleState = active
 }
+
+
+input WritingInput {
+  after: String
+  first: Int
+}
+
+union Writing = Article | Journal
+
+type WritingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [WritingEdge!]
+}
+
+type WritingEdge {
+  cursor: String!
+  node: Writing!
 
 input RecommendationFollowingInput {
   first: Int

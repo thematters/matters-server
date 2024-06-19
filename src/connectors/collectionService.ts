@@ -10,7 +10,7 @@ import {
   UserInputError,
   ActionLimitExceededError,
 } from 'common/errors'
-import { BaseService, UserService } from 'connectors'
+import { BaseService, UserWorkService } from 'connectors'
 
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {
@@ -253,8 +253,8 @@ export class CollectionService extends BaseService<Collection> {
     if (collection.authorId !== userId) {
       throw new ForbiddenError('Only author can pin the article')
     }
-    const userService = new UserService(this.connections)
-    const totalPinned = await userService.totalPinnedWorks(userId)
+    const userWorkService = new UserWorkService(this.connections)
+    const totalPinned = await userWorkService.totalPinnedWorks(userId)
     if (pinned === collection.pinned) {
       return collection
     }

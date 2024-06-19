@@ -67,6 +67,7 @@ import {
   ipfsServers,
   SystemService,
   UserService,
+  UserWorkService,
   TagService,
   NotificationService,
   PaymentService,
@@ -417,8 +418,8 @@ export class ArticleService extends BaseService<Article> {
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
-    const userService = new UserService(this.connections)
-    const totalPinned = await userService.totalPinnedWorks(userId)
+    const userWorkService = new UserWorkService(this.connections)
+    const totalPinned = await userWorkService.totalPinnedWorks(userId)
     if (pinned === article.pinned) {
       return article
     }
@@ -1536,16 +1537,16 @@ export class ArticleService extends BaseService<Article> {
   }) => {
     const subQuery = this.knexRO
       .select(
-        this.knexRO.raw('COUNT(1) OVER() AS total_count'),
-        this.knexRO.raw('MIN(created_at) OVER() AS min_cursor'),
-        this.knexRO.raw('MAX(created_at) OVER() AS max_cursor'),
+        this.knexRO.raw('count(1) OVER() AS total_count'),
+        this.knexRO.raw('min(created_at) OVER() AS min_cursor'),
+        this.knexRO.raw('max(created_at) OVER() AS max_cursor'),
         '*'
       )
       .from(
         this.knexRO
           .select(
             this.knexRO.raw(
-              "'Article' as type, entrance_id as entity_id, article_connection.created_at"
+              "'Article' AS type, entrance_id AS entity_id, article_connection.created_at"
             )
           )
           .from('article_connection')
@@ -1560,7 +1561,7 @@ export class ArticleService extends BaseService<Article> {
                 this.knexRO
                   .select(
                     this.knexRO.raw(
-                      "'Comment' as type, id as entity_id, created_at"
+                      "'Comment' AS type, id AS entity_id, created_at"
                     )
                   )
                   .fromRaw('comment AS outer_comment')
@@ -1575,7 +1576,7 @@ export class ArticleService extends BaseService<Article> {
                       .orWhere((orWhereBuilder) => {
                         orWhereBuilder.andWhere(
                           this.knexRO.raw(
-                            '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                            '(SELECT count(1) FROM comment WHERE state IN (?, ?) AND parent_comment_id = outer_comment.id)',
                             [COMMENT_STATE.active, COMMENT_STATE.collapsed]
                           ),
                           '>',

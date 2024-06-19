@@ -65,7 +65,8 @@
           "OAuthClient": "./user#OAuthClientDB",
           "Report": "./report#Report",
           "IcymiTopic": "./misc#MattersChoiceTopic",
-          "Journal": "./journal#Journal"
+          "Journal": "./journal#Journal",
+          "Writing": "./index#Writing"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

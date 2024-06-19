@@ -4,8 +4,6 @@ import {
   ARTICLE_LICENSE_TYPE,
 } from 'common/enums'
 
-import { LANGUAGES } from './language'
-
 export interface Article {
   id: string
   authorId: string

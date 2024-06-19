@@ -73,6 +73,7 @@ import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
+import writings from './writings'
 
 const user: {
   Query: GQLQueryResolvers
@@ -138,6 +139,7 @@ const user: {
     maintainedTags,
     pinnedTags,
     tags: tagsUsageRecommendation,
+    writings,
   },
   UserInfo: {
     ipnsKey,
@@ -212,6 +214,13 @@ const user: {
   },
 
   Collection,
+  Writing: {
+    __resolveType: ({
+      __type,
+    }: {
+      __type: NODE_TYPES.Article | NODE_TYPES.Journal
+    }) => __type,
+  },
 }
 
 export default user

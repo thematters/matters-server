@@ -75,7 +75,7 @@ import {
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import {
   EmailNotFoundError,
   CryptoWalletExistsError,
@@ -120,8 +120,6 @@ import { Twitter } from 'connectors/oauth'
 import { LikeCoin } from './likecoin'
 
 const logger = getLogger('service-user')
-
-// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class UserService extends BaseService<User> {
   private ipfs: typeof ipfsServers
@@ -199,24 +197,26 @@ export class UserService extends BaseService<User> {
     )
 
     // no await to put data async
-    this.aws.putMetricData({
-      MetricData: [
-        {
-          MetricName: METRICS_NAMES.UserRegistrationCount,
-          // Counts: [1],
-          Dimensions: [
-            {
-              Name: 'reg_type' /* required */,
-              Value: ethAddress ? 'wallet' : 'email' /* required */,
-            },
-            /* more items */
-          ],
-          Timestamp: new Date(),
-          Unit: 'Count',
-          Value: 1,
-        },
-      ],
-    })
+    if (isProd) {
+      this.aws.putMetricData({
+        MetricData: [
+          {
+            MetricName: METRICS_NAMES.UserRegistrationCount,
+            // Counts: [1],
+            Dimensions: [
+              {
+                Name: 'reg_type' /* required */,
+                Value: ethAddress ? 'wallet' : 'email' /* required */,
+              },
+              /* more items */
+            ],
+            Timestamp: new Date(),
+            Unit: 'Count',
+            Value: 1,
+          },
+        ],
+      })
+    }
 
     return user
   }
@@ -2942,17 +2942,5 @@ export class UserService extends BaseService<User> {
     if (delta > threshold) {
       await this.knex(this.table).update('last_seen', now).where({ id })
     }
-  }
-
-  public totalPinnedWorks = async (id: string): Promise<number> => {
-    const res1 = await this.knex('article')
-      .count()
-      .where({ authorId: id, pinned: true, state: ARTICLE_STATE.active })
-      .first()
-    const res2 = await this.knex('collection')
-      .count()
-      .where({ authorId: id, pinned: true })
-      .first()
-    return (Number(res1?.count) || 0) + (Number(res2?.count) || 0)
   }
 }

@@ -24,6 +24,7 @@ import {
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
+  Writing as WritingModel,
   Context,
 } from './index'
 import { PayoutAccount as PayoutAccountModel } from './payment'
@@ -3633,6 +3634,8 @@ export type GQLUser = GQLNode & {
   userName?: Maybe<Scalars['String']['output']>
   /** User Wallet */
   wallet: GQLWallet
+  /** Articles and journals authored by current user. */
+  writings: GQLWritingConnection
 }
 
 export type GQLUserArticlesArgs = {
@@ -3681,6 +3684,10 @@ export type GQLUserSubscriptionsArgs = {
 
 export type GQLUserTagsArgs = {
   input: GQLConnectionArgs
+}
+
+export type GQLUserWritingsArgs = {
+  input: GQLWritingInput
 }
 
 export type GQLUserActivity = {
@@ -4014,6 +4021,26 @@ export type GQLWalletLoginInput = {
   signedMessage: Scalars['String']['input']
 }
 
+export type GQLWriting = GQLArticle | GQLJournal
+
+export type GQLWritingConnection = GQLConnection & {
+  __typename?: 'WritingConnection'
+  edges?: Maybe<Array<GQLWritingEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLWritingEdge = {
+  __typename?: 'WritingEdge'
+  cursor: Scalars['String']['output']
+  node: GQLWriting
+}
+
+export type GQLWritingInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+}
+
 export type WithIndex<TObject> = TObject & Record<string, any>
 export type ResolversObject<TObject> = WithIndex<TObject>
 
@@ -4161,6 +4188,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
     TransactionTarget: ArticleModel | CircleModel | TransactionModel
+    Writing: ArticleModel | JournalModel
   }>
 
 /** Mapping of interface types */
@@ -4226,6 +4254,9 @@ export type GQLResolversInterfaceTypes<
       })
     | (Omit<GQLUserConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['UserEdge']>>
+      })
+    | (Omit<GQLWritingConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['WritingEdge']>>
       })
   Node:
     | ArticleModel
@@ -4842,6 +4873,16 @@ export type GQLResolversTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
+  Writing: ResolverTypeWrapper<WritingModel>
+  WritingConnection: ResolverTypeWrapper<
+    Omit<GQLWritingConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['WritingEdge']>>
+    }
+  >
+  WritingEdge: ResolverTypeWrapper<
+    Omit<GQLWritingEdge, 'node'> & { node: GQLResolversTypes['Writing'] }
+  >
+  WritingInput: GQLWritingInput
 }>
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -5286,6 +5327,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
+  Writing: WritingModel
+  WritingConnection: Omit<GQLWritingConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['WritingEdge']>>
+  }
+  WritingEdge: Omit<GQLWritingEdge, 'node'> & {
+    node: GQLResolversParentTypes['Writing']
+  }
+  WritingInput: GQLWritingInput
 }>
 
 export type GQLAuthDirectiveArgs = {
@@ -6488,7 +6537,8 @@ export type GQLConnectionResolvers<
     | 'TagConnection'
     | 'TopDonatorConnection'
     | 'TransactionConnection'
-    | 'UserConnection',
+    | 'UserConnection'
+    | 'WritingConnection',
     ParentType,
     ContextType
   >
@@ -8779,6 +8829,12 @@ export type GQLUserResolvers<
     ContextType
   >
   wallet?: Resolver<GQLResolversTypes['Wallet'], ParentType, ContextType>
+  writings?: Resolver<
+    GQLResolversTypes['WritingConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserWritingsArgs, 'input'>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9146,6 +9202,36 @@ export type GQLWalletResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLWritingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
+> = ResolversObject<{
+  __resolveType: TypeResolveFn<'Article' | 'Journal', ParentType, ContextType>
+}>
+
+export type GQLWritingConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['WritingConnection'] = GQLResolversParentTypes['WritingConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['WritingEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLWritingEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['WritingEdge'] = GQLResolversParentTypes['WritingEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Writing'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLResolvers<ContextType = Context> = ResolversObject<{
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
@@ -9293,6 +9379,9 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserSettings?: GQLUserSettingsResolvers<ContextType>
   UserStatus?: GQLUserStatusResolvers<ContextType>
   Wallet?: GQLWalletResolvers<ContextType>
+  Writing?: GQLWritingResolvers<ContextType>
+  WritingConnection?: GQLWritingConnectionResolvers<ContextType>
+  WritingEdge?: GQLWritingEdgeResolvers<ContextType>
 }>
 
 export type GQLDirectiveResolvers<ContextType = Context> = ResolversObject<{
