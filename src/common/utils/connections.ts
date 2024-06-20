@@ -170,6 +170,7 @@ export const fromConnectionArgs = (
   }
 ) => {
   const { first, after, before } = input
+
   const {
     allowTakeAll = false,
     defaultTake = DEFAULT_TAKE_PER_PAGE,
@@ -188,9 +189,21 @@ export const fromConnectionArgs = (
     take = maxTake
   }
 
+  const beforeCursor = cursorToIndex(before)
+  if (before !== undefined) {
+    // i.e. before is 3 and take is 10, ignore take
+    if (beforeCursor < take) {
+      take = 1
+    }
+    // if it is already the first one, skip everything
+    else if (beforeCursor === 0) {
+      take = -maxTake
+    }
+  }
+
   // if the `before` cursor is provided, go to the previous page
   const skip = before
-    ? Math.max(0, cursorToIndex(before) - take)
+    ? beforeCursor - take
     : Math.min(cursorToIndex(after) + 1, maxSkip)
 
   return { take, skip }

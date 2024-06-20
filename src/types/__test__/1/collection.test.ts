@@ -18,9 +18,8 @@ afterAll(async () => {
 })
 
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-// const articleGlobalId2 = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
-const articleGlobalId3 = toGlobalId({ type: NODE_TYPES.Article, id: 3 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+const articleGlobalId6 = toGlobalId({ type: NODE_TYPES.Article, id: 6 })
 
 const GET_COLLECTION = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -64,7 +63,9 @@ const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
         title
         articles(input: $input2) {
           pageInfo {
+            startCursor
             endCursor
+            hasPreviousPage
             hasNextPage
           }
           totalCount
@@ -830,7 +831,7 @@ describe('get collection by article id', () => {
       variables: {
         input: {
           collections: [collectionId],
-          articles: [articleGlobalId1, articleGlobalId2, articleGlobalId4],
+          articles: [articleGlobalId1, articleGlobalId4, articleGlobalId6],
         },
       },
     })
@@ -840,24 +841,33 @@ describe('get collection by article id', () => {
       query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
-        input2: { articleId: articleGlobalId1 },
+        input2: { articleId: articleGlobalId4 },
       },
     })
     expect(data?.node?.id).toBe(collectionId)
-    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)
-    expect(data?.node?.articles?.edges?.[1]?.node?.id).toBe(articleGlobalId1)
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId6)
+    expect(data?.node?.articles?.edges?.[1]?.node?.id).toBe(articleGlobalId4)
   })
-  test('get collection by article id with invalid article id', async () => {
+  test('get collection by article id with pagination', async () => {
     const { data } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
+        input2: { articleId: articleGlobalId1, first: 2 },
+      },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    // should be on the second page
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
+  })
   test('get collection by article id with non exist article id', async () => {
     const { data, errors } = await server.executeOperation({
       query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
-        input2: { articleId: toGlobalId({ type: NODE_TYPES.Article, id: 999 }) },
+        input2: {
+          articleId: toGlobalId({ type: NODE_TYPES.Article, id: 999 }),
+        },
       },
     })
     expect(data?.node).toBeNull()

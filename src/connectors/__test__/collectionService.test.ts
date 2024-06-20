@@ -129,6 +129,7 @@ test('findArticleInCollection with the id', async () => {
   expect(articles1.length).toBe(2)
   expect(totalCount).toBe(4)
   expect(articles1[0].articleId).toBe('3')
+  expect(articles1[0].articleId).toBe('4')
 
   const [articles2] = await collectionService.findArticlesInCollectionByArticle(
     collectionId,
@@ -149,6 +150,7 @@ test('findArticleInCollection with the id', async () => {
   )
   expect(articles3.length).toBe(2)
   expect(articles3[0].articleId).toBe('2')
+  expect(articles3[1].articleId).toBe('1')
 })
 
 test('findArticleInCollectionNotFound', async () => {
@@ -168,6 +170,13 @@ test('findArticleInCollectionNotFound', async () => {
       }
     )
   ).rejects.toThrowError(`Article not found in collection: ${articleId}`)
+})
+
+test('findArticleInCollectionWithBefore', async () => {
+  // 1. before = 4, take = 2, reversed = false
+  // 2. before = 4, take = 2, reversed = true
+  // 3. before = 2, take = 10, reversed = false
+  // 4. before = 2, take = 2, reversed = true
 })
 
 test('deleteCollections', async () => {
