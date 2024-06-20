@@ -113,7 +113,7 @@ test('findArticleInCollection with the id', async () => {
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
 
   const [articles1, totalCount] =
-    await collectionService.findArticleInCollection(collectionId, '3', {
+    await collectionService.findArticlesInCollectionByArticle(collectionId, '3', {
       take: 2,
       reversed: false,
     })
@@ -122,7 +122,7 @@ test('findArticleInCollection with the id', async () => {
   expect(totalCount).toBe(4)
   expect(articles1[0].articleId).toBe('3')
 
-  const [articles2] = await collectionService.findArticleInCollection(
+  const [articles2] = await collectionService.findArticlesInCollectionByArticle(
     collectionId,
     '1',
     {
@@ -132,7 +132,7 @@ test('findArticleInCollection with the id', async () => {
   expect(articles2.length).toBe(1)
   expect(articles2[0].articleId).toBe('1')
 
-  const [articles3] = await collectionService.findArticleInCollection(
+  const [articles3] = await collectionService.findArticlesInCollectionByArticle(
     collectionId,
     '2',
     {
@@ -151,7 +151,7 @@ test('findArticleInCollectionNotFound', async () => {
   })
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
   await expect(
-    collectionService.findArticleInCollection(collectionId, articleId, {
+    collectionService.findArticlesInCollectionByArticle(collectionId, articleId, {
       take: 2,
       reversed: false,
     })
