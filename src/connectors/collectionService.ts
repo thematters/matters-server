@@ -16,7 +16,6 @@ import {
   ActionLimitExceededError,
   ForbiddenByStateError,
   ArticleNotFoundError,
-  ArticleNotFoundInCollectionError,
 } from 'common/errors'
 import { BaseService, UserWorkService, UserService } from 'connectors'
 
@@ -136,7 +135,9 @@ export class CollectionService extends BaseService<Collection> {
 
     // if no article found in the collection, throw error
     if (positionMeta.length === 0) {
-      throw new ArticleNotFoundError(`Article not found in collection: ${articleId}`)
+      throw new ArticleNotFoundError(
+        `Article not found in collection: ${articleId}`
+      )
     }
     const { pageNumber } = positionMeta[0]
 
@@ -148,7 +149,9 @@ export class CollectionService extends BaseService<Collection> {
 
     // if the article is not found in the records, throw error
     if (!records.some((record) => record.articleId === articleId)) {
-      throw new ArticleNotFoundInCollectionError(`Article with id ${articleId} not found in the records.`)
+      throw new ArticleNotFoundError(
+        `Article with id ${articleId} not found in the records.`
+      )
     }
 
     return [records, totalCount]
