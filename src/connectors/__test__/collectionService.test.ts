@@ -113,10 +113,14 @@ test('findArticleInCollection with the id', async () => {
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
 
   const [articles1, totalCount] =
-    await collectionService.findArticlesInCollectionByArticle(collectionId, '3', {
-      take: 2,
-      reversed: false,
-    })
+    await collectionService.findArticlesInCollectionByArticle(
+      collectionId,
+      '3',
+      {
+        take: 2,
+        reversed: false,
+      }
+    )
 
   expect(articles1.length).toBe(2)
   expect(totalCount).toBe(4)
@@ -151,10 +155,14 @@ test('findArticleInCollectionNotFound', async () => {
   })
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
   await expect(
-    collectionService.findArticlesInCollectionByArticle(collectionId, articleId, {
-      take: 2,
-      reversed: false,
-    })
+    collectionService.findArticlesInCollectionByArticle(
+      collectionId,
+      articleId,
+      {
+        take: 2,
+        reversed: false,
+      }
+    )
   ).rejects.toThrowError(`Article not found in collection: ${articleId}`)
 })
 
