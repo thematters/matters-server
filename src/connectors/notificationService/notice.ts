@@ -12,10 +12,8 @@ import type {
   PutNoticeParams,
   User,
   Connections,
-  Item,
 } from 'definitions'
 
-import DataLoader from 'dataloader'
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -35,11 +33,8 @@ const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 export class Notice extends BaseService<NoticeDB> {
-  public dataloader: DataLoader<string, Item>
-
   public constructor(connections: Connections) {
     super('notice', connections)
-    this.dataloader = new DataLoader(this.findByIds)
   }
 
   /**

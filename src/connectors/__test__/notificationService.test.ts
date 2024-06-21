@@ -161,10 +161,6 @@ describe('create notice', () => {
 })
 
 describe('find notice', () => {
-  test('find one notice', async () => {
-    const notice = await notificationService.notice.dataloader.load('1')
-    expect(notice.id).toBe('1')
-  })
   test('find many notices', async () => {
     const notices = await notificationService.notice.findByUser({
       userId: recipientId,
