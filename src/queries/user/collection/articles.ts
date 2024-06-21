@@ -1,5 +1,6 @@
 import type { GQLCollectionResolvers } from 'definitions'
 
+import { UserInputError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -14,6 +15,14 @@ const resolver: GQLCollectionResolvers['articles'] = async (
 ) => {
   if (!collectionId) {
     return connectionFromArray([], { first, after })
+  }
+  if (articleId && (before || after)) {
+    throw new UserInputError('Invalid articleId query with before or after')
+  }
+  if (before && after) {
+    throw new UserInputError(
+      'Invalid before and after query: you can only pick one'
+    )
   }
 
   const { skip, take } = fromConnectionArgs({ before, first, after })
@@ -35,25 +44,25 @@ const resolver: GQLCollectionResolvers['articles'] = async (
 
   const [articles, totalCount] = parsedArticleId
     ? // if articleId is provided, we need to use that as the cursor
-      await collectionService.findArticlesInCollectionByArticle(
-        collectionId,
-        parsedArticleId,
-        {
-          take,
-          reversed,
-        }
-      )
-    : await collectionService.findAndCountArticlesInCollection(collectionId, {
-        skip,
+    await collectionService.findArticlesInCollectionByArticle(
+      collectionId,
+      parsedArticleId,
+      {
         take,
         reversed,
-      })
+      }
+    )
+    : await collectionService.findAndCountArticlesInCollection(collectionId, {
+      skip,
+      take,
+      reversed,
+    })
 
   return connectionFromPromisedArray(
     atomService.articleIdLoader.loadMany(
       articles.map((article) => article.articleId)
     ),
-    { before, first, after },
+    before ? { before, first } : { after, first },
     totalCount
   )
 }

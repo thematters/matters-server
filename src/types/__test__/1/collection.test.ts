@@ -888,7 +888,7 @@ describe('get collection by article id', () => {
       query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
-        input2: { before: data?.node?.articles?.pageInfo?.endCursor },
+        input2: { before: data?.node?.articles?.pageInfo?.startCursor },
       },
     })
     expect(data2?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)

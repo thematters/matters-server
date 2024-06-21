@@ -122,11 +122,13 @@ export class CollectionService extends BaseService<Collection> {
       .orderBy('ca.order', reversed ? 'desc' : 'asc')
       .as('ap')
 
+    // TODO: combine this query with the previous one + findAndCountArticlesInCollection
     // calculate the page number of the article based on the position
     const positionMeta = await this.knex
       .select(
         this.knex.raw(
-          `CEIL(${reversed ? '(ap.total_count - ap.position + 1)' : 'ap.position'
+          `CEIL(${
+            reversed ? '(ap.total_count - ap.position + 1)' : 'ap.position'
           }::float / ${take}::float) AS page_number` // if reversed, need to reverse the position
         )
       )
