@@ -3,8 +3,10 @@ import type { NotificationType, Connections } from 'definitions'
 import {
   MONTH,
   NOTIFICATION_TYPES,
+  DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
+import { v4 } from 'uuid'
 import { NotificationService, UserService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -178,6 +180,57 @@ describe('bundle notices', () => {
     // bundleable
     const userNewFollowerNotice = await getBundleableUserNewFollowerNotice()
     expect(userNewFollowerNotice.id).not.toBeUndefined()
+  })
+
+  test('article_new_comment notice bundle is disabled', async () => {
+    const articleVersion = await atomService.articleVersionIdLoader.load('1')
+    const article = await atomService.articleIdLoader.load(
+      articleVersion.articleId
+    )
+
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '2',
+        targetId: article.id,
+        targetTypeId: '4',
+        articleVersionId: articleVersion.id,
+      },
+    })
+
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: article.authorId,
+    })
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.article_new_comment,
+      actorId: comment.authorId,
+      recipientId: article.authorId,
+      entities: [
+        { type: 'target', entityTable: 'article', entity: article },
+        { type: 'comment', entityTable: 'comment', entity: comment },
+      ],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: article.authorId })
+    ).toBe(noticeCount + 1)
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.article_new_comment,
+      actorId: comment.authorId,
+      recipientId: article.authorId,
+      entities: [
+        { type: 'target', entityTable: 'article', entity: article },
+        { type: 'comment', entityTable: 'comment', entity: comment },
+      ],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: article.authorId })
+    ).toBe(noticeCount + 2)
   })
 
   test('unbundleable', async () => {

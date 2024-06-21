@@ -26,7 +26,7 @@ export class NotificationService {
     this.notice = new Notice(connections)
   }
 
-  public trigger = async (params: NotificationPrarms) => {
+  public trigger = async (params: NotificationPrarms): Promise<void> => {
     try {
       await this.__trigger(params)
     } catch (e) {
@@ -64,7 +64,6 @@ export class NotificationService {
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
       case DB_NOTICE_TYPE.comment_pinned:
-      case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
       case DB_NOTICE_TYPE.payment_received_donation:
       case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
@@ -76,6 +75,14 @@ export class NotificationService {
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
+        }
+      case DB_NOTICE_TYPE.article_new_comment:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          bundle: { disabled: true },
         }
       case DB_NOTICE_TYPE.circle_invitation:
         return {
