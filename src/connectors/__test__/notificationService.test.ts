@@ -50,6 +50,7 @@ describe('user notify setting', () => {
 
     // comment
     comment_pinned: false,
+    comment_liked: true,
     comment_mentioned_you: true,
     article_new_comment: true,
     circle_new_broadcast: true,

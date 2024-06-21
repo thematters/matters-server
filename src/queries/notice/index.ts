@@ -62,6 +62,7 @@ const notice: {
 
         // comment
         comment_pinned: NOTICE_TYPE.CommentNotice,
+        comment_liked: NOTICE_TYPE.CommentNotice,
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice,

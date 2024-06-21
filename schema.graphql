@@ -1669,6 +1669,7 @@ type CommentNotice implements Notice {
 
 enum CommentNoticeType {
   CommentPinned
+  CommentLiked
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
