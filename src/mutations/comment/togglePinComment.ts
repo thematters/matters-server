@@ -3,7 +3,6 @@ import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 import {
   CACHE_KEYWORD,
   COMMENT_TYPE,
-  DB_NOTICE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import {
@@ -19,7 +18,7 @@ const resolver: Exclude<
 > = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { atomService, commentService, notificationService } }
+  { viewer, dataSources: { atomService, commentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -97,13 +96,6 @@ const resolver: Exclude<
       },
     })
 
-    // trigger notifications
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_pinned,
-      actorId: viewer.id,
-      recipientId: comment.authorId,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
-    })
   } else {
     pinnedComment = await atomService.update({
       table: 'comment',

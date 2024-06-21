@@ -47,7 +47,6 @@ describe('user notify setting', () => {
     article_new_collected: false,
 
     // comment
-    comment_pinned: false,
     comment_mentioned_you: true,
     article_new_comment: true,
     circle_new_broadcast: true,
