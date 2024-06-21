@@ -2181,7 +2181,6 @@ export type GQLNoticeEdge = {
 
 export type GQLNotificationSetting = {
   __typename?: 'NotificationSetting'
-  articleCommentPinned: Scalars['Boolean']['output']
   articleNewAppreciation: Scalars['Boolean']['output']
   articleNewCollected: Scalars['Boolean']['output']
   articleNewComment: Scalars['Boolean']['output']
@@ -2205,7 +2204,6 @@ export type GQLNotificationSetting = {
 }
 
 export type GQLNotificationSettingType =
-  | 'articleCommentPinned'
   | 'articleNewAppreciation'
   | 'articleNewCollected'
   | 'articleNewComment'
@@ -7438,11 +7436,6 @@ export type GQLNotificationSettingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NotificationSetting'] = GQLResolversParentTypes['NotificationSetting']
 > = ResolversObject<{
-  articleCommentPinned?: Resolver<
-    GQLResolversTypes['Boolean'],
-    ParentType,
-    ContextType
-  >
   articleNewAppreciation?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,

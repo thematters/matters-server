@@ -1,10 +1,6 @@
 import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
-import {
-  CACHE_KEYWORD,
-  COMMENT_TYPE,
-  NODE_TYPES,
-} from 'common/enums'
+import { CACHE_KEYWORD, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
 import {
   ActionLimitExceededError,
   AuthenticationError,
@@ -95,7 +91,6 @@ const resolver: Exclude<
         pinnedAt: new Date(),
       },
     })
-
   } else {
     pinnedComment = await atomService.update({
       table: 'comment',
