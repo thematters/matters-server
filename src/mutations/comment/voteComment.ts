@@ -78,7 +78,7 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
       event: DB_NOTICE_TYPE.comment_liked,
       actorId: viewer.id,
       recipientId: comment.authorId,
-      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
   }
 
