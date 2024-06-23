@@ -234,6 +234,46 @@ describe('bundle notices', () => {
     ).toBe(noticeCount + 2)
   })
 
+  test('comment_liked notice bundle is disabled', async () => {
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '2',
+        targetId: '1',
+        targetTypeId: '4',
+        articleVersionId: '1',
+      },
+    })
+
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: comment.authorId,
+    })
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
+    ).toBe(noticeCount + 1)
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
+    ).toBe(noticeCount + 2)
+  })
+
   test('unbundleable', async () => {
     // notice without actors
     // const bundleables = await notificationService.notice.findBundleables({

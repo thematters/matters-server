@@ -77,6 +77,7 @@ export class NotificationService {
           entities: params.entities,
         }
       case DB_NOTICE_TYPE.article_new_comment:
+      case DB_NOTICE_TYPE.comment_liked:
         return {
           type: params.event,
           recipientId: params.recipientId,
