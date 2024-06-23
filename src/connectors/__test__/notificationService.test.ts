@@ -161,6 +161,25 @@ describe('create notice', () => {
     expect(notices[0].message).not.toContain('undefined')
     expect(notices[1].message).not.toContain('undefined')
   })
+  test('blocked actor notice will be skipped', async () => {
+    const actorId = '2'
+    const recipientId = '1'
+    await userService.block(recipientId, actorId)
+
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: recipientId,
+    })
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId,
+      recipientId,
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: recipientId })
+    ).toBe(noticeCount)
+  })
 })
 
 describe('find notice', () => {
