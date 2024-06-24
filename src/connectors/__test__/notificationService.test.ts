@@ -213,7 +213,7 @@ describe('bundle notices', () => {
       data: {
         uuid: v4(),
         content: 'test',
-        authorId: '2',
+        authorId: '3',
         targetId: article.id,
         targetTypeId: '4',
         articleVersionId: articleVersion.id,
