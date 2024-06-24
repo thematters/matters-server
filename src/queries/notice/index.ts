@@ -62,6 +62,7 @@ const notice: {
 
         // comment
         comment_pinned: NOTICE_TYPE.CommentNotice,
+        comment_liked: NOTICE_TYPE.CommentNotice,
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice,
@@ -157,6 +158,8 @@ const notice: {
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
+        case DB_NOTICE_TYPE.comment_liked:
+          return 'CommentLiked'
         case DB_NOTICE_TYPE.comment_mentioned_you:
           return 'CommentMentionedYou'
         case DB_NOTICE_TYPE.article_new_comment:
@@ -171,6 +174,7 @@ const notice: {
         throw new ServerError('entities is empty')
       }
       switch (type) {
+        case DB_NOTICE_TYPE.comment_liked:
         case DB_NOTICE_TYPE.comment_mentioned_you:
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target

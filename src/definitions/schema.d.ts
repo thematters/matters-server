@@ -1057,6 +1057,7 @@ export type GQLCommentNotice = GQLNotice & {
 export type GQLCommentNoticeType =
   | 'ArticleNewComment'
   | 'CircleNewBroadcast'
+  | 'CommentLiked'
   | 'CommentMentionedYou'
   | 'CommentPinned'
   | 'SubscribedArticleNewComment'

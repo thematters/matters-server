@@ -165,28 +165,33 @@ export class Notice extends BaseService<NoticeDB> {
   public process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
-    const bundleables = await this.findBundleables(params)
+    if (params.bundle?.disabled === true) {
+      await this.create(params)
+      return { created: true, bundled: false }
+    } else {
+      const bundleables = await this.findBundleables(params)
 
-    // bundle
-    if (bundleables[0] && params.actorId && params.resend !== true) {
-      await this.addNoticeActor({
-        noticeId: bundleables[0].id,
-        actorId: params.actorId,
-      })
-
-      if (params.bundle?.mergeData && params.data) {
-        await this.updateNoticeData({
+      // bundle
+      if (bundleables[0] && params.actorId && params.resend !== true) {
+        await this.addNoticeActor({
           noticeId: bundleables[0].id,
-          data: mergeDataWith(bundleables[0].data, params.data),
+          actorId: params.actorId,
         })
+
+        if (params.bundle?.mergeData && params.data) {
+          await this.updateNoticeData({
+            noticeId: bundleables[0].id,
+            data: mergeDataWith(bundleables[0].data, params.data),
+          })
+        }
+
+        return { created: false, bundled: true }
       }
 
-      return { created: false, bundled: true }
+      // create new notice
+      await this.create(params)
+      return { created: true, bundled: false }
     }
-
-    // create new notice
-    await this.create(params)
-    return { created: true, bundled: false }
   }
 
   /**
@@ -456,6 +461,8 @@ export class Notice extends BaseService<NoticeDB> {
       article_new_collected: setting.articleNewCollected,
 
       // comment
+
+      comment_liked: true,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       circle_new_broadcast: setting.inCircleNewBroadcast,
