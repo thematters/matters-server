@@ -6,13 +6,13 @@ import { NODE_TYPES } from 'common/enums'
 import { AuthenticationError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: GQLMutationResolvers['deleteJournal'] = async (
+const resolver: GQLMutationResolvers['deleteMoment'] = async (
   _,
   { input: { id: globalId } },
   {
     viewer,
     dataSources: {
-      journalService,
+      momentService,
       connections: { redis },
     },
   }
@@ -23,11 +23,11 @@ const resolver: GQLMutationResolvers['deleteJournal'] = async (
 
   const { id, type } = fromGlobalId(globalId)
 
-  if (type !== 'Journal') {
+  if (type !== 'Moment') {
     throw new UserInputError('invalid id')
   }
 
-  await journalService.delete(id, viewer)
+  await momentService.delete(id, viewer)
 
   invalidateFQC({
     node: { id: viewer.id, type: NODE_TYPES.User },

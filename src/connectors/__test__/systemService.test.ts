@@ -3,7 +3,7 @@ import type { Connections, Asset } from 'definitions'
 import { v4 } from 'uuid'
 
 import { NODE_TYPES, COMMENT_TYPE, COMMENT_STATE } from 'common/enums'
-import { SystemService, AtomService, JournalService } from 'connectors'
+import { SystemService, AtomService, MomentService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -91,20 +91,20 @@ describe('report', () => {
     expect(report.articleId).not.toBeNull()
     expect(report.commentId).toBeNull()
   })
-  test('submit report on journals', async () => {
-    const journalService = new JournalService(connections)
-    const journal = await journalService.create(
+  test('submit report on moments', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '1', state: 'active', userName: 'test' }
     )
     const report = await systemService.submitReport({
-      targetType: NODE_TYPES.Journal,
-      targetId: journal.id,
+      targetType: NODE_TYPES.Moment,
+      targetId: moment.id,
       reporterId: '1',
       reason: 'other',
     })
     expect(report.id).toBeDefined()
-    expect(report.journalId).not.toBeNull()
+    expect(report.momentId).not.toBeNull()
     expect(report.commentId).toBeNull()
     expect(report.articleId).toBeNull()
   })

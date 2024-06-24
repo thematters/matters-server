@@ -1,6 +1,6 @@
 const { baseDown } = require('../utils')
 
-const table = 'action_journal'
+const table = 'action_moment'
 
 exports.up = async (knex) => {
   await knex('entity_type').insert({ table })
@@ -13,7 +13,7 @@ exports.up = async (knex) => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     t.foreign('user_id').references('id').inTable('user')
-    t.foreign('target_id').references('id').inTable('journal')
+    t.foreign('target_id').references('id').inTable('moment')
 
     t.unique(['target_id', 'action', 'user_id'])
   })

@@ -64,8 +64,8 @@ const resolver: GQLRecommendationResolvers['following'] = async (
         return atomService.userIdLoader.load(id)
       case 'Tag':
         return atomService.tagIdLoader.load(id)
-      case 'Journal':
-        return atomService.journalIdLoader.load(id)
+      case 'Moment':
+        return atomService.momentIdLoader.load(id)
     }
   }
   const activityLoader = async ({

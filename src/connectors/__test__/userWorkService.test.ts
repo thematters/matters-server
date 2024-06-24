@@ -3,7 +3,7 @@ import type { Connections } from 'definitions'
 import {
   UserWorkService,
   UserService,
-  JournalService,
+  MomentService,
   ArticleService,
 } from 'connectors'
 import { NODE_TYPES } from 'common/enums'
@@ -12,14 +12,14 @@ import { genConnections, closeConnections } from './utils'
 let connections: Connections
 let userWorkService: UserWorkService
 let userService: UserService
-let journalService: JournalService
+let momentService: MomentService
 let articleService: ArticleService
 
 beforeAll(async () => {
   connections = await genConnections()
   userWorkService = new UserWorkService(connections)
   userService = new UserService(connections)
-  journalService = new JournalService(connections)
+  momentService = new MomentService(connections)
   articleService = new ArticleService(connections)
 }, 30000)
 
@@ -49,18 +49,18 @@ describe('findWritings', () => {
   })
   test('find 1 record', async () => {
     const user = await userService.create({ userName: 'testFindWritings2' })
-    const journal = await journalService.create({ content: 'test' }, user)
+    const moment = await momentService.create({ content: 'test' }, user)
     const [records, totalCount, hasNextPage] =
       await userWorkService.findWritings(user.id, { take: 2 })
-    expect(records[0].id).toBe(journal.id)
-    expect(records[0].type).toBe('Journal')
+    expect(records[0].id).toBe(moment.id)
+    expect(records[0].type).toBe('Moment')
     expect(totalCount).toBe(1)
     expect(hasNextPage).toBeFalsy()
 
     const [records1, totalCount1, hasNextPage1] =
       await userWorkService.findWritings(user.id, {
         take: 2,
-        after: { type: NODE_TYPES.Journal, id: records[0].id },
+        after: { type: NODE_TYPES.Moment, id: records[0].id },
       })
     expect(records1).toEqual([])
     expect(totalCount1).toBe(1)
@@ -68,9 +68,9 @@ describe('findWritings', () => {
   })
   test('find multi records', async () => {
     const user = await userService.create({ userName: 'testFindWritings3' })
-    const journal1 = await journalService.create({ content: 'test' }, user)
-    const journal2 = await journalService.create({ content: 'test' }, user)
-    const journal3 = await journalService.create({ content: 'test' }, user)
+    const moment1 = await momentService.create({ content: 'test' }, user)
+    const moment2 = await momentService.create({ content: 'test' }, user)
+    const moment3 = await momentService.create({ content: 'test' }, user)
     const [article] = await articleService.createArticle({
       title: 'test',
       content: 'test',
@@ -81,20 +81,20 @@ describe('findWritings', () => {
       await userWorkService.findWritings(user.id, { take: 2 })
     expect(records1[0].id).toBe(article.id)
     expect(records1[0].type).toBe(NODE_TYPES.Article)
-    expect(records1[1].id).toBe(journal3.id)
-    expect(records1[1].type).toBe(NODE_TYPES.Journal)
+    expect(records1[1].id).toBe(moment3.id)
+    expect(records1[1].type).toBe(NODE_TYPES.Moment)
     expect(totalCount1).toBe(4)
     expect(hasNextPage1).toBeTruthy()
 
     const [records2, totalCount2, hasNextPage2] =
       await userWorkService.findWritings(user.id, {
         take: 2,
-        after: { type: NODE_TYPES.Journal, id: records1[1].id },
+        after: { type: NODE_TYPES.Moment, id: records1[1].id },
       })
-    expect(records2[0].id).toBe(journal2.id)
-    expect(records2[0].type).toBe(NODE_TYPES.Journal)
-    expect(records2[1].id).toBe(journal1.id)
-    expect(records2[1].type).toBe(NODE_TYPES.Journal)
+    expect(records2[0].id).toBe(moment2.id)
+    expect(records2[0].type).toBe(NODE_TYPES.Moment)
+    expect(records2[1].id).toBe(moment1.id)
+    expect(records2[1].type).toBe(NODE_TYPES.Moment)
     expect(totalCount2).toBe(4)
     expect(hasNextPage2).toBeFalsy()
   })

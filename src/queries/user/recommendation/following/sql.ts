@@ -80,7 +80,7 @@ export const makeBaseActivityQuery = async (
                   'at.action': TAG_ACTION.follow,
                   'acty.type': ActivityType.UserAddArticleTagActivity,
                 }),
-              // retrieve UserPostJournalActivity based on user's following user
+              // retrieve UserPostMomentActivity based on user's following user
               knexRO
                 .select('acty.*')
                 .from('action_user as au')
@@ -94,7 +94,7 @@ export const makeBaseActivityQuery = async (
                   'excluded_users.user_id': null,
                   'au.user_id': userId,
                   'au.action': USER_ACTION.follow,
-                  'acty.type': ActivityType.UserPostJournalActivity,
+                  'acty.type': ActivityType.UserPostMomentActivity,
                 }),
             ])
           }
@@ -147,16 +147,16 @@ export const makeBaseActivityQuery = async (
       .from('agged')
       .where((whereBuilder) => {
         whereBuilder
-          .where('type', '=', ActivityType.UserPostJournalActivity)
+          .where('type', '=', ActivityType.UserPostMomentActivity)
           .andWhere('group_size', '<=', 2)
       })
       .orWhere((orWhereBuilder) => {
         orWhereBuilder
-          .where('type', '=', ActivityType.UserPostJournalActivity)
+          .where('type', '=', ActivityType.UserPostMomentActivity)
           .andWhere('group_size', '>', 2)
           .andWhere('rank', '=', 1)
       })
-      .orWhere('type', '!=', ActivityType.UserPostJournalActivity)
+      .orWhere('type', '!=', ActivityType.UserPostMomentActivity)
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)

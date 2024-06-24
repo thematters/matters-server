@@ -1,16 +1,16 @@
 import type { Connections } from 'definitions'
 
-import { ARTICLE_STATE, JOURNAL_STATE, NODE_TYPES } from 'common/enums'
+import { ARTICLE_STATE, MOMENT_STATE, NODE_TYPES } from 'common/enums'
 import { InvalidCursorError } from 'common/errors'
 
 interface Writing {
-  type: NODE_TYPES.Article | NODE_TYPES.Journal
+  type: NODE_TYPES.Article | NODE_TYPES.Moment
   id: string
 }
 
 /**
  * This service provides functions to return mixed works of a user.
- * Works include articles, collections and journals, comments, etc.
+ * Works include articles, collections and moments, comments, etc.
  *
  * Functions return only single type of work should be put in their own service.
  */
@@ -38,7 +38,7 @@ export class UserWorkService {
     userId: string,
     { take, after }: { take: number; after?: { type: NODE_TYPES; id: string } }
   ): Promise<[Writing[], number, boolean]> => {
-    const validTypes = [NODE_TYPES.Article, NODE_TYPES.Journal]
+    const validTypes = [NODE_TYPES.Article, NODE_TYPES.Moment]
     if (after && !validTypes.includes(after.type)) {
       throw new InvalidCursorError('after is invalid cursor')
     }
@@ -60,11 +60,11 @@ export class UserWorkService {
           })
           .union(
             knexRO
-              .select(knexRO.raw("'Journal' AS type, id, created_at"))
-              .from('journal')
+              .select(knexRO.raw("'Moment' AS type, id, created_at"))
+              .from('moment')
               .where({
                 authorId: userId,
-                state: JOURNAL_STATE.active,
+                state: MOMENT_STATE.active,
               })
           )
           .as('t1')

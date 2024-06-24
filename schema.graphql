@@ -286,10 +286,10 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
-  putJournal(input: PutJournalInput!): Journal!
-  deleteJournal(input: DeleteJournalInput!): Boolean!
-  likeJournal(input: LikeJournalInput!): Journal!
-  unlikeJournal(input: UnlikeJournalInput!): Journal!
+  putMoment(input: PutMomentInput!): Moment!
+  deleteMoment(input: DeleteMomentInput!): Boolean!
+  likeMoment(input: LikeMomentInput!): Moment!
+  unlikeMoment(input: UnlikeMomentInput!): Moment!
 }
 
 """
@@ -956,7 +956,7 @@ type User implements Node {
   """Articles authored by current user."""
   articles(input: UserArticlesInput!): ArticleConnection!
 
-  """Articles and journals authored by current user."""
+  """Articles and moments authored by current user."""
   writings(input: WritingInput!): WritingConnection!
 
   """collections authored by current user."""
@@ -1373,7 +1373,7 @@ input CommentInput {
   type: CommentType!
   articleId: ID
   circleId: ID
-  journalId: ID
+  momentId: ID
 }
 
 input CommentCommentsInput {
@@ -1455,7 +1455,7 @@ enum CommentType {
   article
   circleDiscussion
   circleBroadcast
-  journal
+  moment
 }
 
 """
@@ -2180,7 +2180,7 @@ enum AssetType {
   circleCover
   collectionCover
   announcementCover
-  journal
+  moment
 }
 
 enum EntityType {
@@ -2191,7 +2191,7 @@ enum EntityType {
   circle
   announcement
   collection
-  journal
+  moment
 }
 
 """Enums for user roles."""
@@ -2651,7 +2651,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserPostJournalActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserPostMomentActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2672,15 +2672,15 @@ type UserAddArticleTagActivity {
   target: Tag!
 }
 
-type UserPostJournalActivity {
+type UserPostMomentActivity {
   actor: User!
   createdAt: DateTime!
 
-  """Journal posted by actor"""
-  node: Journal!
+  """Moment posted by actor"""
+  node: Moment!
 
-  """Another 2 journals posted by actor"""
-  more: [Journal!]!
+  """Another 2 moments posted by actor"""
+  more: [Moment!]!
 }
 
 type UserBroadcastCircleActivity {
@@ -3164,13 +3164,12 @@ input UserArticlesFilter {
   state: ArticleState = active
 }
 
-
 input WritingInput {
   after: String
   first: Int
 }
 
-union Writing = Article | Journal
+union Writing = Article | Moment
 
 type WritingConnection implements Connection {
   totalCount: Int!
@@ -3181,6 +3180,7 @@ type WritingConnection implements Connection {
 type WritingEdge {
   cursor: String!
   node: Writing!
+}
 
 input RecommendationFollowingInput {
   first: Int
@@ -3572,29 +3572,29 @@ input ReorderCollectionArticlesInput {
   moves: [ReorderMoveInput!]!
 }
 
-input PutJournalInput {
+input PutMomentInput {
   content: String!
   assets: [ID!]!
 }
 
-input DeleteJournalInput {
+input DeleteMomentInput {
   id: ID!
 }
 
-input LikeJournalInput {
+input LikeMomentInput {
   id: ID!
 }
 
-input UnlikeJournalInput {
+input UnlikeMomentInput {
   id: ID!
 }
 
-type Journal implements Node {
+type Moment implements Node {
   id: ID!
   content: String
   assets: [Asset!]!
   author: User!
-  state: JournalState!
+  state: MomentState!
   commentCount: Int!
   commentedFollowees: [User!]!
   comments(input: CommentsInput!): CommentConnection!
@@ -3605,7 +3605,7 @@ type Journal implements Node {
   createdAt: DateTime!
 }
 
-enum JournalState {
+enum MomentState {
   active
   archived
 }

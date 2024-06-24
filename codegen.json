@@ -65,7 +65,7 @@
           "OAuthClient": "./user#OAuthClientDB",
           "Report": "./report#Report",
           "IcymiTopic": "./misc#MattersChoiceTopic",
-          "Journal": "./journal#Journal",
+          "Moment": "./moment#Moment",
           "Writing": "./index#Writing"
         },
         "contextType": "./index#Context",

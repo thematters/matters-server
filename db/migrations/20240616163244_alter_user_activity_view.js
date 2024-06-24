@@ -16,12 +16,12 @@ exports.up = async (knex) => {
           AND article.state = 'active'
           AND article.created_at >= now() - interval '${period} day'
       ),
-      journal_period AS (
-        SELECT journal.id, journal.author_id, journal.state, journal.created_at FROM journal
-        LEFT JOIN "user" on journal.author_id = "user".id
+      moment_period AS (
+        SELECT moment.id, moment.author_id, moment.state, moment.created_at FROM moment
+        LEFT JOIN "user" on moment.author_id = "user".id
         WHERE "user".state = 'active'
-          AND journal.state = 'active'
-          AND journal.created_at >= now() - interval '${period} day'
+          AND moment.state = 'active'
+          AND moment.created_at >= now() - interval '${period} day'
       ),
       circle_boardcast_period AS (
         SELECT comment.* FROM comment
@@ -82,14 +82,14 @@ exports.up = async (knex) => {
         UNION
         SELECT
           id AS id,
-          'UserPostJournalActivity' AS "type",
+          'UserPostMomentActivity' AS "type",
           author_id AS actor_id,
           id AS node_id,
-          'Journal' AS node_type,
+          'Moment' AS node_type,
           null::bigint AS target_id,
           null AS target_type,
           created_at
-        FROM journal_period
+        FROM moment_period
 
         UNION
         SELECT

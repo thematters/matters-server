@@ -15,7 +15,7 @@ export const AVATAR_ASSET_TYPE = {
 
 export const IMAGE_ASSET_TYPE = {
   embed: 'embed',
-  journal: 'journal',
+  moment: 'moment',
   ...COVER_ASSET_TYPE,
   ...AVATAR_ASSET_TYPE,
 } as const

@@ -218,7 +218,7 @@ const user: {
     __resolveType: ({
       __type,
     }: {
-      __type: NODE_TYPES.Article | NODE_TYPES.Journal
+      __type: NODE_TYPES.Article | NODE_TYPES.Moment
     }) => __type,
   },
 }

@@ -5,13 +5,13 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { NODE_TYPES } from 'common/enums'
 import { AuthenticationError } from 'common/errors'
 
-const resolver: GQLMutationResolvers['putJournal'] = async (
+const resolver: GQLMutationResolvers['putMoment'] = async (
   _,
   { input: { content, assets } },
   {
     viewer,
     dataSources: {
-      journalService,
+      momentService,
       atomService,
       connections: { redis },
     },
@@ -25,14 +25,14 @@ const resolver: GQLMutationResolvers['putJournal'] = async (
     ({ id }) => id
   )
 
-  const journal = await journalService.create({ content, assetIds }, viewer)
+  const moment = await momentService.create({ content, assetIds }, viewer)
 
   invalidateFQC({
     node: { id: viewer.id, type: NODE_TYPES.User },
     redis: redis,
   })
 
-  return journal
+  return moment
 }
 
 export default resolver

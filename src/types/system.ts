@@ -432,7 +432,7 @@ export default /* GraphQL */ `
     circleCover
     collectionCover
     announcementCover
-    journal
+    moment
   }
 
   enum EntityType {
@@ -443,7 +443,7 @@ export default /* GraphQL */ `
     circle
     announcement
     collection
-    journal
+    moment
   }
 
   "Enums for user roles."

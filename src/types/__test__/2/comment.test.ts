@@ -4,7 +4,7 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
-import { AtomService, JournalService } from 'connectors'
+import { AtomService, MomentService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -274,15 +274,15 @@ describe('mutations on comment', () => {
     expect(comment.articleVersionId).not.toBeNull()
   })
 
-  test('create a journal comment', async () => {
-    const journalService = new JournalService(connections)
-    const journal = await journalService.create(
+  test('create a moment comment', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '1', state: 'active', userName: 'test' }
     )
-    const journalGlobalId = toGlobalId({
-      type: NODE_TYPES.Journal,
-      id: journal.id,
+    const momentGlobalId = toGlobalId({
+      type: NODE_TYPES.Moment,
+      id: moment.id,
     })
     const server = await testClient({ isAuth: true, connections })
     const { errors, data } = await server.executeOperation({
@@ -291,8 +291,8 @@ describe('mutations on comment', () => {
         input: {
           comment: {
             content: 'test',
-            journalId: journalGlobalId,
-            type: 'journal',
+            momentId: momentGlobalId,
+            type: 'moment',
           },
         },
       },

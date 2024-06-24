@@ -30,7 +30,7 @@ export * from './search'
 export * from './appreciation'
 export * from './metrics'
 export * from './badges'
-export * from './journal'
+export * from './moment'
 
 export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
@@ -57,7 +57,7 @@ export const COMMENT_TYPE = {
   article: 'article',
   circleDiscussion: 'circle_discussion',
   circleBroadcast: 'circle_broadcast',
-  journal: 'journal',
+  moment: 'moment',
 } as const
 
 export const COMMENT_TYPES_REVERSED = Object.fromEntries(
@@ -165,7 +165,7 @@ export enum NODE_TYPES {
   Circle = 'Circle',
   Collection = 'Collection',
   Report = 'Report',
-  Journal = 'Journal',
+  Moment = 'Moment',
 
   IcymiTopic = 'IcymiTopic',
   SkippedListItem = 'SkippedListItem',
@@ -226,7 +226,7 @@ export const MAX_ARTICLE_REVISION_COUNT = 4
 
 export enum ActivityType {
   UserPublishArticleActivity = 'UserPublishArticleActivity',
-  UserPostJournalActivity = 'UserPostJournalActivity',
+  UserPostMomentActivity = 'UserPostMomentActivity',
   UserBroadcastCircleActivity = 'UserBroadcastCircleActivity',
   UserCreateCircleActivity = 'UserCreateCircleActivity',
   UserCollectArticleActivity = 'UserCollectArticleActivity',
@@ -245,8 +245,8 @@ export const MAX_ARTICLE_CONTENT_REVISION_LENGTH = 50
 
 export const MAX_ARTICLE_COMMENT_LENGTH = 1200
 
-export const MAX_JOURNAL_LENGTH = 240
-export const MAX_JOURNAL_COMMENT_LENGTH = 240
+export const MAX_MOMENT_LENGTH = 240
+export const MAX_MOMENT_COMMENT_LENGTH = 240
 
 export const MAX_TAGS_PER_ARTICLE_LIMIT = 3
 export const TAGS_RECOMMENDED_LIMIT = 100

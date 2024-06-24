@@ -155,7 +155,7 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
-    "Articles and journals authored by current user."
+    "Articles and moments authored by current user."
     writings(input:WritingInput!): WritingConnection!
 
     "collections authored by current user."
@@ -570,7 +570,7 @@ export default /* GraphQL */ `
 
   union FollowingActivity = UserPublishArticleActivity
   | UserAddArticleTagActivity
-  | UserPostJournalActivity
+  | UserPostMomentActivity
 
   # circle activities
   | UserBroadcastCircleActivity
@@ -601,15 +601,15 @@ export default /* GraphQL */ `
     target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
-  type UserPostJournalActivity {
+  type UserPostMomentActivity {
     actor: User! @logCache(type: "${NODE_TYPES.User}")
     createdAt: DateTime!
 
-    "Journal posted by actor"
-    node: Journal! @logCache(type: "${NODE_TYPES.Journal}")
+    "Moment posted by actor"
+    node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
 
-    "Another 2 journals posted by actor"
-    more: [Journal!]!
+    "Another 2 moments posted by actor"
+    more: [Moment!]!
   }
 
   type UserBroadcastCircleActivity {
@@ -1098,7 +1098,7 @@ export default /* GraphQL */ `
     first: Int
   }
 
-  union Writing = Article | Journal
+  union Writing = Article | Moment
 
   type WritingConnection implements Connection {
     totalCount: Int!
@@ -1109,6 +1109,7 @@ export default /* GraphQL */ `
   type WritingEdge {
     cursor: String!
     node: Writing!
+  }
 
   input RecommendationFollowingInput {
     first: Int
