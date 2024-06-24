@@ -8,7 +8,7 @@ exports.up = async (knex) => {
       'article',
       'circle_discussion',
       'circle_broadcast',
-      'journal',
+      'moment',
     ])
   )
 }
