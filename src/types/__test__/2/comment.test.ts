@@ -299,6 +299,17 @@ describe('mutations on comment', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putComment.id).toBeDefined()
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: DELETE_COMMENT,
+      variables: {
+        input: {
+          id: data.putComment.id,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.deleteComment.state).toBe('archived')
   })
 
   test('upvote a comment', async () => {
