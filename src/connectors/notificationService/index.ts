@@ -63,7 +63,6 @@ export class NotificationService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.comment_pinned:
       case DB_NOTICE_TYPE.comment_new_reply:
       case DB_NOTICE_TYPE.payment_received_donation:
       case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated

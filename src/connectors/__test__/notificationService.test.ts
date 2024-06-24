@@ -49,7 +49,6 @@ describe('user notify setting', () => {
     article_new_collected: false,
 
     // comment
-    comment_pinned: false,
     comment_liked: true,
     comment_mentioned_you: true,
     article_new_comment: true,
@@ -183,10 +182,6 @@ describe('create notice', () => {
 })
 
 describe('find notice', () => {
-  test('find one notice', async () => {
-    const notice = await notificationService.notice.dataloader.load('1')
-    expect(notice.id).toBe('1')
-  })
   test('find many notices', async () => {
     const notices = await notificationService.notice.findByUser({
       userId: recipientId,

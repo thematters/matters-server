@@ -456,7 +456,6 @@ export default /* GraphQL */ `
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
-    articleCommentPinned: Boolean!
 
     "for circle owners"
     circleNewSubscriber: Boolean!
@@ -918,7 +917,6 @@ export default /* GraphQL */ `
     articleNewAppreciation
     articleNewSubscription
     articleNewCollected
-    articleCommentPinned
 
     "for circle owners"
     circleNewSubscriber

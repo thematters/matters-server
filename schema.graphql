@@ -2526,7 +2526,6 @@ type NotificationSetting {
   articleNewAppreciation: Boolean!
   articleNewSubscription: Boolean!
   articleNewCollected: Boolean!
-  articleCommentPinned: Boolean!
 
   """for circle owners"""
   circleNewSubscriber: Boolean!
@@ -2972,7 +2971,6 @@ enum NotificationSettingType {
   articleNewAppreciation
   articleNewSubscription
   articleNewCollected
-  articleCommentPinned
 
   """for circle owners"""
   circleNewSubscriber

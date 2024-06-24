@@ -158,8 +158,6 @@ const notice: {
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.comment_pinned:
-          return 'CommentPinned'
         case DB_NOTICE_TYPE.comment_liked:
           return 'CommentLiked'
         case DB_NOTICE_TYPE.comment_mentioned_you:
@@ -176,7 +174,6 @@ const notice: {
         throw new ServerError('entities is empty')
       }
       switch (type) {
-        case DB_NOTICE_TYPE.comment_pinned:
         case DB_NOTICE_TYPE.comment_liked:
         case DB_NOTICE_TYPE.comment_mentioned_you:
         case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
