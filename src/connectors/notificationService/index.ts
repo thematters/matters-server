@@ -77,6 +77,7 @@ export class NotificationService {
           entities: params.entities,
         }
       case DB_NOTICE_TYPE.article_new_comment:
+      case DB_NOTICE_TYPE.comment_liked:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -201,6 +202,7 @@ export class NotificationService {
 
   private async __trigger(params: NotificationPrarms) {
     const atomService = new AtomService(this.connections)
+    const userService = new UserService(this.connections)
     const recipient = await atomService.userIdLoader.load(params.recipientId)
 
     if (!recipient) {
@@ -223,7 +225,6 @@ export class NotificationService {
     }
 
     // skip if user disable notify
-    const userService = new UserService(this.connections)
     const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
@@ -235,6 +236,21 @@ export class NotificationService {
         `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
       )
       return
+    }
+
+    // skip if sender is blocked by recipient
+    if ('actorId' in params) {
+      const blocked = await userService.blocked({
+        userId: recipient.id,
+        targetId: params.actorId,
+      })
+
+      if (blocked) {
+        logger.info(
+          `Actor ${params.actorId} is blocked by recipient ${params.recipientId}, skipped`
+        )
+        return
+      }
     }
 
     // Put Notice to DB

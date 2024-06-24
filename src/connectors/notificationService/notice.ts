@@ -491,6 +491,7 @@ export class Notice extends BaseService<NoticeDB> {
 
       // comment
       comment_pinned: setting.articleCommentPinned,
+      comment_liked: true,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       circle_new_broadcast: setting.inCircleNewBroadcast,

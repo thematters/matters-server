@@ -50,6 +50,7 @@ describe('user notify setting', () => {
 
     // comment
     comment_pinned: false,
+    comment_liked: true,
     comment_mentioned_you: true,
     article_new_comment: true,
     circle_new_broadcast: true,
@@ -160,6 +161,25 @@ describe('create notice', () => {
     expect(notices[0].message).not.toContain('undefined')
     expect(notices[1].message).not.toContain('undefined')
   })
+  test('blocked actor notice will be skipped', async () => {
+    const actorId = '2'
+    const recipientId = '1'
+    await userService.block(recipientId, actorId)
+
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: recipientId,
+    })
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId,
+      recipientId,
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: recipientId })
+    ).toBe(noticeCount)
+  })
 })
 
 describe('find notice', () => {
@@ -193,7 +213,7 @@ describe('bundle notices', () => {
       data: {
         uuid: v4(),
         content: 'test',
-        authorId: '2',
+        authorId: '3',
         targetId: article.id,
         targetTypeId: '4',
         articleVersionId: articleVersion.id,
@@ -230,6 +250,46 @@ describe('bundle notices', () => {
 
     expect(
       await notificationService.notice.countNotice({ userId: article.authorId })
+    ).toBe(noticeCount + 2)
+  })
+
+  test('comment_liked notice bundle is disabled', async () => {
+    const comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '2',
+        targetId: '1',
+        targetTypeId: '4',
+        articleVersionId: '1',
+      },
+    })
+
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: comment.authorId,
+    })
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
+    ).toBe(noticeCount + 1)
+
+    await notificationService.trigger({
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+    })
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
     ).toBe(noticeCount + 2)
   })
 
