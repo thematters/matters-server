@@ -9,7 +9,7 @@ import {
   RecommendationService,
   AtomService,
   ArticleService,
-  JournalService,
+  MomentService,
   UserService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
@@ -20,7 +20,7 @@ let connections: Connections
 let recommendationService: RecommendationService
 let atomService: AtomService
 let articleService: ArticleService
-let journalService: JournalService
+let momentService: MomentService
 let userService: UserService
 
 beforeAll(async () => {
@@ -28,7 +28,7 @@ beforeAll(async () => {
   recommendationService = new RecommendationService(connections)
   articleService = new ArticleService(connections)
   atomService = new AtomService(connections)
-  journalService = new JournalService(connections)
+  momentService = new MomentService(connections)
   userService = new UserService(connections)
 }, 30000)
 
@@ -302,7 +302,7 @@ describe('following', () => {
                   }
                   createdAt
                 }
-                ... on UserPostJournalActivity {
+                ... on UserPostMomentActivity {
                   actor {
                     id
                   }
@@ -348,8 +348,8 @@ describe('following', () => {
     expect(emptyErrors).toBeUndefined()
     expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
 
-    // one journal activity
-    const journal1 = await journalService.create({ content: 'test' }, followee1)
+    // one moment activity
+    const moment1 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors1, data: data1 } = await server.executeOperation({
@@ -359,11 +359,11 @@ describe('following', () => {
     expect(errors1).toBeUndefined()
     expect(data1.viewer.recommendation.following.totalCount).toBe(1)
     expect(data1.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
-    // two same actor journal activities in series
-    const journal2 = await journalService.create({ content: 'test' }, followee1)
+    // two same actor moment activities in series
+    const moment2 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors2, data: data2 } = await server.executeOperation({
@@ -373,14 +373,14 @@ describe('following', () => {
     expect(errors2).toBeUndefined()
     expect(data2.viewer.recommendation.following.totalCount).toBe(2)
     expect(data2.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal2.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
     )
     expect(data2.viewer.recommendation.following.edges[1].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
-    // three same actor journal activities in series will be combined into one activity
-    const journal3 = await journalService.create({ content: 'test' }, followee1)
+    // three same actor moment activities in series will be combined into one activity
+    const moment3 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors3, data: data3 } = await server.executeOperation({
@@ -390,18 +390,18 @@ describe('following', () => {
     expect(errors3).toBeUndefined()
     expect(data3.viewer.recommendation.following.totalCount).toBe(1)
     expect(data3.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal3.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment3.id })
     )
     expect(data3.viewer.recommendation.following.edges[0].node.more[0].id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal2.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
     )
     expect(data3.viewer.recommendation.following.edges[0].node.more[1].id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal1.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
-    // other actor journal activities will not reset the combination time window
-    const journal4 = await journalService.create({ content: 'test' }, followee2)
-    const journal5 = await journalService.create({ content: 'test' }, followee1)
+    // other actor moment activities will not reset the combination time window
+    const moment4 = await momentService.create({ content: 'test' }, followee2)
+    const moment5 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors4, data: data4 } = await server.executeOperation({
@@ -411,10 +411,10 @@ describe('following', () => {
     expect(errors4).toBeUndefined()
     expect(data4.viewer.recommendation.following.totalCount).toBe(2)
     expect(data4.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal5.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
     expect(data4.viewer.recommendation.following.edges[1].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal4.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment4.id })
     )
 
     // same actor other activities will  reset the combination time window
@@ -423,7 +423,7 @@ describe('following', () => {
       content: 'test',
       authorId: followee1.id,
     })
-    const journal6 = await journalService.create({ content: 'test' }, followee1)
+    const moment6 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors5, data: data5 } = await server.executeOperation({
@@ -433,16 +433,16 @@ describe('following', () => {
     expect(errors5).toBeUndefined()
     expect(data5.viewer.recommendation.following.totalCount).toBe(4)
     expect(data5.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal6.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
     )
     expect(data5.viewer.recommendation.following.edges[1].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: article.id })
     )
     expect(data5.viewer.recommendation.following.edges[2].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal5.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
     expect(data5.viewer.recommendation.following.edges[3].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Journal, id: journal4.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment4.id })
     )
 
     // article only

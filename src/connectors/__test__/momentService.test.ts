@@ -4,8 +4,8 @@ import { v4 } from 'uuid'
 
 import {
   USER_STATE,
-  JOURNAL_STATE,
-  MAX_JOURNAL_LENGTH,
+  MOMENT_STATE,
+  MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
 } from 'common/enums'
 import {
@@ -13,18 +13,18 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { JournalService, UserService, SystemService } from 'connectors'
+import { MomentService, UserService, SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
-let journalService: JournalService
+let momentService: MomentService
 let userService: UserService
 let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
-  journalService = new JournalService(connections)
+  momentService = new MomentService(connections)
   userService = new UserService(connections)
   systemService = new SystemService(connections)
 }, 30000)
@@ -33,7 +33,7 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-describe('create journals', () => {
+describe('create moments', () => {
   const user = { id: '1', state: USER_STATE.active, userName: 'testuser' }
   const data = { content: 'test', assetIds: [] }
   test('not active user will fail', async () => {
@@ -42,162 +42,159 @@ describe('create journals', () => {
       state: USER_STATE.banned,
       userName: 'testuser',
     }
-    expect(journalService.create(data, bannedUser)).rejects.toThrowError(
+    expect(momentService.create(data, bannedUser)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('content length is checked', async () => {
-    expect(journalService.create({ content: '' }, user)).rejects.toThrowError(
+    expect(momentService.create({ content: '' }, user)).rejects.toThrowError(
       UserInputError
     )
     expect(
-      journalService.create(
-        { content: 'a'.repeat(MAX_JOURNAL_LENGTH + 1) },
-        user
-      )
+      momentService.create({ content: 'a'.repeat(MAX_MOMENT_LENGTH + 1) }, user)
     ).rejects.toThrowError(UserInputError)
     expect(
-      journalService.create({ content: 'a'.repeat(MAX_JOURNAL_LENGTH) }, user)
+      momentService.create({ content: 'a'.repeat(MAX_MOMENT_LENGTH) }, user)
     ).resolves.toBeDefined()
   })
   test('assets are checked', async () => {
     // wrong author
     expect(
-      journalService.create({ content: 'test', assetIds: ['2'] }, user)
+      momentService.create({ content: 'test', assetIds: ['2'] }, user)
     ).rejects.toThrowError(UserInputError)
     // wrong type
     expect(
-      journalService.create({ content: 'test', assetIds: ['1'] }, user)
+      momentService.create({ content: 'test', assetIds: ['1'] }, user)
     ).rejects.toThrowError(UserInputError)
 
     const asset = await systemService.findAssetOrCreateByPath(
       {
         uuid: v4(),
         authorId: user.id,
-        type: IMAGE_ASSET_TYPE.journal,
+        type: IMAGE_ASSET_TYPE.moment,
         path: 'test.jpg',
       },
       '1',
       '1'
     )
     expect(
-      journalService.create({ content: 'test', assetIds: [asset.id] }, user)
+      momentService.create({ content: 'test', assetIds: [asset.id] }, user)
     ).resolves.toBeDefined()
   })
   test('active user will success', async () => {
-    const journal = await journalService.create(data, user)
-    expect(journal).toBeDefined()
-    expect(journal.content).toBe(data.content)
+    const moment = await momentService.create(data, user)
+    expect(moment).toBeDefined()
+    expect(moment.content).toBe(data.content)
   })
 })
 
-describe('delete journals', () => {
+describe('delete moments', () => {
   test('not active/banned user will fail', async () => {
     const user = { id: '1', state: USER_STATE.archived }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: user.id, state: USER_STATE.active, userName: 'testuser' }
     )
-    expect(journalService.delete(journal.id, user)).rejects.toThrowError(
+    expect(momentService.delete(moment.id, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('not author will fail', async () => {
     const author = { id: '1', state: USER_STATE.active, userName: 'testuser' }
     const other = { id: '2', state: USER_STATE.active }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       author
     )
-    expect(journalService.delete(journal.id, other)).rejects.toThrowError(
+    expect(momentService.delete(moment.id, other)).rejects.toThrowError(
       ForbiddenError
     )
   })
   test('author will success', async () => {
     const author = { id: '1', state: USER_STATE.active, userName: 'testuser' }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       author
     )
-    const updated = await journalService.delete(journal.id, author)
-    expect(updated.state).toBe(JOURNAL_STATE.archived)
+    const updated = await momentService.delete(moment.id, author)
+    expect(updated.state).toBe(MOMENT_STATE.archived)
   })
 })
 
-describe('like/unklike journals', () => {
+describe('like/unklike moments', () => {
   test('not active user will fail', async () => {
     const user = { id: '1', state: USER_STATE.banned }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
-    expect(journalService.like(journal.id, user)).rejects.toThrowError(
+    expect(momentService.like(moment.id, user)).rejects.toThrowError(
       ForbiddenByStateError
     )
   })
   test('author will fail', async () => {
     const author = { id: '1', state: USER_STATE.active }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: author.id, state: USER_STATE.active, userName: 'testuser' }
     )
-    expect(journalService.like(journal.id, author)).rejects.toThrowError(
+    expect(momentService.like(moment.id, author)).rejects.toThrowError(
       ForbiddenError
     )
   })
-  test('archived journal will fail', async () => {
+  test('archived moment will fail', async () => {
     const user = { id: '1', state: USER_STATE.active }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
-    await journalService.delete(journal.id, {
+    await momentService.delete(moment.id, {
       id: '2',
       state: USER_STATE.active,
     })
-    expect(journalService.like(journal.id, user)).rejects.toThrowError(
+    expect(momentService.like(moment.id, user)).rejects.toThrowError(
       UserInputError
     )
   })
   test('success', async () => {
     const user = { id: '1', state: USER_STATE.active }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '2', state: USER_STATE.active, userName: 'testuser' }
     )
-    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
-    await journalService.like(journal.id, user)
-    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(true)
+    expect(momentService.isLiked(moment.id, user.id)).resolves.toBe(false)
+    await momentService.like(moment.id, user)
+    expect(momentService.isLiked(moment.id, user.id)).resolves.toBe(true)
 
     // like multiple times is idempotent
-    await journalService.like(journal.id, user)
-    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(true)
+    await momentService.like(moment.id, user)
+    expect(momentService.isLiked(moment.id, user.id)).resolves.toBe(true)
 
     // unlike multiple times is idempotent
-    await journalService.unlike(journal.id, user)
-    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
-    await journalService.unlike(journal.id, user)
-    expect(journalService.isLiked(journal.id, user.id)).resolves.toBe(false)
+    await momentService.unlike(moment.id, user)
+    expect(momentService.isLiked(moment.id, user.id)).resolves.toBe(false)
+    await momentService.unlike(moment.id, user)
+    expect(momentService.isLiked(moment.id, user.id)).resolves.toBe(false)
   })
   test('count likes', async () => {
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '1', state: USER_STATE.active, userName: 'testuser' }
     )
-    expect(journalService.countLikes(journal.id)).resolves.toBe(0)
-    await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
-    await journalService.like(journal.id, { id: '2', state: USER_STATE.active })
-    expect(journalService.countLikes(journal.id)).resolves.toBe(1)
+    expect(momentService.countLikes(moment.id)).resolves.toBe(0)
+    await momentService.like(moment.id, { id: '2', state: USER_STATE.active })
+    await momentService.like(moment.id, { id: '2', state: USER_STATE.active })
+    expect(momentService.countLikes(moment.id)).resolves.toBe(1)
   })
   test('blocked user will fail', async () => {
     const user = { id: '3', state: USER_STATE.active }
     const author = { id: '4', state: USER_STATE.active, userName: 'testuser' }
-    const journal = await journalService.create(
+    const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       author
     )
     await userService.block(author.id, user.id)
-    expect(journalService.like(journal.id, user)).rejects.toThrowError(
+    expect(momentService.like(moment.id, user)).rejects.toThrowError(
       ForbiddenError
     )
   })

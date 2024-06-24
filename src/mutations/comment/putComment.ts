@@ -5,7 +5,7 @@ import type {
   Article,
   Circle,
   Comment,
-  Journal,
+  Moment,
 } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -24,16 +24,16 @@ import {
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
-  MAX_JOURNAL_COMMENT_LENGTH,
+  MAX_MOMENT_COMMENT_LENGTH,
   NODE_TYPES,
   USER_STATE,
-  JOURNAL_STATE,
+  MOMENT_STATE,
 } from 'common/enums'
 import {
   ArticleNotFoundError,
   CircleNotFoundError,
   CommentNotFoundError,
-  JournalNotFoundError,
+  MomentNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
@@ -52,7 +52,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         type,
         articleId,
         circleId,
-        journalId,
+        momentId,
       },
       id,
     },
@@ -88,15 +88,15 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   const isArticleType = type === 'article'
   const isCircleDiscussion = type === 'circleDiscussion'
   const isCircleBroadcast = type === 'circleBroadcast'
-  const isJournal = type === 'journal'
+  const isMoment = type === 'moment'
   if (isArticleType && !articleId) {
     throw new UserInputError('`articleId` is required if `type` is `article`')
   } else if ((isCircleDiscussion || isCircleBroadcast) && !circleId) {
     throw new UserInputError(
       '`circleId` is required if `type` is `circleBroadcast` or `circleDiscussion`'
     )
-  } else if (isJournal && !journalId) {
-    throw new UserInputError('`journalId` is required if `type` is `journal`')
+  } else if (isMoment && !momentId) {
+    throw new UserInputError('`momentId` is required if `type` is `moment`')
   } else {
     data.type = COMMENT_TYPE[type]
   }
@@ -112,7 +112,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   if (isArticleType && stripHtml(content).length > MAX_ARTICLE_COMMENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
-  if (isJournal && stripHtml(content).length > MAX_JOURNAL_COMMENT_LENGTH) {
+  if (isMoment && stripHtml(content).length > MAX_MOMENT_COMMENT_LENGTH) {
     throw new UserInputError('content reach length limit')
   }
 
@@ -121,7 +121,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
    */
   let article: Article | undefined
   let circle: Circle | undefined
-  let journal: Journal | undefined
+  let moment: Moment | undefined
   let targetAuthor: string | undefined
   if (articleId) {
     const { id: articleDbId } = fromGlobalId(articleId)
@@ -160,25 +160,25 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     data.targetId = circle.id
 
     targetAuthor = circle.owner
-  } else if (journalId) {
-    const { id: journalDbId } = fromGlobalId(journalId)
-    journal = await atomService.journalIdLoader.load(journalDbId)
+  } else if (momentId) {
+    const { id: momentDbId } = fromGlobalId(momentId)
+    moment = await atomService.momentIdLoader.load(momentDbId)
 
-    if (!journal || journal.state !== JOURNAL_STATE.active) {
-      throw new JournalNotFoundError('target journal does not exists')
+    if (!moment || moment.state !== MOMENT_STATE.active) {
+      throw new MomentNotFoundError('target moment does not exists')
     }
 
     const { id: typeId } = await atomService.findFirst({
       table: 'entity_type',
-      where: { table: 'journal' },
+      where: { table: 'moment' },
     })
     data.targetTypeId = typeId
-    data.targetId = journal.id
+    data.targetId = moment.id
 
-    targetAuthor = journal.authorId
+    targetAuthor = moment.authorId
   } else {
     throw new UserInputError(
-      '`articleId` or `circleId` or `journalId` is required'
+      '`articleId` or `circleId` or `momentId` is required'
     )
   }
 

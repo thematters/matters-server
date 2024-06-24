@@ -13,7 +13,7 @@ import type {
   Tag,
   Transaction,
   User,
-  Journal,
+  Moment,
   TableTypeMap,
   TableTypeMapKey,
 } from 'definitions'
@@ -174,7 +174,7 @@ export class AtomService {
   public tagIdLoader: AtomDataLoader<string, Tag>
   public transactionIdLoader: AtomDataLoader<string, Transaction>
   public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
-  public journalIdLoader: AtomDataLoader<string, Journal>
+  public momentIdLoader: AtomDataLoader<string, Moment>
   public assetIdLoader: AtomDataLoader<string, Asset>
   public assetUUIDLoader: AtomDataLoader<string, Asset>
 
@@ -215,7 +215,7 @@ export class AtomService {
       table: 'matters_choice_topic',
       mode: 'id',
     })
-    this.journalIdLoader = this.initLoader({ table: 'journal', mode: 'id' })
+    this.momentIdLoader = this.initLoader({ table: 'moment', mode: 'id' })
     this.assetIdLoader = this.initLoader({ table: 'asset', mode: 'id' })
     this.assetUUIDLoader = this.initLoader({ table: 'asset', mode: 'uuid' })
   }
@@ -554,7 +554,7 @@ const UPATEABLE_TABLES = [
   'blockchain_transaction',
   'collection',
   'matters_choice_topic',
-  'journal',
-  'journal_asset',
-  'action_journal',
+  'moment',
+  'moment_asset',
+  'action_moment',
 ]

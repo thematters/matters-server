@@ -5,8 +5,8 @@ import { sanitizeHTML } from '@matters/matters-editor/transformers'
 
 import {
   USER_STATE,
-  JOURNAL_STATE,
-  MAX_JOURNAL_LENGTH,
+  MOMENT_STATE,
+  MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
 } from 'common/enums'
 import {
@@ -18,7 +18,7 @@ import { AtomService, UserService } from 'connectors'
 
 type User = Pick<UserFull, 'id' | 'state'>
 
-export class JournalService {
+export class MomentService {
   private connections: Connections
   private models: AtomService
 
@@ -34,7 +34,7 @@ export class JournalService {
     // check user
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${user.state} user is not allowed to create journals`
+        `${user.state} user is not allowed to create moments`
       )
     }
     if (!user.userName) {
@@ -42,8 +42,8 @@ export class JournalService {
     }
     // check content length
     const contentLength = stripHtml(data.content).length
-    if (contentLength > MAX_JOURNAL_LENGTH || contentLength < 1) {
-      throw new UserInputError('invalid journal content length')
+    if (contentLength > MAX_MOMENT_LENGTH || contentLength < 1) {
+      throw new UserInputError('invalid moment content length')
     }
     // check assets
     if (data.assetIds && data.assetIds.length > 0) {
@@ -54,31 +54,31 @@ export class JournalService {
             `asset ${asset.id} is not created by user ${user.id}`
           )
         }
-        if (asset.type !== IMAGE_ASSET_TYPE.journal) {
-          throw new UserInputError(`asset ${asset.id} is not a journal asset`)
+        if (asset.type !== IMAGE_ASSET_TYPE.moment) {
+          throw new UserInputError(`asset ${asset.id} is not a moment asset`)
         }
       }
     }
 
-    const journal = await this.models.create({
-      table: 'journal',
+    const moment = await this.models.create({
+      table: 'moment',
       data: {
         authorId: user.id,
         content: sanitizeHTML(data.content),
-        state: JOURNAL_STATE.active,
+        state: MOMENT_STATE.active,
       },
     })
     if (data.assetIds && data.assetIds.length > 0) {
       await Promise.all(
         data.assetIds.map((assetId) =>
           this.models.create({
-            table: 'journal_asset',
-            data: { assetId, journalId: journal.id },
+            table: 'moment_asset',
+            data: { assetId, momentId: moment.id },
           })
         )
       )
     }
-    return journal
+    return moment
   }
 
   public delete = async (id: string, user: User) => {
@@ -88,51 +88,49 @@ export class JournalService {
       )
     ) {
       throw new ForbiddenByStateError(
-        `${user.state} user is not allowed to delete journals`
+        `${user.state} user is not allowed to delete moments`
       )
     }
-    const journal = await this.models.findUnique({
-      table: 'journal',
+    const moment = await this.models.findUnique({
+      table: 'moment',
       where: { id },
     })
-    if (journal.authorId !== user.id) {
-      throw new ForbiddenError(
-        `journal ${id} is not created by user ${user.id}`
-      )
+    if (moment.authorId !== user.id) {
+      throw new ForbiddenError(`moment ${id} is not created by user ${user.id}`)
     }
     return this.models.update({
-      table: 'journal',
+      table: 'moment',
       where: { id, authorId: user.id },
-      data: { state: JOURNAL_STATE.archived },
+      data: { state: MOMENT_STATE.archived },
     })
   }
 
   public like = async (id: string, user: User) => {
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
-        `${user.state} user is not allowed to like journals`
+        `${user.state} user is not allowed to like moments`
       )
     }
-    const journal = await this.models.findUnique({
-      table: 'journal',
+    const moment = await this.models.findUnique({
+      table: 'moment',
       where: { id },
     })
-    if (journal.authorId === user.id) {
-      throw new ForbiddenError(`user ${user.id} cannot like own journal`)
+    if (moment.authorId === user.id) {
+      throw new ForbiddenError(`user ${user.id} cannot like own moment`)
     }
-    if (journal.state !== JOURNAL_STATE.active) {
-      throw new UserInputError(`journal ${id} is not active, cannot be liked`)
+    if (moment.state !== MOMENT_STATE.active) {
+      throw new UserInputError(`moment ${id} is not active, cannot be liked`)
     }
     const userService = new UserService(this.connections)
     const isBlocked = await userService.blocked({
-      userId: journal.authorId,
+      userId: moment.authorId,
       targetId: user.id,
     })
     if (isBlocked) {
       throw new ForbiddenError(`user ${id} is blocked by target author`)
     }
     return this.models.upsert({
-      table: 'action_journal',
+      table: 'action_moment',
       where: { targetId: id, userId: user.id },
       create: { targetId: id, userId: user.id, action: 'like' },
       update: { updatedAt: new Date() },
@@ -141,33 +139,33 @@ export class JournalService {
 
   public unlike = async (id: string, user: User) =>
     this.models.deleteMany({
-      table: 'action_journal',
+      table: 'action_moment',
       where: { targetId: id, userId: user.id, action: 'like' },
     })
 
-  public isLiked = async (journalId: string, userId: string) => {
+  public isLiked = async (momentId: string, userId: string) => {
     const count = await this.models.count({
-      table: 'action_journal',
-      where: { targetId: journalId, userId: userId, action: 'like' },
+      table: 'action_moment',
+      where: { targetId: momentId, userId: userId, action: 'like' },
     })
     return count > 0
   }
 
-  public countLikes = async (journalId: string) =>
+  public countLikes = async (momentId: string) =>
     this.models.count({
-      table: 'action_journal',
-      where: { targetId: journalId, action: 'like' },
+      table: 'action_moment',
+      where: { targetId: momentId, action: 'like' },
     })
 
-  public getAssets = async (journalId: string) => {
-    const journalAssets = await this.models.findMany({
-      table: 'journal_asset',
-      where: { journalId },
+  public getAssets = async (momentId: string) => {
+    const momentAssets = await this.models.findMany({
+      table: 'moment_asset',
+      where: { momentId },
       orderBy: [{ column: 'createdAt', order: 'asc' }],
     })
     return Promise.all(
-      journalAssets.map((journalAsset) =>
-        this.models.assetIdLoader.load(journalAsset.assetId)
+      momentAssets.map((momentAsset) =>
+        this.models.assetIdLoader.load(momentAsset.assetId)
       )
     )
   }

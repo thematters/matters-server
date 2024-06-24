@@ -1,7 +1,7 @@
 import type {
   ActionArticle,
   ActionCircle,
-  ActionJournal,
+  ActionMoment,
   ActionTag,
   ActionUser,
 } from './action'
@@ -34,7 +34,6 @@ import type {
 import type { Collection, CollectionArticle } from './collection'
 import type { Comment, FeaturedCommentMaterialized } from './comment'
 import type { Draft } from './draft'
-import type { Journal, JournalAsset } from './journal'
 import type {
   BlockedSearchKeyword,
   Blocklist,
@@ -43,6 +42,7 @@ import type {
   PunishRecord,
   SearchHistory,
 } from './misc'
+import type { Moment, MomentAsset } from './moment'
 import type { UserOauthLikecoinDB } from './oauth'
 import type {
   BlockchainSyncRecord,
@@ -71,7 +71,7 @@ import type {
   CommentService,
   DraftService,
   ExchangeRate,
-  JournalService,
+  MomentService,
   LikeCoin,
   NotificationService,
   OAuthService,
@@ -119,7 +119,7 @@ export * from './report'
 export * from './wallet'
 export * from './misc'
 export * from './schema'
-export * from './journal'
+export * from './moment'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -138,7 +138,7 @@ export interface Connections {
 export interface DataSources {
   atomService: AtomService
   articleService: ArticleService
-  journalService: JournalService
+  momentService: MomentService
   commentService: CommentService
   draftService: DraftService
   userService: UserService
@@ -169,7 +169,7 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
-  action_journal: ActionJournal
+  action_moment: ActionMoment
   action_tag: ActionTag
   action_user: ActionUser
   announcement: Announcement
@@ -206,8 +206,8 @@ export type TableTypeMap = {
   draft: Draft
   entity_type: EntityType
   featured_comment_materialized: FeaturedCommentMaterialized
-  journal: Journal
-  journal_asset: JournalAsset
+  moment: Moment
+  moment_asset: MomentAsset
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   payout_account: PayoutAccount
@@ -299,4 +299,4 @@ export type Falsey = '' | 0 | false | null | undefined
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 
-export type Writing = Article | Journal
+export type Writing = Article | Moment

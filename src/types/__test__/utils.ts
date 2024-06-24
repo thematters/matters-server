@@ -24,7 +24,7 @@ import {
   UserWorkService,
   CollectionService,
   RecommendationService,
-  JournalService,
+  MomentService,
 } from 'connectors'
 import {
   PublicationQueue,
@@ -228,7 +228,7 @@ export const testClient = async ({
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
-      journalService: new JournalService(connections),
+      momentService: new MomentService(connections),
       connections,
       queues,
       ...dataSources,

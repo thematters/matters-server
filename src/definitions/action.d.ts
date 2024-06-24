@@ -42,7 +42,7 @@ export interface ActionUser {
   updatedAt: Date
 }
 
-export interface ActionJournal {
+export interface ActionMoment {
   id: string
   action: 'like'
   userId: string

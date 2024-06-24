@@ -3,38 +3,38 @@ import type { GQLMutationResolvers } from 'definitions'
 import { AuthenticationError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
-export const likeJournal: GQLMutationResolvers['likeJournal'] = async (
+export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
   _,
   { input: { id: globalId } },
-  { viewer, dataSources: { journalService, atomService } }
+  { viewer, dataSources: { momentService, atomService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
   const { id, type } = fromGlobalId(globalId)
 
-  if (type !== 'Journal') {
+  if (type !== 'Moment') {
     throw new UserInputError('invalid id')
   }
-  await journalService.like(id, viewer)
+  await momentService.like(id, viewer)
 
-  return atomService.journalIdLoader.load(id)
+  return atomService.momentIdLoader.load(id)
 }
 
-export const unlikeJournal: GQLMutationResolvers['unlikeJournal'] = async (
+export const unlikeMoment: GQLMutationResolvers['unlikeMoment'] = async (
   _,
   { input: { id: globalId } },
-  { viewer, dataSources: { journalService, atomService } }
+  { viewer, dataSources: { momentService, atomService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
   const { id, type } = fromGlobalId(globalId)
 
-  if (type !== 'Journal') {
+  if (type !== 'Moment') {
     throw new UserInputError('invalid id')
   }
-  await journalService.unlike(id, viewer)
+  await momentService.unlike(id, viewer)
 
-  return atomService.journalIdLoader.load(id)
+  return atomService.momentIdLoader.load(id)
 }

@@ -2,35 +2,35 @@ import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
-    putJournal(input: PutJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:2, period:300)
-    deleteJournal(input: DeleteJournalInput!): Boolean!
+    putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:2, period:300)
+    deleteMoment(input: DeleteMomentInput!): Boolean!
 
-    likeJournal(input: LikeJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Journal}")
-    unlikeJournal(input: UnlikeJournalInput!): Journal! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Journal}")
+    likeMoment(input: LikeMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
+    unlikeMoment(input: UnlikeMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
   }
 
-  input PutJournalInput {
+  input PutMomentInput {
     content: String!
     assets: [ID!]!
   }
 
-  input DeleteJournalInput {
+  input DeleteMomentInput {
     id: ID!
   }
-  input LikeJournalInput {
+  input LikeMomentInput {
     id: ID!
   }
-  input UnlikeJournalInput {
+  input UnlikeMomentInput {
     id: ID!
   }
 
-  type Journal implements Node {
+  type Moment implements Node {
     id: ID!
     content: String
     assets: [Asset!]!
     author: User! @logCache(type: "${NODE_TYPES.User}")
 
-    state: JournalState!
+    state: MomentState!
 
     commentCount: Int!
     commentedFollowees: [User!]!
@@ -43,7 +43,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  enum JournalState {
+  enum MomentState {
     active
     archived
   }

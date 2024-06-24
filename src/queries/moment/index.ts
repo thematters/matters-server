@@ -6,17 +6,17 @@ import { toGlobalId } from 'common/utils'
 import comments from './comments'
 
 const schema: GQLResolvers = {
-  Journal: {
-    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Journal, id }),
+  Moment: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Moment, id }),
     content: ({ content }) => content,
-    assets: ({ id }, _, { dataSources: { journalService } }) =>
-      journalService.getAssets(id),
+    assets: ({ id }, _, { dataSources: { momentService } }) =>
+      momentService.getAssets(id),
     author: ({ authorId }, _, { dataSources: { atomService } }) =>
       atomService.userIdLoader.load(authorId),
     state: ({ state }) => state,
 
     commentCount: ({ id }, _, { dataSources: { commentService } }) =>
-      commentService.count(id, COMMENT_TYPE.journal),
+      commentService.count(id, COMMENT_TYPE.moment),
     comments: comments,
     commentedFollowees: (
       { id, authorId },
@@ -27,15 +27,15 @@ const schema: GQLResolvers = {
         return []
       }
       return commentService.findCommentedFollowees(
-        { id, authorId, type: COMMENT_TYPE.journal },
+        { id, authorId, type: COMMENT_TYPE.moment },
         viewer.id
       )
     },
 
-    likeCount: ({ id }, _, { dataSources: { journalService } }) =>
-      journalService.countLikes(id),
-    liked: ({ id }, _, { dataSources: { journalService }, viewer }) =>
-      viewer.id ? journalService.isLiked(id, viewer.id) : false,
+    likeCount: ({ id }, _, { dataSources: { momentService } }) =>
+      momentService.countLikes(id),
+    liked: ({ id }, _, { dataSources: { momentService }, viewer }) =>
+      viewer.id ? momentService.isLiked(id, viewer.id) : false,
 
     createdAt: ({ createdAt }) => createdAt,
   },

@@ -1,5 +1,5 @@
 import type { CommentFilter } from 'connectors'
-import type { GQLJournalResolvers } from 'definitions'
+import type { GQLMomentResolvers } from 'definitions'
 
 import { COMMENT_TYPE } from 'common/enums'
 import {
@@ -9,7 +9,7 @@ import {
   fromGlobalId,
 } from 'common/utils'
 
-const resolver: GQLJournalResolvers['comments'] = async (
+const resolver: GQLMomentResolvers['comments'] = async (
   { id },
   { input: { sort, first, ...rest } },
   { dataSources: { atomService, commentService } }
@@ -35,11 +35,11 @@ const resolver: GQLJournalResolvers['comments'] = async (
   // handle filter
   const { id: targetTypeId } = await atomService.findFirst({
     table: 'entity_type',
-    where: { table: 'journal' },
+    where: { table: 'moment' },
   })
 
   const where: CommentFilter = {
-    type: COMMENT_TYPE.journal,
+    type: COMMENT_TYPE.moment,
     targetId: id,
     targetTypeId,
   }

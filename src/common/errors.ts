@@ -168,9 +168,9 @@ export class CircleNotFoundError extends GraphQLError {
   }
 }
 
-export class JournalNotFoundError extends GraphQLError {
+export class MomentNotFoundError extends GraphQLError {
   public constructor(message: string) {
-    super(message, { extensions: { code: 'JOURNAL_NOT_FOUND' } })
+    super(message, { extensions: { code: 'MOMENT_NOT_FOUND' } })
   }
 }
 

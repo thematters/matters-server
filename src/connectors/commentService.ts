@@ -168,7 +168,7 @@ export class CommentService extends BaseService<Comment> {
   /**
    * Find commented followees by a given comment target.
    *
-   * @remarks target author (like journal author) is excluded if provided
+   * @remarks target author (like moment author) is excluded if provided
    */
   public findCommentedFollowees = async (
     target: {

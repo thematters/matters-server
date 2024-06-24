@@ -19,7 +19,7 @@ import {
   UserService,
   ArticleService,
   PaymentService,
-  JournalService,
+  MomentService,
 } from 'connectors'
 import { createDonationTx, createTx } from 'connectors/__test__/utils'
 
@@ -36,14 +36,14 @@ import {
 let connections: Connections
 let userService: UserService
 let articleService: ArticleService
-let journalService: JournalService
+let momentService: MomentService
 let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   articleService = new ArticleService(connections)
-  journalService = new JournalService(connections)
+  momentService = new MomentService(connections)
   paymentService = new PaymentService(connections)
 }, 50000)
 
@@ -1594,7 +1594,7 @@ describe('query user writings', () => {
               ... on Article {
                 id
               }
-              ... on Journal {
+              ... on Moment {
                 id
               }
             }
@@ -1632,7 +1632,7 @@ describe('query user writings', () => {
     expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()
   })
   test('find some writings', async () => {
-    await journalService.create({ content: 'test' }, user)
+    await momentService.create({ content: 'test' }, user)
     await articleService.createArticle({
       title: 'test',
       content: 'test',
@@ -1653,7 +1653,7 @@ describe('query user writings', () => {
       NODE_TYPES.Article
     )
     expect(fromGlobalId(data.viewer.writings.edges[1].node.id).type).toBe(
-      NODE_TYPES.Journal
+      NODE_TYPES.Moment
     )
     expect(data.viewer.writings.pageInfo.hasPreviousPage).toBeFalsy()
     expect(data.viewer.writings.pageInfo.hasNextPage).toBeFalsy()

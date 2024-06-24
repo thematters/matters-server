@@ -1,12 +1,12 @@
-import deleteJournal from './deleteJournal'
-import { likeJournal, unlikeJournal } from './likeJournal'
-import putJournal from './putJournal'
+import deleteMoment from './deleteMoment'
+import { likeMoment, unlikeMoment } from './likeMoment'
+import putMoment from './putMoment'
 
 export default {
   Mutation: {
-    putJournal,
-    deleteJournal,
-    likeJournal,
-    unlikeJournal,
+    putMoment,
+    deleteMoment,
+    likeMoment,
+    unlikeMoment,
   },
 }

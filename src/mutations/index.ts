@@ -5,7 +5,7 @@ import circle from './circle'
 import collection from './collection'
 import comment from './comment'
 import draft from './draft'
-import journal from './journal'
+import moment from './moment'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import system from './system'
@@ -21,5 +21,5 @@ export default merge(
   notice,
   oauthClient,
   collection,
-  journal
+  moment
 )

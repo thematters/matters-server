@@ -1,4 +1,4 @@
-import type { GQLUserResolvers, Article, Journal } from 'definitions'
+import type { GQLUserResolvers, Article, Moment } from 'definitions'
 
 import { DEFAULT_TAKE_PER_PAGE, NODE_TYPES } from 'common/enums'
 import { ServerError } from 'common/errors'
@@ -23,8 +23,8 @@ const resolver: GQLUserResolvers['writings'] = async (
         case 'Article': {
           return atomService.articleIdLoader.load(record.id)
         }
-        case 'Journal': {
-          return atomService.journalIdLoader.load(record.id)
+        case 'Moment': {
+          return atomService.momentIdLoader.load(record.id)
         }
         default: {
           throw new ServerError(`Unknown response type: ${record.type}`)
@@ -34,10 +34,10 @@ const resolver: GQLUserResolvers['writings'] = async (
   )
 
   // gen edges
-  const isArticle = (node: Article | Journal): node is Article =>
+  const isArticle = (node: Article | Moment): node is Article =>
     'shortHash' in node
   const edges = nodes.map((node) => {
-    const type = isArticle(node) ? NODE_TYPES.Article : NODE_TYPES.Journal
+    const type = isArticle(node) ? NODE_TYPES.Article : NODE_TYPES.Moment
     return {
       cursor: toGlobalId({ type, id: node.id }),
       node: { __type: type, ...node },
