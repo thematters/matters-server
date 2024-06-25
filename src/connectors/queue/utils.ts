@@ -9,8 +9,26 @@ const logger = getLogger('queue-base')
 
 export interface CustomQueueOpts {
   limiter?: RateLimiter
-  // for testing to mock redis connection
-  createClient?: () => Redis
+}
+
+const map = new Map()
+
+// reuse 'client'/'subscriber' redis only, see https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#reusing-redis-connections
+const createClient = (type: string) => {
+  if (map.has(type)) {
+    return map.get(type)
+  }
+  const config = {
+    host: environment.queueHost,
+    port: environment.queuePort,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  }
+  const redis = new Redis(config)
+  if (['client', 'subscriber'].includes(type)) {
+    map.set(type, redis)
+  }
+  return redis
 }
 
 export const createQueue = (
@@ -18,15 +36,7 @@ export const createQueue = (
   customOpts?: CustomQueueOpts
 ) => {
   const queue = new Queue(queueName, {
-    createClient() {
-      // do not reuse the same redis connection without considering client type see https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#custom-or-shared-ioredis-connections
-      return new Redis({
-        host: environment.queueHost,
-        port: environment.queuePort,
-        maxRetriesPerRequest: null,
-        enableReadyCheck: false,
-      })
-    },
+    createClient,
     defaultJobOptions: {
       removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
     },
@@ -43,7 +53,7 @@ export const createQueue = (
     logger.debug(`Job#%s is waiting.`, jobId)
   })
 
-  queue.on('active', (job, _) => {
+  queue.on('active', (job) => {
     // A job has started. You can use `jobPromise.cancel()`` to abort it.
     logger.info(`Job#%s/%s has started.`, job.id, job.name)
   })
@@ -84,7 +94,7 @@ export const createQueue = (
     logger.info('The queue has been resumed.')
   })
 
-  queue.on('cleaned', (jobs, _) => {
+  queue.on('cleaned', (jobs) => {
     // Old jobs have been cleaned from the queue. `jobs` is an array of cleaned
     // jobs, and `type` is the type of jobs cleaned.
     logger.info(
