@@ -59,7 +59,7 @@ export const connectionFromArray = <T>(
 ): Connection<T> => {
   if (totalCount) {
     const { after, before, first } = args // after and before should not appear together
-    const offset = before ? -cursorToIndex(before) : cursorToIndex(after) + 1
+    const offset = before ? -cursorToIndex(before) : after ? cursorToIndex(after) + 1 : 0
 
     const edges = data.map((value, index) => ({
       cursor: indexToCursor(index + offset),
@@ -79,7 +79,7 @@ export const connectionFromArray = <T>(
       const beforeIndex = cursorToIndex(before)
       hasPreviousPage = beforeIndex >= (first ? first : 0)
     } else {
-      hasPreviousPage = cursorToIndex(firstEdge.cursor) >= 0
+      hasPreviousPage = first ? first - cursorToIndex(firstEdge.cursor) > 0 : cursorToIndex(firstEdge.cursor) > 0
     }
 
     if (lastEdge) {
