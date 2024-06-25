@@ -34,6 +34,9 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
+
+  // Notification
+  sendNotification: 'sendNotification',
 }
 
 export const QUEUE_NAME = {
@@ -46,6 +49,7 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   revision: 'revision',
   asset: 'asset',
+  notification: 'notification',
 }
 
 export const QUEUE_CONCURRENCY = {
@@ -54,6 +58,7 @@ export const QUEUE_CONCURRENCY = {
   refreshIPNSFeed: 2,
   migration: 2,
   payToByBlockchain: 25,
+  sendNotification: 100,
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {
@@ -61,4 +66,8 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
   small: 100,
   medium: 1000,
   large: 10000,
+}
+
+export const QUEUE_DELAY = {
+  sendNotification: 10000, // 10 seconds
 }

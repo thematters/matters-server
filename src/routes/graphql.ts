@@ -32,6 +32,7 @@ import {
   GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
+  QUEUE_DELAY,
 } from 'common/enums'
 import { isProd, isLocal, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
@@ -113,6 +114,10 @@ const queues = {
   userQueue,
 }
 
+const notificationService = new NotificationService(connections, {
+  delay: QUEUE_DELAY.sendNotification,
+})
+
 export const graphql = async (app: Express) => {
   const makeContext = async ({
     req,
@@ -137,7 +142,6 @@ export const graphql = async (app: Express) => {
       draftService: new DraftService(connections),
       systemService: new SystemService(connections),
       tagService: new TagService(connections),
-      notificationService: new NotificationService(connections),
       oauthService: new OAuthService(connections),
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
@@ -145,6 +149,7 @@ export const graphql = async (app: Express) => {
       openseaService: new OpenSeaService(),
       likecoin: new LikeCoin(connections),
       exchangeRate: new ExchangeRate(connections.redis),
+      notificationService: notificationService,
       connections,
       queues,
     }

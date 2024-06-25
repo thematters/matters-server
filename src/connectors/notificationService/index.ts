@@ -1,12 +1,18 @@
 import type { Connections, UserNotifySetting } from 'definitions'
 
+import Queue from 'bull'
+
 import {
   BUNDLED_NOTICE_TYPE,
   DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
+  QUEUE_NAME,
+  QUEUE_CONCURRENCY,
+  QUEUE_JOB,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
+import { createQueue } from 'connectors/queue/utils'
 import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
@@ -19,20 +25,44 @@ export class NotificationService {
   public mail: typeof mail
   public notice: Notice
   private connections: Connections
+  private q: InstanceType<typeof Queue>
+  private delay: number | undefined
 
-  public constructor(connections: Connections) {
+  public constructor(connections: Connections, options?: { delay: number }) {
     this.connections = connections
     this.mail = mail
     this.notice = new Notice(connections)
+    this.q = createQueue(QUEUE_NAME.notification)
+    this.q.process(
+      QUEUE_JOB.sendNotification,
+      QUEUE_CONCURRENCY.sendNotification,
+      this.handleTrigger
+    )
+    this.delay = options?.delay
   }
 
   public trigger = async (params: NotificationPrarms): Promise<void> => {
-    try {
-      await this.__trigger(params)
-    } catch (e) {
-      logger.error(e)
-    }
+    this.q.add(QUEUE_JOB.sendNotification, params, {
+      delay: this.delay,
+      jobId: await this.genNoticeJobId(params),
+    })
   }
+
+  public cancel = async (params: NotificationPrarms): Promise<void> => {
+    const jobId = await this.genNoticeJobId(params)
+    await this.q.removeJobs(jobId)
+  }
+
+  private genNoticeJobId = async (params: NotificationPrarms) => {
+    return `${params.event}-${params.actorId ?? 0}-${
+      params.recipientId
+    }-${params.entities
+      .map(({ entity }: { entity: { id: string } }) => entity.id)
+      .join(':')}`
+  }
+
+  private handleTrigger: Queue.ProcessCallbackFunction<NotificationPrarms> =
+    async (job) => this.__trigger(job.data)
 
   private getNoticeParams = async (
     params: NotificationPrarms,
