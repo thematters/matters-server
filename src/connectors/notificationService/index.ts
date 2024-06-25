@@ -24,9 +24,9 @@ const logger = getLogger('service-notification')
 export class NotificationService {
   public mail: typeof mail
   public notice: Notice
-  private connections: Connections
   private q: InstanceType<typeof Queue>
   private delay: number | undefined
+  private connections: Connections
 
   public constructor(connections: Connections, options?: { delay: number }) {
     this.connections = connections
@@ -41,8 +41,8 @@ export class NotificationService {
     this.delay = options?.delay
   }
 
-  public trigger = async (params: NotificationPrarms): Promise<void> => {
-    this.q.add(QUEUE_JOB.sendNotification, params, {
+  public trigger = async (params: NotificationPrarms) => {
+    return this.q.add(QUEUE_JOB.sendNotification, params, {
       delay: this.delay,
       jobId: await this.genNoticeJobId(params),
     })
@@ -54,11 +54,13 @@ export class NotificationService {
   }
 
   private genNoticeJobId = async (params: NotificationPrarms) => {
-    return `${params.event}-${params.actorId ?? 0}-${
-      params.recipientId
-    }-${params.entities
-      .map(({ entity }: { entity: { id: string } }) => entity.id)
-      .join(':')}`
+    return `${params.event}-${params.actorId ?? 0}-${params.recipientId}-${
+      params.entities
+        ? params.entities
+            .map(({ entity }: { entity: { id: string } }) => entity.id)
+            .join(':')
+        : 'null'
+    }`
   }
 
   private handleTrigger: Queue.ProcessCallbackFunction<NotificationPrarms> =
