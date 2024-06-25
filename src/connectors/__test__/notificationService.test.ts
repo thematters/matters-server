@@ -16,12 +16,13 @@ let userService: UserService
 let atomService: AtomService
 let notificationService: NotificationService
 const recipientId = '1'
+const delay = 500
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   atomService = new AtomService(connections)
-  notificationService = new NotificationService(connections, { delay: 500 })
+  notificationService = new NotificationService(connections, { delay })
 }, 30000)
 
 afterAll(async () => {
@@ -279,14 +280,14 @@ describe('bundle notices', () => {
       event: DB_NOTICE_TYPE.comment_liked,
       actorId: '1',
       recipientId: comment.authorId,
-      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
 
     const job2 = await notificationService.trigger({
       event: DB_NOTICE_TYPE.comment_liked,
       actorId: '2',
       recipientId: comment.authorId,
-      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
 
     await job1.finished()
@@ -413,4 +414,44 @@ describe('query notices with onlyRecent flag', () => {
     })
     expect(notices1.length - notices2.length).toBe(1)
   })
+})
+
+test('cancel notice', async () => {
+  const comment = await atomService.create({
+    table: 'comment',
+    data: {
+      uuid: v4(),
+      content: 'test',
+      authorId: '5',
+      targetId: '1',
+      targetTypeId: '4',
+      articleVersionId: '1',
+    },
+  })
+
+  const noticeCount = await notificationService.notice.countNotice({
+    userId: comment.authorId,
+  })
+
+  const params = {
+    event: DB_NOTICE_TYPE.comment_liked,
+    actorId: '1',
+    recipientId: comment.authorId,
+    entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+  }
+
+  // will not throw error if the job is not found
+  await notificationService.cancel(params)
+
+  const job = await notificationService.trigger(params)
+
+  await notificationService.cancel(params)
+
+  //  A job that is not found in any list will return the state stuck.
+  //  see https://github.com/OptimalBits/bull/blob/4cea99e4fd5dcaac0c53b8dc80a18a0fe98c99d1/test/test_job.js#L277
+  expect(await job.getState()).toBe('stuck')
+
+  expect(
+    await notificationService.notice.countNotice({ userId: comment.authorId })
+  ).toBe(noticeCount)
 })
