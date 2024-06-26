@@ -1,23 +1,34 @@
 import type { GQLCollectionResolvers } from 'definitions'
 
+import { UserInputError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   fromConnectionArgs,
+  fromGlobalId,
 } from 'common/utils'
 
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
-  { input: { first, after, reversed } },
+  { input: { before, first, after, reversed, articleId } },
   { dataSources: { atomService, collectionService } }
 ) => {
   if (!collectionId) {
     return connectionFromArray([], { first, after })
   }
+  if (articleId && (before || after)) {
+    throw new UserInputError('Invalid articleId query with before or after')
+  }
+  if (before && after) {
+    throw new UserInputError(
+      'Invalid before and after query: you can only pick one'
+    )
+  }
 
-  const { skip, take } = fromConnectionArgs({ first, after })
+  const { skip, take } = fromConnectionArgs({ before, first, after })
 
   if (take === 0) {
+    // we are only looking for the count here
     const [, count] = await collectionService.findAndCountArticlesInCollection(
       collectionId,
       {
@@ -29,8 +40,19 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const [articles, totalCount] =
-    await collectionService.findAndCountArticlesInCollection(collectionId, {
+  const parsedArticleId = articleId ? fromGlobalId(articleId).id : undefined // need to parse input ID from global ID
+
+  const [articles, totalCount] = parsedArticleId
+    ? // if articleId is provided, we need to use that as the cursor
+    await collectionService.findArticlesInCollectionByArticle(
+      collectionId,
+      parsedArticleId,
+      {
+        take,
+        reversed,
+      }
+    )
+    : await collectionService.findAndCountArticlesInCollection(collectionId, {
       skip,
       take,
       reversed,
@@ -38,9 +60,9 @@ const resolver: GQLCollectionResolvers['articles'] = async (
 
   return connectionFromPromisedArray(
     atomService.articleIdLoader.loadMany(
-      articles.map(({ articleId }) => articleId)
+      articles.map((article) => article.articleId)
     ),
-    { first, after },
+    before ? { before, first } : { after, first },
     totalCount
   )
 }

@@ -933,6 +933,10 @@ export type GQLCollectionContainsArgs = {
 
 export type GQLCollectionArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  /** In order to query where the article is at in the collection */
+  articleId?: InputMaybe<Scalars['ID']['input']>
+  /** To enable pagination to the query before this article. */
+  before?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   reversed?: InputMaybe<Scalars['Boolean']['input']>
 }

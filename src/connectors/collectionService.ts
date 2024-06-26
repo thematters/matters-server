@@ -9,6 +9,7 @@ import {
   ServerError,
   UserInputError,
   ActionLimitExceededError,
+  ArticleNotFoundError,
 } from 'common/errors'
 import { BaseService, UserService } from 'connectors'
 
@@ -86,6 +87,69 @@ export class CollectionService extends BaseService<Collection> {
       returnTotalCount: true,
     })
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
+    return [records, totalCount]
+  }
+
+  /**
+   * find articles in collection with its position
+   *
+   * @param collectionId
+   * @param articleId
+   * @param { take: number, reversed: boolean }
+   * @returns
+   */
+  public findArticlesInCollectionByArticle = async (
+    collectionId: string,
+    articleId: string,
+    { take, reversed = true }: { take: number; reversed?: boolean }
+  ): Promise<[CollectionArticle[], number]> => {
+    // get the row number of the article in the collection
+    const articlePositions = this.knex('collection_article as ca')
+      .join('article as a', 'a.id', 'ca.article_id')
+      .select(
+        'ca.article_id',
+        this.knex.raw('ROW_NUMBER() OVER (ORDER BY ca.order) AS position'),
+        this.knex.raw('COUNT(*) OVER() AS total_count') // need total number for calculating pagination
+      )
+      .where('ca.collection_id', collectionId)
+      .where('a.state', ARTICLE_STATE.active) // this is needed to sync with the count from @findAndCountArticlesInCollection
+      .orderBy('ca.order', reversed ? 'desc' : 'asc')
+      .as('ap')
+
+    // TODO: combine this query with the previous one + findAndCountArticlesInCollection
+    // calculate the page number of the article based on the position
+    const positionMeta = await this.knex
+      .select(
+        this.knex.raw(
+          `CEIL(${
+            reversed ? '(ap.total_count - ap.position + 1)' : 'ap.position'
+          }::float / ${take}::float) AS page_number` // if reversed, need to reverse the position
+        )
+      )
+      .from(articlePositions)
+      .where('ap.article_id', articleId)
+
+    // if no article found in the collection, throw error
+    if (positionMeta.length === 0) {
+      throw new ArticleNotFoundError(
+        `Article not found in collection: ${articleId}`
+      )
+    }
+    const { pageNumber } = positionMeta[0]
+
+    // get the articles in the same page
+    const [records, totalCount] = await this.findAndCountArticlesInCollection(
+      collectionId,
+      { skip: (pageNumber - 1) * take, take, reversed }
+    )
+
+    // if the article is not found in the records, throw error
+    if (!records.some((record) => record.articleId === articleId)) {
+      throw new ArticleNotFoundError(
+        `Article with id ${articleId} not found in the records.`
+      )
+    }
+
     return [records, totalCount]
   }
 

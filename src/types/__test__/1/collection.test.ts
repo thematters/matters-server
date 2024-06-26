@@ -16,6 +16,7 @@ afterAll(async () => {
 
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
+const articleGlobalId6 = toGlobalId({ type: NODE_TYPES.Article, id: 6 })
 
 const GET_COLLECTION = /* GraphQL */ `
   query ($input: NodeInput!) {
@@ -50,6 +51,32 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
+
+const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
+  query ($input1: NodeInput!, $input2: CollectionArticlesInput!) {
+    node(input: $input1) {
+      ... on Collection {
+        id
+        title
+        articles(input: $input2) {
+          pageInfo {
+            startCursor
+            endCursor
+            hasPreviousPage
+            hasNextPage
+          }
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
   query ($input: NodeInput!) {
     viewer {
@@ -785,9 +812,88 @@ describe('update pinned', () => {
   })
 })
 
+describe('get collection by article id', () => {
+  let server: Awaited<ReturnType<typeof testClient>>
+  let collectionId: string
+
+  beforeAll(async () => {
+    server = await testClient({ isAuth: true, connections })
+    const { data } = await server.executeOperation({
+      query: PUT_COLLECTION,
+      variables: { input: { title: 'test' } },
+    })
+    collectionId = data?.putCollection?.id
+    await server.executeOperation({
+      query: ADD_COLLECTIONS_ARTICLES,
+      variables: {
+        input: {
+          collections: [collectionId],
+          articles: [articleGlobalId1, articleGlobalId4, articleGlobalId6],
+        },
+      },
+    })
+  })
+  test('get collection by article id', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: articleGlobalId4 },
+      },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId6)
+    expect(data?.node?.articles?.edges?.[1]?.node?.id).toBe(articleGlobalId4)
+  })
+  test('get collection by article id with pagination', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: articleGlobalId1, first: 2 },
+      },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    // should be on the second page
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
+  })
+  test('get collection by article id with non exist article id', async () => {
+    const { data, errors } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: {
+          articleId: toGlobalId({ type: NODE_TYPES.Article, id: 999 }),
+        },
+      },
+    })
+    expect(data?.node).toBeNull()
+    expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
+  })
+  test('get collection by article id and paginate it to the previous page', async () => {
+    const { data } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: articleGlobalId1, first: 1 },
+      },
+    })
+    expect(data?.node?.id).toBe(collectionId)
+    expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
+
+    const { data: data2 } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: { before: data?.node?.articles?.pageInfo?.startCursor },
+      },
+    })
+    expect(data2?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId4)
+  })
+})
+
 describe('check article if in collections', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let server: any
+  let server: Awaited<ReturnType<typeof testClient>>
   let collectionId: string
   beforeAll(async () => {
     server = await testClient({ isAuth: true, connections })

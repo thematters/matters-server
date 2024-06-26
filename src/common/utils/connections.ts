@@ -5,6 +5,10 @@ import { DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 
 export type ConnectionCursor = string
 
+// TODO: make this type more specific, something like:
+// export type ConnectionArguments =
+//   | { before: ConnectionCursor; first?: number; last?: number; after?: never }
+//   | { after: ConnectionCursor; first?: number; last?: number; before?: never }
 export interface ConnectionArguments {
   before?: ConnectionCursor
   after?: ConnectionCursor
@@ -38,14 +42,28 @@ export const cursorToIndex = (cursor: ConnectionCursor | undefined): number =>
 export const indexToCursor = (index: number | string): ConnectionCursor =>
   Base64.encodeURI(`${PREFIX}:${index}`)
 
+/**
+ * Converts an array of data into a Connection object based on the provided arguments.
+ *
+ * { before } and { after } should always appear separately
+ * @template T - The type of data in the array.
+ * @param {T[]} data - The array of data to be converted.
+ * @param {ConnectionArguments} args - The arguments for pagination and filtering.
+ * @param {number} [totalCount] - The total count of items in the data array.
+ * @returns {Connection<T>} - The Connection object containing the paginated data.
+ */
 export const connectionFromArray = <T>(
   data: T[],
   args: ConnectionArguments,
   totalCount?: number
 ): Connection<T> => {
   if (totalCount) {
-    const { after } = args
-    const offset = cursorToIndex(after) + 1
+    const { after, before, first } = args // after and before should not appear together
+    const offset = before
+      ? cursorToIndex(before) - (first ?? 0)
+      : after
+      ? cursorToIndex(after) + 1
+      : 0
 
     const edges = data.map((value, index) => ({
       cursor: indexToCursor(index + offset),
@@ -55,16 +73,34 @@ export const connectionFromArray = <T>(
     const firstEdge = edges[0]
     const lastEdge = edges[edges.length - 1]
 
+    // Simplify the calculation of hasPreviousPage and hasNextPage
+    let hasPreviousPage = false
+    let hasNextPage = false
+
+    if (after) {
+      hasPreviousPage = cursorToIndex(after) >= 0
+    } else if (before) {
+      const beforeIndex = cursorToIndex(before)
+      hasPreviousPage = beforeIndex >= (first ? first : 0)
+    } else {
+      hasPreviousPage = first
+        ? first - cursorToIndex(firstEdge.cursor) > 0
+        : cursorToIndex(firstEdge.cursor) > 0
+    }
+    console.log(`first cursor is: `, cursorToIndex(firstEdge.cursor))
+
+    if (lastEdge) {
+      hasNextPage = cursorToIndex(lastEdge.cursor) + 1 < totalCount
+    }
+
     return {
       edges,
       totalCount,
       pageInfo: {
         startCursor: firstEdge ? firstEdge.cursor : '',
         endCursor: lastEdge ? lastEdge.cursor : '',
-        hasPreviousPage: after ? cursorToIndex(after) >= 0 : false,
-        hasNextPage: lastEdge
-          ? cursorToIndex(lastEdge.cursor) + 1 < totalCount
-          : false,
+        hasPreviousPage,
+        hasNextPage,
       },
     }
   }
@@ -163,35 +199,57 @@ export const connectionFromArrayWithKeys = <T extends { id: string }>(
   }
 }
 
-export const fromConnectionArgs = (
-  input: { first?: number | null; after?: string },
-  options?: {
-    allowTakeAll?: boolean
-    defaultTake?: number
-    maxTake?: number
-    maxSkip?: number
-  }
-) => {
-  const { first, after } = input
-  const {
-    allowTakeAll = false,
-    defaultTake = DEFAULT_TAKE_PER_PAGE,
-    maxTake = Infinity,
-    maxSkip = Infinity,
-  } = options || {}
+type Options = {
+  allowTakeAll: boolean
+  defaultTake: number
+  maxTake: number
+  maxSkip: number
+}
 
-  let take = first as number
-  if (first === null && !allowTakeAll) {
-    take = defaultTake
+/**
+ * Converts connection arguments into `take` and `skip` values for pagination.
+ *
+ * @param args - The connection arguments.
+ * @param options - Optional configuration options.
+ * @returns An object containing the `take` and `skip` values.
+ */
+export function fromConnectionArgs(
+  args: ConnectionArguments,
+  options: Partial<Options> = {}
+) {
+  const DEFAULT_OPTIONS = {
+    allowTakeAll: false,
+    defaultTake: DEFAULT_TAKE_PER_PAGE,
+    maxTake: Infinity,
+    maxSkip: Infinity,
   }
-  if (first === undefined) {
-    take = defaultTake
+  const { allowTakeAll, defaultTake, maxTake, maxSkip }: Options = {
+    ...DEFAULT_OPTIONS,
+    ...options,
   }
-  if (take > maxTake) {
-    take = maxTake
+  const { first, after, before } = args
+
+  let take = first ?? defaultTake
+  let skip = 0
+
+  if (before) {
+    const beforeCursor = cursorToIndex(before)
+    if (take > beforeCursor - 1) {
+      // If `take` is greater than `beforeCursor - 1`, return all records up to `before - 1`
+      return { take: beforeCursor, skip: 0 } // Ignore `skip` value
+    }
+    take = Math.min(beforeCursor - 1, take)
+    skip = Math.max(0, beforeCursor - take)
+  } else if (after) {
+    const afterCursor = cursorToIndex(after) + 1
+    skip = afterCursor
+    if (first === null && !allowTakeAll) {
+      take = defaultTake
+    }
   }
 
-  const skip = Math.min(cursorToIndex(after) + 1, maxSkip)
+  take = Math.min(take, maxTake)
+  skip = Math.min(skip, maxSkip)
 
   return { take, skip }
 }
