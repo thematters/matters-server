@@ -7,8 +7,6 @@ import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
 
-// NOTE: because redis is not mocked here, this test may fail (expect "published" but received: "pending") before `flushall` resetting the queue
-
 describe('publicationQueue.publishArticle', () => {
   let connections: Connections
   let queue: PublicationQueue

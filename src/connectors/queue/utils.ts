@@ -2,8 +2,9 @@ import Queue, { RateLimiter } from 'bull'
 import Redis from 'ioredis'
 
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
+import { genRandomString } from 'common/utils'
 
 const logger = getLogger('queue-base')
 
@@ -13,7 +14,7 @@ export interface CustomQueueOpts {
 
 const map = new Map()
 
-// reuse 'client'/'subscriber' redis only, see https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#reusing-redis-connections
+// reuse 'client'/'subscriber' redis client instance only, see https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#reusing-redis-connections
 const createClient = (type: string) => {
   if (map.has(type)) {
     return map.get(type)
@@ -35,7 +36,10 @@ export const createQueue = (
   queueName: string,
   customOpts?: CustomQueueOpts
 ) => {
-  const queue = new Queue(queueName, {
+  const _queueName = isTest
+    ? `test-${queueName}-${genRandomString()}`
+    : queueName
+  const queue = new Queue(_queueName, {
     createClient,
     defaultJobOptions: {
       removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
