@@ -200,7 +200,11 @@ export class PublicationQueue extends BaseQueue {
       await job.progress(75)
     } catch (err) {
       // ignore errors caused by these steps
-      logger.warn('optional step failed: %j', { err, job, draft })
+      logger.warn('optional step failed: %j', {
+        err,
+        draft,
+        jobId: job.id,
+      })
     }
 
     // Step 7: trigger notifications

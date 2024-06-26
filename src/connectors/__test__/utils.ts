@@ -18,14 +18,14 @@ export const genConnections = async (): Promise<Connections> => {
     .toString('base64')
     .substring(10, 15)
   const database = 'test_matters_' + randomString
-  const knexClient = await initDatabase(database)
+  const knex = await initDatabase(database)
 
   const redis = new Redis()
 
   return {
-    knex: knexClient,
-    knexRO: knexClient,
-    knexSearch: knexClient,
+    knex: knex,
+    knexRO: knex,
+    knexSearch: knex,
     redis,
   }
 }
