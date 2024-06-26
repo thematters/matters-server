@@ -202,7 +202,7 @@ export class PublicationQueue extends BaseQueue {
       // ignore errors caused by these steps
       logger.warn('optional step failed: %j', {
         err,
-        draft,
+        draftId: draft.id,
         jobId: job.id,
       })
     }
@@ -307,9 +307,7 @@ export class PublicationQueue extends BaseQueue {
       // ignore errors caused by these steps
       logger.warn(
         'job IPFS optional step failed (will retry async later in listener):',
-        err,
-        job,
-        draft
+        { err, jobId: job.id, draftId: draft.id }
       )
     }
     // invalidate article cache
