@@ -12,8 +12,9 @@ import {
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
-import { createQueue } from 'connectors/queue/utils'
 import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
+
+import { getOrCreateQueue } from '../queue/utils'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -32,12 +33,15 @@ export class NotificationService {
     this.connections = connections
     this.mail = mail
     this.notice = new Notice(connections)
-    this.q = createQueue(QUEUE_NAME.notification)
-    this.q.process(
-      QUEUE_JOB.sendNotification,
-      QUEUE_CONCURRENCY.sendNotification,
-      this.handleTrigger
-    )
+    const [queue, created] = getOrCreateQueue(QUEUE_NAME.notification)
+    if (created) {
+      queue.process(
+        QUEUE_JOB.sendNotification,
+        QUEUE_CONCURRENCY.sendNotification,
+        this.handleTrigger
+      )
+    }
+    this.q = queue
     this.delay = options?.delay
   }
 

@@ -12,34 +12,38 @@ export interface CustomQueueOpts {
   limiter?: RateLimiter
 }
 
-const map = new Map()
+const redisClientMap = new Map()
+const queueMap = new Map()
 
-// reuse 'client'/'subscriber' redis client instance only, see https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#reusing-redis-connections
-const createClient = (type: string) => {
-  if (map.has(type)) {
-    return map.get(type)
+/**
+ * get or create queue instance
+ *
+ * @remarks  As not all redis clients are shared between queues,
+ * to avoid memory leak, we should reuse the same queue instance.
+ *
+ * @return [queue, created]
+ */
+export const getOrCreateQueue = (
+  queueName: string,
+  customOpts?: CustomQueueOpts
+): [InstanceType<typeof Queue>, boolean] => {
+  const _queueName = isTest
+    ? `test-${queueName}-${genRandomString()}`
+    : queueName
+
+  if (queueMap.has(_queueName)) {
+    return [queueMap.get(_queueName), false]
   }
-  const config = {
-    host: environment.queueHost,
-    port: environment.queuePort,
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  }
-  const redis = new Redis(config)
-  if (['client', 'subscriber'].includes(type)) {
-    map.set(type, redis)
-  }
-  return redis
+  const queue = createQueue(_queueName, customOpts)
+  queueMap.set(_queueName, queue)
+  return [queue, true]
 }
 
 export const createQueue = (
   queueName: string,
   customOpts?: CustomQueueOpts
 ) => {
-  const _queueName = isTest
-    ? `test-${queueName}-${genRandomString()}`
-    : queueName
-  const queue = new Queue(_queueName, {
+  const queue = new Queue(queueName, {
     createClient,
     defaultJobOptions: {
       removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
@@ -118,4 +122,23 @@ export const createQueue = (
   })
 
   return queue
+}
+
+// reuse 'client'/'subscriber' redis client instance only,
+// see https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#reusing-redis-connections
+const createClient = (type: string) => {
+  if (redisClientMap.has(type)) {
+    return redisClientMap.get(type)
+  }
+  const config = {
+    host: environment.queueHost,
+    port: environment.queuePort,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  }
+  const redis = new Redis(config)
+  if (['client', 'subscriber'].includes(type)) {
+    redisClientMap.set(type, redis)
+  }
+  return redis
 }

@@ -35,10 +35,7 @@ import {
   UserQueue,
 } from 'connectors/queue'
 
-import {
-  genConnections,
-  closeConnections,
-} from '../../connectors/__test__/utils'
+import { genConnections, closeConnections } from 'connectors/__test__/utils'
 import schema from '../../schema'
 
 export { genConnections, closeConnections }
@@ -209,7 +206,7 @@ export const testClient = async ({
     payoutQueue,
     userQueue,
   }
-
+  const notificationService = new NotificationService(connections)
   const genContext = () => ({
     ..._context,
     dataSources: {
@@ -220,11 +217,11 @@ export const testClient = async ({
       draftService: new DraftService(connections),
       systemService: new SystemService(connections),
       tagService: new TagService(connections),
-      notificationService: new NotificationService(connections),
       oauthService: new OAuthService(connections),
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
+      notificationService,
       connections,
       queues,
       ...dataSources,
