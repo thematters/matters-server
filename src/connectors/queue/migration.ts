@@ -34,7 +34,6 @@ const logger = getLogger('queue-migration')
 export class MigrationQueue extends BaseQueue {
   public constructor(connections: Connections) {
     super(QUEUE_NAME.migration, connections)
-    this.addConsumers()
   }
 
   /**
@@ -64,7 +63,7 @@ export class MigrationQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     if (isTest) {
       return
     }

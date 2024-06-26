@@ -5,7 +5,7 @@ import Queue from 'bull'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 
-import { createQueue, type CustomQueueOpts } from './utils'
+import { getOrCreateQueue, type CustomQueueOpts } from './utils'
 
 const logger = getLogger('queue-base')
 
@@ -18,7 +18,12 @@ export class BaseQueue {
     connections: Connections,
     customOpts?: CustomQueueOpts
   ) {
-    this.q = createQueue(queueName, customOpts)
+    const [q, created] = getOrCreateQueue(queueName, customOpts)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+      logger.info(`queue ${queueName} created`)
+    }
     this.connections = connections
     this.startScheduledJobs()
   }
@@ -51,7 +56,11 @@ export class BaseQueue {
     }
   }
 
-  public addRepeatJobs = async () => {
+  protected addConsumers = () => {
+    // Implemented by subclass
+  }
+
+  protected addRepeatJobs = async () => {
     // Implemented by subclass
   }
 }

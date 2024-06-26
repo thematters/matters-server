@@ -44,7 +44,6 @@ const logger = getLogger('queue-publication')
 export class PublicationQueue extends BaseQueue {
   public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
     super(QUEUE_NAME.publication, connections, customOpts)
-    this.addConsumers()
   }
 
   public publishArticle = ({
@@ -87,7 +86,7 @@ export class PublicationQueue extends BaseQueue {
   /**
    * Consumers
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,

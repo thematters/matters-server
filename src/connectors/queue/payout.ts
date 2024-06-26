@@ -32,7 +32,6 @@ interface PaymentParams {
 export class PayoutQueue extends BaseQueue {
   public constructor(connections: Connections) {
     super(QUEUE_NAME.payout, connections)
-    this.addConsumers()
   }
 
   /**
@@ -54,7 +53,7 @@ export class PayoutQueue extends BaseQueue {
    *
    * @see https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#queueprocess
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     this.q.process(QUEUE_JOB.payout, 1, this.handlePayout)
   }
 

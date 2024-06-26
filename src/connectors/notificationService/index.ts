@@ -12,9 +12,8 @@ import {
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
+import { getOrCreateQueue } from 'connectors/queue'
 import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
-
-import { getOrCreateQueue } from '../queue/utils'
 
 import { mail } from './mail'
 import { Notice } from './notice'

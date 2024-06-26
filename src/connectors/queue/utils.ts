@@ -4,7 +4,7 @@ import Redis from 'ioredis'
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { genRandomString } from 'common/utils'
+import { genRandomString } from 'common/utils/text'
 
 const logger = getLogger('queue-base')
 
@@ -39,10 +39,7 @@ export const getOrCreateQueue = (
   return [queue, true]
 }
 
-export const createQueue = (
-  queueName: string,
-  customOpts?: CustomQueueOpts
-) => {
+const createQueue = (queueName: string, customOpts?: CustomQueueOpts) => {
   const queue = new Queue(queueName, {
     createClient,
     defaultJobOptions: {

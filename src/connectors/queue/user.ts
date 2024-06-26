@@ -24,7 +24,6 @@ interface ArchiveUserData {
 export class UserQueue extends BaseQueue {
   public constructor(connections: Connections) {
     super(QUEUE_NAME.user, connections)
-    this.addConsumers()
   }
 
   /**
@@ -54,7 +53,7 @@ export class UserQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     this.q.process(QUEUE_JOB.unbanUsers, this.unbanUsers)
   }
 

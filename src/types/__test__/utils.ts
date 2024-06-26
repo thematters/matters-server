@@ -40,46 +40,6 @@ import schema from '../../schema'
 
 export { genConnections, closeConnections }
 
-// mock bull with naive class
-jest.mock('connectors/queue/utils', () => {
-  return {
-    createQueue: (name: string) => new MockQueue(name),
-  }
-})
-
-class MockQueue {
-  private name: string
-  private jobHandlers: { [key: string]: any }
-  public on: any
-  public constructor(name: string) {
-    this.name = name
-    this.jobHandlers = {}
-    this.on = jest.fn
-  }
-
-  public process = (jobName: string, handlerOrCocurrent: any, handler: any) => {
-    // console.log(`Registered function ${jobName} to queue ${this.name}`)
-    const jobfn =
-      typeof handlerOrCocurrent === 'number' ? handler : handlerOrCocurrent
-    this.jobHandlers[jobName] = jobfn
-  }
-
-  public add = (jobName: string, jobData: any) => {
-    return this.jobHandlers[jobName](
-      { data: jobData, progress: jest.fn },
-      jest.fn()
-    ).catch((error: any) => {
-      console.log(
-        `Job ${jobName} in queue ${this.name} in test ${
-          expect.getState().currentTestName
-        } failed with error:`
-      )
-      console.log(error)
-    })
-  }
-  public getDelayed = () => []
-}
-
 interface BaseInput {
   isAdmin?: boolean
   isAuth?: boolean

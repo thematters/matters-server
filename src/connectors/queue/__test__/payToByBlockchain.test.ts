@@ -47,11 +47,11 @@ let paymentService: PaymentService
 beforeAll(async () => {
   connections = await genConnections()
   paymentService = new PaymentService(connections)
-}, 50000)
+}, 30000)
 
-afterAll(async () => {
-  await closeConnections(connections)
-})
+// afterAll(async () => {
+//   await closeConnections(connections)
+// })
 
 // test data
 const zeroAdress = '0x0000000000000000000000000000000000000000'
@@ -331,7 +331,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   let knex: Knex
 
   beforeAll(async () => {
-    queue = new PayToByBlockchainQueue(connections)
+    queue = new PayToByBlockchainQueue(connections, 1)
     knex = connections.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {

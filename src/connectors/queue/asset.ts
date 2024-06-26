@@ -17,7 +17,6 @@ interface AssetParams {
 export class AssetQueue extends BaseQueue {
   public constructor(connections: Connections) {
     super(QUEUE_NAME.asset, connections)
-    this.addConsumers()
   }
 
   /**
@@ -36,7 +35,7 @@ export class AssetQueue extends BaseQueue {
   /**
    * Consumer
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     this.q.process(QUEUE_JOB.deleteAsset, this.deleteAsset)
   }
 

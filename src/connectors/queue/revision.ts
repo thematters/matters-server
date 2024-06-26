@@ -39,7 +39,6 @@ interface RevisedArticleData {
 export class RevisionQueue extends BaseQueue {
   public constructor(connections: Connections) {
     super(QUEUE_NAME.revision, connections)
-    this.addConsumers()
   }
 
   public publishRevisedArticle = (data: RevisedArticleData) =>
@@ -50,7 +49,7 @@ export class RevisionQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,

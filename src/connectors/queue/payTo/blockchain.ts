@@ -53,7 +53,6 @@ export class PayToByBlockchainQueue extends BaseQueue {
   public constructor(connections: Connections, delay?: number) {
     super(QUEUE_NAME.payToByBlockchain, connections)
     this.slackService = new SlackService()
-    this.addConsumers()
     this.delay = delay ?? 5000 // 5s
   }
 
@@ -76,7 +75,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }
     )
 
-  public addRepeatJobs = async () => {
+  protected addRepeatJobs = async () => {
     this.q.add(
       QUEUE_JOB.syncCurationEvents,
       {},
@@ -91,7 +90,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * Consumers
    *
    */
-  private addConsumers = () => {
+  protected addConsumers = () => {
     this.q.process(
       QUEUE_JOB.payTo,
       QUEUE_CONCURRENCY.payToByBlockchain,
