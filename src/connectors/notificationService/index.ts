@@ -44,16 +44,19 @@ export class NotificationService {
   public trigger = async (params: NotificationPrarms) => {
     return this.q.add(QUEUE_JOB.sendNotification, params, {
       delay: this.delay,
-      jobId: await this.genNoticeJobId(params),
+      jobId: this.genNoticeJobId(params),
     })
   }
 
   public cancel = async (params: NotificationPrarms): Promise<void> => {
-    const jobId = await this.genNoticeJobId(params)
-    await this.q.removeJobs(jobId)
+    const job = await this.q.getJob(this.genNoticeJobId(params))
+    const state = await job?.getState()
+    if (job && state !== 'completed' && state !== 'failed') {
+      await job.remove()
+    }
   }
 
-  private genNoticeJobId = async (params: NotificationPrarms) => {
+  private genNoticeJobId = (params: NotificationPrarms) => {
     return `${params.event}-${params.actorId ?? 0}-${params.recipientId}-${
       params.entities
         ? params.entities

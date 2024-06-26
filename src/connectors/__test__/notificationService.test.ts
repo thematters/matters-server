@@ -1,4 +1,4 @@
-import type { NotificationType, Connections } from 'definitions'
+import type { NotificationType, Connections, Comment } from 'definitions'
 
 import {
   MONTH,
@@ -416,42 +416,58 @@ describe('query notices with onlyRecent flag', () => {
   })
 })
 
-test('cancel notice', async () => {
-  const comment = await atomService.create({
-    table: 'comment',
-    data: {
-      uuid: v4(),
-      content: 'test',
-      authorId: '5',
-      targetId: '1',
-      targetTypeId: '4',
-      articleVersionId: '1',
-    },
+describe('cancel notices', () => {
+  let comment: Comment
+  beforeAll(async () => {
+    comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '5',
+        targetId: '1',
+        targetTypeId: '4',
+        articleVersionId: '1',
+      },
+    })
   })
+  test('cancel delayed notices', async () => {
+    const params = {
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+    }
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: comment.authorId,
+    })
 
-  const noticeCount = await notificationService.notice.countNotice({
-    userId: comment.authorId,
+    // will not throw error if the job is not found
+    await notificationService.cancel(params)
+
+    const job = await notificationService.trigger(params)
+
+    await notificationService.cancel(params)
+
+    //  A job that is not found in any list will return the state stuck.
+    //  see https://github.com/OptimalBits/bull/blob/4cea99e4fd5dcaac0c53b8dc80a18a0fe98c99d1/test/test_job.js#L277
+    expect(await job.getState()).toBe('stuck')
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
+    ).toBe(noticeCount)
   })
+  test('cancel completed notices will not remove jobs from queue', async () => {
+    const params = {
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '2',
+      recipientId: comment.authorId,
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+    }
+    const job = await notificationService.trigger(params)
+    await job.finished()
 
-  const params = {
-    event: DB_NOTICE_TYPE.comment_liked,
-    actorId: '1',
-    recipientId: comment.authorId,
-    entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
-  }
-
-  // will not throw error if the job is not found
-  await notificationService.cancel(params)
-
-  const job = await notificationService.trigger(params)
-
-  await notificationService.cancel(params)
-
-  //  A job that is not found in any list will return the state stuck.
-  //  see https://github.com/OptimalBits/bull/blob/4cea99e4fd5dcaac0c53b8dc80a18a0fe98c99d1/test/test_job.js#L277
-  expect(await job.getState()).toBe('stuck')
-
-  expect(
-    await notificationService.notice.countNotice({ userId: comment.authorId })
-  ).toBe(noticeCount)
+    await notificationService.cancel(params)
+    expect(await job.getState()).toBe('completed')
+  })
 })
