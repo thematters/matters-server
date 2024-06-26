@@ -1,21 +1,13 @@
 import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
-import { COMMENT_TYPE, USER_STATE, VOTE, DB_NOTICE_TYPE } from 'common/enums'
+import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['voteComment'] = async (
   _,
   { input: { id, vote } },
-  {
-    viewer,
-    dataSources: {
-      atomService,
-      paymentService,
-      commentService,
-      notificationService,
-    },
-  }
+  { viewer, dataSources: { atomService, paymentService, commentService } }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
@@ -72,15 +64,6 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
   }
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
-
-  if (vote === VOTE.up) {
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
-      actorId: viewer.id,
-      recipientId: comment.authorId,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
-    })
-  }
 
   return comment
 }
