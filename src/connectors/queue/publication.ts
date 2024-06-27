@@ -37,14 +37,21 @@ import {
   aws,
 } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-publication')
 
-export class PublicationQueue extends BaseQueue {
+export class PublicationQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
+
   public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
-    super(QUEUE_NAME.publication, connections, customOpts)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.publication, customOpts)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   public publishArticle = ({
@@ -200,7 +207,11 @@ export class PublicationQueue extends BaseQueue {
       await job.progress(75)
     } catch (err) {
       // ignore errors caused by these steps
-      logger.warn('optional step failed: %j', { err, job, draft })
+      logger.warn('optional step failed: %j', {
+        err,
+        draftId: draft.id,
+        jobId: job.id,
+      })
     }
 
     // Step 7: trigger notifications
@@ -303,9 +314,7 @@ export class PublicationQueue extends BaseQueue {
       // ignore errors caused by these steps
       logger.warn(
         'job IPFS optional step failed (will retry async later in listener):',
-        err,
-        job,
-        draft
+        { err, jobId: job.id, draftId: draft.id }
       )
     }
     // invalidate article cache

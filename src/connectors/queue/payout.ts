@@ -21,7 +21,7 @@ import {
 } from 'connectors'
 import SlackService from 'connectors/slack'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-payout')
 
@@ -29,10 +29,16 @@ interface PaymentParams {
   txId: string
 }
 
-export class PayoutQueue extends BaseQueue {
+export class PayoutQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.payout, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.payout)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**

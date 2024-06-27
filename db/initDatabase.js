@@ -1,4 +1,4 @@
-const { exec, spawn, spawnSync } = require('child_process')
+const { spawn } = require('child_process')
 const { knexSnakeCaseMappers } = require('objection')
 
 require('dotenv').config()
@@ -9,19 +9,16 @@ module.exports = async (database) => {
   if (process.env.MATTERS_ENV !== 'test')
     throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
 
-  const { Client } = require('pg')
   const Knex = require('knex')
-
-  const connection = {
-    host: process.env.MATTERS_PG_HOST,
-    user: process.env.MATTERS_PG_USER,
-    password: process.env.MATTERS_PG_PASSWORD,
-    database,
-  }
 
   const knexConfig = {
     client: 'postgresql',
-    connection,
+    connection: {
+      host: process.env.MATTERS_PG_HOST,
+      user: process.env.MATTERS_PG_USER,
+      password: process.env.MATTERS_PG_PASSWORD,
+      database: 'postgres', // set to var database below,
+    },
     migrations: {
       tableName: 'knex_migrations',
       directory: __dirname + '/migrations',
@@ -29,60 +26,54 @@ module.exports = async (database) => {
     seeds: {
       directory: __dirname + '/seeds',
     },
+    pool: { min: 1, max: 10 },
   }
+
+  // create target database if not exists
   const knex = Knex(knexConfig)
+  await knex.raw('DROP DATABASE IF EXISTS ??', database)
+  await knex.raw('CREATE DATABASE ??', database)
+  await knex.destroy()
+
+  // migrate and seed target database
+  knexConfig.connection.database = database
+  const seedKnex = Knex(knexConfig)
 
   const rollbackAllMigrations = async () => {
-    const migration = await knex.migrate.currentVersion()
+    const migration = await seedKnex.migrate.currentVersion()
     if (migration !== 'none') {
-      await knex.migrate.rollback()
+      await seedKnex.migrate.rollback()
       await rollbackAllMigrations()
     } else {
       return
     }
   }
 
-  const client = new Client({
-    ...connection,
-    database: 'postgres',
-  })
-
-  // create new test db everytime
-  client.connect()
-  await client.query('DROP DATABASE IF EXISTS "' + database + '"')
-  await client.query('CREATE DATABASE "' + database + '"')
-  if (debug) console.log(`created database "${database}"`)
-  client.end()
-
   await rollbackAllMigrations()
-  await knex.migrate.latest()
-  await knex.seed.run()
+  await seedKnex.migrate.latest()
+  await seedKnex.seed.run()
 
   // re-run specific migrations after seeding
-  const tasks = [
-    // '20200904104135_create_curation_tag_materialized.js',
-    '20201103090135_recreate_curation_tag_materialized.js',
-  ]
+  const tasks = ['20201103090135_recreate_curation_tag_materialized.js']
   for (const task of tasks) {
-    await knex.migrate.down({ name: task })
-    await knex.migrate.up({ name: task })
+    await seedKnex.migrate.down({ name: task })
+    await seedKnex.migrate.up({ name: task })
   }
 
   // connect postgres container to run PSQL scripts
-  await runShellDBRollup(connection)
+  await runShellDBRollup(knexConfig.connection)
 
   // grant read-only right to all users
-  await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA public TO PUBLIC;')
+  await seedKnex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA public TO PUBLIC;')
   // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA mat_views TO PUBLIC;')
   // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA search_index TO PUBLIC;')
   //
-  await knex.destroy()
+  await seedKnex.destroy()
 
   // return a new knex instance with snake_case_mappers
   return Knex({
     ...knexConfig,
     ...knexSnakeCaseMappers(),
-    pool: { min: 1, max: 6 },
     // debug: true
   })
 }

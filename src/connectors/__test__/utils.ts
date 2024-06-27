@@ -4,6 +4,7 @@ import type { Connections } from 'definitions'
 // @ts-ignore
 import initDatabase from '@root/db/initDatabase'
 import Redis from 'ioredis-mock'
+import { genRandomString } from 'common/utils'
 
 import {
   PAYMENT_CURRENCY,
@@ -14,18 +15,15 @@ import {
 } from 'common/enums'
 
 export const genConnections = async (): Promise<Connections> => {
-  const randomString = Buffer.from(Math.random().toString())
-    .toString('base64')
-    .substring(10, 15)
-  const database = 'test_matters_' + randomString
-  const knexClient = await initDatabase(database)
+  const database = 'test_matters_' + genRandomString()
+  const knex = await initDatabase(database)
 
   const redis = new Redis()
 
   return {
-    knex: knexClient,
-    knexRO: knexClient,
-    knexSearch: knexClient,
+    knex: knex,
+    knexRO: knex,
+    knexSearch: knex,
     redis,
   }
 }

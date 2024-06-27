@@ -6,7 +6,7 @@ import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { AtomService, aws, cfsvc } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-asset')
 
@@ -14,10 +14,16 @@ interface AssetParams {
   ids: string[]
 }
 
-export class AssetQueue extends BaseQueue {
+export class AssetQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.asset, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.asset)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**

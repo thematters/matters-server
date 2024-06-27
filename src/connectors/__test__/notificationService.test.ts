@@ -1,4 +1,4 @@
-import type { NotificationType, Connections } from 'definitions'
+import type { NotificationType, Connections, Comment } from 'definitions'
 
 import {
   MONTH,
@@ -16,12 +16,13 @@ let userService: UserService
 let atomService: AtomService
 let notificationService: NotificationService
 const recipientId = '1'
+const delay = 500
 
 beforeAll(async () => {
   connections = await genConnections()
   userService = new UserService(connections)
   atomService = new AtomService(connections)
-  notificationService = new NotificationService(connections)
+  notificationService = new NotificationService(connections, { delay })
 }, 30000)
 
 afterAll(async () => {
@@ -198,12 +199,23 @@ describe('bundle notices', () => {
   })
 
   test('article_new_comment notice bundle is disabled', async () => {
-    const articleVersion = await atomService.articleVersionIdLoader.load('1')
+    const articleVersion = await atomService.articleVersionIdLoader.load('2')
     const article = await atomService.articleIdLoader.load(
       articleVersion.articleId
     )
 
-    const comment = await atomService.create({
+    const comment1 = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '3',
+        targetId: article.id,
+        targetTypeId: '4',
+        articleVersionId: articleVersion.id,
+      },
+    })
+    const comment2 = await atomService.create({
       table: 'comment',
       data: {
         uuid: v4(),
@@ -219,29 +231,28 @@ describe('bundle notices', () => {
       userId: article.authorId,
     })
 
-    await notificationService.trigger({
+    const job1 = await notificationService.trigger({
       event: DB_NOTICE_TYPE.article_new_comment,
-      actorId: comment.authorId,
+      actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
         { type: 'target', entityTable: 'article', entity: article },
-        { type: 'comment', entityTable: 'comment', entity: comment },
+        { type: 'comment', entityTable: 'comment', entity: comment1 },
       ],
     })
 
-    expect(
-      await notificationService.notice.countNotice({ userId: article.authorId })
-    ).toBe(noticeCount + 1)
-
-    await notificationService.trigger({
+    const job2 = await notificationService.trigger({
       event: DB_NOTICE_TYPE.article_new_comment,
-      actorId: comment.authorId,
+      actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
         { type: 'target', entityTable: 'article', entity: article },
-        { type: 'comment', entityTable: 'comment', entity: comment },
+        { type: 'comment', entityTable: 'comment', entity: comment2 },
       ],
     })
+
+    await job1.finished()
+    await job2.finished()
 
     expect(
       await notificationService.notice.countNotice({ userId: article.authorId })
@@ -254,7 +265,7 @@ describe('bundle notices', () => {
       data: {
         uuid: v4(),
         content: 'test',
-        authorId: '2',
+        authorId: '4',
         targetId: '1',
         targetTypeId: '4',
         articleVersionId: '1',
@@ -265,23 +276,22 @@ describe('bundle notices', () => {
       userId: comment.authorId,
     })
 
-    await notificationService.trigger({
+    const job1 = await notificationService.trigger({
       event: DB_NOTICE_TYPE.comment_liked,
       actorId: '1',
       recipientId: comment.authorId,
-      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
 
-    expect(
-      await notificationService.notice.countNotice({ userId: comment.authorId })
-    ).toBe(noticeCount + 1)
-
-    await notificationService.trigger({
+    const job2 = await notificationService.trigger({
       event: DB_NOTICE_TYPE.comment_liked,
-      actorId: '1',
+      actorId: '2',
       recipientId: comment.authorId,
-      entities: [{ type: 'comment', entityTable: 'comment', entity: comment }],
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
+
+    await job1.finished()
+    await job2.finished()
 
     expect(
       await notificationService.notice.countNotice({ userId: comment.authorId })
@@ -403,5 +413,61 @@ describe('query notices with onlyRecent flag', () => {
       onlyRecent: true,
     })
     expect(notices1.length - notices2.length).toBe(1)
+  })
+})
+
+describe('cancel notices', () => {
+  let comment: Comment
+  beforeAll(async () => {
+    comment = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: v4(),
+        content: 'test',
+        authorId: '5',
+        targetId: '1',
+        targetTypeId: '4',
+        articleVersionId: '1',
+      },
+    })
+  })
+  test('cancel delayed notices', async () => {
+    const params = {
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '1',
+      recipientId: comment.authorId,
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+    }
+    const noticeCount = await notificationService.notice.countNotice({
+      userId: comment.authorId,
+    })
+
+    // will not throw error if the job is not found
+    await notificationService.cancel(params)
+
+    const job = await notificationService.trigger(params)
+
+    await notificationService.cancel(params)
+
+    //  A job that is not found in any list will return the state stuck.
+    //  see https://github.com/OptimalBits/bull/blob/4cea99e4fd5dcaac0c53b8dc80a18a0fe98c99d1/test/test_job.js#L277
+    expect(await job.getState()).toBe('stuck')
+
+    expect(
+      await notificationService.notice.countNotice({ userId: comment.authorId })
+    ).toBe(noticeCount)
+  })
+  test('cancel completed notices will not remove jobs from queue', async () => {
+    const params = {
+      event: DB_NOTICE_TYPE.comment_liked,
+      actorId: '2',
+      recipientId: comment.authorId,
+      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+    }
+    const job = await notificationService.trigger(params)
+    await job.finished()
+
+    await notificationService.cancel(params)
+    expect(await job.getState()).toBe('completed')
   })
 })

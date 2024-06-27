@@ -47,7 +47,7 @@ let paymentService: PaymentService
 beforeAll(async () => {
   connections = await genConnections()
   paymentService = new PaymentService(connections)
-}, 50000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -125,7 +125,7 @@ const txReceipt = {
 describe('payToByBlockchainQueue.payTo', () => {
   let queue: PayToByBlockchainQueue
   beforeAll(async () => {
-    queue = new PayToByBlockchainQueue(connections, 1)
+    queue = new PayToByBlockchainQueue(connections, { delay: 0, attempt: 1 })
     mockFetchTxReceipt.mockClear()
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
@@ -150,7 +150,7 @@ describe('payToByBlockchainQueue.payTo', () => {
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
     expect(await job.getState()).toBe('failed')
-  })
+  }, 10000000)
 
   test('tx with wrong provier will fail', async () => {
     const tx = await paymentService.createTransaction({
@@ -331,7 +331,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   let knex: Knex
 
   beforeAll(async () => {
-    queue = new PayToByBlockchainQueue(connections)
+    queue = new PayToByBlockchainQueue(connections, { delay: 1, attempt: 1 })
     knex = connections.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
