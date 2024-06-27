@@ -29,8 +29,9 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { contract, isProd } from 'common/environment'
+import { contract, isProd, isTest } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   PaymentService,
   UserService,
@@ -40,20 +41,63 @@ import {
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
 
-import { BaseQueue } from '../baseQueue'
+import { getOrCreateQueue } from '../utils'
+
+const logger = getLogger('queue-payto-blockchain')
 
 interface PaymentParams {
   txId: string
 }
 
-export class PayToByBlockchainQueue extends BaseQueue {
+export class PayToByBlockchainQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
   private slackService: InstanceType<typeof SlackService>
   private delay: number
+  private attempt: number
 
-  public constructor(connections: Connections, delay?: number) {
-    super(QUEUE_NAME.payToByBlockchain, connections)
+  public constructor(
+    connections: Connections,
+    options?: { delay?: number; attempt?: number }
+  ) {
+    this.connections = connections
     this.slackService = new SlackService()
-    this.delay = delay ?? 5000 // 5s
+    this.delay = options?.delay ?? 5000 // 5s
+    this.attempt = options?.attempt ?? 8
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.payToByBlockchain)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+      this.startScheduledJobs()
+    }
+  }
+
+  /**
+   * Start scheduled jobs
+   */
+  private startScheduledJobs = async () => {
+    await this.clearDelayedJobs()
+    if (!isTest) {
+      this.addRepeatJobs()
+    }
+  }
+
+  /**
+   * Producers
+   */
+  private clearDelayedJobs = async () => {
+    try {
+      const jobs = await this.q.getDelayed()
+      jobs.forEach(async (job) => {
+        try {
+          await job.remove()
+        } catch (e) {
+          logger.error('failed to clear repeat jobs', e)
+        }
+      })
+    } catch (e) {
+      logger.error('failed to clear repeat jobs', e)
+    }
   }
 
   /**
@@ -66,7 +110,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       { txId },
       {
         delay: this.delay,
-        attempts: 8, // roughly total 20 min before giving up
+        attempts: this.attempt, // roughly total 20 min before giving up
         backoff: {
           type: 'exponential',
           delay: this.delay,
@@ -75,7 +119,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }
     )
 
-  protected addRepeatJobs = async () => {
+  private addRepeatJobs = () => {
     this.q.add(
       QUEUE_JOB.syncCurationEvents,
       {},
@@ -91,6 +135,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    *
    */
   protected addConsumers = () => {
+    console.log('addConsumers')
     this.q.process(
       QUEUE_JOB.payTo,
       QUEUE_CONCURRENCY.payToByBlockchain,
@@ -119,11 +164,15 @@ export class PayToByBlockchainQueue extends BaseQueue {
     const atomService = new AtomService(this.connections)
 
     // skip if tx is not found
+    console.log('1')
     const tx = await paymentService.baseFindById(txId)
+    console.log('2')
     if (!tx) {
+      console.log('2.5')
       job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
     }
+    console.log('3')
     if (tx.provider !== PAYMENT_PROVIDER.blockchain) {
       job.discard()
       throw new PaymentQueueJobDataError('wrong pay-to queue')

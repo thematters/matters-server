@@ -37,13 +37,21 @@ import {
   aws,
 } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-publication')
 
-export class PublicationQueue extends BaseQueue {
+export class PublicationQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
+
   public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
-    super(QUEUE_NAME.publication, connections, customOpts)
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.publication, customOpts)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   public publishArticle = ({
@@ -86,7 +94,7 @@ export class PublicationQueue extends BaseQueue {
   /**
    * Consumers
    */
-  protected addConsumers = () => {
+  private addConsumers = () => {
     // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,

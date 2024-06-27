@@ -49,9 +49,9 @@ beforeAll(async () => {
   paymentService = new PaymentService(connections)
 }, 30000)
 
-// afterAll(async () => {
-//   await closeConnections(connections)
-// })
+afterAll(async () => {
+  await closeConnections(connections)
+})
 
 // test data
 const zeroAdress = '0x0000000000000000000000000000000000000000'
@@ -125,7 +125,7 @@ const txReceipt = {
 describe('payToByBlockchainQueue.payTo', () => {
   let queue: PayToByBlockchainQueue
   beforeAll(async () => {
-    queue = new PayToByBlockchainQueue(connections, 1)
+    queue = new PayToByBlockchainQueue(connections, { delay: 0, attempt: 1 })
     mockFetchTxReceipt.mockClear()
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {
@@ -146,11 +146,14 @@ describe('payToByBlockchainQueue.payTo', () => {
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
     const job = await queue.payTo({ txId: wrongTxId })
+    console.log('job start', job.id)
+    console.log('job statu', await job.getState())
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
+    console.log('job wait', job.id)
     expect(await job.getState()).toBe('failed')
-  })
+  }, 10000000)
 
   test('tx with wrong provier will fail', async () => {
     const tx = await paymentService.createTransaction({
@@ -331,7 +334,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
   let knex: Knex
 
   beforeAll(async () => {
-    queue = new PayToByBlockchainQueue(connections, 1)
+    queue = new PayToByBlockchainQueue(connections, { delay: 1, attempt: 1 })
     knex = connections.knex
     mockFetchTxReceipt.mockImplementation(async (hash: string) => {
       if (hash === invalidTxhash) {

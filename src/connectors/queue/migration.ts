@@ -5,6 +5,7 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
+import Queue from 'bull'
 
 import {
   ASSET_TYPE,
@@ -27,13 +28,20 @@ import {
 import { medium } from 'connectors/medium'
 import { UserHasUsername } from 'definitions'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-migration')
 
-export class MigrationQueue extends BaseQueue {
+export class MigrationQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.migration, connections)
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.migration)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**
@@ -63,7 +71,7 @@ export class MigrationQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  protected addConsumers = () => {
+  private addConsumers = () => {
     if (isTest) {
       return
     }

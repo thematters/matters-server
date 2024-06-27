@@ -10,10 +10,11 @@ import {
   QUEUE_URL,
   USER_STATE,
 } from 'common/enums'
+import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { aws, UserService, AtomService, NotificationService } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-user')
 
@@ -21,15 +22,23 @@ interface ArchiveUserData {
   userId: string
 }
 
-export class UserQueue extends BaseQueue {
+export class UserQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.user, connections)
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.user)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+      this.startScheduledJobs()
+    }
   }
 
   /**
    * Producers
    */
-  public addRepeatJobs = async () => {
+  private addRepeatJobs = async () => {
     // unban user every day at 00:00
     this.q.add(
       QUEUE_JOB.unbanUsers,
@@ -40,10 +49,34 @@ export class UserQueue extends BaseQueue {
       }
     )
   }
+  /**
+   * Start scheduled jobs
+   */
+  private startScheduledJobs = async () => {
+    await this.clearDelayedJobs()
+    if (!isTest) {
+      this.addRepeatJobs()
+    }
+  }
 
   /**
    * Producers
    */
+  private clearDelayedJobs = async () => {
+    try {
+      const jobs = await this.q.getDelayed()
+      jobs.forEach(async (job) => {
+        try {
+          await job.remove()
+        } catch (e) {
+          logger.error('failed to clear repeat jobs', e)
+        }
+      })
+    } catch (e) {
+      logger.error('failed to clear repeat jobs', e)
+    }
+  }
+
   public archiveUser = (data: ArchiveUserData) =>
     aws.sqsSendMessage({
       messageBody: data,
@@ -53,7 +86,7 @@ export class UserQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  protected addConsumers = () => {
+  private addConsumers = () => {
     this.q.process(QUEUE_JOB.unbanUsers, this.unbanUsers)
   }
 

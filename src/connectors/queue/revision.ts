@@ -25,7 +25,7 @@ import {
   UserService,
 } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-revision')
 
@@ -36,9 +36,17 @@ interface RevisedArticleData {
   iscnPublish?: boolean
 }
 
-export class RevisionQueue extends BaseQueue {
+export class RevisionQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
+
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.revision, connections)
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.revision)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   public publishRevisedArticle = (data: RevisedArticleData) =>
@@ -49,7 +57,7 @@ export class RevisionQueue extends BaseQueue {
   /**
    * Cusumers
    */
-  protected addConsumers = () => {
+  private addConsumers = () => {
     // publish revised article
     this.q.process(
       QUEUE_JOB.publishRevisedArticle,
