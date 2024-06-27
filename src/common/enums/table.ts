@@ -6,7 +6,6 @@ export enum VIEW {
   transaction_delta_view = 'transaction_delta_view',
   article_value_view = 'article_value_view',
   tags_lasts_view = 'mat_views.tags_lasts',
-  authors_lasts_view = 'mat_views.authors_lasts',
 }
 
 export enum MATERIALIZED_VIEW {

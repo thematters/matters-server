@@ -1,6 +1,15 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import { PUBLISH_STATE, USER_STATE } from 'common/enums'
+import {
+  normalizeArticleHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
+
+import {
+  MAX_CONTENT_LINK_TEXT_LENGTH,
+  PUBLISH_STATE,
+  USER_STATE,
+} from 'common/enums'
 import {
   DraftNotFoundError,
   ForbiddenByStateError,
@@ -58,6 +67,15 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   }
 
   const draftPending = await draftService.baseUpdate(draft.id, {
+    content: normalizeArticleHTML(
+      sanitizeHTML(draft.content, { maxHardBreaks: -1, maxSoftBreaks: -1 }),
+      {
+        truncate: {
+          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+          keepProtocol: false,
+        },
+      }
+    ),
     publishState: PUBLISH_STATE.pending,
     iscnPublish,
   })

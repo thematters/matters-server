@@ -112,7 +112,6 @@ export interface UserNotifySetting {
   articleNewAppreciation: boolean
   articleNewSubscription: boolean
   articleSubscribedNewComment: boolean
-  articleCommentPinned: boolean
   reportFeedback: boolean
   email: boolean
   tag: boolean

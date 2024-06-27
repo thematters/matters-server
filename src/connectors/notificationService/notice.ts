@@ -12,10 +12,8 @@ import type {
   PutNoticeParams,
   User,
   Connections,
-  Item,
 } from 'definitions'
 
-import DataLoader from 'dataloader'
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -35,11 +33,8 @@ const mergeDataWith = (objValue: any, srcValue: any) =>
   mergeWith(objValue, srcValue, mergeDataCustomizer)
 
 export class Notice extends BaseService<NoticeDB> {
-  public dataloader: DataLoader<string, Item>
-
   public constructor(connections: Connections) {
     super('notice', connections)
-    this.dataloader = new DataLoader(this.findByIds)
   }
 
   /**
@@ -170,28 +165,33 @@ export class Notice extends BaseService<NoticeDB> {
   public process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
-    const bundleables = await this.findBundleables(params)
+    if (params.bundle?.disabled === true) {
+      await this.create(params)
+      return { created: true, bundled: false }
+    } else {
+      const bundleables = await this.findBundleables(params)
 
-    // bundle
-    if (bundleables[0] && params.actorId && params.resend !== true) {
-      await this.addNoticeActor({
-        noticeId: bundleables[0].id,
-        actorId: params.actorId,
-      })
-
-      if (params.bundle?.mergeData && params.data) {
-        await this.updateNoticeData({
+      // bundle
+      if (bundleables[0] && params.actorId && params.resend !== true) {
+        await this.addNoticeActor({
           noticeId: bundleables[0].id,
-          data: mergeDataWith(bundleables[0].data, params.data),
+          actorId: params.actorId,
         })
+
+        if (params.bundle?.mergeData && params.data) {
+          await this.updateNoticeData({
+            noticeId: bundleables[0].id,
+            data: mergeDataWith(bundleables[0].data, params.data),
+          })
+        }
+
+        return { created: false, bundled: true }
       }
 
-      return { created: false, bundled: true }
+      // create new notice
+      await this.create(params)
+      return { created: true, bundled: false }
     }
-
-    // create new notice
-    await this.create(params)
-    return { created: true, bundled: false }
   }
 
   /**
@@ -390,30 +390,6 @@ export class Notice extends BaseService<NoticeDB> {
     return actors
   }
 
-  /**
-   * Find notices by given ids.
-   */
-  private findByIds = async (ids: readonly string[]): Promise<NoticeItem[]> => {
-    const notices = await this.findDetail({
-      whereIn: ['notice.id', ids as string[]],
-    })
-
-    return Promise.all(
-      notices.map(async (n: NoticeDetail) => {
-        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
-        const actors = await this.findActors(n.id)
-
-        return {
-          ...n,
-          createdAt: n.updatedAt,
-          type: n.noticeType,
-          actors,
-          entities,
-        }
-      })
-    )
-  }
-
   /*********************************
    *                               *
    *           By User             *
@@ -485,7 +461,8 @@ export class Notice extends BaseService<NoticeDB> {
       article_new_collected: setting.articleNewCollected,
 
       // comment
-      comment_pinned: setting.articleCommentPinned,
+
+      comment_liked: true,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       circle_new_broadcast: setting.inCircleNewBroadcast,

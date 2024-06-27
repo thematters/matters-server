@@ -164,14 +164,8 @@ export default /* GraphQL */ `
     """user pinned articles or collections"""
     pinnedWorks: [PinnableWork!]!
 
-    "Tags by by usage order of current user."
+    "Tags by usage order of current user."
     tags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
-
-    "Tags owned and maintained by current user."
-    maintainedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
-
-    "Tags pinned by current user."
-    pinnedTags(input: ConnectionArgs!): TagConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @complexity(multipliers: ["input.first"], value: 1) @auth(mode: "${AUTH_MODE.oauth}")
@@ -462,7 +456,6 @@ export default /* GraphQL */ `
     articleNewAppreciation: Boolean!
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
-    articleCommentPinned: Boolean!
 
     "for circle owners"
     circleNewSubscriber: Boolean!
@@ -924,7 +917,6 @@ export default /* GraphQL */ `
     articleNewAppreciation
     articleNewSubscription
     articleNewCollected
-    articleCommentPinned
 
     "for circle owners"
     circleNewSubscriber

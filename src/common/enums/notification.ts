@@ -15,7 +15,7 @@ export enum DB_NOTICE_TYPE {
   article_new_collected = 'article_new_collected',
 
   // comment
-  comment_pinned = 'comment_pinned',
+  comment_liked = 'comment_liked',
   comment_mentioned_you = 'comment_mentioned_you',
   article_new_comment = 'article_new_comment',
   circle_new_broadcast = 'circle_new_broadcast',
