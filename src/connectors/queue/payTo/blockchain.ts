@@ -134,8 +134,7 @@ export class PayToByBlockchainQueue {
    * Consumers
    *
    */
-  protected addConsumers = () => {
-    console.log('addConsumers')
+  private addConsumers = () => {
     this.q.process(
       QUEUE_JOB.payTo,
       QUEUE_CONCURRENCY.payToByBlockchain,
@@ -164,15 +163,11 @@ export class PayToByBlockchainQueue {
     const atomService = new AtomService(this.connections)
 
     // skip if tx is not found
-    console.log('1')
     const tx = await paymentService.baseFindById(txId)
-    console.log('2')
     if (!tx) {
-      console.log('2.5')
       job.discard()
       throw new PaymentQueueJobDataError('pay-to pending tx not found')
     }
-    console.log('3')
     if (tx.provider !== PAYMENT_PROVIDER.blockchain) {
       job.discard()
       throw new PaymentQueueJobDataError('wrong pay-to queue')

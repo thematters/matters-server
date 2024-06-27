@@ -146,12 +146,9 @@ describe('payToByBlockchainQueue.payTo', () => {
   test('job with wrong tx id will fail', async () => {
     const wrongTxId = '12345'
     const job = await queue.payTo({ txId: wrongTxId })
-    console.log('job start', job.id)
-    console.log('job statu', await job.getState())
     await expect(job.finished()).rejects.toThrow(
       new PaymentQueueJobDataError('pay-to pending tx not found')
     )
-    console.log('job wait', job.id)
     expect(await job.getState()).toBe('failed')
   }, 10000000)
 
