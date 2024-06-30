@@ -1,16 +1,11 @@
 import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
-import Redis from 'ioredis'
-
 import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
-import { environment } from 'common/environment'
 import { AtomService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
-
-// NOTE: because redis is not mocked here, this test may fail (expect "published" but received: "pending") before `flushall` resetting the queue
 
 describe('publicationQueue.publishArticle', () => {
   let connections: Connections
@@ -21,16 +16,7 @@ describe('publicationQueue.publishArticle', () => {
     connections = await genConnections()
     knex = connections.knex
     atomService = new AtomService(connections)
-    queue = new PublicationQueue(connections, {
-      createClient: () => {
-        return new Redis({
-          host: environment.queueHost,
-          port: environment.queuePort,
-          maxRetriesPerRequest: null,
-          enableReadyCheck: false,
-        })
-      },
-    })
+    queue = new PublicationQueue(connections)
   }, 50000)
 
   afterAll(async () => {

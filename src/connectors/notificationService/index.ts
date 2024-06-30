@@ -1,12 +1,18 @@
 import type { Connections, UserNotifySetting } from 'definitions'
 
+import Queue from 'bull'
+
 import {
   BUNDLED_NOTICE_TYPE,
   DB_NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
+  QUEUE_NAME,
+  QUEUE_CONCURRENCY,
+  QUEUE_JOB,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
+import { getOrCreateQueue } from 'connectors/queue'
 import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
@@ -18,21 +24,53 @@ const logger = getLogger('service-notification')
 export class NotificationService {
   public mail: typeof mail
   public notice: Notice
+  private q: InstanceType<typeof Queue>
+  private delay: number | undefined
   private connections: Connections
 
-  public constructor(connections: Connections) {
+  public constructor(connections: Connections, options?: { delay: number }) {
     this.connections = connections
     this.mail = mail
     this.notice = new Notice(connections)
+    const [queue, created] = getOrCreateQueue(QUEUE_NAME.notification)
+    if (created) {
+      queue.process(
+        QUEUE_JOB.sendNotification,
+        QUEUE_CONCURRENCY.sendNotification,
+        this.handleTrigger
+      )
+    }
+    this.q = queue
+    this.delay = options?.delay
   }
 
   public trigger = async (params: NotificationPrarms) => {
-    try {
-      await this.__trigger(params)
-    } catch (e) {
-      logger.error(e)
+    return this.q.add(QUEUE_JOB.sendNotification, params, {
+      delay: this.delay,
+      jobId: this.genNoticeJobId(params),
+    })
+  }
+
+  public cancel = async (params: NotificationPrarms): Promise<void> => {
+    const job = await this.q.getJob(this.genNoticeJobId(params))
+    const state = await job?.getState()
+    if (job && state !== 'completed' && state !== 'failed') {
+      await job.remove()
     }
   }
+
+  private genNoticeJobId = (params: NotificationPrarms) => {
+    return `${params.event}-${params.actorId ?? 0}-${params.recipientId}-${
+      params.entities
+        ? params.entities
+            .map(({ entity }: { entity: { id: string } }) => entity.id)
+            .join(':')
+        : 'null'
+    }`
+  }
+
+  private handleTrigger: Queue.ProcessCallbackFunction<NotificationPrarms> =
+    async (job) => this.__trigger(job.data)
 
   private getNoticeParams = async (
     params: NotificationPrarms,
@@ -63,8 +101,6 @@ export class NotificationService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.comment_pinned:
-      case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
       case DB_NOTICE_TYPE.payment_received_donation:
       case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
@@ -76,6 +112,15 @@ export class NotificationService {
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
+        }
+      case DB_NOTICE_TYPE.article_new_comment:
+      case DB_NOTICE_TYPE.comment_liked:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          bundle: { disabled: true },
         }
       case DB_NOTICE_TYPE.circle_invitation:
         return {
@@ -194,6 +239,7 @@ export class NotificationService {
 
   private async __trigger(params: NotificationPrarms) {
     const atomService = new AtomService(this.connections)
+    const userService = new UserService(this.connections)
     const recipient = await atomService.userIdLoader.load(params.recipientId)
 
     if (!recipient) {
@@ -216,7 +262,6 @@ export class NotificationService {
     }
 
     // skip if user disable notify
-    const userService = new UserService(this.connections)
     const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
@@ -228,6 +273,21 @@ export class NotificationService {
         `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
       )
       return
+    }
+
+    // skip if sender is blocked by recipient
+    if ('actorId' in params) {
+      const blocked = await userService.blocked({
+        userId: recipient.id,
+        targetId: params.actorId,
+      })
+
+      if (blocked) {
+        logger.info(
+          `Actor ${params.actorId} is blocked by recipient ${params.recipientId}, skipped`
+        )
+        return
+      }
     }
 
     // Put Notice to DB

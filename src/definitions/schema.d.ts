@@ -1061,6 +1061,7 @@ export type GQLCommentNotice = GQLNotice & {
 export type GQLCommentNoticeType =
   | 'ArticleNewComment'
   | 'CircleNewBroadcast'
+  | 'CommentLiked'
   | 'CommentMentionedYou'
   | 'CommentPinned'
   | 'SubscribedArticleNewComment'
@@ -1752,8 +1753,6 @@ export type GQLMutation = {
   toggleFollowUser: GQLUser
   /** Pin or Unpin a comment. */
   togglePinComment: GQLComment
-  /** pin or unpin tag. */
-  togglePinTag: GQLTag
   toggleSeedingUsers: Array<Maybe<GQLUser>>
   /** Subscribe or Unsubscribe article */
   toggleSubscribeArticle: GQLArticle
@@ -2097,10 +2096,6 @@ export type GQLMutationTogglePinCommentArgs = {
   input: GQLToggleItemInput
 }
 
-export type GQLMutationTogglePinTagArgs = {
-  input: GQLToggleItemInput
-}
-
 export type GQLMutationToggleSeedingUsersArgs = {
   input: GQLToggleSeedingUsersInput
 }
@@ -2247,7 +2242,6 @@ export type GQLNoticeEdge = {
 
 export type GQLNotificationSetting = {
   __typename?: 'NotificationSetting'
-  articleCommentPinned: Scalars['Boolean']['output']
   articleNewAppreciation: Scalars['Boolean']['output']
   articleNewCollected: Scalars['Boolean']['output']
   articleNewComment: Scalars['Boolean']['output']
@@ -2271,7 +2265,6 @@ export type GQLNotificationSetting = {
 }
 
 export type GQLNotificationSettingType =
-  | 'articleCommentPinned'
   | 'articleNewAppreciation'
   | 'articleNewCollected'
   | 'articleNewComment'
@@ -3202,8 +3195,6 @@ export type GQLTag = GQLNode & {
   isFollower?: Maybe<Scalars['Boolean']['output']>
   /** This value determines if it is official. */
   isOfficial?: Maybe<Scalars['Boolean']['output']>
-  /** This value determines if the tag is pinned by current viewer. */
-  isPinned?: Maybe<Scalars['Boolean']['output']>
   /** Counts of this tag. */
   numArticles: Scalars['Int']['output']
   numAuthors: Scalars['Int']['output']
@@ -3605,16 +3596,12 @@ export type GQLUser = GQLNode & {
   liker: GQLLiker
   /** LikerID of LikeCoin, being used by LikeCoin OAuth */
   likerId?: Maybe<Scalars['String']['output']>
-  /** Tags owned and maintained by current user. */
-  maintainedTags: GQLTagConnection
   notices: GQLNoticeConnection
   oss: GQLUserOss
   /** Circles belong to current user. */
   ownCircles?: Maybe<Array<GQLCircle>>
   /** Payment pointer that resolves to Open Payments endpoints */
   paymentPointer?: Maybe<Scalars['String']['output']>
-  /** Tags pinned by current user. */
-  pinnedTags: GQLTagConnection
   /** user pinned articles or collections */
   pinnedWorks: Array<GQLPinnableWork>
   /** Article recommendations for current user. */
@@ -3628,7 +3615,7 @@ export type GQLUser = GQLNode & {
   subscribedCircles: GQLCircleConnection
   /** Artilces current user subscribed to. */
   subscriptions: GQLArticleConnection
-  /** Tags by by usage order of current user. */
+  /** Tags by usage order of current user. */
   tags: GQLTagConnection
   /** Global unique user name of a user. */
   userName?: Maybe<Scalars['String']['output']>
@@ -3662,15 +3649,7 @@ export type GQLUserFollowersArgs = {
   input: GQLConnectionArgs
 }
 
-export type GQLUserMaintainedTagsArgs = {
-  input: GQLConnectionArgs
-}
-
 export type GQLUserNoticesArgs = {
-  input: GQLConnectionArgs
-}
-
-export type GQLUserPinnedTagsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -7449,12 +7428,6 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationTogglePinCommentArgs, 'input'>
   >
-  togglePinTag?: Resolver<
-    GQLResolversTypes['Tag'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLMutationTogglePinTagArgs, 'input'>
-  >
   toggleSeedingUsers?: Resolver<
     Array<Maybe<GQLResolversTypes['User']>>,
     ParentType,
@@ -7698,11 +7671,6 @@ export type GQLNotificationSettingResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['NotificationSetting'] = GQLResolversParentTypes['NotificationSetting']
 > = ResolversObject<{
-  articleCommentPinned?: Resolver<
-    GQLResolversTypes['Boolean'],
-    ParentType,
-    ContextType
-  >
   articleNewAppreciation?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -8466,11 +8434,6 @@ export type GQLTagResolvers<
     ParentType,
     ContextType
   >
-  isPinned?: Resolver<
-    Maybe<GQLResolversTypes['Boolean']>,
-    ParentType,
-    ContextType
-  >
   numArticles?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   numAuthors?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   oss?: Resolver<GQLResolversTypes['TagOSS'], ParentType, ContextType>
@@ -8755,12 +8718,6 @@ export type GQLUserResolvers<
     ParentType,
     ContextType
   >
-  maintainedTags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLUserMaintainedTagsArgs, 'input'>
-  >
   notices?: Resolver<
     GQLResolversTypes['NoticeConnection'],
     ParentType,
@@ -8777,12 +8734,6 @@ export type GQLUserResolvers<
     Maybe<GQLResolversTypes['String']>,
     ParentType,
     ContextType
-  >
-  pinnedTags?: Resolver<
-    GQLResolversTypes['TagConnection'],
-    ParentType,
-    ContextType,
-    RequireFields<GQLUserPinnedTagsArgs, 'input'>
   >
   pinnedWorks?: Resolver<
     Array<GQLResolversTypes['PinnableWork']>,

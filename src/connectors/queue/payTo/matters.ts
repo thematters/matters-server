@@ -16,7 +16,7 @@ import { PaymentQueueJobDataError } from 'common/errors'
 import { getLogger } from 'common/logger'
 import { PaymentService, UserService, AtomService } from 'connectors'
 
-import { BaseQueue } from '../baseQueue'
+import { getOrCreateQueue } from '../utils'
 
 const logger = getLogger('queue-payto-by-matters')
 
@@ -24,10 +24,17 @@ interface PaymentParams {
   txId: string
 }
 
-export class PayToByMattersQueue extends BaseQueue {
+export class PayToByMattersQueue {
+  private connections: Connections
+  private q: InstanceType<typeof Queue>
+
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.payTo, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.payTo)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**

@@ -34,9 +34,6 @@ export default /* GraphQL */ `
     "Follow or unfollow tag."
     toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
-    "pin or unpin tag."
-    togglePinTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
-
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
@@ -304,9 +301,6 @@ export default /* GraphQL */ `
 
     "This value determines if current viewer is following or not."
     isFollower: Boolean
-
-    "This value determines if the tag is pinned by current viewer."
-    isPinned: Boolean
 
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection! @complexity(multipliers: ["input.first"], value: 1)

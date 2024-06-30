@@ -146,6 +146,12 @@ const GET_LATEST_WORKS = /* GraphQL */ `
       latestWorks {
         id
         title
+        ... on Article {
+          revisedAt
+        }
+        ... on Collection {
+          updatedAt
+        }
       }
     }
   }
@@ -839,4 +845,9 @@ test('get latest works', async () => {
     query: GET_LATEST_WORKS,
   })
   expect(data?.viewer?.latestWorks.length).toBeLessThan(5)
+  if (data?.viewer?.latestWorks.length >= 2) {
+    expect(data?.viewer?.latestWorks[0].updatedAt.getTime()).toBeGreaterThan(
+      data?.viewer?.latestWorks[1].updatedAt.getTime()
+    )
+  }
 })

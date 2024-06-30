@@ -9,27 +9,20 @@ import {
 const resolver: GQLUserResolvers['tags'] = async (
   { id },
   { input },
-  { dataSources: { tagService, atomService } }
+  { dataSources: { tagService } }
 ) => {
   if (id === null) {
     return connectionFromArray([], input)
   }
   const { take, skip } = fromConnectionArgs(input, { defaultTake: 10 })
 
-  const totalCount = await tagService.findTotalTagsByAuthorUsage(id)
-  const items = await tagService.findByAuthorUsage({
+  const [tags, totalCount] = await tagService.findByAuthorUsage({
     userId: id,
     skip,
     take,
   })
 
-  return connectionFromPromisedArray(
-    atomService.tagIdLoader.loadMany(
-      items.filter((item: any) => item?.id).map((item: any) => `${item.id}`)
-    ),
-    input,
-    totalCount
-  )
+  return connectionFromPromisedArray(tags, input, totalCount)
 }
 
 export default resolver

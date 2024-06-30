@@ -394,7 +394,8 @@ export interface PutNoticeParams {
   resend?: boolean // used by circle invitation notice
 
   bundle?: {
-    mergeData: boolean // used by circle bundled notice
+    disabled?: boolean
+    mergeData?: boolean // used by circle bundled notice
   }
 }
 

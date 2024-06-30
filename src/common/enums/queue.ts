@@ -9,7 +9,6 @@ export const QUEUE_PRIORITY = {
 export const QUEUE_JOB = {
   // Publication
   publishArticle: 'publishArticle',
-  publishPendingDrafts: 'publishPendingDrafts',
 
   // refresh IPNS Feed
   refreshIPNSFeed: 'refreshIPNSFeed',
@@ -25,15 +24,14 @@ export const QUEUE_JOB = {
   payTo: 'payTo',
   syncCurationEvents: 'syncCurationEvents',
 
-  // Appreciation
-  appreciation: 'appreciation',
-
   // Revision
   publishRevisedArticle: 'publishRevisedArticle',
-  publishPendingRevisionDrafts: 'publishPendingRevisionDrafts',
 
   // Asset
   deleteAsset: 'deleteAsset',
+
+  // Notification
+  sendNotification: 'sendNotification',
 }
 
 export const QUEUE_NAME = {
@@ -43,9 +41,9 @@ export const QUEUE_NAME = {
   payout: 'payout',
   payTo: 'payTo',
   payToByBlockchain: 'payToByBlockchain',
-  appreciation: 'appreciation',
   revision: 'revision',
   asset: 'asset',
+  notification: 'notification',
 }
 
 export const QUEUE_CONCURRENCY = {
@@ -54,6 +52,7 @@ export const QUEUE_CONCURRENCY = {
   refreshIPNSFeed: 2,
   migration: 2,
   payToByBlockchain: 25,
+  sendNotification: 100,
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {
@@ -61,4 +60,8 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
   small: 100,
   medium: 1000,
   large: 10000,
+}
+
+export const QUEUE_DELAY = {
+  sendNotification: 10000, // 10 seconds
 }

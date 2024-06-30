@@ -1,4 +1,3 @@
-
 # set -xe
 
 # export PATH="/home/ec2-user/.nvm/versions/node/v12.16.2/bin:$PATH"
@@ -15,81 +14,36 @@ fi
 
 # try create index(es) for query performance;
 # find a way to run this only on AnalyticsDB
-# ${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' --file=./sql/create-indexes.sql
-
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v schemaname=mat_views \
-	-v comment="'schemaname=mat_views created ${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/create-schema-grant-all-select.sql
-
-started="$(date '+%Y-%m-%dT%H:%M:%S.%NZ')"
-UPDATING_TS="updating started at ${started}"
-EXPIRING_TS="expiring at $(date --date='next month' '+%Y-%m-%d')"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v ON_ERROR_STOP=on \
-	-v schema=mat_views -v tablename="authors_lasts_${date}" \
-	-v comment="'alias tablename=authors_lasts_${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/author-tags-create-table-view.sql
-
-started="$(date '+%Y-%m-%dT%H:%M:%S.%NZ')"
-UPDATING_TS="updating started at ${started}"
-EXPIRING_TS="expiring at $(date --date='next month' '+%Y-%m-%d')"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v ON_ERROR_STOP=on \
-	-v schema=mat_views -v tablename="circles_lasts_${date}" \
-	-v comment="'alias tablename=circles_lasts_${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/stale-circles-create-table-view.sql
-
-started="$(date '+%Y-%m-%dT%H:%M:%S.%NZ')"
-UPDATING_TS="updating started at ${started}"
-EXPIRING_TS="expiring at $(date --date='next month' '+%Y-%m-%d')"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v ON_ERROR_STOP=on \
-	-v schema=mat_views -v tablename="tags_lasts_${date}" \
-	-v comment="'alias tablename=tags_lasts_${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/stale-tags-create-table-view.sql
-
-started="$(date '+%Y-%m-%dT%H:%M:%S.%NZ')"
-UPDATING_TS="updating started at ${started}"
-EXPIRING_TS="expiring at $(date --date='next month' '+%Y-%m-%d')"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v ON_ERROR_STOP=on \
-	-v schema=mat_views -v tablename="users_lasts_${date}" \
-	-v comment="'alias tablename=users_lasts_${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/stale-users-create-table-view.sql
-
-echo "updated mat_views.* done"
-
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
-	-v schemaname=search_index \
-	-v comment="'schemaname=mat_views created ${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
-	--file=./sql/create-schema-grant-all-select.sql
-
+# ${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' --file=./sql/create-indexes.sql
 
 UPDATING_TS="Create text search configuration started at ${started}"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
+       -v schemaname=search_index \
+       -v comment="'schemaname=search_index created ${date}: ${UPDATING_TS}; ${EXPIRING_TS}'" \
+       --file=./sql/create-schema-grant-all-select.sql
+
+UPDATING_TS="Create text search configuration started at ${started}"
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v ON_ERROR_STOP=on \
 	--file=./sql/create-table-search-index-parser.sql
 
 UPDATING_TS="Create tablename=search_index.article started at ${started}"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v ON_ERROR_STOP=on \
 	-v schemaname=search_index \
 	-v comment="'alias tablename=search_index.article: ${UPDATING_TS}'" \
 	--file=./sql/create-table-search-index-article.sql
 
 UPDATING_TS="Create tablename=search_index.user started at ${started}"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v ON_ERROR_STOP=on \
 	-v schemaname=search_index \
 	-v comment="'alias tablename=search_index.user: ${UPDATING_TS}'" \
 	--file=./sql/create-table-search-index-user.sql
 
 UPDATING_TS="Create tablename=search_index.tag started at ${started}"
-${ECHO:+:} time ${PSQL} --echo-all --pset pager -c '\timing' \
+${ECHO:+:} ${PSQL} --echo-all --pset pager -c '\timing' \
 	-v ON_ERROR_STOP=on \
 	-v schemaname=search_index \
 	-v comment="'alias tablename=search_index.tag: ${UPDATING_TS}'" \
 	--file=./sql/create-table-search-index-tag.sql
-
-echo "updated done: $(date -R)"

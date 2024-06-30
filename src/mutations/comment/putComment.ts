@@ -25,6 +25,7 @@ import {
   DB_NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
   MAX_MOMENT_COMMENT_LENGTH,
+  MAX_CONTENT_LINK_TEXT_LENGTH,
   NODE_TYPES,
   USER_STATE,
   MOMENT_STATE,
@@ -77,7 +78,13 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       sanitizeHTML(content, {
         maxHardBreaks: 0,
         maxSoftBreaks: 1,
-      })
+      }),
+      {
+        truncate: {
+          maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+          keepProtocol: false,
+        },
+      }
     ),
     authorId: viewer.id,
   }
