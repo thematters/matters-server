@@ -31,6 +31,7 @@ type Query {
   oauthRequestToken: String
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
+  moment(input: MomentInput!): Moment
 }
 
 type Mutation {
@@ -3559,6 +3560,10 @@ input ReorderCollectionArticlesInput {
   moves: [ReorderMoveInput!]!
 }
 
+input MomentInput {
+  shortHash: String!
+}
+
 input PutMomentInput {
   content: String!
   assets: [ID!]!
@@ -3578,6 +3583,7 @@ input UnlikeMomentInput {
 
 type Moment implements Node {
   id: ID!
+  shortHash: String!
   content: String
   assets: [Asset!]!
   author: User!

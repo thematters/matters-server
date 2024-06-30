@@ -4,6 +4,7 @@ import { MOMENT_STATE } from 'common/enums'
 
 export interface Moment {
   id: string
+  shortHash: string
   content: string
   authorId: string
   state: ValueOf<typeof MOMENT_STATE>

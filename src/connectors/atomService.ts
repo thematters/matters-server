@@ -40,7 +40,11 @@ type FindUniqueFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: { id: string } | { hash: string } | { uuid: string }
+  where:
+    | { id: string }
+    | { hash: string }
+    | { uuid: string }
+    | { shortHash: string }
 }) => Promise<D>
 
 type FindFirstFn = <
