@@ -1,7 +1,7 @@
 import type { Connections } from 'definitions'
 
 import { NotificationService, AtomService } from 'connectors'
-import { NODE_TYPES, DB_NOTICE_TYPE } from 'common/enums'
+import { NODE_TYPES, NOTICE_TYPE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -68,7 +68,7 @@ test('query comment_liked notices', async () => {
   expect(user.id).not.toBe(actorId)
 
   const job = await notificationService.trigger({
-    event: DB_NOTICE_TYPE.comment_liked,
+    event: NOTICE_TYPE.comment_liked,
     actorId,
     recipientId: comment.authorId,
     entities: [{ type: 'target', entityTable: 'comment', entity: comment }],

@@ -11,7 +11,7 @@ import type {
   GQLUserResolvers,
 } from 'definitions'
 
-import { DB_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
+import { NOTICE_TYPE as INNER_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
 import { ServerError } from 'common/errors'
 
 import notices from './notices'
@@ -91,13 +91,13 @@ const notice: {
   UserNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.user_new_follower:
+        case INNER_NOTICE_TYPE.user_new_follower:
           return 'UserNewFollower'
       }
       throw new ServerError(`Unknown UserNotice type: ${type}`)
     },
     target: ({ type }, _, { viewer }) => {
-      if (type === DB_NOTICE_TYPE.user_new_follower) {
+      if (type === INNER_NOTICE_TYPE.user_new_follower) {
         return viewer
       }
       return null
@@ -106,19 +106,19 @@ const notice: {
   ArticleNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.article_published:
+        case INNER_NOTICE_TYPE.article_published:
           return 'ArticlePublished'
-        case DB_NOTICE_TYPE.article_new_appreciation:
+        case INNER_NOTICE_TYPE.article_new_appreciation:
           return 'ArticleNewAppreciation'
-        case DB_NOTICE_TYPE.article_new_subscriber:
+        case INNER_NOTICE_TYPE.article_new_subscriber:
           return 'ArticleNewSubscriber'
-        case DB_NOTICE_TYPE.article_mentioned_you:
+        case INNER_NOTICE_TYPE.article_mentioned_you:
           return 'ArticleMentionedYou'
-        case DB_NOTICE_TYPE.revised_article_published:
+        case INNER_NOTICE_TYPE.revised_article_published:
           return 'RevisedArticlePublished'
-        case DB_NOTICE_TYPE.revised_article_not_published:
+        case INNER_NOTICE_TYPE.revised_article_not_published:
           return 'RevisedArticleNotPublished'
-        case DB_NOTICE_TYPE.circle_new_article:
+        case INNER_NOTICE_TYPE.circle_new_article:
           return 'CircleNewArticle'
       }
       throw new ServerError(`Unknown ArticleNotice type: ${type}`)
@@ -133,7 +133,7 @@ const notice: {
   ArticleArticleNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.article_new_collected:
+        case INNER_NOTICE_TYPE.article_new_collected:
           return 'ArticleNewCollected'
       }
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
@@ -145,7 +145,7 @@ const notice: {
       return atomService.articleIdLoader.load(entities.target.id)
     },
     article: ({ entities, type }, _, { dataSources: { atomService } }) => {
-      if (type === DB_NOTICE_TYPE.article_new_collected) {
+      if (type === INNER_NOTICE_TYPE.article_new_collected) {
         if (!entities) {
           throw new ServerError('entities is empty')
         }
@@ -158,13 +158,13 @@ const notice: {
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.comment_liked:
+        case INNER_NOTICE_TYPE.comment_liked:
           return 'CommentLiked'
-        case DB_NOTICE_TYPE.comment_mentioned_you:
+        case INNER_NOTICE_TYPE.comment_mentioned_you:
           return 'CommentMentionedYou'
-        case DB_NOTICE_TYPE.article_new_comment:
+        case INNER_NOTICE_TYPE.article_new_comment:
           return 'ArticleNewComment'
-        case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
+        case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return 'CircleNewBroadcast'
       }
       throw new ServerError(`Unknown CommentNotice type: ${type}`)
@@ -174,11 +174,11 @@ const notice: {
         throw new ServerError('entities is empty')
       }
       switch (type) {
-        case DB_NOTICE_TYPE.comment_liked:
-        case DB_NOTICE_TYPE.comment_mentioned_you:
-        case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
+        case INNER_NOTICE_TYPE.comment_liked:
+        case INNER_NOTICE_TYPE.comment_mentioned_you:
+        case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target
-        case DB_NOTICE_TYPE.article_new_comment:
+        case INNER_NOTICE_TYPE.article_new_comment:
           return entities.comment
       }
       throw new ServerError(`Unknown CommentNotice type: ${type}`)
@@ -187,7 +187,7 @@ const notice: {
   CommentCommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.comment_new_reply:
+        case INNER_NOTICE_TYPE.comment_new_reply:
           return 'CommentNewReply'
       }
       throw new ServerError(`Unknown CommentCommentNotice type: ${type}`)
@@ -203,7 +203,7 @@ const notice: {
         throw new ServerError('entities is empty')
       }
       switch (type) {
-        case DB_NOTICE_TYPE.comment_new_reply:
+        case INNER_NOTICE_TYPE.comment_new_reply:
           return entities.reply
       }
       throw new ServerError(`Unknown CommentCommentNotice type: ${type}`)
@@ -212,7 +212,7 @@ const notice: {
   TransactionNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.payment_received_donation:
+        case INNER_NOTICE_TYPE.payment_received_donation:
           return 'PaymentReceivedDonation'
       }
       throw new ServerError(`Unknown TransactionNotice type: ${type}`)
@@ -227,17 +227,17 @@ const notice: {
   CircleNotice: {
     type: ({ type }) => {
       switch (type) {
-        case DB_NOTICE_TYPE.circle_invitation:
+        case INNER_NOTICE_TYPE.circle_invitation:
           return 'CircleInvitation'
-        case DB_NOTICE_TYPE.circle_new_subscriber:
+        case INNER_NOTICE_TYPE.circle_new_subscriber:
           return 'CircleNewSubscriber'
-        case DB_NOTICE_TYPE.circle_new_follower:
+        case INNER_NOTICE_TYPE.circle_new_follower:
           return 'CircleNewFollower'
-        case DB_NOTICE_TYPE.circle_new_unsubscriber:
+        case INNER_NOTICE_TYPE.circle_new_unsubscriber:
           return 'CircleNewUnsubscriber'
-        case DB_NOTICE_TYPE.circle_new_broadcast_comments:
+        case INNER_NOTICE_TYPE.circle_new_broadcast_comments:
           return 'CircleNewBroadcastComments'
-        case DB_NOTICE_TYPE.circle_new_discussion_comments:
+        case INNER_NOTICE_TYPE.circle_new_discussion_comments:
           return 'CircleNewDiscussionComments'
       }
       throw new ServerError(`Unknown CircleNotice type: ${type}`)

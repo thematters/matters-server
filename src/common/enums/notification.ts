@@ -1,4 +1,4 @@
-export enum DB_NOTICE_TYPE {
+export enum NOTICE_TYPE {
   // user
   user_new_follower = 'user_new_follower',
 

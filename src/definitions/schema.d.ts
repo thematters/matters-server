@@ -2261,6 +2261,8 @@ export type GQLNotificationSetting = {
   inCircleNewDiscussion: Scalars['Boolean']['output']
   inCircleNewDiscussionReply: Scalars['Boolean']['output']
   mention: Scalars['Boolean']['output']
+  newComment: Scalars['Boolean']['output']
+  newLike: Scalars['Boolean']['output']
   userNewFollower: Scalars['Boolean']['output']
 }
 
@@ -2286,6 +2288,8 @@ export type GQLNotificationSettingType =
   | 'inCircleNewDiscussion'
   | 'inCircleNewDiscussionReply'
   | 'mention'
+  | 'newComment'
+  | 'newLike'
   | 'userNewFollower'
 
 export type GQLOAuthClient = {
@@ -7748,6 +7752,8 @@ export type GQLNotificationSettingResolvers<
     ContextType
   >
   mention?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  newComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  newLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   userNewFollower?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,

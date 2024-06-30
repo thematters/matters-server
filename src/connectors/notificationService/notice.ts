@@ -1,5 +1,4 @@
 import type {
-  GQLNotificationSettingType,
   Notice as NoticeDB,
   NoticeData,
   NoticeDetail,
@@ -12,12 +11,13 @@ import type {
   PutNoticeParams,
   User,
   Connections,
+  UserNotifySetting,
 } from 'definitions'
 
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
-import { DB_NOTICE_TYPE, MONTH } from 'common/enums'
+import { NOTICE_TYPE, MONTH } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { BaseService } from 'connectors'
 
@@ -308,7 +308,7 @@ export class Notice extends BaseService<NoticeDB> {
         'notice_detail.id'
       )
       .orderBy('updated_at', 'desc')
-      .whereIn('notice_detail.notice_type', Object.values(DB_NOTICE_TYPE))
+      .whereIn('notice_detail.notice_type', Object.values(NOTICE_TYPE))
 
     if (where) {
       where.forEach((w) => {
@@ -438,7 +438,7 @@ export class Notice extends BaseService<NoticeDB> {
     setting,
   }: {
     event: NotificationType
-    setting: { [key in GQLNotificationSettingType]: boolean }
+    setting: UserNotifySetting
   }) => {
     if (!setting) {
       return false
@@ -450,7 +450,7 @@ export class Notice extends BaseService<NoticeDB> {
 
       // article
       article_published: true,
-      article_new_appreciation: setting.articleNewAppreciation,
+      article_new_appreciation: setting.newLike,
       article_new_subscriber: setting.articleNewSubscription,
       article_mentioned_you: setting.mention,
       revised_article_published: true,
@@ -464,11 +464,11 @@ export class Notice extends BaseService<NoticeDB> {
 
       comment_liked: true,
       comment_mentioned_you: setting.mention,
-      article_new_comment: setting.articleNewComment,
+      article_new_comment: setting.newComment,
       circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment
-      comment_new_reply: setting.articleNewComment,
+      comment_new_reply: setting.newComment,
 
       // transaction
       payment_received_donation: true,

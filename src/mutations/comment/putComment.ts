@@ -22,7 +22,7 @@ import {
   BUNDLED_NOTICE_TYPE,
   CACHE_KEYWORD,
   COMMENT_TYPE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
   MAX_MOMENT_COMMENT_LENGTH,
   MAX_CONTENT_LINK_TEXT_LENGTH,
@@ -322,7 +322,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       | NoticeCircleNewDiscussionCommentsParams
   } = {}
   const cacheBundledNotices = (
-    noticeType: DB_NOTICE_TYPE,
+    noticeType: NOTICE_TYPE,
     notice:
       | NoticeCircleNewBroadcastCommentsParams
       | NoticeCircleNewDiscussionCommentsParams
@@ -396,7 +396,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       if (!isMentioned) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.article_new_comment,
+          event: NOTICE_TYPE.article_new_comment,
           actorId: viewer.id,
           recipientId: targetAuthor,
           entities: [
@@ -415,7 +415,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       if (!isMentioned) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.comment_new_reply,
+          event: NOTICE_TYPE.comment_new_reply,
           actorId: viewer.id,
           recipientId: parentCommentAuthor,
           entities: [
@@ -434,7 +434,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       if (!isMentioned) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.comment_new_reply,
+          event: NOTICE_TYPE.comment_new_reply,
           actorId: viewer.id,
           recipientId: replyToCommentAuthor,
           entities: [
@@ -452,7 +452,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
       if (isCircleBroadcast && isLevel1Comment) {
         recipients.forEach((recipientId: any) => {
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_new_broadcast,
+            event: NOTICE_TYPE.circle_new_broadcast,
             actorId: viewer.id,
             recipientId,
             entities: [
@@ -464,7 +464,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       // circle: notify owner, members & followers for new broadcast reply
       if (isCircleBroadcast && !isLevel1Comment) {
-        cacheBundledNotices(DB_NOTICE_TYPE.circle_new_broadcast_comments, {
+        cacheBundledNotices(NOTICE_TYPE.circle_new_broadcast_comments, {
           event: BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply,
           actorId: viewer.id,
           recipientId: circle.owner,
@@ -473,7 +473,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         })
 
         recipients.forEach((recipientId: any) => {
-          cacheBundledNotices(DB_NOTICE_TYPE.circle_new_broadcast_comments, {
+          cacheBundledNotices(NOTICE_TYPE.circle_new_broadcast_comments, {
             event: BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply,
             actorId: viewer.id,
             recipientId,
@@ -487,7 +487,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       // circle: notify owner, members & followers for new discussion and reply
       if (isCircleDiscussion) {
-        cacheBundledNotices(DB_NOTICE_TYPE.circle_new_discussion_comments, {
+        cacheBundledNotices(NOTICE_TYPE.circle_new_discussion_comments, {
           event: isLevel1Comment
             ? BUNDLED_NOTICE_TYPE.circle_member_new_discussion
             : BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply,
@@ -501,7 +501,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         })
 
         recipients.forEach((recipientId: any) => {
-          cacheBundledNotices(DB_NOTICE_TYPE.circle_new_discussion_comments, {
+          cacheBundledNotices(NOTICE_TYPE.circle_new_discussion_comments, {
             event: isLevel1Comment
               ? BUNDLED_NOTICE_TYPE.in_circle_new_discussion
               : BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply,
@@ -525,7 +525,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     data.mentionedUserIds.forEach((userId: string) => {
       if (isArticleType) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.comment_mentioned_you,
+          event: NOTICE_TYPE.comment_mentioned_you,
           actorId: viewer.id,
           recipientId: userId,
           entities: [
@@ -534,8 +534,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         })
       } else if (!(isCircleBroadcast && isLevel1Comment)) {
         const noticeType = isCircleBroadcast
-          ? DB_NOTICE_TYPE.circle_new_broadcast_comments
-          : DB_NOTICE_TYPE.circle_new_discussion_comments
+          ? NOTICE_TYPE.circle_new_broadcast_comments
+          : NOTICE_TYPE.circle_new_discussion_comments
         const mentionedEvent = isCircleBroadcast
           ? BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you // circle
           : BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you // circle

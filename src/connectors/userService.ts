@@ -64,7 +64,7 @@ import {
   USER_RESTRICTION_TYPE,
   VIEW,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   INVITATION_STATE,
   SIGNING_MESSAGE_PURPOSE,
   SOCIAL_LOGIN_TYPE,
@@ -254,7 +254,7 @@ export class UserService extends BaseService<User> {
             },
           })
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_invitation,
+            event: NOTICE_TYPE.circle_invitation,
             actorId: invitation.inviter,
             recipientId: user.id,
             entities: [

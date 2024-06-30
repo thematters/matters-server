@@ -7,7 +7,7 @@ import _difference from 'lodash/difference'
 
 import {
   ARTICLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -149,7 +149,7 @@ export class RevisionQueue {
 
       // Step 3: trigger notifications
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.revised_article_published,
+        event: NOTICE_TYPE.revised_article_published,
         recipientId: article.authorId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
@@ -304,7 +304,7 @@ export class RevisionQueue {
       }
 
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_mentioned_you,
+        event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],

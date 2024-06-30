@@ -11,7 +11,12 @@ const resolver: GQLUserSettingsResolvers['notification'] = async (
 
   const settings = await userService.findNotifySetting(id)
 
-  return { ...settings, email: settings.email && !!email }
+  return {
+    ...settings,
+    articleNewComment: settings.newComment,
+    articleNewAppreciation: settings.newLike,
+    email: settings.email && !!email,
+  }
 }
 
 export default resolver

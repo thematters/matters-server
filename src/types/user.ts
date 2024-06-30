@@ -454,9 +454,11 @@ export default /* GraphQL */ `
   type NotificationSetting {
     email: Boolean!
     mention: Boolean!
+    newComment: Boolean!
+    newLike: Boolean!
     userNewFollower: Boolean!
-    articleNewComment: Boolean!
-    articleNewAppreciation: Boolean!
+    articleNewComment: Boolean! # deprecated
+    articleNewAppreciation: Boolean! # deprecated
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
 
@@ -927,9 +929,11 @@ export default /* GraphQL */ `
   enum NotificationSettingType {
     email
     mention
+    newComment
+    newLike
     userNewFollower
-    articleNewComment
-    articleNewAppreciation
+    articleNewComment # deprecated
+    articleNewAppreciation # deprecated
     articleNewSubscription
     articleNewCollected
 
