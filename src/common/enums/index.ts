@@ -1,6 +1,4 @@
-import type { NotificationType, SkippedListItemType } from 'definitions'
-
-import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
+import type { SkippedListItemType } from 'definitions'
 
 export * from './user'
 export * from './action'
@@ -196,11 +194,6 @@ export const OAUTH_PROVIDER = {
 export const MIGTATION_SOURCE = {
   medium: 'medium',
 }
-
-export const NOTIFICATION_TYPES: NotificationType[] = [
-  ...Object.values(DB_NOTICE_TYPE),
-  ...Object.values(OFFICIAL_NOTICE_EXTEND_TYPE),
-]
 
 export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',

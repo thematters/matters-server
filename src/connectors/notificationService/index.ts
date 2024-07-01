@@ -4,7 +4,7 @@ import Queue from 'bull'
 
 import {
   BUNDLED_NOTICE_TYPE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
   QUEUE_NAME,
   QUEUE_CONCURRENCY,
@@ -79,42 +79,42 @@ export class NotificationService {
     const articleService = new ArticleService(this.connections)
     switch (params.event) {
       // entity-free
-      case DB_NOTICE_TYPE.user_new_follower:
+      case NOTICE_TYPE.user_new_follower:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
         }
       // system as the actor
-      case DB_NOTICE_TYPE.article_published:
-      case DB_NOTICE_TYPE.revised_article_published:
-      case DB_NOTICE_TYPE.revised_article_not_published:
-      case DB_NOTICE_TYPE.circle_new_article: // deprecated
+      case NOTICE_TYPE.article_published:
+      case NOTICE_TYPE.revised_article_published:
+      case NOTICE_TYPE.revised_article_not_published:
+      case NOTICE_TYPE.circle_new_article: // deprecated
         return {
           type: params.event,
           recipientId: params.recipientId,
           entities: params.entities,
         }
       // single actor with one or more entities
-      case DB_NOTICE_TYPE.article_new_collected:
-      case DB_NOTICE_TYPE.article_new_appreciation:
-      case DB_NOTICE_TYPE.article_new_subscriber:
-      case DB_NOTICE_TYPE.article_mentioned_you:
-      case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.comment_new_reply:
-      case DB_NOTICE_TYPE.payment_received_donation:
-      case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
-      case DB_NOTICE_TYPE.circle_new_subscriber:
-      case DB_NOTICE_TYPE.circle_new_follower:
-      case DB_NOTICE_TYPE.circle_new_unsubscriber:
+      case NOTICE_TYPE.article_new_collected:
+      case NOTICE_TYPE.article_new_appreciation:
+      case NOTICE_TYPE.article_new_subscriber:
+      case NOTICE_TYPE.article_mentioned_you:
+      case NOTICE_TYPE.comment_mentioned_you:
+      case NOTICE_TYPE.comment_new_reply:
+      case NOTICE_TYPE.payment_received_donation:
+      case NOTICE_TYPE.circle_new_broadcast: // deprecated
+      case NOTICE_TYPE.circle_new_subscriber:
+      case NOTICE_TYPE.circle_new_follower:
+      case NOTICE_TYPE.circle_new_unsubscriber:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
         }
-      case DB_NOTICE_TYPE.article_new_comment:
-      case DB_NOTICE_TYPE.comment_liked:
+      case NOTICE_TYPE.article_new_comment:
+      case NOTICE_TYPE.comment_liked:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -122,7 +122,7 @@ export class NotificationService {
           entities: params.entities,
           bundle: { disabled: true },
         }
-      case DB_NOTICE_TYPE.circle_invitation:
+      case NOTICE_TYPE.circle_invitation:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -135,7 +135,7 @@ export class NotificationService {
       case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
       case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
         return {
-          type: DB_NOTICE_TYPE.circle_new_broadcast_comments,
+          type: NOTICE_TYPE.circle_new_broadcast_comments,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
@@ -149,7 +149,7 @@ export class NotificationService {
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
       case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
         return {
-          type: DB_NOTICE_TYPE.circle_new_discussion_comments,
+          type: NOTICE_TYPE.circle_new_discussion_comments,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
@@ -157,40 +157,40 @@ export class NotificationService {
           bundle: { mergeData: true },
         }
       // act as official announcement
-      case DB_NOTICE_TYPE.official_announcement:
+      case NOTICE_TYPE.official_announcement:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: params.message,
           data: params.data,
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_banned(language, {}),
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_banned_payment(language, {}),
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_frozen(language, {}),
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_unbanned(language, {}),
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.comment_banned(language, {
             content: params.entities[0].entity.content,
@@ -199,7 +199,7 @@ export class NotificationService {
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.article_banned:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_banned(language, {
             title: (
@@ -212,7 +212,7 @@ export class NotificationService {
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.comment_reported(language, {
             content: params.entities[0].entity.content,
@@ -221,7 +221,7 @@ export class NotificationService {
         }
       case OFFICIAL_NOTICE_EXTEND_TYPE.article_reported:
         return {
-          type: DB_NOTICE_TYPE.official_announcement,
+          type: NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_reported(language, {
             title: (

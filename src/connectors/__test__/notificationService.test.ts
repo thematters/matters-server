@@ -1,11 +1,6 @@
 import type { NotificationType, Connections, Comment } from 'definitions'
 
-import {
-  MONTH,
-  NOTIFICATION_TYPES,
-  DB_NOTICE_TYPE,
-  OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums'
+import { MONTH, NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { v4 } from 'uuid'
 import { NotificationService, UserService, AtomService } from 'connectors'
 
@@ -17,6 +12,11 @@ let atomService: AtomService
 let notificationService: NotificationService
 const recipientId = '1'
 const delay = 500
+
+const NOTIFICATION_TYPES: NotificationType[] = [
+  ...Object.values(NOTICE_TYPE),
+  ...Object.values(OFFICIAL_NOTICE_EXTEND_TYPE),
+]
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -171,7 +171,7 @@ describe('create notice', () => {
     })
 
     await notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId,
       recipientId,
     })
@@ -232,7 +232,7 @@ describe('bundle notices', () => {
     })
 
     const job1 = await notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_new_comment,
+      event: NOTICE_TYPE.article_new_comment,
       actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
@@ -242,7 +242,7 @@ describe('bundle notices', () => {
     })
 
     const job2 = await notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_new_comment,
+      event: NOTICE_TYPE.article_new_comment,
       actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
@@ -277,14 +277,14 @@ describe('bundle notices', () => {
     })
 
     const job1 = await notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId: '1',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
 
     const job2 = await notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId: '2',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
@@ -433,7 +433,7 @@ describe('cancel notices', () => {
   })
   test('cancel delayed notices', async () => {
     const params = {
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId: '1',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
@@ -459,7 +459,7 @@ describe('cancel notices', () => {
   })
   test('cancel completed notices will not remove jobs from queue', async () => {
     const params = {
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId: '2',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],

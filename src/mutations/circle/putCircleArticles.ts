@@ -8,7 +8,7 @@ import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PRICE_STATE,
@@ -158,7 +158,7 @@ const resolver: GQLMutationResolvers['putCircleArticles'] = async (
       // notify
       recipients.forEach((recipientId: string) => {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_article,
+          event: NOTICE_TYPE.circle_new_article,
           recipientId,
           entities: [
             { type: 'target', entityTable: 'article', entity: article },

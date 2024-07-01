@@ -1,8 +1,8 @@
+import type { BaseNoticeType, NoticeItem } from 'definitions'
+
 import _ from 'lodash'
 
-import { DBNoticeType, NoticeItem } from 'definitions'
-
-const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
+const actorsOptional: Partial<Record<BaseNoticeType, boolean>> = {
   article_published: true,
   official_announcement: true,
   revised_article_published: true,
@@ -10,12 +10,12 @@ const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   circle_new_article: true,
 }
 
-const entitiesOptional: Partial<Record<DBNoticeType, boolean>> = {
+const entitiesOptional: Partial<Record<BaseNoticeType, boolean>> = {
   user_new_follower: true,
   official_announcement: true,
 }
 
-const messageRequired: Partial<Record<DBNoticeType, boolean>> = {
+const messageRequired: Partial<Record<BaseNoticeType, boolean>> = {
   official_announcement: true,
 }
 

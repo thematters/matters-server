@@ -14,7 +14,7 @@ import { v4 } from 'uuid'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -1145,7 +1145,7 @@ export class PaymentService extends BaseService<Transaction> {
 
     // send email to recipient
     await notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
+      event: NOTICE_TYPE.payment_received_donation,
       actorId: sender?.id || null,
       recipientId: recipient.id,
       entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],

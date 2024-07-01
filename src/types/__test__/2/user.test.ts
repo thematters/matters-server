@@ -98,6 +98,10 @@ const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
       settings {
         notification {
           userNewFollower
+          newComment
+          articleNewComment
+          newLike
+          articleNewAppreciation
         }
       }
     }
@@ -936,15 +940,29 @@ describe('mutations on User object', () => {
       isAuth: true,
       connections,
     })
-    const { data } = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: UPDATE_NOTIFICARION_SETTINGS,
-      variables: { input: { type: 'userNewFollower', enabled: false } },
+      variables: { input: { type: 'newComment', enabled: false } },
     })
-    const enable = _get(
-      data,
-      'updateNotificationSetting.settings.notification.userNewFollower'
-    )
-    expect(enable).toBe(false)
+    expect(errors).toBeUndefined()
+    expect(
+      data.updateNotificationSetting.settings.notification.newComment
+    ).toBe(false)
+    expect(
+      data.updateNotificationSetting.settings.notification.articleNewComment
+    ).toBe(false)
+
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: UPDATE_NOTIFICARION_SETTINGS,
+      variables: { input: { type: 'articleNewComment', enabled: true } },
+    })
+    expect(errors2).toBeUndefined()
+    expect(
+      data2.updateNotificationSetting.settings.notification.newComment
+    ).toBe(true)
+    expect(
+      data2.updateNotificationSetting.settings.notification.articleNewComment
+    ).toBe(true)
   })
 
   test('setCurrency', async () => {

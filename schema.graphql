@@ -2533,6 +2533,8 @@ type Appreciation {
 type NotificationSetting {
   email: Boolean!
   mention: Boolean!
+  newComment: Boolean!
+  newLike: Boolean!
   userNewFollower: Boolean!
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
@@ -2989,6 +2991,8 @@ enum UserLanguage {
 enum NotificationSettingType {
   email
   mention
+  newComment
+  newLike
   userNewFollower
   articleNewComment
   articleNewAppreciation

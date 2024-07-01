@@ -30,7 +30,7 @@ import {
   CIRCLE_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   MINUTE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -2064,7 +2064,7 @@ export class ArticleService extends BaseService<Article> {
       })
       if (targetConnection) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.article_new_collected,
+          event: NOTICE_TYPE.article_new_collected,
           recipientId: targetConnection.authorId,
           actorId: article.authorId,
           entities: [
