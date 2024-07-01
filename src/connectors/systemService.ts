@@ -506,6 +506,15 @@ export class SystemService extends BaseService<BaseDBSchema> {
         })
         .returning('*')
       return ret[0]
+    } else if (targetType === NODE_TYPES.Moment) {
+      const ret = await this.knex('report')
+        .insert({
+          momentId: targetId,
+          reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
     } else {
       const ret = await this.knex('report')
         .insert({

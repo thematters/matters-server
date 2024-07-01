@@ -1,4 +1,5 @@
 import type {
+  Asset,
   Article,
   ArticleContent,
   ArticleVersion,
@@ -12,6 +13,7 @@ import type {
   Tag,
   Transaction,
   User,
+  Moment,
   TableTypeMap,
   TableTypeMapKey,
 } from 'definitions'
@@ -38,7 +40,11 @@ type FindUniqueFn = <
   D extends TableTypeMap[Table]
 >(params: {
   table: Table
-  where: { id: string } | { hash: string } | { uuid: string }
+  where:
+    | { id: string }
+    | { hash: string }
+    | { uuid: string }
+    | { shortHash: string }
 }) => Promise<D>
 
 type FindFirstFn = <
@@ -172,6 +178,9 @@ export class AtomService {
   public tagIdLoader: AtomDataLoader<string, Tag>
   public transactionIdLoader: AtomDataLoader<string, Transaction>
   public icymiTopicIdLoader: AtomDataLoader<string, MattersChoiceTopic>
+  public momentIdLoader: AtomDataLoader<string, Moment>
+  public assetIdLoader: AtomDataLoader<string, Asset>
+  public assetUUIDLoader: AtomDataLoader<string, Asset>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -210,6 +219,9 @@ export class AtomService {
       table: 'matters_choice_topic',
       mode: 'id',
     })
+    this.momentIdLoader = this.initLoader({ table: 'moment', mode: 'id' })
+    this.assetIdLoader = this.initLoader({ table: 'asset', mode: 'id' })
+    this.assetUUIDLoader = this.initLoader({ table: 'asset', mode: 'uuid' })
   }
 
   /* Data Loader */
@@ -546,4 +558,7 @@ const UPATEABLE_TABLES = [
   'blockchain_transaction',
   'collection',
   'matters_choice_topic',
+  'moment',
+  'moment_asset',
+  'action_moment',
 ]

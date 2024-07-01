@@ -1,6 +1,6 @@
 import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
-import { COMMENT_TYPE, USER_STATE, VOTE, DB_NOTICE_TYPE } from 'common/enums'
+import { COMMENT_TYPE, USER_STATE, VOTE, NOTICE_TYPE } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
@@ -75,7 +75,7 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
 
   if (vote === VOTE.up) {
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.comment_liked,
       actorId: viewer.id,
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],

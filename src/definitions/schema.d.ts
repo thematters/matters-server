@@ -24,6 +24,7 @@ import {
 import {
   CirclePrice as CirclePriceModel,
   Transaction as TransactionModel,
+  Writing as WritingModel,
   Context,
 } from './index'
 import { PayoutAccount as PayoutAccountModel } from './payment'
@@ -32,6 +33,7 @@ import { NoticeItem as NoticeItemModel } from './notification'
 import { Appreciation as AppreciationModel } from './appreciation'
 import { Report as ReportModel } from './report'
 import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
+import { Moment as MomentModel } from './moment'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -598,6 +600,7 @@ export type GQLAssetType =
   | 'cover'
   | 'embed'
   | 'embedaudio'
+  | 'moment'
   | 'oauthClientAvatar'
   | 'profileCover'
   | 'tagCover'
@@ -1035,6 +1038,7 @@ export type GQLCommentInput = {
   circleId?: InputMaybe<Scalars['ID']['input']>
   content: Scalars['String']['input']
   mentions?: InputMaybe<Array<Scalars['ID']['input']>>
+  momentId?: InputMaybe<Scalars['ID']['input']>
   parentId?: InputMaybe<Scalars['ID']['input']>
   replyTo?: InputMaybe<Scalars['ID']['input']>
   type: GQLCommentType
@@ -1068,7 +1072,11 @@ export type GQLCommentSort = 'newest' | 'oldest'
 /** Enums for comment state. */
 export type GQLCommentState = 'active' | 'archived' | 'banned' | 'collapsed'
 
-export type GQLCommentType = 'article' | 'circleBroadcast' | 'circleDiscussion'
+export type GQLCommentType =
+  | 'article'
+  | 'circleBroadcast'
+  | 'circleDiscussion'
+  | 'moment'
 
 export type GQLCommentsFilter = {
   author?: InputMaybe<Scalars['ID']['input']>
@@ -1152,6 +1160,10 @@ export type GQLDeleteCommentInput = {
 }
 
 export type GQLDeleteDraftInput = {
+  id: Scalars['ID']['input']
+}
+
+export type GQLDeleteMomentInput = {
   id: Scalars['ID']['input']
 }
 
@@ -1283,6 +1295,7 @@ export type GQLEntityType =
   | 'circle'
   | 'collection'
   | 'draft'
+  | 'moment'
   | 'tag'
   | 'user'
 
@@ -1365,6 +1378,7 @@ export type GQLFollowingActivity =
   | GQLUserAddArticleTagActivity
   | GQLUserBroadcastCircleActivity
   | GQLUserCreateCircleActivity
+  | GQLUserPostMomentActivity
   | GQLUserPublishArticleActivity
   | GQLUserRecommendationActivity
 
@@ -1498,6 +1512,10 @@ export type GQLKeywordsInput = {
   keywords?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
+export type GQLLikeMomentInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLLiker = {
   __typename?: 'Liker'
   /** Whether liker is a civic liker */
@@ -1555,6 +1573,33 @@ export type GQLMigrationInput = {
 
 export type GQLMigrationType = 'medium'
 
+export type GQLMoment = GQLNode & {
+  __typename?: 'Moment'
+  assets: Array<GQLAsset>
+  author: GQLUser
+  commentCount: Scalars['Int']['output']
+  commentedFollowees: Array<GQLUser>
+  comments: GQLCommentConnection
+  content?: Maybe<Scalars['String']['output']>
+  createdAt: Scalars['DateTime']['output']
+  id: Scalars['ID']['output']
+  likeCount: Scalars['Int']['output']
+  /** whether current user has liked it */
+  liked: Scalars['Boolean']['output']
+  shortHash: Scalars['String']['output']
+  state: GQLMomentState
+}
+
+export type GQLMomentCommentsArgs = {
+  input: GQLCommentsInput
+}
+
+export type GQLMomentInput = {
+  shortHash: Scalars['String']['input']
+}
+
+export type GQLMomentState = 'active' | 'archived'
+
 export type GQLMonthlyDatum = {
   __typename?: 'MonthlyDatum'
   date: Scalars['DateTime']['output']
@@ -1604,6 +1649,7 @@ export type GQLMutation = {
   deleteComment: GQLComment
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
+  deleteMoment: Scalars['Boolean']['output']
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   directImageUpload: GQLAsset
   /** Edit an article. */
@@ -1618,6 +1664,7 @@ export type GQLMutation = {
   generateSigningMessage: GQLSigningMessageResult
   /** Invite others to join circle */
   invite?: Maybe<Array<GQLInvitation>>
+  likeMoment: GQLMoment
   /** Add specific user behavior record. */
   logRecord?: Maybe<Scalars['Boolean']['output']>
   /** Mark all received notices as read. */
@@ -1649,6 +1696,7 @@ export type GQLMutation = {
   /** update tags for showing on profile page */
   putFeaturedTags?: Maybe<Array<GQLTag>>
   putIcymiTopic?: Maybe<GQLIcymiTopic>
+  putMoment: GQLMoment
   /** Create or Update an OAuth Client, used in OSS. */
   putOAuthClient?: Maybe<GQLOAuthClient>
   putRemark?: Maybe<Scalars['String']['output']>
@@ -1716,6 +1764,7 @@ export type GQLMutation = {
   toggleTagRecommend: GQLTag
   toggleUsersBadge: Array<Maybe<GQLUser>>
   unbindLikerId: GQLUser
+  unlikeMoment: GQLMoment
   /** Unpin a comment. */
   unpinComment: GQLComment
   /** Unsubscribe a Circle. */
@@ -1836,6 +1885,10 @@ export type GQLMutationDeleteDraftArgs = {
   input: GQLDeleteDraftInput
 }
 
+export type GQLMutationDeleteMomentArgs = {
+  input: GQLDeleteMomentInput
+}
+
 export type GQLMutationDeleteTagsArgs = {
   input: GQLDeleteTagsInput
 }
@@ -1858,6 +1911,10 @@ export type GQLMutationGenerateSigningMessageArgs = {
 
 export type GQLMutationInviteArgs = {
   input: GQLInviteCircleInput
+}
+
+export type GQLMutationLikeMomentArgs = {
+  input: GQLLikeMomentInput
 }
 
 export type GQLMutationLogRecordArgs = {
@@ -1918,6 +1975,10 @@ export type GQLMutationPutFeaturedTagsArgs = {
 
 export type GQLMutationPutIcymiTopicArgs = {
   input: GQLPutIcymiTopicInput
+}
+
+export type GQLMutationPutMomentArgs = {
+  input: GQLPutMomentInput
 }
 
 export type GQLMutationPutOAuthClientArgs = {
@@ -2058,6 +2119,10 @@ export type GQLMutationToggleUsersBadgeArgs = {
 
 export type GQLMutationUnbindLikerIdArgs = {
   input: GQLUnbindLikerIdInput
+}
+
+export type GQLMutationUnlikeMomentArgs = {
+  input: GQLUnlikeMomentInput
 }
 
 export type GQLMutationUnpinCommentArgs = {
@@ -2201,6 +2266,8 @@ export type GQLNotificationSetting = {
   inCircleNewDiscussion: Scalars['Boolean']['output']
   inCircleNewDiscussionReply: Scalars['Boolean']['output']
   mention: Scalars['Boolean']['output']
+  newComment: Scalars['Boolean']['output']
+  newLike: Scalars['Boolean']['output']
   userNewFollower: Scalars['Boolean']['output']
 }
 
@@ -2226,6 +2293,8 @@ export type GQLNotificationSettingType =
   | 'inCircleNewDiscussion'
   | 'inCircleNewDiscussionReply'
   | 'mention'
+  | 'newComment'
+  | 'newLike'
   | 'userNewFollower'
 
 export type GQLOAuthClient = {
@@ -2534,6 +2603,11 @@ export type GQLPutIcymiTopicInput = {
   title?: InputMaybe<Scalars['String']['input']>
 }
 
+export type GQLPutMomentInput = {
+  assets: Array<Scalars['ID']['input']>
+  content: Scalars['String']['input']
+}
+
 export type GQLPutOAuthClientInput = {
   avatar?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Scalars['String']['input']>
@@ -2578,6 +2652,7 @@ export type GQLQuery = {
   circle?: Maybe<GQLCircle>
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
+  moment?: Maybe<GQLMoment>
   node?: Maybe<GQLNode>
   nodes?: Maybe<Array<GQLNode>>
   oauthClient?: Maybe<GQLOAuthClient>
@@ -2603,6 +2678,10 @@ export type GQLQueryExchangeRatesArgs = {
 
 export type GQLQueryFrequentSearchArgs = {
   input: GQLFrequentSearchInput
+}
+
+export type GQLQueryMomentArgs = {
+  input: GQLMomentInput
 }
 
 export type GQLQueryNodeArgs = {
@@ -2710,7 +2789,7 @@ export type GQLRecommendationAuthorsArgs = {
 }
 
 export type GQLRecommendationFollowingArgs = {
-  input: GQLConnectionArgs
+  input: GQLRecommendationFollowingInput
 }
 
 export type GQLRecommendationHottestArgs = {
@@ -2747,6 +2826,18 @@ export type GQLRecommendationSelectedTagsArgs = {
 
 export type GQLRecommendationTagsArgs = {
   input: GQLRecommendInput
+}
+
+export type GQLRecommendationFollowingFilterInput = {
+  type: GQLRecommendationFollowingFilterType
+}
+
+export type GQLRecommendationFollowingFilterType = 'article'
+
+export type GQLRecommendationFollowingInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLRecommendationFollowingFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 export type GQLRefreshIpnsFeedInput = {
@@ -3389,6 +3480,10 @@ export type GQLUnbindLikerIdInput = {
   likerId: Scalars['String']['input']
 }
 
+export type GQLUnlikeMomentInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLUnpinCommentInput = {
   id: Scalars['ID']['input']
 }
@@ -3540,6 +3635,8 @@ export type GQLUser = GQLNode & {
   userName?: Maybe<Scalars['String']['output']>
   /** User Wallet */
   wallet: GQLWallet
+  /** Articles and moments authored by current user. */
+  writings: GQLWritingConnection
 }
 
 export type GQLUserArticlesArgs = {
@@ -3580,6 +3677,10 @@ export type GQLUserSubscriptionsArgs = {
 
 export type GQLUserTagsArgs = {
   input: GQLConnectionArgs
+}
+
+export type GQLUserWritingsArgs = {
+  input: GQLWritingInput
 }
 
 export type GQLUserActivity = {
@@ -3762,6 +3863,16 @@ export type GQLUserOss = {
   score: Scalars['Float']['output']
 }
 
+export type GQLUserPostMomentActivity = {
+  __typename?: 'UserPostMomentActivity'
+  actor: GQLUser
+  createdAt: Scalars['DateTime']['output']
+  /** Another 2 moments posted by actor */
+  more: Array<GQLMoment>
+  /** Moment posted by actor */
+  node: GQLMoment
+}
+
 export type GQLUserPublishArticleActivity = {
   __typename?: 'UserPublishArticleActivity'
   actor: GQLUser
@@ -3903,6 +4014,26 @@ export type GQLWalletLoginInput = {
   signedMessage: Scalars['String']['input']
 }
 
+export type GQLWriting = GQLArticle | GQLMoment
+
+export type GQLWritingConnection = GQLConnection & {
+  __typename?: 'WritingConnection'
+  edges?: Maybe<Array<GQLWritingEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLWritingEdge = {
+  __typename?: 'WritingEdge'
+  cursor: Scalars['String']['output']
+  node: GQLWriting
+}
+
+export type GQLWritingInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+}
+
 export type WithIndex<TObject> = TObject & Record<string, any>
 export type ResolversObject<TObject> = WithIndex<TObject>
 
@@ -4035,6 +4166,11 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
           actor: RefType['User']
           node: RefType['Circle']
         })
+      | (Omit<GQLUserPostMomentActivity, 'actor' | 'more' | 'node'> & {
+          actor: RefType['User']
+          more: Array<RefType['Moment']>
+          node: RefType['Moment']
+        })
       | (Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
           actor: RefType['User']
           node: RefType['Article']
@@ -4045,6 +4181,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
     Invitee: GQLPerson | UserModel
     Response: ArticleModel | CommentModel
     TransactionTarget: ArticleModel | CircleModel | TransactionModel
+    Writing: ArticleModel | MomentModel
   }>
 
 /** Mapping of interface types */
@@ -4111,6 +4248,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLUserConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['UserEdge']>>
       })
+    | (Omit<GQLWritingConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['WritingEdge']>>
+      })
   Node:
     | ArticleModel
     | ArticleVersionModel
@@ -4119,6 +4259,7 @@ export type GQLResolversInterfaceTypes<
     | CommentModel
     | DraftModel
     | MattersChoiceTopicModel
+    | MomentModel
     | ReportModel
     | TagModel
     | UserModel
@@ -4310,6 +4451,7 @@ export type GQLResolversTypes = ResolversObject<{
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
+  DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: ResolverTypeWrapper<DraftModel>
@@ -4377,6 +4519,7 @@ export type GQLResolversTypes = ResolversObject<{
   Invites: ResolverTypeWrapper<CircleModel>
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeMomentInput: GQLLikeMomentInput
   Liker: ResolverTypeWrapper<UserModel>
   LogRecordInput: GQLLogRecordInput
   LogRecordTypes: GQLLogRecordTypes
@@ -4392,6 +4535,9 @@ export type GQLResolversTypes = ResolversObject<{
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
   MigrationType: GQLMigrationType
+  Moment: ResolverTypeWrapper<MomentModel>
+  MomentInput: GQLMomentInput
+  MomentState: GQLMomentState
   MonthlyDatum: ResolverTypeWrapper<GQLMonthlyDatum>
   Mutation: ResolverTypeWrapper<{}>
   NFTAsset: ResolverTypeWrapper<GQLNftAsset>
@@ -4477,6 +4623,7 @@ export type GQLResolversTypes = ResolversObject<{
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
   PutIcymiTopicInput: GQLPutIcymiTopicInput
+  PutMomentInput: GQLPutMomentInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -4503,6 +4650,9 @@ export type GQLResolversTypes = ResolversObject<{
   RecommendInput: GQLRecommendInput
   RecommendTypes: GQLRecommendTypes
   Recommendation: ResolverTypeWrapper<UserModel>
+  RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
+  RecommendationFollowingFilterType: GQLRecommendationFollowingFilterType
+  RecommendationFollowingInput: GQLRecommendationFollowingInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemarkTypes: GQLRemarkTypes
@@ -4626,6 +4776,7 @@ export type GQLResolversTypes = ResolversObject<{
   TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeMomentInput: GQLUnlikeMomentInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
   UnvoteCommentInput: GQLUnvoteCommentInput
@@ -4684,6 +4835,13 @@ export type GQLResolversTypes = ResolversObject<{
   UserNotice: ResolverTypeWrapper<NoticeItemModel>
   UserNoticeType: GQLUserNoticeType
   UserOSS: ResolverTypeWrapper<UserModel>
+  UserPostMomentActivity: ResolverTypeWrapper<
+    Omit<GQLUserPostMomentActivity, 'actor' | 'more' | 'node'> & {
+      actor: GQLResolversTypes['User']
+      more: Array<GQLResolversTypes['Moment']>
+      node: GQLResolversTypes['Moment']
+    }
+  >
   UserPublishArticleActivity: ResolverTypeWrapper<
     Omit<GQLUserPublishArticleActivity, 'actor' | 'node'> & {
       actor: GQLResolversTypes['User']
@@ -4709,6 +4867,16 @@ export type GQLResolversTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
+  Writing: ResolverTypeWrapper<WritingModel>
+  WritingConnection: ResolverTypeWrapper<
+    Omit<GQLWritingConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['WritingEdge']>>
+    }
+  >
+  WritingEdge: ResolverTypeWrapper<
+    Omit<GQLWritingEdge, 'node'> & { node: GQLResolversTypes['Writing'] }
+  >
+  WritingInput: GQLWritingInput
 }>
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -4833,6 +5001,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   DeleteCollectionsInput: GQLDeleteCollectionsInput
   DeleteCommentInput: GQLDeleteCommentInput
   DeleteDraftInput: GQLDeleteDraftInput
+  DeleteMomentInput: GQLDeleteMomentInput
   DeleteTagsInput: GQLDeleteTagsInput
   DirectImageUploadInput: GQLDirectImageUploadInput
   Draft: DraftModel
@@ -4882,6 +5051,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Invites: CircleModel
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeMomentInput: GQLLikeMomentInput
   Liker: UserModel
   LogRecordInput: GQLLogRecordInput
   Member: CircleMemberModel
@@ -4893,6 +5063,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
+  Moment: MomentModel
+  MomentInput: GQLMomentInput
   MonthlyDatum: GQLMonthlyDatum
   Mutation: {}
   NFTAsset: GQLNftAsset
@@ -4960,6 +5132,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   PutCommentInput: GQLPutCommentInput
   PutDraftInput: GQLPutDraftInput
   PutIcymiTopicInput: GQLPutIcymiTopicInput
+  PutMomentInput: GQLPutMomentInput
   PutOAuthClientInput: GQLPutOAuthClientInput
   PutRemarkInput: GQLPutRemarkInput
   PutRestrictedUsersInput: GQLPutRestrictedUsersInput
@@ -4980,6 +5153,8 @@ export type GQLResolversParentTypes = ResolversObject<{
   RecentSearchEdge: GQLRecentSearchEdge
   RecommendInput: GQLRecommendInput
   Recommendation: UserModel
+  RecommendationFollowingFilterInput: GQLRecommendationFollowingFilterInput
+  RecommendationFollowingInput: GQLRecommendationFollowingInput
   RefreshIPNSFeedInput: GQLRefreshIpnsFeedInput
   RelatedDonationArticlesInput: GQLRelatedDonationArticlesInput
   RemoveSocialLoginInput: GQLRemoveSocialLoginInput
@@ -5067,6 +5242,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TranslatedAnnouncementInput: GQLTranslatedAnnouncementInput
   TranslationArgs: GQLTranslationArgs
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeMomentInput: GQLUnlikeMomentInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
   UnvoteCommentInput: GQLUnvoteCommentInput
@@ -5120,6 +5296,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   UserLoginInput: GQLUserLoginInput
   UserNotice: NoticeItemModel
   UserOSS: UserModel
+  UserPostMomentActivity: Omit<
+    GQLUserPostMomentActivity,
+    'actor' | 'more' | 'node'
+  > & {
+    actor: GQLResolversParentTypes['User']
+    more: Array<GQLResolversParentTypes['Moment']>
+    node: GQLResolversParentTypes['Moment']
+  }
   UserPublishArticleActivity: Omit<
     GQLUserPublishArticleActivity,
     'actor' | 'node'
@@ -5138,6 +5322,14 @@ export type GQLResolversParentTypes = ResolversObject<{
   VoteCommentInput: GQLVoteCommentInput
   Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
+  Writing: WritingModel
+  WritingConnection: Omit<GQLWritingConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['WritingEdge']>>
+  }
+  WritingEdge: Omit<GQLWritingEdge, 'node'> & {
+    node: GQLResolversParentTypes['Writing']
+  }
+  WritingInput: GQLWritingInput
 }>
 
 export type GQLAuthDirectiveArgs = {
@@ -6340,7 +6532,8 @@ export type GQLConnectionResolvers<
     | 'TagConnection'
     | 'TopDonatorConnection'
     | 'TransactionConnection'
-    | 'UserConnection',
+    | 'UserConnection'
+    | 'WritingConnection',
     ParentType,
     ContextType
   >
@@ -6544,6 +6737,7 @@ export type GQLFollowingActivityResolvers<
     | 'UserAddArticleTagActivity'
     | 'UserBroadcastCircleActivity'
     | 'UserCreateCircleActivity'
+    | 'UserPostMomentActivity'
     | 'UserPublishArticleActivity'
     | 'UserRecommendationActivity',
     ParentType,
@@ -6752,6 +6946,38 @@ export type GQLMemberEdgeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLMomentResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Moment'] = GQLResolversParentTypes['Moment']
+> = ResolversObject<{
+  assets?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
+  author?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  commentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  commentedFollowees?: Resolver<
+    Array<GQLResolversTypes['User']>,
+    ParentType,
+    ContextType
+  >
+  comments?: Resolver<
+    GQLResolversTypes['CommentConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMomentCommentsArgs, 'input'>
+  >
+  content?: Resolver<
+    Maybe<GQLResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLMonthlyDatumResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['MonthlyDatum'] = GQLResolversParentTypes['MonthlyDatum']
@@ -6884,6 +7110,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationDeleteDraftArgs, 'input'>
   >
+  deleteMoment?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationDeleteMomentArgs, 'input'>
+  >
   deleteTags?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
@@ -6920,6 +7152,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationInviteArgs, 'input'>
+  >
+  likeMoment?: Resolver<
+    GQLResolversTypes['Moment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationLikeMomentArgs, 'input'>
   >
   logRecord?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
@@ -7015,6 +7253,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutIcymiTopicArgs, 'input'>
+  >
+  putMoment?: Resolver<
+    GQLResolversTypes['Moment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationPutMomentArgs, 'input'>
   >
   putOAuthClient?: Resolver<
     Maybe<GQLResolversTypes['OAuthClient']>,
@@ -7231,6 +7475,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationUnbindLikerIdArgs, 'input'>
   >
+  unlikeMoment?: Resolver<
+    GQLResolversTypes['Moment'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUnlikeMomentArgs, 'input'>
+  >
   unpinComment?: Resolver<
     GQLResolversTypes['Comment'],
     ParentType,
@@ -7384,6 +7634,7 @@ export type GQLNodeResolvers<
     | 'Comment'
     | 'Draft'
     | 'IcymiTopic'
+    | 'Moment'
     | 'Report'
     | 'Tag'
     | 'User',
@@ -7514,6 +7765,8 @@ export type GQLNotificationSettingResolvers<
     ContextType
   >
   mention?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  newComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  newLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   userNewFollower?: Resolver<
     GQLResolversTypes['Boolean'],
     ParentType,
@@ -7790,6 +8043,12 @@ export type GQLQueryResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLQueryFrequentSearchArgs, 'input'>
+  >
+  moment?: Resolver<
+    Maybe<GQLResolversTypes['Moment']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryMomentArgs, 'input'>
   >
   node?: Resolver<
     Maybe<GQLResolversTypes['Node']>,
@@ -8546,6 +8805,12 @@ export type GQLUserResolvers<
     ContextType
   >
   wallet?: Resolver<GQLResolversTypes['Wallet'], ParentType, ContextType>
+  writings?: Resolver<
+    GQLResolversTypes['WritingConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserWritingsArgs, 'input'>
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8759,6 +9024,17 @@ export type GQLUserOssResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLUserPostMomentActivityResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['UserPostMomentActivity'] = GQLResolversParentTypes['UserPostMomentActivity']
+> = ResolversObject<{
+  actor?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  more?: Resolver<Array<GQLResolversTypes['Moment']>, ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Moment'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLUserPublishArticleActivityResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['UserPublishArticleActivity'] = GQLResolversParentTypes['UserPublishArticleActivity']
@@ -8902,6 +9178,36 @@ export type GQLWalletResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLWritingResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['Writing'] = GQLResolversParentTypes['Writing']
+> = ResolversObject<{
+  __resolveType: TypeResolveFn<'Article' | 'Moment', ParentType, ContextType>
+}>
+
+export type GQLWritingConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['WritingConnection'] = GQLResolversParentTypes['WritingConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['WritingEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLWritingEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['WritingEdge'] = GQLResolversParentTypes['WritingEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Writing'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLResolvers<ContextType = Context> = ResolversObject<{
   AddCreditResult?: GQLAddCreditResultResolvers<ContextType>
   Announcement?: GQLAnnouncementResolvers<ContextType>
@@ -8976,6 +9282,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Member?: GQLMemberResolvers<ContextType>
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
   MemberEdge?: GQLMemberEdgeResolvers<ContextType>
+  Moment?: GQLMomentResolvers<ContextType>
   MonthlyDatum?: GQLMonthlyDatumResolvers<ContextType>
   Mutation?: GQLMutationResolvers<ContextType>
   NFTAsset?: GQLNftAssetResolvers<ContextType>
@@ -9041,12 +9348,16 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   UserInfo?: GQLUserInfoResolvers<ContextType>
   UserNotice?: GQLUserNoticeResolvers<ContextType>
   UserOSS?: GQLUserOssResolvers<ContextType>
+  UserPostMomentActivity?: GQLUserPostMomentActivityResolvers<ContextType>
   UserPublishArticleActivity?: GQLUserPublishArticleActivityResolvers<ContextType>
   UserRecommendationActivity?: GQLUserRecommendationActivityResolvers<ContextType>
   UserRestriction?: GQLUserRestrictionResolvers<ContextType>
   UserSettings?: GQLUserSettingsResolvers<ContextType>
   UserStatus?: GQLUserStatusResolvers<ContextType>
   Wallet?: GQLWalletResolvers<ContextType>
+  Writing?: GQLWritingResolvers<ContextType>
+  WritingConnection?: GQLWritingConnectionResolvers<ContextType>
+  WritingEdge?: GQLWritingEdgeResolvers<ContextType>
 }>
 
 export type GQLDirectiveResolvers<ContextType = Context> = ResolversObject<{

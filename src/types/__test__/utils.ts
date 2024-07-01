@@ -21,8 +21,10 @@ import {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
   CollectionService,
   RecommendationService,
+  MomentService,
 } from 'connectors'
 import {
   PublicationQueue,
@@ -172,6 +174,7 @@ export const testClient = async ({
     dataSources: {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
+      userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),
@@ -181,6 +184,7 @@ export const testClient = async ({
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
+      momentService: new MomentService(connections),
       notificationService,
       connections,
       queues,

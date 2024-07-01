@@ -4,7 +4,7 @@ import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import {
@@ -76,7 +76,7 @@ const resolver: GQLMutationResolvers['toggleFollowCircle'] = async (
 
         // trigger notificaiton
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_follower,
+          event: NOTICE_TYPE.circle_new_follower,
           actorId: viewer.id,
           recipientId: circle.owner,
           entities: [{ type: 'target', entityTable: 'circle', entity: circle }],

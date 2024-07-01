@@ -31,6 +31,7 @@ type Query {
   oauthRequestToken: String
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
+  moment(input: MomentInput!): Moment
 }
 
 type Mutation {
@@ -283,6 +284,10 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
+  putMoment(input: PutMomentInput!): Moment!
+  deleteMoment(input: DeleteMomentInput!): Boolean!
+  likeMoment(input: LikeMomentInput!): Moment!
+  unlikeMoment(input: UnlikeMomentInput!): Moment!
 }
 
 """
@@ -946,6 +951,9 @@ type User implements Node {
   """Articles authored by current user."""
   articles(input: UserArticlesInput!): ArticleConnection!
 
+  """Articles and moments authored by current user."""
+  writings(input: WritingInput!): WritingConnection!
+
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
 
@@ -1354,6 +1362,7 @@ input CommentInput {
   type: CommentType!
   articleId: ID
   circleId: ID
+  momentId: ID
 }
 
 input CommentCommentsInput {
@@ -1435,6 +1444,7 @@ enum CommentType {
   article
   circleDiscussion
   circleBroadcast
+  moment
 }
 
 """
@@ -2160,6 +2170,7 @@ enum AssetType {
   circleCover
   collectionCover
   announcementCover
+  moment
 }
 
 enum EntityType {
@@ -2170,6 +2181,7 @@ enum EntityType {
   circle
   announcement
   collection
+  moment
 }
 
 """Enums for user roles."""
@@ -2270,7 +2282,7 @@ enum CacheControlScope {
 
 type Recommendation {
   """Activities based on user's following, sort by creation time."""
-  following(input: ConnectionArgs!): FollowingActivityConnection!
+  following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
   """Articles recommended based on recently read article tags."""
   readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
@@ -2521,6 +2533,8 @@ type Appreciation {
 type NotificationSetting {
   email: Boolean!
   mention: Boolean!
+  newComment: Boolean!
+  newLike: Boolean!
   userNewFollower: Boolean!
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
@@ -2628,7 +2642,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserPostMomentActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2647,6 +2661,17 @@ type UserAddArticleTagActivity {
 
   """Tag added by article"""
   target: Tag!
+}
+
+type UserPostMomentActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Moment posted by actor"""
+  node: Moment!
+
+  """Another 2 moments posted by actor"""
+  more: [Moment!]!
 }
 
 type UserBroadcastCircleActivity {
@@ -2966,6 +2991,8 @@ enum UserLanguage {
 enum NotificationSettingType {
   email
   mention
+  newComment
+  newLike
   userNewFollower
   articleNewComment
   articleNewAppreciation
@@ -3127,6 +3154,38 @@ enum UserArticlesSort {
 
 input UserArticlesFilter {
   state: ArticleState = active
+}
+
+input WritingInput {
+  after: String
+  first: Int
+}
+
+union Writing = Article | Moment
+
+type WritingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [WritingEdge!]
+}
+
+type WritingEdge {
+  cursor: String!
+  node: Writing!
+}
+
+input RecommendationFollowingInput {
+  first: Int
+  after: String
+  filter: RecommendationFollowingFilterInput
+}
+
+input RecommendationFollowingFilterInput {
+  type: RecommendationFollowingFilterType!
+}
+
+enum RecommendationFollowingFilterType {
+  article
 }
 
 union Response = Article | Comment
@@ -3503,4 +3562,47 @@ input ReorderMoveInput {
 input ReorderCollectionArticlesInput {
   collection: ID!
   moves: [ReorderMoveInput!]!
+}
+
+input MomentInput {
+  shortHash: String!
+}
+
+input PutMomentInput {
+  content: String!
+  assets: [ID!]!
+}
+
+input DeleteMomentInput {
+  id: ID!
+}
+
+input LikeMomentInput {
+  id: ID!
+}
+
+input UnlikeMomentInput {
+  id: ID!
+}
+
+type Moment implements Node {
+  id: ID!
+  shortHash: String!
+  content: String
+  assets: [Asset!]!
+  author: User!
+  state: MomentState!
+  commentCount: Int!
+  commentedFollowees: [User!]!
+  comments(input: CommentsInput!): CommentConnection!
+  likeCount: Int!
+
+  """whether current user has liked it"""
+  liked: Boolean!
+  createdAt: DateTime!
+}
+
+enum MomentState {
+  active
+  archived
 }

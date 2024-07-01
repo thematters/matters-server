@@ -50,7 +50,9 @@ import {
   RecommendationService,
   TagService,
   UserService,
+  UserWorkService,
   CollectionService,
+  MomentService,
   LikeCoin,
   ExchangeRate,
 } from 'connectors'
@@ -137,7 +139,9 @@ export const graphql = async (app: Express) => {
     const dataSources = {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
+      userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
+      momentService: new MomentService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),
       systemService: new SystemService(connections),

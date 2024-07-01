@@ -155,6 +155,9 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: UserArticlesInput!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "Articles and moments authored by current user."
+    writings(input:WritingInput!): WritingConnection!
+
     "collections authored by current user."
     collections(input: ConnectionArgs!): CollectionConnection! @complexity(multipliers: ["input.first"], value: 1)
 
@@ -215,7 +218,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Activities based on user's following, sort by creation time."
-    following(input: ConnectionArgs!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
+    following(input: RecommendationFollowingInput!): FollowingActivityConnection! @complexity(multipliers: ["input.first"], value: 1)
 
     "Articles recommended based on recently read article tags."
     readTagsArticles(input: ConnectionArgs!): ArticleConnection! @complexity(multipliers: ["input.first"], value: 1) @deprecated(reason: "Merged into following")
@@ -451,9 +454,11 @@ export default /* GraphQL */ `
   type NotificationSetting {
     email: Boolean!
     mention: Boolean!
+    newComment: Boolean!
+    newLike: Boolean!
     userNewFollower: Boolean!
-    articleNewComment: Boolean!
-    articleNewAppreciation: Boolean!
+    articleNewComment: Boolean! # deprecated
+    articleNewAppreciation: Boolean! # deprecated
     articleNewSubscription: Boolean!
     articleNewCollected: Boolean!
 
@@ -560,6 +565,7 @@ export default /* GraphQL */ `
 
   union FollowingActivity = UserPublishArticleActivity
   | UserAddArticleTagActivity
+  | UserPostMomentActivity
 
   # circle activities
   | UserBroadcastCircleActivity
@@ -588,6 +594,17 @@ export default /* GraphQL */ `
 
     "Tag added by article"
     target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
+  }
+
+  type UserPostMomentActivity {
+    actor: User! @logCache(type: "${NODE_TYPES.User}")
+    createdAt: DateTime!
+
+    "Moment posted by actor"
+    node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
+
+    "Another 2 moments posted by actor"
+    more: [Moment!]!
   }
 
   type UserBroadcastCircleActivity {
@@ -912,9 +929,11 @@ export default /* GraphQL */ `
   enum NotificationSettingType {
     email
     mention
+    newComment
+    newLike
     userNewFollower
-    articleNewComment
-    articleNewAppreciation
+    articleNewComment # deprecated
+    articleNewAppreciation # deprecated
     articleNewSubscription
     articleNewCollected
 
@@ -1068,5 +1087,37 @@ export default /* GraphQL */ `
 
   input UserArticlesFilter {
     state: ArticleState = active
+  }
+
+  input WritingInput {
+    after: String
+    first: Int
+  }
+
+  union Writing = Article | Moment
+
+  type WritingConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [WritingEdge!]
+  }
+
+  type WritingEdge {
+    cursor: String!
+    node: Writing!
+  }
+
+  input RecommendationFollowingInput {
+    first: Int
+    after: String
+    filter: RecommendationFollowingFilterInput
+  }
+
+  input RecommendationFollowingFilterInput {
+    type:RecommendationFollowingFilterType!
+  }
+
+  enum RecommendationFollowingFilterType {
+    article
   }
 `

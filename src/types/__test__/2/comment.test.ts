@@ -4,7 +4,7 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
-import { AtomService } from 'connectors'
+import { AtomService, MomentService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -272,6 +272,44 @@ describe('mutations on comment', () => {
       where: { id },
     })
     expect(comment.articleVersionId).not.toBeNull()
+  })
+
+  test('create a moment comment', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test', assetIds: [] },
+      { id: '1', state: 'active', userName: 'test' }
+    )
+    const momentGlobalId = toGlobalId({
+      type: NODE_TYPES.Moment,
+      id: moment.id,
+    })
+    const server = await testClient({ isAuth: true, connections })
+    const { errors, data } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            momentId: momentGlobalId,
+            type: 'moment',
+          },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: DELETE_COMMENT,
+      variables: {
+        input: {
+          id: data.putComment.id,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.deleteComment.state).toBe('archived')
   })
 
   test('upvote a comment', async () => {

@@ -1,8 +1,5 @@
 import type { GQLRecommendationResolvers } from 'definitions'
 
-import _chunk from 'lodash/chunk'
-import _times from 'lodash/times'
-
 import {
   connectionFromArray,
   connectionFromPromisedArray,
@@ -11,6 +8,7 @@ import {
 } from 'common/utils'
 
 import {
+  type Activity,
   makeBaseActivityQuery,
   makeCircleActivityQuery,
   makeReadArticlesTagsActivityQuery,
@@ -31,11 +29,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   { input },
   {
     dataSources: {
-      userService,
-      commentService,
-      tagService,
       atomService,
-      articleService,
       connections: { knexRO },
     },
   }
@@ -45,16 +39,15 @@ const resolver: GQLRecommendationResolvers['following'] = async (
   }
 
   const { take, skip } = fromConnectionArgs(input)
+  const articleOnly = input?.filter?.type === 'article'
 
   // Retrieve activities
-  const [count, activities] = await Promise.all([
-    makeBaseActivityQuery({ userId }, knexRO).count().first(),
-    makeBaseActivityQuery({ userId }, knexRO)
-      .orderBy('created_at', 'desc')
-      .offset(skip)
-      .limit(take),
-  ])
-  const totalCount = parseInt(count ? (count.count as string) : '0', 10)
+  const [activities, totalCount] = await makeBaseActivityQuery(
+    { userId },
+    { take, skip },
+    articleOnly,
+    knexRO
+  )
 
   /**
    * Utils
@@ -71,6 +64,8 @@ const resolver: GQLRecommendationResolvers['following'] = async (
         return atomService.userIdLoader.load(id)
       case 'Tag':
         return atomService.tagIdLoader.load(id)
+      case 'Moment':
+        return atomService.momentIdLoader.load(id)
     }
   }
   const activityLoader = async ({
@@ -81,13 +76,23 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     targetId,
     targetType,
     createdAt,
-  }: any) => ({
+    actyNode2,
+    actyNode3,
+  }: Activity) => ({
     __type: type,
     actor: await atomService.userIdLoader.load(actorId),
     node: await nodeLoader({ id: nodeId, type: nodeType }),
-    target: await nodeLoader({ id: targetId, type: targetType }),
+    target:
+      targetId && targetType
+        ? await nodeLoader({ id: targetId, type: targetType })
+        : null,
+    more: [
+      actyNode2 ? await nodeLoader({ id: actyNode2, type: nodeType }) : null,
+      actyNode3 ? await nodeLoader({ id: actyNode3, type: nodeType }) : null,
+    ].filter(Boolean),
     createdAt,
   })
+
   const recommenders = [
     {
       source: RecommendationSource.ReadArticlesTags,
@@ -151,6 +156,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     const recommendationTake = 5
     const recommendationSkip =
       (Math.ceil(position / step / recommenderCount) - 1) * recommendationTake
+    // invalid cursor, client MUST never use this cursor as query input
     const recommendationCursor = indexToCursor(
       `recommendation:${recommendationSkip}`
     )

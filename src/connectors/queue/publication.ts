@@ -13,7 +13,7 @@ import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -216,7 +216,7 @@ export class PublicationQueue {
 
     // Step 7: trigger notifications
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_published,
+      event: NOTICE_TYPE.article_published,
       recipientId: article.authorId,
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
@@ -379,7 +379,7 @@ export class PublicationQueue {
         return
       }
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_collected,
+        event: NOTICE_TYPE.article_new_collected,
         recipientId: connection.authorId,
         actorId: article.authorId,
         entities: [
@@ -436,7 +436,7 @@ export class PublicationQueue {
 
     recipients.forEach((recipientId: string) => {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_new_article,
+        event: NOTICE_TYPE.circle_new_article,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
@@ -523,7 +523,7 @@ export class PublicationQueue {
       }
 
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_mentioned_you,
+        event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],

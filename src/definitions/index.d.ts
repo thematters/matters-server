@@ -1,6 +1,7 @@
 import type {
   ActionArticle,
   ActionCircle,
+  ActionMoment,
   ActionTag,
   ActionUser,
 } from './action'
@@ -41,6 +42,7 @@ import type {
   PunishRecord,
   SearchHistory,
 } from './misc'
+import type { Moment, MomentAsset } from './moment'
 import type { UserOauthLikecoinDB } from './oauth'
 import type {
   BlockchainSyncRecord,
@@ -69,6 +71,7 @@ import type {
   CommentService,
   DraftService,
   ExchangeRate,
+  MomentService,
   LikeCoin,
   NotificationService,
   OAuthService,
@@ -78,6 +81,7 @@ import type {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -115,6 +119,7 @@ export * from './report'
 export * from './wallet'
 export * from './misc'
 export * from './schema'
+export * from './moment'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -133,9 +138,11 @@ export interface Connections {
 export interface DataSources {
   atomService: AtomService
   articleService: ArticleService
+  momentService: MomentService
   commentService: CommentService
   draftService: DraftService
   userService: UserService
+  userWorkService: UserWorkService
   systemService: SystemService
   tagService: TagService
   notificationService: NotificationService
@@ -162,6 +169,7 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
+  action_moment: ActionMoment
   action_tag: ActionTag
   action_user: ActionUser
   announcement: Announcement
@@ -198,6 +206,8 @@ export type TableTypeMap = {
   draft: Draft
   entity_type: EntityType
   featured_comment_materialized: FeaturedCommentMaterialized
+  moment: Moment
+  moment_asset: MomentAsset
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   payout_account: PayoutAccount
@@ -288,3 +298,5 @@ export type TransactionTargetType = 'Article' | 'Transaction'
 export type Falsey = '' | 0 | false | null | undefined
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
+
+export type Writing = Article | Moment

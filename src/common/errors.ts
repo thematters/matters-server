@@ -168,6 +168,12 @@ export class CircleNotFoundError extends GraphQLError {
   }
 }
 
+export class MomentNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'MOMENT_NOT_FOUND' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

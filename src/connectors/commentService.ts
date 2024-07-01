@@ -11,6 +11,7 @@ import {
   ARTICLE_PIN_COMMENT_LIMIT,
   COMMENT_STATE,
   COMMENT_TYPE,
+  USER_STATE,
   USER_ACTION,
 } from 'common/enums'
 import { BaseService } from 'connectors'
@@ -30,15 +31,18 @@ export class CommentService extends BaseService<Comment> {
   }
 
   /**
-   * Count comments by a given article id.
+   * Count comments by a given id and comment type.
    *
    * @remarks only count active and collapsed comments
    */
-  public countByArticle = async (articleId: string) => {
+  public count = async (
+    targetId: string,
+    type: ValueOf<typeof COMMENT_TYPE>
+  ) => {
     const result = await this.knexRO(this.table)
       .where({
-        targetId: articleId,
-        type: COMMENT_TYPE.article,
+        targetId,
+        type,
       })
       .whereIn('state', [COMMENT_STATE.active, COMMENT_STATE.collapsed])
       .count()
@@ -159,6 +163,45 @@ export class CommentService extends BaseService<Comment> {
     }
     const records = await query
     return [records, +records[0]?.totalCount || 0]
+  }
+
+  /**
+   * Find commented followees by a given comment target.
+   *
+   * @remarks target author (like moment author) is excluded if provided
+   */
+  public findCommentedFollowees = async (
+    target: {
+      id: string
+      authorId: string
+      type: ValueOf<typeof COMMENT_TYPE>
+    },
+    userId: string,
+    take = 3
+  ) => {
+    const records = await this.knexRO
+      .select(
+        'user.id',
+        this.knexRO.raw('MIN(comment.created_at) AS comment_created_at')
+      )
+      .from('comment')
+      .join('action_user', 'comment.author_id', 'action_user.target_id')
+      .join('user', 'comment.author_id', 'user.id')
+      .where({
+        'comment.target_id': target.id,
+        'comment.type': target.type,
+        'action_user.user_id': userId,
+        'comment.state': COMMENT_STATE.active,
+        'user.state': USER_STATE.active,
+      })
+      .where('comment.author_id', '!=', target.authorId)
+      .groupBy('user.id')
+      .orderBy('comment_created_at', 'asc')
+      .limit(take)
+
+    return this.models.userIdLoader.loadMany(
+      records.map(({ id }: { id: string }) => id)
+    )
   }
 
   /*********************************
