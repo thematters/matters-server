@@ -232,7 +232,7 @@ describe('bundle notices', () => {
     })
 
     const job1 = await notificationService.trigger({
-      event: 'article_new_comment',
+      event: NOTICE_TYPE.article_new_comment,
       actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
@@ -242,7 +242,7 @@ describe('bundle notices', () => {
     })
 
     const job2 = await notificationService.trigger({
-      event: 'article_new_comment',
+      event: NOTICE_TYPE.article_new_comment,
       actorId: comment2.authorId,
       recipientId: article.authorId,
       entities: [
