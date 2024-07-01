@@ -1,5 +1,4 @@
 import type { CustomQueueOpts } from './utils'
-import type { BasicAcceptedElems } from 'cheerio'
 import type {
   Connections,
   UserOAuthLikeCoin,
@@ -10,7 +9,6 @@ import type {
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import * as cheerio from 'cheerio'
 
 import {
   NOTICE_TYPE,
@@ -25,7 +23,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { fromGlobalId, normalizeTagInput } from 'common/utils'
+import { normalizeTagInput, extractMentionIds } from 'common/utils'
 import {
   TagService,
   DraftService,
@@ -505,28 +503,18 @@ export class PublicationQueue {
     article: Article
     content: string
   }) => {
-    const $ = cheerio.load(content)
-    const mentionIds = $('a.mention')
-      .map((index: number, node: BasicAcceptedElems<any>) => {
-        const id = $(node).attr('data-id')
-        if (id) {
-          return id
-        }
-      })
-      .get()
+    const mentionIds = extractMentionIds(content)
 
     const notificationService = new NotificationService(this.connections)
     mentionIds.forEach((id: string) => {
-      const { id: recipientId } = fromGlobalId(id)
-
-      if (!recipientId) {
+      if (!id) {
         return false
       }
 
       notificationService.trigger({
         event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
-        recipientId,
+        recipientId: id,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
