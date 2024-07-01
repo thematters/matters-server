@@ -16,7 +16,7 @@ beforeAll(async () => {
   connections = await genConnections()
   momentService = new MomentService(connections)
   systemService = new SystemService(connections)
-}, 50000)
+}, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
@@ -24,33 +24,32 @@ afterAll(async () => {
 
 describe('query moment', () => {
   const GET_MOMENT = /* GraphQL */ `
-    query ($input: NodeInput!) {
-      node(input: $input) {
-        ... on Moment {
+    query ($input: MomentInput!) {
+      moment(input: $input) {
+        id
+        shortHash
+        author {
           id
-          author {
-            id
-          }
-          content
-          assets {
-            id
-          }
-          state
-          commentCount
-          comments(input: { first: 10 }) {
-            edges {
-              node {
-                id
-              }
+        }
+        content
+        assets {
+          id
+        }
+        state
+        commentCount
+        comments(input: { first: 10 }) {
+          edges {
+            node {
+              id
             }
           }
-          commentedFollowees {
-            id
-          }
-          likeCount
-          liked
-          createdAt
         }
+        commentedFollowees {
+          id
+        }
+        likeCount
+        liked
+        createdAt
       }
     }
   `
@@ -59,27 +58,27 @@ describe('query moment', () => {
       { content: 'test' },
       { id: '1', state: USER_STATE.active, userName: 'test' }
     )
-    const momentId = toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
     const server = await testClient({ connections })
     const { errors, data } = await server.executeOperation({
       query: GET_MOMENT,
-      variables: { input: { id: momentId } },
+      variables: { input: { shortHash: moment.shortHash } },
     })
     expect(errors).toBeUndefined()
-    expect(data.node.id).toBe(momentId)
-    expect(data.node.commentedFollowees).toEqual([])
-    expect(data.node.liked).toBeFalsy()
+    expect(data.moment.shortHash).toBe(moment.shortHash)
+    const momentId = toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
+    expect(data.moment.id).toBe(momentId)
+    expect(data.moment.commentedFollowees).toEqual([])
+    expect(data.moment.liked).toBeFalsy()
   })
   test('logged-in users can query', async () => {
     const moment = await momentService.create(
       { content: 'test' },
       { id: '1', state: USER_STATE.active, userName: 'test' }
     )
-    const momentId = toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
     const server = await testClient({ isAuth: true, connections })
     const { errors } = await server.executeOperation({
       query: GET_MOMENT,
-      variables: { input: { id: momentId } },
+      variables: { input: { shortHash: moment.shortHash } },
     })
     expect(errors).toBeUndefined()
   })

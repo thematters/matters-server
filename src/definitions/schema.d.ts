@@ -1586,11 +1586,16 @@ export type GQLMoment = GQLNode & {
   likeCount: Scalars['Int']['output']
   /** whether current user has liked it */
   liked: Scalars['Boolean']['output']
+  shortHash: Scalars['String']['output']
   state: GQLMomentState
 }
 
 export type GQLMomentCommentsArgs = {
   input: GQLCommentsInput
+}
+
+export type GQLMomentInput = {
+  shortHash: Scalars['String']['input']
 }
 
 export type GQLMomentState = 'active' | 'archived'
@@ -2643,6 +2648,7 @@ export type GQLQuery = {
   circle?: Maybe<GQLCircle>
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
+  moment?: Maybe<GQLMoment>
   node?: Maybe<GQLNode>
   nodes?: Maybe<Array<GQLNode>>
   oauthClient?: Maybe<GQLOAuthClient>
@@ -2668,6 +2674,10 @@ export type GQLQueryExchangeRatesArgs = {
 
 export type GQLQueryFrequentSearchArgs = {
   input: GQLFrequentSearchInput
+}
+
+export type GQLQueryMomentArgs = {
+  input: GQLMomentInput
 }
 
 export type GQLQueryNodeArgs = {
@@ -4522,6 +4532,7 @@ export type GQLResolversTypes = ResolversObject<{
   MigrationInput: GQLMigrationInput
   MigrationType: GQLMigrationType
   Moment: ResolverTypeWrapper<MomentModel>
+  MomentInput: GQLMomentInput
   MomentState: GQLMomentState
   MonthlyDatum: ResolverTypeWrapper<GQLMonthlyDatum>
   Mutation: ResolverTypeWrapper<{}>
@@ -5049,6 +5060,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   MergeTagsInput: GQLMergeTagsInput
   MigrationInput: GQLMigrationInput
   Moment: MomentModel
+  MomentInput: GQLMomentInput
   MonthlyDatum: GQLMonthlyDatum
   Mutation: {}
   NFTAsset: GQLNftAsset
@@ -6957,6 +6969,7 @@ export type GQLMomentResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   state?: Resolver<GQLResolversTypes['MomentState'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
@@ -8024,6 +8037,12 @@ export type GQLQueryResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLQueryFrequentSearchArgs, 'input'>
+  >
+  moment?: Resolver<
+    Maybe<GQLResolversTypes['Moment']>,
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryMomentArgs, 'input'>
   >
   node?: Resolver<
     Maybe<GQLResolversTypes['Node']>,

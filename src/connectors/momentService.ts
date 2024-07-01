@@ -14,6 +14,7 @@ import {
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
+import { nanoid } from 'common/utils'
 import { AtomService, UserService } from 'connectors'
 
 type User = Pick<UserFull, 'id' | 'state'>
@@ -63,6 +64,7 @@ export class MomentService {
     const moment = await this.models.create({
       table: 'moment',
       data: {
+        shortHash: nanoid(),
         authorId: user.id,
         content: sanitizeHTML(data.content),
         state: MOMENT_STATE.active,

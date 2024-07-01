@@ -6,6 +6,10 @@ import { toGlobalId } from 'common/utils'
 import comments from './comments'
 
 const schema: GQLResolvers = {
+  Query: {
+    moment: (_, { input: { shortHash } }, { dataSources: { atomService } }) =>
+      atomService.findUnique({ table: 'moment', where: { shortHash } }),
+  },
   Moment: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Moment, id }),
     content: ({ content }) => content,
