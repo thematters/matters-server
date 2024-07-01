@@ -396,7 +396,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       if (!isMentioned) {
         notificationService.trigger({
-          event: NOTICE_TYPE.article_new_comment,
+          event: isMoment
+            ? NOTICE_TYPE.moment_new_comment
+            : NOTICE_TYPE.article_new_comment,
           actorId: viewer.id,
           recipientId: targetAuthor,
           entities: [
@@ -500,7 +502,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
           },
         })
 
-        recipients.forEach((recipientId: any) => {
+        recipients.forEach((recipientId: string) => {
           cacheBundledNotices(NOTICE_TYPE.circle_new_discussion_comments, {
             event: isLevel1Comment
               ? BUNDLED_NOTICE_TYPE.in_circle_new_discussion
@@ -523,9 +525,11 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   // article & circle: notify mentioned users
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
-      if (isArticleType) {
+      if (isArticleType || isMoment) {
         notificationService.trigger({
-          event: NOTICE_TYPE.comment_mentioned_you,
+          event: isMoment
+            ? NOTICE_TYPE.moment_comment_mentioned_you
+            : NOTICE_TYPE.article_comment_mentioned_you,
           actorId: viewer.id,
           recipientId: userId,
           entities: [

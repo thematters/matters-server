@@ -173,7 +173,7 @@ exports.seed = async (knex) => {
     },
     // recipient_id (1) was mentioned by actir (2)'s comment (2)
     {
-      notice_type: 'comment_mentioned_you',
+      notice_type: 'article_comment_mentioned_you',
       actors: ['2'],
       entities: [
         {

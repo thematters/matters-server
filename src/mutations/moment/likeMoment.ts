@@ -1,12 +1,13 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { NOTICE_TYPE } from 'common/enums'
 import { AuthenticationError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
   _,
   { input: { id: globalId } },
-  { viewer, dataSources: { momentService, atomService } }
+  { viewer, dataSources: { momentService, atomService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -18,7 +19,16 @@ export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
   }
   await momentService.like(id, viewer)
 
-  return atomService.momentIdLoader.load(id)
+  const moment = await atomService.momentIdLoader.load(id)
+
+  notificationService.trigger({
+    event: NOTICE_TYPE.moment_liked,
+    actorId: viewer.id,
+    recipientId: moment.authorId,
+    entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
+  })
+
+  return moment
 }
 
 export const unlikeMoment: GQLMutationResolvers['unlikeMoment'] = async (

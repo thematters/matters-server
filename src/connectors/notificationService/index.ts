@@ -100,7 +100,7 @@ export class NotificationService {
       case NOTICE_TYPE.article_new_appreciation:
       case NOTICE_TYPE.article_new_subscriber:
       case NOTICE_TYPE.article_mentioned_you:
-      case NOTICE_TYPE.comment_mentioned_you:
+      case NOTICE_TYPE.article_comment_mentioned_you:
       case NOTICE_TYPE.comment_new_reply:
       case NOTICE_TYPE.payment_received_donation:
       case NOTICE_TYPE.circle_new_broadcast: // deprecated
@@ -114,7 +114,7 @@ export class NotificationService {
           entities: params.entities,
         }
       case NOTICE_TYPE.article_new_comment:
-      case NOTICE_TYPE.comment_liked:
+      case NOTICE_TYPE.article_comment_liked:
         return {
           type: params.event,
           recipientId: params.recipientId,

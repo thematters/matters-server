@@ -141,7 +141,7 @@ export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
 
 export interface NoticeCommentMentionedYouParams
   extends NotificationRequiredParams {
-  event: NOTICE_TYPE.comment_mentioned_you
+  event: NOTICE_TYPE.article_comment_mentioned_you
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]

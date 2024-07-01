@@ -460,11 +460,18 @@ export class Notice extends BaseService<NoticeDB> {
       // article-article
       article_new_collected: setting.articleNewCollected,
 
+      // moment
+      moment_liked: setting.newLike,
+      moment_mentioned_you: setting.mention,
+
       // comment
 
-      comment_liked: true,
-      comment_mentioned_you: setting.mention,
+      article_comment_liked: setting.newLike,
+      moment_comment_liked: setting.newLike,
+      article_comment_mentioned_you: setting.mention,
+      moment_comment_mentioned_you: setting.mention,
       article_new_comment: setting.newComment,
+      moment_new_comment: setting.newComment,
       circle_new_broadcast: setting.inCircleNewBroadcast,
 
       // comment-comment

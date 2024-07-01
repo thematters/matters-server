@@ -385,6 +385,7 @@ export class PublicationQueue {
         entities: [
           { type: 'target', entityTable: 'article', entity: connection },
           {
+            // TODO: rename to 'connection' and migrate notice_entity table
             type: 'collection',
             entityTable: 'article',
             entity: article,

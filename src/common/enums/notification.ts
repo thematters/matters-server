@@ -14,10 +14,17 @@ export enum NOTICE_TYPE {
   // article-article
   article_new_collected = 'article_new_collected',
 
+  // moment
+  moment_liked = 'moment_liked',
+  moment_mentioned_you = 'moment_mentioned_you',
+
   // comment
-  comment_liked = 'comment_liked',
-  comment_mentioned_you = 'comment_mentioned_you',
+  article_comment_liked = 'article_comment_liked',
+  moment_comment_liked = 'moment_comment_liked',
+  article_comment_mentioned_you = 'article_comment_mentioned_you',
+  moment_comment_mentioned_you = 'moment_comment_mentioned_you',
   article_new_comment = 'article_new_comment',
+  moment_new_comment = 'moment_new_comment',
   circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment

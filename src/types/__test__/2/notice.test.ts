@@ -68,7 +68,7 @@ test('query comment_liked notices', async () => {
   expect(user.id).not.toBe(actorId)
 
   const job = await notificationService.trigger({
-    event: NOTICE_TYPE.comment_liked,
+    event: NOTICE_TYPE.article_comment_liked,
     actorId,
     recipientId: comment.authorId,
     entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
