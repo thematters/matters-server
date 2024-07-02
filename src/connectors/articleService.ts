@@ -58,7 +58,7 @@ import {
   countWords,
   s2tConverter,
   t2sConverter,
-  nanoid,
+  shortHash,
   normalizeSearchKey,
   genMD5,
 } from 'common/utils'
@@ -160,7 +160,7 @@ export class ArticleService extends BaseService<Article> {
         .insert({
           authorId,
           state: ARTICLE_STATE.active,
-          shortHash: nanoid(), // retry handling at higher level of a very low probability of collision, or increase the nanoid length when it comes to higher probability;
+          shortHash: shortHash(), // retry handling at higher level of a very low probability of collision, or increase the nanoid length when it comes to higher probability;
         })
         .returning('*')
       const [articleVersion] = await trx<ArticleVersion>('article_version')
@@ -612,8 +612,8 @@ export class ArticleService extends BaseService<Article> {
 
   public findVersionByMediaHash = async (mediaHash: string) =>
     this.models.findFirst({ table: 'article_version', where: { mediaHash } })
-  public findArticleByShortHash = async (shortHash: string) =>
-    this.models.findFirst({ table: 'article', where: { shortHash } })
+  public findArticleByShortHash = async (hash: string) =>
+    this.models.findFirst({ table: 'article', where: { shortHash: hash } })
 
   public findByAuthor = async (
     authorId: string,

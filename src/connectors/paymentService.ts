@@ -1143,7 +1143,7 @@ export class PaymentService extends BaseService<Transaction> {
       })
     }
 
-    // send email to recipient
+    // notify recipient
     await notificationService.trigger({
       event: NOTICE_TYPE.payment_received_donation,
       actorId: sender?.id || null,

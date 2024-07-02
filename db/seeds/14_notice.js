@@ -44,24 +44,6 @@ exports.seed = async (knex) => {
       ],
       recipient_id: '1',
     },
-    // recipient_id (1)'s article (1) has a new downstream article (2) by actor (2)
-    {
-      notice_type: 'article_new_downstream',
-      actors: ['2'],
-      entities: [
-        {
-          type: 'target',
-          entity_type_id: articleTypeId,
-          entity_id: '1',
-        },
-        {
-          type: 'downstream',
-          entity_type_id: articleTypeId,
-          entity_id: '2',
-        },
-      ],
-      recipient_id: '1',
-    },
     // recipient_id (1)'s article (1) has new appreciations by actors (2, 3)
     {
       notice_type: 'article_new_appreciation',
@@ -106,53 +88,6 @@ exports.seed = async (knex) => {
       ],
       recipient_id: '1',
     },
-    // upstream (2) of article (4) was archived
-    {
-      notice_type: 'upstream_article_archived',
-      entities: [
-        {
-          type: 'target',
-          entity_type_id: articleTypeId,
-          entity_id: '4',
-        },
-        {
-          type: 'upstream',
-          entity_type_id: articleTypeId,
-          entity_id: '1',
-        },
-      ],
-      recipient_id: '1',
-    },
-    // downstream (2) of article (1) was archived
-    {
-      notice_type: 'downstream_article_archived',
-      entities: [
-        {
-          type: 'target',
-          entity_type_id: articleTypeId,
-          entity_id: '1',
-        },
-        {
-          type: 'downstream',
-          entity_type_id: articleTypeId,
-          entity_id: '2',
-        },
-      ],
-      recipient_id: '1',
-    },
-    // recipient_id (1)'s comment (4) was pinned
-    {
-      notice_type: 'comment_pinned',
-      entities: [
-        {
-          type: 'target',
-          entity_type_id: commentTypeId,
-          entity_id: '4',
-        },
-      ],
-      actors: ['3'],
-      recipient_id: '1',
-    },
     // recipient_id (1)'s comment (4) has a new reply by actor (2)
     {
       notice_type: 'comment_new_reply',
@@ -173,7 +108,7 @@ exports.seed = async (knex) => {
     },
     // recipient_id (1) was mentioned by actir (2)'s comment (2)
     {
-      notice_type: 'comment_mentioned_you',
+      notice_type: 'article_comment_mentioned_you',
       actors: ['2'],
       entities: [
         {

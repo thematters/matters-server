@@ -8,14 +8,15 @@ import {
   MOMENT_STATE,
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
+  NOTICE_TYPE,
 } from 'common/enums'
 import {
   ForbiddenError,
   ForbiddenByStateError,
   UserInputError,
 } from 'common/errors'
-import { nanoid } from 'common/utils'
-import { AtomService, UserService } from 'connectors'
+import { shortHash, extractMentionIds } from 'common/utils'
+import { AtomService, UserService, NotificationService } from 'connectors'
 
 type User = Pick<UserFull, 'id' | 'state'>
 
@@ -64,7 +65,7 @@ export class MomentService {
     const moment = await this.models.create({
       table: 'moment',
       data: {
-        shortHash: nanoid(),
+        shortHash: shortHash(),
         authorId: user.id,
         content: sanitizeHTML(data.content),
         state: MOMENT_STATE.active,
@@ -80,6 +81,21 @@ export class MomentService {
         )
       )
     }
+    // notify mentioned users
+    const notificationService = new NotificationService(this.connections)
+    const mentionedUserIds = extractMentionIds(data.content)
+
+    for (const mentionedUserId of mentionedUserIds) {
+      if (mentionedUserId !== user.id) {
+        notificationService.trigger({
+          event: NOTICE_TYPE.moment_mentioned_you,
+          actorId: user.id,
+          recipientId: mentionedUserId,
+          entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
+        })
+      }
+    }
+
     return moment
   }
 

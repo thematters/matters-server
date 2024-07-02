@@ -46,13 +46,20 @@ describe('user notify setting', () => {
     revised_article_not_published: true,
     circle_new_article: true,
 
+    // moment
+    moment_liked: true,
+    moment_mentioned_you: true,
+
     // article-article
     article_new_collected: false,
 
     // comment
-    comment_liked: true,
-    comment_mentioned_you: true,
+    article_comment_liked: true,
+    moment_comment_liked: true,
+    article_comment_mentioned_you: true,
+    moment_comment_mentioned_you: true,
     article_new_comment: true,
+    moment_new_comment: true,
     circle_new_broadcast: true,
 
     // comment-comment
@@ -171,7 +178,7 @@ describe('create notice', () => {
     })
 
     await notificationService.trigger({
-      event: NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.user_new_follower,
       actorId,
       recipientId,
     })
@@ -277,14 +284,14 @@ describe('bundle notices', () => {
     })
 
     const job1 = await notificationService.trigger({
-      event: NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.article_comment_liked,
       actorId: '1',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
     })
 
     const job2 = await notificationService.trigger({
-      event: NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.article_comment_liked,
       actorId: '2',
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
@@ -433,10 +440,12 @@ describe('cancel notices', () => {
   })
   test('cancel delayed notices', async () => {
     const params = {
-      event: NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.article_comment_liked as const,
       actorId: '1',
       recipientId: comment.authorId,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+      entities: [
+        { type: 'target', entityTable: 'comment', entity: comment },
+      ] as [{ type: 'target'; entityTable: 'comment'; entity: Comment }],
     }
     const noticeCount = await notificationService.notice.countNotice({
       userId: comment.authorId,
@@ -459,10 +468,12 @@ describe('cancel notices', () => {
   })
   test('cancel completed notices will not remove jobs from queue', async () => {
     const params = {
-      event: NOTICE_TYPE.comment_liked,
+      event: NOTICE_TYPE.article_comment_liked as const,
       actorId: '2',
       recipientId: comment.authorId,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+      entities: [
+        { type: 'target', entityTable: 'comment', entity: comment },
+      ] as [{ type: 'target'; entityTable: 'comment'; entity: Comment }],
     }
     const job = await notificationService.trigger(params)
     await job.finished()

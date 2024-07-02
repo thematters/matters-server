@@ -119,6 +119,24 @@ export interface NoticeArticleNewConnectedParams
 }
 
 /**
+ * Moment
+ */
+export interface NoticeMomentLikedParams extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_liked
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'moment'>]
+}
+
+export interface NoticeMomentMentionedYouParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'moment'>]
+}
+
+/**
  * Comment
  */
 export interface NoticeArticleNewCommentParams
@@ -132,16 +150,44 @@ export interface NoticeArticleNewCommentParams
   ]
 }
 
-export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
-  event: NOTICE_TYPE.comment_pinned
-  actorId: string
+export interface NoticeArticleCommentMentionedYouParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.article_comment_mentioned_you
   recipientId: string
+  actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeCommentMentionedYouParams
+export interface NoticeArticleCommentLikedParams
   extends NotificationRequiredParams {
-  event: NOTICE_TYPE.comment_mentioned_you
+  event: NOTICE_TYPE.article_comment_liked
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeMomentNewCommentParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_new_comment
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'comment', 'comment'>
+  ]
+}
+
+export interface NoticeMomentCommentMentionedYouParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_comment_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeMomentCommentLikedParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_comment_liked
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
@@ -174,7 +220,7 @@ export interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.payment_received_donation
   recipientId: string
-  actorId: string
+  actorId: string | null
   entities: [NotificationEntity<'target', 'transaction'>]
 }
 
@@ -258,12 +304,18 @@ export interface NoticeOfficialAnnouncementParams
   event: NOTICE_TYPE.official_announcement
   recipientId: string
   message: string
-  data: { url: string }
+  data: { link: string }
 }
 
 // Punish
 export interface NoticeUserBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
+  recipientId: string
+}
+
+export interface NoticeUserBannedPaymentParams
+  extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment
   recipientId: string
 }
 
@@ -303,7 +355,7 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
-export type NotificationPrarms =
+export type NotificationParams =
   // User
   | NoticeUserNewFollowerParams
   // Article
@@ -311,14 +363,20 @@ export type NotificationPrarms =
   | NoticeArticleNewConnectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
-  | NoticeArticleNewCommentParams
   | NoticeArticleMentionedYouParams
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
   | NoticeCircleNewArticleParams
+  // Moment
+  | NoticeMomentLikedParams
+  | NoticeMomentMentionedYouParams
   // Comment
-  | NoticeCommentPinnedParams
-  | NoticeCommentMentionedYouParams
+  | NoticeArticleCommentMentionedYouParams
+  | NoticeArticleCommentLikedParams
+  | NoticeArticleNewCommentParams
+  | NoticeMomentCommentMentionedYouParams
+  | NoticeMomentCommentLikedParams
+  | NoticeMomentNewCommentParams
   | NoticeCircleNewBroadcastParams
   // Comment-Comment
   | NoticeCommentNewReplyParams
@@ -334,15 +392,13 @@ export type NotificationPrarms =
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserBannedParams
+  | NoticeUserBannedPaymentParams
   | NoticeUserFrozenParams
   | NoticeUserUnbannedParams
   | NoticeCommentBannedParams
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
-  // Crypto
-  | NoticeCryptoAirdropParams
-  | NoticeCryptoConnectedParams
 
 export type NoticeUserId = string
 
@@ -355,12 +411,12 @@ export interface NoticeEntity {
 export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
 export interface NoticeData {
-  // used by official annoncement notices
+  // used by official announcement notices
   link?: string
   // reason for banned/frozen users, not in used
   reason?: string
 
-  // usde by circle new bundled notices
+  // used by circle new bundled notices
   comments?: string[]
   replies?: string[]
   mentions?: string[]
@@ -385,7 +441,7 @@ export type NoticeItem = NoticeDetail & {
 
 export interface PutNoticeParams {
   type: BaseNoticeType
-  actorId?: NoticeUserId
+  actorId?: NoticeUserId | null
   recipientId: NoticeUserId
   entities?: NotificationEntity[]
   message?: NoticeMessage | null

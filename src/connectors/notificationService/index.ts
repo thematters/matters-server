@@ -1,6 +1,13 @@
-import type { Connections, UserNotifySetting } from 'definitions'
+import type {
+  Connections,
+  UserNotifySetting,
+  LANGUAGES,
+  NotificationParams,
+  PutNoticeParams,
+} from 'definitions'
 
 import Queue from 'bull'
+import { get } from 'lodash'
 
 import {
   BUNDLED_NOTICE_TYPE,
@@ -9,11 +16,11 @@ import {
   QUEUE_NAME,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
+  QUEUE_DELAY,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
-import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -41,17 +48,17 @@ export class NotificationService {
       )
     }
     this.q = queue
-    this.delay = options?.delay
+    this.delay = options?.delay ?? QUEUE_DELAY.sendNotification
   }
 
-  public trigger = async (params: NotificationPrarms) => {
+  public trigger = async (params: NotificationParams) => {
     return this.q.add(QUEUE_JOB.sendNotification, params, {
       delay: this.delay,
       jobId: this.genNoticeJobId(params),
     })
   }
 
-  public cancel = async (params: NotificationPrarms): Promise<void> => {
+  public cancel = async (params: NotificationParams): Promise<void> => {
     const job = await this.q.getJob(this.genNoticeJobId(params))
     const state = await job?.getState()
     if (job && state !== 'completed' && state !== 'failed') {
@@ -59,21 +66,20 @@ export class NotificationService {
     }
   }
 
-  private genNoticeJobId = (params: NotificationPrarms) => {
-    return `${params.event}-${params.actorId ?? 0}-${params.recipientId}-${
-      params.entities
-        ? params.entities
-            .map(({ entity }: { entity: { id: string } }) => entity.id)
-            .join(':')
-        : 'null'
-    }`
+  private genNoticeJobId = (params: NotificationParams) => {
+    const entities = get(params, 'entities', [])
+    return `${params.event}-${get(params, 'actorId', 0)}-${
+      params.recipientId
+    }-${entities
+      .map(({ entity }: { entity: { id: string } }) => entity.id)
+      .join(':')}`
   }
 
-  private handleTrigger: Queue.ProcessCallbackFunction<NotificationPrarms> =
-    async (job) => this.__trigger(job.data)
+  private handleTrigger: Queue.ProcessCallbackFunction<unknown> = async (job) =>
+    this.__trigger(job.data as NotificationParams)
 
   private getNoticeParams = async (
-    params: NotificationPrarms,
+    params: NotificationParams,
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
     const articleService = new ArticleService(this.connections)
@@ -100,13 +106,15 @@ export class NotificationService {
       case NOTICE_TYPE.article_new_appreciation:
       case NOTICE_TYPE.article_new_subscriber:
       case NOTICE_TYPE.article_mentioned_you:
-      case NOTICE_TYPE.comment_mentioned_you:
+      case NOTICE_TYPE.article_comment_mentioned_you:
       case NOTICE_TYPE.comment_new_reply:
       case NOTICE_TYPE.payment_received_donation:
       case NOTICE_TYPE.circle_new_broadcast: // deprecated
       case NOTICE_TYPE.circle_new_subscriber:
       case NOTICE_TYPE.circle_new_follower:
       case NOTICE_TYPE.circle_new_unsubscriber:
+      case NOTICE_TYPE.moment_liked:
+      case NOTICE_TYPE.moment_comment_liked:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -114,7 +122,10 @@ export class NotificationService {
           entities: params.entities,
         }
       case NOTICE_TYPE.article_new_comment:
-      case NOTICE_TYPE.comment_liked:
+      case NOTICE_TYPE.article_comment_liked:
+      case NOTICE_TYPE.moment_new_comment:
+      case NOTICE_TYPE.moment_mentioned_you:
+      case NOTICE_TYPE.moment_comment_mentioned_you:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -237,7 +248,7 @@ export class NotificationService {
     }
   }
 
-  private async __trigger(params: NotificationPrarms) {
+  private async __trigger(params: NotificationParams) {
     const atomService = new AtomService(this.connections)
     const userService = new UserService(this.connections)
     const recipient = await atomService.userIdLoader.load(params.recipientId)
@@ -276,7 +287,7 @@ export class NotificationService {
     }
 
     // skip if sender is blocked by recipient
-    if ('actorId' in params) {
+    if ('actorId' in params && params.actorId) {
       const blocked = await userService.blocked({
         userId: recipient.id,
         targetId: params.actorId,

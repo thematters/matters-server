@@ -1064,6 +1064,7 @@ export type GQLCommentNoticeType =
   | 'CommentLiked'
   | 'CommentMentionedYou'
   | 'CommentPinned'
+  | 'MomentNewComment'
   | 'SubscribedArticleNewComment'
 
 /** Enums for sorting comments by time. */
@@ -1597,6 +1598,22 @@ export type GQLMomentCommentsArgs = {
 export type GQLMomentInput = {
   shortHash: Scalars['String']['input']
 }
+
+export type GQLMomentNotice = GQLNotice & {
+  __typename?: 'MomentNotice'
+  /** List of notice actors. */
+  actors?: Maybe<Array<GQLUser>>
+  /** Time of this notice was created. */
+  createdAt: Scalars['DateTime']['output']
+  /** Unique ID of this notice. */
+  id: Scalars['ID']['output']
+  target: GQLMoment
+  type: GQLMomentNoticeType
+  /** The value determines if the notice is unread or not. */
+  unread: Scalars['Boolean']['output']
+}
+
+export type GQLMomentNoticeType = 'MomentLiked' | 'MomentMentionedYou'
 
 export type GQLMomentState = 'active' | 'archived'
 
@@ -4272,6 +4289,7 @@ export type GQLResolversInterfaceTypes<
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
+    | NoticeItemModel
   PinnableWork: ArticleModel | CollectionModel
 }>
 
@@ -4537,6 +4555,8 @@ export type GQLResolversTypes = ResolversObject<{
   MigrationType: GQLMigrationType
   Moment: ResolverTypeWrapper<MomentModel>
   MomentInput: GQLMomentInput
+  MomentNotice: ResolverTypeWrapper<NoticeItemModel>
+  MomentNoticeType: GQLMomentNoticeType
   MomentState: GQLMomentState
   MonthlyDatum: ResolverTypeWrapper<GQLMonthlyDatum>
   Mutation: ResolverTypeWrapper<{}>
@@ -5065,6 +5085,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   MigrationInput: GQLMigrationInput
   Moment: MomentModel
   MomentInput: GQLMomentInput
+  MomentNotice: NoticeItemModel
   MonthlyDatum: GQLMonthlyDatum
   Mutation: {}
   NFTAsset: GQLNftAsset
@@ -6978,6 +6999,27 @@ export type GQLMomentResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLMomentNoticeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['MomentNotice'] = GQLResolversParentTypes['MomentNotice']
+> = ResolversObject<{
+  actors?: Resolver<
+    Maybe<Array<GQLResolversTypes['User']>>,
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Moment'], ParentType, ContextType>
+  type?: Resolver<
+    GQLResolversTypes['MomentNoticeType'],
+    ParentType,
+    ContextType
+  >
+  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLMonthlyDatumResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['MonthlyDatum'] = GQLResolversParentTypes['MonthlyDatum']
@@ -7653,6 +7695,7 @@ export type GQLNoticeResolvers<
     | 'CircleNotice'
     | 'CommentCommentNotice'
     | 'CommentNotice'
+    | 'MomentNotice'
     | 'OfficialAnnouncementNotice'
     | 'TransactionNotice'
     | 'UserNotice',
@@ -9283,6 +9326,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   MemberConnection?: GQLMemberConnectionResolvers<ContextType>
   MemberEdge?: GQLMemberEdgeResolvers<ContextType>
   Moment?: GQLMomentResolvers<ContextType>
+  MomentNotice?: GQLMomentNoticeResolvers<ContextType>
   MonthlyDatum?: GQLMonthlyDatumResolvers<ContextType>
   Mutation?: GQLMutationResolvers<ContextType>
   NFTAsset?: GQLNftAssetResolvers<ContextType>

@@ -2,6 +2,7 @@ import type {
   GQLArticleArticleNoticeResolvers,
   GQLArticleNoticeResolvers,
   GQLCircleNoticeResolvers,
+  GQLMomentNoticeResolvers,
   GQLCommentCommentNoticeResolvers,
   GQLCommentNoticeResolvers,
   GQLOfficialAnnouncementNoticeResolvers,
@@ -20,6 +21,7 @@ const NOTICE_TYPE = {
   UserNotice: 'UserNotice',
   ArticleNotice: 'ArticleNotice',
   ArticleArticleNotice: 'ArticleArticleNotice',
+  MomentNotice: 'MomentNotice',
   CommentNotice: 'CommentNotice',
   CommentCommentNotice: 'CommentCommentNotice',
   TransactionNotice: 'TransactionNotice',
@@ -35,6 +37,7 @@ const notice: {
   UserNotice: GQLUserNoticeResolvers
   ArticleNotice: GQLArticleNoticeResolvers
   ArticleArticleNotice: GQLArticleArticleNoticeResolvers
+  MomentNotice: GQLMomentNoticeResolvers
   CommentNotice: GQLCommentNoticeResolvers
   CommentCommentNotice: GQLCommentCommentNoticeResolvers
   TransactionNotice: GQLTransactionNoticeResolvers
@@ -60,11 +63,18 @@ const notice: {
         // article-article
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
 
+        // moment
+        moment_liked: NOTICE_TYPE.MomentNotice,
+        moment_mentioned_you: NOTICE_TYPE.MomentNotice,
+
         // comment
         comment_pinned: NOTICE_TYPE.CommentNotice,
-        comment_liked: NOTICE_TYPE.CommentNotice,
-        comment_mentioned_you: NOTICE_TYPE.CommentNotice,
+        article_comment_liked: NOTICE_TYPE.CommentNotice,
+        moment_comment_liked: NOTICE_TYPE.CommentNotice,
+        article_comment_mentioned_you: NOTICE_TYPE.CommentNotice,
+        moment_comment_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
+        moment_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice,
 
         // comment-comment
@@ -155,15 +165,42 @@ const notice: {
     },
   },
 
+  MomentNotice: {
+    type: ({ type }) => {
+      switch (type) {
+        case INNER_NOTICE_TYPE.moment_liked:
+          return 'MomentLiked'
+        case INNER_NOTICE_TYPE.moment_mentioned_you:
+          return 'MomentMentionedYou'
+      }
+      throw new ServerError(`Unknown MomentNotice type: ${type}`)
+    },
+    target: ({ entities, type }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      switch (type) {
+        case INNER_NOTICE_TYPE.moment_liked:
+        case INNER_NOTICE_TYPE.moment_mentioned_you:
+          return entities.target
+      }
+      throw new ServerError(`Unknown MomentNotice type: ${type}`)
+    },
+  },
+
   CommentNotice: {
     type: ({ type }) => {
       switch (type) {
-        case INNER_NOTICE_TYPE.comment_liked:
+        case INNER_NOTICE_TYPE.article_comment_liked:
+        case INNER_NOTICE_TYPE.moment_comment_liked:
           return 'CommentLiked'
-        case INNER_NOTICE_TYPE.comment_mentioned_you:
+        case INNER_NOTICE_TYPE.article_comment_mentioned_you:
+        case INNER_NOTICE_TYPE.moment_comment_mentioned_you:
           return 'CommentMentionedYou'
         case INNER_NOTICE_TYPE.article_new_comment:
           return 'ArticleNewComment'
+        case INNER_NOTICE_TYPE.moment_new_comment:
+          return 'MomentNewComment'
         case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return 'CircleNewBroadcast'
       }
@@ -174,8 +211,8 @@ const notice: {
         throw new ServerError('entities is empty')
       }
       switch (type) {
-        case INNER_NOTICE_TYPE.comment_liked:
-        case INNER_NOTICE_TYPE.comment_mentioned_you:
+        case INNER_NOTICE_TYPE.article_comment_liked:
+        case INNER_NOTICE_TYPE.article_comment_mentioned_you:
         case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target
         case INNER_NOTICE_TYPE.article_new_comment:

@@ -2152,7 +2152,9 @@ export class UserService extends BaseService<User> {
       remark,
       noticeType,
     }: {
-      noticeType?: OFFICIAL_NOTICE_EXTEND_TYPE
+      noticeType?:
+        | OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
+        | OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment
       banDays?: number
       remark?: ValueOf<typeof USER_BAN_REMARK>
     } = {}

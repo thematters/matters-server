@@ -2,7 +2,6 @@ import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
-import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
 
 import {
@@ -17,7 +16,7 @@ import {
 import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+import { extractMentionIds } from 'common/utils'
 import {
   AtomService,
   NotificationService,
@@ -281,32 +280,19 @@ export class RevisionQueue {
     },
     notificationService: NotificationService
   ) => {
-    // gather pre-draft ids
-    let $ = cheerio.load(preContent)
-    const filter = (index: number, node: any) => {
-      const id = $(node).attr('data-id')
-      if (id) {
-        return id
-      }
-    }
-    const preIds = $('a.mention').map(filter).get()
-
-    // gather curr-draft ids
-    $ = cheerio.load(content)
-    const currIds = $('a.mention').map(filter).get()
+    const preIds = extractMentionIds(preContent)
+    const currIds = extractMentionIds(content)
 
     const diffs = _difference(currIds, preIds)
     diffs.forEach((id: string) => {
-      const { id: recipientId } = fromGlobalId(id)
-
-      if (!recipientId) {
+      if (!id) {
         return false
       }
 
       notificationService.trigger({
         event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
-        recipientId,
+        recipientId: id,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
