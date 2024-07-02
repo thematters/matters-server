@@ -1,7 +1,7 @@
 import type { Connections } from 'definitions'
 
-import { NotificationService, AtomService } from 'connectors'
-import { NODE_TYPES, NOTICE_TYPE } from 'common/enums'
+import { NotificationService, AtomService, MomentService } from 'connectors'
+import { NODE_TYPES, NOTICE_TYPE, USER_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -9,11 +9,13 @@ import { testClient, genConnections, closeConnections } from '../utils'
 let connections: Connections
 let notificationService: NotificationService
 let atomService: AtomService
+let momentService: MomentService
 
 beforeAll(async () => {
   connections = await genConnections()
   notificationService = new NotificationService(connections)
   atomService = new AtomService(connections)
+  momentService = new MomentService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -33,6 +35,12 @@ const GET_NOTICES = /* GraphQL */ `
               createdAt
               unread
               ... on CommentNotice {
+                type
+                target {
+                  id
+                }
+              }
+              ... on MomentNotice {
                 type
                 target {
                   id
@@ -92,5 +100,44 @@ test('query comment_liked notices', async () => {
   expect(data.node.notices.edges[0].node.type).toBe('CommentLiked')
   expect(data.node.notices.edges[0].node.target.id).toBe(
     toGlobalId({ type: NODE_TYPES.Comment, id: comment.id })
+  )
+})
+
+test('query moment_liked notices', async () => {
+  const moment = await momentService.create(
+    { content: 'test' },
+    { id: '1', state: USER_STATE.active, userName: 'test' }
+  )
+  const user = await atomService.userIdLoader.load(moment.authorId)
+
+  // user like this comment
+  const actorId = '2'
+  expect(user.id).not.toBe(actorId)
+
+  const job = await notificationService.trigger({
+    event: NOTICE_TYPE.moment_liked,
+    actorId,
+    recipientId: moment.authorId,
+    entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
+  })
+  await job.finished()
+
+  const server = await testClient({
+    isAuth: true,
+    connections,
+    context: { viewer: user },
+  })
+  const { data, errors } = await server.executeOperation({
+    query: GET_NOTICES,
+    variables: {
+      nodeInput: {
+        id: toGlobalId({ type: NODE_TYPES.User, id: moment.authorId }),
+      },
+    },
+  })
+  expect(errors).toBeUndefined()
+  expect(data.node.notices.edges[0].node.type).toBe('MomentLiked')
+  expect(data.node.notices.edges[0].node.target.id).toBe(
+    toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
   )
 })

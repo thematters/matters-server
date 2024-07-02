@@ -7,6 +7,7 @@ import type {
 } from 'definitions'
 
 import Queue from 'bull'
+import { get } from 'lodash'
 
 import {
   BUNDLED_NOTICE_TYPE,
@@ -66,7 +67,12 @@ export class NotificationService {
   }
 
   private genNoticeJobId = (params: NotificationParams) => {
-    return JSON.stringify(params)
+    const entities = get(params, 'entities', [])
+    return `${params.event}-${get(params, 'actorId', 0)}-${
+      params.recipientId
+    }-${entities
+      .map(({ entity }: { entity: { id: string } }) => entity.id)
+      .join(':')}`
   }
 
   private handleTrigger: Queue.ProcessCallbackFunction<unknown> = async (job) =>
