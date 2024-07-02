@@ -287,7 +287,7 @@ export class NotificationService {
     }
 
     // skip if sender is blocked by recipient
-    if ('actorId' in params) {
+    if ('actorId' in params && params.actorId) {
       const blocked = await userService.blocked({
         userId: recipient.id,
         targetId: params.actorId,

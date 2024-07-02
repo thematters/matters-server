@@ -1144,14 +1144,12 @@ export class PaymentService extends BaseService<Transaction> {
     }
 
     // notify recipient
-    if (sender) {
-      await notificationService.trigger({
-        event: NOTICE_TYPE.payment_received_donation,
-        actorId: sender.id,
-        recipientId: recipient.id,
-        entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
-      })
-    }
+    await notificationService.trigger({
+      event: NOTICE_TYPE.payment_received_donation,
+      actorId: sender?.id || null,
+      recipientId: recipient.id,
+      entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],
+    })
 
     const mailType =
       tx.currency === PAYMENT_CURRENCY.LIKE

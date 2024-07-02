@@ -220,7 +220,7 @@ export interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.payment_received_donation
   recipientId: string
-  actorId: string
+  actorId: string | null
   entities: [NotificationEntity<'target', 'transaction'>]
 }
 
@@ -441,7 +441,7 @@ export type NoticeItem = NoticeDetail & {
 
 export interface PutNoticeParams {
   type: BaseNoticeType
-  actorId?: NoticeUserId
+  actorId?: NoticeUserId | null
   recipientId: NoticeUserId
   entities?: NotificationEntity[]
   message?: NoticeMessage | null
