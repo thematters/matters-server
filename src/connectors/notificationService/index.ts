@@ -113,6 +113,11 @@ export class NotificationService {
       case NOTICE_TYPE.circle_new_subscriber:
       case NOTICE_TYPE.circle_new_follower:
       case NOTICE_TYPE.circle_new_unsubscriber:
+      case NOTICE_TYPE.moment_liked:
+      case NOTICE_TYPE.moment_mentioned_you:
+      case NOTICE_TYPE.moment_new_comment:
+      case NOTICE_TYPE.moment_comment_liked:
+      case NOTICE_TYPE.moment_comment_mentioned_you:
         return {
           type: params.event,
           recipientId: params.recipientId,

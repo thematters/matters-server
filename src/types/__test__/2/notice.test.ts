@@ -13,7 +13,7 @@ let momentService: MomentService
 
 beforeAll(async () => {
   connections = await genConnections()
-  notificationService = new NotificationService(connections)
+  notificationService = new NotificationService(connections, { delay: 0 })
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
 }, 30000)
@@ -35,13 +35,13 @@ const GET_NOTICES = /* GraphQL */ `
               createdAt
               unread
               ... on CommentNotice {
-                type
+                commentNoticeType: type
                 target {
                   id
                 }
               }
               ... on MomentNotice {
-                type
+                momentNoticeType: type
                 target {
                   id
                 }
@@ -57,12 +57,13 @@ const GET_NOTICES = /* GraphQL */ `
 test('query notices', async () => {
   // viewer id is 1
   const server = await testClient({ isAuth: true, connections })
-  const { data } = await server.executeOperation({
+  const { data, errors } = await server.executeOperation({
     query: GET_NOTICES,
     variables: {
       nodeInput: { id: USER_ID },
     },
   })
+  expect(errors).toBeUndefined()
   const notices = data.node.notices.edges
   expect(notices.length).toBeGreaterThan(0)
 })
@@ -97,7 +98,7 @@ test('query comment_liked notices', async () => {
     },
   })
   expect(errors).toBeUndefined()
-  expect(data.node.notices.edges[0].node.type).toBe('CommentLiked')
+  expect(data.node.notices.edges[0].node.commentNoticeType).toBe('CommentLiked')
   expect(data.node.notices.edges[0].node.target.id).toBe(
     toGlobalId({ type: NODE_TYPES.Comment, id: comment.id })
   )
@@ -106,7 +107,7 @@ test('query comment_liked notices', async () => {
 test('query moment_liked notices', async () => {
   const moment = await momentService.create(
     { content: 'test' },
-    { id: '1', state: USER_STATE.active, userName: 'test' }
+    { id: '4', state: USER_STATE.active, userName: 'test' }
   )
   const user = await atomService.userIdLoader.load(moment.authorId)
 
@@ -136,7 +137,7 @@ test('query moment_liked notices', async () => {
     },
   })
   expect(errors).toBeUndefined()
-  expect(data.node.notices.edges[0].node.type).toBe('MomentLiked')
+  expect(data.node.notices.edges[0].node.momentNoticeType).toBe('MomentLiked')
   expect(data.node.notices.edges[0].node.target.id).toBe(
     toGlobalId({ type: NODE_TYPES.Moment, id: moment.id })
   )
