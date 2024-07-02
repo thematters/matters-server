@@ -128,6 +128,14 @@ export interface NoticeMomentLikedParams extends NotificationRequiredParams {
   entities: [NotificationEntity<'target', 'moment'>]
 }
 
+export interface NoticeMomentMentionedYouParams
+  extends NotificationRequiredParams {
+  event: NOTICE_TYPE.moment_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'moment'>]
+}
+
 /**
  * Comment
  */
@@ -361,6 +369,7 @@ export type NotificationParams =
   | NoticeCircleNewArticleParams
   // Moment
   | NoticeMomentLikedParams
+  | NoticeMomentMentionedYouParams
   // Comment
   | NoticeArticleCommentMentionedYouParams
   | NoticeArticleCommentLikedParams

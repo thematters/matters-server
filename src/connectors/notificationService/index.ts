@@ -1,4 +1,10 @@
-import type { Connections, UserNotifySetting } from 'definitions'
+import type {
+  Connections,
+  UserNotifySetting,
+  LANGUAGES,
+  NotificationParams,
+  PutNoticeParams,
+} from 'definitions'
 
 import Queue from 'bull'
 
@@ -9,11 +15,11 @@ import {
   QUEUE_NAME,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
+  QUEUE_DELAY,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
-import { LANGUAGES, NotificationParams, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -41,7 +47,7 @@ export class NotificationService {
       )
     }
     this.q = queue
-    this.delay = options?.delay
+    this.delay = options?.delay ?? QUEUE_DELAY.sendNotification
   }
 
   public trigger = async (params: NotificationParams) => {
