@@ -304,9 +304,9 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  const parentCommentAuthor = get(parentComment, 'authorId')
+  const parentCommentAuthor = get(parentComment, 'authorId') as string
   const parentCommentId = get(parentComment, 'id')
-  const replyToCommentAuthor = get(replyToComment, 'authorId')
+  const replyToCommentAuthor = get(replyToComment, 'authorId') as string
   const replyToCommentId = get(replyToComment, 'id')
 
   const isLevel1Comment = !parentComment && !replyToComment

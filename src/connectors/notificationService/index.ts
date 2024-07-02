@@ -13,7 +13,7 @@ import {
 import { getLogger } from 'common/logger'
 import { UserService, AtomService, ArticleService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
-import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
+import { LANGUAGES, NotificationParams, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
 import { Notice } from './notice'
@@ -44,14 +44,14 @@ export class NotificationService {
     this.delay = options?.delay
   }
 
-  public trigger = async (params: NotificationPrarms) => {
+  public trigger = async (params: NotificationParams) => {
     return this.q.add(QUEUE_JOB.sendNotification, params, {
       delay: this.delay,
       jobId: this.genNoticeJobId(params),
     })
   }
 
-  public cancel = async (params: NotificationPrarms): Promise<void> => {
+  public cancel = async (params: NotificationParams): Promise<void> => {
     const job = await this.q.getJob(this.genNoticeJobId(params))
     const state = await job?.getState()
     if (job && state !== 'completed' && state !== 'failed') {
@@ -59,21 +59,15 @@ export class NotificationService {
     }
   }
 
-  private genNoticeJobId = (params: NotificationPrarms) => {
-    return `${params.event}-${params.actorId ?? 0}-${params.recipientId}-${
-      params.entities
-        ? params.entities
-            .map(({ entity }: { entity: { id: string } }) => entity.id)
-            .join(':')
-        : 'null'
-    }`
+  private genNoticeJobId = (params: NotificationParams) => {
+    return JSON.stringify(params)
   }
 
-  private handleTrigger: Queue.ProcessCallbackFunction<NotificationPrarms> =
-    async (job) => this.__trigger(job.data)
+  private handleTrigger: Queue.ProcessCallbackFunction<unknown> = async (job) =>
+    this.__trigger(job.data as NotificationParams)
 
   private getNoticeParams = async (
-    params: NotificationPrarms,
+    params: NotificationParams,
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
     const articleService = new ArticleService(this.connections)
@@ -237,7 +231,7 @@ export class NotificationService {
     }
   }
 
-  private async __trigger(params: NotificationPrarms) {
+  private async __trigger(params: NotificationParams) {
     const atomService = new AtomService(this.connections)
     const userService = new UserService(this.connections)
     const recipient = await atomService.userIdLoader.load(params.recipientId)
