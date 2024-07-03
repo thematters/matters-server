@@ -1,11 +1,14 @@
 import { AUTH_MODE, NODE_TYPES } from 'common/enums'
+import { isProd } from 'common/environment'
+
+const POST_MOMENT_RATE_LIMIT = isProd ? 2 : 100
 
 export default /* GraphQL */ `
   extend type Query {
     moment(input: MomentInput!): Moment
   }
   extend type Mutation {
-    putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:2, period:300)
+    putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:${POST_MOMENT_RATE_LIMIT}, period:300)
     deleteMoment(input: DeleteMomentInput!): Boolean!
 
     likeMoment(input: LikeMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
