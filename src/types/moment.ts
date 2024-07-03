@@ -1,7 +1,7 @@
 import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 import { isProd } from 'common/environment'
 
-const POST_MOMENT_RATE_LIMIT = isProd ? 2 : 100
+const POST_MOMENT_RATE_LIMIT = isProd ? 2 : 20
 
 export default /* GraphQL */ `
   extend type Query {
