@@ -11,12 +11,14 @@ exports.up = async (knex) => {
   await knex('entity_type').insert({ table: campaign_table })
   await knex.schema.createTable(campaign_table, (t) => {
     t.bigIncrements('id').primary()
+    t.string('short_hash').unique().notNullable()
     t.enu('type', ['writing_challenge']).notNullable()
     t.string('name').notNullable()
     t.text('description').notNullable()
+    t.text('link').nullable()
     t.bigInteger('cover').unsigned()
-    t.specificType('application_period', 'daterange').nullable()
-    t.specificType('writing_period', 'daterange').nullable()
+    t.specificType('application_period', 'tstzrange').nullable()
+    t.specificType('writing_period', 'tstzrange').nullable()
     t.enu('state', ['pending', 'active', 'finished', 'archived']).notNullable()
     t.bigInteger('creator_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now()).notNullable()
@@ -33,12 +35,12 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('campaign_id').unsigned().notNullable()
     t.string('name').notNullable()
-    t.specificType('period', 'daterange')
+    t.specificType('period', 'tstzrange')
     t.timestamp('created_at').defaultTo(knex.fn.now()).notNullable()
     t.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable()
 
+    t.unique(['campaign_id', 'name'])
     t.foreign('campaign_id').references('id').inTable(campaign_table)
-    t.index('campaign_id')
   })
 
   // campaign_user

@@ -53,6 +53,7 @@ import {
   UserWorkService,
   CollectionService,
   MomentService,
+  CampaignService,
   LikeCoin,
   ExchangeRate,
 } from 'connectors'
@@ -150,6 +151,7 @@ export const graphql = async (app: Express) => {
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
+      campaignService: new CampaignService(connections),
       openseaService: new OpenSeaService(),
       likecoin: new LikeCoin(connections),
       exchangeRate: new ExchangeRate(connections.redis),

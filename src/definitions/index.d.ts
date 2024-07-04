@@ -24,6 +24,7 @@ import type {
 import type { Asset, AssetMap } from './asset'
 import type { VerificationCode } from './auth'
 import type { EntityType } from './base'
+import type { Campaign, CampaignStage } from './campaign'
 import type {
   Circle,
   CircleInvitation,
@@ -67,6 +68,7 @@ import type { BasedContext } from '@apollo/server'
 import type {
   ArticleService,
   AtomService,
+  CampaignService,
   CollectionService,
   CommentService,
   DraftService,
@@ -120,6 +122,7 @@ export * from './wallet'
 export * from './misc'
 export * from './schema'
 export * from './moment'
+export * from './campaign'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -151,6 +154,7 @@ export interface DataSources {
   openseaService: OpenSeaService
   collectionService: CollectionService
   recommendationService: RecommendationService
+  campaignService: CampaignService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -192,6 +196,8 @@ export type TableTypeMap = {
   blockchain_transaction: BlockchainTransaction
   blocked_search_keyword: BlockedSearchKeyword
   blocklist: Blocklist
+  campaign: Campaign
+  campaign_stage: CampaignStage
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice

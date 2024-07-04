@@ -25,6 +25,7 @@ import {
   CollectionService,
   RecommendationService,
   MomentService,
+  CampaignService,
 } from 'connectors'
 import {
   PublicationQueue,
@@ -185,6 +186,7 @@ export const testClient = async ({
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
       momentService: new MomentService(connections),
+      campaignService: new CampaignService(connections),
       notificationService,
       connections,
       queues,

@@ -29,6 +29,7 @@ export * from './appreciation'
 export * from './metrics'
 export * from './badges'
 export * from './moment'
+export * from './campaign'
 
 export const GRAPHQL_COST_LIMIT = 25e3
 export const GRAPHQL_INPUT_LENGTH_LIMIT = 100
