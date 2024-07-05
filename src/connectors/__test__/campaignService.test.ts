@@ -1,7 +1,6 @@
 import type { Connections } from 'definitions'
 
 import { CAMPAIGN_STATE } from 'common/enums'
-import { getDatetimeRangeString } from 'common/utils'
 import { CampaignService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'

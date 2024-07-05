@@ -10,11 +10,11 @@ interface Stage {
 }
 
 export class CampaignService {
-  private connections: Connections
+  // private connections: Connections
   private models: AtomService
 
   public constructor(connections: Connections) {
-    this.connections = connections
+    // this.connections = connections
     this.models = new AtomService(connections)
   }
 

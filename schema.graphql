@@ -19,6 +19,7 @@ directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
 type Query {
   article(input: ArticleInput!): Article
+  campaign(input: CampaignInput!): Campaign
   circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
@@ -74,6 +75,7 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
+  putWritingChallenge(input: PutWritingChallengeInput!): Campaign!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -837,6 +839,110 @@ enum UpdateTagSettingType {
   add_editor
   remove_editor
   leave_editor
+}
+
+input CampaignInput {
+  shotHash: String!
+}
+
+input PutWritingChallengeInput {
+  id: ID
+  name: [TranslationInput!]
+  description: [TranslationInput!]
+  cover: ID
+  applicationPeriod: DatetimeRangeInput
+  writingPeriod: DatetimeRangeInput
+  stages: [CampaignStageInput!]
+  state: CampaignState
+}
+
+input CampaignStageInput {
+  name: [TranslationInput!]
+  period: DatetimeRangeInput
+}
+
+input TranslationInput {
+  language: UserLanguage!
+  text: String!
+}
+
+input DatetimeRangeInput {
+  start: DateTime!
+  end: DateTime
+}
+
+interface Campaign {
+  id: ID!
+  shortHash: String!
+  name: String!
+  description: String!
+  state: CampaignState!
+}
+
+enum CampaignState {
+  pending
+  active
+  finished
+  archived
+}
+
+"""Enums for asset types."""
+enum AssetType {
+  avatar
+  cover
+  embed
+  embedaudio
+  profileCover
+  oauthClientAvatar
+  tagCover
+  circleAvatar
+  circleCover
+  collectionCover
+  announcementCover
+  moment
+  campaignCover
+}
+
+type WritingChallenge implements Node & Campaign {
+  id: ID!
+  shortHash: String!
+  name: String!
+  description: String!
+  cover: Asset
+  link: String!
+  applicationPeriod: DatetimeRange!
+  writingPeriod: DatetimeRange!
+  stages: [CampaignStage]!
+  state: CampaignState!
+  participants(input: ConnectionArgs!): UserConnection!
+  articles(input: CampaignArticlesInput): ArticleConnection!
+  applicationState: CampaignApplicationState
+}
+
+type DatetimeRange {
+  start: DateTime!
+  end: DateTime
+}
+
+enum CampaignApplicationState {
+  pending
+  succeeded
+  rejected
+}
+
+type CampaignStage {
+  name: String!
+  period: DatetimeRange
+}
+
+input CampaignArticlesInput {
+  after: String
+  first: Int
+  filter: CampaignArticlesFilter
+}
+
+input CampaignArticlesFilter {
+  stage: String!
 }
 
 type Circle implements Node {
@@ -2177,22 +2283,6 @@ enum TagsSort {
   newest
   oldest
   hottest
-}
-
-"""Enums for asset types."""
-enum AssetType {
-  avatar
-  cover
-  embed
-  embedaudio
-  profileCover
-  oauthClientAvatar
-  tagCover
-  circleAvatar
-  circleCover
-  collectionCover
-  announcementCover
-  moment
 }
 
 enum EntityType {

@@ -1,4 +1,5 @@
 import article from './article'
+import campaign from './campaign'
 import circle from './circle'
 import collection from './collection'
 import comment from './comment'
@@ -25,6 +26,7 @@ const Root = /* GraphQL */ `
 export default [
   Root,
   article,
+  campaign,
   circle,
   comment,
   draft,
