@@ -54,6 +54,7 @@ import type {
 } from './payment'
 import type { Report } from './report'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag'
+import type { Translation } from './translation'
 import type {
   SeedingUser,
   User,
@@ -84,6 +85,7 @@ import type {
   TagService,
   UserService,
   UserWorkService,
+  TranslationService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -123,6 +125,7 @@ export * from './misc'
 export * from './schema'
 export * from './moment'
 export * from './campaign'
+export * from './translation'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -155,6 +158,7 @@ export interface DataSources {
   collectionService: CollectionService
   recommendationService: RecommendationService
   campaignService: CampaignService
+  translationService: TranslationService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -224,6 +228,7 @@ export type TableTypeMap = {
   seeding_user: SeedingUser
   tag: Tag
   tag_translation: TagTranslation
+  translation: Translation
   transaction: Transaction
   user: User
   user_badge: UserBadge

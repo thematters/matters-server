@@ -67,7 +67,10 @@
           "Report": "./report#Report",
           "IcymiTopic": "./misc#MattersChoiceTopic",
           "Moment": "./moment#Moment",
-          "Writing": "./index#Writing"
+          "Writing": "./index#Writing",
+          "Campaign": "./campaign#Campaign",
+          "WritingChallenge": "./campaign#Campaign",
+          "CampaignStage": "./campaign#CampaignStage"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

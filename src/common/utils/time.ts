@@ -64,5 +64,11 @@ export const getUTCNextMonday = (_date?: Date) => {
   return date.getTime()
 }
 
-export const getDatetimeRangeString = (start: Date, end: Date) =>
+export const toDatetimeRangeString = (start: Date, end: Date) =>
   `[${start.toISOString()}, ${end.toISOString()})`
+
+export const fromDatetimeRangeString = (range: string): [Date, Date] =>
+  range
+    .slice(1, -1)
+    .split(', ')
+    .map((date) => new Date(date)) as [Date, Date]

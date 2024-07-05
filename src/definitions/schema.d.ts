@@ -34,6 +34,10 @@ import { Appreciation as AppreciationModel } from './appreciation'
 import { Report as ReportModel } from './report'
 import { MattersChoiceTopic as MattersChoiceTopicModel } from './misc'
 import { Moment as MomentModel } from './moment'
+import {
+  Campaign as CampaignModel,
+  CampaignStage as CampaignStageModel,
+} from './campaign'
 export type Maybe<T> = T | null
 export type InputMaybe<T> = T | undefined
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -694,7 +698,7 @@ export type GQLCampaignStage = {
 }
 
 export type GQLCampaignStageInput = {
-  name?: InputMaybe<Array<GQLTranslationInput>>
+  name: Array<GQLTranslationInput>
   period?: InputMaybe<GQLDatetimeRangeInput>
 }
 
@@ -2722,6 +2726,7 @@ export type GQLPutWritingChallengeInput = {
   cover?: InputMaybe<Scalars['ID']['input']>
   description?: InputMaybe<Array<GQLTranslationInput>>
   id?: InputMaybe<Scalars['ID']['input']>
+  link?: InputMaybe<Scalars['String']['input']>
   name?: InputMaybe<Array<GQLTranslationInput>>
   stages?: InputMaybe<Array<GQLCampaignStageInput>>
   state?: InputMaybe<GQLCampaignState>
@@ -4114,7 +4119,7 @@ export type GQLWritingChallenge = GQLCampaign &
     applicationPeriod: GQLDatetimeRange
     applicationState?: Maybe<GQLCampaignApplicationState>
     articles: GQLArticleConnection
-    cover?: Maybe<GQLAsset>
+    cover?: Maybe<Scalars['String']['output']>
     description: Scalars['String']['output']
     id: Scalars['ID']['output']
     link: Scalars['String']['output']
@@ -4306,11 +4311,7 @@ export type GQLResolversUnionTypes<RefType extends Record<string, unknown>> =
 export type GQLResolversInterfaceTypes<
   RefType extends Record<string, unknown>
 > = ResolversObject<{
-  Campaign: Omit<GQLWritingChallenge, 'articles' | 'cover' | 'participants'> & {
-    articles: RefType['ArticleConnection']
-    cover?: Maybe<RefType['Asset']>
-    participants: RefType['UserConnection']
-  }
+  Campaign: CampaignModel
   Connection:
     | (Omit<GQLAppreciationConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['AppreciationEdge']>>
@@ -4386,11 +4387,7 @@ export type GQLResolversInterfaceTypes<
     | ReportModel
     | TagModel
     | UserModel
-    | (Omit<GQLWritingChallenge, 'articles' | 'cover' | 'participants'> & {
-        articles: RefType['ArticleConnection']
-        cover?: Maybe<RefType['Asset']>
-        participants: RefType['UserConnection']
-      })
+    | CampaignModel
   Notice:
     | NoticeItemModel
     | NoticeItemModel
@@ -4500,14 +4497,12 @@ export type GQLResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>
   BoostTypes: GQLBoostTypes
   CacheControlScope: GQLCacheControlScope
-  Campaign: ResolverTypeWrapper<
-    GQLResolversInterfaceTypes<GQLResolversTypes>['Campaign']
-  >
+  Campaign: ResolverTypeWrapper<CampaignModel>
   CampaignApplicationState: GQLCampaignApplicationState
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignInput: GQLCampaignInput
-  CampaignStage: ResolverTypeWrapper<GQLCampaignStage>
+  CampaignStage: ResolverTypeWrapper<CampaignStageModel>
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
   Chain: GQLChain
@@ -5013,13 +5008,7 @@ export type GQLResolversTypes = ResolversObject<{
   Wallet: ResolverTypeWrapper<UserModel>
   WalletLoginInput: GQLWalletLoginInput
   Writing: ResolverTypeWrapper<WritingModel>
-  WritingChallenge: ResolverTypeWrapper<
-    Omit<GQLWritingChallenge, 'articles' | 'cover' | 'participants'> & {
-      articles: GQLResolversTypes['ArticleConnection']
-      cover?: Maybe<GQLResolversTypes['Asset']>
-      participants: GQLResolversTypes['UserConnection']
-    }
-  >
+  WritingChallenge: ResolverTypeWrapper<CampaignModel>
   WritingConnection: ResolverTypeWrapper<
     Omit<GQLWritingConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['WritingEdge']>>
@@ -5094,11 +5083,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   BlockchainTransaction: GQLBlockchainTransaction
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
-  Campaign: GQLResolversInterfaceTypes<GQLResolversParentTypes>['Campaign']
+  Campaign: CampaignModel
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignInput: GQLCampaignInput
-  CampaignStage: GQLCampaignStage
+  CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
   ChangeEmailInput: GQLChangeEmailInput
   Circle: CircleModel
@@ -5486,14 +5475,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Wallet: UserModel
   WalletLoginInput: GQLWalletLoginInput
   Writing: WritingModel
-  WritingChallenge: Omit<
-    GQLWritingChallenge,
-    'articles' | 'cover' | 'participants'
-  > & {
-    articles: GQLResolversParentTypes['ArticleConnection']
-    cover?: Maybe<GQLResolversParentTypes['Asset']>
-    participants: GQLResolversParentTypes['UserConnection']
-  }
+  WritingChallenge: CampaignModel
   WritingConnection: Omit<GQLWritingConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['WritingEdge']>>
   }
@@ -9440,7 +9422,7 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeArticlesArgs>
   >
-  cover?: Resolver<Maybe<GQLResolversTypes['Asset']>, ParentType, ContextType>
+  cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   description?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   link?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>

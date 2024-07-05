@@ -18,6 +18,7 @@ export default /* GraphQL */ `
     name: [TranslationInput!]
     description: [TranslationInput!]
     cover: ID
+    link: String
     applicationPeriod: DatetimeRangeInput
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
@@ -25,7 +26,7 @@ export default /* GraphQL */ `
   }
 
   input CampaignStageInput {
-    name: [TranslationInput!]
+    name: [TranslationInput!]!
     period: DatetimeRangeInput
   }
 
@@ -64,7 +65,7 @@ export default /* GraphQL */ `
     shortHash: String!
     name:String!
     description: String!
-    cover: Asset
+    cover: String
     link: String!
 
     applicationPeriod: DatetimeRange!

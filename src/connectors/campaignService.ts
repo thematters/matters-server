@@ -1,7 +1,7 @@
 import type { Connections, ValueOf } from 'definitions'
 
 import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
-import { shortHash, getDatetimeRangeString } from 'common/utils'
+import { shortHash, toDatetimeRangeString } from 'common/utils'
 import { AtomService } from 'connectors'
 
 interface Stage {
@@ -46,11 +46,11 @@ export class CampaignService {
         description,
         link,
         cover,
-        applicationPeriod: getDatetimeRangeString(
+        applicationPeriod: toDatetimeRangeString(
           applicationPeriod[0],
           applicationPeriod[1]
         ),
-        writingPeriod: getDatetimeRangeString(
+        writingPeriod: toDatetimeRangeString(
           writingPeriod[0],
           writingPeriod[1]
         ),
@@ -62,7 +62,7 @@ export class CampaignService {
   public updateStages = async (campaignId: string, stages: Stage[]) => {
     const newStages = stages.map(({ name, period }) => ({
       name,
-      period: period ? getDatetimeRangeString(period[0], period[1]) : null,
+      period: period ? toDatetimeRangeString(period[0], period[1]) : null,
     }))
     const orignalStages = await this.models.findMany({
       table: 'campaign_stage',
@@ -80,7 +80,7 @@ export class CampaignService {
     const stagesToUpdate = newStages.filter((s) =>
       orignalStages.find((stage) => stage.name === s.name)
     )
-    await Promise.all(
+    return await Promise.all(
       stagesToUpdate.map((s) =>
         this.models.update({
           table: 'campaign_stage',

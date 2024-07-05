@@ -850,6 +850,7 @@ input PutWritingChallengeInput {
   name: [TranslationInput!]
   description: [TranslationInput!]
   cover: ID
+  link: String
   applicationPeriod: DatetimeRangeInput
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
@@ -857,7 +858,7 @@ input PutWritingChallengeInput {
 }
 
 input CampaignStageInput {
-  name: [TranslationInput!]
+  name: [TranslationInput!]!
   period: DatetimeRangeInput
 }
 
@@ -908,7 +909,7 @@ type WritingChallenge implements Node & Campaign {
   shortHash: String!
   name: String!
   description: String!
-  cover: Asset
+  cover: String
   link: String!
   applicationPeriod: DatetimeRange!
   writingPeriod: DatetimeRange!
