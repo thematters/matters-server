@@ -75,7 +75,7 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
-  putWritingChallenge(input: PutWritingChallengeInput!): Campaign!
+  putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!

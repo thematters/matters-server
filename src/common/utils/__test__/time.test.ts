@@ -3,6 +3,7 @@ import {
   getUTC8Midnight,
   getUTCNextMonday,
   getUTCNextMonthDayOne,
+  fromDatetimeRangeString,
 } from 'common/utils'
 
 const UTC_1975_08_19_16 = new Date('August 19, 1975 16:30:00 GMT+00:00')
@@ -201,4 +202,11 @@ test('getUTCNextMonthDayOne', async () => {
   times.forEach(({ value, expectValue }) => {
     expect(getUTCNextMonthDayOne(value)).toBe(expectValue)
   })
+})
+
+test('fromDatetimeRangeString', async () => {
+  const string = '["2024-01-01 00:00:00+00","2024-01-02 00:00:00+00")'
+  const [start, end] = fromDatetimeRangeString(string)
+  expect(start.getTime()).not.toBeNaN()
+  expect(end?.getTime()).not.toBeNaN()
 })

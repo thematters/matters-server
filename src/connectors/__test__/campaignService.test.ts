@@ -1,18 +1,16 @@
 import type { Connections } from 'definitions'
 
 import { CAMPAIGN_STATE } from 'common/enums'
-import { CampaignService, AtomService } from 'connectors'
+import { CampaignService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let campaignService: CampaignService
-let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   campaignService = new CampaignService(connections)
-  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -41,11 +39,10 @@ describe('create writing_challenge campaign', () => {
     // add stages
 
     const stages1 = [{ name: 'stage1' }, { name: 'stage2' }]
-    await campaignService.updateStages(campaign.id, stages1)
-    const stages1Result = await atomService.findMany({
-      table: 'campaign_stage',
-      where: { campaignId: campaign.id },
-    })
+    const stages1Result = await campaignService.updateStages(
+      campaign.id,
+      stages1
+    )
     expect(stages1Result.map((s) => s.name)).toEqual(stages1.map((s) => s.name))
     expect(stages1Result.map((s) => s.period)).toEqual([null, null])
 
@@ -67,11 +64,10 @@ describe('create writing_challenge campaign', () => {
         ] as const,
       },
     ]
-    await campaignService.updateStages(campaign.id, stages2)
-    const stages2Result = await atomService.findMany({
-      table: 'campaign_stage',
-      where: { campaignId: campaign.id },
-    })
+    const stages2Result = await campaignService.updateStages(
+      campaign.id,
+      stages2
+    )
     expect(stages2Result.map((s) => s.name)).toEqual(stages2.map((s) => s.name))
     expect(stages2Result[0].period).not.toBeNull()
   })

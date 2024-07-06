@@ -1774,7 +1774,7 @@ export type GQLMutation = {
   putSkippedListItem?: Maybe<Array<GQLSkippedListItem>>
   /** Create or update tag. */
   putTag: GQLTag
-  putWritingChallenge: GQLCampaign
+  putWritingChallenge: GQLWritingChallenge
   /** Read an article. */
   readArticle: GQLArticle
   /** Update state of a user, used in OSS. */
@@ -7494,7 +7494,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationPutTagArgs, 'input'>
   >
   putWritingChallenge?: Resolver<
-    GQLResolversTypes['Campaign'],
+    GQLResolversTypes['WritingChallenge'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationPutWritingChallengeArgs, 'input'>

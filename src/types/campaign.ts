@@ -6,7 +6,7 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    putWritingChallenge(input:PutWritingChallengeInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}")
+    putWritingChallenge(input:PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input CampaignInput {

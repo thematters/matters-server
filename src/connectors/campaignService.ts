@@ -1,4 +1,4 @@
-import type { Connections, ValueOf } from 'definitions'
+import type { Connections, ValueOf, CampaignStage } from 'definitions'
 
 import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
 import { shortHash, toDatetimeRangeString } from 'common/utils'
@@ -80,7 +80,7 @@ export class CampaignService {
     const stagesToUpdate = newStages.filter((s) =>
       orignalStages.find((stage) => stage.name === s.name)
     )
-    return await Promise.all(
+    const updated = await Promise.all(
       stagesToUpdate.map((s) =>
         this.models.update({
           table: 'campaign_stage',
@@ -93,7 +93,7 @@ export class CampaignService {
     const stagesToCreate = newStages.filter(
       (s) => !orignalStages.find((stage) => stage.name === s.name)
     )
-    await Promise.all(
+    const added = await Promise.all(
       stagesToCreate.map((s) =>
         this.models.create({
           table: 'campaign_stage',
@@ -101,5 +101,11 @@ export class CampaignService {
         })
       )
     )
+
+    return stages.map(
+      (s) =>
+        updated.find((u) => u.name === s.name) ||
+        added.find((a) => a.name === s.name)
+    ) as CampaignStage[]
   }
 }
