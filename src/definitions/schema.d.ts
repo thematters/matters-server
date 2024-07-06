@@ -688,7 +688,7 @@ export type GQLCampaignArticlesInput = {
 }
 
 export type GQLCampaignInput = {
-  shotHash: Scalars['String']['input']
+  shortHash: Scalars['String']['input']
 }
 
 export type GQLCampaignStage = {

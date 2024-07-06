@@ -6,7 +6,7 @@ import { AtomService } from 'connectors'
 
 interface Stage {
   name: string
-  period?: readonly [Date, Date]
+  period?: readonly [Date, Date | undefined]
 }
 
 export class CampaignService {
@@ -22,7 +22,7 @@ export class CampaignService {
     name,
     description,
     link,
-    cover,
+    coverId,
     applicationPeriod,
     writingPeriod,
     state,
@@ -31,7 +31,7 @@ export class CampaignService {
     name: string
     description: string
     link: string
-    cover?: string
+    coverId?: string
     applicationPeriod: [Date, Date]
     writingPeriod: [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
@@ -45,7 +45,7 @@ export class CampaignService {
         name,
         description,
         link,
-        cover,
+        cover: coverId,
         applicationPeriod: toDatetimeRangeString(
           applicationPeriod[0],
           applicationPeriod[1]

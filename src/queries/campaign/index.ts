@@ -9,6 +9,16 @@ import stageName from './stage/name'
 import stages from './stages'
 
 const schema: GQLResolvers = {
+  Query: {
+    campaign: (_, { input: { shortHash } }, { dataSources: { atomService } }) =>
+      atomService.findUnique({
+        table: 'campaign',
+        where: { shortHash },
+      }),
+  },
+  Campaign: {
+    __resolveType: () => 'WritingChallenge',
+  },
   WritingChallenge: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Campaign, id }),
     shortHash: ({ shortHash }) => shortHash,

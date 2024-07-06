@@ -67,7 +67,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     campaign = await campaignService.createWritingChallenge({
       name: name[0].text,
       description: description[0].text,
-      cover: _cover.id,
+      coverId: _cover.id,
       link,
       applicationPeriod: [applicationPeriod.start, applicationPeriod.end],
       writingPeriod: [writingPeriod.start, writingPeriod.end],

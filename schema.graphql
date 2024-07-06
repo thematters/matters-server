@@ -842,7 +842,7 @@ enum UpdateTagSettingType {
 }
 
 input CampaignInput {
-  shotHash: String!
+  shortHash: String!
 }
 
 input PutWritingChallengeInput {

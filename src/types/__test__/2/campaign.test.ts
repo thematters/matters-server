@@ -3,18 +3,18 @@ import type { Connections, User } from 'definitions'
 import { v4 } from 'uuid'
 
 import { IMAGE_ASSET_TYPE, LANGUAGE } from 'common/enums'
-import { SystemService, AtomService } from 'connectors'
+import { CampaignService, SystemService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections, testClient } from '../utils'
 
 let connections: Connections
-// let campaignService: CampaignService
+let campaignService: CampaignService
 let systemService: SystemService
 let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
-  // campaignService = new CampaignService(connections)
+  campaignService = new CampaignService(connections)
   systemService = new SystemService(connections)
   atomService = new AtomService(connections)
 }, 30000)
@@ -218,5 +218,72 @@ describe('create or update wrting challenges', () => {
       },
     })
     expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+})
+
+describe('query campaign', () => {
+  const QUERY_CAMPAIGN = /* GraphQL */ `
+    query ($input: CampaignInput!) {
+      campaign(input: $input) {
+        id
+        shortHash
+        ... on WritingChallenge {
+          name
+          description
+          cover
+          link
+          applicationPeriod {
+            start
+            end
+          }
+          writingPeriod {
+            start
+            end
+          }
+          state
+          stages {
+            name
+            period {
+              start
+              end
+            }
+          }
+        }
+      }
+    }
+  `
+  let campaignShortHash: string
+  beforeAll(async () => {
+    const userId = '1'
+    const asset = await systemService.findAssetOrCreateByPath(
+      {
+        uuid: v4(),
+        authorId: userId,
+        type: IMAGE_ASSET_TYPE.campaignCover,
+        path: 'test.jpg',
+      },
+      '1',
+      userId
+    )
+    const campaign = await campaignService.createWritingChallenge({
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      coverId: asset.id,
+      applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')],
+      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')],
+      state: 'active',
+      creatorId: userId,
+    })
+    campaignShortHash = campaign.shortHash
+  })
+  test('success', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN,
+      variables: { input: { shortHash: campaignShortHash } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign).toBeDefined()
   })
 })

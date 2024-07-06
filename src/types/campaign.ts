@@ -10,7 +10,7 @@ export default /* GraphQL */ `
   }
 
   input CampaignInput {
-    shotHash: String!
+    shortHash: String!
   }
 
   input PutWritingChallengeInput {
