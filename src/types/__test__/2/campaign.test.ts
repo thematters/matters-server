@@ -363,7 +363,7 @@ describe('application', () => {
       updateCampaignApplicationState(input: $input) {
         id
         ... on WritingChallenge {
-          participants(input: {first: null}) {
+          participants(input: { first: null }) {
             totalCount
             edges {
               node {
