@@ -1,4 +1,4 @@
-import type { Connections, ValueOf, CampaignStage } from 'definitions'
+import type { Connections, ValueOf, CampaignStage, Campaign } from 'definitions'
 
 import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
 import { shortHash, toDatetimeRangeString } from 'common/utils'
@@ -10,11 +10,11 @@ interface Stage {
 }
 
 export class CampaignService {
-  // private connections: Connections
+  private connections: Connections
   private models: AtomService
 
   public constructor(connections: Connections) {
-    // this.connections = connections
+    this.connections = connections
     this.models = new AtomService(connections)
   }
 
@@ -32,8 +32,8 @@ export class CampaignService {
     description: string
     link: string
     coverId?: string
-    applicationPeriod: [Date, Date]
-    writingPeriod: [Date, Date]
+    applicationPeriod: readonly [Date, Date]
+    writingPeriod: readonly [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
   }) =>
@@ -107,5 +107,25 @@ export class CampaignService {
         updated.find((u) => u.name === s.name) ||
         added.find((a) => a.name === s.name)
     ) as CampaignStage[]
+  }
+
+  public findAndCountAll = async (
+    { skip, take }: { skip: number; take: number },
+    options = {
+      excludeStates: [CAMPAIGN_STATE.archived, CAMPAIGN_STATE.pending],
+    }
+  ): Promise<[Campaign[], number]> => {
+    const knexRO = this.connections.knexRO
+    const records = await knexRO('campaign')
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .orderBy('id', 'desc')
+      .modify((builder) => {
+        if (options.excludeStates) {
+          builder.whereNotIn('state', options.excludeStates)
+        }
+      })
+      .limit(take)
+      .offset(skip)
+    return [records, records.length === 0 ? 0 : +records[0].totalCount]
   }
 }

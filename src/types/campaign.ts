@@ -3,6 +3,7 @@ import { AUTH_MODE, NODE_TYPES } from 'common/enums'
 export default /* GraphQL */ `
   extend type Query {
     campaign(input: CampaignInput!): Campaign @logCache(type: "${NODE_TYPES.Campaign}")
+    campaigns(input:CampaignsInput!): CampaignConnection!
   }
 
   extend type Mutation {
@@ -12,6 +13,13 @@ export default /* GraphQL */ `
   input CampaignInput {
     shortHash: String!
   }
+
+  input CampaignsInput {
+   after: String
+   first: Int
+   "return pending and archived campaigns"
+   oss: Boolean = false
+ }
 
   input PutWritingChallengeInput {
     id: ID
@@ -103,5 +111,16 @@ export default /* GraphQL */ `
 
   input CampaignArticlesFilter{
     stage: String!
+  }
+
+  type CampaignConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CampaignEdge!]
+  }
+
+  type CampaignEdge {
+    cursor: String!
+    node: Campaign! @logCache(type: "${NODE_TYPES.Campaign}")
   }
 `

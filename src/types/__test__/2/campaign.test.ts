@@ -221,7 +221,7 @@ describe('create or update wrting challenges', () => {
   })
 })
 
-describe('query campaign', () => {
+describe('query campaigns', () => {
   const QUERY_CAMPAIGN = /* GraphQL */ `
     query ($input: CampaignInput!) {
       campaign(input: $input) {
@@ -252,6 +252,41 @@ describe('query campaign', () => {
       }
     }
   `
+  const QUERY_CAMPAIGNS = /* GraphQL */ `
+    query ($input: CampaignsInput!) {
+      campaigns(input: $input) {
+        edges {
+          node {
+            ... on WritingChallenge {
+              id
+              shortHash
+              name
+              description
+              cover
+              link
+              applicationPeriod {
+                start
+                end
+              }
+              writingPeriod {
+                start
+                end
+              }
+              state
+              stages {
+                name
+                period {
+                  start
+                  end
+                }
+              }
+            }
+          }
+        }
+        totalCount
+      }
+    }
+  `
   let campaignShortHash: string
   beforeAll(async () => {
     const userId = '1'
@@ -277,7 +312,7 @@ describe('query campaign', () => {
     })
     campaignShortHash = campaign.shortHash
   })
-  test('success', async () => {
+  test('query campain successfully', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: QUERY_CAMPAIGN,
@@ -285,5 +320,22 @@ describe('query campaign', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaign).toBeDefined()
+  })
+  test('query campains successfully', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaigns).toBeDefined()
+  })
+  test('non-admin users query campains with oss true will failed', async () => {
+    const server = await testClient({ connections })
+    const { errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGNS,
+      variables: { input: { first: 10, oss: true } },
+    })
+    expect(errors[0].extensions.code).toBe('FORBIDDEN')
   })
 })

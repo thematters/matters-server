@@ -20,6 +20,7 @@ directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 type Query {
   article(input: ArticleInput!): Article
   campaign(input: CampaignInput!): Campaign
+  campaigns(input: CampaignsInput!): CampaignConnection!
   circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
@@ -845,6 +846,14 @@ input CampaignInput {
   shortHash: String!
 }
 
+input CampaignsInput {
+  after: String
+  first: Int
+
+  """return pending and archived campaigns"""
+  oss: Boolean = false
+}
+
 input PutWritingChallengeInput {
   id: ID
   name: [TranslationInput!]
@@ -944,6 +953,17 @@ input CampaignArticlesInput {
 
 input CampaignArticlesFilter {
   stage: String!
+}
+
+type CampaignConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignEdge!]
+}
+
+type CampaignEdge {
+  cursor: String!
+  node: Campaign!
 }
 
 type Circle implements Node {

@@ -687,6 +687,19 @@ export type GQLCampaignArticlesInput = {
   first?: InputMaybe<Scalars['Int']['input']>
 }
 
+export type GQLCampaignConnection = GQLConnection & {
+  __typename?: 'CampaignConnection'
+  edges?: Maybe<Array<GQLCampaignEdge>>
+  pageInfo: GQLPageInfo
+  totalCount: Scalars['Int']['output']
+}
+
+export type GQLCampaignEdge = {
+  __typename?: 'CampaignEdge'
+  cursor: Scalars['String']['output']
+  node: GQLCampaign
+}
+
 export type GQLCampaignInput = {
   shortHash: Scalars['String']['input']
 }
@@ -703,6 +716,13 @@ export type GQLCampaignStageInput = {
 }
 
 export type GQLCampaignState = 'active' | 'archived' | 'finished' | 'pending'
+
+export type GQLCampaignsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+  /** return pending and archived campaigns */
+  oss?: InputMaybe<Scalars['Boolean']['input']>
+}
 
 export type GQLChain = 'Optimism' | 'Polygon'
 
@@ -2737,6 +2757,7 @@ export type GQLQuery = {
   __typename?: 'Query'
   article?: Maybe<GQLArticle>
   campaign?: Maybe<GQLCampaign>
+  campaigns: GQLCampaignConnection
   circle?: Maybe<GQLCircle>
   exchangeRates?: Maybe<Array<GQLExchangeRate>>
   frequentSearch?: Maybe<Array<Scalars['String']['output']>>
@@ -2758,6 +2779,10 @@ export type GQLQueryArticleArgs = {
 
 export type GQLQueryCampaignArgs = {
   input: GQLCampaignInput
+}
+
+export type GQLQueryCampaignsArgs = {
+  input: GQLCampaignsInput
 }
 
 export type GQLQueryCircleArgs = {
@@ -4322,6 +4347,9 @@ export type GQLResolversInterfaceTypes<
     | (Omit<GQLArticleVersionsConnection, 'edges'> & {
         edges: Array<Maybe<RefType['ArticleVersionEdge']>>
       })
+    | (Omit<GQLCampaignConnection, 'edges'> & {
+        edges?: Maybe<Array<RefType['CampaignEdge']>>
+      })
     | (Omit<GQLCircleConnection, 'edges'> & {
         edges?: Maybe<Array<RefType['CircleEdge']>>
       })
@@ -4501,10 +4529,19 @@ export type GQLResolversTypes = ResolversObject<{
   CampaignApplicationState: GQLCampaignApplicationState
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
+  CampaignConnection: ResolverTypeWrapper<
+    Omit<GQLCampaignConnection, 'edges'> & {
+      edges?: Maybe<Array<GQLResolversTypes['CampaignEdge']>>
+    }
+  >
+  CampaignEdge: ResolverTypeWrapper<
+    Omit<GQLCampaignEdge, 'node'> & { node: GQLResolversTypes['Campaign'] }
+  >
   CampaignInput: GQLCampaignInput
   CampaignStage: ResolverTypeWrapper<CampaignStageModel>
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
+  CampaignsInput: GQLCampaignsInput
   Chain: GQLChain
   ChangeEmailInput: GQLChangeEmailInput
   Circle: ResolverTypeWrapper<CircleModel>
@@ -5086,9 +5123,16 @@ export type GQLResolversParentTypes = ResolversObject<{
   Campaign: CampaignModel
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
+  CampaignConnection: Omit<GQLCampaignConnection, 'edges'> & {
+    edges?: Maybe<Array<GQLResolversParentTypes['CampaignEdge']>>
+  }
+  CampaignEdge: Omit<GQLCampaignEdge, 'node'> & {
+    node: GQLResolversParentTypes['Campaign']
+  }
   CampaignInput: GQLCampaignInput
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
+  CampaignsInput: GQLCampaignsInput
   ChangeEmailInput: GQLChangeEmailInput
   Circle: CircleModel
   CircleAnalytics: CircleModel
@@ -6224,6 +6268,29 @@ export type GQLCampaignResolvers<
   __resolveType: TypeResolveFn<'WritingChallenge', ParentType, ContextType>
 }>
 
+export type GQLCampaignConnectionResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignConnection'] = GQLResolversParentTypes['CampaignConnection']
+> = ResolversObject<{
+  edges?: Resolver<
+    Maybe<Array<GQLResolversTypes['CampaignEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<GQLResolversTypes['PageInfo'], ParentType, ContextType>
+  totalCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignEdgeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignEdge'] = GQLResolversParentTypes['CampaignEdge']
+> = ResolversObject<{
+  cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLCampaignStageResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignStage'] = GQLResolversParentTypes['CampaignStage']
@@ -6686,6 +6753,7 @@ export type GQLConnectionResolvers<
     | 'AppreciationConnection'
     | 'ArticleConnection'
     | 'ArticleVersionsConnection'
+    | 'CampaignConnection'
     | 'CircleConnection'
     | 'CollectionConnection'
     | 'CommentConnection'
@@ -8243,6 +8311,12 @@ export type GQLQueryResolvers<
     ContextType,
     RequireFields<GQLQueryCampaignArgs, 'input'>
   >
+  campaigns?: Resolver<
+    GQLResolversTypes['CampaignConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLQueryCampaignsArgs, 'input'>
+  >
   circle?: Resolver<
     Maybe<GQLResolversTypes['Circle']>,
     ParentType,
@@ -9500,6 +9574,8 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   BlockchainTransaction?: GQLBlockchainTransactionResolvers<ContextType>
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
   Campaign?: GQLCampaignResolvers<ContextType>
+  CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
+  CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
   CampaignStage?: GQLCampaignStageResolvers<ContextType>
   Circle?: GQLCircleResolvers<ContextType>
   CircleAnalytics?: GQLCircleAnalyticsResolvers<ContextType>

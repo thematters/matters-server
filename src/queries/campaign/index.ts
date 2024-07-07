@@ -3,6 +3,7 @@ import type { GQLResolvers } from 'definitions'
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId, fromDatetimeRangeString } from 'common/utils'
 
+import campaigns from './campaigns'
 import description from './description'
 import name from './name'
 import stageName from './stage/name'
@@ -15,6 +16,7 @@ const schema: GQLResolvers = {
         table: 'campaign',
         where: { shortHash },
       }),
+    campaigns,
   },
   Campaign: {
     __resolveType: () => 'WritingChallenge',

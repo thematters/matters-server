@@ -17,22 +17,24 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
+const campaignData = {
+  name: 'test',
+  description: 'test',
+  link: 'https://test.com',
+  applicationPeriod: [
+    new Date('2010-01-01 11:30'),
+    new Date('2010-01-01 15:00'),
+  ] as const,
+  writingPeriod: [
+    new Date('2010-01-02 11:30'),
+    new Date('2010-01-02 15:00'),
+  ] as const,
+  creatorId: '1',
+}
+
 describe('create writing_challenge campaign', () => {
   test('success', async () => {
-    const campaign = await campaignService.createWritingChallenge({
-      name: 'test',
-      description: 'test',
-      link: 'https://test.com',
-      applicationPeriod: [
-        new Date('2010-01-01 11:30'),
-        new Date('2010-01-01 15:00'),
-      ],
-      writingPeriod: [
-        new Date('2010-01-02 11:30'),
-        new Date('2010-01-02 15:00'),
-      ],
-      creatorId: '1',
-    })
+    const campaign = await campaignService.createWritingChallenge(campaignData)
     expect(campaign).toBeDefined()
     expect(campaign.state).toBe(CAMPAIGN_STATE.pending)
 
@@ -71,4 +73,45 @@ describe('create writing_challenge campaign', () => {
     expect(stages2Result.map((s) => s.name)).toEqual(stages2.map((s) => s.name))
     expect(stages2Result[0].period).not.toBeNull()
   })
+})
+
+test('find all campaigns', async () => {
+  const pendingCampaign = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.pending,
+  })
+  const activeCampaign = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.active,
+  })
+  const finishedCampaign = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.finished,
+  })
+  const archivedCampaign = await campaignService.createWritingChallenge({
+    ...campaignData,
+    state: CAMPAIGN_STATE.archived,
+  })
+  const [campaigns1, totalCount1] = await campaignService.findAndCountAll(
+    { take: 10, skip: 0 },
+    { excludeStates: [] }
+  )
+  const campaignIds1 = campaigns1.map((c) => c.id)
+  expect(campaigns1.length).toBeGreaterThan(0)
+  expect(totalCount1).toBeGreaterThan(0)
+  expect(campaignIds1).toContain(pendingCampaign.id)
+  expect(campaignIds1).toContain(activeCampaign.id)
+  expect(campaignIds1).toContain(finishedCampaign.id)
+  expect(campaignIds1).toContain(archivedCampaign.id)
+
+  const [campaigns2, totalCount2] = await campaignService.findAndCountAll({
+    take: 10,
+    skip: 0,
+  })
+  const campaignIds2 = campaigns2.map((c) => c.id)
+
+  expect(campaigns2.length).toBeLessThan(campaigns1.length)
+  expect(totalCount2).toBeLessThan(totalCount1)
+  expect(campaignIds2).not.toContain(archivedCampaign.id)
+  expect(campaignIds2).not.toContain(pendingCampaign.id)
 })
