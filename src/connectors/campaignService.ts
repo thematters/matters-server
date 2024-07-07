@@ -6,7 +6,11 @@ import type {
   User,
 } from 'definitions'
 
-import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
+import {
+  CAMPAIGN_TYPE,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
 import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
@@ -179,5 +183,28 @@ export class CampaignService {
       table: 'campaign_user',
       data: { campaignId: campaign.id, userId: user.id, state: 'pending' },
     })
+  }
+
+  public findParticipants = async (
+    campaignId: string,
+    { take, skip }: { take?: number; skip: number }
+  ): Promise<[User[], number]> => {
+    const knexRO = this.connections.knexRO
+    const records = await knexRO('campaign_user')
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .where({ campaignId, state: CAMPAIGN_USER_STATE.succeeded })
+      .orderBy('id', 'desc')
+      .offset(skip)
+      .modify((builder) => {
+        if (take) {
+          builder.limit(take)
+        }
+      })
+    return [
+      await this.models.userIdLoader.loadMany(
+        records.map(({ userId }: { userId: string }) => userId)
+      ),
+      records.length === 0 ? 0 : +records[0].totalCount,
+    ]
   }
 }

@@ -7,6 +7,7 @@ import applicationState from './applicationState'
 import campaigns from './campaigns'
 import description from './description'
 import name from './name'
+import participants from './participants'
 import stageName from './stage/name'
 import stages from './stages'
 
@@ -41,6 +42,7 @@ const schema: GQLResolvers = {
     stages,
     state: ({ state }) => state,
     applicationState,
+    participants,
   },
 
   CampaignStage: {

@@ -358,6 +358,23 @@ describe('application', () => {
       }
     }
   `
+  const UPDATE_CAMPAIGN_APPLICATION_STATE = /* GraphQL */ `
+    mutation ($input: UpdateCampaignApplicationStateInput!) {
+      updateCampaignApplicationState(input: $input) {
+        id
+        ... on WritingChallenge {
+          participants(input: {first: null}) {
+            totalCount
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `
   test('apply campaign successfully', async () => {
     const campaign = await campaignService.createWritingChallenge({
       name: 'test',
@@ -368,11 +385,21 @@ describe('application', () => {
       creatorId: '1',
       state: CAMPAIGN_STATE.active,
     })
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
     const campaignGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
       id: campaign.id,
     })
-    const server = await testClient({ connections, isAuth: true })
+    const userGlobalId = toGlobalId({ type: NODE_TYPES.User, id: user.id })
+
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: user },
+    })
     const { data, errors } = await server.executeOperation({
       query: APPLY_CAMPAIGN,
       variables: { input: { id: campaignGlobalId } },
@@ -381,5 +408,29 @@ describe('application', () => {
     expect(data.applyCampaign.applicationState).toBe(
       CAMPAIGN_USER_STATE.pending
     )
+
+    const adminServer = await testClient({
+      connections,
+      isAuth: true,
+      isAdmin: true,
+    })
+    const { data: updatedData, errors: updatedErrors } =
+      await adminServer.executeOperation({
+        query: UPDATE_CAMPAIGN_APPLICATION_STATE,
+        variables: {
+          input: {
+            campaign: campaignGlobalId,
+            user: userGlobalId,
+            state: CAMPAIGN_USER_STATE.succeeded,
+          },
+        },
+      })
+    expect(updatedErrors).toBeUndefined()
+    expect(
+      updatedData.updateCampaignApplicationState.participants.totalCount
+    ).toBe(1)
+    expect(
+      updatedData.updateCampaignApplicationState.participants.edges[0].node.id
+    ).toBe(userGlobalId)
   })
 })

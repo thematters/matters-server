@@ -78,6 +78,7 @@ type Mutation {
   mergeTags(input: MergeTagsInput!): Tag!
   putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
   applyCampaign(input: ApplyCampaignInput!): Campaign!
+  updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -869,6 +870,12 @@ input PutWritingChallengeInput {
 
 input ApplyCampaignInput {
   id: ID!
+}
+
+input UpdateCampaignApplicationStateInput {
+  campaign: ID!
+  user: ID!
+  state: CampaignApplicationState!
 }
 
 input CampaignStageInput {

@@ -9,6 +9,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     putWritingChallenge(input:PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}")
     applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}")
+    updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input CampaignInput {
@@ -36,6 +37,12 @@ export default /* GraphQL */ `
 
   input ApplyCampaignInput {
     id: ID!
+  }
+
+  input UpdateCampaignApplicationStateInput {
+    campaign: ID!
+    user: ID!
+    state: CampaignApplicationState!
   }
 
   input CampaignStageInput {

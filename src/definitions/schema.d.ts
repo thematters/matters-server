@@ -1871,6 +1871,7 @@ export type GQLMutation = {
   updateArticleState: GQLArticle
   /** Update articles' tag. */
   updateArticlesTags: GQLTag
+  updateCampaignApplicationState: GQLCampaign
   /** Update a comments' state. */
   updateCommentsState: Array<GQLComment>
   /** Update user notification settings. */
@@ -2251,6 +2252,10 @@ export type GQLMutationUpdateArticleStateArgs = {
 
 export type GQLMutationUpdateArticlesTagsArgs = {
   input: GQLUpdateArticlesTagsInput
+}
+
+export type GQLMutationUpdateCampaignApplicationStateArgs = {
+  input: GQLUpdateCampaignApplicationStateInput
 }
 
 export type GQLMutationUpdateCommentsStateArgs = {
@@ -3644,6 +3649,12 @@ export type GQLUpdateArticlesTagsInput = {
   isSelected: Scalars['Boolean']['input']
 }
 
+export type GQLUpdateCampaignApplicationStateInput = {
+  campaign: Scalars['ID']['input']
+  state: GQLCampaignApplicationState
+  user: Scalars['ID']['input']
+}
+
 export type GQLUpdateCommentsStateInput = {
   ids: Array<Scalars['ID']['input']>
   state: GQLCommentState
@@ -4970,6 +4981,7 @@ export type GQLResolversTypes = ResolversObject<{
   UpdateArticleSensitiveInput: GQLUpdateArticleSensitiveInput
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateArticlesTagsInput: GQLUpdateArticlesTagsInput
+  UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateTagSettingInput: GQLUpdateTagSettingInput
@@ -5456,6 +5468,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   UpdateArticleSensitiveInput: GQLUpdateArticleSensitiveInput
   UpdateArticleStateInput: GQLUpdateArticleStateInput
   UpdateArticlesTagsInput: GQLUpdateArticlesTagsInput
+  UpdateCampaignApplicationStateInput: GQLUpdateCampaignApplicationStateInput
   UpdateCommentsStateInput: GQLUpdateCommentsStateInput
   UpdateNotificationSettingInput: GQLUpdateNotificationSettingInput
   UpdateTagSettingInput: GQLUpdateTagSettingInput
@@ -7810,6 +7823,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUpdateArticlesTagsArgs, 'input'>
+  >
+  updateCampaignApplicationState?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUpdateCampaignApplicationStateArgs, 'input'>
   >
   updateCommentsState?: Resolver<
     Array<GQLResolversTypes['Comment']>,
