@@ -8,3 +8,9 @@ export const CAMPAIGN_STATE = {
   finished: 'finished',
   archived: 'archived',
 } as const
+
+export const CAMPAIGN_USER_STATE = {
+  pending: 'pending',
+  succeeded: 'succeeded',
+  rejected: 'rejected',
+} as const

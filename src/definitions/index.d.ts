@@ -24,7 +24,7 @@ import type {
 import type { Asset, AssetMap } from './asset'
 import type { VerificationCode } from './auth'
 import type { EntityType } from './base'
-import type { Campaign, CampaignStage } from './campaign'
+import type { Campaign, CampaignStage, CampaignUser } from './campaign'
 import type {
   Circle,
   CircleInvitation,
@@ -202,6 +202,7 @@ export type TableTypeMap = {
   blocklist: Blocklist
   campaign: Campaign
   campaign_stage: CampaignStage
+  campaign_user: CampaignUser
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice

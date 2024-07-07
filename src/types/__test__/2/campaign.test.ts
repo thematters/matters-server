@@ -2,8 +2,15 @@ import type { Connections, User } from 'definitions'
 
 import { v4 } from 'uuid'
 
-import { IMAGE_ASSET_TYPE, LANGUAGE } from 'common/enums'
+import {
+  IMAGE_ASSET_TYPE,
+  LANGUAGE,
+  NODE_TYPES,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
 import { CampaignService, SystemService, AtomService } from 'connectors'
+import { toGlobalId } from 'common/utils'
 
 import { genConnections, closeConnections, testClient } from '../utils'
 
@@ -337,5 +344,42 @@ describe('query campaigns', () => {
       variables: { input: { first: 10, oss: true } },
     })
     expect(errors[0].extensions.code).toBe('FORBIDDEN')
+  })
+})
+
+describe('application', () => {
+  const APPLY_CAMPAIGN = /* GraphQL */ `
+    mutation ($input: ApplyCampaignInput!) {
+      applyCampaign(input: $input) {
+        id
+        ... on WritingChallenge {
+          applicationState
+        }
+      }
+    }
+  `
+  test('apply campaign successfully', async () => {
+    const campaign = await campaignService.createWritingChallenge({
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')],
+      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')],
+      creatorId: '1',
+      state: CAMPAIGN_STATE.active,
+    })
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+    const server = await testClient({ connections, isAuth: true })
+    const { data, errors } = await server.executeOperation({
+      query: APPLY_CAMPAIGN,
+      variables: { input: { id: campaignGlobalId } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.applyCampaign.applicationState).toBe(
+      CAMPAIGN_USER_STATE.pending
+    )
   })
 })

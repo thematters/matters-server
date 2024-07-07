@@ -8,6 +8,7 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     putWritingChallenge(input:PutWritingChallengeInput!): WritingChallenge! @auth(mode: "${AUTH_MODE.admin}")
+    applyCampaign(input: ApplyCampaignInput!): Campaign! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   input CampaignInput {
@@ -31,6 +32,10 @@ export default /* GraphQL */ `
     writingPeriod: DatetimeRangeInput
     stages: [CampaignStageInput!]
     state: CampaignState
+  }
+
+  input ApplyCampaignInput {
+    id: ID!
   }
 
   input CampaignStageInput {

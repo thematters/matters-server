@@ -118,6 +118,10 @@ export type GQLAnnouncementsInput = {
   visible?: InputMaybe<Scalars['Boolean']['input']>
 }
 
+export type GQLApplyCampaignInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLAppreciateArticleInput = {
   amount: Scalars['Int']['input']
   id: Scalars['ID']['input']
@@ -1710,6 +1714,7 @@ export type GQLMutation = {
   addSocialLogin: GQLUser
   /** Add a wallet login to current user. */
   addWalletLogin: GQLUser
+  applyCampaign: GQLCampaign
   /** Appreciate an article. */
   appreciateArticle: GQLArticle
   /**
@@ -1922,6 +1927,10 @@ export type GQLMutationAddSocialLoginArgs = {
 
 export type GQLMutationAddWalletLoginArgs = {
   input: GQLWalletLoginInput
+}
+
+export type GQLMutationApplyCampaignArgs = {
+  input: GQLApplyCampaignInput
 }
 
 export type GQLMutationAppreciateArticleArgs = {
@@ -4442,6 +4451,7 @@ export type GQLResolversTypes = ResolversObject<{
   Announcement: ResolverTypeWrapper<GQLAnnouncement>
   AnnouncementType: GQLAnnouncementType
   AnnouncementsInput: GQLAnnouncementsInput
+  ApplyCampaignInput: GQLApplyCampaignInput
   AppreciateArticleInput: GQLAppreciateArticleInput
   Appreciation: ResolverTypeWrapper<AppreciationModel>
   AppreciationConnection: ResolverTypeWrapper<
@@ -5067,6 +5077,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   }
   Announcement: GQLAnnouncement
   AnnouncementsInput: GQLAnnouncementsInput
+  ApplyCampaignInput: GQLApplyCampaignInput
   AppreciateArticleInput: GQLAppreciateArticleInput
   Appreciation: AppreciationModel
   AppreciationConnection: Omit<GQLAppreciationConnection, 'edges'> & {
@@ -7297,6 +7308,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationAddWalletLoginArgs, 'input'>
+  >
+  applyCampaign?: Resolver<
+    GQLResolversTypes['Campaign'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationApplyCampaignArgs, 'input'>
   >
   appreciateArticle?: Resolver<
     GQLResolversTypes['Article'],

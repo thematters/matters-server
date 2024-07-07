@@ -1,6 +1,10 @@
 import type { ValueOf } from './generic'
 
-import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
+import {
+  CAMPAIGN_TYPE,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
 
 export interface Campaign {
   id: string
@@ -23,6 +27,15 @@ export interface CampaignStage {
   campaignId: string
   name: string
   period: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CampaignUser {
+  id: string
+  campaignId: string
+  userId: string
+  state: ValueOf<typeof CAMPAIGN_USER_STATE>
   createdAt: Date
   updatedAt: Date
 }

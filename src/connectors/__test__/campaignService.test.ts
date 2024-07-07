@@ -1,16 +1,19 @@
 import type { Connections } from 'definitions'
 
-import { CAMPAIGN_STATE } from 'common/enums'
-import { CampaignService } from 'connectors'
+import { CAMPAIGN_STATE, USER_STATE, CAMPAIGN_USER_STATE } from 'common/enums'
+import { ForbiddenError } from 'common/errors'
+import { CampaignService, AtomService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let campaignService: CampaignService
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
   campaignService = new CampaignService(connections)
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -114,4 +117,41 @@ test('find all campaigns', async () => {
   expect(totalCount2).toBeLessThan(totalCount1)
   expect(campaignIds2).not.toContain(archivedCampaign.id)
   expect(campaignIds2).not.toContain(pendingCampaign.id)
+})
+
+describe('application', () => {
+  test('apply successfully', async () => {
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+    const campaign = await campaignService.createWritingChallenge({
+      state: CAMPAIGN_STATE.active,
+      ...campaignData,
+    })
+    const application = await campaignService.apply(campaign, user)
+    expect(application).toBeDefined()
+    expect(application.state).toBe(CAMPAIGN_USER_STATE.pending)
+
+    const application2 = await campaignService.apply(campaign, user)
+    expect(application2).toBeDefined()
+    expect(application2.id).toBe(application.id)
+  })
+  test('campaign applicationPeriod is checked', async () => {
+    const now = new Date()
+    const future1 = new Date(now.getTime() + 1000 * 60 * 60 * 24)
+    const future2 = new Date(now.getTime() + 1000 * 60 * 60 * 48)
+    const campaign = await campaignService.createWritingChallenge({
+      state: CAMPAIGN_STATE.active,
+      ...campaignData,
+      applicationPeriod: [future1, future2] as const,
+    })
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+    expect(campaignService.apply(campaign, user)).rejects.toThrowError(
+      ForbiddenError
+    )
+  })
 })

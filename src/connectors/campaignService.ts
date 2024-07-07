@@ -1,7 +1,22 @@
-import type { Connections, ValueOf, CampaignStage, Campaign } from 'definitions'
+import type {
+  Connections,
+  ValueOf,
+  CampaignStage,
+  Campaign,
+  User,
+} from 'definitions'
 
 import { CAMPAIGN_TYPE, CAMPAIGN_STATE } from 'common/enums'
-import { shortHash, toDatetimeRangeString } from 'common/utils'
+import {
+  ForbiddenByTargetStateError,
+  ForbiddenByStateError,
+  ForbiddenError,
+} from 'common/errors'
+import {
+  shortHash,
+  toDatetimeRangeString,
+  fromDatetimeRangeString,
+} from 'common/utils'
 import { AtomService } from 'connectors'
 
 interface Stage {
@@ -127,5 +142,42 @@ export class CampaignService {
       .limit(take)
       .offset(skip)
     return [records, records.length === 0 ? 0 : +records[0].totalCount]
+  }
+
+  public apply = async (
+    campaign: Pick<Campaign, 'id' | 'state' | 'applicationPeriod'>,
+    user: Pick<User, 'id' | 'userName' | 'state'>
+  ) => {
+    if (campaign.state !== CAMPAIGN_STATE.active) {
+      throw new ForbiddenByTargetStateError('campaign is not active')
+    }
+
+    if (campaign.applicationPeriod) {
+      console.log('campaign.applicationPeriod', campaign.applicationPeriod)
+      const [start] = fromDatetimeRangeString(campaign.applicationPeriod)
+      const now = new Date()
+      if (now.getTime() < start.getTime()) {
+        throw new ForbiddenError('application period has not started yet')
+      }
+    }
+
+    if (user.state !== 'active') {
+      throw new ForbiddenByStateError('user is not active')
+    }
+    if (!user.userName) {
+      throw new ForbiddenError('user has no username')
+    }
+
+    const application = await this.models.findFirst({
+      table: 'campaign_user',
+      where: { campaignId: campaign.id, userId: user.id },
+    })
+    if (application) {
+      return application
+    }
+    return this.models.create({
+      table: 'campaign_user',
+      data: { campaignId: campaign.id, userId: user.id, state: 'pending' },
+    })
   }
 }
