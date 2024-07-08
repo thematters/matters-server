@@ -3,7 +3,7 @@ import type { User as UserFull, Connections } from 'definitions'
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
   sanitizeHTML,
-  normalizeJournalHTML,
+  normalizeMomentHTML,
 } from '@matters/matters-editor/transformers'
 
 import {
@@ -71,7 +71,7 @@ export class MomentService {
       data: {
         shortHash: shortHash(),
         authorId: user.id,
-        content: normalizeJournalHTML(sanitizeHTML(data.content), {
+        content: normalizeMomentHTML(sanitizeHTML(data.content), {
           truncate: {
             maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
             keepProtocol: false,

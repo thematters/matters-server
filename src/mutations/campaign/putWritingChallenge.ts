@@ -4,6 +4,11 @@ import type {
   GQLCampaignStageInput,
 } from 'definitions'
 
+import {
+  normalizeCampaignHTML,
+  sanitizeHTML,
+} from '@matters/matters-editor/transformers'
+
 import { CAMPAIGN_STATE } from 'common/enums'
 import {
   UserInputError,
@@ -71,7 +76,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
     campaign = await campaignService.createWritingChallenge({
       name: name[0].text,
-      description: description[0].text,
+      description: normalizeCampaignHTML(sanitizeHTML(description[0].text)),
       coverId: _cover.id,
       link,
       applicationPeriod: [applicationPeriod.start, applicationPeriod.end],
@@ -131,7 +136,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
     const data = {
       name: name && name[0].text,
-      description: description && description[0].text,
+      description:
+        description && normalizeCampaignHTML(sanitizeHTML(description[0].text)),
       link,
       cover: _cover?.id,
       applicationPeriod:
@@ -169,7 +175,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         field: 'description',
         id: campaign.id,
         language: trans.language,
-        text: trans.text,
+        text: normalizeCampaignHTML(sanitizeHTML(trans.text)),
       })
     }
   }
