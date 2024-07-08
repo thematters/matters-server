@@ -83,13 +83,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     })
   }
 
-  // cc_by_nc_nd_2 license not longer in use
-  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
-    throw new UserInputError(
-      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
-    )
-  }
-
   // check for asset existence
   let coverId
   if (cover) {
@@ -147,27 +140,21 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     circleId = cId
   }
 
-  // assemble data
+  // validate and assemble data
   const isUpdate = !!id
   const data: Partial<Draft> = omitBy(
     {
       authorId: isUpdate ? undefined : viewer.id,
-      title: title !== undefined ? normalizeAndValidateTitle(title) : undefined,
-      summary:
-        summary !== undefined
-          ? normalizeAndValidateSummary(summary)
-          : undefined,
-      content:
-        content !== undefined
-          ? normalizeAndValidateContent(content)
-          : undefined,
+      title: title && normalizeAndValidateTitle(title),
+      summary: summary && normalizeAndValidateSummary(summary),
+      content: content && normalizeAndValidateContent(content),
+      license: license && validateLicense(license),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
       circleId,
       access: accessType,
       sensitiveByAuthor: sensitive,
-      license,
       requestForDonation,
       replyToDonator,
       iscnPublish,
@@ -294,6 +281,8 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   }
 }
 
+// validators
+
 const normalizeAndValidateTitle = (title: string) => {
   const _title = title.trim()
   if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
@@ -302,11 +291,7 @@ const normalizeAndValidateTitle = (title: string) => {
   return _title
 }
 
-const normalizeAndValidateSummary = (summary: string | null) => {
-  if (summary === null) {
-    return null
-  }
-
+const normalizeAndValidateSummary = (summary: string) => {
   const _summary = summary.trim()
   if (_summary.length > MAX_ARTICLE_SUMMARY_LENGTH) {
     throw new UserInputError('summary reach length limit')
@@ -314,11 +299,7 @@ const normalizeAndValidateSummary = (summary: string | null) => {
   return _summary
 }
 
-const normalizeAndValidateContent = (content: string | null) => {
-  if (content === null) {
-    return null
-  }
-
+const normalizeAndValidateContent = (content: string) => {
   const _content = normalizeArticleHTML(
     sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
   )
@@ -326,6 +307,16 @@ const normalizeAndValidateContent = (content: string | null) => {
     throw new UserInputError('content reach length limit')
   }
   return _content
+}
+
+const validateLicense = (license: string) => {
+  // cc_by_nc_nd_2 license not longer in use
+  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
+    throw new UserInputError(
+      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+    )
+  }
+  return license
 }
 
 const validateTags = async ({
