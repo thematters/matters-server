@@ -174,6 +174,12 @@ export class MomentNotFoundError extends GraphQLError {
   }
 }
 
+export class CampaignNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'CAMPAIGN_NOT_FOUND' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

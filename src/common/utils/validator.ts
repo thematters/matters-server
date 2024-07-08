@@ -1,4 +1,5 @@
 import isEmail from 'validator/lib/isEmail'
+export { default as isUrl } from 'validator/lib/isURL'
 
 import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums'
 

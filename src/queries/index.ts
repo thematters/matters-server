@@ -1,6 +1,7 @@
 import { merge } from 'lodash'
 
 import article from './article'
+import campaign from './campaign'
 import circle from './circle'
 import comment from './comment'
 import draft from './draft'
@@ -29,5 +30,6 @@ export default merge(
   oauthRequestToken,
   exchangeRates,
   recommendation,
-  moment
+  moment,
+  campaign
 )

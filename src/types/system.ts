@@ -433,6 +433,7 @@ export default /* GraphQL */ `
     collectionCover
     announcementCover
     moment
+    campaignCover
   }
 
   enum EntityType {

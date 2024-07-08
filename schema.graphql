@@ -19,6 +19,8 @@ directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
 type Query {
   article(input: ArticleInput!): Article
+  campaign(input: CampaignInput!): Campaign
+  campaigns(input: CampaignsInput!): CampaignConnection!
   circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
@@ -74,6 +76,9 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
+  putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
+  applyCampaign(input: ApplyCampaignInput!): Campaign!
+  updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -839,6 +844,123 @@ enum UpdateTagSettingType {
   leave_editor
 }
 
+input CampaignInput {
+  shortHash: String!
+}
+
+input CampaignsInput {
+  after: String
+  first: Int
+
+  """return pending and archived campaigns"""
+  oss: Boolean = false
+}
+
+input PutWritingChallengeInput {
+  id: ID
+  name: [TranslationInput!]
+  description: [TranslationInput!]
+  cover: ID
+  link: String
+  applicationPeriod: DatetimeRangeInput
+  writingPeriod: DatetimeRangeInput
+  stages: [CampaignStageInput!]
+  state: CampaignState
+}
+
+input ApplyCampaignInput {
+  id: ID!
+}
+
+input UpdateCampaignApplicationStateInput {
+  campaign: ID!
+  user: ID!
+  state: CampaignApplicationState!
+}
+
+input CampaignStageInput {
+  name: [TranslationInput!]!
+  period: DatetimeRangeInput
+}
+
+input TranslationInput {
+  language: UserLanguage!
+  text: String!
+}
+
+input DatetimeRangeInput {
+  start: DateTime!
+  end: DateTime
+}
+
+interface Campaign {
+  id: ID!
+  shortHash: String!
+  name: String!
+  description: String!
+  state: CampaignState!
+}
+
+enum CampaignState {
+  pending
+  active
+  finished
+  archived
+}
+
+type WritingChallenge implements Node & Campaign {
+  id: ID!
+  shortHash: String!
+  name: String!
+  description: String!
+  cover: String
+  link: String!
+  applicationPeriod: DatetimeRange!
+  writingPeriod: DatetimeRange!
+  stages: [CampaignStage]!
+  state: CampaignState!
+  participants(input: ConnectionArgs!): UserConnection!
+  articles(input: CampaignArticlesInput): ArticleConnection!
+  applicationState: CampaignApplicationState
+}
+
+type DatetimeRange {
+  start: DateTime!
+  end: DateTime
+}
+
+enum CampaignApplicationState {
+  pending
+  succeeded
+  rejected
+}
+
+type CampaignStage {
+  name: String!
+  period: DatetimeRange
+}
+
+input CampaignArticlesInput {
+  after: String
+  first: Int
+  filter: CampaignArticlesFilter
+}
+
+input CampaignArticlesFilter {
+  stage: String!
+}
+
+type CampaignConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignEdge!]
+}
+
+type CampaignEdge {
+  cursor: String!
+  node: Campaign!
+}
+
 type Circle implements Node {
   """Unique ID."""
   id: ID!
@@ -945,7 +1067,7 @@ type User implements Node {
   """User settings."""
   settings: UserSettings!
 
-  """Article recommendations for current user."""
+  """Recommendations for current user."""
   recommendation: Recommendation!
 
   """Articles authored by current user."""
@@ -2193,6 +2315,7 @@ enum AssetType {
   collectionCover
   announcementCover
   moment
+  campaignCover
 }
 
 enum EntityType {
