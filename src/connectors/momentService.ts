@@ -48,7 +48,7 @@ export class MomentService {
     }
     // check content length
     const contentLength = stripHtml(data.content).length
-    if (contentLength > MAX_MOMENT_LENGTH || contentLength < 1) {
+    if (contentLength > MAX_MOMENT_LENGTH) {
       throw new UserInputError('invalid moment content length')
     }
     // check assets

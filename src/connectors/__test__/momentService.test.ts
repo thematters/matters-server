@@ -47,9 +47,6 @@ describe('create moments', () => {
     )
   })
   test('content length is checked', async () => {
-    expect(momentService.create({ content: '' }, user)).rejects.toThrowError(
-      UserInputError
-    )
     expect(
       momentService.create({ content: 'a'.repeat(MAX_MOMENT_LENGTH + 1) }, user)
     ).rejects.toThrowError(UserInputError)
