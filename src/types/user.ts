@@ -149,7 +149,7 @@ export default /* GraphQL */ `
     "User settings."
     settings: UserSettings! @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Article recommendations for current user."
+    "Recommendations for current user."
     recommendation: Recommendation!
 
     "Articles authored by current user."

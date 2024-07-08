@@ -3760,7 +3760,7 @@ export type GQLUser = GQLNode & {
   paymentPointer?: Maybe<Scalars['String']['output']>
   /** user pinned articles or collections */
   pinnedWorks: Array<GQLPinnableWork>
-  /** Article recommendations for current user. */
+  /** Recommendations for current user. */
   recommendation: GQLRecommendation
   remark?: Maybe<Scalars['String']['output']>
   /** User settings. */
