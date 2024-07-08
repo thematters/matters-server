@@ -5,6 +5,10 @@ const resolver: GQLWritingChallengeResolvers['stages'] = async (
   _,
   { dataSources: { atomService } }
 ) =>
-  atomService.findMany({ table: 'campaign_stage', where: { campaignId: id } })
+  atomService.findMany({
+    table: 'campaign_stage',
+    where: { campaignId: id },
+    orderBy: [{ column: 'id', order: 'asc' }],
+  })
 
 export default resolver

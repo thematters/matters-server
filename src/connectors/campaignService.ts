@@ -79,53 +79,21 @@ export class CampaignService {
     })
 
   public updateStages = async (campaignId: string, stages: Stage[]) => {
-    const newStages = stages.map(({ name, period }) => ({
-      name,
-      period: period ? toDatetimeRangeString(period[0], period[1]) : null,
-    }))
-    const orignalStages = await this.models.findMany({
-      table: 'campaign_stage',
-      where: { campaignId: campaignId },
-    })
-    // find the stages that need to be deleted and delete them
-    const stagesToDelete = orignalStages.filter(
-      (stage) => !newStages.find((s) => s.name === stage.name)
-    )
     await this.models.deleteMany({
       table: 'campaign_stage',
-      whereIn: ['id', stagesToDelete.map((s) => s.id)],
+      where: { campaignId },
     })
-    // find the stages that need to be updated and update them
-    const stagesToUpdate = newStages.filter((s) =>
-      orignalStages.find((stage) => stage.name === s.name)
-    )
-    const updated = await Promise.all(
-      stagesToUpdate.map((s) =>
-        this.models.update({
-          table: 'campaign_stage',
-          where: { campaignId, name: s.name },
-          data: s,
-        })
-      )
-    )
-    // find the stages that need to be created and create them
-    const stagesToCreate = newStages.filter(
-      (s) => !orignalStages.find((stage) => stage.name === s.name)
-    )
-    const added = await Promise.all(
-      stagesToCreate.map((s) =>
-        this.models.create({
-          table: 'campaign_stage',
-          data: { campaignId, ...s },
-        })
-      )
-    )
 
-    return stages.map(
-      (s) =>
-        updated.find((u) => u.name === s.name) ||
-        added.find((a) => a.name === s.name)
-    ) as CampaignStage[]
+    const knex = this.connections.knex
+    return knex<CampaignStage>('campaign_stage')
+      .insert(
+        stages.map(({ name, period }) => ({
+          campaignId,
+          name,
+          period: period ? toDatetimeRangeString(period[0], period[1]) : null,
+        }))
+      )
+      .returning('*')
   }
 
   public findAndCountAll = async (
