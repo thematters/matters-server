@@ -7,14 +7,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateUserState'] = async (
   _,
   { input: { id: globalId, state, banDays, password, emails } },
-  {
-    viewer,
-    dataSources: {
-      userService,
-      notificationService,
-      atomService,
-    },
-  }
+  { viewer, dataSources: { userService, notificationService, atomService } }
 ) => {
   const id = globalId ? fromGlobalId(globalId).id : undefined
 
