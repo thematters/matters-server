@@ -184,7 +184,7 @@ export class CampaignService {
     })
   }
 
-  public findParticipants = async (
+  public findAndCountParticipants = async (
     campaignId: string,
     { take, skip }: { take?: number; skip: number }
   ): Promise<[User[], number]> => {

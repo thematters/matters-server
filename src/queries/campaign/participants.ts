@@ -8,7 +8,7 @@ const resolver: GQLWritingChallengeResolvers['participants'] = async (
   { dataSources: { campaignService } }
 ) => {
   const { take, skip } = fromConnectionArgs(input)
-  const [participants, totalCount] = await campaignService.findParticipants(
+  const [participants, totalCount] = await campaignService.findAndCountParticipants(
     id,
     { take, skip }
   )
