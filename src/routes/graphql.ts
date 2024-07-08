@@ -64,7 +64,6 @@ import {
   PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
-  UserQueue,
 } from 'connectors/queue'
 import { loggerMiddleware } from 'middlewares/logger'
 
@@ -103,7 +102,6 @@ const migrationQueue = new MigrationQueue(connections)
 const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
 const payToByMattersQueue = new PayToByMattersQueue(connections)
 const payoutQueue = new PayoutQueue(connections)
-const userQueue = new UserQueue(connections)
 
 const queues = {
   publicationQueue,
@@ -113,7 +111,6 @@ const queues = {
   payToByBlockchainQueue,
   payToByMattersQueue,
   payoutQueue,
-  userQueue,
 }
 
 const notificationService = new NotificationService(connections, {

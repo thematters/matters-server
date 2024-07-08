@@ -1,6 +1,5 @@
 export * from './migration'
 export * from './publication'
-export * from './user'
 export * from './payout'
 export * from './payTo'
 export * from './revision'

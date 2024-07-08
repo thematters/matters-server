@@ -91,7 +91,6 @@ import type {
   PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
-  UserQueue,
 } from 'connectors/queue'
 import type { Request, Response } from 'express'
 import type { Redis } from 'ioredis'
@@ -162,7 +161,6 @@ export interface DataSources {
     payToByBlockchainQueue: PayToByBlockchainQueue
     payToByMattersQueue: PayToByMattersQueue
     payoutQueue: PayoutQueue
-    userQueue: UserQueue
   }
 }
 

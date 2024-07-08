@@ -13,7 +13,6 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
       userService,
       notificationService,
       atomService,
-      queues: { userQueue },
     },
   }
 ) => {
@@ -42,7 +41,7 @@ const resolver: GQLMutationResolvers['updateUserState'] = async (
     const archivedUser = await userService.archive(id)
 
     // async
-    userQueue.archiveUser({ userId: id })
+    userService.archiveUser({ userId: id })
 
     if (user.email) {
       notificationService.mail.sendUserDeletedByAdmin({

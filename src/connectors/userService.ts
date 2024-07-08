@@ -74,6 +74,7 @@ import {
   AUDIT_LOG_STATUS,
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
+  QUEUE_URL,
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import {
@@ -120,6 +121,10 @@ import { Twitter } from 'connectors/oauth'
 import { LikeCoin } from './likecoin'
 
 const logger = getLogger('service-user')
+
+interface ArchiveUserData {
+  userId: string
+}
 
 export class UserService extends BaseService<User> {
   private ipfs: typeof ipfsServers
@@ -2945,4 +2950,10 @@ export class UserService extends BaseService<User> {
       await this.knex(this.table).update('last_seen', now).where({ id })
     }
   }
+
+  public archiveUser = (data: ArchiveUserData) =>
+    this.aws.sqsSendMessage({
+      messageBody: data,
+      queueUrl: QUEUE_URL.archiveUser,
+    })
 }

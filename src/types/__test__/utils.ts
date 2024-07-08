@@ -34,7 +34,6 @@ import {
   PayToByBlockchainQueue,
   PayToByMattersQueue,
   PayoutQueue,
-  UserQueue,
 } from 'connectors/queue'
 
 import { genConnections, closeConnections } from 'connectors/__test__/utils'
@@ -157,7 +156,6 @@ export const testClient = async ({
   const payToByBlockchainQueue = new PayToByBlockchainQueue(connections)
   const payToByMattersQueue = new PayToByMattersQueue(connections)
   const payoutQueue = new PayoutQueue(connections)
-  const userQueue = new UserQueue(connections)
   const queues = {
     publicationQueue,
     revisionQueue,
@@ -166,7 +164,6 @@ export const testClient = async ({
     payToByBlockchainQueue,
     payToByMattersQueue,
     payoutQueue,
-    userQueue,
   }
   const notificationService = new NotificationService(connections)
   const genContext = () => ({
