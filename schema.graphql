@@ -908,23 +908,6 @@ enum CampaignState {
   archived
 }
 
-"""Enums for asset types."""
-enum AssetType {
-  avatar
-  cover
-  embed
-  embedaudio
-  profileCover
-  oauthClientAvatar
-  tagCover
-  circleAvatar
-  circleCover
-  collectionCover
-  announcementCover
-  moment
-  campaignCover
-}
-
 type WritingChallenge implements Node & Campaign {
   id: ID!
   shortHash: String!
@@ -2316,6 +2299,23 @@ enum TagsSort {
   newest
   oldest
   hottest
+}
+
+"""Enums for asset types."""
+enum AssetType {
+  avatar
+  cover
+  embed
+  embedaudio
+  profileCover
+  oauthClientAvatar
+  tagCover
+  circleAvatar
+  circleCover
+  collectionCover
+  announcementCover
+  moment
+  campaignCover
 }
 
 enum EntityType {

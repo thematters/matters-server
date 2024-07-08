@@ -157,7 +157,6 @@ export class CampaignService {
     }
 
     if (campaign.applicationPeriod) {
-      console.log('campaign.applicationPeriod', campaign.applicationPeriod)
       const [start] = fromDatetimeRangeString(campaign.applicationPeriod)
       const now = new Date()
       if (now.getTime() < start.getTime()) {

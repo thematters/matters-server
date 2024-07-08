@@ -75,10 +75,6 @@ export default /* GraphQL */ `
     archived
   }
 
-  extend enum AssetType {
-    campaignCover
-  }
-
   type WritingChallenge implements Node & Campaign {
 
     id: ID!
