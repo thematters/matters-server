@@ -107,6 +107,7 @@ export default /* GraphQL */ `
   }
 
   type CampaignStage {
+    id: ID!
     name: String!
     period: DatetimeRange
   }

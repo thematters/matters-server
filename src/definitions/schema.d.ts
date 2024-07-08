@@ -710,6 +710,7 @@ export type GQLCampaignInput = {
 
 export type GQLCampaignStage = {
   __typename?: 'CampaignStage'
+  id: Scalars['ID']['output']
   name: Scalars['String']['output']
   period?: Maybe<GQLDatetimeRange>
 }
@@ -6319,6 +6320,7 @@ export type GQLCampaignStageResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignStage'] = GQLResolversParentTypes['CampaignStage']
 > = ResolversObject<{
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   period?: Resolver<
     Maybe<GQLResolversTypes['DatetimeRange']>,

@@ -4,8 +4,13 @@ import type {
   GQLCampaignStageInput,
 } from 'definitions'
 
-import { AuthenticationError } from 'common/errors'
-import { UserInputError, CampaignNotFoundError } from 'common/errors'
+import { CAMPAIGN_STATE } from 'common/enums'
+import {
+  UserInputError,
+  CampaignNotFoundError,
+  AuthenticationError,
+  ActionFailedError,
+} from 'common/errors'
 import { fromGlobalId, isUrl, toDatetimeRangeString } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
@@ -112,6 +117,18 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       throw new CampaignNotFoundError('campaign not found')
     }
 
+    if (
+      stages &&
+      [
+        CAMPAIGN_STATE.active as string,
+        CAMPAIGN_STATE.finished as string,
+      ].includes(campaign.state)
+    ) {
+      throw new ActionFailedError(
+        'cannot update stages when campaign is active or finished'
+      )
+    }
+
     const data = {
       name: name && name[0].text,
       description: description && description[0].text,
@@ -194,10 +211,9 @@ const validateStages = (stages: GQLCampaignStageInput[]) => {
     if (!stage.name || !stage.name[0].text) {
       throw new UserInputError('stage name is required')
     }
-    if (!stage.period) {
-      throw new UserInputError('stage period is required')
+    if (stage.period) {
+      validateRange(stage.period)
     }
-    validateRange(stage.period)
   }
 }
 
