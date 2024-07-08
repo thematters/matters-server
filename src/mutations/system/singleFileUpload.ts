@@ -140,16 +140,11 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
     path: key,
   }
 
-  const newAsset = await systemService.createAssetAndAssetMap(
+  return systemService.createAssetAndAssetMap(
     asset,
     entityTypeId,
     relatedEntityId
   )
-
-  return {
-    ...newAsset,
-    path: systemService.genAssetUrl(newAsset),
-  }
 }
 
 export default resolver

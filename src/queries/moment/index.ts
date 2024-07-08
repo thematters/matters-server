@@ -3,6 +3,7 @@ import type { GQLResolvers } from 'definitions'
 import { NODE_TYPES, COMMENT_TYPE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
+import assets from './assets'
 import comments from './comments'
 
 const schema: GQLResolvers = {
@@ -13,8 +14,7 @@ const schema: GQLResolvers = {
   Moment: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Moment, id }),
     content: ({ content }) => content,
-    assets: ({ id }, _, { dataSources: { momentService } }) =>
-      momentService.getAssets(id),
+    assets,
     author: ({ authorId }, _, { dataSources: { atomService } }) =>
       atomService.userIdLoader.load(authorId),
     state: ({ state }) => state,

@@ -34,6 +34,7 @@ describe('query moment', () => {
         content
         assets {
           id
+          path
         }
         state
         commentCount
@@ -91,6 +92,7 @@ describe('create moment', () => {
         id
         assets {
           id
+          path
         }
       }
     }
@@ -113,11 +115,12 @@ describe('create moment', () => {
       '1',
       '1'
     )
-    const { errors } = await server.executeOperation({
+    const { errors, data } = await server.executeOperation({
       query: PUT_MOMENT,
       variables: { input: { content, assets: [asset.uuid] } },
     })
     expect(errors).toBeUndefined()
+    expect(data.putMoment.assets[0].path).toBe(systemService.genAssetUrl(asset))
   })
 })
 
