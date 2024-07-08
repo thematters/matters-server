@@ -15,15 +15,11 @@ const resolver: GQLDraftResolvers['assets'] = async (
   const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
     'draft'
   )
-  const assets = await systemService.findAssetAndAssetMap({
+
+  return systemService.findAssetAndAssetMap({
     entityTypeId: draftEntityTypeId,
     entityId: id,
   })
-
-  return assets.map((asset: any) => ({
-    ...asset,
-    path: systemService.genAssetUrl(asset),
-  }))
 }
 
 export default resolver
