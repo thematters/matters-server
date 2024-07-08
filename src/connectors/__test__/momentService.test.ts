@@ -84,7 +84,7 @@ describe('create moments', () => {
   test('active user will success', async () => {
     const moment = await momentService.create(data, user)
     expect(moment).toBeDefined()
-    expect(moment.content).toBe(data.content)
+    expect(moment.content).toBe('<p>test</p>')
   })
 })
 
