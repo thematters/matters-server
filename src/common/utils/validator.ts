@@ -1,4 +1,5 @@
 import isEmail from 'validator/lib/isEmail'
+export { default as isUrl } from 'validator/lib/isURL'
 
 import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums'
 
@@ -128,11 +129,4 @@ export const isValidTransactionHash = (hash: string): boolean => {
   }
 
   return /^0x([a-fA-F0-9]{64})$/.test(hash)
-}
-
-export const isValidUrl = (url: string): boolean => {
-  if (!url) {
-    return false
-  }
-  return /^(http|https):\/\/[^ "]+$/.test(url)
 }

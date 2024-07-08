@@ -6,7 +6,7 @@ import type {
 
 import { AuthenticationError } from 'common/errors'
 import { UserInputError, CampaignNotFoundError } from 'common/errors'
-import { fromGlobalId, isValidUrl, toDatetimeRangeString } from 'common/utils'
+import { fromGlobalId, isUrl, toDatetimeRangeString } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   _,
@@ -202,7 +202,7 @@ const validateStages = (stages: GQLCampaignStageInput[]) => {
 }
 
 const validateUrl = (url: string) => {
-  if (!isValidUrl(url)) {
+  if (!isUrl(url)) {
     throw new UserInputError('invalid url')
   }
 }
