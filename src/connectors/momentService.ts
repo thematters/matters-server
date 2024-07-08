@@ -1,7 +1,10 @@
 import type { User as UserFull, Connections } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
-import { sanitizeHTML } from '@matters/matters-editor/transformers'
+import {
+  sanitizeHTML,
+  normalizeJournalHTML,
+} from '@matters/matters-editor/transformers'
 
 import {
   USER_STATE,
@@ -9,6 +12,7 @@ import {
   MAX_MOMENT_LENGTH,
   IMAGE_ASSET_TYPE,
   NOTICE_TYPE,
+  MAX_CONTENT_LINK_TEXT_LENGTH,
 } from 'common/enums'
 import {
   ForbiddenError,
@@ -67,7 +71,12 @@ export class MomentService {
       data: {
         shortHash: shortHash(),
         authorId: user.id,
-        content: sanitizeHTML(data.content),
+        content: normalizeJournalHTML(sanitizeHTML(data.content), {
+          truncate: {
+            maxLength: MAX_CONTENT_LINK_TEXT_LENGTH,
+            keepProtocol: false,
+          },
+        }),
         state: MOMENT_STATE.active,
       },
     })
