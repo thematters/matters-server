@@ -49,6 +49,7 @@ describe('create or update wrting challenges', () => {
           end
         }
         stages {
+          id
           name
           period {
             start
@@ -174,7 +175,7 @@ describe('create or update wrting challenges', () => {
     expect(data.putWritingChallenge.stages[0].period.end).toBeNull()
   })
 
-  test('update success', async () => {
+  test('update', async () => {
     const server = await testClient({
       connections,
       isAuth: true,
@@ -195,10 +196,20 @@ describe('create or update wrting challenges', () => {
       },
     })
 
+    // update campaign
+
     const newName = Object.keys(LANGUAGE).map((lang) => ({
       text: 'updated ' + lang,
       language: lang,
     }))
+    const newStages = [
+      {
+        name: Object.keys(LANGUAGE).map((lang) => ({
+          text: 'updated stage ' + lang,
+          language: lang,
+        })),
+      },
+    ]
 
     const { data: updatedData, errors } = await server.executeOperation({
       query: PUT_WRITING_CHALLENGE,
@@ -206,11 +217,27 @@ describe('create or update wrting challenges', () => {
         input: {
           id: data.putWritingChallenge.id,
           name: newName,
+          stages: newStages,
+          state: CAMPAIGN_STATE.active,
         },
       },
     })
     expect(errors).toBeUndefined()
     expect(updatedData.putWritingChallenge.name).toContain('updated')
+    expect(updatedData.putWritingChallenge.stages[0].name).toContain('updated')
+    expect(updatedData.putWritingChallenge.state).toBe(CAMPAIGN_STATE.active)
+
+    // update stages when campaign is active will failed
+    const { errors: updateErrors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          id: data.putWritingChallenge.id,
+          stages: newStages,
+        },
+      },
+    })
+    expect(updateErrors[0].extensions.code).toBe('ACTION_FAILED')
   })
   test('user without admin role can not create', async () => {
     const server = await testClient({

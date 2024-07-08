@@ -43,6 +43,7 @@ const schema: GQLResolvers = {
   },
 
   CampaignStage: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.CampaignStage, id }),
     name: stageName,
     period: ({ period }) => {
       if (!period) {
