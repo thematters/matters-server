@@ -466,6 +466,9 @@ type Article implements Node & PinnableWork {
 
   """history versions"""
   versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
+
+  """associated campaigns"""
+  campaigns: [ArticleCampaign!]!
   oss: ArticleOSS!
   remark: String
 
@@ -492,6 +495,11 @@ type Article implements Node & PinnableWork {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+type ArticleCampaign {
+  campaign: Campaign!
+  stage: CampaignStage!
 }
 
 input ArticleVersionsInput {
@@ -691,6 +699,14 @@ input EditArticleInput {
 
   """whether readers can comment"""
   canComment: Boolean
+
+  """which campaigns to attach"""
+  campaigns: [ArticleCampaignInput!]
+}
+
+input ArticleCampaignInput {
+  campaign: ID!
+  stage: ID!
 }
 
 input AppreciateArticleInput {
@@ -1642,6 +1658,9 @@ type Draft implements Node {
 
   """whether readers can comment"""
   canComment: Boolean!
+
+  """associated campaigns"""
+  campaigns: [ArticleCampaign!]!
 }
 
 type DraftConnection implements Connection {
@@ -1680,6 +1699,9 @@ input PutDraftInput {
 
   """whether readers can comment"""
   canComment: Boolean
+
+  """which campaigns to attach"""
+  campaigns: [ArticleCampaignInput!]
 }
 
 input DeleteDraftInput {

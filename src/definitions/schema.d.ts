@@ -190,6 +190,8 @@ export type GQLArticle = GQLNode &
     author: GQLUser
     /** Available translation languages. */
     availableTranslations?: Maybe<Array<GQLUserLanguage>>
+    /** associated campaigns */
+    campaigns: Array<GQLArticleCampaign>
     /** whether readers can comment */
     canComment: Scalars['Boolean']['output']
     /** This value determines if current viewer can SuperLike or not. */
@@ -439,6 +441,17 @@ export type GQLArticleArticleNotice = GQLNotice & {
 }
 
 export type GQLArticleArticleNoticeType = 'ArticleNewCollected'
+
+export type GQLArticleCampaign = {
+  __typename?: 'ArticleCampaign'
+  campaign: GQLCampaign
+  stage: GQLCampaignStage
+}
+
+export type GQLArticleCampaignInput = {
+  campaign: Scalars['ID']['input']
+  stage: Scalars['ID']['input']
+}
 
 export type GQLArticleConnection = GQLConnection & {
   __typename?: 'ArticleConnection'
@@ -1268,6 +1281,8 @@ export type GQLDraft = GQLNode & {
   article?: Maybe<GQLArticle>
   /** List of assets are belonged to this draft. */
   assets: Array<GQLAsset>
+  /** associated campaigns */
+  campaigns: Array<GQLArticleCampaign>
   /** whether readers can comment */
   canComment: Scalars['Boolean']['output']
   /** Collection list of this draft. */
@@ -1336,6 +1351,8 @@ export type GQLDraftEdge = {
 
 export type GQLEditArticleInput = {
   accessType?: InputMaybe<GQLArticleAccessType>
+  /** which campaigns to attach */
+  campaigns?: InputMaybe<Array<GQLArticleCampaignInput>>
   /** whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
@@ -2686,6 +2703,8 @@ export type GQLPutCommentInput = {
 
 export type GQLPutDraftInput = {
   accessType?: InputMaybe<GQLArticleAccessType>
+  /** which campaigns to attach */
+  campaigns?: InputMaybe<Array<GQLArticleCampaignInput>>
   /** whether readers can comment */
   canComment?: InputMaybe<Scalars['Boolean']['input']>
   circle?: InputMaybe<Scalars['ID']['input']>
@@ -4482,6 +4501,13 @@ export type GQLResolversTypes = ResolversObject<{
   ArticleAccessType: GQLArticleAccessType
   ArticleArticleNotice: ResolverTypeWrapper<NoticeItemModel>
   ArticleArticleNoticeType: GQLArticleArticleNoticeType
+  ArticleCampaign: ResolverTypeWrapper<
+    Omit<GQLArticleCampaign, 'campaign' | 'stage'> & {
+      campaign: GQLResolversTypes['Campaign']
+      stage: GQLResolversTypes['CampaignStage']
+    }
+  >
+  ArticleCampaignInput: GQLArticleCampaignInput
   ArticleConnection: ResolverTypeWrapper<
     Omit<GQLArticleConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['ArticleEdge']>>
@@ -5102,6 +5128,11 @@ export type GQLResolversParentTypes = ResolversObject<{
   Article: ArticleModel
   ArticleAccess: ArticleModel
   ArticleArticleNotice: NoticeItemModel
+  ArticleCampaign: Omit<GQLArticleCampaign, 'campaign' | 'stage'> & {
+    campaign: GQLResolversParentTypes['Campaign']
+    stage: GQLResolversParentTypes['CampaignStage']
+  }
+  ArticleCampaignInput: GQLArticleCampaignInput
   ArticleConnection: Omit<GQLArticleConnection, 'edges'> & {
     edges?: Maybe<Array<GQLResolversParentTypes['ArticleEdge']>>
   }
@@ -5793,6 +5824,11 @@ export type GQLArticleResolvers<
     ParentType,
     ContextType
   >
+  campaigns?: Resolver<
+    Array<GQLResolversTypes['ArticleCampaign']>,
+    ParentType,
+    ContextType
+  >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   canSuperLike?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   collectedBy?: Resolver<
@@ -6010,6 +6046,15 @@ export type GQLArticleArticleNoticeResolvers<
     ContextType
   >
   unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLArticleCampaignResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['ArticleCampaign'] = GQLResolversParentTypes['ArticleCampaign']
+> = ResolversObject<{
+  campaign?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
+  stage?: Resolver<GQLResolversTypes['CampaignStage'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -6846,6 +6891,11 @@ export type GQLDraftResolvers<
     ContextType
   >
   assets?: Resolver<Array<GQLResolversTypes['Asset']>, ParentType, ContextType>
+  campaigns?: Resolver<
+    Array<GQLResolversTypes['ArticleCampaign']>,
+    ParentType,
+    ContextType
+  >
   canComment?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   collection?: Resolver<
     GQLResolversTypes['ArticleConnection'],
@@ -9592,6 +9642,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Article?: GQLArticleResolvers<ContextType>
   ArticleAccess?: GQLArticleAccessResolvers<ContextType>
   ArticleArticleNotice?: GQLArticleArticleNoticeResolvers<ContextType>
+  ArticleCampaign?: GQLArticleCampaignResolvers<ContextType>
   ArticleConnection?: GQLArticleConnectionResolvers<ContextType>
   ArticleContents?: GQLArticleContentsResolvers<ContextType>
   ArticleDonation?: GQLArticleDonationResolvers<ContextType>
