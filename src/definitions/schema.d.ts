@@ -1745,7 +1745,7 @@ export type GQLMutation = {
   deleteComment: GQLComment
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
-  deleteMoment: Scalars['Boolean']['output']
+  deleteMoment: GQLMoment
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   directImageUpload: GQLAsset
   /** Edit an article. */
@@ -7414,7 +7414,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationDeleteDraftArgs, 'input'>
   >
   deleteMoment?: Resolver<
-    GQLResolversTypes['Boolean'],
+    GQLResolversTypes['Moment'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationDeleteMomentArgs, 'input'>

@@ -27,14 +27,14 @@ const resolver: GQLMutationResolvers['deleteMoment'] = async (
     throw new UserInputError('invalid id')
   }
 
-  await momentService.delete(id, viewer)
+  const moment = await momentService.delete(id, viewer)
 
   invalidateFQC({
     node: { id: viewer.id, type: NODE_TYPES.User },
     redis: redis,
   })
 
-  return true
+  return moment
 }
 
 export default resolver

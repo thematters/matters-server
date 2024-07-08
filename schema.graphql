@@ -290,7 +290,7 @@ type Mutation {
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
   putMoment(input: PutMomentInput!): Moment!
-  deleteMoment(input: DeleteMomentInput!): Boolean!
+  deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
   unlikeMoment(input: UnlikeMomentInput!): Moment!
 }
