@@ -4,6 +4,7 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId, fromDatetimeRangeString } from 'common/utils'
 
 import applicationState from './applicationState'
+import campaign from './campaign'
 import campaigns from './campaigns'
 import description from './description'
 import name from './name'
@@ -13,11 +14,7 @@ import stages from './stages'
 
 const schema: GQLResolvers = {
   Query: {
-    campaign: (_, { input: { shortHash } }, { dataSources: { atomService } }) =>
-      atomService.findUnique({
-        table: 'campaign',
-        where: { shortHash },
-      }),
+    campaign,
     campaigns,
   },
   Campaign: {

@@ -302,7 +302,8 @@ describe('query campaigns', () => {
       }
     }
   `
-  let campaignShortHash: string
+  let pendingCampaignShortHash: string
+  let activeCampaignShortHash: string
   beforeAll(async () => {
     const userId = '1'
     const asset = await systemService.findAssetOrCreateByPath(
@@ -315,23 +316,34 @@ describe('query campaigns', () => {
       '1',
       userId
     )
-    const campaign = await campaignService.createWritingChallenge({
+    const campaignData = {
       name: 'test',
       description: 'test',
       link: 'https://test.com',
       coverId: asset.id,
-      applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')],
-      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')],
-      state: 'active',
+      applicationPeriod: [
+        new Date('2024-01-01'),
+        new Date('2024-01-02'),
+      ] as const,
+      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
       creatorId: userId,
+    }
+    const pendingCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.pending,
     })
-    campaignShortHash = campaign.shortHash
+    const activeCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    pendingCampaignShortHash = pendingCampaign.shortHash
+    activeCampaignShortHash = activeCampaign.shortHash
   })
   test('query campain successfully', async () => {
     const server = await testClient({ connections })
     const { data, errors } = await server.executeOperation({
       query: QUERY_CAMPAIGN,
-      variables: { input: { shortHash: campaignShortHash } },
+      variables: { input: { shortHash: activeCampaignShortHash } },
     })
     expect(errors).toBeUndefined()
     expect(data.campaign).toBeDefined()
@@ -344,6 +356,15 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaigns).toBeDefined()
+  })
+  test('non-admin users can not query pending/archived campains', async () => {
+    const server = await testClient({ connections })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN,
+      variables: { input: { shortHash: pendingCampaignShortHash } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign).toBeNull()
   })
   test('non-admin users query campains with oss true will failed', async () => {
     const server = await testClient({ connections })
