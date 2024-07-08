@@ -59,16 +59,24 @@ describe('create or update wrting challenges', () => {
       }
     }
   `
-  const translations = [
+  const translationsCampaign = [
     {
-      text: 'test' + LANGUAGE.zh_hant,
+      text: 'test campaign ' + LANGUAGE.zh_hant,
       language: LANGUAGE.zh_hant,
     },
-    { text: 'test' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
-    { text: 'test' + LANGUAGE.en, language: LANGUAGE.en },
+    { text: 'test campaign ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
+    { text: 'test campaign ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
-  const name = translations
-  const description = translations
+  const translationsStage = [
+    {
+      text: 'test stage ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    { text: 'test stage ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
+    { text: 'test stage ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+  const name = translationsCampaign
+  const description = translationsCampaign
   let admin: User
   let normalUser: User
   let cover: string
@@ -83,7 +91,7 @@ describe('create or update wrting challenges', () => {
   }
   const stages = [
     {
-      name: translations,
+      name: translationsStage,
       period: {
         start: new Date('2024-01-03'),
         end: new Date('2024-01-04'),
@@ -142,7 +150,7 @@ describe('create or update wrting challenges', () => {
     })
     const stagesUnbounded = [
       {
-        name: translations,
+        name: translationsCampaign,
         period: {
           start: new Date('2024-01-03'),
         },
@@ -188,7 +196,7 @@ describe('create or update wrting challenges', () => {
     })
 
     const newName = Object.keys(LANGUAGE).map((lang) => ({
-      text: 'updated' + lang,
+      text: 'updated ' + lang,
       language: lang,
     }))
 

@@ -6,7 +6,7 @@ const resolver: GQLCampaignStageResolvers['name'] = async (
   { viewer, dataSources: { translationService } }
 ) => {
   const translation = await translationService.findTranslation({
-    table: 'campaign',
+    table: 'campaign_stage',
     field: 'name',
     id,
     language: viewer.language,
