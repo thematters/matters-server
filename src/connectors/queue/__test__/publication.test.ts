@@ -1,28 +1,35 @@
 import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
-import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
-import { AtomService } from 'connectors'
+import {
+  ARTICLE_STATE,
+  PUBLISH_STATE,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
+import { AtomService, CampaignService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
 import { genConnections, closeConnections } from '../../__test__/utils'
 
+let connections: Connections
+let atomService: AtomService
+let campaignService: CampaignService
+let queue: PublicationQueue
+let knex: Knex
+beforeAll(async () => {
+  connections = await genConnections()
+  knex = connections.knex
+  atomService = new AtomService(connections)
+  campaignService = new CampaignService(connections)
+  queue = new PublicationQueue(connections)
+}, 30000)
+
+afterAll(async () => {
+  await closeConnections(connections)
+})
+
 describe('publicationQueue.publishArticle', () => {
-  let connections: Connections
-  let queue: PublicationQueue
-  let atomService: AtomService
-  let knex: Knex
-  beforeAll(async () => {
-    connections = await genConnections()
-    knex = connections.knex
-    atomService = new AtomService(connections)
-    queue = new PublicationQueue(connections)
-  }, 50000)
-
-  afterAll(async () => {
-    await closeConnections(connections)
-  })
-
   test('publish not pending draft', async () => {
     const notPendingDraftId = '1'
     const draft = await atomService.findUnique({
@@ -39,7 +46,7 @@ describe('publicationQueue.publishArticle', () => {
   })
 
   test('publish pending draft successfully', async () => {
-    const { draft } = await createPendingDraft(atomService)
+    const { draft } = await createPendingDraft()
     const job = await queue.publishArticle({
       draftId: draft.id,
     })
@@ -63,11 +70,18 @@ describe('publicationQueue.publishArticle', () => {
       where: { entranceId: updatedArticle.id },
     })
     expect(connections).toHaveLength(3)
+
+    // article is connected to campaigns
+    const campaign_article = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { articleId: updatedArticle.id },
+    })
+    expect(campaign_article).toBeDefined()
   })
 
   test('publish pending draft concurrently', async () => {
     const countBefore = (await knex('article').count().first())!.count
-    const { draft } = await createPendingDraft(atomService)
+    const { draft } = await createPendingDraft()
     const job1 = await queue.publishArticle({
       draftId: draft.id,
     })
@@ -81,21 +95,46 @@ describe('publicationQueue.publishArticle', () => {
   })
 })
 
-const createPendingDraft = async (atomService: AtomService) => {
+const createPendingDraft = async () => {
   const content = Math.random().toString()
   const contentHTML = `<p>${content} <strong>abc</strong></p>`
   const connections = ['1', '2', '3']
+  const authorId = '1'
+
+  const campaign = await campaignService.createWritingChallenge({
+    name: 'test',
+    description: 'test',
+    link: 'https://test.com',
+    applicationPeriod: [
+      new Date('2010-01-01 11:30'),
+      new Date('2010-01-01 15:00'),
+    ] as const,
+    writingPeriod: [
+      new Date('2010-01-02 11:30'),
+      new Date('2010-01-02 15:00'),
+    ] as const,
+    creatorId: '2',
+    state: CAMPAIGN_STATE.active,
+  })
+  const stages = await campaignService.updateStages(campaign.id, [
+    { name: 'stage1' },
+  ])
+  const user = await atomService.userIdLoader.load('1')
+  await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
 
   return {
     draft: await atomService.create({
       table: 'draft',
       data: {
-        authorId: '1',
+        authorId,
         title: 'test title',
         summary: 'test summary',
         content: contentHTML,
         publishState: PUBLISH_STATE.pending,
         collection: connections,
+        campaigns: JSON.stringify([
+          { campaign: campaign.id, stage: stages[0].id },
+        ]),
       },
     }),
   }

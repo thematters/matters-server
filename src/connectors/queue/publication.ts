@@ -32,6 +32,7 @@ import {
   SystemService,
   NotificationService,
   AtomService,
+  CampaignService,
   aws,
 } from 'connectors'
 
@@ -170,6 +171,10 @@ export class PublicationQueue {
 
       await this.handleMentions({ article, content: draft.content })
       await job.progress(60)
+
+      if (draft.campaigns && draft.campaigns.length > 0) {
+        await this.handleCampaigns({ article, campaigns: draft.campaigns })
+      }
 
       /**
        * Step 5: Handle Assets
@@ -518,6 +523,19 @@ export class PublicationQueue {
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
+  }
+
+  private handleCampaigns = async ({
+    article,
+    campaigns,
+  }: {
+    article: Article
+    campaigns: Array<{ campaign: string; stage: string }>
+  }) => {
+    const campaignService = new CampaignService(this.connections)
+    for (const { campaign, stage } of campaigns) {
+      await campaignService.attachArticleToCampaign(article, campaign, stage)
+    }
   }
 
   /**
