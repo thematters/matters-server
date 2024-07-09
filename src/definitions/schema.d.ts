@@ -3020,7 +3020,7 @@ export type GQLReport = GQLNode & {
   id: Scalars['ID']['output']
   reason: GQLReportReason
   reporter: GQLUser
-  target: GQLResponse
+  target: GQLNode
 }
 
 export type GQLReportConnection = GQLConnection & {
@@ -8560,7 +8560,7 @@ export type GQLReportResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
-  target?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

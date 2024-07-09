@@ -9,7 +9,7 @@ const report: GQLReportResolvers = {
   reporter: ({ reporterId }, _, { dataSources: { atomService } }) =>
     atomService.userIdLoader.load(reporterId),
   target: async (
-    { articleId, commentId },
+    { articleId, commentId, momentId },
     _,
     { dataSources: { atomService } }
   ) => {
@@ -22,6 +22,11 @@ const report: GQLReportResolvers = {
       return {
         ...(await atomService.commentIdLoader.load(commentId)),
         __type: NODE_TYPES.Comment,
+      }
+    } else if (momentId) {
+      return {
+        ...(await atomService.momentIdLoader.load(momentId)),
+        __type: NODE_TYPES.Moment,
       }
     } else {
       throw new ServerError('target not found')

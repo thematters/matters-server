@@ -6,8 +6,9 @@ import type {
 
 import _get from 'lodash/get'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, USER_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { MomentService } from 'connectors'
 
 import {
   delay,
@@ -881,6 +882,9 @@ describe('submitReport', () => {
             id
             state
           }
+          ... on Moment {
+            id
+          }
         }
       }
     }
@@ -900,6 +904,9 @@ describe('submitReport', () => {
                 ... on Article {
                   id
                 }
+                ... on Moment {
+                  id
+                }
               }
             }
           }
@@ -914,7 +921,7 @@ describe('submitReport', () => {
       isAdmin: true,
       connections,
     })
-    const { data } = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: SUBMIT_REPORT,
       variables: {
         input: {
@@ -923,21 +930,43 @@ describe('submitReport', () => {
         },
       },
     })
+    expect(errors).toBeUndefined()
     expect(data.submitReport.id).toBeDefined()
     expect(data.submitReport.reporter.id).toBeDefined()
     expect(data.submitReport.target.id).toBeDefined()
 
-    // query reports
-    const { data: data2 } = await server.executeOperation({
-      query: GET_REPORTS,
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: '4', state: USER_STATE.active, userName: 'test' }
+    )
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: SUBMIT_REPORT,
       variables: {
         input: {
-          first: null,
+          targetId: toGlobalId({ type: NODE_TYPES.Moment, id: moment.id }),
+          reason: 'other',
         },
       },
     })
-    expect(data2.oss.reports.totalCount).toBe(1)
-    expect(data2.oss.reports.edges[0].node.reporter.id).toBeDefined()
-    expect(data2.oss.reports.edges[0].node.target.id).toBeDefined()
+    expect(errors2).toBeUndefined()
+    expect(data2.submitReport.id).toBeDefined()
+    expect(data2.submitReport.reporter.id).toBeDefined()
+    expect(data2.submitReport.target.id).toBeDefined()
+
+    // query reports
+    const { data: dataQuery, errors: errorsQuery } =
+      await server.executeOperation({
+        query: GET_REPORTS,
+        variables: {
+          input: {
+            first: null,
+          },
+        },
+      })
+    expect(errorsQuery).toBeUndefined()
+    expect(dataQuery.oss.reports.totalCount).toBe(2)
+    expect(dataQuery.oss.reports.edges[0].node.reporter.id).toBeDefined()
+    expect(dataQuery.oss.reports.edges[0].node.target.id).toBeDefined()
   })
 })
