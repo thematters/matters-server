@@ -119,7 +119,7 @@ export default /* GraphQL */ `
   }
 
   input CampaignArticlesFilter{
-    stage: String!
+    stage: ID!
   }
 
   type CampaignConnection implements Connection {

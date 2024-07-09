@@ -695,7 +695,7 @@ export type GQLCampaign = {
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
 export type GQLCampaignArticlesFilter = {
-  stage: Scalars['String']['input']
+  stage: Scalars['ID']['input']
 }
 
 export type GQLCampaignArticlesInput = {

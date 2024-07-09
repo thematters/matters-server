@@ -167,8 +167,8 @@ describe('article submission', () => {
   let article: Article
   let campaign: Campaign
   let stages: CampaignStage[]
-  let campaignNotApplyed: Campaign
-  let stagesNotApplyed: CampaignStage[]
+  let campaignNotApplied: Campaign
+  let stagesNotApplied: CampaignStage[]
   beforeAll(async () => {
     user = await atomService.findFirst({
       table: 'user',
@@ -188,12 +188,12 @@ describe('article submission', () => {
     ])
     await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
 
-    campaignNotApplyed = await campaignService.createWritingChallenge({
+    campaignNotApplied = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
     })
-    stagesNotApplyed = await campaignService.updateStages(
-      campaignNotApplyed.id,
+    stagesNotApplied = await campaignService.updateStages(
+      campaignNotApplied.id,
       [{ name: 'stage1' }, { name: 'stage2' }]
     )
   })
@@ -201,8 +201,8 @@ describe('article submission', () => {
     expect(
       campaignService.updateArticleCampaigns(article, [
         {
-          campaignId: campaignNotApplyed.id,
-          campaignStageId: stagesNotApplyed[0].id,
+          campaignId: campaignNotApplied.id,
+          campaignStageId: stagesNotApplied[0].id,
         },
       ])
     ).rejects.toThrowError()
