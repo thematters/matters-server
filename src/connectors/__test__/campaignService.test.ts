@@ -228,8 +228,7 @@ describe('article submission', () => {
     expect(campaignArticle2.campaignStageId).toBe(stages[1].id)
 
     // detach
-    await campaignService.updateArticleCampaigns(article, [
-    ])
+    await campaignService.updateArticleCampaigns(article, [])
     const campaignArticle3 = await atomService.findFirst({
       table: 'campaign_article',
       where: { articleId: article.id },
