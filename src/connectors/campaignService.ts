@@ -184,6 +184,7 @@ export class CampaignService {
     article: Pick<Article, 'id' | 'authorId'>,
     newCampaigns: Array<{ campaignId: string; campaignStageId: string }>
   ) => {
+    const mutatedCampaignIds = []
     const knexRO = this.connections.knexRO
     const originalCampaigns = await knexRO('campaign_article')
       .select('campaign_id', 'campaign_stage_id')
@@ -203,7 +204,7 @@ export class CampaignService {
               id === campaignId && stageId === campaignStageId
           )
         ) {
-          // already attached to the same stage
+          // already submitted to the same stage
           continue
         } else {
           await this.models.update({
@@ -211,9 +212,11 @@ export class CampaignService {
             where: { articleId: article.id, campaignId },
             data: { campaignStageId },
           })
+          mutatedCampaignIds.push(campaignId)
         }
       } else {
         await this.submitArticleToCampaign(article, campaignId, campaignStageId)
+        mutatedCampaignIds.push(campaignId)
       }
     }
 
@@ -227,6 +230,8 @@ export class CampaignService {
       where: { articleId: article.id },
       whereIn: ['campaignId', toRemove],
     })
+    mutatedCampaignIds.push(...toRemove)
+    return mutatedCampaignIds
   }
 
   public submitArticleToCampaign = async (

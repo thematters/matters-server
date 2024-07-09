@@ -321,13 +321,19 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
     const _campaigns = await validateCampaigns(campaigns ?? [], viewer.id, {
       campaignService,
     })
-    await campaignService.updateArticleCampaigns(
+    const mutated = await campaignService.updateArticleCampaigns(
       article,
       _campaigns.map(({ campaign, stage }) => ({
         campaignId: campaign,
         campaignStageId: stage,
       }))
     )
+    for (const campaignId of mutated) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Campaign, id: campaignId },
+        redis,
+      })
+    }
   }
 
   /**

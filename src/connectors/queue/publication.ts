@@ -535,6 +535,10 @@ export class PublicationQueue {
     const campaignService = new CampaignService(this.connections)
     for (const { campaign, stage } of campaigns) {
       await campaignService.submitArticleToCampaign(article, campaign, stage)
+      invalidateFQC({
+        node: { type: NODE_TYPES.Campaign, id: campaign },
+        redis: this.connections.redis,
+      })
     }
   }
 
