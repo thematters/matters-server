@@ -22,7 +22,6 @@ import {
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
-  CAMPAIGN_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -36,9 +35,6 @@ import {
   ForbiddenError,
   TooManyTagsForArticleError,
   UserInputError,
-  CampaignNotFoundError,
-  CampaignStageNotFoundError,
-  ActionFailedError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 
@@ -166,7 +162,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       canComment,
       campaigns:
         campaigns &&
-        JSON.stringify(await validateCampaigns(campaigns, { atomService })),
+        JSON.stringify(await validateCampaigns(campaigns, { draftService })),
     },
     isUndefined // to drop only undefined
   )
@@ -377,41 +373,24 @@ const validateConnections = async ({
 
 const validateCampaigns = async (
   campaigns: Array<{ campaign: string; stage: string }>,
-  { atomService }: Pick<DataSources, 'atomService'>
+  { draftService }: Pick<DataSources, 'draftService'>
 ) => {
-  return Promise.all(
-    campaigns.map(
-      async ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
-        const { id: campaignId, type: campaignIdType } =
-          fromGlobalId(campaignGlobalId)
-        if (campaignIdType !== NODE_TYPES.Campaign) {
-          throw new UserInputError('invalid campaign id')
-        }
-        const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
-        if (stageIdType !== NODE_TYPES.CampaignStage) {
-          throw new UserInputError('invalid stage id')
-        }
-
-        const campaign = await atomService.campaignIdLoader.load(campaignId)
-        if (!campaign) {
-          throw new CampaignNotFoundError('campaign not found')
-        }
-        if (campaign.state !== CAMPAIGN_STATE.active) {
-          throw new ActionFailedError('campaign not active')
-        }
-
-        const stage = await atomService.campaignStageIdLoader.load(stageId)
-        if (!stage) {
-          throw new CampaignStageNotFoundError('stage not found')
-        }
-        if (stage.campaignId !== campaignId) {
-          throw new UserInputError('stage not belong to campaign')
-        }
-
-        return { campaign: campaign.id, stage: stage.id }
+  const _campaigns = campaigns.map(
+    ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
+      const { id: campaignId, type: campaignIdType } =
+        fromGlobalId(campaignGlobalId)
+      if (campaignIdType !== NODE_TYPES.Campaign) {
+        throw new UserInputError('invalid campaign id')
       }
-    )
+      const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
+      if (stageIdType !== NODE_TYPES.CampaignStage) {
+        throw new UserInputError('invalid stage id')
+      }
+
+      return { campaign: campaignId, stage: stageId }
+    }
   )
+  return draftService.validateCampaigns(_campaigns)
 }
 
 export default resolver
