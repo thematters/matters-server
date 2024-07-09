@@ -534,7 +534,7 @@ export class PublicationQueue {
   }) => {
     const campaignService = new CampaignService(this.connections)
     for (const { campaign, stage } of campaigns) {
-      await campaignService.attachArticleToCampaign(article, campaign, stage)
+      await campaignService.submitArticleToCampaign(article, campaign, stage)
     }
   }
 

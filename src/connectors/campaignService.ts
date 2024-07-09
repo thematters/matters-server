@@ -180,7 +180,56 @@ export class CampaignService {
     ]
   }
 
-  public attachArticleToCampaign = async (
+  public updateArticleCampaigns = async (
+    article: Pick<Article, 'id' | 'authorId'>,
+    newCampaigns: Array<{ campaignId: string; campaignStageId: string }>
+  ) => {
+    const knexRO = this.connections.knexRO
+    const originalCampaigns = await knexRO('campaign_article')
+      .select('campaign_id', 'campaign_stage_id')
+      .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
+      .where({ articleId: article.id, state: CAMPAIGN_STATE.active })
+
+    const originalCampaignIds = originalCampaigns.map(
+      ({ campaignId }) => campaignId
+    )
+
+    // attach to new campaigns or update stage
+    for (const { campaignId, campaignStageId } of newCampaigns) {
+      if (originalCampaignIds.includes(campaignId)) {
+        if (
+          originalCampaigns.find(
+            ({ campaignId: id, campaignStageId: stageId }) =>
+              id === campaignId && stageId === campaignStageId
+          )
+        ) {
+          // already attached to the same stage
+          continue
+        } else {
+          await this.models.update({
+            table: 'campaign_article',
+            where: { articleId: article.id, campaignId },
+            data: { campaignStageId },
+          })
+        }
+      } else {
+        await this.submitArticleToCampaign(article, campaignId, campaignStageId)
+      }
+    }
+
+    // detach from removed campaigns
+    const newCampaignIds = newCampaigns.map(({ campaignId }) => campaignId)
+    const toRemove = originalCampaignIds.filter(
+      (campaignId) => !newCampaignIds.includes(campaignId)
+    )
+    await this.models.deleteMany({
+      table: 'campaign_article',
+      where: { articleId: article.id },
+      whereIn: ['campaignId', toRemove],
+    })
+  }
+
+  public submitArticleToCampaign = async (
     article: Pick<Article, 'id' | 'authorId'>,
     campaignId: string,
     campaignStageId: string
