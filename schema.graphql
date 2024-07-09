@@ -917,7 +917,7 @@ type WritingChallenge implements Node & Campaign {
   link: String!
   applicationPeriod: DatetimeRange!
   writingPeriod: DatetimeRange!
-  stages: [CampaignStage]!
+  stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: ConnectionArgs!): UserConnection!
   articles(input: CampaignArticlesInput): ArticleConnection!
