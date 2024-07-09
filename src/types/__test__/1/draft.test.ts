@@ -2,8 +2,13 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 
-import { AtomService } from 'connectors'
-import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
+import { AtomService, CampaignService } from 'connectors'
+import {
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import {
@@ -70,7 +75,7 @@ describe('put draft', () => {
   let draftId: string
 
   test('edit draft summary', async () => {
-    const { id } = await putDraft(
+    const { id, errors } = await putDraft(
       {
         draft: {
           title: Math.random().toString(),
@@ -79,6 +84,7 @@ describe('put draft', () => {
       },
       connections
     )
+    expect(errors).toBeUndefined()
     draftId = id
 
     const summary = 'my customized summary'
@@ -527,5 +533,62 @@ describe('put draft', () => {
       connections
     )
     expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
+  })
+  test('edit campaigns', async () => {
+    const campaignData = {
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '2',
+    }
+    const campaignService = new CampaignService(connections)
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+    const atomService = new AtomService(connections)
+    const user = await atomService.userIdLoader.load('1')
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+
+    const campaignGlobalId = toGlobalId({
+      type: NODE_TYPES.Campaign,
+      id: campaign.id,
+    })
+    const stageGlobalId = toGlobalId({
+      type: NODE_TYPES.CampaignStage,
+      id: stages[0].id,
+    })
+    const { campaigns } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          campaigns: [
+            {
+              campaign: campaignGlobalId,
+              stage: stageGlobalId,
+            },
+          ],
+        },
+        client: {
+          context: {
+            viewer: user,
+          },
+        },
+      },
+      connections
+    )
+    expect(campaigns[0].campaign.id).toBe(campaignGlobalId)
+    expect(campaigns[0].stage.id).toBe(stageGlobalId)
   })
 })

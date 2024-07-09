@@ -1,4 +1,10 @@
-import type { Connections } from 'definitions'
+import type {
+  Connections,
+  User,
+  Campaign,
+  CampaignStage,
+  Article,
+} from 'definitions'
 
 import { CAMPAIGN_STATE, USER_STATE, CAMPAIGN_USER_STATE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
@@ -153,5 +159,80 @@ describe('application', () => {
     expect(campaignService.apply(campaign, user)).rejects.toThrowError(
       ForbiddenError
     )
+  })
+})
+
+describe('article submission', () => {
+  let user: User
+  let article: Article
+  let campaign: Campaign
+  let stages: CampaignStage[]
+  let campaignNotApplyed: Campaign
+  let stagesNotApplyed: CampaignStage[]
+  beforeAll(async () => {
+    user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+    article = await atomService.findFirst({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+    campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+
+    campaignNotApplyed = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    stagesNotApplyed = await campaignService.updateStages(
+      campaignNotApplyed.id,
+      [{ name: 'stage1' }, { name: 'stage2' }]
+    )
+  })
+  test('application is checked', async () => {
+    expect(
+      campaignService.updateArticleCampaigns(article, [
+        {
+          campaignId: campaignNotApplyed.id,
+          campaignStageId: stagesNotApplyed[0].id,
+        },
+      ])
+    ).rejects.toThrowError()
+  })
+  test('submit successfully', async () => {
+    await campaignService.updateArticleCampaigns(article, [
+      { campaignId: campaign.id, campaignStageId: stages[0].id },
+    ])
+    const campaignArticle1 = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { articleId: article.id },
+    })
+    expect(campaignArticle1).toBeDefined()
+
+    // change stage
+    await campaignService.updateArticleCampaigns(article, [
+      { campaignId: campaign.id, campaignStageId: stages[1].id },
+    ])
+    const campaignArticle2 = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { articleId: article.id },
+    })
+    expect(campaignArticle2.campaignStageId).toBe(stages[1].id)
+
+    // detach
+    await campaignService.updateArticleCampaigns(article, [])
+    const campaignArticle3 = await atomService.findFirst({
+      table: 'campaign_article',
+      where: { articleId: article.id },
+    })
+    expect(campaignArticle3).toBeUndefined()
   })
 })

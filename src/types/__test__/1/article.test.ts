@@ -1,4 +1,4 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
 
 import _get from 'lodash/get'
 import _omit from 'lodash/omit'
@@ -11,6 +11,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
@@ -18,6 +20,7 @@ import {
   AtomService,
   PaymentService,
   UserService,
+  CampaignService,
 } from 'connectors'
 
 import {
@@ -73,6 +76,14 @@ const GET_ARTICLE = /* GraphQL */ `
       dataHash
       mediaHash
       shortHash
+      campaigns {
+        campaign {
+          id
+        }
+        stage {
+          id
+        }
+      }
     }
   }
 `
@@ -197,7 +208,6 @@ describe('query article', () => {
         },
       },
     })
-    // console.log('result1', result1)
     expect(_get(result1, 'data.article.shortHash')).toBe('short-hash-1')
 
     const result2 = await anonymousServer.executeOperation({
@@ -209,7 +219,6 @@ describe('query article', () => {
       },
     })
 
-    // console.log('result2', result2)
     expect(_get(result2, 'data.article.mediaHash')).toBe('someIpfsMediaHash1')
   })
 })
@@ -689,5 +698,59 @@ describe('articles versions', () => {
     expect(data2.article.versions.edges[0].node.title).toBeDefined()
     expect(data2.article.versions.edges[0].node.contents.html).toBe(content)
     expect(data2.article.versions.edges[0].node.description).toBe(description)
+  })
+})
+
+describe('query article campaigns', () => {
+  let article: Article
+  beforeAll(async () => {
+    const atomService = new AtomService(connections)
+    const campaignService = new CampaignService(connections)
+    article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+    const campaign = await campaignService.createWritingChallenge({
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2010-01-01 11:30'),
+        new Date('2010-01-01 15:00'),
+      ] as const,
+      writingPeriod: [
+        new Date('2010-01-02 11:30'),
+        new Date('2010-01-02 15:00'),
+      ] as const,
+      creatorId: '1',
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: article.authorId },
+    })
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    await campaignService.submitArticleToCampaign(
+      article,
+      campaign.id,
+      stages[0].id
+    )
+  })
+  test('query article campaigns', async () => {
+    const anonymousServer = await testClient({ connections })
+
+    const { data } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+    expect(data.article.campaigns.length).toBe(1)
   })
 })

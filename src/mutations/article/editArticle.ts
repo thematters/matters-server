@@ -1,4 +1,10 @@
-import type { Article, Draft, Circle, GQLMutationResolvers } from 'definitions'
+import type {
+  Article,
+  Draft,
+  Circle,
+  GQLMutationResolvers,
+  DataSources,
+} from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { stripHtml } from '@matters/ipns-site-generator'
@@ -55,6 +61,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       iscnPublish,
       canComment,
       description,
+      campaigns,
     },
   },
   {
@@ -63,6 +70,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       articleService,
       atomService,
       systemService,
+      campaignService,
       queues: { revisionQueue },
       connections: { redis },
     },
@@ -307,6 +315,28 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   /**
+   * campaigns
+   */
+  if (campaigns !== undefined) {
+    const _campaigns = await validateCampaigns(campaigns ?? [], viewer.id, {
+      campaignService,
+    })
+    const mutated = await campaignService.updateArticleCampaigns(
+      article,
+      _campaigns.map(({ campaign, stage }) => ({
+        campaignId: campaign,
+        campaignStageId: stage,
+      }))
+    )
+    for (const campaignId of mutated) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Campaign, id: campaignId },
+        redis,
+      })
+    }
+  }
+
+  /**
    * Republish article if content or access is changed
    */
   if (content) {
@@ -379,6 +409,36 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
   }
 
   return node
+}
+
+const validateCampaigns = async (
+  campaigns: Array<{ campaign: string; stage: string }>,
+  userId: string,
+  { campaignService }: Pick<DataSources, 'campaignService'>
+) => {
+  const _campaigns = campaigns.map(
+    ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
+      const { id: campaignId, type: campaignIdType } =
+        fromGlobalId(campaignGlobalId)
+      if (campaignIdType !== NODE_TYPES.Campaign) {
+        throw new UserInputError('invalid campaign id')
+      }
+      const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
+      if (stageIdType !== NODE_TYPES.CampaignStage) {
+        throw new UserInputError('invalid stage id')
+      }
+
+      return { campaign: campaignId, stage: stageId }
+    }
+  )
+  for (const { campaign, stage } of _campaigns) {
+    await campaignService.validate({
+      userId,
+      campaignId: campaign,
+      campaignStageId: stage,
+    })
+  }
+  return _campaigns
 }
 
 export default resolver

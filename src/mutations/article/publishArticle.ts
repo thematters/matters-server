@@ -42,7 +42,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
     throw new ForbiddenError('user has no username')
   }
 
-  // retrive data from draft
+  // retrieve data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await atomService.draftIdLoader.load(draftDBId)
   const isPublished = draft.publishState === PUBLISH_STATE.published

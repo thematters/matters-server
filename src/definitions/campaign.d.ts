@@ -39,3 +39,11 @@ export interface CampaignUser {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface CampaignArticle {
+  id: string
+  campaignId: string
+  campaignStageId: string
+  articleId: string
+  createdAt: Date
+}

@@ -231,11 +231,19 @@ export default /* GraphQL */ `
     "history versions"
     versions(input: ArticleVersionsInput!): ArticleVersionsConnection! @complexity(multipliers: ["input.first"], value: 1)
 
+    "associated campaigns"
+    campaigns: [ArticleCampaign!]!
+
     ##############
     #     OSS    #
     ##############
     oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type ArticleCampaign {
+    campaign: Campaign!
+    stage: CampaignStage!
   }
 
   input ArticleVersionsInput {
@@ -443,6 +451,14 @@ export default /* GraphQL */ `
 
     "whether readers can comment"
     canComment: Boolean
+
+     "which campaigns to attach"
+     campaigns: [ArticleCampaignInput!]
+  }
+
+  input ArticleCampaignInput {
+    campaign: ID!
+    stage: ID!
   }
 
   input AppreciateArticleInput {

@@ -4,6 +4,7 @@ import type {
   CampaignStage,
   Campaign,
   User,
+  Article,
 } from 'definitions'
 
 import {
@@ -15,6 +16,9 @@ import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
   ForbiddenError,
+  CampaignNotFoundError,
+  CampaignStageNotFoundError,
+  ActionFailedError,
 } from 'common/errors'
 import {
   shortHash,
@@ -118,7 +122,8 @@ export class CampaignService {
 
   public apply = async (
     campaign: Pick<Campaign, 'id' | 'state' | 'applicationPeriod'>,
-    user: Pick<User, 'id' | 'userName' | 'state'>
+    user: Pick<User, 'id' | 'userName' | 'state'>,
+    state: ValueOf<typeof CAMPAIGN_USER_STATE> = CAMPAIGN_USER_STATE.pending
   ) => {
     if (campaign.state !== CAMPAIGN_STATE.active) {
       throw new ForbiddenByTargetStateError('campaign is not active')
@@ -148,7 +153,7 @@ export class CampaignService {
     }
     return this.models.create({
       table: 'campaign_user',
-      data: { campaignId: campaign.id, userId: user.id, state: 'pending' },
+      data: { campaignId: campaign.id, userId: user.id, state },
     })
   }
 
@@ -173,5 +178,114 @@ export class CampaignService {
       ),
       records.length === 0 ? 0 : +records[0].totalCount,
     ]
+  }
+
+  public updateArticleCampaigns = async (
+    article: Pick<Article, 'id' | 'authorId'>,
+    newCampaigns: Array<{ campaignId: string; campaignStageId: string }>
+  ) => {
+    const mutatedCampaignIds = []
+    const knexRO = this.connections.knexRO
+    const originalCampaigns = await knexRO('campaign_article')
+      .select('campaign_id', 'campaign_stage_id')
+      .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
+      .where({ articleId: article.id, state: CAMPAIGN_STATE.active })
+
+    const originalCampaignIds = originalCampaigns.map(
+      ({ campaignId }) => campaignId
+    )
+
+    // attach to new campaigns or update stage
+    for (const { campaignId, campaignStageId } of newCampaigns) {
+      if (originalCampaignIds.includes(campaignId)) {
+        if (
+          originalCampaigns.find(
+            ({ campaignId: id, campaignStageId: stageId }) =>
+              id === campaignId && stageId === campaignStageId
+          )
+        ) {
+          // already submitted to the same stage
+          continue
+        } else {
+          await this.models.update({
+            table: 'campaign_article',
+            where: { articleId: article.id, campaignId },
+            data: { campaignStageId },
+          })
+          mutatedCampaignIds.push(campaignId)
+        }
+      } else {
+        await this.submitArticleToCampaign(article, campaignId, campaignStageId)
+        mutatedCampaignIds.push(campaignId)
+      }
+    }
+
+    // detach from removed campaigns
+    const newCampaignIds = newCampaigns.map(({ campaignId }) => campaignId)
+    const toRemove = originalCampaignIds.filter(
+      (campaignId) => !newCampaignIds.includes(campaignId)
+    )
+    await this.models.deleteMany({
+      table: 'campaign_article',
+      where: { articleId: article.id },
+      whereIn: ['campaignId', toRemove],
+    })
+    mutatedCampaignIds.push(...toRemove)
+    return mutatedCampaignIds
+  }
+
+  public submitArticleToCampaign = async (
+    article: Pick<Article, 'id' | 'authorId'>,
+    campaignId: string,
+    campaignStageId: string
+  ) => {
+    await this.validate({
+      userId: article.authorId,
+      campaignId,
+      campaignStageId,
+    })
+    return this.models.create({
+      table: 'campaign_article',
+      data: { articleId: article.id, campaignId, campaignStageId },
+    })
+  }
+
+  public validate = async ({
+    campaignId,
+    campaignStageId,
+    userId,
+  }: {
+    campaignId: string
+    campaignStageId: string
+    userId: string
+  }) => {
+    const campaign = await this.models.campaignIdLoader.load(campaignId)
+    if (!campaign) {
+      throw new CampaignNotFoundError('campaign not found')
+    }
+    if (campaign.state !== CAMPAIGN_STATE.active) {
+      throw new ActionFailedError('campaign not active')
+    }
+
+    const application = await this.models.findFirst({
+      table: 'campaign_user',
+      where: { campaignId, userId },
+    })
+
+    if (!application || application.state !== CAMPAIGN_USER_STATE.succeeded) {
+      throw new ActionFailedError(`user not applied to campaign ${campaignId}`)
+    }
+
+    const stage = await this.models.campaignStageIdLoader.load(campaignStageId)
+    if (!stage) {
+      throw new CampaignStageNotFoundError('stage not found')
+    }
+    const periodStart = stage.period
+      ? fromDatetimeRangeString(stage.period)[0].getTime()
+      : null
+    const now = new Date().getTime()
+    if (periodStart && periodStart > now) {
+      throw new ActionFailedError('stage not started')
+    }
   }
 }

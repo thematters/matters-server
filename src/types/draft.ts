@@ -81,6 +81,9 @@ export default /* GraphQL */ `
 
     "whether readers can comment"
     canComment: Boolean!
+
+    "associated campaigns"
+    campaigns: [ArticleCampaign!]!
   }
 
   type DraftConnection implements Connection {
@@ -120,6 +123,9 @@ export default /* GraphQL */ `
 
     "whether readers can comment"
     canComment: Boolean
+
+    "which campaigns to attach"
+    campaigns: [ArticleCampaignInput!]
   }
 
   input DeleteDraftInput {

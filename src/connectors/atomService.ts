@@ -14,6 +14,8 @@ import type {
   Transaction,
   User,
   Moment,
+  Campaign,
+  CampaignStage,
   TableTypeMap,
   TableTypeMapKey,
 } from 'definitions'
@@ -181,6 +183,8 @@ export class AtomService {
   public momentIdLoader: AtomDataLoader<string, Moment>
   public assetIdLoader: AtomDataLoader<string, Asset>
   public assetUUIDLoader: AtomDataLoader<string, Asset>
+  public campaignIdLoader: AtomDataLoader<string, Campaign>
+  public campaignStageIdLoader: AtomDataLoader<string, CampaignStage>
 
   public constructor(connections: Connections) {
     this.knex = connections.knex
@@ -222,6 +226,11 @@ export class AtomService {
     this.momentIdLoader = this.initLoader({ table: 'moment', mode: 'id' })
     this.assetIdLoader = this.initLoader({ table: 'asset', mode: 'id' })
     this.assetUUIDLoader = this.initLoader({ table: 'asset', mode: 'uuid' })
+    this.campaignIdLoader = this.initLoader({ table: 'campaign', mode: 'id' })
+    this.campaignStageIdLoader = this.initLoader({
+      table: 'campaign_stage',
+      mode: 'id',
+    })
   }
 
   /* Data Loader */
