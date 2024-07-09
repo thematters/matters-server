@@ -180,6 +180,12 @@ export class CampaignNotFoundError extends GraphQLError {
   }
 }
 
+export class CampaignStageNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'CAMPAIGN_STAGE_NOT_FOUND' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

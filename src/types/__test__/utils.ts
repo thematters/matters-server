@@ -284,6 +284,16 @@ export const putDraft = async (
         replyToDonator
         iscnPublish
         canComment
+        campaigns {
+           campaign {
+              id
+              name
+           }
+           stage {
+              id
+              name
+           }
+        }
       }
     }
   `
