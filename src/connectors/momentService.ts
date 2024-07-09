@@ -64,6 +64,11 @@ export class MomentService {
           throw new UserInputError(`asset ${asset.id} is not a moment asset`)
         }
       }
+    } else {
+      // no assets
+      if (contentLength === 0) {
+        throw new UserInputError('empty moment content and assets')
+      }
     }
 
     const moment = await this.models.create({

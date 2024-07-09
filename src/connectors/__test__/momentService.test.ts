@@ -47,6 +47,9 @@ describe('create moments', () => {
     )
   })
   test('content length is checked', async () => {
+    expect(momentService.create({ content: '' }, user)).rejects.toThrowError(
+      UserInputError
+    )
     expect(
       momentService.create({ content: 'a'.repeat(MAX_MOMENT_LENGTH + 1) }, user)
     ).rejects.toThrowError(UserInputError)
@@ -77,7 +80,13 @@ describe('create moments', () => {
     expect(
       momentService.create({ content: 'test', assetIds: [asset.id] }, user)
     ).resolves.toBeDefined()
+
+    // empty content is allowed when there are assets
+    expect(
+      momentService.create({ content: '', assetIds: [asset.id] }, user)
+    ).resolves.toBeDefined()
   })
+
   test('active user will success', async () => {
     const moment = await momentService.create(data, user)
     expect(moment).toBeDefined()
