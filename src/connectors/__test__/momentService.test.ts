@@ -138,16 +138,6 @@ describe('like/unklike moments', () => {
       ForbiddenByStateError
     )
   })
-  test('author will fail', async () => {
-    const author = { id: '1', state: USER_STATE.active }
-    const moment = await momentService.create(
-      { content: 'test', assetIds: [] },
-      { id: author.id, state: USER_STATE.active, userName: 'testuser' }
-    )
-    expect(momentService.like(moment.id, author)).rejects.toThrowError(
-      ForbiddenError
-    )
-  })
   test('archived moment will fail', async () => {
     const user = { id: '1', state: USER_STATE.active }
     const moment = await momentService.create(

@@ -147,9 +147,6 @@ export class MomentService {
       table: 'moment',
       where: { id },
     })
-    if (moment.authorId === user.id) {
-      throw new ForbiddenError(`user ${user.id} cannot like own moment`)
-    }
     if (moment.state !== MOMENT_STATE.active) {
       throw new UserInputError(`moment ${id} is not active, cannot be liked`)
     }
