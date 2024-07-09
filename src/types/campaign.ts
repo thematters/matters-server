@@ -86,7 +86,7 @@ export default /* GraphQL */ `
 
     applicationPeriod: DatetimeRange!
     writingPeriod:DatetimeRange!
-    stages: [CampaignStage]!
+    stages: [CampaignStage!]!
 
     state: CampaignState!
     participants(input: ConnectionArgs!): UserConnection!

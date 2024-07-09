@@ -4172,7 +4172,7 @@ export type GQLWritingChallenge = GQLCampaign &
     name: Scalars['String']['output']
     participants: GQLUserConnection
     shortHash: Scalars['String']['output']
-    stages: Array<Maybe<GQLCampaignStage>>
+    stages: Array<GQLCampaignStage>
     state: GQLCampaignState
     writingPeriod: GQLDatetimeRange
   }
@@ -9547,7 +9547,7 @@ export type GQLWritingChallengeResolvers<
   >
   shortHash?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   stages?: Resolver<
-    Array<Maybe<GQLResolversTypes['CampaignStage']>>,
+    Array<GQLResolversTypes['CampaignStage']>,
     ParentType,
     ContextType
   >
