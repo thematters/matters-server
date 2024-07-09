@@ -206,6 +206,9 @@ export default /* GraphQL */ `
     "user data analytics, only accessable by current user."
     analytics: UserAnalytics! @auth(mode: "${AUTH_MODE.oauth}")
 
+    "active applied campaigns"
+    campaigns(input:ConnectionArgs!): CampaignConnection!
+
     "Status of current user."
     status: UserStatus
 

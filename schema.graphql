@@ -1141,6 +1141,9 @@ type User implements Node {
   """user data analytics, only accessable by current user."""
   analytics: UserAnalytics!
 
+  """active applied campaigns"""
+  campaigns(input: ConnectionArgs!): CampaignConnection!
+
   """Status of current user."""
   status: UserStatus
   oss: UserOSS!

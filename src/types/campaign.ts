@@ -92,7 +92,7 @@ export default /* GraphQL */ `
     participants(input: ConnectionArgs!): UserConnection!
     articles(input: CampaignArticlesInput): ArticleConnection!
 
-    applicationState: CampaignApplicationState @auth(mode: "${AUTH_MODE.oauth}")
+    applicationState: CampaignApplicationState
   }
 
   type DatetimeRange {
