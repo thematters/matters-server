@@ -4,6 +4,7 @@ import type {
   CampaignStage,
   Campaign,
   User,
+  Article,
 } from 'definitions'
 
 import {
@@ -15,6 +16,9 @@ import {
   ForbiddenByTargetStateError,
   ForbiddenByStateError,
   ForbiddenError,
+  CampaignNotFoundError,
+  CampaignStageNotFoundError,
+  ActionFailedError,
 } from 'common/errors'
 import {
   shortHash,
@@ -118,7 +122,8 @@ export class CampaignService {
 
   public apply = async (
     campaign: Pick<Campaign, 'id' | 'state' | 'applicationPeriod'>,
-    user: Pick<User, 'id' | 'userName' | 'state'>
+    user: Pick<User, 'id' | 'userName' | 'state'>,
+    state: ValueOf<typeof CAMPAIGN_USER_STATE> = CAMPAIGN_USER_STATE.pending
   ) => {
     if (campaign.state !== CAMPAIGN_STATE.active) {
       throw new ForbiddenByTargetStateError('campaign is not active')
@@ -148,7 +153,7 @@ export class CampaignService {
     }
     return this.models.create({
       table: 'campaign_user',
-      data: { campaignId: campaign.id, userId: user.id, state: 'pending' },
+      data: { campaignId: campaign.id, userId: user.id, state },
     })
   }
 
@@ -173,5 +178,60 @@ export class CampaignService {
       ),
       records.length === 0 ? 0 : +records[0].totalCount,
     ]
+  }
+
+  public attachArticleToCampaign = async (
+    article: Pick<Article, 'id' | 'authorId'>,
+    campaignId: string,
+    campaignStageId: string
+  ) => {
+    await this.validate({
+      userId: article.authorId,
+      campaignId,
+      campaignStageId,
+    })
+    return this.models.create({
+      table: 'campaign_article',
+      data: { articleId: article.id, campaignId, campaignStageId },
+    })
+  }
+
+  public validate = async ({
+    campaignId,
+    campaignStageId,
+    userId,
+  }: {
+    campaignId: string
+    campaignStageId: string
+    userId: string
+  }) => {
+    const campaign = await this.models.campaignIdLoader.load(campaignId)
+    if (!campaign) {
+      throw new CampaignNotFoundError('campaign not found')
+    }
+    if (campaign.state !== CAMPAIGN_STATE.active) {
+      throw new ActionFailedError('campaign not active')
+    }
+
+    const application = await this.models.findFirst({
+      table: 'campaign_user',
+      where: { campaignId, userId },
+    })
+
+    if (!application || application.state !== CAMPAIGN_USER_STATE.succeeded) {
+      throw new ActionFailedError(`user not applied to campaign ${campaignId}`)
+    }
+
+    const stage = await this.models.campaignStageIdLoader.load(campaignStageId)
+    if (!stage) {
+      throw new CampaignStageNotFoundError('stage not found')
+    }
+    const periodStart = stage.period
+      ? fromDatetimeRangeString(stage.period)[0].getTime()
+      : null
+    const now = new Date().getTime()
+    if (periodStart && periodStart > now) {
+      throw new ActionFailedError('stage not started')
+    }
   }
 }

@@ -251,6 +251,7 @@ export const publishArticle = async (
 interface PutDraftInput {
   client?: {
     isFrozen?: boolean
+    context?: { viewer: User }
   }
   draft: GQLPutDraftInput
 }

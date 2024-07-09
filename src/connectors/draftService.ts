@@ -1,12 +1,6 @@
 import type { Draft, Connections } from 'definitions'
 
-import { PUBLISH_STATE, CAMPAIGN_STATE } from 'common/enums'
-import {
-  UserInputError,
-  CampaignNotFoundError,
-  CampaignStageNotFoundError,
-  ActionFailedError,
-} from 'common/errors'
+import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService<Draft> {
@@ -47,27 +41,4 @@ export class DraftService extends BaseService<Draft> {
       .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
       .orderBy('updated_at', 'desc')
-
-  public validateCampaigns = async (
-    campaigns: Array<{ campaign: string; stage: string }>
-  ) => {
-    for (const { campaign: campaignId, stage: stageId } of campaigns) {
-      const campaign = await this.models.campaignIdLoader.load(campaignId)
-      if (!campaign) {
-        throw new CampaignNotFoundError('campaign not found')
-      }
-      if (campaign.state !== CAMPAIGN_STATE.active) {
-        throw new ActionFailedError('campaign not active')
-      }
-
-      const stage = await this.models.campaignStageIdLoader.load(stageId)
-      if (!stage) {
-        throw new CampaignStageNotFoundError('stage not found')
-      }
-      if (stage.campaignId !== campaignId) {
-        throw new UserInputError('stage not belong to campaign')
-      }
-    }
-    return campaigns
-  }
 }

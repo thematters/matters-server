@@ -3,7 +3,12 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { AtomService, CampaignService } from 'connectors'
-import { ARTICLE_LICENSE_TYPE, NODE_TYPES, CAMPAIGN_STATE } from 'common/enums'
+import {
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+  CAMPAIGN_STATE,
+  CAMPAIGN_USER_STATE,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import {
@@ -542,7 +547,7 @@ describe('put draft', () => {
         new Date('2010-01-02 11:30'),
         new Date('2010-01-02 15:00'),
       ] as const,
-      creatorId: '1',
+      creatorId: '2',
     }
     const campaignService = new CampaignService(connections)
     const campaign = await campaignService.createWritingChallenge({
@@ -552,6 +557,10 @@ describe('put draft', () => {
     const stages = await campaignService.updateStages(campaign.id, [
       { name: 'stage1' },
     ])
+    const atomService = new AtomService(connections)
+    const user = await atomService.userIdLoader.load('1')
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+
     const campaignGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,
       id: campaign.id,
@@ -570,6 +579,11 @@ describe('put draft', () => {
               stage: stageGlobalId,
             },
           ],
+        },
+        client: {
+          context: {
+            viewer: user,
+          },
         },
       },
       connections

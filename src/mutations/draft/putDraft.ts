@@ -60,7 +60,10 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       campaigns,
     },
   },
-  { viewer, dataSources: { atomService, draftService, systemService } }
+  {
+    viewer,
+    dataSources: { atomService, draftService, systemService, campaignService },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -162,7 +165,9 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       canComment,
       campaigns:
         campaigns &&
-        JSON.stringify(await validateCampaigns(campaigns, { draftService })),
+        JSON.stringify(
+          await validateCampaigns(campaigns, viewer.id, { campaignService })
+        ),
     },
     isUndefined // to drop only undefined
   )
@@ -373,7 +378,8 @@ const validateConnections = async ({
 
 const validateCampaigns = async (
   campaigns: Array<{ campaign: string; stage: string }>,
-  { draftService }: Pick<DataSources, 'draftService'>
+  userId: string,
+  { campaignService }: Pick<DataSources, 'campaignService'>
 ) => {
   const _campaigns = campaigns.map(
     ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
@@ -390,7 +396,14 @@ const validateCampaigns = async (
       return { campaign: campaignId, stage: stageId }
     }
   )
-  return draftService.validateCampaigns(_campaigns)
+  for (const { campaign, stage } of _campaigns) {
+    await campaignService.validate({
+      userId,
+      campaignId: campaign,
+      campaignStageId: stage,
+    })
+  }
+  return _campaigns
 }
 
 export default resolver
