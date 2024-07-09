@@ -48,7 +48,7 @@ export class MomentService {
     }
     // check content length
     const contentLength = stripHtml(data.content).length
-    if (contentLength > MAX_MOMENT_LENGTH || contentLength < 1) {
+    if (contentLength > MAX_MOMENT_LENGTH) {
       throw new UserInputError('invalid moment content length')
     }
     // check assets
@@ -63,6 +63,11 @@ export class MomentService {
         if (asset.type !== IMAGE_ASSET_TYPE.moment) {
           throw new UserInputError(`asset ${asset.id} is not a moment asset`)
         }
+      }
+    } else {
+      // no assets
+      if (contentLength === 0) {
+        throw new UserInputError('empty moment content and assets')
       }
     }
 
@@ -142,9 +147,6 @@ export class MomentService {
       table: 'moment',
       where: { id },
     })
-    if (moment.authorId === user.id) {
-      throw new ForbiddenError(`user ${user.id} cannot like own moment`)
-    }
     if (moment.state !== MOMENT_STATE.active) {
       throw new UserInputError(`moment ${id} is not active, cannot be liked`)
     }

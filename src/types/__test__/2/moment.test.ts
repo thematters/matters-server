@@ -2,7 +2,12 @@ import type { Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
-import { NODE_TYPES, USER_STATE, IMAGE_ASSET_TYPE } from 'common/enums'
+import {
+  NODE_TYPES,
+  USER_STATE,
+  IMAGE_ASSET_TYPE,
+  MOMENT_STATE,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { MomentService, SystemService } from 'connectors'
 
@@ -127,7 +132,9 @@ describe('create moment', () => {
 describe('delete moment', () => {
   const DELETE_MOMENT = /* GraphQL */ `
     mutation ($input: DeleteMomentInput!) {
-      deleteMoment(input: $input)
+      deleteMoment(input: $input) {
+        state
+      }
     }
   `
   test('success', async () => {
@@ -144,7 +151,7 @@ describe('delete moment', () => {
       variables: { input: { id } },
     })
     expect(errors).toBeUndefined()
-    expect(data.deleteMoment).toBeTruthy()
+    expect(data.deleteMoment.state).toBe(MOMENT_STATE.archived)
   })
 })
 

@@ -1745,7 +1745,7 @@ export type GQLMutation = {
   deleteComment: GQLComment
   /** Remove a draft. */
   deleteDraft?: Maybe<Scalars['Boolean']['output']>
-  deleteMoment: Scalars['Boolean']['output']
+  deleteMoment: GQLMoment
   deleteTags?: Maybe<Scalars['Boolean']['output']>
   directImageUpload: GQLAsset
   /** Edit an article. */
@@ -3020,7 +3020,7 @@ export type GQLReport = GQLNode & {
   id: Scalars['ID']['output']
   reason: GQLReportReason
   reporter: GQLUser
-  target: GQLResponse
+  target: GQLNode
 }
 
 export type GQLReportConnection = GQLConnection & {
@@ -7414,7 +7414,7 @@ export type GQLMutationResolvers<
     RequireFields<GQLMutationDeleteDraftArgs, 'input'>
   >
   deleteMoment?: Resolver<
-    GQLResolversTypes['Boolean'],
+    GQLResolversTypes['Moment'],
     ParentType,
     ContextType,
     RequireFields<GQLMutationDeleteMomentArgs, 'input'>
@@ -8560,7 +8560,7 @@ export type GQLReportResolvers<
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   reason?: Resolver<GQLResolversTypes['ReportReason'], ParentType, ContextType>
   reporter?: Resolver<GQLResolversTypes['User'], ParentType, ContextType>
-  target?: Resolver<GQLResolversTypes['Response'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Node'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

@@ -217,7 +217,7 @@ export default /* GraphQL */ `
   type Report implements Node {
     id: ID!
     reporter: User!
-    target: Response!
+    target: Node!
     reason: ReportReason!
     createdAt: DateTime!
   }

@@ -80,7 +80,13 @@ describe('create moments', () => {
     expect(
       momentService.create({ content: 'test', assetIds: [asset.id] }, user)
     ).resolves.toBeDefined()
+
+    // empty content is allowed when there are assets
+    expect(
+      momentService.create({ content: '', assetIds: [asset.id] }, user)
+    ).resolves.toBeDefined()
   })
+
   test('active user will success', async () => {
     const moment = await momentService.create(data, user)
     expect(moment).toBeDefined()
@@ -130,16 +136,6 @@ describe('like/unklike moments', () => {
     )
     expect(momentService.like(moment.id, user)).rejects.toThrowError(
       ForbiddenByStateError
-    )
-  })
-  test('author will fail', async () => {
-    const author = { id: '1', state: USER_STATE.active }
-    const moment = await momentService.create(
-      { content: 'test', assetIds: [] },
-      { id: author.id, state: USER_STATE.active, userName: 'testuser' }
-    )
-    expect(momentService.like(moment.id, author)).rejects.toThrowError(
-      ForbiddenError
     )
   })
   test('archived moment will fail', async () => {

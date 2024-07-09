@@ -8,8 +8,8 @@ export default /* GraphQL */ `
     moment(input: MomentInput!): Moment
   }
   extend type Mutation {
-    putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:${POST_MOMENT_RATE_LIMIT}, period:300)
-    deleteMoment(input: DeleteMomentInput!): Boolean!
+    putMoment(input: PutMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @rateLimit(limit:${POST_MOMENT_RATE_LIMIT}, period:300) @logCache(type: "${NODE_TYPES.Moment}")
+    deleteMoment(input: DeleteMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
 
     likeMoment(input: LikeMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
     unlikeMoment(input: UnlikeMomentInput!): Moment! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Moment}")
