@@ -394,6 +394,9 @@ export default /* GraphQL */ `
     "Number of articles published by user"
     articleCount: Int!
 
+    "Number of moments posted by user"
+    momentCount: Int!
+
     "Number of comments posted by user."
     commentCount: Int! @auth(mode: "${AUTH_MODE.oauth}")
 

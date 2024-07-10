@@ -166,6 +166,7 @@ const GET_VIEWER_INFO = /* GraphQL */ `
       }
       status {
         state
+        momentCount
       }
     }
   }
@@ -480,11 +481,11 @@ describe('register and login functionarlities', () => {
       isAuth: true,
       connections,
     })
-    const { data } = await server.executeOperation({
+    const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_INFO,
     })
-    const info = _get(data, 'viewer.info')
-    expect(info.email).toEqual(defaultTestUser.email)
+    expect(errors).toBeUndefined()
+    expect(data.viewer.info.email).toEqual(defaultTestUser.email)
   })
 })
 

@@ -51,6 +51,7 @@ import isWalletAuth from './isWalletAuth'
 import latestWorks from './latestWorks'
 import Liker from './liker'
 import likerId from './liker/likerId'
+import momentCount from './momentCount'
 import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
 import { boost, restrictions, score } from './oss'
@@ -161,6 +162,7 @@ const user: {
   UserAnalytics,
   UserStatus: {
     articleCount,
+    momentCount,
     commentCount,
     unreadNoticeCount,
     unreadFollowing,
