@@ -166,11 +166,11 @@ describe('find and count campaigns', () => {
     expect(totalCount3).toBe(1)
   })
 })
-describe('find and count campaigns', () => {
+describe('find and count articles', () => {
   let campaign: Campaign
   let stages: CampaignStage[]
   let articles: Article[]
-  test('find with filterStates', async () => {
+  beforeAll(async () => {
     const user = await atomService.findUnique({
       table: 'user',
       where: { id: '1' },

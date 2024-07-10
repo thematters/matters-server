@@ -1,4 +1,10 @@
-import type { Connections, User } from 'definitions'
+import type {
+  Connections,
+  User,
+  Campaign,
+  CampaignStage,
+  Article,
+} from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -528,5 +534,93 @@ describe('query users campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.viewer.campaigns.totalCount).toBe(1)
+  })
+})
+
+describe('query users campaigns', () => {
+  const QUERY_CAMPAIGN_ARTICLES = /* GraphQL */ `
+    query (
+      $campaignInput: CampaignInput!
+      $articlesInput: CampaignArticlesInput!
+    ) {
+      campaign(input: $campaignInput) {
+        id
+        shortHash
+        ... on WritingChallenge {
+          articles(input: $articlesInput) {
+            totalCount
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  let campaign: Campaign
+  let stages: CampaignStage[]
+  let articles: Article[]
+  beforeAll(async () => {
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+    articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+    campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+    await campaignService.submitArticleToCampaign(
+      articles[1],
+      campaign.id,
+      stages[1].id
+    )
+  })
+  test('query campaign articles w/o filter', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN_ARTICLES,
+      variables: {
+        campaignInput: { shortHash: campaign.shortHash },
+        articlesInput: { first: 10 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign.articles.totalCount).toBe(2)
+  })
+  test('query campaign articles with stage filter', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const stageGlobalId = toGlobalId({
+      type: NODE_TYPES.CampaignStage,
+      id: stages[0].id,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN_ARTICLES,
+      variables: {
+        campaignInput: { shortHash: campaign.shortHash },
+        articlesInput: { first: 10, filter: { stage: stageGlobalId } },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign.articles.totalCount).toBe(1)
   })
 })
