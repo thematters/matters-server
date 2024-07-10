@@ -1,4 +1,5 @@
 import type { CustomQueueOpts } from './utils'
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   Connections,
   UserOAuthLikeCoin,
@@ -8,7 +9,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
 
 import {
   NOTICE_TYPE,
@@ -42,7 +42,7 @@ const logger = getLogger('queue-publication')
 
 export class PublicationQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
 
   public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
     this.connections = connections
@@ -111,7 +111,7 @@ export class PublicationQueue {
   /**
    * Publish Article
    */
-  private handlePublishArticle: Queue.ProcessCallbackFunction<unknown> = async (
+  private handlePublishArticle: ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {
@@ -581,17 +581,16 @@ export class PublicationQueue {
   //   }
   // }
 
-  private handleRefreshIPNSFeed: Queue.ProcessCallbackFunction<unknown> =
-    async (
-      job // use Promise based job processing instead of `done`
-    ) => {
-      const articleService = new ArticleService(this.connections)
-      return articleService.publishFeedToIPNS(
-        job.data as {
-          userName: string
-          numArticles: number
-          forceReplace?: boolean
-        }
-      )
-    }
+  private handleRefreshIPNSFeed: ProcessCallbackFunction<unknown> = async (
+    job // use Promise based job processing instead of `done`
+  ) => {
+    const articleService = new ArticleService(this.connections)
+    return articleService.publishFeedToIPNS(
+      job.data as {
+        userName: string
+        numArticles: number
+        forceReplace?: boolean
+      }
+    )
+  }
 }

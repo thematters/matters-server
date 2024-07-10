@@ -1,6 +1,5 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections } from 'definitions'
-
-import Queue from 'bull'
 
 import {
   PAYMENT_CURRENCY,
@@ -31,7 +30,7 @@ interface PaymentParams {
 
 export class PayoutQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   public constructor(connections: Connections) {
     this.connections = connections
     const [q, created] = getOrCreateQueue(QUEUE_NAME.payout)
@@ -88,7 +87,7 @@ export class PayoutQueue {
    * Payout handler.
    *
    */
-  private handlePayout: Queue.ProcessCallbackFunction<unknown> = async (
+  private handlePayout: ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {

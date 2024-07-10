@@ -1,7 +1,7 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections, EmailableUser } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 
 import {
@@ -26,7 +26,7 @@ interface PaymentParams {
 
 export class PayToByMattersQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
 
   public constructor(connections: Connections) {
     this.connections = connections
@@ -84,10 +84,7 @@ export class PayToByMattersQueue {
    * Pay-to handler.
    *
    */
-  private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (
-    job,
-    done
-  ) => {
+  private handlePayTo: ProcessCallbackFunction<unknown> = async (job, done) => {
     const paymentService = new PaymentService(this.connections)
     const userService = new UserService(this.connections)
     const atomService = new AtomService(this.connections)

@@ -1,6 +1,5 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections } from 'definitions'
-
-import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { getLogger } from 'common/logger'
@@ -16,7 +15,7 @@ interface AssetParams {
 
 export class AssetQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   public constructor(connections: Connections) {
     this.connections = connections
     const [q, created] = getOrCreateQueue(QUEUE_NAME.asset)
@@ -46,10 +45,7 @@ export class AssetQueue {
     this.q.process(QUEUE_JOB.deleteAsset, this.deleteAsset)
   }
 
-  private deleteAsset: Queue.ProcessCallbackFunction<unknown> = async (
-    job,
-    done
-  ) => {
+  private deleteAsset: ProcessCallbackFunction<unknown> = async (job, done) => {
     try {
       const { ids } = job.data as AssetParams
 

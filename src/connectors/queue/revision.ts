@@ -1,7 +1,7 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
 import _difference from 'lodash/difference'
 
 import {
@@ -37,7 +37,7 @@ interface RevisedArticleData {
 
 export class RevisionQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
 
   public constructor(connections: Connections) {
     this.connections = connections
@@ -68,7 +68,7 @@ export class RevisionQueue {
   /**
    * Publish revised article
    */
-  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
+  private handlePublishRevisedArticle: ProcessCallbackFunction<unknown> =
     async (job, done) => {
       const {
         articleId,
