@@ -1,3 +1,4 @@
+import type { Queue, ProcessPromiseFunction } from 'bull'
 import type {
   Connections,
   UserNotifySetting,
@@ -6,7 +7,6 @@ import type {
   PutNoticeParams,
 } from 'definitions'
 
-import Queue from 'bull'
 import { get } from 'lodash'
 
 import {
@@ -31,7 +31,7 @@ const logger = getLogger('service-notification')
 export class NotificationService {
   public mail: typeof mail
   public notice: Notice
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   private delay: number | undefined
   private connections: Connections
 
@@ -75,8 +75,9 @@ export class NotificationService {
       .join(':')}`
   }
 
-  private handleTrigger: Queue.ProcessCallbackFunction<unknown> = async (job) =>
-    this.__trigger(job.data as NotificationParams)
+  private handleTrigger: ProcessPromiseFunction<NotificationParams> = async (
+    job
+  ) => this.__trigger(job.data)
 
   private getNoticeParams = async (
     params: NotificationParams,
