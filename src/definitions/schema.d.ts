@@ -4105,6 +4105,8 @@ export type GQLUserStatus = {
   hasEmailLoginPassword: Scalars['Boolean']['output']
   /** Whether user already set payment password. */
   hasPaymentPassword: Scalars['Boolean']['output']
+  /** Number of moments posted by user */
+  momentCount: Scalars['Int']['output']
   /** Number of times of donations received by user */
   receivedDonationCount: Scalars['Int']['output']
   /** User role and access level. */
@@ -9514,6 +9516,7 @@ export type GQLUserStatusResolvers<
     ParentType,
     ContextType
   >
+  momentCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   receivedDonationCount?: Resolver<
     GQLResolversTypes['Int'],
     ParentType,
