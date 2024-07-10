@@ -100,42 +100,6 @@ export class CampaignService {
       .returning('*')
   }
 
-  public findAndCountAll = async (
-    { skip, take }: { skip: number; take: number },
-    {
-      filterStates,
-      filterUserId,
-    }: {
-      filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
-      filterUserId?: string
-    } = {
-      filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
-    }
-  ): Promise<[Campaign[], number]> => {
-    const knexRO = this.connections.knexRO
-    const records = await knexRO('campaign')
-      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .modify((builder) => {
-        if (filterUserId) {
-          builder
-            .join('campaign_user', 'campaign.id', 'campaign_user.campaign_id')
-            .where({
-              userId: filterUserId,
-              'campaign_user.state': CAMPAIGN_USER_STATE.succeeded,
-            })
-            .orderBy('campaign_user.id', 'desc')
-        } else {
-          builder.orderBy('campaign.id', 'desc')
-        }
-        if (filterStates) {
-          builder.whereIn('campaign.state', filterStates)
-        }
-      })
-      .limit(take)
-      .offset(skip)
-    return [records, records.length === 0 ? 0 : +records[0].totalCount]
-  }
-
   public apply = async (
     campaign: Pick<Campaign, 'id' | 'state' | 'applicationPeriod'>,
     user: Pick<User, 'id' | 'userName' | 'state'>,
@@ -173,6 +137,42 @@ export class CampaignService {
     })
   }
 
+  public findAndCountAll = async (
+    { skip, take }: { skip: number; take: number },
+    {
+      filterStates,
+      filterUserId,
+    }: {
+      filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
+      filterUserId?: string
+    } = {
+      filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
+    }
+  ): Promise<[Campaign[], number]> => {
+    const knexRO = this.connections.knexRO
+    const records = await knexRO('campaign')
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .modify((builder) => {
+        if (filterUserId) {
+          builder
+            .join('campaign_user', 'campaign.id', 'campaign_user.campaign_id')
+            .where({
+              userId: filterUserId,
+              'campaign_user.state': CAMPAIGN_USER_STATE.succeeded,
+            })
+            .orderBy('campaign_user.id', 'desc')
+        } else {
+          builder.orderBy('campaign.id', 'desc')
+        }
+        if (filterStates) {
+          builder.whereIn('campaign.state', filterStates)
+        }
+      })
+      .limit(take)
+      .offset(skip)
+    return [records, records.length === 0 ? 0 : +records[0].totalCount]
+  }
+
   public findAndCountParticipants = async (
     campaignId: string,
     { take, skip }: { take?: number; skip: number }
@@ -191,6 +191,31 @@ export class CampaignService {
     return [
       await this.models.userIdLoader.loadMany(
         records.map(({ userId }: { userId: string }) => userId)
+      ),
+      records.length === 0 ? 0 : +records[0].totalCount,
+    ]
+  }
+
+  public findAndCountArticles = async (
+    campaignId: string,
+    { take, skip }: { take: number; skip: number },
+    { filterStageId }: { filterStageId?: string } = {}
+  ): Promise<[Article[], number]> => {
+    const knexRO = this.connections.knexRO
+    const records = await knexRO('campaign_article')
+      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .where({ campaignId })
+      .modify((builder) => {
+        if (filterStageId) {
+          builder.where({ campaignStageId: filterStageId })
+        }
+      })
+      .orderBy('id', 'desc')
+      .offset(skip)
+      .limit(take)
+    return [
+      await this.models.articleIdLoader.loadMany(
+        records.map(({ articleId }: { articleId: string }) => articleId)
       ),
       records.length === 0 ? 0 : +records[0].totalCount,
     ]

@@ -4203,7 +4203,7 @@ export type GQLWritingChallenge = GQLCampaign &
   }
 
 export type GQLWritingChallengeArticlesArgs = {
-  input?: InputMaybe<GQLCampaignArticlesInput>
+  input: GQLCampaignArticlesInput
 }
 
 export type GQLWritingChallengeParticipantsArgs = {
@@ -9594,7 +9594,7 @@ export type GQLWritingChallengeResolvers<
     GQLResolversTypes['ArticleConnection'],
     ParentType,
     ContextType,
-    Partial<GQLWritingChallengeArticlesArgs>
+    RequireFields<GQLWritingChallengeArticlesArgs, 'input'>
   >
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   description?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
