@@ -1,3 +1,5 @@
+import { MINUTE } from './time'
+
 export const QUEUE_PRIORITY = {
   LOW: 20,
   NORMAL: 15,
@@ -32,6 +34,9 @@ export const QUEUE_JOB = {
 
   // Notification
   sendNotification: 'sendNotification',
+
+  // Campaign
+  approveCampaignApplication: 'approveCampaignApplication',
 }
 
 export const QUEUE_NAME = {
@@ -44,6 +49,7 @@ export const QUEUE_NAME = {
   revision: 'revision',
   asset: 'asset',
   notification: 'notification',
+  campaign: 'campaign',
 }
 
 export const QUEUE_CONCURRENCY = {
@@ -53,6 +59,7 @@ export const QUEUE_CONCURRENCY = {
   migration: 2,
   payToByBlockchain: 25,
   sendNotification: 100,
+  approveCampaignApplication: 2,
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {
@@ -64,4 +71,5 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
 
 export const QUEUE_DELAY = {
   sendNotification: 10000, // 10 seconds
+  approveCampaignApplication: 5 * MINUTE,
 }

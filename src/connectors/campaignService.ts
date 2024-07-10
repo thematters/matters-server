@@ -1,3 +1,4 @@
+import type { Queue, ProcessPromiseFunction } from 'bull'
 import type {
   Connections,
   ValueOf,
@@ -11,6 +12,10 @@ import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
   CAMPAIGN_USER_STATE,
+  QUEUE_NAME,
+  QUEUE_JOB,
+  QUEUE_CONCURRENCY,
+  QUEUE_DELAY,
 } from 'common/enums'
 import {
   ForbiddenByTargetStateError,
@@ -26,6 +31,7 @@ import {
   fromDatetimeRangeString,
 } from 'common/utils'
 import { AtomService } from 'connectors'
+import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
   name: string
@@ -35,10 +41,20 @@ interface Stage {
 export class CampaignService {
   private connections: Connections
   private models: AtomService
+  private q: Queue
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.models = new AtomService(connections)
+    const [queue, created] = getOrCreateQueue(QUEUE_NAME.campaign)
+    if (created) {
+      queue.process(
+        QUEUE_JOB.approveCampaignApplication,
+        QUEUE_CONCURRENCY.approveCampaignApplication,
+        this.handleApproval
+      )
+    }
+    this.q = queue
   }
 
   public createWritingChallenge = async ({
@@ -102,8 +118,7 @@ export class CampaignService {
 
   public apply = async (
     campaign: Pick<Campaign, 'id' | 'state' | 'applicationPeriod'>,
-    user: Pick<User, 'id' | 'userName' | 'state'>,
-    state: ValueOf<typeof CAMPAIGN_USER_STATE> = CAMPAIGN_USER_STATE.pending
+    user: Pick<User, 'id' | 'userName' | 'state'>
   ) => {
     if (campaign.state !== CAMPAIGN_STATE.active) {
       throw new ForbiddenByTargetStateError('campaign is not active')
@@ -124,17 +139,24 @@ export class CampaignService {
       throw new ForbiddenError('user has no username')
     }
 
-    const application = await this.models.findFirst({
+    let application = await this.models.findFirst({
       table: 'campaign_user',
       where: { campaignId: campaign.id, userId: user.id },
     })
     if (application) {
       return application
     }
-    return this.models.create({
+    application = await this.models.create({
       table: 'campaign_user',
-      data: { campaignId: campaign.id, userId: user.id, state },
+      data: {
+        campaignId: campaign.id,
+        userId: user.id,
+        state: CAMPAIGN_USER_STATE.pending,
+      },
     })
+    this.delayedApprove(application.id)
+
+    return application
   }
 
   public findAndCountAll = async (
@@ -328,5 +350,40 @@ export class CampaignService {
     if (periodStart && periodStart > now) {
       throw new ActionFailedError('stage not started')
     }
+  }
+
+  public approve = async (applicationId: string) => {
+    const application = await this.models.findUnique({
+      table: 'campaign_user',
+      where: { id: applicationId },
+    })
+    if (application.state === CAMPAIGN_USER_STATE.rejected) {
+      throw new ActionFailedError('can not approve rejected application')
+    }
+    if (application.state === CAMPAIGN_USER_STATE.succeeded) {
+      return application
+    }
+    return await this.models.update({
+      table: 'campaign_user',
+      where: { id: applicationId },
+      data: { state: CAMPAIGN_USER_STATE.succeeded },
+    })
+  }
+
+  private handleApproval: ProcessPromiseFunction<{
+    applicationId: string
+  }> = async (job) => {
+    const { applicationId } = job.data
+    await this.approve(applicationId)
+  }
+
+  private delayedApprove = async (applicationId: string) => {
+    return this.q.add(
+      QUEUE_JOB.sendNotification,
+      { applicationId },
+      {
+        delay: QUEUE_DELAY.approveCampaignApplication,
+      }
+    )
   }
 }

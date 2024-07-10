@@ -12,7 +12,6 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   CAMPAIGN_STATE,
-  CAMPAIGN_USER_STATE,
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
@@ -733,7 +732,8 @@ describe('query article campaigns', () => {
       table: 'user',
       where: { id: article.authorId },
     })
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
     await campaignService.submitArticleToCampaign(
       article,
       campaign.id,

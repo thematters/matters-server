@@ -153,11 +153,7 @@ describe('find and count campaigns', () => {
     expect(totalCount2).toBe(0)
 
     // applied and succeeded
-    await atomService.update({
-      table: 'campaign_user',
-      where: { id: application.id },
-      data: { state: CAMPAIGN_USER_STATE.succeeded },
-    })
+    await campaignService.approve(application.id)
     const [campaigns3, totalCount3] = await campaignService.findAndCountAll(
       { take: 10, skip: 0 },
       { filterUserId: user.id }
@@ -187,7 +183,8 @@ describe('find and count articles', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
     await campaignService.submitArticleToCampaign(
       articles[0],
       campaign.id,
@@ -280,7 +277,8 @@ describe('article submission', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
 
     campaignNotApplied = await campaignService.createWritingChallenge({
       ...campaignData,
