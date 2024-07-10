@@ -84,7 +84,7 @@ describe('create writing_challenge campaign', () => {
   })
 })
 
-describe('find and count', () => {
+describe('find and count campaigns', () => {
   let pendingCampaign: Campaign
   let activeCampaign: Campaign
   let finishedCampaign: Campaign
@@ -164,6 +164,58 @@ describe('find and count', () => {
     )
     expect(campaigns3.length).toBe(1)
     expect(totalCount3).toBe(1)
+  })
+})
+describe('find and count articles', () => {
+  let campaign: Campaign
+  let stages: CampaignStage[]
+  let articles: Article[]
+  beforeAll(async () => {
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+    articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+    campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+    await campaignService.submitArticleToCampaign(
+      articles[1],
+      campaign.id,
+      stages[1].id
+    )
+  })
+  test('find all', async () => {
+    const [_articles, totalCount] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10, skip: 0 }
+    )
+    expect(_articles.length).toBe(2)
+    expect(totalCount).toBe(2)
+  })
+  test('find with filterStageId', async () => {
+    const [_articles, totalCount] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10, skip: 0 },
+      { filterStageId: stages[0].id }
+    )
+    expect(_articles.length).toBe(1)
+    expect(_articles[0].id).toBe(articles[0].id)
+    expect(totalCount).toBe(1)
   })
 })
 

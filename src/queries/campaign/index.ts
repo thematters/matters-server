@@ -4,6 +4,7 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId, fromDatetimeRangeString } from 'common/utils'
 
 import applicationState from './applicationState'
+import articles from './articles'
 import campaign from './campaign'
 import campaigns from './campaigns'
 import description from './description'
@@ -40,6 +41,7 @@ const schema: GQLResolvers = {
     state: ({ state }) => state,
     applicationState,
     participants,
+    articles,
   },
 
   CampaignStage: {

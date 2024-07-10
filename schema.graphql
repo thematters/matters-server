@@ -936,7 +936,7 @@ type WritingChallenge implements Node & Campaign {
   stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: ConnectionArgs!): UserConnection!
-  articles(input: CampaignArticlesInput): ArticleConnection!
+  articles(input: CampaignArticlesInput!): ArticleConnection!
   applicationState: CampaignApplicationState
 }
 

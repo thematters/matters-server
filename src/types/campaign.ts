@@ -90,7 +90,7 @@ export default /* GraphQL */ `
 
     state: CampaignState!
     participants(input: ConnectionArgs!): UserConnection!
-    articles(input: CampaignArticlesInput): ArticleConnection!
+    articles(input: CampaignArticlesInput!): ArticleConnection!
 
     applicationState: CampaignApplicationState
   }
