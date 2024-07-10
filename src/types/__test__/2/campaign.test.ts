@@ -30,6 +30,16 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
+const userId = '1'
+const campaignData = {
+  name: 'test',
+  description: 'test',
+  link: 'https://test.com',
+  applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')] as const,
+  writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
+  creatorId: '1',
+}
+
 describe('create or update wrting challenges', () => {
   const PUT_WRITING_CHALLENGE = /* GraphQL */ `
     mutation ($input: PutWritingChallengeInput!) {
@@ -332,7 +342,6 @@ describe('query campaigns', () => {
   let pendingCampaignShortHash: string
   let activeCampaignShortHash: string
   beforeAll(async () => {
-    const userId = '1'
     const asset = await systemService.findAssetOrCreateByPath(
       {
         uuid: v4(),
@@ -343,24 +352,14 @@ describe('query campaigns', () => {
       '1',
       userId
     )
-    const campaignData = {
-      name: 'test',
-      description: 'test',
-      link: 'https://test.com',
-      coverId: asset.id,
-      applicationPeriod: [
-        new Date('2024-01-01'),
-        new Date('2024-01-02'),
-      ] as const,
-      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
-      creatorId: userId,
-    }
     const pendingCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
+      coverId: asset.id,
       state: CAMPAIGN_STATE.pending,
     })
     const activeCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
+      coverId: asset.id,
       state: CAMPAIGN_STATE.active,
     })
     pendingCampaignShortHash = pendingCampaign.shortHash
@@ -433,12 +432,7 @@ describe('application', () => {
   `
   test('apply campaign successfully', async () => {
     const campaign = await campaignService.createWritingChallenge({
-      name: 'test',
-      description: 'test',
-      link: 'https://test.com',
-      applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')],
-      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')],
-      creatorId: '1',
+      ...campaignData,
       state: CAMPAIGN_STATE.active,
     })
     const user = await atomService.findUnique({
@@ -488,5 +482,51 @@ describe('application', () => {
     expect(
       updatedData.updateCampaignApplicationState.participants.edges[0].node.id
     ).toBe(userGlobalId)
+  })
+})
+
+describe('query users campaigns', () => {
+  const GET_VIEWER_CAMPAIGNS = /* GraphQL */ `
+    query {
+      viewer {
+        id
+        campaigns(input: { first: 10 }) {
+          totalCount
+          edges {
+            node {
+              id
+              ... on WritingChallenge {
+                applicationState
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  let user: User
+  beforeAll(async () => {
+    user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '2' },
+    })
+    const campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+  })
+
+  test('query user campaigns successfully', async () => {
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: user },
+    })
+    const { data, errors } = await server.executeOperation({
+      query: GET_VIEWER_CAMPAIGNS,
+    })
+    expect(errors).toBeUndefined()
+    expect(data.viewer.campaigns.totalCount).toBe(1)
   })
 })

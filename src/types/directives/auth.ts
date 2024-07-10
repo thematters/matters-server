@@ -41,7 +41,7 @@ export const authDirective = (directiveName = 'auth') => ({
 
               switch (viewer.authMode) {
                 // "oauth" can only access granted fields
-                case AUTH_MODE.oauth:
+                case AUTH_MODE.oauth: {
                   if (!isSelf) {
                     break
                   }
@@ -57,6 +57,7 @@ export const authDirective = (directiveName = 'auth') => ({
                     return await resolve(root, args, context, info)
                   }
                   break
+                }
 
                 // "user" can only access own fields
                 case AUTH_MODE.user:
@@ -81,7 +82,7 @@ export const authDirective = (directiveName = 'auth') => ({
             }
 
             switch (viewer.authMode) {
-              case AUTH_MODE.oauth:
+              case AUTH_MODE.oauth: {
                 const requireMutationScope = [
                   'mutation',
                   requireGroup,
@@ -94,6 +95,7 @@ export const authDirective = (directiveName = 'auth') => ({
                   return await resolve(root, args, context, info)
                 }
                 break
+              }
               case AUTH_MODE.user:
               case AUTH_MODE.admin:
                 return await resolve(root, args, context, info)

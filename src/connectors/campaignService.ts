@@ -102,17 +102,33 @@ export class CampaignService {
 
   public findAndCountAll = async (
     { skip, take }: { skip: number; take: number },
-    options = {
-      excludeStates: [CAMPAIGN_STATE.archived, CAMPAIGN_STATE.pending],
+    {
+      filterStates,
+      filterUserId,
+    }: {
+      filterStates?: Array<ValueOf<typeof CAMPAIGN_STATE>>
+      filterUserId?: string
+    } = {
+      filterStates: [CAMPAIGN_STATE.active, CAMPAIGN_STATE.finished],
     }
   ): Promise<[Campaign[], number]> => {
     const knexRO = this.connections.knexRO
     const records = await knexRO('campaign')
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .orderBy('id', 'desc')
       .modify((builder) => {
-        if (options.excludeStates) {
-          builder.whereNotIn('state', options.excludeStates)
+        if (filterUserId) {
+          builder
+            .join('campaign_user', 'campaign.id', 'campaign_user.campaign_id')
+            .where({
+              userId: filterUserId,
+              'campaign_user.state': CAMPAIGN_USER_STATE.succeeded,
+            })
+            .orderBy('campaign_user.id', 'desc')
+        } else {
+          builder.orderBy('campaign.id', 'desc')
+        }
+        if (filterStates) {
+          builder.whereIn('campaign.state', filterStates)
         }
       })
       .limit(take)

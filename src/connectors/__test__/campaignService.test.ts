@@ -84,45 +84,87 @@ describe('create writing_challenge campaign', () => {
   })
 })
 
-test('find all campaigns', async () => {
-  const pendingCampaign = await campaignService.createWritingChallenge({
-    ...campaignData,
-    state: CAMPAIGN_STATE.pending,
+describe('find and count', () => {
+  let pendingCampaign: Campaign
+  let activeCampaign: Campaign
+  let finishedCampaign: Campaign
+  let archivedCampaign: Campaign
+  beforeAll(async () => {
+    pendingCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.pending,
+    })
+    activeCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    finishedCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.finished,
+    })
+    archivedCampaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.archived,
+    })
   })
-  const activeCampaign = await campaignService.createWritingChallenge({
-    ...campaignData,
-    state: CAMPAIGN_STATE.active,
-  })
-  const finishedCampaign = await campaignService.createWritingChallenge({
-    ...campaignData,
-    state: CAMPAIGN_STATE.finished,
-  })
-  const archivedCampaign = await campaignService.createWritingChallenge({
-    ...campaignData,
-    state: CAMPAIGN_STATE.archived,
-  })
-  const [campaigns1, totalCount1] = await campaignService.findAndCountAll(
-    { take: 10, skip: 0 },
-    { excludeStates: [] }
-  )
-  const campaignIds1 = campaigns1.map((c) => c.id)
-  expect(campaigns1.length).toBeGreaterThan(0)
-  expect(totalCount1).toBeGreaterThan(0)
-  expect(campaignIds1).toContain(pendingCampaign.id)
-  expect(campaignIds1).toContain(activeCampaign.id)
-  expect(campaignIds1).toContain(finishedCampaign.id)
-  expect(campaignIds1).toContain(archivedCampaign.id)
+  test('find with filterStates', async () => {
+    const [campaigns1, totalCount1] = await campaignService.findAndCountAll(
+      { take: 10, skip: 0 },
+      { filterStates: undefined }
+    )
+    const campaignIds1 = campaigns1.map((c) => c.id)
+    expect(campaigns1.length).toBeGreaterThan(0)
+    expect(totalCount1).toBeGreaterThan(0)
+    expect(campaignIds1).toContain(pendingCampaign.id)
+    expect(campaignIds1).toContain(activeCampaign.id)
+    expect(campaignIds1).toContain(finishedCampaign.id)
+    expect(campaignIds1).toContain(archivedCampaign.id)
 
-  const [campaigns2, totalCount2] = await campaignService.findAndCountAll({
-    take: 10,
-    skip: 0,
-  })
-  const campaignIds2 = campaigns2.map((c) => c.id)
+    const [campaigns2, totalCount2] = await campaignService.findAndCountAll({
+      take: 10,
+      skip: 0,
+    })
+    const campaignIds2 = campaigns2.map((c) => c.id)
 
-  expect(campaigns2.length).toBeLessThan(campaigns1.length)
-  expect(totalCount2).toBeLessThan(totalCount1)
-  expect(campaignIds2).not.toContain(archivedCampaign.id)
-  expect(campaignIds2).not.toContain(pendingCampaign.id)
+    expect(campaigns2.length).toBeLessThan(campaigns1.length)
+    expect(totalCount2).toBeLessThan(totalCount1)
+    expect(campaignIds2).not.toContain(archivedCampaign.id)
+    expect(campaignIds2).not.toContain(pendingCampaign.id)
+  })
+  test('find with filterUserId', async () => {
+    const user = await atomService.findFirst({
+      table: 'user',
+      where: { state: USER_STATE.active },
+    })
+    const [campaigns, totalCount] = await campaignService.findAndCountAll(
+      { take: 10, skip: 0 },
+      { filterUserId: user.id }
+    )
+    expect(campaigns.length).toBe(0)
+    expect(totalCount).toBe(0)
+
+    // applied but pending
+    const application = await campaignService.apply(activeCampaign, user)
+    const [campaigns2, totalCount2] = await campaignService.findAndCountAll(
+      { take: 10, skip: 0 },
+      { filterUserId: user.id }
+    )
+    expect(campaigns2.length).toBe(0)
+    expect(totalCount2).toBe(0)
+
+    // applied and succeeded
+    await atomService.update({
+      table: 'campaign_user',
+      where: { id: application.id },
+      data: { state: CAMPAIGN_USER_STATE.succeeded },
+    })
+    const [campaigns3, totalCount3] = await campaignService.findAndCountAll(
+      { take: 10, skip: 0 },
+      { filterUserId: user.id }
+    )
+    expect(campaigns3.length).toBe(1)
+    expect(totalCount3).toBe(1)
+  })
 })
 
 describe('application', () => {
@@ -167,8 +209,8 @@ describe('article submission', () => {
   let article: Article
   let campaign: Campaign
   let stages: CampaignStage[]
-  let campaignNotApplyed: Campaign
-  let stagesNotApplyed: CampaignStage[]
+  let campaignNotApplied: Campaign
+  let stagesNotApplied: CampaignStage[]
   beforeAll(async () => {
     user = await atomService.findFirst({
       table: 'user',
@@ -188,12 +230,12 @@ describe('article submission', () => {
     ])
     await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
 
-    campaignNotApplyed = await campaignService.createWritingChallenge({
+    campaignNotApplied = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,
     })
-    stagesNotApplyed = await campaignService.updateStages(
-      campaignNotApplyed.id,
+    stagesNotApplied = await campaignService.updateStages(
+      campaignNotApplied.id,
       [{ name: 'stage1' }, { name: 'stage2' }]
     )
   })
@@ -201,8 +243,8 @@ describe('article submission', () => {
     expect(
       campaignService.updateArticleCampaigns(article, [
         {
-          campaignId: campaignNotApplyed.id,
-          campaignStageId: stagesNotApplyed[0].id,
+          campaignId: campaignNotApplied.id,
+          campaignStageId: stagesNotApplied[0].id,
         },
       ])
     ).rejects.toThrowError()

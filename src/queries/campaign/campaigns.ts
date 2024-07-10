@@ -16,7 +16,7 @@ const resolver: GQLQueryResolvers['campaigns'] = async (
     }
     const [campaigns, totalCount] = await campaignService.findAndCountAll(
       { take, skip },
-      { excludeStates: [] }
+      { filterStates: undefined }
     )
     return connectionFromArray(campaigns, input, totalCount)
   } else {

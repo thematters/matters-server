@@ -695,7 +695,7 @@ export type GQLCampaign = {
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
 export type GQLCampaignArticlesFilter = {
-  stage: Scalars['String']['input']
+  stage: Scalars['ID']['input']
 }
 
 export type GQLCampaignArticlesInput = {
@@ -3742,6 +3742,8 @@ export type GQLUser = GQLNode & {
   avatar?: Maybe<Scalars['String']['output']>
   /** Users that blocked by current user. */
   blockList: GQLUserConnection
+  /** active applied campaigns */
+  campaigns: GQLCampaignConnection
   /** collections authored by current user. */
   collections: GQLCollectionConnection
   /** Articles current user commented on */
@@ -3806,6 +3808,10 @@ export type GQLUserArticlesArgs = {
 }
 
 export type GQLUserBlockListArgs = {
+  input: GQLConnectionArgs
+}
+
+export type GQLUserCampaignsArgs = {
   input: GQLConnectionArgs
 }
 
@@ -9074,6 +9080,12 @@ export type GQLUserResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLUserBlockListArgs, 'input'>
+  >
+  campaigns?: Resolver<
+    GQLResolversTypes['CampaignConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLUserCampaignsArgs, 'input'>
   >
   collections?: Resolver<
     GQLResolversTypes['CollectionConnection'],

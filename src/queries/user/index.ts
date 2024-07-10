@@ -30,6 +30,7 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import campaigns from './campaigns'
 import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
 import collections from './collections'
@@ -136,6 +137,7 @@ const user: {
     subscribedCircles,
     tags: tagsUsageRecommendation,
     writings,
+    campaigns,
   },
   UserInfo: {
     ipnsKey,
