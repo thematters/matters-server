@@ -846,7 +846,7 @@ export default /* GraphQL */ `
   }
 
   input ToggleUsersBadgeInput {
-    ids: [ID!]
+    ids: [ID!]!
     type: BadgeType!
     enabled: Boolean!
   }

@@ -3483,7 +3483,7 @@ export type GQLToggleSeedingUsersInput = {
 
 export type GQLToggleUsersBadgeInput = {
   enabled: Scalars['Boolean']['input']
-  ids?: InputMaybe<Array<Scalars['ID']['input']>>
+  ids: Array<Scalars['ID']['input']>
   type: GQLBadgeType
 }
 
