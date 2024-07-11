@@ -8,6 +8,8 @@ import type {
   Article,
 } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
 import {
   CAMPAIGN_TYPE,
   CAMPAIGN_STATE,
@@ -16,6 +18,7 @@ import {
   QUEUE_JOB,
   QUEUE_CONCURRENCY,
   QUEUE_DELAY,
+  NODE_TYPES,
 } from 'common/enums'
 import {
   ForbiddenByTargetStateError,
@@ -363,11 +366,17 @@ export class CampaignService {
     if (application.state === CAMPAIGN_USER_STATE.succeeded) {
       return application
     }
-    return await this.models.update({
+    const updated = await this.models.update({
       table: 'campaign_user',
       where: { id: applicationId },
       data: { state: CAMPAIGN_USER_STATE.succeeded },
     })
+
+    invalidateFQC({
+      node: { type: NODE_TYPES.Campaign, id: updated.id },
+      redis: this.connections.redis,
+    })
+    return updated
   }
 
   private handleApproval: ProcessPromiseFunction<{
