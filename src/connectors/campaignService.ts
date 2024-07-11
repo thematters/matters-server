@@ -19,6 +19,7 @@ import {
   QUEUE_CONCURRENCY,
   QUEUE_DELAY,
   NODE_TYPES,
+  USER_STATE,
 } from 'common/enums'
 import {
   ForbiddenByTargetStateError,
@@ -27,6 +28,7 @@ import {
   CampaignNotFoundError,
   CampaignStageNotFoundError,
   ActionFailedError,
+  UserInputError,
 } from 'common/errors'
 import {
   shortHash,
@@ -377,6 +379,60 @@ export class CampaignService {
       redis: this.connections.redis,
     })
     return updated
+  }
+
+  public findGrandSlamUsers = async (
+    campaignId: string,
+    stageIds?: string[]
+  ) => {
+    const knexRO = this.connections.knexRO
+    const campaignStagesId = (
+      await knexRO('campaign_stage').where({ campaignId }).select('id')
+    ).map(({ id }) => id)
+
+    if (
+      stageIds &&
+      stageIds.length > 0 &&
+      !stageIds.every((id) => campaignStagesId.includes(id))
+    ) {
+      throw new UserInputError('stage not found in campaign')
+    }
+    const _stageIds = stageIds || campaignStagesId
+
+    // find user, stage pairs that have submitted articles to needed stages in right period
+    const base = knexRO('campaign_article')
+      .select('article.author_id', 'campaign_stage_id')
+      .join('article', 'article.id', 'campaign_article.article_id')
+      .join(
+        'campaign_stage',
+        'campaign_stage.id',
+        'campaign_article.campaign_stage_id'
+      )
+      .join('campaign_user', 'campaign_user.user_id', 'article.author_id')
+      .join('user', 'user.id', 'article.author_id')
+      .where({
+        'campaign_article.campaign_id': campaignId,
+        'campaign_user.state': CAMPAIGN_USER_STATE.succeeded,
+        'user.state': USER_STATE.active,
+      })
+      .whereIn('campaign_stage.id', _stageIds)
+      .where(
+        'campaign_stage.period',
+        '@>',
+        knexRO.ref('campaign_article.created_at')
+      )
+      .groupBy('article.author_id', 'campaign_stage_id')
+      .having(knexRO.raw('count(1)'), '>', 0)
+
+    // find users that have submitted articles to all needed stages
+    const grandSlamUserIds = (
+      await knexRO(base.as('t'))
+        .select('author_id')
+        .groupBy('author_id')
+        .having(knexRO.raw('count(1)'), '=', _stageIds.length)
+    ).map(({ authorId }) => authorId)
+
+    return this.models.userIdLoader.loadMany(grandSlamUserIds)
   }
 
   private handleApproval: ProcessPromiseFunction<{
