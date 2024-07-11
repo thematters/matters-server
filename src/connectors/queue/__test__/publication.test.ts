@@ -1,12 +1,7 @@
 import type { Connections } from 'definitions'
 import type { Knex } from 'knex'
 
-import {
-  ARTICLE_STATE,
-  PUBLISH_STATE,
-  CAMPAIGN_STATE,
-  CAMPAIGN_USER_STATE,
-} from 'common/enums'
+import { ARTICLE_STATE, PUBLISH_STATE, CAMPAIGN_STATE } from 'common/enums'
 import { AtomService, CampaignService } from 'connectors'
 import { PublicationQueue } from 'connectors/queue'
 
@@ -120,7 +115,8 @@ const createPendingDraft = async () => {
     { name: 'stage1' },
   ])
   const user = await atomService.userIdLoader.load('1')
-  await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+  const application = await campaignService.apply(campaign, user)
+  await campaignService.approve(application.id)
 
   return {
     draft: await atomService.create({

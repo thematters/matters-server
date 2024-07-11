@@ -1,6 +1,5 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections, PunishRecord } from 'definitions'
-
-import Queue from 'bull'
 
 import {
   OFFICIAL_NOTICE_EXTEND_TYPE,
@@ -24,7 +23,7 @@ interface ArchiveUserData {
 
 export class UserQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   public constructor(connections: Connections) {
     this.connections = connections
     const [q, created] = getOrCreateQueue(QUEUE_NAME.user)
@@ -93,10 +92,7 @@ export class UserQueue {
   /**
    * Unban users.
    */
-  private unbanUsers: Queue.ProcessCallbackFunction<unknown> = async (
-    job,
-    done
-  ) => {
+  private unbanUsers: ProcessCallbackFunction<unknown> = async (job, done) => {
     const userService = new UserService(this.connections)
     const atomService = new AtomService(this.connections)
     const notificationService = new NotificationService(this.connections)

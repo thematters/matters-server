@@ -1,3 +1,4 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   EmailableUser,
   Connections,
@@ -6,7 +7,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
 
@@ -51,7 +51,7 @@ interface PaymentParams {
 
 export class PayToByBlockchainQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   private slackService: InstanceType<typeof SlackService>
   private delay: number
   private attempt: number
@@ -154,7 +154,7 @@ export class PayToByBlockchainQueue {
    * 2. Mark tx as failed if blockchain tx or tx is reverted;
    * 3. Skip to process if tx is not found or mined;
    */
-  private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
+  private handlePayTo: ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
     const { txId } = data
 
@@ -286,33 +286,34 @@ export class PayToByBlockchainQueue {
    * 2. Upsert `blockchain_transaction` if needed;
    * 3. Upsert `transaction` if needed;
    */
-  private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
-    async (_) => {
-      let syncedBlockNum: { [key: string]: number } = {}
+  private handleSyncCurationEvents: ProcessCallbackFunction<unknown> = async (
+    _
+  ) => {
+    let syncedBlockNum: { [key: string]: number } = {}
 
-      ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
-        // FIXME: pause support for the Polygon testnet
-        // @see {src/common/enums/payment.ts:L59}
-        if (chain === BLOCKCHAIN.Polygon && !isProd) {
-          return
-        }
+    ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
+      // FIXME: pause support for the Polygon testnet
+      // @see {src/common/enums/payment.ts:L59}
+      if (chain === BLOCKCHAIN.Polygon && !isProd) {
+        return
+      }
 
-        try {
-          const blockNum = await this._handleSyncCurationEvents(chain)
-          syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
-        } catch (error) {
-          this.slackService.sendQueueMessage({
-            data: { error },
-            title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-            message: `'Failed to sync ${chain} curation events`,
-            state: SLACK_MESSAGE_STATE.failed,
-          })
-          throw error
-        }
-      })
+      try {
+        const blockNum = await this._handleSyncCurationEvents(chain)
+        syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
+      } catch (error) {
+        this.slackService.sendQueueMessage({
+          data: { error },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `'Failed to sync ${chain} curation events`,
+          state: SLACK_MESSAGE_STATE.failed,
+        })
+        throw error
+      }
+    })
 
-      return syncedBlockNum
-    }
+    return syncedBlockNum
+  }
 
   private _handleSyncCurationEvents = async (chain: GQLChain) => {
     const atomService = new AtomService(this.connections)

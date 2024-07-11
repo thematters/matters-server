@@ -3,12 +3,7 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { AtomService, CampaignService } from 'connectors'
-import {
-  ARTICLE_LICENSE_TYPE,
-  NODE_TYPES,
-  CAMPAIGN_STATE,
-  CAMPAIGN_USER_STATE,
-} from 'common/enums'
+import { ARTICLE_LICENSE_TYPE, NODE_TYPES, CAMPAIGN_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import {
@@ -559,7 +554,8 @@ describe('put draft', () => {
     ])
     const atomService = new AtomService(connections)
     const user = await atomService.userIdLoader.load('1')
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
 
     const campaignGlobalId = toGlobalId({
       type: NODE_TYPES.Campaign,

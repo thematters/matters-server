@@ -1,3 +1,4 @@
+import type { Queue } from 'bull'
 import type { Connections } from 'definitions'
 
 import { makeSummary } from '@matters/ipns-site-generator'
@@ -5,7 +6,6 @@ import {
   normalizeArticleHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
-import Queue from 'bull'
 
 import {
   ASSET_TYPE,
@@ -34,7 +34,7 @@ const logger = getLogger('queue-migration')
 
 export class MigrationQueue {
   private connections: Connections
-  private q: InstanceType<typeof Queue>
+  private q: Queue
   public constructor(connections: Connections) {
     this.connections = connections
     const [q, created] = getOrCreateQueue(QUEUE_NAME.migration)

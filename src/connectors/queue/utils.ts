@@ -1,3 +1,5 @@
+import type { Queue as QueueClass } from 'bull'
+
 import Queue, { RateLimiter } from 'bull'
 import Redis from 'ioredis'
 
@@ -26,7 +28,7 @@ const queueMap = new Map()
 export const getOrCreateQueue = (
   queueName: string,
   customOpts?: CustomQueueOpts
-): [InstanceType<typeof Queue>, boolean] => {
+): [QueueClass, boolean] => {
   const _queueName = isTest
     ? `test-${queueName}-${genRandomString()}`
     : queueName

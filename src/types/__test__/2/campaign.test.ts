@@ -520,7 +520,8 @@ describe('query users campaigns', () => {
       ...campaignData,
       state: CAMPAIGN_STATE.active,
     })
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
   })
 
   test('query user campaigns successfully', async () => {
@@ -579,7 +580,8 @@ describe('query users campaigns', () => {
       { name: 'stage1' },
       { name: 'stage2' },
     ])
-    await campaignService.apply(campaign, user, CAMPAIGN_USER_STATE.succeeded)
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
     await campaignService.submitArticleToCampaign(
       articles[0],
       campaign.id,
