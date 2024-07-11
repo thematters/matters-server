@@ -647,6 +647,7 @@ export type GQLBadge = {
 export type GQLBadgeType =
   | 'architect'
   | 'golden_motor'
+  | 'grand_slam'
   | 'nomad1'
   | 'nomad2'
   | 'nomad3'

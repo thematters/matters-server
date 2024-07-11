@@ -3127,6 +3127,7 @@ enum BadgeType {
   seed
   golden_motor
   architect
+  grand_slam
   nomad1
   nomad2
   nomad3
