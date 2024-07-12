@@ -515,11 +515,6 @@ export class Notice extends BaseService<NoticeDB> {
     return noticeSettingMap[event]
   }
 
-  public markAllNoticesAsRead = async (userId: string) =>
-    this.knex('notice')
-      .where({ recipientId: userId, unread: true })
-      .update({ unread: false })
-
   public countNotice = async ({
     userId,
     unread,

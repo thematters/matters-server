@@ -374,7 +374,7 @@ describe('update notices', () => {
       .from('notice')
     expect(notices.length).not.toBe(0)
 
-    await notificationService.notice.markAllNoticesAsRead(recipientId)
+    await notificationService.markAllNoticesAsRead(recipientId)
 
     const readNotices = await connections.knex
       .select()

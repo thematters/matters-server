@@ -310,4 +310,11 @@ export class NotificationService {
       return
     }
   }
+
+  public markAllNoticesAsRead = async (userId: string) => {
+    const knex = this.connections.knex
+    return knex('notice')
+      .where({ recipientId: userId, unread: true })
+      .update({ unread: false })
+  }
 }
