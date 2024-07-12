@@ -1,5 +1,7 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import _uniq from 'lodash/uniq'
+
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
@@ -8,15 +10,12 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
   { input: { ids, type, enabled } },
   { dataSources: { atomService } }
 ) => {
-  if (!ids || ids.length === 0) {
+  if (ids.length === 0) {
     throw new UserInputError('"ids" is required')
-  }
-  if (typeof enabled !== 'boolean') {
-    throw new UserInputError('"enabled" is required')
   }
 
   const table = 'user_badge'
-  const userIds = ids.map((id) => fromGlobalId(id).id) // .filter(Boolean)
+  const userIds = _uniq(ids.map((id) => fromGlobalId(id).id))
 
   let level = 0
   switch (type) {
@@ -51,8 +50,6 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
       })
     })
   )
-
-  // notifications TODO for Nomad Campaign
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

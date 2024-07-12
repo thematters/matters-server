@@ -846,7 +846,7 @@ export default /* GraphQL */ `
   }
 
   input ToggleUsersBadgeInput {
-    ids: [ID!]
+    ids: [ID!]!
     type: BadgeType!
     enabled: Boolean!
   }
@@ -895,7 +895,7 @@ export default /* GraphQL */ `
     seed
     golden_motor
     architect
-
+    grand_slam
     # can only have 1 of the 4 levels of nomad badges
     nomad1
     nomad2

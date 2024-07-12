@@ -647,6 +647,7 @@ export type GQLBadge = {
 export type GQLBadgeType =
   | 'architect'
   | 'golden_motor'
+  | 'grand_slam'
   | 'nomad1'
   | 'nomad2'
   | 'nomad3'
@@ -3482,7 +3483,7 @@ export type GQLToggleSeedingUsersInput = {
 
 export type GQLToggleUsersBadgeInput = {
   enabled: Scalars['Boolean']['input']
-  ids?: InputMaybe<Array<Scalars['ID']['input']>>
+  ids: Array<Scalars['ID']['input']>
   type: GQLBadgeType
 }
 

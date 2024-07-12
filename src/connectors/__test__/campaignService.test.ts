@@ -25,7 +25,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await closeConnections(connections)
 })
-
 const campaignData = {
   name: 'test',
   description: 'test',
@@ -326,5 +325,110 @@ describe('article submission', () => {
       where: { articleId: article.id },
     })
     expect(campaignArticle3).toBeUndefined()
+  })
+})
+
+describe('find grand_slam users', () => {
+  let campaign: Campaign
+  let stages: CampaignStage[]
+  beforeAll(async () => {
+    campaign = await campaignService.createWritingChallenge({
+      ...campaignData,
+      state: CAMPAIGN_STATE.active,
+    })
+    stages = await campaignService.updateStages(campaign.id, [
+      {
+        name: 'stage1',
+        period: [
+          new Date('2010-01-01 00:01'),
+          new Date('2010-01-02 00:01'),
+        ] as const,
+      },
+      {
+        name: 'stage2',
+        period: [
+          new Date('2010-01-02 00:01'),
+          new Date('2010-01-03 00:01'),
+        ] as const,
+      },
+      {
+        name: 'stage3',
+        period: [
+          new Date('2010-01-03 00:01'),
+          new Date('2010-01-04 00:01'),
+        ] as const,
+      },
+      { name: 'after' },
+    ])
+  })
+  test('zero articles', async () => {
+    const users = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+    ])
+    expect(users.length).toBe(0)
+  })
+  test('only find users that have submitted articles to all needed stages', async () => {
+    const user = await atomService.findUnique({
+      table: 'user',
+      where: { id: '1' },
+    })
+
+    const application = await campaignService.apply(campaign, user)
+    await campaignService.approve(application.id)
+
+    const articles = await atomService.findMany({
+      table: 'article',
+      where: { authorId: user.id },
+    })
+
+    // wrong submission time
+    const submission0 = await campaignService.submitArticleToCampaign(
+      articles[0],
+      campaign.id,
+      stages[0].id
+    )
+    const submission1 = await campaignService.submitArticleToCampaign(
+      articles[1],
+      campaign.id,
+      stages[1].id
+    )
+    const users1 = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+    ])
+    expect(users1.length).toBe(0)
+
+    // not enough stages
+    await atomService.update({
+      table: 'campaign_article',
+      where: { id: submission0.id },
+      data: { createdAt: new Date('2010-01-01 00:02') },
+    })
+    const users2 = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+    ])
+    expect(users2.length).toBe(0)
+
+    // all submission is correct
+    await atomService.update({
+      table: 'campaign_article',
+      where: { id: submission1.id },
+      data: { createdAt: new Date('2010-01-02 00:02') },
+    })
+    const users3 = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+    ])
+    expect(users3.length).toBe(1)
+
+    // not enough stages
+    const users4 = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+      stages[2].id,
+    ])
+    expect(users4.length).toBe(0)
   })
 })
