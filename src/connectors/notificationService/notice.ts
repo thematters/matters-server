@@ -4,12 +4,10 @@ import type {
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
-  NoticeItem,
   NoticeUserId,
   NotificationEntity,
   NotificationType,
   PutNoticeParams,
-  User,
   Connections,
   UserNotifySetting,
   LANGUAGES,
@@ -23,7 +21,6 @@ import {
   BUNDLED_NOTICE_TYPE,
   NOTICE_TYPE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
-  MONTH,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
 import {
@@ -449,63 +446,6 @@ export class Notice extends BaseService<NoticeDB> {
     }
 
     return entities
-  }
-
-  /**
-   * Find notice actors by a given notice id
-   */
-  public findActors = async (
-    noticeId: string
-  ): Promise<Array<User & { noticeActorCreatedAt: string }>> => {
-    const actors = await this.knex
-      .select('user.*', 'notice_actor.created_at as noticeActorCreatedAt')
-      .from('notice_actor')
-      .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
-      .where({ noticeId })
-    return actors
-  }
-
-  /*********************************
-   *                               *
-   *           By User             *
-   *                               *
-   *********************************/
-  public findByUser = async ({
-    userId,
-    onlyRecent,
-    take,
-    skip,
-  }: {
-    userId: string
-    onlyRecent?: boolean
-    take?: number
-    skip?: number
-  }): Promise<NoticeItem[]> => {
-    const where = [[{ recipientId: userId, deleted: false }]] as any[][]
-    if (onlyRecent) {
-      where.push(['notice.updated_at', '>', new Date(Date.now() - 6 * MONTH)])
-    }
-
-    const notices = await this.findDetail({
-      where,
-      skip,
-      take,
-    })
-
-    return Promise.all(
-      notices.map(async (n: NoticeDetail) => {
-        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
-        const actors = await this.findActors(n.id)
-
-        return {
-          ...n,
-          createdAt: n.updatedAt,
-          type: n.noticeType,
-          actors,
-          entities,
-        }
-      })
-    )
   }
 
   public checkUserNotifySetting = async ({

@@ -160,7 +160,7 @@ describe('create notice', () => {
       recipientId: article.authorId,
     })
 
-    const notices = await notificationService.notice.findByUser({
+    const notices = await notificationService.findByUser({
       userId: article.authorId,
     })
 
@@ -190,7 +190,7 @@ describe('create notice', () => {
 
 describe('find notice', () => {
   test('find many notices', async () => {
-    const notices = await notificationService.notice.findByUser({
+    const notices = await notificationService.findByUser({
       userId: recipientId,
     })
     expect(notices.length).toBeGreaterThan(5)
@@ -316,7 +316,8 @@ describe('bundle notices', () => {
     if (!notice) {
       throw new Error('expect notice is bundleable')
     }
-    const noticeActors = await notificationService.notice.findActors(notice.id)
+    // @ts-ignore
+    const noticeActors = await notificationService.findActors(notice.id)
     expect(noticeActors.length).toBe(2)
     // @ts-ignore
     await notificationService.notice.addNoticeActor({
@@ -324,7 +325,8 @@ describe('bundle notices', () => {
       actorId: '4',
     })
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    const notice2Actors = await notificationService.notice.findActors(notice.id)
+    // @ts-ignore
+    const notice2Actors = await notificationService.findActors(notice.id)
     expect(notice2Actors.length).toBe(3)
   })
 
@@ -381,7 +383,7 @@ describe('update notices', () => {
 
 describe('query notices with onlyRecent flag', () => {
   beforeAll(async () => {
-    const notices = await notificationService.notice.findByUser({
+    const notices = await notificationService.findByUser({
       userId: recipientId,
     })
     const oldNoticeId = notices[0].id
@@ -407,10 +409,10 @@ describe('query notices with onlyRecent flag', () => {
     expect(count1 - count2).toBe(1)
   })
   test('findByUser', async () => {
-    const notices1 = await notificationService.notice.findByUser({
+    const notices1 = await notificationService.findByUser({
       userId: recipientId,
     })
-    const notices2 = await notificationService.notice.findByUser({
+    const notices2 = await notificationService.findByUser({
       userId: recipientId,
       onlyRecent: true,
     })
