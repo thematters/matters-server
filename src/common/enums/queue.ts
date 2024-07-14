@@ -70,6 +70,5 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
 }
 
 export const QUEUE_DELAY = {
-  sendNotification: 10000, // 10 seconds
   approveCampaignApplication: 5 * MINUTE,
 }

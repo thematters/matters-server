@@ -32,7 +32,6 @@ import {
   GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
-  QUEUE_DELAY,
 } from 'common/enums'
 import { isProd, isLocal, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
@@ -118,9 +117,7 @@ const queues = {
   userQueue,
 }
 
-const notificationService = new NotificationService(connections, {
-  delay: QUEUE_DELAY.sendNotification,
-})
+const notificationService = new NotificationService(connections)
 
 export const graphql = async (app: Express) => {
   const makeContext = async ({

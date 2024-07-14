@@ -13,7 +13,7 @@ let momentService: MomentService
 
 beforeAll(async () => {
   connections = await genConnections()
-  notificationService = new NotificationService(connections, { delay: 0 })
+  notificationService = new NotificationService(connections)
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
 }, 30000)
@@ -76,13 +76,12 @@ test('query comment_liked notices', async () => {
   const actorId = '1'
   expect(user.id).not.toBe(actorId)
 
-  const job = await notificationService.trigger({
+  await notificationService.trigger({
     event: NOTICE_TYPE.article_comment_liked,
     actorId,
     recipientId: comment.authorId,
     entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
   })
-  await job.finished()
 
   const server = await testClient({
     isAuth: true,
@@ -115,13 +114,12 @@ test('query moment_liked notices', async () => {
   const actorId = '2'
   expect(user.id).not.toBe(actorId)
 
-  const job = await notificationService.trigger({
+  await notificationService.trigger({
     event: NOTICE_TYPE.moment_liked,
     actorId,
     recipientId: moment.authorId,
     entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
   })
-  await job.finished()
 
   const server = await testClient({
     isAuth: true,

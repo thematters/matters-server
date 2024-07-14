@@ -12,14 +12,28 @@ import type {
   User,
   Connections,
   UserNotifySetting,
+  LANGUAGES,
+  NotificationParams,
 } from 'definitions'
 
 import { isArray, isEqual, mergeWith, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
-import { NOTICE_TYPE, MONTH } from 'common/enums'
+import {
+  BUNDLED_NOTICE_TYPE,
+  NOTICE_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+  MONTH,
+} from 'common/enums'
 import { getLogger } from 'common/logger'
-import { BaseService } from 'connectors'
+import {
+  BaseService,
+  AtomService,
+  ArticleService,
+  UserService,
+} from 'connectors'
+
+import trans from './translations'
 
 const logger = getLogger('service:notice')
 
@@ -71,7 +85,6 @@ export class Notice extends BaseService<NoticeDB> {
 
       // create notice actorId
       if (actorId) {
-        // const [{ id: noticeActorId }] =
         await trx
           .insert({
             noticeId,
@@ -111,10 +124,72 @@ export class Notice extends BaseService<NoticeDB> {
     })
   }
 
+  public async trigger(params: NotificationParams) {
+    const atomService = new AtomService(this.connections)
+    const userService = new UserService(this.connections)
+    const recipient = await atomService.userIdLoader.load(params.recipientId)
+
+    if (!recipient) {
+      logger.warn(`recipient ${params.recipientId} not found, skipped`)
+      return
+    }
+
+    const noticeParams = await this.getNoticeParams(params, recipient.language)
+
+    if (!noticeParams) {
+      return
+    }
+
+    // skip if actor === recipient
+    if ('actorId' in params && params.actorId === params.recipientId) {
+      logger.warn(
+        `Actor ${params.actorId} is same as recipient ${params.recipientId}, skipped`
+      )
+      return
+    }
+
+    // skip if user disable notify
+    const notifySetting = await userService.findNotifySetting(recipient.id)
+    const enable = await this.checkUserNotifySetting({
+      event: params.event,
+      setting: notifySetting as UserNotifySetting,
+    })
+
+    if (!enable) {
+      logger.info(
+        `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
+      )
+      return
+    }
+
+    // skip if sender is blocked by recipient
+    if ('actorId' in params && params.actorId) {
+      const blocked = await userService.blocked({
+        userId: recipient.id,
+        targetId: params.actorId,
+      })
+
+      if (blocked) {
+        logger.info(
+          `Actor ${params.actorId} is blocked by recipient ${params.recipientId}, skipped`
+        )
+        return
+      }
+    }
+
+    // Put Notice to DB
+    const { created, bundled } = await this.process(noticeParams)
+
+    if (!created && !bundled) {
+      logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)
+      return
+    }
+  }
+
   /**
    * Bundle with existing notice
    */
-  public async addNoticeActor({
+  private async addNoticeActor({
     noticeId,
     actorId,
   }: {
@@ -131,7 +206,7 @@ export class Notice extends BaseService<NoticeDB> {
         .into('notice_actor')
         .returning('*')
         .onConflict(['actor_id', 'notice_id'])
-        .ignore() // .merge({ updatedAt: this.knex.fn.now(), })
+        .ignore()
 
       // update notice
       await trx('notice')
@@ -162,7 +237,7 @@ export class Notice extends BaseService<NoticeDB> {
    * Process new event to determine
    * whether to bundle with old notice or create new notice or do nothing
    */
-  public process = async (
+  private process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
     if (params.bundle?.disabled === true) {
@@ -513,6 +588,176 @@ export class Notice extends BaseService<NoticeDB> {
     }
 
     return noticeSettingMap[event]
+  }
+
+  private getNoticeParams = async (
+    params: NotificationParams,
+    language: LANGUAGES
+  ): Promise<PutNoticeParams | undefined> => {
+    const articleService = new ArticleService(this.connections)
+    switch (params.event) {
+      // entity-free
+      case NOTICE_TYPE.user_new_follower:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+        }
+      // system as the actor
+      case NOTICE_TYPE.article_published:
+      case NOTICE_TYPE.revised_article_published:
+      case NOTICE_TYPE.revised_article_not_published:
+      case NOTICE_TYPE.circle_new_article: // deprecated
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          entities: params.entities,
+        }
+      // single actor with one or more entities
+      case NOTICE_TYPE.article_new_collected:
+      case NOTICE_TYPE.article_new_appreciation:
+      case NOTICE_TYPE.article_new_subscriber:
+      case NOTICE_TYPE.article_mentioned_you:
+      case NOTICE_TYPE.article_comment_mentioned_you:
+      case NOTICE_TYPE.comment_new_reply:
+      case NOTICE_TYPE.payment_received_donation:
+      case NOTICE_TYPE.circle_new_broadcast: // deprecated
+      case NOTICE_TYPE.circle_new_subscriber:
+      case NOTICE_TYPE.circle_new_follower:
+      case NOTICE_TYPE.circle_new_unsubscriber:
+      case NOTICE_TYPE.moment_liked:
+      case NOTICE_TYPE.moment_comment_liked:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+        }
+      case NOTICE_TYPE.article_new_comment:
+      case NOTICE_TYPE.article_comment_liked:
+      case NOTICE_TYPE.moment_new_comment:
+      case NOTICE_TYPE.moment_mentioned_you:
+      case NOTICE_TYPE.moment_comment_mentioned_you:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          bundle: { disabled: true },
+        }
+      case NOTICE_TYPE.circle_invitation:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          resend: true,
+        }
+      // bundled: circle_new_broadcast_comments
+      case BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
+        return {
+          type: NOTICE_TYPE.circle_new_broadcast_comments,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { mergeData: true },
+        }
+      // bundled: circle_new_discussion_comments
+      case BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion:
+      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
+      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
+        return {
+          type: NOTICE_TYPE.circle_new_discussion_comments,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          data: params.data, // update latest comment to DB `data` field
+          bundle: { mergeData: true },
+        }
+      // act as official announcement
+      case NOTICE_TYPE.official_announcement:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: params.message,
+          data: params.data,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.user_banned(language, {}),
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.user_banned_payment(language, {}),
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.user_frozen(language, {}),
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.user_unbanned(language, {}),
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.comment_banned(language, {
+            content: params.entities[0].entity.content,
+          }),
+          entities: params.entities,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.article_banned:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.article_banned(language, {
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
+          }),
+          entities: params.entities,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.comment_reported(language, {
+            content: params.entities[0].entity.content,
+          }),
+          entities: params.entities,
+        }
+      case OFFICIAL_NOTICE_EXTEND_TYPE.article_reported:
+        return {
+          type: NOTICE_TYPE.official_announcement,
+          recipientId: params.recipientId,
+          message: trans.article_reported(language, {
+            title: (
+              await articleService.loadLatestArticleVersion(
+                params.entities[0].entity.id
+              )
+            ).title,
+          }),
+          entities: params.entities,
+        }
+      default:
+        return
+    }
   }
 
   public countNotice = async ({
