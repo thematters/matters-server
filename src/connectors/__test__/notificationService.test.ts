@@ -172,7 +172,7 @@ describe('create notice', () => {
     const recipientId = '1'
     await userService.block(recipientId, actorId)
 
-    const noticeCount = await notificationService.notice.countNotice({
+    const noticeCount = await notificationService.countNotice({
       userId: recipientId,
     })
 
@@ -182,9 +182,9 @@ describe('create notice', () => {
       recipientId,
     })
 
-    expect(
-      await notificationService.notice.countNotice({ userId: recipientId })
-    ).toBe(noticeCount)
+    expect(await notificationService.countNotice({ userId: recipientId })).toBe(
+      noticeCount
+    )
   })
 })
 
@@ -233,7 +233,7 @@ describe('bundle notices', () => {
       },
     })
 
-    const noticeCount = await notificationService.notice.countNotice({
+    const noticeCount = await notificationService.countNotice({
       userId: article.authorId,
     })
 
@@ -258,7 +258,7 @@ describe('bundle notices', () => {
     })
 
     expect(
-      await notificationService.notice.countNotice({ userId: article.authorId })
+      await notificationService.countNotice({ userId: article.authorId })
     ).toBe(noticeCount + 2)
   })
 
@@ -275,7 +275,7 @@ describe('bundle notices', () => {
       },
     })
 
-    const noticeCount = await notificationService.notice.countNotice({
+    const noticeCount = await notificationService.countNotice({
       userId: comment.authorId,
     })
 
@@ -294,7 +294,7 @@ describe('bundle notices', () => {
     })
 
     expect(
-      await notificationService.notice.countNotice({ userId: comment.authorId })
+      await notificationService.countNotice({ userId: comment.authorId })
     ).toBe(noticeCount + 2)
   })
 
@@ -397,10 +397,10 @@ describe('query notices with onlyRecent flag', () => {
       .from('notice')
   })
   test('countNotice', async () => {
-    const count1 = await notificationService.notice.countNotice({
+    const count1 = await notificationService.countNotice({
       userId: recipientId,
     })
-    const count2 = await notificationService.notice.countNotice({
+    const count2 = await notificationService.countNotice({
       userId: recipientId,
       onlyRecent: true,
     })

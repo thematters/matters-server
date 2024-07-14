@@ -26,7 +26,7 @@ const resolver: GQLUserResolvers['notices'] = async (
     take,
   })
 
-  const _totalCount = await notificationService.notice.countNotice({
+  const _totalCount = await notificationService.countNotice({
     userId: id,
     onlyRecent: true,
   })

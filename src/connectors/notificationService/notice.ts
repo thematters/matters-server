@@ -759,30 +759,4 @@ export class Notice extends BaseService<NoticeDB> {
         return
     }
   }
-
-  public countNotice = async ({
-    userId,
-    unread,
-    onlyRecent,
-  }: {
-    userId: string
-    unread?: boolean
-    onlyRecent?: boolean
-  }) => {
-    const query = this.knex('notice')
-      .where({ recipientId: userId, deleted: false })
-      .count()
-      .first()
-
-    if (unread) {
-      query.where({ unread: true })
-    }
-
-    if (onlyRecent) {
-      query.whereRaw(`updated_at > now() - interval '6 months'`)
-    }
-
-    const result = await query
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 }
