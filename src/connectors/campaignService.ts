@@ -444,7 +444,7 @@ export class CampaignService {
 
   private delayedApprove = async (applicationId: string) => {
     return this.q.add(
-      QUEUE_JOB.sendNotification,
+      QUEUE_JOB.approveCampaignApplication,
       { applicationId },
       {
         delay: QUEUE_DELAY.approveCampaignApplication,
