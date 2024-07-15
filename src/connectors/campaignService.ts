@@ -378,6 +378,10 @@ export class CampaignService {
       node: { type: NODE_TYPES.Campaign, id: updated.id },
       redis: this.connections.redis,
     })
+    invalidateFQC({
+      node: { type: NODE_TYPES.User, id: updated.userId },
+      redis: this.connections.redis,
+    })
     return updated
   }
 
