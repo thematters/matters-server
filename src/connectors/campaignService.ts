@@ -200,15 +200,25 @@ export class CampaignService {
 
   public findAndCountParticipants = async (
     campaignId: string,
-    { take, skip }: { take?: number; skip: number }
+    { take, skip }: { take?: number; skip: number },
+    {
+      filterStates,
+    }: {
+      filterStates?: Array<ValueOf<typeof CAMPAIGN_USER_STATE>>
+    } = {
+      filterStates: [CAMPAIGN_USER_STATE.succeeded],
+    }
   ): Promise<[User[], number]> => {
     const knexRO = this.connections.knexRO
     const records = await knexRO('campaign_user')
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .where({ campaignId, state: CAMPAIGN_USER_STATE.succeeded })
+      .where({ campaignId })
       .orderBy('id', 'desc')
       .offset(skip)
       .modify((builder) => {
+        if (filterStates) {
+          builder.whereIn('state', filterStates)
+        }
         if (take) {
           builder.limit(take)
         }

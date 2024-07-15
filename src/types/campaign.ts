@@ -89,10 +89,17 @@ export default /* GraphQL */ `
     stages: [CampaignStage!]!
 
     state: CampaignState!
-    participants(input: ConnectionArgs!): UserConnection!
+    participants(input: CampaignParticipantsInput!): UserConnection!
     articles(input: CampaignArticlesInput!): ArticleConnection!
 
     applicationState: CampaignApplicationState
+  }
+
+  input CampaignParticipantsInput {
+    after: String
+    first: Int
+    "return all state participants"
+    oss: Boolean = false
   }
 
   type DatetimeRange {

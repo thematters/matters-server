@@ -722,6 +722,13 @@ export type GQLCampaignInput = {
   shortHash: Scalars['String']['input']
 }
 
+export type GQLCampaignParticipantsInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  first?: InputMaybe<Scalars['Int']['input']>
+  /** return all state participants */
+  oss?: InputMaybe<Scalars['Boolean']['input']>
+}
+
 export type GQLCampaignStage = {
   __typename?: 'CampaignStage'
   id: Scalars['ID']['output']
@@ -4211,7 +4218,7 @@ export type GQLWritingChallengeArticlesArgs = {
 }
 
 export type GQLWritingChallengeParticipantsArgs = {
-  input: GQLConnectionArgs
+  input: GQLCampaignParticipantsInput
 }
 
 export type GQLWritingConnection = GQLConnection & {
@@ -4596,6 +4603,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLCampaignEdge, 'node'> & { node: GQLResolversTypes['Campaign'] }
   >
   CampaignInput: GQLCampaignInput
+  CampaignParticipantsInput: GQLCampaignParticipantsInput
   CampaignStage: ResolverTypeWrapper<CampaignStageModel>
   CampaignStageInput: GQLCampaignStageInput
   CampaignState: GQLCampaignState
@@ -5195,6 +5203,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Campaign']
   }
   CampaignInput: GQLCampaignInput
+  CampaignParticipantsInput: GQLCampaignParticipantsInput
   CampaignStage: CampaignStageModel
   CampaignStageInput: GQLCampaignStageInput
   CampaignsInput: GQLCampaignsInput
