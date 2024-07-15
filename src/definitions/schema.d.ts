@@ -736,6 +736,10 @@ export type GQLCampaignStage = {
   period?: Maybe<GQLDatetimeRange>
 }
 
+export type GQLCampaignStageNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
 export type GQLCampaignStageInput = {
   name: Array<GQLTranslationInput>
   period?: InputMaybe<GQLDatetimeRangeInput>
@@ -6393,7 +6397,12 @@ export type GQLCampaignStageResolvers<
   ParentType extends GQLResolversParentTypes['CampaignStage'] = GQLResolversParentTypes['CampaignStage']
 > = ResolversObject<{
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
-  name?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  name?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLCampaignStageNameArgs>
+  >
   period?: Resolver<
     Maybe<GQLResolversTypes['DatetimeRange']>,
     ParentType,
