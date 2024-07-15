@@ -298,8 +298,12 @@ describe('query campaigns', () => {
         id
         shortHash
         ... on WritingChallenge {
-          name
-          description
+          nameEn: name(input: { language: en })
+          nameZhHant: name(input: { language: zh_hant })
+          nameZhHans: name(input: { language: zh_hans })
+          descriptionEn: description(input: { language: en })
+          descriptionZhHant: description(input: { language: zh_hant })
+          descriptionZhHans: description(input: { language: zh_hans })
           cover
           link
           applicationPeriod {
@@ -391,6 +395,8 @@ describe('query campaigns', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaign).toBeDefined()
+    expect(data.campaign.nameEn).toBeDefined()
+    expect(data.campaign.descriptionEn).toBeDefined()
   })
   test('query campains successfully', async () => {
     const server = await testClient({ connections })

@@ -79,8 +79,8 @@ export default /* GraphQL */ `
 
     id: ID!
     shortHash: String!
-    name:String!
-    description: String!
+    name(input: TranslationArgs): String!
+    description(input: TranslationArgs): String!
     cover: String
     link: String!
 

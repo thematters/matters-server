@@ -927,8 +927,8 @@ enum CampaignState {
 type WritingChallenge implements Node & Campaign {
   id: ID!
   shortHash: String!
-  name: String!
-  description: String!
+  name(input: TranslationArgs): String!
+  description(input: TranslationArgs): String!
   cover: String
   link: String!
   applicationPeriod: DatetimeRange
