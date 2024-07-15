@@ -92,7 +92,7 @@ export default /* GraphQL */ `
     participants(input: CampaignParticipantsInput!): UserConnection!
     articles(input: CampaignArticlesInput!): ArticleConnection!
 
-    applicationState: CampaignApplicationState
+    applicationState: CampaignApplicationState @privateCache
   }
 
   input CampaignParticipantsInput {
