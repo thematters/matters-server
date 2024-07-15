@@ -7,11 +7,11 @@ import { TableName, User } from 'definitions'
 
 export type BaseNoticeType = keyof typeof NOTICE_TYPE
 
-export type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
+type BundledNoticeType = keyof typeof BUNDLED_NOTICE_TYPE
 
-export type OfficialNoticeExtendType = keyof typeof OFFICIAL_NOTICE_EXTEND_TYPE
+type OfficialNoticeExtendType = keyof typeof OFFICIAL_NOTICE_EXTEND_TYPE
 
-export type NoticeEntityType =
+type NoticeEntityType =
   // primary target
   | 'target'
   // secondary target
@@ -22,17 +22,17 @@ export type NoticeEntityType =
   | 'article'
   | 'circle'
 
-export type NotificationType =
+type NotificationType =
   | BaseNoticeType
   | BundledNoticeType
   | OfficialNoticeExtendType
 
-export interface NotificationRequiredParams {
+interface NotificationRequiredParams {
   event: NotificationType
   recipientId: string
 }
 
-export interface NotificationEntity<
+interface NotificationEntity<
   T extends NoticeEntityType = NoticeEntityType,
   K extends TableName = TableName
 > {
@@ -44,8 +44,7 @@ export interface NotificationEntity<
 /**
  * User
  */
-export interface NoticeUserNewFollowerParams
-  extends NotificationRequiredParams {
+interface NoticeUserNewFollowerParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.user_new_follower
   recipientId: string
   actorId: string
@@ -54,14 +53,13 @@ export interface NoticeUserNewFollowerParams
 /**
  * Article
  */
-export interface NoticeArticlePublishedParams
-  extends NotificationRequiredParams {
+interface NoticeArticlePublishedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeArticleNewAppreciationParams
+interface NoticeArticleNewAppreciationParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_new_appreciation
   recipientId: string
@@ -69,46 +67,42 @@ export interface NoticeArticleNewAppreciationParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeArticleNewSubscriberParams
-  extends NotificationRequiredParams {
+interface NoticeArticleNewSubscriberParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_new_subscriber
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeArticleMentionedYouParams
-  extends NotificationRequiredParams {
+interface NoticeArticleMentionedYouParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_mentioned_you
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeRevisedArticlePublishedParams
+interface NoticeRevisedArticlePublishedParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.revised_article_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeRevisedArticleNotPublishedParams
+interface NoticeRevisedArticleNotPublishedParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.revised_article_not_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeCircleNewArticleParams
-  extends NotificationRequiredParams {
+interface NoticeCircleNewArticleParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_new_article
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
 // Article-Article
-export interface NoticeArticleNewConnectedParams
-  extends NotificationRequiredParams {
+interface NoticeArticleNewConnectedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_new_collected
   recipientId: string
   actorId: string
@@ -121,15 +115,14 @@ export interface NoticeArticleNewConnectedParams
 /**
  * Moment
  */
-export interface NoticeMomentLikedParams extends NotificationRequiredParams {
+interface NoticeMomentLikedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.moment_liked
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'moment'>]
 }
 
-export interface NoticeMomentMentionedYouParams
-  extends NotificationRequiredParams {
+interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.moment_mentioned_you
   recipientId: string
   actorId: string
@@ -139,8 +132,7 @@ export interface NoticeMomentMentionedYouParams
 /**
  * Comment
  */
-export interface NoticeArticleNewCommentParams
-  extends NotificationRequiredParams {
+interface NoticeArticleNewCommentParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_new_comment
   recipientId: string
   actorId: string
@@ -150,7 +142,7 @@ export interface NoticeArticleNewCommentParams
   ]
 }
 
-export interface NoticeArticleCommentMentionedYouParams
+interface NoticeArticleCommentMentionedYouParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_comment_mentioned_you
   recipientId: string
@@ -158,16 +150,14 @@ export interface NoticeArticleCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeArticleCommentLikedParams
-  extends NotificationRequiredParams {
+interface NoticeArticleCommentLikedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.article_comment_liked
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeMomentNewCommentParams
-  extends NotificationRequiredParams {
+interface NoticeMomentNewCommentParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.moment_new_comment
   recipientId: string
   actorId: string
@@ -177,7 +167,7 @@ export interface NoticeMomentNewCommentParams
   ]
 }
 
-export interface NoticeMomentCommentMentionedYouParams
+interface NoticeMomentCommentMentionedYouParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.moment_comment_mentioned_you
   recipientId: string
@@ -185,16 +175,14 @@ export interface NoticeMomentCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeMomentCommentLikedParams
-  extends NotificationRequiredParams {
+interface NoticeMomentCommentLikedParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.moment_comment_liked
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeCircleNewBroadcastParams
-  extends NotificationRequiredParams {
+interface NoticeCircleNewBroadcastParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_new_broadcast
   recipientId: string
   actorId: string
@@ -202,8 +190,7 @@ export interface NoticeCircleNewBroadcastParams
 }
 
 // Comment-Comment
-export interface NoticeCommentNewReplyParams
-  extends NotificationRequiredParams {
+interface NoticeCommentNewReplyParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.comment_new_reply
   recipientId: string
   actorId: string
@@ -216,7 +203,7 @@ export interface NoticeCommentNewReplyParams
 /**
  * Transaction
  */
-export interface NoticePaymentReceivedDonationParams
+interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.payment_received_donation
   recipientId: string
@@ -227,15 +214,14 @@ export interface NoticePaymentReceivedDonationParams
 /**
  * Circle
  */
-export interface NoticeCircleInvitationParams
-  extends NotificationRequiredParams {
+interface NoticeCircleInvitationParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_invitation
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleBroadcastMentionedYouParams
+interface NoticeCircleBroadcastMentionedYouParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_broadcast_mentioned_you
   recipientId: string
@@ -244,7 +230,7 @@ export interface NoticeCircleBroadcastMentionedYouParams
   data: { entityTypeId: string; entityId: string }
 }
 
-export interface NoticeCircleDiscussionMentionedYouParams
+interface NoticeCircleDiscussionMentionedYouParams
   extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_discussion_mentioned_you
   recipientId: string
@@ -254,31 +240,28 @@ export interface NoticeCircleDiscussionMentionedYouParams
 }
 
 // for circle owner
-export interface NoticeCircleNewSubscriberParams
-  extends NotificationRequiredParams {
+interface NoticeCircleNewSubscriberParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_new_subscriber
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleNewFollowerParams
-  extends NotificationRequiredParams {
+interface NoticeCircleNewFollowerParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_new_follower
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleNewUnsubscriberParams
-  extends NotificationRequiredParams {
+interface NoticeCircleNewUnsubscriberParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.circle_new_unsubscriber
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
-export interface NoticeCircleNewBroadcastCommentsParams
+interface NoticeCircleNewBroadcastCommentsParams
   extends NotificationRequiredParams {
   event: BundledNoticeType
   recipientId: string
@@ -287,7 +270,7 @@ export interface NoticeCircleNewBroadcastCommentsParams
   data: { comments?: string[]; replies?: string[]; mentions?: string[] }
 }
 
-export interface NoticeCircleNewDiscussionCommentsParams
+interface NoticeCircleNewDiscussionCommentsParams
   extends NotificationRequiredParams {
   event: BundledNoticeType
   recipientId: string
@@ -299,8 +282,7 @@ export interface NoticeCircleNewDiscussionCommentsParams
 /**
  * System
  */
-export interface NoticeOfficialAnnouncementParams
-  extends NotificationRequiredParams {
+interface NoticeOfficialAnnouncementParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.official_announcement
   recipientId: string
   message: string
@@ -308,48 +290,45 @@ export interface NoticeOfficialAnnouncementParams
 }
 
 // Punish
-export interface NoticeUserBannedParams extends NotificationRequiredParams {
+interface NoticeUserBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
   recipientId: string
 }
 
-export interface NoticeUserBannedPaymentParams
-  extends NotificationRequiredParams {
+interface NoticeUserBannedPaymentParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment
   recipientId: string
 }
 
-export interface NoticeUserFrozenParams extends NotificationRequiredParams {
+interface NoticeUserFrozenParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen
   recipientId: string
 }
 
-export interface NoticeUserUnbannedParams extends NotificationRequiredParams {
+interface NoticeUserUnbannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned
   recipientId: string
 }
 
-export interface NoticeCommentBannedParams extends NotificationRequiredParams {
+interface NoticeCommentBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
 }
 
-export interface NoticeArticleBannedParams extends NotificationRequiredParams {
+interface NoticeArticleBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.article_banned
   entities: [NotificationEntity<'target', 'article'>]
   recipientId: string
 }
 
-export interface NoticeArticleReportedParams
-  extends NotificationRequiredParams {
+interface NoticeArticleReportedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.article_reported
   entities: [NotificationEntity<'target', 'article'>]
   recipientId: string
 }
 
-export interface NoticeCommentReportedParams
-  extends NotificationRequiredParams {
+interface NoticeCommentReportedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
@@ -400,17 +379,17 @@ export type NotificationParams =
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
 
-export type NoticeUserId = string
+type NoticeUserId = string
 
-export interface NoticeEntity {
+interface NoticeEntity {
   type: NoticeEntityType
   table: TableName
   entityId: string
 }
 
 export type NoticeEntitiesMap = Record<NoticeEntityType, any>
-export type NoticeMessage = string
-export interface NoticeData {
+type NoticeMessage = string
+interface NoticeData {
   // used by official announcement notices
   link?: string
   // reason for banned/frozen users, not in used
@@ -437,22 +416,6 @@ export type NoticeItem = NoticeDetail & {
   type: BaseNoticeType
   actors?: User[]
   entities?: NoticeEntitiesMap
-}
-
-export interface PutNoticeParams {
-  type: BaseNoticeType
-  actorId?: NoticeUserId | null
-  recipientId: NoticeUserId
-  entities?: NotificationEntity[]
-  message?: NoticeMessage | null
-  data?: NoticeData | null
-
-  resend?: boolean // used by circle invitation notice
-
-  bundle?: {
-    disabled?: boolean
-    mergeData?: boolean // used by circle bundled notice
-  }
 }
 
 // DB schema
