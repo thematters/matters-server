@@ -229,9 +229,18 @@ describe('application', () => {
     expect(application).toBeDefined()
     expect(application.state).toBe(CAMPAIGN_USER_STATE.pending)
 
-    const application2 = await campaignService.apply(campaign, user)
-    expect(application2).toBeDefined()
-    expect(application2.id).toBe(application.id)
+    const [, totalCount1] = await campaignService.findAndCountParticipants(
+      application.campaignId,
+      { take: 10, skip: 0 }
+    )
+    expect(totalCount1).toBe(0)
+
+    const [, totalCount2] = await campaignService.findAndCountParticipants(
+      application.campaignId,
+      { take: 10, skip: 0 },
+      { filterStates: undefined }
+    )
+    expect(totalCount2).toBe(1)
   })
   test('campaign applicationPeriod is checked', async () => {
     const now = new Date()

@@ -76,8 +76,8 @@ export class CampaignService {
     description: string
     link: string
     coverId?: string
-    applicationPeriod: readonly [Date, Date]
-    writingPeriod: readonly [Date, Date]
+    applicationPeriod?: readonly [Date, Date]
+    writingPeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
   }) =>
@@ -90,14 +90,12 @@ export class CampaignService {
         description,
         link,
         cover: coverId,
-        applicationPeriod: toDatetimeRangeString(
-          applicationPeriod[0],
-          applicationPeriod[1]
-        ),
-        writingPeriod: toDatetimeRangeString(
-          writingPeriod[0],
-          writingPeriod[1]
-        ),
+        applicationPeriod: applicationPeriod
+          ? toDatetimeRangeString(applicationPeriod[0], applicationPeriod[1])
+          : null,
+        writingPeriod: writingPeriod
+          ? toDatetimeRangeString(writingPeriod[0], writingPeriod[1])
+          : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
       },
@@ -202,15 +200,25 @@ export class CampaignService {
 
   public findAndCountParticipants = async (
     campaignId: string,
-    { take, skip }: { take?: number; skip: number }
+    { take, skip }: { take?: number; skip: number },
+    {
+      filterStates,
+    }: {
+      filterStates?: Array<ValueOf<typeof CAMPAIGN_USER_STATE>>
+    } = {
+      filterStates: [CAMPAIGN_USER_STATE.succeeded],
+    }
   ): Promise<[User[], number]> => {
     const knexRO = this.connections.knexRO
     const records = await knexRO('campaign_user')
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .where({ campaignId, state: CAMPAIGN_USER_STATE.succeeded })
+      .where({ campaignId })
       .orderBy('id', 'desc')
       .offset(skip)
       .modify((builder) => {
+        if (filterStates) {
+          builder.whereIn('state', filterStates)
+        }
         if (take) {
           builder.limit(take)
         }

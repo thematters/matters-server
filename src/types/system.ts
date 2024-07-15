@@ -445,6 +445,7 @@ export default /* GraphQL */ `
     announcement
     collection
     moment
+    campaign
   }
 
   "Enums for user roles."

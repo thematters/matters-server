@@ -30,10 +30,16 @@ const schema: GQLResolvers = {
       cover ? systemService.findAssetUrl(cover) : null,
     link: ({ link }) => link ?? '',
     applicationPeriod: ({ applicationPeriod }) => {
+      if (!applicationPeriod) {
+        return null
+      }
       const [start, end] = fromDatetimeRangeString(applicationPeriod as string)
       return { start, end }
     },
     writingPeriod: ({ writingPeriod }) => {
+      if (!writingPeriod) {
+        return null
+      }
       const [start, end] = fromDatetimeRangeString(writingPeriod as string)
       return { start, end }
     },

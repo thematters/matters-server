@@ -8,6 +8,10 @@ const resolver: GQLUserResolvers['campaigns'] = async (
   { input },
   { dataSources: { campaignService } }
 ) => {
+  if (!id) {
+    return connectionFromArray([], input, 0)
+  }
+
   const { take, skip } = fromConnectionArgs(input)
   const [campaigns, totalCount] = await campaignService.findAndCountAll(
     {

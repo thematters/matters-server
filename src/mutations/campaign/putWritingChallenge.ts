@@ -1,7 +1,7 @@
 import type {
   GQLMutationResolvers,
-  Campaign,
   GQLCampaignStageInput,
+  Campaign,
 } from 'definitions'
 
 import {
@@ -38,49 +38,46 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
-  let campaign: Campaign
-  if (!globalId) {
-    // create new campaign
-    if (!name || !name[0].text) {
-      throw new UserInputError('name is required')
-    }
-    if (!description || !description[0].text) {
-      throw new UserInputError('description is required')
-    }
-    if (!cover) {
-      throw new UserInputError('cover is required')
-    }
-    if (!link) {
-      throw new UserInputError('link is required')
-    }
-    if (!applicationPeriod || !applicationPeriod.end) {
-      throw new UserInputError('applicationPeriod is required')
-    }
-    if (!writingPeriod || !writingPeriod.end) {
-      throw new UserInputError('writingPeriod is required')
-    }
-    if (!stages || !stages.length) {
-      throw new UserInputError('stages is required')
-    }
-    const _cover = await atomService.assetUUIDLoader.load(cover)
+
+  let _cover: { id: string; type: string } | undefined = undefined
+  if (cover) {
+    _cover = await atomService.assetUUIDLoader.load(cover)
     if (!_cover) {
       throw new UserInputError('cover not found')
     }
     if (_cover.type !== 'campaignCover') {
       throw new UserInputError('cover is not a campaign cover')
     }
-    validateRange(applicationPeriod)
-    validateRange(writingPeriod)
-    validateUrl(link)
-    validateStages(stages)
+  }
 
+  if (link) {
+    validateUrl(link)
+  }
+  if (applicationPeriod) {
+    validateRange(applicationPeriod)
+  }
+  if (writingPeriod) {
+    validateRange(writingPeriod)
+  }
+  if (stages) {
+    validateStages(stages)
+  }
+
+  let campaign: Campaign
+  if (!globalId) {
+    // create new campaign
     campaign = await campaignService.createWritingChallenge({
-      name: name[0].text,
-      description: normalizeCampaignHTML(sanitizeHTML(description[0].text)),
-      coverId: _cover.id,
-      link,
-      applicationPeriod: [applicationPeriod.start, applicationPeriod.end],
-      writingPeriod: [writingPeriod.start, writingPeriod.end],
+      name: name ? name[0].text : '',
+      description: description
+        ? normalizeCampaignHTML(sanitizeHTML(description[0].text))
+        : '',
+      coverId: _cover?.id,
+      link: link ? link : '',
+      applicationPeriod: applicationPeriod && [
+        applicationPeriod.start,
+        applicationPeriod.end,
+      ],
+      writingPeriod: writingPeriod && [writingPeriod.start, writingPeriod.end],
       state,
       creatorId: viewer.id,
     })
@@ -89,31 +86,6 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     if (type !== 'Campaign') {
       throw new UserInputError('wrong campaign global id')
     }
-    if (applicationPeriod) {
-      validateRange(applicationPeriod)
-    }
-    if (writingPeriod) {
-      validateRange(writingPeriod)
-    }
-
-    if (stages) {
-      validateStages(stages)
-    }
-    if (link) {
-      validateUrl(link)
-    }
-
-    let _cover: { id: string; type: string } | undefined = undefined
-    if (cover) {
-      _cover = await atomService.assetUUIDLoader.load(cover)
-      if (!_cover) {
-        throw new UserInputError('cover not found')
-      }
-      if (_cover.type !== 'campaignCover') {
-        throw new UserInputError('cover is not a campaign cover')
-      }
-    }
-
     campaign = await atomService.findUnique({
       table: 'campaign',
       where: { id },
