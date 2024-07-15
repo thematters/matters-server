@@ -961,7 +961,7 @@ enum CampaignApplicationState {
 
 type CampaignStage {
   id: ID!
-  name: String!
+  name(input: TranslationArgs): String!
   period: DatetimeRange
 }
 
