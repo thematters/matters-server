@@ -378,6 +378,10 @@ export class CampaignService {
       node: { type: NODE_TYPES.Campaign, id: updated.id },
       redis: this.connections.redis,
     })
+    invalidateFQC({
+      node: { type: NODE_TYPES.User, id: updated.userId },
+      redis: this.connections.redis,
+    })
     return updated
   }
 
@@ -444,7 +448,7 @@ export class CampaignService {
 
   private delayedApprove = async (applicationId: string) => {
     return this.q.add(
-      QUEUE_JOB.sendNotification,
+      QUEUE_JOB.approveCampaignApplication,
       { applicationId },
       {
         delay: QUEUE_DELAY.approveCampaignApplication,

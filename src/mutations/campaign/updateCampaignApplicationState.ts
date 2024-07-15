@@ -1,5 +1,8 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   UserInputError,
@@ -12,7 +15,13 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['updateCampaignApplicationState'] = async (
   _,
   { input: { campaign: campaignGlobalId, user: userGlobalId, state } },
-  { viewer, dataSources: { atomService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      connections: { redis },
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -59,6 +68,11 @@ const resolver: GQLMutationResolvers['updateCampaignApplicationState'] = async (
     table: 'campaign_user',
     where: { id: campaignUser.id },
     data: { state },
+  })
+
+  invalidateFQC({
+    node: { type: NODE_TYPES.User, id: userId },
+    redis: redis,
   })
 
   return campaign
