@@ -158,6 +158,18 @@ describe('create or update wrting challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putWritingChallenge.shortHash).toBeDefined()
+
+    // create with only name
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.putWritingChallenge.shortHash).toBeDefined()
   })
   test('stage period can be unbounded', async () => {
     const server = await testClient({

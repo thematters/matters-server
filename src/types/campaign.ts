@@ -84,8 +84,8 @@ export default /* GraphQL */ `
     cover: String
     link: String!
 
-    applicationPeriod: DatetimeRange!
-    writingPeriod:DatetimeRange!
+    applicationPeriod: DatetimeRange
+    writingPeriod:DatetimeRange
     stages: [CampaignStage!]!
 
     state: CampaignState!

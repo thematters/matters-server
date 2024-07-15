@@ -931,8 +931,8 @@ type WritingChallenge implements Node & Campaign {
   description: String!
   cover: String
   link: String!
-  applicationPeriod: DatetimeRange!
-  writingPeriod: DatetimeRange!
+  applicationPeriod: DatetimeRange
+  writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
   state: CampaignState!
   participants(input: ConnectionArgs!): UserConnection!
@@ -2353,6 +2353,7 @@ enum EntityType {
   announcement
   collection
   moment
+  campaign
 }
 
 """Enums for user roles."""

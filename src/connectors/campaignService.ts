@@ -76,8 +76,8 @@ export class CampaignService {
     description: string
     link: string
     coverId?: string
-    applicationPeriod: readonly [Date, Date]
-    writingPeriod: readonly [Date, Date]
+    applicationPeriod?: readonly [Date, Date]
+    writingPeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
     creatorId: string
   }) =>
@@ -90,14 +90,12 @@ export class CampaignService {
         description,
         link,
         cover: coverId,
-        applicationPeriod: toDatetimeRangeString(
-          applicationPeriod[0],
-          applicationPeriod[1]
-        ),
-        writingPeriod: toDatetimeRangeString(
-          writingPeriod[0],
-          writingPeriod[1]
-        ),
+        applicationPeriod: applicationPeriod
+          ? toDatetimeRangeString(applicationPeriod[0], applicationPeriod[1])
+          : null,
+        writingPeriod: writingPeriod
+          ? toDatetimeRangeString(writingPeriod[0], writingPeriod[1])
+          : null,
         state: state || CAMPAIGN_STATE.pending,
         creatorId,
       },
