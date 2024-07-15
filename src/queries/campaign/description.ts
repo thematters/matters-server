@@ -2,14 +2,15 @@ import type { GQLWritingChallengeResolvers } from 'definitions'
 
 const resolver: GQLWritingChallengeResolvers['description'] = async (
   { id, description },
-  _,
+  { input },
   { viewer, dataSources: { translationService } }
 ) => {
+  const language = input?.language || viewer.language
   const translation = await translationService.findTranslation({
     table: 'campaign',
     field: 'description',
     id,
-    language: viewer.language,
+    language,
   })
   return translation ? translation.text : description
 }

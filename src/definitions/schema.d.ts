@@ -4217,6 +4217,14 @@ export type GQLWritingChallengeArticlesArgs = {
   input: GQLCampaignArticlesInput
 }
 
+export type GQLWritingChallengeDescriptionArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
+export type GQLWritingChallengeNameArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
+}
+
 export type GQLWritingChallengeParticipantsArgs = {
   input: GQLCampaignParticipantsInput
 }
@@ -9611,10 +9619,20 @@ export type GQLWritingChallengeResolvers<
     RequireFields<GQLWritingChallengeArticlesArgs, 'input'>
   >
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
-  description?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  description?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLWritingChallengeDescriptionArgs>
+  >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   link?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
-  name?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
+  name?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLWritingChallengeNameArgs>
+  >
   participants?: Resolver<
     GQLResolversTypes['UserConnection'],
     ParentType,
