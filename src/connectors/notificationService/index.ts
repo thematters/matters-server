@@ -8,21 +8,32 @@ import type {
   User,
 } from 'definitions'
 
-import { MONTH, NOTICE_TYPE } from 'common/enums'
+import { MONTH, NOTICE_TYPE, QUEUE_URL } from 'common/enums'
+import { isTest } from 'common/environment'
+import { aws } from 'connectors'
 
 import { mail } from './mail'
 
 export class NotificationService {
   public mail: typeof mail
   private connections: Connections
+  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.mail = mail
+    this.aws = aws
   }
 
-  public trigger = async (params: NotificationParams) =>
-    console.log('trigger', params)
+  public trigger = async (params: NotificationParams) => {
+    if (isTest) {
+      return
+    }
+    return await this.aws.sqsSendMessage({
+      messageBody: params,
+      queueUrl: QUEUE_URL.notification,
+    })
+  }
 
   public markAllNoticesAsRead = async (userId: string) => {
     const knex = this.connections.knex
