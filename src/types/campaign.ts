@@ -89,10 +89,22 @@ export default /* GraphQL */ `
     stages: [CampaignStage!]!
 
     state: CampaignState!
-    participants(input: CampaignParticipantsInput!): UserConnection!
+    participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): ArticleConnection!
 
     applicationState: CampaignApplicationState @privateCache
+  }
+
+  type CampaignParticipantConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CampaignParticipantEdge!]
+  }
+
+  type CampaignParticipantEdge {
+    cursor: String!
+    applicationState: CampaignApplicationState
+    node: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   input CampaignParticipantsInput {
