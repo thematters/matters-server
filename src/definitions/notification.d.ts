@@ -334,6 +334,18 @@ interface NoticeCommentReportedParams extends NotificationRequiredParams {
   recipientId: string
 }
 
+interface NoticeWriteChallengeAppliedParams extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
+  recipientId: string
+  entities: [NotificationEntity<'target', 'campaign'>]
+  data: { link: string }
+}
+
+interface NoticeBadgeGrandSlamAwardedParams extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.badge_grand_slam_awarded
+  recipientId: string
+}
+
 export type NotificationParams =
   // User
   | NoticeUserNewFollowerParams
@@ -378,6 +390,8 @@ export type NotificationParams =
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
+  | NoticeWriteChallengeAppliedParams
+  | NoticeBadgeGrandSlamAwardedParams
 
 type NoticeUserId = string
 

@@ -20,6 +20,7 @@ import {
   QUEUE_DELAY,
   NODE_TYPES,
   USER_STATE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
 import {
   ForbiddenByTargetStateError,
@@ -35,7 +36,7 @@ import {
   toDatetimeRangeString,
   fromDatetimeRangeString,
 } from 'common/utils'
-import { AtomService } from 'connectors'
+import { AtomService, NotificationService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
@@ -372,6 +373,22 @@ export class CampaignService {
       table: 'campaign_user',
       where: { id: applicationId },
       data: { state: CAMPAIGN_USER_STATE.succeeded },
+    })
+
+    const notificationService = new NotificationService(this.connections)
+
+    const campaign = await this.models.campaignIdLoader.load(updated.campaignId)
+    notificationService.trigger({
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied,
+      recipientId: updated.userId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'campaign',
+          entity: campaign,
+        },
+      ],
+      data: { link: campaign.link ?? '' },
     })
 
     invalidateFQC({
