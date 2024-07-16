@@ -442,9 +442,10 @@ describe('application', () => {
       updateCampaignApplicationState(input: $input) {
         id
         ... on WritingChallenge {
-          participants(input: { first: null }) {
+          participants(input: { first: null, oss: true }) {
             totalCount
             edges {
+              applicationState
               node {
                 id
               }
@@ -506,6 +507,10 @@ describe('application', () => {
     expect(
       updatedData.updateCampaignApplicationState.participants.edges[0].node.id
     ).toBe(userGlobalId)
+    expect(
+      updatedData.updateCampaignApplicationState.participants.edges[0]
+        .applicationState
+    ).toBe(CAMPAIGN_USER_STATE.succeeded)
   })
 })
 

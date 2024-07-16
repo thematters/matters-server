@@ -162,6 +162,12 @@ export class CampaignService {
     return application
   }
 
+  public getApplication = async (campaignId: string, userId: string) =>
+    this.models.findFirst({
+      table: 'campaign_user',
+      where: { userId, campaignId },
+    })
+
   public findAndCountAll = async (
     { skip, take }: { skip: number; take: number },
     {

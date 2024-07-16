@@ -935,9 +935,21 @@ type WritingChallenge implements Node & Campaign {
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!
   state: CampaignState!
-  participants(input: CampaignParticipantsInput!): UserConnection!
+  participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): ArticleConnection!
   applicationState: CampaignApplicationState
+}
+
+type CampaignParticipantConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignParticipantEdge!]
+}
+
+type CampaignParticipantEdge {
+  cursor: String!
+  applicationState: CampaignApplicationState
+  node: User!
 }
 
 input CampaignParticipantsInput {

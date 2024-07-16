@@ -20,7 +20,19 @@ const resolver: GQLWritingChallengeResolvers['participants'] = async (
         { take, skip },
         { filterStates: undefined }
       )
-    return connectionFromArray(participants, input, totalCount)
+    const connection = connectionFromArray(participants, input, totalCount)
+    return {
+      ...connection,
+      edges: await Promise.all(
+        connection.edges.map(async (edge) => ({
+          cursor: edge.cursor,
+          node: edge.node,
+          applicationState: (
+            await campaignService.getApplication(id, edge.node.id)
+          ).state,
+        }))
+      ),
+    }
   } else {
     const [participants, totalCount] =
       await campaignService.findAndCountParticipants(id, { take, skip })
