@@ -182,7 +182,7 @@ export class CampaignService {
   ): Promise<[Campaign[], number]> => {
     const knexRO = this.connections.knexRO
     const records = await knexRO('campaign')
-      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('campaign.*', knexRO.raw('count(1) OVER() AS total_count'))
       .modify((builder) => {
         if (filterUserId) {
           builder
