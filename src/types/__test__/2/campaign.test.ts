@@ -526,6 +526,9 @@ describe('query users campaigns', () => {
               id
               ... on WritingChallenge {
                 applicationState
+                stages {
+                  name
+                }
               }
             }
           }
@@ -544,6 +547,10 @@ describe('query users campaigns', () => {
       state: CAMPAIGN_STATE.active,
     })
     const application = await campaignService.apply(campaign, user)
+    await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+      { name: 'stage2' },
+    ])
     await campaignService.approve(application.id)
   })
 
@@ -556,12 +563,14 @@ describe('query users campaigns', () => {
     const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_CAMPAIGNS,
     })
+    console.dir(data, { depth: null })
     expect(errors).toBeUndefined()
     expect(data.viewer.campaigns.totalCount).toBe(1)
+    expect(data.viewer.campaigns.edges[0].node.stages.length).toBe(2)
   })
 })
 
-describe('query users campaigns', () => {
+describe('query campaign articles', () => {
   const QUERY_CAMPAIGN_ARTICLES = /* GraphQL */ `
     query (
       $campaignInput: CampaignInput!
