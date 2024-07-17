@@ -1,4 +1,4 @@
-import type { User as UserFull, Connections } from 'definitions'
+import type { User, Connections } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
@@ -22,8 +22,6 @@ import {
 import { shortHash, extractMentionIds } from 'common/utils'
 import { AtomService, UserService, NotificationService } from 'connectors'
 
-type User = Pick<UserFull, 'id' | 'state'>
-
 export class MomentService {
   private connections: Connections
   private models: AtomService
@@ -35,7 +33,7 @@ export class MomentService {
 
   public create = async (
     data: { content: string; assetIds?: string[] },
-    user: Pick<UserFull, 'id' | 'state' | 'userName'>
+    user: Pick<User, 'id' | 'state' | 'userName'>
   ) => {
     // check user
     if (user.state !== USER_STATE.active) {
@@ -113,7 +111,10 @@ export class MomentService {
     return moment
   }
 
-  public delete = async (id: string, user: User) => {
+  public delete = async (
+    momentId: string,
+    user: Pick<User, 'id' | 'state'>
+  ) => {
     if (
       ![USER_STATE.active as string, USER_STATE.banned as string].includes(
         user.state
@@ -125,19 +126,21 @@ export class MomentService {
     }
     const moment = await this.models.findUnique({
       table: 'moment',
-      where: { id },
+      where: { id: momentId },
     })
     if (moment.authorId !== user.id) {
-      throw new ForbiddenError(`moment ${id} is not created by user ${user.id}`)
+      throw new ForbiddenError(
+        `moment ${momentId} is not created by user ${user.id}`
+      )
     }
     return this.models.update({
       table: 'moment',
-      where: { id, authorId: user.id },
+      where: { id: momentId, authorId: user.id },
       data: { state: MOMENT_STATE.archived },
     })
   }
 
-  public like = async (id: string, user: User) => {
+  public like = async (momentId: string, user: Pick<User, 'id' | 'state'>) => {
     if (user.state !== USER_STATE.active) {
       throw new ForbiddenByStateError(
         `${user.state} user is not allowed to like moments`
@@ -145,10 +148,12 @@ export class MomentService {
     }
     const moment = await this.models.findUnique({
       table: 'moment',
-      where: { id },
+      where: { id: momentId },
     })
     if (moment.state !== MOMENT_STATE.active) {
-      throw new UserInputError(`moment ${id} is not active, cannot be liked`)
+      throw new UserInputError(
+        `moment ${momentId} is not active, cannot be liked`
+      )
     }
     const userService = new UserService(this.connections)
     const isBlocked = await userService.blocked({
@@ -156,20 +161,20 @@ export class MomentService {
       targetId: user.id,
     })
     if (isBlocked) {
-      throw new ForbiddenError(`user ${id} is blocked by target author`)
+      throw new ForbiddenError(`user ${momentId} is blocked by target author`)
     }
     return this.models.upsert({
       table: 'action_moment',
-      where: { targetId: id, userId: user.id },
-      create: { targetId: id, userId: user.id, action: 'like' },
+      where: { targetId: momentId, userId: user.id },
+      create: { targetId: momentId, userId: user.id, action: 'like' },
       update: { updatedAt: new Date() },
     })
   }
 
-  public unlike = async (id: string, user: User) =>
+  public unlike = async (momentId: string, user: Pick<User, 'id'>) =>
     this.models.deleteMany({
       table: 'action_moment',
-      where: { targetId: id, userId: user.id, action: 'like' },
+      where: { targetId: momentId, userId: user.id, action: 'like' },
     })
 
   public isLiked = async (momentId: string, userId: string) => {
