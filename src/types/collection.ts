@@ -15,6 +15,9 @@ export default /* GraphQL */ `
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+
+    likeCollection(input: LikeCollectionInput!): Collection!
+    unlikeCollection(input: UnlikeCollectionInput!): Collection!
   }
 
   type Collection implements Node & PinnableWork  {
@@ -26,6 +29,10 @@ export default /* GraphQL */ `
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
+
+     likeCount: Int!
+     """whether current user has liked it"""
+     liked: Boolean!
 
      "Check if the collection contains the article"
      contains(input: NodeInput!): Boolean!
@@ -79,5 +86,11 @@ export default /* GraphQL */ `
   input  ReorderCollectionArticlesInput {
     collection: ID!
     moves: [ReorderMoveInput!]!
+  }
+  input LikeCollectionInput {
+    id: ID!
+  }
+  input UnlikeCollectionInput {
+    id: ID!
   }
 `

@@ -1,16 +1,22 @@
-import type { Collection, CollectionArticle, Connections } from 'definitions'
+import type {
+  Collection,
+  CollectionArticle,
+  Connections,
+  User,
+} from 'definitions'
 
 import { Knex } from 'knex'
 
-import { ARTICLE_STATE, MAX_PINNED_WORKS_LIMIT } from 'common/enums'
+import { ARTICLE_STATE, MAX_PINNED_WORKS_LIMIT, USER_STATE } from 'common/enums'
 import {
   ForbiddenError,
   EntityNotFoundError,
   ServerError,
   UserInputError,
   ActionLimitExceededError,
+  ForbiddenByStateError,
 } from 'common/errors'
-import { BaseService, UserWorkService } from 'connectors'
+import { BaseService, UserWorkService, UserService } from 'connectors'
 
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {
@@ -295,5 +301,56 @@ export class CollectionService extends BaseService<Collection> {
       })
 
   public findPinnedByAuthor = async (authorId: string) =>
-    this.baseFind({ where: { authorId, pinned: true } })
+    this.models.findMany({
+      table: 'collection',
+      where: { authorId, pinned: true },
+    })
+
+  public like = async (
+    collectionId: string,
+    user: Pick<User, 'id' | 'state'>
+  ) => {
+    if (user.state !== USER_STATE.active) {
+      throw new ForbiddenByStateError(
+        `${user.state} user is not allowed to like collections`
+      )
+    }
+    const collection = await this.models.collectionIdLoader.load(collectionId)
+    const userService = new UserService(this.connections)
+    const isBlocked = await userService.blocked({
+      userId: collection.authorId,
+      targetId: user.id,
+    })
+    if (isBlocked) {
+      throw new ForbiddenError(
+        `user ${collectionId} is blocked by target author`
+      )
+    }
+    return this.models.upsert({
+      table: 'action_collection',
+      where: { targetId: collectionId, userId: user.id },
+      create: { targetId: collectionId, userId: user.id, action: 'like' },
+      update: { updatedAt: new Date() },
+    })
+  }
+
+  public unlike = async (collectionId: string, user: Pick<User, 'id'>) =>
+    this.models.deleteMany({
+      table: 'action_collection',
+      where: { targetId: collectionId, userId: user.id, action: 'like' },
+    })
+
+  public isLiked = async (collectionId: string, userId: string) => {
+    const count = await this.models.count({
+      table: 'action_collection',
+      where: { targetId: collectionId, userId: userId, action: 'like' },
+    })
+    return count > 0
+  }
+
+  public countLikes = async (collectionId: string) =>
+    this.models.count({
+      table: 'action_collection',
+      where: { targetId: collectionId, action: 'like' },
+    })
 }

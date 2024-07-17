@@ -289,6 +289,8 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
+  likeCollection(input: LikeCollectionInput!): Collection!
+  unlikeCollection(input: UnlikeCollectionInput!): Collection!
   putMoment(input: PutMomentInput!): Moment!
   deleteMoment(input: DeleteMomentInput!): Moment!
   likeMoment(input: LikeMomentInput!): Moment!
@@ -3702,6 +3704,10 @@ type Collection implements Node & PinnableWork {
   articles(input: CollectionArticlesInput!): ArticleConnection!
   pinned: Boolean!
   updatedAt: DateTime!
+  likeCount: Int!
+
+  """whether current user has liked it"""
+  liked: Boolean!
 
   """Check if the collection contains the article"""
   contains(input: NodeInput!): Boolean!
@@ -3758,6 +3764,14 @@ input ReorderMoveInput {
 input ReorderCollectionArticlesInput {
   collection: ID!
   moves: [ReorderMoveInput!]!
+}
+
+input LikeCollectionInput {
+  id: ID!
+}
+
+input UnlikeCollectionInput {
+  id: ID!
 }
 
 input MomentInput {
