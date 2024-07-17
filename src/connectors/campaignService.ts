@@ -107,16 +107,19 @@ export class CampaignService {
       where: { campaignId },
     })
 
-    const knex = this.connections.knex
-    return knex<CampaignStage>('campaign_stage')
-      .insert(
-        stages.map(({ name, period }) => ({
-          campaignId,
-          name,
-          period: period ? toDatetimeRangeString(period[0], period[1]) : null,
-        }))
-      )
-      .returning('*')
+    if (stages.length > 0) {
+      const knex = this.connections.knex
+      return knex<CampaignStage>('campaign_stage')
+        .insert(
+          stages.map(({ name, period }) => ({
+            campaignId,
+            name,
+            period: period ? toDatetimeRangeString(period[0], period[1]) : null,
+          }))
+        )
+        .returning('*')
+    }
+    return []
   }
 
   public apply = async (

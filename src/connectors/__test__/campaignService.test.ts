@@ -80,6 +80,10 @@ describe('create writing_challenge campaign', () => {
     )
     expect(stages2Result.map((s) => s.name)).toEqual(stages2.map((s) => s.name))
     expect(stages2Result[0].period).not.toBeNull()
+
+    // reset stages
+    const stages3Result = await campaignService.updateStages(campaign.id, [])
+    expect(stages3Result.length).toBe(0)
   })
 })
 
