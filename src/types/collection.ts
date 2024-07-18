@@ -16,8 +16,8 @@ export default /* GraphQL */ `
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
 
-    likeCollection(input: LikeCollectionInput!): Collection!
-    unlikeCollection(input: UnlikeCollectionInput!): Collection!
+    likeCollection(input: LikeCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    unlikeCollection(input: UnlikeCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
   }
 
   type Collection implements Node & PinnableWork  {
@@ -32,7 +32,7 @@ export default /* GraphQL */ `
 
      likeCount: Int!
      """whether current user has liked it"""
-     liked: Boolean!
+     liked: Boolean! @privateCache
 
      "Check if the collection contains the article"
      contains(input: NodeInput!): Boolean!
