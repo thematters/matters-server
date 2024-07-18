@@ -318,7 +318,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     source: { entityTypeId: string; entityId: string }
     target: { entityTypeId: string; entityId: string }
   }) => {
-    const maps = await this.knex
+    const maps = await this.knexRO
       .select()
       .from('asset_map')
       .where({ entityTypeId: source.entityTypeId, entityId: source.entityId })
