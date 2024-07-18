@@ -103,6 +103,11 @@ const PUT_COMMENT = /* GraphQL */ `
       replyTo {
         id
       }
+      node {
+        ... on Moment {
+          shortHash
+        }
+      }
     }
   }
 `
@@ -299,6 +304,7 @@ describe('mutations on comment', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putComment.id).toBeDefined()
+    expect(data.putComment.node.shortHash).toBe(moment.shortHash)
 
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: DELETE_COMMENT,
