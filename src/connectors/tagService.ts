@@ -532,6 +532,7 @@ export class TagService extends BaseService<Tag> {
         'id',
         'content_orig AS content',
         'description',
+        'createdAt',
         // 'num_articles', // 'num_followers',
         this.searchKnex.raw(
           'percent_rank() OVER (ORDER by num_followers NULLS FIRST) AS followers_rank'
