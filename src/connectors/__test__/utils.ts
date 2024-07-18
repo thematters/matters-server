@@ -28,7 +28,9 @@ export const genConnections = async (): Promise<Connections> => {
       password: process.env.MATTERS_PG_PASSWORD,
       database,
     },
-    pool: { min: 2, max: 10 },
+    // set pool size to 1 to detect db connection acquiring deadlock
+    // explained in https://github.com/Vincit/objection.js/issues/1137#issuecomment-561149456
+    pool: { min: 1, max: 1 },
   }
 
   // emulate the connections object in src/routes/connections.ts
