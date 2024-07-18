@@ -1,5 +1,4 @@
 const { spawn } = require('child_process')
-const { knexSnakeCaseMappers } = require('objection')
 
 require('dotenv').config()
 
@@ -26,7 +25,6 @@ module.exports = async (database) => {
     seeds: {
       directory: __dirname + '/seeds',
     },
-    pool: { min: 1, max: 10 },
   }
 
   // create target database if not exists
@@ -69,13 +67,6 @@ module.exports = async (database) => {
   // await knex.raw('GRANT SELECT ON  ALL TABLES IN SCHEMA search_index TO PUBLIC;')
   //
   await seedKnex.destroy()
-
-  // return a new knex instance with snake_case_mappers
-  return Knex({
-    ...knexConfig,
-    ...knexSnakeCaseMappers(),
-    // debug: true
-  })
 }
 
 async function runShellDBRollup(connection) {
