@@ -190,7 +190,7 @@ describe('like/unklike moments', () => {
       author
     )
     await userService.block(author.id, user.id)
-    expect(momentService.like(moment.id, user)).rejects.toThrowError(
+    await expect(momentService.like(moment.id, user)).rejects.toThrowError(
       ForbiddenError
     )
   })

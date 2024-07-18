@@ -480,13 +480,13 @@ describe('like/unklike collections', () => {
     const user = { id: '3', state: USER_STATE.active }
     const author = { id: '4', state: USER_STATE.active, userName: 'testuser' }
     const collection = await collectionService.createCollection({
-      authorId: '2',
+      authorId: author.id,
       title: 'test',
       description: 'test',
     })
     await userService.block(author.id, user.id)
-    expect(collectionService.like(collection.id, user)).rejects.toThrowError(
-      ForbiddenError
-    )
+    await expect(
+      collectionService.like(collection.id, user)
+    ).rejects.toThrowError(ForbiddenError)
   })
 })
