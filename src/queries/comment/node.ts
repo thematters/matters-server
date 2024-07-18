@@ -16,7 +16,7 @@ const resolver: GQLCommentResolvers['node'] = async (
     const draft = await atomService.articleIdLoader.load(targetId)
     return { ...draft, __type: 'Article' }
   } else if (type === COMMENT_TYPE.moment) {
-    const moment = atomService.momentIdLoader.load(targetId)
+    const moment = await atomService.momentIdLoader.load(targetId)
     return { ...moment, __type: 'Moment' }
   } else {
     const circle = await atomService.findFirst({
