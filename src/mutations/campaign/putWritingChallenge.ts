@@ -4,12 +4,13 @@ import type {
   Campaign,
 } from 'definitions'
 
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import {
   normalizeCampaignHTML,
   sanitizeHTML,
 } from '@matters/matters-editor/transformers'
 
-import { CAMPAIGN_STATE } from 'common/enums'
+import { CAMPAIGN_STATE, NODE_TYPES } from 'common/enums'
 import {
   UserInputError,
   CampaignNotFoundError,
@@ -33,7 +34,15 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       stages,
     },
   },
-  { viewer, dataSources: { campaignService, atomService, translationService } }
+  {
+    viewer,
+    dataSources: {
+      campaignService,
+      atomService,
+      translationService,
+      connections: { redis },
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -81,6 +90,13 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       state,
       creatorId: viewer.id,
     })
+    // invalidate campaign list cache
+    if (+campaign.id > 1) {
+      invalidateFQC({
+        node: { type: NODE_TYPES.Campaign, id: `${+campaign.id - 1}` },
+        redis,
+      })
+    }
   } else {
     const { id, type } = fromGlobalId(globalId)
     if (type !== 'Campaign') {
