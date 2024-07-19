@@ -19,14 +19,14 @@ const resolver: GQLUserResolvers['notices'] = async (
     take = Math.max(MAX_NOTICE_COUNT - skip, 0)
   }
 
-  const notices = await notificationService.notice.findByUser({
+  const notices = await notificationService.findByUser({
     userId: id,
     onlyRecent: true,
     skip,
     take,
   })
 
-  const _totalCount = await notificationService.notice.countNotice({
+  const _totalCount = await notificationService.countNotice({
     userId: id,
     onlyRecent: true,
   })

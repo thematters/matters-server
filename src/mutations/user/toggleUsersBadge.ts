@@ -2,13 +2,14 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import _uniq from 'lodash/uniq'
 
+import { OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
   _,
   { input: { ids, type, enabled } },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, notificationService } }
 ) => {
   if (ids.length === 0) {
     throw new UserInputError('"ids" is required')
@@ -50,6 +51,14 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
       })
     })
   )
+  if (enabled && type === 'grand_slam') {
+    for (const userId of userIds) {
+      notificationService.trigger({
+        event: OFFICIAL_NOTICE_EXTEND_TYPE.badge_grand_slam_awarded,
+        recipientId: userId,
+      })
+    }
+  }
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

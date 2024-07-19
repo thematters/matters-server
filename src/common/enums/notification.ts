@@ -69,4 +69,7 @@ export enum OFFICIAL_NOTICE_EXTEND_TYPE {
   article_banned = 'article_banned',
   article_reported = 'article_reported',
   comment_reported = 'comment_reported',
+  // write challenge related
+  write_challenge_applied = 'write_challenge_applied',
+  badge_grand_slam_awarded = 'badge_grand_slam_awarded',
 }
