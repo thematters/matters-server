@@ -20,6 +20,7 @@ import type {
   ArticleTag,
   ArticleTranslation,
   ArticleVersion,
+  ArticleHottestView,
   RecommendedArticlesFromReadTagsMaterialized,
 } from './article'
 import type { Asset, AssetMap } from './asset'
@@ -201,6 +202,7 @@ export type TableTypeMap = {
   article_tag: ArticleTag
   article_translation: ArticleTranslation
   article_version: ArticleVersion
+  article_hottest_view: ArticleHottestView
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord

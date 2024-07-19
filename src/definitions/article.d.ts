@@ -131,3 +131,12 @@ export interface RecommendedArticlesFromReadTagsMaterialized {
   tagsBased: string[]
   score: number
 }
+
+export interface ArticleHottestView {
+  id: string
+  score: number
+  scorePrev: number
+  link: string
+  tagBoostEff: string
+  createdAt: Date
+}
