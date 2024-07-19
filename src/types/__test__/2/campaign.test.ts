@@ -136,6 +136,29 @@ describe('create or update wrting challenges', () => {
     )
     cover = asset.uuid
   })
+  test('empty range not allowed', async () => {
+    const time = new Date()
+    const server = await testClient({
+      connections,
+      isAuth: true,
+      context: { viewer: admin },
+    })
+    const { errors } = await server.executeOperation({
+      query: PUT_WRITING_CHALLENGE,
+      variables: {
+        input: {
+          name,
+          description,
+          cover,
+          link,
+          applicationPeriod: { start: time, end: time },
+          writingPeriod,
+          stages,
+        },
+      },
+    })
+    expect(errors[0].extensions.code).toBe('BAD_USER_INPUT')
+  })
   test('create success', async () => {
     const server = await testClient({
       connections,

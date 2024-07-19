@@ -179,7 +179,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 }
 
 const validateRange = (range: { start: Date; end?: Date }) => {
-  if (range.end && range.end.getTime() - range.start.getTime() < 0) {
+  if (range.end && range.end.getTime() - range.start.getTime() <= 0) {
     throw new UserInputError('start date must be earlier than end date')
   }
 }
