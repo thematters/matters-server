@@ -4,6 +4,7 @@ import type {
   ActionMoment,
   ActionTag,
   ActionUser,
+  ActionCollection,
 } from './action'
 import type { Announcement, AnnouncementTranslation } from './announcement'
 import type { Appreciation } from './appreciation'
@@ -183,6 +184,7 @@ export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
   action_moment: ActionMoment
+  action_collection: ActionCollection
   action_tag: ActionTag
   action_user: ActionUser
   announcement: Announcement

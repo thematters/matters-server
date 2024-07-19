@@ -1,16 +1,20 @@
 import type { Connections } from 'definitions'
 
-import { CollectionService, AtomService } from 'connectors'
+import { CollectionService, AtomService, UserService } from 'connectors'
+import { USER_STATE } from 'common/enums'
+import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 
 import { genConnections, closeConnections } from './utils'
 
 let collectionService: CollectionService
 let atomService: AtomService
+let userService: UserService
 let connections: Connections
 
 beforeAll(async () => {
   connections = await genConnections()
   collectionService = new CollectionService(connections)
+  userService = new UserService(connections)
   atomService = new AtomService(connections)
 }, 30000)
 
@@ -401,4 +405,88 @@ test('updatePinned', async () => {
   const collection = await collectionService.updatePinned(id, '1', true)
   expect(collection.pinned).toBe(true)
   expect((await collectionService.baseFindById(id)).pinned).toBe(true)
+})
+
+describe('like/unklike collections', () => {
+  test('not active user will fail', async () => {
+    const user = { id: '1', state: USER_STATE.banned }
+    const collection = await collectionService.createCollection({
+      authorId: '2',
+      title: 'test',
+      description: 'test',
+    })
+    expect(collectionService.like(collection.id, user)).rejects.toThrowError(
+      ForbiddenByStateError
+    )
+  })
+  test('success', async () => {
+    const user = { id: '1', state: USER_STATE.active }
+    const collection = await collectionService.createCollection({
+      authorId: '2',
+      title: 'test',
+      description: 'test',
+    })
+    expect(collectionService.isLiked(collection.id, user.id)).resolves.toBe(
+      false
+    )
+    await collectionService.like(collection.id, user)
+    expect(collectionService.isLiked(collection.id, user.id)).resolves.toBe(
+      true
+    )
+
+    // like multiple times is idempotent
+    await collectionService.like(collection.id, user)
+    expect(collectionService.isLiked(collection.id, user.id)).resolves.toBe(
+      true
+    )
+
+    // unlike multiple times is idempotent
+    await collectionService.unlike(collection.id, user)
+    expect(collectionService.isLiked(collection.id, user.id)).resolves.toBe(
+      false
+    )
+    await collectionService.unlike(collection.id, user)
+    expect(collectionService.isLiked(collection.id, user.id)).resolves.toBe(
+      false
+    )
+  })
+  test('author can like own collection', async () => {
+    const user = { id: '1', state: USER_STATE.active }
+    const collection = await collectionService.createCollection({
+      authorId: '1',
+      title: 'test',
+      description: 'test',
+    })
+    await collectionService.like(collection.id, user)
+  })
+  test('count likes', async () => {
+    const collection = await collectionService.createCollection({
+      authorId: '2',
+      title: 'test',
+      description: 'test',
+    })
+    expect(collectionService.countLikes(collection.id)).resolves.toBe(0)
+    await collectionService.like(collection.id, {
+      id: '2',
+      state: USER_STATE.active,
+    })
+    await collectionService.like(collection.id, {
+      id: '2',
+      state: USER_STATE.active,
+    })
+    expect(collectionService.countLikes(collection.id)).resolves.toBe(1)
+  })
+  test('blocked user will fail', async () => {
+    const user = { id: '3', state: USER_STATE.active }
+    const author = { id: '4', state: USER_STATE.active, userName: 'testuser' }
+    const collection = await collectionService.createCollection({
+      authorId: author.id,
+      title: 'test',
+      description: 'test',
+    })
+    await userService.block(author.id, user.id)
+    await expect(
+      collectionService.like(collection.id, user)
+    ).rejects.toThrowError(ForbiddenError)
+  })
 })

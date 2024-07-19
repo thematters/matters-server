@@ -185,6 +185,7 @@ export class ArticleService extends BaseService<Article> {
         })
         .returning('*')
 
+      await trx.commit()
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
         const systemService = new SystemService(this.connections)
@@ -197,7 +198,6 @@ export class ArticleService extends BaseService<Article> {
           target: { entityTypeId: articleEntity.id, entityId: article.id },
         })
       }
-      await trx.commit()
       return [article, articleVersion]
     } catch (e) {
       await trx.rollback()

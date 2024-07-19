@@ -333,7 +333,7 @@ export class PaymentService extends BaseService<Transaction> {
       const providerTxId = blockchainTx.id
 
       let tx
-      tx = await this.knex
+      tx = await trx
         .select()
         .from(this.table)
         .where({ providerTxId, provider })
@@ -357,7 +357,7 @@ export class PaymentService extends BaseService<Transaction> {
           },
           trx
         )
-        await this.knex('blockchain_transaction')
+        await trx('blockchain_transaction')
           .where({ id: blockchainTx.id })
           .update({ transactionId: tx.id })
           .transacting(trx)

@@ -49,7 +49,7 @@ export default /* GraphQL */ `
 
     likeCount: Int!
     """whether current user has liked it"""
-    liked: Boolean!
+    liked: Boolean! @privateCache
 
     createdAt: DateTime!
   }

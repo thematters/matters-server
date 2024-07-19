@@ -1027,6 +1027,9 @@ export type GQLCollection = GQLNode &
     cover?: Maybe<Scalars['String']['output']>
     description?: Maybe<Scalars['String']['output']>
     id: Scalars['ID']['output']
+    likeCount: Scalars['Int']['output']
+    /** whether current user has liked it */
+    liked: Scalars['Boolean']['output']
     pinned: Scalars['Boolean']['output']
     title: Scalars['String']['output']
     updatedAt: Scalars['DateTime']['output']
@@ -1635,6 +1638,10 @@ export type GQLKeywordsInput = {
   keywords?: InputMaybe<Array<Scalars['String']['input']>>
 }
 
+export type GQLLikeCollectionInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLLikeMomentInput = {
   id: Scalars['ID']['input']
 }
@@ -1804,6 +1811,7 @@ export type GQLMutation = {
   generateSigningMessage: GQLSigningMessageResult
   /** Invite others to join circle */
   invite?: Maybe<Array<GQLInvitation>>
+  likeCollection: GQLCollection
   likeMoment: GQLMoment
   /** Add specific user behavior record. */
   logRecord?: Maybe<Scalars['Boolean']['output']>
@@ -1905,6 +1913,7 @@ export type GQLMutation = {
   toggleTagRecommend: GQLTag
   toggleUsersBadge: Array<Maybe<GQLUser>>
   unbindLikerId: GQLUser
+  unlikeCollection: GQLCollection
   unlikeMoment: GQLMoment
   /** Unpin a comment. */
   unpinComment: GQLComment
@@ -2057,6 +2066,10 @@ export type GQLMutationGenerateSigningMessageArgs = {
 
 export type GQLMutationInviteArgs = {
   input: GQLInviteCircleInput
+}
+
+export type GQLMutationLikeCollectionArgs = {
+  input: GQLLikeCollectionInput
 }
 
 export type GQLMutationLikeMomentArgs = {
@@ -2269,6 +2282,10 @@ export type GQLMutationToggleUsersBadgeArgs = {
 
 export type GQLMutationUnbindLikerIdArgs = {
   input: GQLUnbindLikerIdInput
+}
+
+export type GQLMutationUnlikeCollectionArgs = {
+  input: GQLUnlikeCollectionInput
 }
 
 export type GQLMutationUnlikeMomentArgs = {
@@ -3663,6 +3680,10 @@ export type GQLUnbindLikerIdInput = {
   likerId: Scalars['String']['input']
 }
 
+export type GQLUnlikeCollectionInput = {
+  id: Scalars['ID']['input']
+}
+
 export type GQLUnlikeMomentInput = {
   id: Scalars['ID']['input']
 }
@@ -4797,6 +4818,7 @@ export type GQLResolversTypes = ResolversObject<{
   Invites: ResolverTypeWrapper<CircleModel>
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeCollectionInput: GQLLikeCollectionInput
   LikeMomentInput: GQLLikeMomentInput
   Liker: ResolverTypeWrapper<UserModel>
   LogRecordInput: GQLLogRecordInput
@@ -5058,6 +5080,7 @@ export type GQLResolversTypes = ResolversObject<{
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeCollectionInput: GQLUnlikeCollectionInput
   UnlikeMomentInput: GQLUnlikeMomentInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
@@ -5366,6 +5389,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   Invites: CircleModel
   KeywordInput: GQLKeywordInput
   KeywordsInput: GQLKeywordsInput
+  LikeCollectionInput: GQLLikeCollectionInput
   LikeMomentInput: GQLLikeMomentInput
   Liker: UserModel
   LogRecordInput: GQLLogRecordInput
@@ -5560,6 +5584,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   TranslationArgs: GQLTranslationArgs
   TranslationInput: GQLTranslationInput
   UnbindLikerIdInput: GQLUnbindLikerIdInput
+  UnlikeCollectionInput: GQLUnlikeCollectionInput
   UnlikeMomentInput: GQLUnlikeMomentInput
   UnpinCommentInput: GQLUnpinCommentInput
   UnsubscribeCircleInput: GQLUnsubscribeCircleInput
@@ -6773,6 +6798,8 @@ export type GQLCollectionResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
+  liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
@@ -7607,6 +7634,12 @@ export type GQLMutationResolvers<
     ContextType,
     RequireFields<GQLMutationInviteArgs, 'input'>
   >
+  likeCollection?: Resolver<
+    GQLResolversTypes['Collection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationLikeCollectionArgs, 'input'>
+  >
   likeMoment?: Resolver<
     GQLResolversTypes['Moment'],
     ParentType,
@@ -7934,6 +7967,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationUnbindLikerIdArgs, 'input'>
+  >
+  unlikeCollection?: Resolver<
+    GQLResolversTypes['Collection'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationUnlikeCollectionArgs, 'input'>
   >
   unlikeMoment?: Resolver<
     GQLResolversTypes['Moment'],

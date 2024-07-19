@@ -2506,7 +2506,8 @@ export class UserService extends BaseService<User> {
         // check if this user have social account already, if true, create new user
         const socialAccounts = await this.findSocialAccountsByUserId(
           user.id,
-          type
+          type,
+          trx
         )
         if (socialAccounts.length > 0) {
           user = await this.create({ language, referralCode }, trx)
@@ -2537,11 +2538,15 @@ export class UserService extends BaseService<User> {
 
   public findSocialAccountsByUserId = async (
     userId: string,
-    type?: keyof typeof SOCIAL_LOGIN_TYPE
+    type?: keyof typeof SOCIAL_LOGIN_TYPE,
+    trx?: Knex.Transaction
   ) => {
     const query = this.knex('social_account').select().where({ userId })
     if (type) {
       query.andWhere({ type })
+    }
+    if (trx) {
+      query.transacting(trx)
     }
     return query
   }

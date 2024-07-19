@@ -50,3 +50,12 @@ export interface ActionMoment {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface ActionCollection {
+  id: string
+  action: 'like'
+  userId: string
+  targetId: string
+  createdAt: Date
+  updatedAt: Date
+}

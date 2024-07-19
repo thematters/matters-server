@@ -563,7 +563,6 @@ describe('query users campaigns', () => {
     const { data, errors } = await server.executeOperation({
       query: GET_VIEWER_CAMPAIGNS,
     })
-    console.dir(data, { depth: null })
     expect(errors).toBeUndefined()
     expect(data.viewer.campaigns.totalCount).toBe(1)
     expect(data.viewer.campaigns.edges[0].node.stages.length).toBe(2)
