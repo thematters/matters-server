@@ -89,6 +89,7 @@ export const createTx = async (
     currency,
     state,
     targetId,
+    amount,
   }: {
     senderId: string
     recipientId: string
@@ -96,11 +97,12 @@ export const createTx = async (
     currency: keyof typeof PAYMENT_CURRENCY
     state: TRANSACTION_STATE
     targetId?: string
+    amount?: number
   },
   paymentService: PaymentService
 ) => {
   return paymentService.createTransaction({
-    amount: 1,
+    amount: amount ?? 0,
     fee: 0,
     purpose,
     currency,

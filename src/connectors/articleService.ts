@@ -1384,7 +1384,7 @@ export class ArticleService extends BaseService<Article> {
     // get old data
     const oldData = record[0]
 
-    // prepare funtion to only update count
+    // prepare function to only update count
     const updateReadCount = async () => {
       await this.baseUpdate(
         oldData.id,
@@ -1410,7 +1410,7 @@ export class ArticleService extends BaseService<Article> {
       return { newRead: true }
     }
 
-    // for logged-in user, calculate lapsed time in milisecondes
+    // for logged-in user, calculate lapsed time in milliseconds
     // based on updatedAt
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 

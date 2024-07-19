@@ -4,6 +4,10 @@ import {
   NODE_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   USER_STATE,
+  ARTICLE_STATE,
+  PAYMENT_CURRENCY,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -11,10 +15,12 @@ import {
   ArticleService,
   MomentService,
   UserService,
+  PaymentService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
+import { createTx } from 'connectors/__test__/utils'
 
 let connections: Connections
 let recommendationService: RecommendationService
@@ -22,6 +28,7 @@ let atomService: AtomService
 let articleService: ArticleService
 let momentService: MomentService
 let userService: UserService
+let paymentService: PaymentService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -30,6 +37,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   momentService = new MomentService(connections)
   userService = new UserService(connections)
+  paymentService = new PaymentService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -467,5 +475,100 @@ describe('following', () => {
       })
     expect(emptyErrors).toBeUndefined()
     expect(emptyData.viewer.recommendation.following.totalCount).toBe(0)
+  })
+})
+
+describe('hottest articles', () => {
+  const GET_VIEWER_RECOMMENDATION_HOTTEST = /* GraphQL */ `
+    query ($input: ConnectionArgs!) {
+      viewer {
+        recommendation {
+          hottest(input: $input) {
+            totalCount
+            edges {
+              node {
+                ... on Article {
+                  id
+                  author {
+                    id
+                  }
+                  slug
+                  state
+                  cover
+                  summary
+                  mediaHash
+                  dataHash
+                  iscnId
+                  createdAt
+                  revisedAt
+                  createdAt
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `
+  const refreshView = () =>
+    connections.knex.raw(
+      'refresh materialized view article_hottest_materialized'
+    )
+  const getScore = async (articleId: string) =>
+    atomService
+      .findFirst({ table: 'article_hottest_view', where: { id: articleId } })
+      .then((result) => result?.score)
+
+  test('1 HKD donations take effect', async () => {
+    const article = await atomService.findFirst({
+      table: 'article',
+      where: { state: ARTICLE_STATE.active },
+    })
+    const senderId = '3'
+    expect(article.authorId).not.toBe(senderId)
+
+    // before donation
+    await refreshView()
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.viewer.recommendation.hottest.totalCount).toBeGreaterThan(0)
+    expect(data.viewer.recommendation.hottest.edges[0].node.id).not.toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
+
+    // make `max_efficiency` bigger than 0
+    await articleService.read({ articleId: article.id, userId: senderId })
+    const scoreBefore = await getScore(article.id)
+    // donate 1 HKD and `count_normal_transaction` (article_hottest_view internal value) will be 1
+    await createTx(
+      {
+        senderId,
+        recipientId: article.authorId,
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.HKD,
+        state: TRANSACTION_STATE.succeeded,
+        targetId: article.id,
+        amount: 1,
+      },
+      paymentService
+    )
+    const scoreAfter = await getScore(article.id)
+    expect(scoreAfter).toBeGreaterThan(scoreBefore)
+
+    // after donation
+    await refreshView()
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.viewer.recommendation.hottest.totalCount).toBeGreaterThan(0)
+    expect(data2.viewer.recommendation.hottest.edges[0].node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
   })
 })
