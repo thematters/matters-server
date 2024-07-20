@@ -117,8 +117,6 @@ const queues = {
   userQueue,
 }
 
-const notificationService = new NotificationService(connections)
-
 export const graphql = async (app: Express) => {
   const makeContext = async ({
     req,
@@ -154,7 +152,7 @@ export const graphql = async (app: Express) => {
       likecoin: new LikeCoin(connections),
       exchangeRate: new ExchangeRate(connections.redis),
       translationService: new TranslationService(connections),
-      notificationService: notificationService,
+      notificationService: new NotificationService(connections),
       connections,
       queues,
     }
