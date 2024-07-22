@@ -263,37 +263,36 @@ export const makeUserFollowUserActivityQuery = (
   },
   knexRO: Knex
 ) => {
-  const query = (builder: Knex.QueryBuilder) =>
-    builder
-      .select()
-      .from(subquery)
-      .where({ rowNumber: 1 })
-      .as('selected_activities')
+  // get followee count of followers` followers
+  const followeeCountOfFollowerFollower = knexRO
+    .select('acty.node_id', knexRO.raw('COUNT(*) as followee_count'))
+    .from('action_user AS au')
+    .join(`${viewName} AS acty`, 'acty.actor_id', 'au.target_id')
+    .join(`user`, 'acty.node_id', 'user.id')
+    .leftJoin('excluded_users', 'acty.node_id', 'excluded_users.user_id')
+    .leftJoin(
+      'excluded_followers',
+      'acty.node_id',
+      'excluded_followers.user_id'
+    )
+    .leftJoin('user_restriction', 'acty.node_id', 'user_restriction.user_id')
+    .where({
+      'user.state': 'active',
+      'excluded_users.user_id': null,
+      'excluded_followers.user_id': null,
+      'user_restriction.user_id': null,
+      'au.user_id': userId,
+      'au.action': USER_ACTION.follow,
+      'acty.type': ActivityType.UserFollowUserActivity,
+    })
+    .groupBy('acty.node_id')
 
-  const subquery = (builder: Knex.QueryBuilder) =>
-    builder
-      .as('activities')
-      .select('acty.*')
-      .select(
-        knexRO.raw(
-          'row_number() over (partition by node_id order by acty.id desc) as row_number'
-        )
-      )
-      .from('action_user as au')
-      .join(`${viewName} as acty`, 'acty.actor_id', 'au.target_id')
-      .leftJoin('excluded_users', 'acty.actor_id', 'excluded_users.user_id')
-      .leftJoin(
-        'excluded_followers',
-        'acty.node_id',
-        'excluded_followers.user_id'
-      )
-      .where({
-        'excluded_users.user_id': null,
-        'excluded_followers.user_id': null,
-        'au.user_id': userId,
-        'au.action': USER_ACTION.follow,
-        'acty.type': ActivityType.UserFollowUserActivity,
-      })
+  // get followee count of all users
+  const followeeCountOfAll = knexRO
+    .select('target_id', knexRO.raw('COUNT(*) AS followee_count'))
+    .from('action_user')
+    .where({ action: USER_ACTION.follow })
+    .groupBy('target_id')
 
   return withExcludedUsers({ userId }, knexRO)
     .with('excluded_followers', (builder) => {
@@ -302,9 +301,13 @@ export const makeUserFollowUserActivityQuery = (
         .from('action_user')
         .where({ userId, action: USER_ACTION.follow })
     })
-    .select()
-    .from(query)
-    .orderBy('created_at', 'desc')
+    .select('t1.node_id')
+    .from(followeeCountOfFollowerFollower.as('t1'))
+    .join(followeeCountOfAll.as('t2'), 't1.node_id', 't2.target_id')
+    .orderBy([
+      { column: 't1.followee_count', order: 'desc' },
+      { column: 't2.followee_count', order: 'desc' },
+    ])
 }
 
 // retrieve UserSubscribeCircleActivity

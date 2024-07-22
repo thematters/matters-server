@@ -8,6 +8,7 @@ import {
   PAYMENT_CURRENCY,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  USER_RESTRICTION_TYPE,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -19,6 +20,7 @@ import {
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
+import { makeUserFollowUserActivityQuery } from '../../../queries/user/recommendation/following/sql'
 import { testClient, genConnections, closeConnections } from '../utils'
 import { createTx } from 'connectors/__test__/utils'
 
@@ -292,7 +294,125 @@ describe('icymi topic', () => {
   })
 })
 
-describe('following', () => {
+describe('following UserFollowUserActivity', () => {
+  const viewerId = '1'
+  const followerFollowerId1 = '4'
+  const followerFollowerId2 = '5'
+  const followerFollowerId3 = '6'
+  const refreshView = () =>
+    connections.knex.raw('refresh materialized view user_activity_materialized')
+  beforeAll(async () => {
+    await userService.follow(viewerId, '2')
+    await userService.follow(viewerId, '3')
+    // two viewer followers followed followerFollowerId1
+    await userService.follow('2', followerFollowerId1)
+    await userService.follow('3', followerFollowerId1)
+    // one viewer follower followed followerFollowerId2
+    await userService.follow('2', followerFollowerId2)
+    // one viewer follower followed followerFollowerId3, which has more followees
+    await userService.follow('3', followerFollowerId3)
+    await userService.follow('7', followerFollowerId3)
+    await refreshView()
+  })
+  test("ordered by viewer's followers amount then followees ammount", async () => {
+    const result = await makeUserFollowUserActivityQuery(
+      { userId: viewerId },
+      connections.knexRO
+    )
+    console.log(
+      makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      ).toString()
+    )
+    expect(result.length).toBe(3)
+    // ordered by followers amount
+    expect(result[0].nodeId).toBe(followerFollowerId1)
+    // then followees amount
+    expect(result[1].nodeId).toBe(followerFollowerId3)
+    expect(result[2].nodeId).toBe(followerFollowerId2)
+  })
+  test('followers are excluded', async () => {
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(3)
+    await userService.follow(viewerId, followerFollowerId1)
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(2)
+    await userService.unfollow(viewerId, followerFollowerId1)
+  })
+  test('blocked users are excluded', async () => {
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(3)
+    await userService.block(viewerId, followerFollowerId1)
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(2)
+    await userService.unblock(viewerId, followerFollowerId1)
+  })
+  test('restricted users are excluded', async () => {
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(3)
+    await userService.addRestriction(
+      followerFollowerId1,
+      USER_RESTRICTION_TYPE.articleHottest
+    )
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(2)
+    await userService.removeRestriction(
+      followerFollowerId1,
+      USER_RESTRICTION_TYPE.articleHottest
+    )
+  })
+  test('inactive users are excluded', async () => {
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(3)
+    await atomService.update({
+      table: 'user',
+      where: { id: followerFollowerId1 },
+      data: { state: USER_STATE.archived },
+    })
+    expect(
+      await makeUserFollowUserActivityQuery(
+        { userId: viewerId },
+        connections.knexRO
+      )
+    ).toHaveLength(2)
+    await atomService.update({
+      table: 'user',
+      where: { id: followerFollowerId1 },
+      data: { state: USER_STATE.active },
+    })
+  })
+})
+
+describe('following UserPostMomentActivity', () => {
   const GET_VIEWER_RECOMMENDATION_FOLLOWING = /* GraphQL */ `
     query ($input: RecommendationFollowingInput!) {
       viewer {
