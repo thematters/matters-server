@@ -9,7 +9,7 @@ const resolver: GQLWritingChallengeResolvers['participants'] = async (
   { viewer, dataSources: { campaignService } }
 ) => {
   const { oss } = input
-  const { take, skip } = fromConnectionArgs(input)
+  const { take, skip } = fromConnectionArgs(input, { allowTakeAll: true })
   if (oss) {
     if (!viewer.hasRole('admin')) {
       throw new ForbiddenError('only admin can access oss')
