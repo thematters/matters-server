@@ -21,6 +21,7 @@ import {
   NODE_TYPES,
   USER_STATE,
   OFFICIAL_NOTICE_EXTEND_TYPE,
+  ARTICLE_STATE,
 } from 'common/enums'
 import {
   ForbiddenByTargetStateError,
@@ -248,14 +249,15 @@ export class CampaignService {
   ): Promise<[Article[], number]> => {
     const knexRO = this.connections.knexRO
     const records = await knexRO('campaign_article')
+      .join('article', 'article.id', 'campaign_article.article_id')
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
-      .where({ campaignId })
+      .where({ campaignId, state: ARTICLE_STATE.active })
       .modify((builder) => {
         if (filterStageId) {
           builder.where({ campaignStageId: filterStageId })
         }
       })
-      .orderBy('id', 'desc')
+      .orderBy('campaign_article.id', 'desc')
       .offset(skip)
       .limit(take)
     return [

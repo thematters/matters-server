@@ -6,7 +6,12 @@ import type {
   Article,
 } from 'definitions'
 
-import { CAMPAIGN_STATE, USER_STATE, CAMPAIGN_USER_STATE } from 'common/enums'
+import {
+  CAMPAIGN_STATE,
+  USER_STATE,
+  CAMPAIGN_USER_STATE,
+  ARTICLE_STATE,
+} from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { CampaignService, AtomService } from 'connectors'
 
@@ -216,6 +221,27 @@ describe('find and count articles', () => {
     expect(_articles.length).toBe(1)
     expect(_articles[0].id).toBe(articles[0].id)
     expect(totalCount).toBe(1)
+  })
+  test('inactive articles are excluded', async () => {
+    const [, totalCount1] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10, skip: 0 }
+    )
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { state: ARTICLE_STATE.archived },
+    })
+    const [, totalCount2] = await campaignService.findAndCountArticles(
+      campaign.id,
+      { take: 10, skip: 0 }
+    )
+    expect(totalCount2).toBe(totalCount1 - 1)
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { state: ARTICLE_STATE.active },
+    })
   })
 })
 
