@@ -956,7 +956,8 @@ type CampaignParticipantConnection implements Connection {
 
 type CampaignParticipantEdge {
   cursor: String!
-  applicationState: CampaignApplicationState
+  applicationState: CampaignApplicationState @deprecated(reason: "use application field instead, will be remove in next PR")
+  application: CampaignApplication
   node: User!
 }
 

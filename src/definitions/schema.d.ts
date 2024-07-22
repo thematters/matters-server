@@ -737,6 +737,8 @@ export type GQLCampaignParticipantConnection = GQLConnection & {
 
 export type GQLCampaignParticipantEdge = {
   __typename?: 'CampaignParticipantEdge'
+  application?: Maybe<GQLCampaignApplication>
+  /** @deprecated use application field instead, will be remove in next PR */
   applicationState?: Maybe<GQLCampaignApplicationState>
   cursor: Scalars['String']['output']
   node: GQLUser
@@ -6494,6 +6496,11 @@ export type GQLCampaignParticipantEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignParticipantEdge'] = GQLResolversParentTypes['CampaignParticipantEdge']
 > = ResolversObject<{
+  application?: Resolver<
+    Maybe<GQLResolversTypes['CampaignApplication']>,
+    ParentType,
+    ContextType
+  >
   applicationState?: Resolver<
     Maybe<GQLResolversTypes['CampaignApplicationState']>,
     ParentType,

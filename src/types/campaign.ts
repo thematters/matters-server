@@ -109,7 +109,8 @@ export default /* GraphQL */ `
 
   type CampaignParticipantEdge {
     cursor: String!
-    applicationState: CampaignApplicationState
+    applicationState: CampaignApplicationState @deprecated(reason: "use application field instead, will be remove in next PR")
+    application: CampaignApplication
     node: User! @logCache(type: "${NODE_TYPES.User}")
   }
 

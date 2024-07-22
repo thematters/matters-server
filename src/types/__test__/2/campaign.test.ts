@@ -471,7 +471,10 @@ describe('application', () => {
           participants(input: { first: null, oss: true }) {
             totalCount
             edges {
-              applicationState
+              application {
+                state
+                createdAt
+              }
               node {
                 id
               }
@@ -536,8 +539,12 @@ describe('application', () => {
     ).toBe(userGlobalId)
     expect(
       updatedData.updateCampaignApplicationState.participants.edges[0]
-        .applicationState
+        .application.state
     ).toBe(CAMPAIGN_USER_STATE.succeeded)
+    expect(
+      updatedData.updateCampaignApplicationState.participants.edges[0]
+        .application.createdAt
+    ).toBeDefined()
   })
 })
 
