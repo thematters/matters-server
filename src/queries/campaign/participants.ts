@@ -24,13 +24,22 @@ const resolver: GQLWritingChallengeResolvers['participants'] = async (
     return {
       ...connection,
       edges: await Promise.all(
-        connection.edges.map(async (edge) => ({
-          cursor: edge.cursor,
-          node: edge.node,
-          applicationState: (
-            await campaignService.getApplication(id, edge.node.id)
-          ).state,
-        }))
+        connection.edges.map(async (edge) => {
+          const application = await campaignService.getApplication(
+            id,
+            edge.node.id
+          )
+
+          return {
+            cursor: edge.cursor,
+            node: edge.node,
+            applicationState: application.state,
+            application: {
+              state: application.state,
+              createdAt: application.createdAt,
+            },
+          }
+        })
       ),
     }
   } else {

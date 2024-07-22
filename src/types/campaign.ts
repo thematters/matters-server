@@ -92,7 +92,13 @@ export default /* GraphQL */ `
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): ArticleConnection!
 
-    applicationState: CampaignApplicationState @privateCache
+    applicationState: CampaignApplicationState @privateCache @deprecated(reason: "use application field instead, will be remove in next PR")
+    application: CampaignApplication @privateCache
+  }
+
+  type CampaignApplication {
+    state: CampaignApplicationState!
+    createdAt: DateTime!
   }
 
   type CampaignParticipantConnection implements Connection {
@@ -103,7 +109,8 @@ export default /* GraphQL */ `
 
   type CampaignParticipantEdge {
     cursor: String!
-    applicationState: CampaignApplicationState
+    applicationState: CampaignApplicationState @deprecated(reason: "use application field instead, will be remove in next PR")
+    application: CampaignApplication
     node: User! @logCache(type: "${NODE_TYPES.User}")
   }
 

@@ -693,6 +693,12 @@ export type GQLCampaign = {
   state: GQLCampaignState
 }
 
+export type GQLCampaignApplication = {
+  __typename?: 'CampaignApplication'
+  createdAt: Scalars['DateTime']['output']
+  state: GQLCampaignApplicationState
+}
+
 export type GQLCampaignApplicationState = 'pending' | 'rejected' | 'succeeded'
 
 export type GQLCampaignArticlesFilter = {
@@ -731,6 +737,8 @@ export type GQLCampaignParticipantConnection = GQLConnection & {
 
 export type GQLCampaignParticipantEdge = {
   __typename?: 'CampaignParticipantEdge'
+  application?: Maybe<GQLCampaignApplication>
+  /** @deprecated use application field instead, will be remove in next PR */
   applicationState?: Maybe<GQLCampaignApplicationState>
   cursor: Scalars['String']['output']
   node: GQLUser
@@ -4237,7 +4245,9 @@ export type GQLWriting = GQLArticle | GQLMoment
 export type GQLWritingChallenge = GQLCampaign &
   GQLNode & {
     __typename?: 'WritingChallenge'
+    application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
+    /** @deprecated use application field instead, will be remove in next PR */
     applicationState?: Maybe<GQLCampaignApplicationState>
     articles: GQLArticleConnection
     cover?: Maybe<Scalars['String']['output']>
@@ -4641,6 +4651,7 @@ export type GQLResolversTypes = ResolversObject<{
   BoostTypes: GQLBoostTypes
   CacheControlScope: GQLCacheControlScope
   Campaign: ResolverTypeWrapper<CampaignModel>
+  CampaignApplication: ResolverTypeWrapper<GQLCampaignApplication>
   CampaignApplicationState: GQLCampaignApplicationState
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
@@ -5256,6 +5267,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   BlockedSearchKeyword: GQLBlockedSearchKeyword
   Boolean: Scalars['Boolean']['output']
   Campaign: CampaignModel
+  CampaignApplication: GQLCampaignApplication
   CampaignArticlesFilter: GQLCampaignArticlesFilter
   CampaignArticlesInput: GQLCampaignArticlesInput
   CampaignConnection: Omit<GQLCampaignConnection, 'edges'> & {
@@ -6430,6 +6442,19 @@ export type GQLCampaignResolvers<
   __resolveType: TypeResolveFn<'WritingChallenge', ParentType, ContextType>
 }>
 
+export type GQLCampaignApplicationResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignApplication'] = GQLResolversParentTypes['CampaignApplication']
+> = ResolversObject<{
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  state?: Resolver<
+    GQLResolversTypes['CampaignApplicationState'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLCampaignConnectionResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignConnection'] = GQLResolversParentTypes['CampaignConnection']
@@ -6471,6 +6496,11 @@ export type GQLCampaignParticipantEdgeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignParticipantEdge'] = GQLResolversParentTypes['CampaignParticipantEdge']
 > = ResolversObject<{
+  application?: Resolver<
+    Maybe<GQLResolversTypes['CampaignApplication']>,
+    ParentType,
+    ContextType
+  >
   applicationState?: Resolver<
     Maybe<GQLResolversTypes['CampaignApplicationState']>,
     ParentType,
@@ -9715,6 +9745,11 @@ export type GQLWritingChallengeResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['WritingChallenge'] = GQLResolversParentTypes['WritingChallenge']
 > = ResolversObject<{
+  application?: Resolver<
+    Maybe<GQLResolversTypes['CampaignApplication']>,
+    ParentType,
+    ContextType
+  >
   applicationPeriod?: Resolver<
     Maybe<GQLResolversTypes['DatetimeRange']>,
     ParentType,
@@ -9820,6 +9855,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   BlockchainTransaction?: GQLBlockchainTransactionResolvers<ContextType>
   BlockedSearchKeyword?: GQLBlockedSearchKeywordResolvers<ContextType>
   Campaign?: GQLCampaignResolvers<ContextType>
+  CampaignApplication?: GQLCampaignApplicationResolvers<ContextType>
   CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
   CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
   CampaignParticipantConnection?: GQLCampaignParticipantConnectionResolvers<ContextType>

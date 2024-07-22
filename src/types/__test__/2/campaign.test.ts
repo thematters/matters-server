@@ -455,7 +455,10 @@ describe('application', () => {
       applyCampaign(input: $input) {
         id
         ... on WritingChallenge {
-          applicationState
+          application {
+            state
+            createdAt
+          }
         }
       }
     }
@@ -468,7 +471,10 @@ describe('application', () => {
           participants(input: { first: null, oss: true }) {
             totalCount
             edges {
-              applicationState
+              application {
+                state
+                createdAt
+              }
               node {
                 id
               }
@@ -503,9 +509,10 @@ describe('application', () => {
       variables: { input: { id: campaignGlobalId } },
     })
     expect(errors).toBeUndefined()
-    expect(data.applyCampaign.applicationState).toBe(
+    expect(data.applyCampaign.application.state).toBe(
       CAMPAIGN_USER_STATE.pending
     )
+    expect(data.applyCampaign.application.createdAt).toBeDefined()
 
     const adminServer = await testClient({
       connections,
@@ -532,8 +539,12 @@ describe('application', () => {
     ).toBe(userGlobalId)
     expect(
       updatedData.updateCampaignApplicationState.participants.edges[0]
-        .applicationState
+        .application.state
     ).toBe(CAMPAIGN_USER_STATE.succeeded)
+    expect(
+      updatedData.updateCampaignApplicationState.participants.edges[0]
+        .application.createdAt
+    ).toBeDefined()
   })
 })
 
