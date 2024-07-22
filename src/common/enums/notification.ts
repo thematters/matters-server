@@ -14,6 +14,9 @@ export enum NOTICE_TYPE {
   // article-article
   article_new_collected = 'article_new_collected',
 
+  // collection
+  collection_liked = 'collection_liked',
+
   // moment
   moment_liked = 'moment_liked',
   moment_mentioned_you = 'moment_mentioned_you',

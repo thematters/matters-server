@@ -1,12 +1,16 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import { NOTICE_TYPE } from 'common/enums'
 import { AuthenticationError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 export const likeCollection: GQLMutationResolvers['likeCollection'] = async (
   _,
   { input: { id: globalId } },
-  { viewer, dataSources: { collectionService, atomService } }
+  {
+    viewer,
+    dataSources: { collectionService, atomService, notificationService },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -19,6 +23,15 @@ export const likeCollection: GQLMutationResolvers['likeCollection'] = async (
   await collectionService.like(id, viewer)
 
   const collection = await atomService.collectionIdLoader.load(id)
+
+  notificationService.trigger({
+    event: NOTICE_TYPE.collection_liked,
+    actorId: viewer.id,
+    recipientId: collection.authorId,
+    entities: [
+      { type: 'target', entityTable: 'collection', entity: collection },
+    ],
+  })
 
   return collection
 }

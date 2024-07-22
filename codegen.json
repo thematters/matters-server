@@ -54,6 +54,7 @@
           "ArticleNotice": "./notification#NoticeItem",
           "ArticleArticleNotice": "./notification#NoticeItem",
           "ArticleTagNotice": "./notification#NoticeItem",
+          "CollectionNotice": "./notification#NoticeItem",
           "MomentNotice": "./notification#NoticeItem",
           "TagNotice": "./notification#NoticeItem",
           "CommentNotice": "./notification#NoticeItem",
