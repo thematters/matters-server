@@ -4245,7 +4245,7 @@ export type GQLWritingChallenge = GQLCampaign &
     __typename?: 'WritingChallenge'
     application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
-    /** @deprecated user application field instead, will be remove in next PR */
+    /** @deprecated use application field instead, will be remove in next PR */
     applicationState?: Maybe<GQLCampaignApplicationState>
     articles: GQLArticleConnection
     cover?: Maybe<Scalars['String']['output']>
