@@ -455,7 +455,10 @@ describe('application', () => {
       applyCampaign(input: $input) {
         id
         ... on WritingChallenge {
-          applicationState
+          application {
+            state
+            createdAt
+          }
         }
       }
     }
@@ -503,9 +506,10 @@ describe('application', () => {
       variables: { input: { id: campaignGlobalId } },
     })
     expect(errors).toBeUndefined()
-    expect(data.applyCampaign.applicationState).toBe(
+    expect(data.applyCampaign.application.state).toBe(
       CAMPAIGN_USER_STATE.pending
     )
+    expect(data.applyCampaign.application.createdAt).toBeDefined()
 
     const adminServer = await testClient({
       connections,

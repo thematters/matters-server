@@ -939,7 +939,13 @@ type WritingChallenge implements Node & Campaign {
   state: CampaignState!
   participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
   articles(input: CampaignArticlesInput!): ArticleConnection!
-  applicationState: CampaignApplicationState
+  applicationState: CampaignApplicationState @deprecated(reason: "user application field instead, will be remove in next PR")
+  application: CampaignApplication
+}
+
+type CampaignApplication {
+  state: CampaignApplicationState!
+  createdAt: DateTime!
 }
 
 type CampaignParticipantConnection implements Connection {

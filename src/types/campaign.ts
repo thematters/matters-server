@@ -92,7 +92,13 @@ export default /* GraphQL */ `
     participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
     articles(input: CampaignArticlesInput!): ArticleConnection!
 
-    applicationState: CampaignApplicationState @privateCache
+    applicationState: CampaignApplicationState @privateCache @deprecated(reason: "user application field instead, will be remove in next PR")
+    application: CampaignApplication @privateCache
+  }
+
+  type CampaignApplication {
+    state: CampaignApplicationState!
+    createdAt: DateTime!
   }
 
   type CampaignParticipantConnection implements Connection {
