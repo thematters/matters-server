@@ -389,6 +389,7 @@ describe('following', () => {
 
     // three same actor moment activities in series will be combined into one activity
     const moment3 = await momentService.create({ content: 'test' }, followee1)
+    const moment4 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors3, data: data3 } = await server.executeOperation({
@@ -398,18 +399,21 @@ describe('following', () => {
     expect(errors3).toBeUndefined()
     expect(data3.viewer.recommendation.following.totalCount).toBe(1)
     expect(data3.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment3.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment4.id })
     )
     expect(data3.viewer.recommendation.following.edges[0].node.more[0].id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment3.id })
     )
     expect(data3.viewer.recommendation.following.edges[0].node.more[1].id).toBe(
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
+    )
+    expect(data3.viewer.recommendation.following.edges[0].node.more[2].id).toBe(
       toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
     // other actor moment activities will not reset the combination time window
-    const moment4 = await momentService.create({ content: 'test' }, followee2)
-    const moment5 = await momentService.create({ content: 'test' }, followee1)
+    const moment5 = await momentService.create({ content: 'test' }, followee2)
+    const moment6 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors4, data: data4 } = await server.executeOperation({
@@ -419,10 +423,10 @@ describe('following', () => {
     expect(errors4).toBeUndefined()
     expect(data4.viewer.recommendation.following.totalCount).toBe(2)
     expect(data4.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
     )
     expect(data4.viewer.recommendation.following.edges[1].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment4.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
     // same actor other activities will  reset the combination time window
@@ -431,7 +435,7 @@ describe('following', () => {
       content: 'test',
       authorId: followee1.id,
     })
-    const moment6 = await momentService.create({ content: 'test' }, followee1)
+    const moment7 = await momentService.create({ content: 'test' }, followee1)
     await refreshView()
 
     const { errors: errors5, data: data5 } = await server.executeOperation({
@@ -441,16 +445,16 @@ describe('following', () => {
     expect(errors5).toBeUndefined()
     expect(data5.viewer.recommendation.following.totalCount).toBe(4)
     expect(data5.viewer.recommendation.following.edges[0].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment7.id })
     )
     expect(data5.viewer.recommendation.following.edges[1].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: article.id })
     )
     expect(data5.viewer.recommendation.following.edges[2].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
     )
     expect(data5.viewer.recommendation.following.edges[3].node.node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Moment, id: moment4.id })
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
     // article only

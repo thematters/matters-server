@@ -609,7 +609,7 @@ export default /* GraphQL */ `
     "Moment posted by actor"
     node: Moment! @logCache(type: "${NODE_TYPES.Moment}")
 
-    "Another 2 moments posted by actor"
+    "Another 3 moments posted by actor"
     more: [Moment!]!
   }
 

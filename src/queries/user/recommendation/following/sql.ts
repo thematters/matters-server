@@ -21,6 +21,7 @@ export interface Activity {
   targetType: string | null
   actyNode2: string | null
   actyNode3: string | null
+  actyNode4: string | null
   createdAt: Date
 }
 
@@ -138,7 +139,8 @@ export const makeBaseActivityQuery = async (
               row_number() OVER acty_group AS rank,
               count(1) OVER (PARTITION BY actor_id, type_group, time_group ) AS group_size,
               nth_value(node_id, 2) OVER acty_group AS acty_node_2,
-              nth_value(node_id, 3) OVER acty_group AS acty_node_3
+              nth_value(node_id, 3) OVER acty_group AS acty_node_3,
+              nth_value(node_id, 4) OVER acty_group AS acty_node_4
           FROM time_grouped
           WINDOW acty_group AS (PARTITION BY actor_id, type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)`
         )

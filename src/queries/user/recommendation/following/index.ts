@@ -78,6 +78,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     createdAt,
     actyNode2,
     actyNode3,
+    actyNode4,
   }: Activity) => ({
     __type: type,
     actor: await atomService.userIdLoader.load(actorId),
@@ -89,6 +90,7 @@ const resolver: GQLRecommendationResolvers['following'] = async (
     more: [
       actyNode2 ? await nodeLoader({ id: actyNode2, type: nodeType }) : null,
       actyNode3 ? await nodeLoader({ id: actyNode3, type: nodeType }) : null,
+      actyNode4 ? await nodeLoader({ id: actyNode4, type: nodeType }) : null,
     ].filter(Boolean),
     createdAt,
   })
