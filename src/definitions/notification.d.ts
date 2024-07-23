@@ -113,6 +113,16 @@ interface NoticeArticleNewConnectedParams extends NotificationRequiredParams {
 }
 
 /**
+ * Collection
+ */
+interface NoticeCollectionLikedParams extends NotificationRequiredParams {
+  event: NOTICE_TYPE.collection_liked
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'collection'>]
+}
+
+/**
  * Moment
  */
 interface NoticeMomentLikedParams extends NotificationRequiredParams {
@@ -358,6 +368,8 @@ export type NotificationParams =
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
   | NoticeCircleNewArticleParams
+  // Collection
+  | NoticeCollectionLikedParams
   // Moment
   | NoticeMomentLikedParams
   | NoticeMomentMentionedYouParams

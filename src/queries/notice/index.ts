@@ -2,6 +2,7 @@ import type {
   GQLArticleArticleNoticeResolvers,
   GQLArticleNoticeResolvers,
   GQLCircleNoticeResolvers,
+  GQLCollectionNoticeResolvers,
   GQLMomentNoticeResolvers,
   GQLCommentCommentNoticeResolvers,
   GQLCommentNoticeResolvers,
@@ -21,6 +22,7 @@ const NOTICE_TYPE = {
   UserNotice: 'UserNotice',
   ArticleNotice: 'ArticleNotice',
   ArticleArticleNotice: 'ArticleArticleNotice',
+  CollectionNotice: 'CollectionNotice',
   MomentNotice: 'MomentNotice',
   CommentNotice: 'CommentNotice',
   CommentCommentNotice: 'CommentCommentNotice',
@@ -37,6 +39,7 @@ const notice: {
   UserNotice: GQLUserNoticeResolvers
   ArticleNotice: GQLArticleNoticeResolvers
   ArticleArticleNotice: GQLArticleArticleNoticeResolvers
+  CollectionNotice: GQLCollectionNoticeResolvers
   MomentNotice: GQLMomentNoticeResolvers
   CommentNotice: GQLCommentNoticeResolvers
   CommentCommentNotice: GQLCommentCommentNoticeResolvers
@@ -62,6 +65,9 @@ const notice: {
 
         // article-article
         article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
+
+        // collection
+        collection_liked: NOTICE_TYPE.CollectionNotice,
 
         // moment
         moment_liked: NOTICE_TYPE.MomentNotice,
@@ -162,6 +168,19 @@ const notice: {
         return atomService.articleIdLoader.load(entities.collection.id)
       }
       throw new ServerError(`Unknown ArticleArticleNotice type: ${type}`)
+    },
+  },
+
+  CollectionNotice: {
+    target: ({ entities, type }) => {
+      if (!entities) {
+        throw new ServerError('entities is empty')
+      }
+      switch (type) {
+        case INNER_NOTICE_TYPE.collection_liked:
+          return entities.target
+      }
+      throw new ServerError(`Unknown MomentNotice type: ${type}`)
     },
   },
 

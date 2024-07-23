@@ -1070,6 +1070,19 @@ export type GQLCollectionEdge = {
   node: GQLCollection
 }
 
+export type GQLCollectionNotice = GQLNotice & {
+  __typename?: 'CollectionNotice'
+  /** List of notice actors. */
+  actors?: Maybe<Array<GQLUser>>
+  /** Time of this notice was created. */
+  createdAt: Scalars['DateTime']['output']
+  /** Unique ID of this notice. */
+  id: Scalars['ID']['output']
+  target: GQLCollection
+  /** The value determines if the notice is unread or not. */
+  unread: Scalars['Boolean']['output']
+}
+
 /** This type contains content, author, descendant comments and related data of a comment. */
 export type GQLComment = GQLNode & {
   __typename?: 'Comment'
@@ -4543,6 +4556,7 @@ export type GQLResolversInterfaceTypes<
     | NoticeItemModel
     | NoticeItemModel
     | NoticeItemModel
+    | NoticeItemModel
   PinnableWork: ArticleModel | CollectionModel
 }>
 
@@ -4723,6 +4737,7 @@ export type GQLResolversTypes = ResolversObject<{
   CollectionEdge: ResolverTypeWrapper<
     Omit<GQLCollectionEdge, 'node'> & { node: GQLResolversTypes['Collection'] }
   >
+  CollectionNotice: ResolverTypeWrapper<NoticeItemModel>
   Comment: ResolverTypeWrapper<CommentModel>
   CommentCommentNotice: ResolverTypeWrapper<NoticeItemModel>
   CommentCommentNoticeType: GQLCommentCommentNoticeType
@@ -5323,6 +5338,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   CollectionEdge: Omit<GQLCollectionEdge, 'node'> & {
     node: GQLResolversParentTypes['Collection']
   }
+  CollectionNotice: NoticeItemModel
   Comment: CommentModel
   CommentCommentNotice: NoticeItemModel
   CommentCommentsInput: GQLCommentCommentsInput
@@ -6859,6 +6875,22 @@ export type GQLCollectionEdgeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLCollectionNoticeResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CollectionNotice'] = GQLResolversParentTypes['CollectionNotice']
+> = ResolversObject<{
+  actors?: Resolver<
+    Maybe<Array<GQLResolversTypes['User']>>,
+    ParentType,
+    ContextType
+  >
+  createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  target?: Resolver<GQLResolversTypes['Collection'], ParentType, ContextType>
+  unread?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLCommentResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['Comment'] = GQLResolversParentTypes['Comment']
@@ -8187,6 +8219,7 @@ export type GQLNoticeResolvers<
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
     | 'CircleNotice'
+    | 'CollectionNotice'
     | 'CommentCommentNotice'
     | 'CommentNotice'
     | 'MomentNotice'
@@ -9876,6 +9909,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   Collection?: GQLCollectionResolvers<ContextType>
   CollectionConnection?: GQLCollectionConnectionResolvers<ContextType>
   CollectionEdge?: GQLCollectionEdgeResolvers<ContextType>
+  CollectionNotice?: GQLCollectionNoticeResolvers<ContextType>
   Comment?: GQLCommentResolvers<ContextType>
   CommentCommentNotice?: GQLCommentCommentNoticeResolvers<ContextType>
   CommentConnection?: GQLCommentConnectionResolvers<ContextType>
