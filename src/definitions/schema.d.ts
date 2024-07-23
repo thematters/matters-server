@@ -4104,7 +4104,7 @@ export type GQLUserPostMomentActivity = {
   __typename?: 'UserPostMomentActivity'
   actor: GQLUser
   createdAt: Scalars['DateTime']['output']
-  /** Another 2 moments posted by actor */
+  /** Another 3 moments posted by actor */
   more: Array<GQLMoment>
   /** Moment posted by actor */
   node: GQLMoment

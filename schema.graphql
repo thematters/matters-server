@@ -2874,7 +2874,7 @@ type UserPostMomentActivity {
   """Moment posted by actor"""
   node: Moment!
 
-  """Another 2 moments posted by actor"""
+  """Another 3 moments posted by actor"""
   more: [Moment!]!
 }
 
