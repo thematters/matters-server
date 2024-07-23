@@ -1120,7 +1120,7 @@ export default /* GraphQL */ `
   }
 
   input RecommendationFollowingFilterInput {
-    type:RecommendationFollowingFilterType!
+    type:RecommendationFollowingFilterType
   }
 
   enum RecommendationFollowingFilterType {

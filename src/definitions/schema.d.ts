@@ -3045,7 +3045,7 @@ export type GQLRecommendationTagsArgs = {
 }
 
 export type GQLRecommendationFollowingFilterInput = {
-  type: GQLRecommendationFollowingFilterType
+  type?: InputMaybe<GQLRecommendationFollowingFilterType>
 }
 
 export type GQLRecommendationFollowingFilterType = 'article'
