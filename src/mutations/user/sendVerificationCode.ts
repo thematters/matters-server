@@ -54,12 +54,22 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
     }
+
+    if (!userService.isEmailinWhitelist(email)) {
+      logger.warn(`email ${email} is not in whitelist`)
+      return true
+    }
   }
   if (type === VERIFICATION_CODE_TYPE.email_otp && !user) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const isHuman = token && (await verifyCaptchaToken(token, viewer.ip))
     if (!isHuman) {
       throw new ForbiddenError('registration via scripting is not allowed')
+    }
+
+    if (!userService.isEmailinWhitelist(email)) {
+      logger.warn(`email ${email} is not in whitelist`)
+      return true
     }
   }
 

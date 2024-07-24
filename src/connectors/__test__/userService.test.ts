@@ -771,3 +771,17 @@ describe('findByUserName', () => {
     expect(user).toBeDefined()
   })
 })
+
+describe('isEmailinWhitelist', () => {
+  test('return true if email domain contains ".edu"', async () => {
+    expect(await userService.isEmailinWhitelist('user@good.edu')).toBeTruthy()
+    expect(
+      await userService.isEmailinWhitelist('user@good.edu.hk')
+    ).toBeTruthy()
+    expect(await userService.isEmailinWhitelist('user@good.edurec')).toBeFalsy()
+  })
+  test('return true if email domain contains in db whitelist', async () => {
+    // no sql errors
+    await userService.isEmailinWhitelist('user@matters.town')
+  })
+})
