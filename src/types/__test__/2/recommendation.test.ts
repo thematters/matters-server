@@ -539,10 +539,7 @@ describe('hottest articles', () => {
       variables: { input: { first: 10 } },
     })
     expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.hottest.totalCount).toBeGreaterThan(0)
-    expect(data.viewer.recommendation.hottest.edges[0].node.id).not.toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
-    )
+    expect(data.viewer.recommendation.hottest.totalCount).toBe(0)
 
     // make `max_efficiency` bigger than 0
     await articleService.read({ articleId: article.id, userId: senderId })

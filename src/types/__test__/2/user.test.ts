@@ -1016,6 +1016,19 @@ describe('user recommendations', () => {
     knex = connections.knex
   })
   test('retrieve articles from hottest, newest and icymi', async () => {
+    await createTx(
+      {
+        senderId: '2',
+        recipientId: '1',
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.HKD,
+        state: TRANSACTION_STATE.succeeded,
+        targetId: '1',
+        amount: 1,
+      },
+      paymentService
+    )
+
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
 
     const lists = ['hottest', 'newest', 'icymi']
