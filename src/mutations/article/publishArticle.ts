@@ -9,6 +9,7 @@ import {
   MAX_CONTENT_LINK_TEXT_LENGTH,
   PUBLISH_STATE,
   USER_STATE,
+  AUDIT_LOG_ACTION,
 } from 'common/enums'
 import {
   DraftNotFoundError,
@@ -16,6 +17,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
+import { auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['publishArticle'] = async (
@@ -82,6 +84,13 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
 
   // add job to queue
   publicationQueue.publishArticle({ draftId: draftDBId, iscnPublish })
+  auditLog({
+    actorId: viewer.id,
+    action: AUDIT_LOG_ACTION.addPublishArticleJob,
+    entity: 'draft',
+    entityId: draft.id,
+    status: 'succeeded',
+  })
 
   return draftPending
 }
