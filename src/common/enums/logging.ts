@@ -40,6 +40,7 @@ export const AUDIT_LOG_ACTION = {
   removeCollection: 'remove_collection',
   addArticleIntoCollection: 'add_article_into_collection',
   removeArticleFromCollection: 'remove_article_from_collection',
+  addPublishArticleJob: 'add_publish_article_job',
 } as const
 
 export const AUDIT_LOG_STATUS = {
