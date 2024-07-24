@@ -42,6 +42,7 @@ import {
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
   CACHE_PREFIX,
+  CACHE_TTL,
   CIRCLE_ACTION,
   COMMENT_STATE,
   HOUR,
@@ -2949,5 +2950,79 @@ export class UserService extends BaseService<User> {
     if (delta > threshold) {
       await this.knex(this.table).update('last_seen', now).where({ id })
     }
+  }
+
+  public isEmailinWhitelist = async (email: string) => {
+    const domain = email.split('@')[1]
+    if (!domain) {
+      return false
+    }
+    // allow email domains contain '.edu'
+    if (/\.edu\./.test(domain) || /\.edu$/.test(domain)) {
+      return true
+    }
+
+    const cacheService = new CacheService(
+      CACHE_PREFIX.EMAIL_DOMAIL_WHITELIST,
+      this.connections.redis
+    )
+    const whiteListEmailDomain = (await cacheService.getObject({
+      keys: { type: 'email_domain' },
+      getter: this._getEmailDomainWhiteList,
+      expire: CACHE_TTL.STATIC,
+    })) as string[]
+
+    if (whiteListEmailDomain.includes(domain)) {
+      return true
+    }
+    return false
+  }
+
+  private _getEmailDomainWhiteList = async (): Promise<string[]> => {
+    const res = await this.knexRO.raw(`
+      WITH all_email AS
+        (SELECT substring(email
+                          FROM '@(.*)$') AS DOMAIN,
+                count(*)
+         FROM "user"
+         WHERE email IS NOT NULL
+           AND (created_at <= '2024-07-20'
+                OR created_at >= '2024-07-25')
+         GROUP BY DOMAIN),
+           frozen AS
+        (SELECT substring(email
+                          FROM '@(.*)$') AS DOMAIN,
+                count(*)
+         FROM "user"
+         WHERE state='frozen'
+         GROUP BY DOMAIN),
+           archived AS
+        (SELECT substring(email
+                          FROM '@(.*)$') AS DOMAIN,
+                count(*)
+         FROM "user"
+         WHERE state='archived'
+         GROUP BY DOMAIN),
+           RESTRICTED AS
+        (SELECT substring(email
+                          FROM '@(.*)$') AS DOMAIN,
+                count(*)
+         FROM "user"
+         WHERE id IN
+             (SELECT user_id
+              FROM user_restriction)
+         GROUP BY DOMAIN)
+      SELECT all_email.domain
+      FROM all_email
+      LEFT JOIN frozen USING (DOMAIN)
+      LEFT JOIN archived USING (DOMAIN)
+      LEFT JOIN RESTRICTED USING (DOMAIN)
+      WHERE all_email.domain IS NOT NULL
+        AND all_email.count >=10
+        AND (coalesce(frozen.count, 0) + coalesce(archived.count, 0) + coalesce(restricted.count, 0)) / all_email.count::decimal <= 0.25
+      `)
+    const domains = res.rows.map((r: { domain: string }) => r.domain)
+    logger.info('email domain whitelist:', domains)
+    return domains
   }
 }
