@@ -2,7 +2,12 @@ import type { GQLRecommendationResolvers } from 'definitions'
 
 import { Knex } from 'knex'
 
-import { DEFAULT_TAKE_PER_PAGE, MATERIALIZED_VIEW } from 'common/enums'
+import {
+  DEFAULT_TAKE_PER_PAGE,
+  MATERIALIZED_VIEW,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+} from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
 
@@ -25,6 +30,11 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   }
 
   const { take, skip } = fromConnectionArgs(input)
+
+  const donated_articles = knexRO('transaction').select('target_id').where({
+    purpose: TRANSACTION_PURPOSE.donation,
+    state: TRANSACTION_STATE.succeeded,
+  })
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
@@ -54,6 +64,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .select('user_id')
                 .where('type', 'articleHottest')
             )
+            .whereIn('article.id', donated_articles)
         }
       })
       .as('hottest')
