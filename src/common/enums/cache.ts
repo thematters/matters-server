@@ -28,6 +28,7 @@ export const CACHE_PREFIX = {
   LIKECOIN: 'likecoin',
   CIVIC_LIKER: 'civic-liker',
   USER_LAST_SEEN: 'cache-user-last-seen',
+  EMAIL_DOMAIL_WHITELIST: 'cache-email-domain-white-list',
   TAG_COVERS: 'cache-tag-covers',
 }
 
