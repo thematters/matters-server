@@ -987,6 +987,18 @@ describe('user recommendations', () => {
     knex = connections.knex
   })
   test('retrieve articles from hottest, newest and icymi', async () => {
+    await createTx(
+      {
+        senderId: '2',
+        recipientId: '1',
+        purpose: TRANSACTION_PURPOSE.donation,
+        currency: PAYMENT_CURRENCY.HKD,
+        state: TRANSACTION_STATE.succeeded,
+        targetId: '1',
+      },
+      paymentService
+    )
+
     await refreshView(MATERIALIZED_VIEW.article_hottest_materialized, knex)
 
     const lists = ['hottest', 'newest', 'icymi']
@@ -1136,7 +1148,7 @@ describe('badges', () => {
 })
 
 describe('verification code', () => {
-  const email = `verification-${Math.floor(Math.random() * 100)}@test.com`
+  const email = `verification-${Math.floor(Math.random() * 100)}@test.edu`
   const type = 'register'
 
   test('verified code', async () => {
