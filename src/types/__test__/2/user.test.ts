@@ -1178,7 +1178,7 @@ describe('badges', () => {
 })
 
 describe('verification code', () => {
-  const email = `verification-${Math.floor(Math.random() * 100)}@test.com`
+  const email = `verification-${Math.floor(Math.random() * 100)}@test.edu`
   const type = 'register'
 
   test('verified code', async () => {
