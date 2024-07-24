@@ -782,6 +782,6 @@ describe('isEmailinWhitelist', () => {
   })
   test('return true if email domain contains in db whitelist', async () => {
     // no sql errors
-    await userService.isEmailinWhitelist('user@matters.town')
+    expect(await userService.isEmailinWhitelist('user@evil.town')).toBeFalsy()
   })
 })

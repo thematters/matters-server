@@ -55,7 +55,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new ForbiddenError('registration via scripting is not allowed')
     }
 
-    if (!userService.isEmailinWhitelist(email)) {
+    if (!(await userService.isEmailinWhitelist(email))) {
       logger.warn(`email ${email} is not in whitelist`)
       return true
     }
@@ -67,7 +67,7 @@ const resolver: GQLMutationResolvers['sendVerificationCode'] = async (
       throw new ForbiddenError('registration via scripting is not allowed')
     }
 
-    if (!userService.isEmailinWhitelist(email)) {
+    if (!(await userService.isEmailinWhitelist(email))) {
       logger.warn(`email ${email} is not in whitelist`)
       return true
     }
