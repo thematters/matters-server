@@ -70,6 +70,7 @@
           "Moment": "./moment#Moment",
           "Writing": "./index#Writing",
           "Campaign": "./campaign#Campaign",
+          "CampaignOSS": "./campaign#Campaign",
           "WritingChallenge": "./campaign#Campaign",
           "CampaignStage": "./campaign#CampaignStage"
         },

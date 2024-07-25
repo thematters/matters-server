@@ -941,6 +941,11 @@ type WritingChallenge implements Node & Campaign {
   articles(input: CampaignArticlesInput!): ArticleConnection!
   applicationState: CampaignApplicationState @deprecated(reason: "use application field instead, will be remove in next PR")
   application: CampaignApplication
+  oss: CampaignOSS!
+}
+
+type CampaignOSS {
+  boost: Float!
 }
 
 type CampaignApplication {
@@ -2332,6 +2337,7 @@ enum BoostTypes {
   Article
   User
   Tag
+  Campaign
 }
 
 enum RemarkTypes {

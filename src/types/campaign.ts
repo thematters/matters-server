@@ -1,4 +1,4 @@
-import { AUTH_MODE, NODE_TYPES } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES, CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -94,6 +94,12 @@ export default /* GraphQL */ `
 
     applicationState: CampaignApplicationState @privateCache @deprecated(reason: "use application field instead, will be remove in next PR")
     application: CampaignApplication @privateCache
+
+    oss: CampaignOSS! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type CampaignOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+    boost: Float!
   }
 
   type CampaignApplication {

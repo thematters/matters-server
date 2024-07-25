@@ -47,3 +47,11 @@ export interface CampaignArticle {
   articleId: string
   createdAt: Date
 }
+
+export interface CampaignBoost {
+  id: string
+  campaignId: string
+  boost: number
+  createdAt: Date
+  updatedAt: Date
+}

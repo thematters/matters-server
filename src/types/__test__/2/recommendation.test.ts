@@ -11,7 +11,6 @@ import {
   PAYMENT_CURRENCY,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
-  CAMPAIGN_STATE,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -25,7 +24,11 @@ import {
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
-import { createTx, refreshView } from 'connectors/__test__/utils'
+import {
+  createTx,
+  refreshView,
+  createCampaign,
+} from 'connectors/__test__/utils'
 
 let connections: Connections
 let recommendationService: RecommendationService
@@ -588,31 +591,7 @@ describe('hottest articles', () => {
     expect(scorePrev * _.clamp(tagBoostEff, 0.5, 2)).toBe(score)
   })
   test('campaign_boost works', async () => {
-    const campaign = await campaignService.createWritingChallenge({
-      name: 'test',
-      description: 'test',
-      link: 'https://test.com',
-      applicationPeriod: [
-        new Date('2024-01-01'),
-        new Date('2024-01-02'),
-      ] as const,
-      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
-      creatorId: '1',
-      state: CAMPAIGN_STATE.active,
-    })
-    const stages = await campaignService.updateStages(campaign.id, [
-      { name: 'stage1' },
-    ])
-    const application = await campaignService.apply(
-      campaign,
-      await atomService.userIdLoader.load(article.authorId)
-    )
-    await campaignService.approve(application.id)
-    await campaignService.submitArticleToCampaign(
-      article,
-      campaign.id,
-      stages[0].id
-    )
+    const [campaign] = await createCampaign(campaignService, article)
     const boost = 10
     await connections
       .knex('campaign_boost')
