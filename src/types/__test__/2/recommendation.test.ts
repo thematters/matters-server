@@ -1,4 +1,6 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
+
+import _ from 'lodash'
 
 import {
   MATERIALIZED_VIEW,
@@ -537,35 +539,17 @@ describe('hottest articles', () => {
       }
     }
   `
-  const getScore = async (articleId: string) =>
-    atomService
-      .findFirst({ table: 'article_hottest_view', where: { id: articleId } })
-      .then((result) => result?.score)
+  let article: Article
 
-  test('1 HKD donations take effect', async () => {
-    const article = await atomService.findFirst({
+  beforeAll(async () => {
+    // make `max_efficiency` bigger than 0
+    article = await atomService.findFirst({
       table: 'article',
       where: { state: ARTICLE_STATE.active },
     })
     const senderId = '3'
     expect(article.authorId).not.toBe(senderId)
-
-    // before donation
-    await refreshView(
-      MATERIALIZED_VIEW.article_hottest_materialized,
-      connections.knex
-    )
-    const server = await testClient({ connections })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.hottest.totalCount).toBe(0)
-
-    // make `max_efficiency` bigger than 0
     await articleService.read({ articleId: article.id, userId: senderId })
-    const scoreBefore = await getScore(article.id)
     // donate 1 HKD and `count_normal_transaction` (article_hottest_view internal value) will be 1
     await createTx(
       {
@@ -579,22 +563,24 @@ describe('hottest articles', () => {
       },
       paymentService
     )
-    const scoreAfter = await getScore(article.id)
-    expect(scoreAfter).toBeGreaterThan(scoreBefore)
-
-    // after donation
     await refreshView(
       MATERIALIZED_VIEW.article_hottest_materialized,
       connections.knex
     )
-    const { errors: errors2, data: data2 } = await server.executeOperation({
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
       variables: { input: { first: 10 } },
     })
-    expect(errors2).toBeUndefined()
-    expect(data2.viewer.recommendation.hottest.totalCount).toBeGreaterThan(0)
-    expect(data2.viewer.recommendation.hottest.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
-    )
+    expect(errors).toBeUndefined()
+    expect(data.viewer.recommendation.hottest.totalCount).toBe(1)
+  })
+
+  test('tag_boost', async () => {
+    const { score, tagBoostEff, scorePrev } = await atomService.findFirst({
+      table: 'article_hottest_view',
+      where: { id: article.id },
+    })
+    expect(_.clamp(tagBoostEff, 0.5, 2) * scorePrev).toBe(score)
   })
 })
