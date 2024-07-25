@@ -1,5 +1,6 @@
 import type { PaymentService } from 'connectors'
-import type { Connections } from 'definitions'
+import type { Connections, MaterializedView } from 'definitions'
+import type { Knex } from 'knex'
 
 import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
@@ -55,6 +56,21 @@ export const closeConnections = async (connections: Connections) => {
   await connections.knex.destroy()
   await connections.knexRO.destroy()
   await connections.knexSearch.destroy()
+}
+
+export const refreshView = async (
+  view: MaterializedView,
+  knex: Knex,
+  createIndex = true
+) => {
+  if (createIndex) {
+    await knex.raw(/* sql */ `
+      create unique index if not exists ${view}_id on public.${view} (id);
+    `)
+  }
+  await knex.raw(/* sql*/ `
+    refresh materialized view concurrently ${view}
+  `)
 }
 
 export const createDonationTx = async (

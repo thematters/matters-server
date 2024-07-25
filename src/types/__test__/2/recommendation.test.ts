@@ -1,6 +1,7 @@
 import type { Connections } from 'definitions'
 
 import {
+  MATERIALIZED_VIEW,
   NODE_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   USER_STATE,
@@ -20,7 +21,7 @@ import {
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
-import { createTx } from 'connectors/__test__/utils'
+import { createTx, refreshView } from 'connectors/__test__/utils'
 
 let connections: Connections
 let recommendationService: RecommendationService
@@ -332,13 +333,15 @@ describe('following', () => {
   const viewer = { id: '4', state: USER_STATE.active, userName: 'test' }
   const followee1 = { id: '5', state: USER_STATE.active, userName: 'test' }
   const followee2 = { id: '6', state: USER_STATE.active, userName: 'test' }
-  const refreshView = () =>
-    connections.knex.raw('refresh materialized view user_activity_materialized')
 
   beforeAll(async () => {
     await userService.follow(viewer.id, followee1.id)
     await userService.follow(viewer.id, followee2.id)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
   })
 
   test('query', async () => {
@@ -358,7 +361,11 @@ describe('following', () => {
 
     // one moment activity
     const moment1 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors1, data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -372,7 +379,11 @@ describe('following', () => {
 
     // two same actor moment activities in series
     const moment2 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -390,7 +401,11 @@ describe('following', () => {
     // three same actor moment activities in series will be combined into one activity
     const moment3 = await momentService.create({ content: 'test' }, followee1)
     const moment4 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors3, data: data3 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -414,7 +429,11 @@ describe('following', () => {
     // other actor moment activities will not reset the combination time window
     const moment5 = await momentService.create({ content: 'test' }, followee2)
     const moment6 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors4, data: data4 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -436,7 +455,11 @@ describe('following', () => {
       authorId: followee1.id,
     })
     const moment7 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors5, data: data5 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -514,10 +537,6 @@ describe('hottest articles', () => {
       }
     }
   `
-  const refreshView = () =>
-    connections.knex.raw(
-      'refresh materialized view article_hottest_materialized'
-    )
   const getScore = async (articleId: string) =>
     atomService
       .findFirst({ table: 'article_hottest_view', where: { id: articleId } })
@@ -532,7 +551,10 @@ describe('hottest articles', () => {
     expect(article.authorId).not.toBe(senderId)
 
     // before donation
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.article_hottest_materialized,
+      connections.knex
+    )
     const server = await testClient({ connections })
     const { errors, data } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
@@ -561,7 +583,10 @@ describe('hottest articles', () => {
     expect(scoreAfter).toBeGreaterThan(scoreBefore)
 
     // after donation
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.article_hottest_materialized,
+      connections.knex
+    )
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
       variables: { input: { first: 10 } },
