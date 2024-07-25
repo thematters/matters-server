@@ -43,15 +43,15 @@ WITH original_score AS (
       AND a.id NOT IN (SELECT entrance_id FROM article_connection WHERE article_id = 8079 )
       GROUP BY a.id, ac.article_id, ac.created_at
   ) t
-), tag_boost_rank AS (
-  SELECT *, percent_rank() OVER(ORDER BY boost)
+), tag_boost_filtered AS (
+  SELECT *
   FROM tag_boost
   WHERE created_at >= '2023-12-01'
 )
 
   SELECT article.id, article.created_at, 'https://matters.town/a/' || article.short_hash AS link,
-    (COALESCE(clamp(tag_boost_eff, 0.5, 2), 1.0) * COALESCE(t.score, 0)) AS score,
-    tag_boost_eff,    -- adjust boost_eff in range [0.5, 2]
+    (COALESCE(clamp(tag_boost_eff, 0.5, 2), 1.0) * COALESCE(t.score, 0)) AS score,    -- adjust boost_eff in range [0.5, 2]
+    tag_boost_eff,
     COALESCE(t.score, 0) as score_prev  -- save the previous score without tag boost for comparison
   FROM article
   LEFT JOIN
@@ -109,10 +109,8 @@ WITH original_score AS (
       ) t3 on t1.id = t3.target_id -- Matty boost
       LEFT JOIN (
         SELECT article_id,
-          MAX(percent_rank) AS max_tag_boost, MIN(percent_rank) AS min_tag_boost,
-          -- AVG(percent_rank)*2.0-1 AS tag_boost_eff -- in the range of [-1.0, 1.0)
           mul(boost) AS tag_boost_eff
-        FROM article_tag JOIN tag_boost_rank USING(tag_id)
+        FROM article_tag JOIN tag_boost_filtered USING(tag_id)
         GROUP BY article_id
       ) t4 ON t4.article_id=t1.id
 
