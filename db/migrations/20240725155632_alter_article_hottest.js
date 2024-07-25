@@ -50,8 +50,9 @@ WITH original_score AS (
 )
 
   SELECT article.id, article.created_at, 'https://matters.town/a/' || article.short_hash AS link,
-    (COALESCE(clamp(tag_boost_eff, 0.5, 2), 1.0) * COALESCE(t.score, 0)) AS score,    -- adjust boost_eff in range [0.5, 2]
+    (COALESCE(clamp(tag_boost_eff, 0.5, 2), 1.0) * COALESCE(clamp(campaign_boost_eff, 0.5, 2), 1.0) * COALESCE(t.score, 0)) AS score,    -- adjust boost_effs in range [0.5, 2]
     tag_boost_eff,
+    campaign_boost_eff,
     COALESCE(t.score, 0) as score_prev  -- save the previous score without tag boost for comparison
   FROM article
   LEFT JOIN
@@ -69,7 +70,8 @@ WITH original_score AS (
           (SELECT max_efficiency FROM original_score)*coalesce((${donation_decay_factor}^coalesce(t2.count_normal_transaction, 1))^(extract(EPOCH FROM now()-t2.latest_transaction)/3600) ::numeric(6,0), 0),
           (SELECT max_efficiency FROM original_score)*coalesce(${matty_donation_decay_factor}^(extract(EPOCH FROM now()-t3.latest_transaction_matty)/3600) ::numeric(6,0), 0)
       ) AS score,
-      tag_boost_eff
+      tag_boost_eff,
+      campaign_boost_eff
       FROM
       (
           SELECT
@@ -113,6 +115,12 @@ WITH original_score AS (
         FROM article_tag JOIN tag_boost_filtered USING(tag_id)
         GROUP BY article_id
       ) t4 ON t4.article_id=t1.id
+      LEFT JOIN (
+        SELECT article_id,
+          mul(boost) AS campaign_boost_eff
+        FROM campaign_article JOIN campaign_boost USING(campaign_id)
+        GROUP BY article_id
+      ) t5 ON t5.article_id=t1.id
 
       LEFT JOIN article_circle ac ON t1.id = ac.article_id
       WHERE t1.id not in (SELECT entrance_id FROM article_connection WHERE article_id = 8079 ) --to block all articles in the Complaint Area

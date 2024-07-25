@@ -138,5 +138,6 @@ export interface ArticleHottestView {
   scorePrev: number
   link: string
   tagBoostEff: number
+  campaignBoostEff: number
   createdAt: Date
 }

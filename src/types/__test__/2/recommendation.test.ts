@@ -11,6 +11,7 @@ import {
   PAYMENT_CURRENCY,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  CAMPAIGN_STATE,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -19,6 +20,7 @@ import {
   MomentService,
   UserService,
   PaymentService,
+  CampaignService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
@@ -32,6 +34,7 @@ let articleService: ArticleService
 let momentService: MomentService
 let userService: UserService
 let paymentService: PaymentService
+let campaignService: CampaignService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -41,6 +44,7 @@ beforeAll(async () => {
   momentService = new MomentService(connections)
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -576,11 +580,54 @@ describe('hottest articles', () => {
     expect(data.viewer.recommendation.hottest.totalCount).toBe(1)
   })
 
-  test('tag_boost', async () => {
+  test('tag_boost works', async () => {
     const { score, tagBoostEff, scorePrev } = await atomService.findFirst({
       table: 'article_hottest_view',
       where: { id: article.id },
     })
-    expect(_.clamp(tagBoostEff, 0.5, 2) * scorePrev).toBe(score)
+    expect(scorePrev * _.clamp(tagBoostEff, 0.5, 2)).toBe(score)
+  })
+  test('campaign_boost works', async () => {
+    const campaign = await campaignService.createWritingChallenge({
+      name: 'test',
+      description: 'test',
+      link: 'https://test.com',
+      applicationPeriod: [
+        new Date('2024-01-01'),
+        new Date('2024-01-02'),
+      ] as const,
+      writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
+      creatorId: '1',
+      state: CAMPAIGN_STATE.active,
+    })
+    const stages = await campaignService.updateStages(campaign.id, [
+      { name: 'stage1' },
+    ])
+    const application = await campaignService.apply(
+      campaign,
+      await atomService.userIdLoader.load(article.authorId)
+    )
+    await campaignService.approve(application.id)
+    await campaignService.submitArticleToCampaign(
+      article,
+      campaign.id,
+      stages[0].id
+    )
+    const boost = 10
+    await connections
+      .knex('campaign_boost')
+      .insert({ campaignId: campaign.id, boost })
+
+    const { score, tagBoostEff, campaignBoostEff, scorePrev } =
+      await atomService.findFirst({
+        table: 'article_hottest_view',
+        where: { id: article.id },
+      })
+    expect(campaignBoostEff).toBe(boost)
+    expect(
+      scorePrev *
+        _.clamp(tagBoostEff, 0.5, 2) *
+        _.clamp(campaignBoostEff, 0.5, 2)
+    ).toBe(score)
   })
 })
