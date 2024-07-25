@@ -172,7 +172,7 @@ interface NoticeMomentNewCommentParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [
-    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'target', 'moment'>,
     NotificationEntity<'comment', 'comment'>
   ]
 }

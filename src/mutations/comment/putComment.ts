@@ -396,9 +396,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
       if (!isMentioned) {
         notificationService.trigger({
-          event: isMoment
-            ? NOTICE_TYPE.moment_new_comment
-            : NOTICE_TYPE.article_new_comment,
+          event: NOTICE_TYPE.article_new_comment,
           actorId: viewer.id,
           recipientId: targetAuthor,
           entities: [
@@ -522,7 +520,19 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     }
   }
 
-  // article & circle: notify mentioned users
+  if (isMoment) {
+    notificationService.trigger({
+      event: NOTICE_TYPE.moment_new_comment,
+      actorId: viewer.id,
+      recipientId: targetAuthor,
+      entities: [
+        { type: 'target', entityTable: 'moment', entity: moment },
+        { type: 'comment', entityTable: 'comment', entity: newComment },
+      ],
+    })
+  }
+
+  // article & circle & moment: notify mentioned users
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       if (isArticleType || isMoment) {
