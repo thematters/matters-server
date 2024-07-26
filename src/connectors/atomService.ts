@@ -571,4 +571,5 @@ const UPATEABLE_TABLES = [
   'moment_asset',
   'action_moment',
   'translation',
+  'campaign_boost',
 ]

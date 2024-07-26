@@ -475,6 +475,14 @@ export class CampaignService {
     return this.models.userIdLoader.loadMany(grandSlamUserIds)
   }
 
+  public setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.models.upsert({
+      table: 'campaign_boost',
+      create: { campaignId: id, boost },
+      update: { campaignId: id, boost },
+      where: { campaignId: id },
+    })
+
   private handleApproval: ProcessPromiseFunction<{
     applicationId: string
   }> = async (job) => {

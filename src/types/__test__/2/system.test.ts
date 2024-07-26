@@ -8,7 +8,9 @@ import _get from 'lodash/get'
 
 import { NODE_TYPES, USER_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import { MomentService } from 'connectors'
+import { MomentService, CampaignService } from 'connectors'
+
+import { createCampaign } from 'connectors/__test__/utils'
 
 import {
   delay,
@@ -968,5 +970,63 @@ describe('submitReport', () => {
     expect(dataQuery.oss.reports.totalCount).toBe(2)
     expect(dataQuery.oss.reports.edges[0].node.reporter.id).toBeDefined()
     expect(dataQuery.oss.reports.edges[0].node.target.id).toBeDefined()
+  })
+})
+
+describe('setBoost', () => {
+  const SET_BOOST = /* GraphQL */ `
+    mutation ($input: SetBoostInput!) {
+      setBoost(input: $input) {
+        id
+        ... on Article {
+          oss {
+            boost
+          }
+        }
+        ... on WritingChallenge {
+          oss {
+            boost
+          }
+        }
+      }
+    }
+  `
+  test('set boost successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    // Article
+    const { data: data1, errors: errors1 } = await server.executeOperation({
+      query: SET_BOOST,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          boost: 10,
+          type: 'Article',
+        },
+      },
+    })
+    expect(errors1).toBeUndefined()
+    expect(data1.setBoost.id).toBeDefined()
+    expect(data1.setBoost.oss.boost).toBe(10)
+    // Campaign
+    const campaignService = new CampaignService(connections)
+    const [campaign] = await createCampaign(campaignService)
+
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: SET_BOOST,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Campaign, id: campaign.id }),
+          boost: 10,
+          type: 'Campaign',
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.setBoost.id).toBeDefined()
+    expect(data2.setBoost.oss.boost).toBe(10)
   })
 })

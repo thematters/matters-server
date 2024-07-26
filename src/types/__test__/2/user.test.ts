@@ -15,13 +15,16 @@ import {
 } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
-  refreshView,
   UserService,
   ArticleService,
   PaymentService,
   MomentService,
 } from 'connectors'
-import { createDonationTx, createTx } from 'connectors/__test__/utils'
+import {
+  createDonationTx,
+  createTx,
+  refreshView,
+} from 'connectors/__test__/utils'
 
 import {
   defaultTestUser,

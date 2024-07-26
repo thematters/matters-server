@@ -681,7 +681,7 @@ export type GQLBlockedSearchKeyword = {
   searchKey: Scalars['String']['output']
 }
 
-export type GQLBoostTypes = 'Article' | 'Tag' | 'User'
+export type GQLBoostTypes = 'Article' | 'Campaign' | 'Tag' | 'User'
 
 export type GQLCacheControlScope = 'PRIVATE' | 'PUBLIC'
 
@@ -726,6 +726,11 @@ export type GQLCampaignEdge = {
 
 export type GQLCampaignInput = {
   shortHash: Scalars['String']['input']
+}
+
+export type GQLCampaignOss = {
+  __typename?: 'CampaignOSS'
+  boost: Scalars['Float']['output']
 }
 
 export type GQLCampaignParticipantConnection = GQLConnection & {
@@ -4268,6 +4273,7 @@ export type GQLWritingChallenge = GQLCampaign &
     id: Scalars['ID']['output']
     link: Scalars['String']['output']
     name: Scalars['String']['output']
+    oss: GQLCampaignOss
     participants: GQLCampaignParticipantConnection
     shortHash: Scalars['String']['output']
     stages: Array<GQLCampaignStage>
@@ -4678,6 +4684,7 @@ export type GQLResolversTypes = ResolversObject<{
     Omit<GQLCampaignEdge, 'node'> & { node: GQLResolversTypes['Campaign'] }
   >
   CampaignInput: GQLCampaignInput
+  CampaignOSS: ResolverTypeWrapper<CampaignModel>
   CampaignParticipantConnection: ResolverTypeWrapper<
     Omit<GQLCampaignParticipantConnection, 'edges'> & {
       edges?: Maybe<Array<GQLResolversTypes['CampaignParticipantEdge']>>
@@ -5292,6 +5299,7 @@ export type GQLResolversParentTypes = ResolversObject<{
     node: GQLResolversParentTypes['Campaign']
   }
   CampaignInput: GQLCampaignInput
+  CampaignOSS: CampaignModel
   CampaignParticipantConnection: Omit<
     GQLCampaignParticipantConnection,
     'edges'
@@ -6491,6 +6499,14 @@ export type GQLCampaignEdgeResolvers<
 > = ResolversObject<{
   cursor?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   node?: Resolver<GQLResolversTypes['Campaign'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
+export type GQLCampaignOssResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['CampaignOSS'] = GQLResolversParentTypes['CampaignOSS']
+> = ResolversObject<{
+  boost?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -9814,6 +9830,7 @@ export type GQLWritingChallengeResolvers<
     ContextType,
     Partial<GQLWritingChallengeNameArgs>
   >
+  oss?: Resolver<GQLResolversTypes['CampaignOSS'], ParentType, ContextType>
   participants?: Resolver<
     GQLResolversTypes['CampaignParticipantConnection'],
     ParentType,
@@ -9891,6 +9908,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   CampaignApplication?: GQLCampaignApplicationResolvers<ContextType>
   CampaignConnection?: GQLCampaignConnectionResolvers<ContextType>
   CampaignEdge?: GQLCampaignEdgeResolvers<ContextType>
+  CampaignOSS?: GQLCampaignOssResolvers<ContextType>
   CampaignParticipantConnection?: GQLCampaignParticipantConnectionResolvers<ContextType>
   CampaignParticipantEdge?: GQLCampaignParticipantEdgeResolvers<ContextType>
   CampaignStage?: GQLCampaignStageResolvers<ContextType>

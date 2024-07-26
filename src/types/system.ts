@@ -395,6 +395,7 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+    Campaign
   }
 
   enum RemarkTypes {

@@ -6,6 +6,7 @@ import { toGlobalId, fromDatetimeRangeString } from 'common/utils'
 import application from './application'
 import applicationState from './applicationState'
 import articles from './articles'
+import boost from './boost'
 import campaign from './campaign'
 import campaigns from './campaigns'
 import description from './description'
@@ -50,6 +51,11 @@ const schema: GQLResolvers = {
     application,
     participants,
     articles,
+    oss: (root) => root,
+  },
+
+  CampaignOSS: {
+    boost,
   },
 
   CampaignStage: {

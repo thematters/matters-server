@@ -31,6 +31,7 @@ import type {
   CampaignStage,
   CampaignUser,
   CampaignArticle,
+  CampaignBoost,
 } from './campaign'
 import type {
   Circle,
@@ -213,6 +214,7 @@ export type TableTypeMap = {
   campaign_stage: CampaignStage
   campaign_user: CampaignUser
   campaign_article: CampaignArticle
+  campaign_boost: CampaignBoost
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice

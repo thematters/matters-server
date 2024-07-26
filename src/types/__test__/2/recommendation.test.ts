@@ -1,6 +1,9 @@
-import type { Connections } from 'definitions'
+import type { Connections, Article } from 'definitions'
+
+import _ from 'lodash'
 
 import {
+  MATERIALIZED_VIEW,
   NODE_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
   USER_STATE,
@@ -16,11 +19,16 @@ import {
   MomentService,
   UserService,
   PaymentService,
+  CampaignService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
-import { createTx } from 'connectors/__test__/utils'
+import {
+  createTx,
+  refreshView,
+  createCampaign,
+} from 'connectors/__test__/utils'
 
 let connections: Connections
 let recommendationService: RecommendationService
@@ -29,6 +37,7 @@ let articleService: ArticleService
 let momentService: MomentService
 let userService: UserService
 let paymentService: PaymentService
+let campaignService: CampaignService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -38,6 +47,7 @@ beforeAll(async () => {
   momentService = new MomentService(connections)
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
+  campaignService = new CampaignService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -332,13 +342,15 @@ describe('following', () => {
   const viewer = { id: '4', state: USER_STATE.active, userName: 'test' }
   const followee1 = { id: '5', state: USER_STATE.active, userName: 'test' }
   const followee2 = { id: '6', state: USER_STATE.active, userName: 'test' }
-  const refreshView = () =>
-    connections.knex.raw('refresh materialized view user_activity_materialized')
 
   beforeAll(async () => {
     await userService.follow(viewer.id, followee1.id)
     await userService.follow(viewer.id, followee2.id)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
   })
 
   test('query', async () => {
@@ -358,7 +370,11 @@ describe('following', () => {
 
     // one moment activity
     const moment1 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors1, data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -372,7 +388,11 @@ describe('following', () => {
 
     // two same actor moment activities in series
     const moment2 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -390,7 +410,11 @@ describe('following', () => {
     // three same actor moment activities in series will be combined into one activity
     const moment3 = await momentService.create({ content: 'test' }, followee1)
     const moment4 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors3, data: data3 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -414,7 +438,11 @@ describe('following', () => {
     // other actor moment activities will not reset the combination time window
     const moment5 = await momentService.create({ content: 'test' }, followee2)
     const moment6 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors4, data: data4 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -436,7 +464,11 @@ describe('following', () => {
       authorId: followee1.id,
     })
     const moment7 = await momentService.create({ content: 'test' }, followee1)
-    await refreshView()
+    await refreshView(
+      MATERIALIZED_VIEW.user_activity_materialized,
+      connections.knex,
+      false
+    )
 
     const { errors: errors5, data: data5 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
@@ -514,36 +546,17 @@ describe('hottest articles', () => {
       }
     }
   `
-  const refreshView = () =>
-    connections.knex.raw(
-      'refresh materialized view article_hottest_materialized'
-    )
-  const getScore = async (articleId: string) =>
-    atomService
-      .findFirst({ table: 'article_hottest_view', where: { id: articleId } })
-      .then((result) => result?.score)
+  let article: Article
 
-  test('1 HKD donations take effect', async () => {
-    const article = await atomService.findFirst({
+  beforeAll(async () => {
+    // make `max_efficiency` bigger than 0
+    article = await atomService.findFirst({
       table: 'article',
       where: { state: ARTICLE_STATE.active },
     })
     const senderId = '3'
     expect(article.authorId).not.toBe(senderId)
-
-    // before donation
-    await refreshView()
-    const server = await testClient({ connections })
-    const { errors, data } = await server.executeOperation({
-      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
-      variables: { input: { first: 10 } },
-    })
-    expect(errors).toBeUndefined()
-    expect(data.viewer.recommendation.hottest.totalCount).toBe(0)
-
-    // make `max_efficiency` bigger than 0
     await articleService.read({ articleId: article.id, userId: senderId })
-    const scoreBefore = await getScore(article.id)
     // donate 1 HKD and `count_normal_transaction` (article_hottest_view internal value) will be 1
     await createTx(
       {
@@ -557,19 +570,43 @@ describe('hottest articles', () => {
       },
       paymentService
     )
-    const scoreAfter = await getScore(article.id)
-    expect(scoreAfter).toBeGreaterThan(scoreBefore)
-
-    // after donation
-    await refreshView()
-    const { errors: errors2, data: data2 } = await server.executeOperation({
+    await refreshView(
+      MATERIALIZED_VIEW.article_hottest_materialized,
+      connections.knex
+    )
+    const server = await testClient({ connections })
+    const { errors, data } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
       variables: { input: { first: 10 } },
     })
-    expect(errors2).toBeUndefined()
-    expect(data2.viewer.recommendation.hottest.totalCount).toBeGreaterThan(0)
-    expect(data2.viewer.recommendation.hottest.edges[0].node.id).toBe(
-      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
-    )
+    expect(errors).toBeUndefined()
+    expect(data.viewer.recommendation.hottest.totalCount).toBe(1)
+  })
+
+  test('tag_boost works', async () => {
+    const { score, tagBoostEff, scorePrev } = await atomService.findFirst({
+      table: 'article_hottest_view',
+      where: { id: article.id },
+    })
+    expect(scorePrev * _.clamp(tagBoostEff, 0.5, 2)).toBe(score)
+  })
+  test('campaign_boost works', async () => {
+    const [campaign] = await createCampaign(campaignService, article)
+    const boost = 10
+    await connections
+      .knex('campaign_boost')
+      .insert({ campaignId: campaign.id, boost })
+
+    const { score, tagBoostEff, campaignBoostEff, scorePrev } =
+      await atomService.findFirst({
+        table: 'article_hottest_view',
+        where: { id: article.id },
+      })
+    expect(campaignBoostEff).toBe(boost)
+    expect(
+      scorePrev *
+        _.clamp(tagBoostEff, 0.5, 2) *
+        _.clamp(campaignBoostEff, 0.5, 2)
+    ).toBe(score)
   })
 })

@@ -1,5 +1,6 @@
-import type { PaymentService } from 'connectors'
-import type { Connections } from 'definitions'
+import type { PaymentService, CampaignService } from 'connectors'
+import type { Connections, MaterializedView, Article } from 'definitions'
+import type { Knex } from 'knex'
 
 import { knex } from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
@@ -9,6 +10,8 @@ import Redis from 'ioredis-mock'
 import { genRandomString } from 'common/utils'
 
 import {
+  CAMPAIGN_STATE,
+  USER_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
@@ -55,6 +58,21 @@ export const closeConnections = async (connections: Connections) => {
   await connections.knex.destroy()
   await connections.knexRO.destroy()
   await connections.knexSearch.destroy()
+}
+
+export const refreshView = async (
+  view: MaterializedView,
+  knex: Knex,
+  createIndex = true
+) => {
+  if (createIndex) {
+    await knex.raw(/* sql */ `
+      create unique index if not exists ${view}_id on public.${view} (id);
+    `)
+  }
+  await knex.raw(/* sql*/ `
+    refresh materialized view concurrently ${view}
+  `)
 }
 
 export const createDonationTx = async (
@@ -114,4 +132,39 @@ export const createTx = async (
     targetId: targetId ?? '1',
     targetType: TRANSACTION_TARGET_TYPE.article,
   })
+}
+
+export const createCampaign = async (
+  campaignService: CampaignService,
+  article?: Article
+) => {
+  const campaign = await campaignService.createWritingChallenge({
+    name: 'test',
+    description: 'test',
+    link: 'https://test.com',
+    applicationPeriod: [
+      new Date('2024-01-01'),
+      new Date('2024-01-02'),
+    ] as const,
+    writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
+    creatorId: '1',
+    state: CAMPAIGN_STATE.active,
+  })
+  const stages = await campaignService.updateStages(campaign.id, [
+    { name: 'stage1' },
+  ])
+  if (article) {
+    const application = await campaignService.apply(campaign, {
+      id: article.authorId,
+      userName: 'test',
+      state: USER_STATE.active,
+    })
+    await campaignService.approve(application.id)
+    await campaignService.submitArticleToCampaign(
+      article,
+      campaign.id,
+      stages[0].id
+    )
+  }
+  return [campaign, stages] as const
 }
