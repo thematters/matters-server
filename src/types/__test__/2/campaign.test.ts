@@ -559,7 +559,6 @@ describe('query users campaigns', () => {
             node {
               id
               ... on WritingChallenge {
-                applicationState
                 stages {
                   name
                 }

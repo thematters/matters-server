@@ -34,11 +34,10 @@ export class NotificationService {
     }
     logger.info(`triggered notification params: ${JSON.stringify(params)}`)
     try {
-      const res = await this.aws.sqsSendMessage({
+      await this.aws.sqsSendMessage({
         messageBody: params,
         queueUrl: QUEUE_URL.notification,
       })
-      logger.info(`triggered notification res: ${JSON.stringify(res)}`)
     } catch (error) {
       logger.error(error)
     }

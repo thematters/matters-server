@@ -33,7 +33,6 @@ const resolver: GQLWritingChallengeResolvers['participants'] = async (
           return {
             cursor: edge.cursor,
             node: edge.node,
-            applicationState: application.state,
             application: {
               state: application.state,
               createdAt: application.createdAt,
