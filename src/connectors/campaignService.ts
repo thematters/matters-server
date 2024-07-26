@@ -450,6 +450,7 @@ export class CampaignService {
       )
       .join('campaign_user', 'campaign_user.user_id', 'article.author_id')
       .join('user', 'user.id', 'article.author_id')
+      .join('campaign', 'campaign.id', 'campaign_article.campaign_id')
       .where({
         'campaign_article.campaign_id': campaignId,
         'campaign_user.state': CAMPAIGN_USER_STATE.succeeded,
@@ -457,21 +458,29 @@ export class CampaignService {
       })
       .whereIn('campaign_stage.id', _stageIds)
       .where(
-        'campaign_stage.period',
+        'campaign.writing_period',
         '@>',
         knexRO.ref('campaign_article.created_at')
+      )
+      .where(
+        'campaign.application_period',
+        '@>',
+        knexRO.ref('campaign_user.created_at')
       )
       .groupBy('article.author_id', 'campaign_stage_id')
       .having(knexRO.raw('count(1)'), '>', 0)
 
     // find users that have submitted articles to all needed stages
-    const grandSlamUserIds = (
-      await knexRO(base.as('t'))
-        .select('author_id')
-        .groupBy('author_id')
-        .having(knexRO.raw('count(1)'), '=', _stageIds.length)
-    ).map(({ authorId }) => authorId)
+    const grandSlamUserIdsQuery = knexRO(base.as('t'))
+      .select('author_id')
+      .groupBy('author_id')
+      .having(knexRO.raw('count(1)'), '=', _stageIds.length)
 
+    // console.log(grandSlamUserIdsQuery.toString())
+
+    const grandSlamUserIds = (await grandSlamUserIdsQuery).map(
+      ({ authorId }) => authorId
+    )
     return this.models.userIdLoader.loadMany(grandSlamUserIds)
   }
 
