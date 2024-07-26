@@ -10,9 +10,12 @@ import type {
 
 import { MONTH, NOTICE_TYPE, QUEUE_URL } from 'common/enums'
 import { isTest } from 'common/environment'
+import { getLogger } from 'common/logger'
 import { aws } from 'connectors'
 
 import { mail } from './mail'
+
+const logger = getLogger('service-notification')
 
 export class NotificationService {
   public mail: typeof mail
@@ -29,10 +32,16 @@ export class NotificationService {
     if (isTest) {
       return
     }
-    return await this.aws.sqsSendMessage({
-      messageBody: params,
-      queueUrl: QUEUE_URL.notification,
-    })
+    logger.info(`triggered notification params: ${JSON.stringify(params)}`)
+    try {
+      const res = await this.aws.sqsSendMessage({
+        messageBody: params,
+        queueUrl: QUEUE_URL.notification,
+      })
+      logger.info(`triggered notification res: ${JSON.stringify(res)}`)
+    } catch (error) {
+      logger.error(error)
+    }
   }
 
   public markAllNoticesAsRead = async (userId: string) => {
