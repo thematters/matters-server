@@ -39,8 +39,8 @@ const campaignData = {
     new Date('2010-01-01 15:00'),
   ] as const,
   writingPeriod: [
-    new Date('2010-01-02 11:30'),
-    new Date('2010-01-02 15:00'),
+    new Date('2010-01-01 11:30'),
+    new Date('2010-01-05 15:00'),
   ] as const,
   creatorId: '1',
 }
@@ -442,7 +442,7 @@ describe('find grand_slam users', () => {
     await atomService.update({
       table: 'campaign_article',
       where: { id: submission0.id },
-      data: { createdAt: new Date('2010-01-01 00:02') },
+      data: { createdAt: new Date('2010-01-02 00:02') },
     })
     const users2 = await campaignService.findGrandSlamUsers(campaign.id, [
       stages[0].id,
@@ -450,24 +450,41 @@ describe('find grand_slam users', () => {
     ])
     expect(users2.length).toBe(0)
 
-    // all submission is correct
+    // all submission are within writing period
     await atomService.update({
       table: 'campaign_article',
       where: { id: submission1.id },
-      data: { createdAt: new Date('2010-01-02 00:02') },
+      data: { createdAt: new Date('2010-01-03 00:02') },
     })
     const users3 = await campaignService.findGrandSlamUsers(campaign.id, [
       stages[0].id,
       stages[1].id,
     ])
-    expect(users3.length).toBe(1)
+    expect(users3.length).toBe(0)
+    // application time is within application period
+    await atomService.update({
+      table: 'campaign_user',
+      where: { id: application.id },
+      data: { createdAt: new Date('2010-01-01 12:00') },
+    })
+    console.log(
+      await atomService.findFirst({
+        table: 'campaign_user',
+        where: { id: application.id },
+      })
+    )
+    const users4 = await campaignService.findGrandSlamUsers(campaign.id, [
+      stages[0].id,
+      stages[1].id,
+    ])
+    expect(users4.length).toBe(1)
 
     // not enough stages
-    const users4 = await campaignService.findGrandSlamUsers(campaign.id, [
+    const users5 = await campaignService.findGrandSlamUsers(campaign.id, [
       stages[0].id,
       stages[1].id,
       stages[2].id,
     ])
-    expect(users4.length).toBe(0)
+    expect(users5.length).toBe(0)
   })
 })

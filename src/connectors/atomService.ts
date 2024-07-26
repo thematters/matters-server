@@ -572,4 +572,5 @@ const UPATEABLE_TABLES = [
   'action_moment',
   'translation',
   'campaign_boost',
+  'campaign_user',
 ]
