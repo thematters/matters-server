@@ -2,7 +2,7 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, CAMPAIGN_USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   UserInputError,
@@ -19,6 +19,7 @@ const resolver: GQLMutationResolvers['updateCampaignApplicationState'] = async (
     viewer,
     dataSources: {
       atomService,
+      campaignService,
       connections: { redis },
     },
   }
@@ -64,11 +65,15 @@ const resolver: GQLMutationResolvers['updateCampaignApplicationState'] = async (
     throw new ActionFailedError('user has not applied to this campaign')
   }
 
-  await atomService.update({
-    table: 'campaign_user',
-    where: { id: campaignUser.id },
-    data: { state },
-  })
+  if (state === CAMPAIGN_USER_STATE.succeeded) {
+    await campaignService.approve(campaignUser.id)
+  } else {
+    await atomService.update({
+      table: 'campaign_user',
+      where: { id: campaignUser.id },
+      data: { state },
+    })
+  }
 
   invalidateFQC({
     node: { type: NODE_TYPES.User, id: userId },
