@@ -743,8 +743,6 @@ export type GQLCampaignParticipantConnection = GQLConnection & {
 export type GQLCampaignParticipantEdge = {
   __typename?: 'CampaignParticipantEdge'
   application?: Maybe<GQLCampaignApplication>
-  /** @deprecated use application field instead, will be remove in next PR */
-  applicationState?: Maybe<GQLCampaignApplicationState>
   cursor: Scalars['String']['output']
   node: GQLUser
 }
@@ -4265,8 +4263,6 @@ export type GQLWritingChallenge = GQLCampaign &
     __typename?: 'WritingChallenge'
     application?: Maybe<GQLCampaignApplication>
     applicationPeriod?: Maybe<GQLDatetimeRange>
-    /** @deprecated use application field instead, will be remove in next PR */
-    applicationState?: Maybe<GQLCampaignApplicationState>
     articles: GQLArticleConnection
     cover?: Maybe<Scalars['String']['output']>
     description: Scalars['String']['output']
@@ -6530,11 +6526,6 @@ export type GQLCampaignParticipantEdgeResolvers<
 > = ResolversObject<{
   application?: Resolver<
     Maybe<GQLResolversTypes['CampaignApplication']>,
-    ParentType,
-    ContextType
-  >
-  applicationState?: Resolver<
-    Maybe<GQLResolversTypes['CampaignApplicationState']>,
     ParentType,
     ContextType
   >
@@ -9801,11 +9792,6 @@ export type GQLWritingChallengeResolvers<
   >
   applicationPeriod?: Resolver<
     Maybe<GQLResolversTypes['DatetimeRange']>,
-    ParentType,
-    ContextType
-  >
-  applicationState?: Resolver<
-    Maybe<GQLResolversTypes['CampaignApplicationState']>,
     ParentType,
     ContextType
   >
