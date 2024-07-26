@@ -1027,7 +1027,6 @@ describe('user recommendations', () => {
         currency: PAYMENT_CURRENCY.HKD,
         state: TRANSACTION_STATE.succeeded,
         targetId: '1',
-        amount: 1,
       },
       paymentService
     )
