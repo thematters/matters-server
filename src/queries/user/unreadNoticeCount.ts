@@ -8,7 +8,7 @@ const resolver: GQLUserStatusResolvers['unreadNoticeCount'] = (
   if (id === null) {
     return 0
   }
-  return notificationService.notice.countNotice({ userId: id, unread: true })
+  return notificationService.countNotice({ userId: id, unread: true })
 }
 
 export default resolver

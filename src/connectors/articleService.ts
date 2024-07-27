@@ -30,7 +30,7 @@ import {
   CIRCLE_STATE,
   COMMENT_TYPE,
   COMMENT_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   MINUTE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -58,7 +58,7 @@ import {
   countWords,
   s2tConverter,
   t2sConverter,
-  nanoid,
+  shortHash,
   normalizeSearchKey,
   genMD5,
 } from 'common/utils'
@@ -67,6 +67,7 @@ import {
   ipfsServers,
   SystemService,
   UserService,
+  UserWorkService,
   TagService,
   NotificationService,
   PaymentService,
@@ -159,7 +160,7 @@ export class ArticleService extends BaseService<Article> {
         .insert({
           authorId,
           state: ARTICLE_STATE.active,
-          shortHash: nanoid(), // retry handling at higher level of a very low probability of collision, or increase the nanoid length when it comes to higher probability;
+          shortHash: shortHash(), // retry handling at higher level of a very low probability of collision, or increase the nanoid length when it comes to higher probability;
         })
         .returning('*')
       const [articleVersion] = await trx<ArticleVersion>('article_version')
@@ -184,6 +185,7 @@ export class ArticleService extends BaseService<Article> {
         })
         .returning('*')
 
+      await trx.commit()
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
         const systemService = new SystemService(this.connections)
@@ -196,7 +198,6 @@ export class ArticleService extends BaseService<Article> {
           target: { entityTypeId: articleEntity.id, entityId: article.id },
         })
       }
-      await trx.commit()
       return [article, articleVersion]
     } catch (e) {
       await trx.rollback()
@@ -417,8 +418,8 @@ export class ArticleService extends BaseService<Article> {
     if (article.authorId !== userId) {
       throw new ForbiddenError('Only author can pin article')
     }
-    const userService = new UserService(this.connections)
-    const totalPinned = await userService.totalPinnedWorks(userId)
+    const userWorkService = new UserWorkService(this.connections)
+    const totalPinned = await userWorkService.totalPinnedWorks(userId)
     if (pinned === article.pinned) {
       return article
     }
@@ -611,8 +612,8 @@ export class ArticleService extends BaseService<Article> {
 
   public findVersionByMediaHash = async (mediaHash: string) =>
     this.models.findFirst({ table: 'article_version', where: { mediaHash } })
-  public findArticleByShortHash = async (shortHash: string) =>
-    this.models.findFirst({ table: 'article', where: { shortHash } })
+  public findArticleByShortHash = async (hash: string) =>
+    this.models.findFirst({ table: 'article', where: { shortHash: hash } })
 
   public findByAuthor = async (
     authorId: string,
@@ -1383,7 +1384,7 @@ export class ArticleService extends BaseService<Article> {
     // get old data
     const oldData = record[0]
 
-    // prepare funtion to only update count
+    // prepare function to only update count
     const updateReadCount = async () => {
       await this.baseUpdate(
         oldData.id,
@@ -1409,7 +1410,7 @@ export class ArticleService extends BaseService<Article> {
       return { newRead: true }
     }
 
-    // for logged-in user, calculate lapsed time in milisecondes
+    // for logged-in user, calculate lapsed time in milliseconds
     // based on updatedAt
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
@@ -1536,16 +1537,16 @@ export class ArticleService extends BaseService<Article> {
   }) => {
     const subQuery = this.knexRO
       .select(
-        this.knexRO.raw('COUNT(1) OVER() AS total_count'),
-        this.knexRO.raw('MIN(created_at) OVER() AS min_cursor'),
-        this.knexRO.raw('MAX(created_at) OVER() AS max_cursor'),
+        this.knexRO.raw('count(1) OVER() AS total_count'),
+        this.knexRO.raw('min(created_at) OVER() AS min_cursor'),
+        this.knexRO.raw('max(created_at) OVER() AS max_cursor'),
         '*'
       )
       .from(
         this.knexRO
           .select(
             this.knexRO.raw(
-              "'Article' as type, entrance_id as entity_id, article_connection.created_at"
+              "'Article' AS type, entrance_id AS entity_id, article_connection.created_at"
             )
           )
           .from('article_connection')
@@ -1560,7 +1561,7 @@ export class ArticleService extends BaseService<Article> {
                 this.knexRO
                   .select(
                     this.knexRO.raw(
-                      "'Comment' as type, id as entity_id, created_at"
+                      "'Comment' AS type, id AS entity_id, created_at"
                     )
                   )
                   .fromRaw('comment AS outer_comment')
@@ -1575,7 +1576,7 @@ export class ArticleService extends BaseService<Article> {
                       .orWhere((orWhereBuilder) => {
                         orWhereBuilder.andWhere(
                           this.knexRO.raw(
-                            '(SELECT COUNT(1) FROM comment WHERE state in (?, ?) and parent_comment_id = outer_comment.id)',
+                            '(SELECT count(1) FROM comment WHERE state IN (?, ?) AND parent_comment_id = outer_comment.id)',
                             [COMMENT_STATE.active, COMMENT_STATE.collapsed]
                           ),
                           '>',
@@ -2063,7 +2064,7 @@ export class ArticleService extends BaseService<Article> {
       })
       if (targetConnection) {
         notificationService.trigger({
-          event: DB_NOTICE_TYPE.article_new_collected,
+          event: NOTICE_TYPE.article_new_collected,
           recipientId: targetConnection.authorId,
           actorId: article.authorId,
           entities: [

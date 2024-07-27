@@ -4,7 +4,7 @@ import type { Connections } from 'definitions'
 import _get from 'lodash/get'
 
 import { NODE_TYPES } from 'common/enums'
-import { AtomService } from 'connectors'
+import { AtomService, MomentService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
@@ -102,6 +102,11 @@ const PUT_COMMENT = /* GraphQL */ `
       id
       replyTo {
         id
+      }
+      node {
+        ... on Moment {
+          shortHash
+        }
       }
     }
   }
@@ -274,6 +279,45 @@ describe('mutations on comment', () => {
     expect(comment.articleVersionId).not.toBeNull()
   })
 
+  test('create a moment comment', async () => {
+    const momentService = new MomentService(connections)
+    const moment = await momentService.create(
+      { content: 'test', assetIds: [] },
+      { id: '1', state: 'active', userName: 'test' }
+    )
+    const momentGlobalId = toGlobalId({
+      type: NODE_TYPES.Moment,
+      id: moment.id,
+    })
+    const server = await testClient({ isAuth: true, connections })
+    const { errors, data } = await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            momentId: momentGlobalId,
+            type: 'moment',
+          },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
+    expect(data.putComment.node.shortHash).toBe(moment.shortHash)
+
+    const { errors: errors2, data: data2 } = await server.executeOperation({
+      query: DELETE_COMMENT,
+      variables: {
+        input: {
+          id: data.putComment.id,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.deleteComment.state).toBe('archived')
+  })
+
   test('upvote a comment', async () => {
     const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
@@ -326,17 +370,126 @@ describe('mutations on comment', () => {
   })
 
   test('pin a comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
-    const result = await server.executeOperation({
+    const user1Id = '1'
+    const user2Id = '2'
+    const atomService = new AtomService(connections)
+    const user1Article = await atomService.findFirst({
+      table: 'article',
+      where: { authorId: user1Id },
+    })
+    const user2Article = await atomService.findFirst({
+      table: 'article',
+      where: { authorId: user2Id },
+    })
+    const server = await testClient({ connections, userId: user1Id })
+
+    // can not pin other user's comment
+    const { id: othersCommentUnderOwnedArticle } = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: 'my comment',
+        authorId: user2Id,
+        targetId: user1Article.id,
+        targetTypeId: '4',
+        parentCommentId: null,
+        type: 'article',
+      },
+    })
+    const { errors: errors1 } = await server.executeOperation({
       query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {
-          id: COMMENT_ID,
+          id: toGlobalId({
+            type: NODE_TYPES.Comment,
+            id: othersCommentUnderOwnedArticle,
+          }),
           enabled: true,
         },
       },
     })
-    expect(_get(result.data, 'togglePinComment.pinned')).toBe(true)
+    expect(errors1?.[0].extensions.code).toBe('FORBIDDEN')
+
+    // can not pin user's comment under other user's article
+    const { id: ownedCommentUnderOthersArticle } = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: 'my comment',
+        authorId: user1Id,
+        targetId: user2Article.id,
+        targetTypeId: '4',
+        parentCommentId: null,
+        type: 'article',
+      },
+    })
+    const { errors: errors2 } = await server.executeOperation({
+      query: TOGGLE_PIN_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({
+            type: NODE_TYPES.Comment,
+            id: ownedCommentUnderOthersArticle,
+          }),
+          enabled: true,
+        },
+      },
+    })
+    expect(errors2?.[0].extensions.code).toBe('FORBIDDEN')
+
+    // can pin user's comment under user's article
+    const { id: ownedCommentUnderOwnedArticle } = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: 'my comment',
+        authorId: user1Id,
+        targetId: user1Article.id,
+        targetTypeId: '4',
+        parentCommentId: null,
+        type: 'article',
+      },
+    })
+    const { data } = await server.executeOperation({
+      query: TOGGLE_PIN_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({
+            type: NODE_TYPES.Comment,
+            id: ownedCommentUnderOwnedArticle,
+          }),
+          enabled: true,
+        },
+      },
+    })
+    expect(data.togglePinComment.pinned).toBe(true)
+
+    // can only pin one comment
+    const { id: ownedCommentUnderOwnedArticle2 } = await atomService.create({
+      table: 'comment',
+      data: {
+        uuid: uuidv4(),
+        content: 'my comment',
+        authorId: user1Id,
+        targetId: user1Article.id,
+        targetTypeId: '4',
+        parentCommentId: null,
+        type: 'article',
+      },
+    })
+    const { errors: errors3 } = await server.executeOperation({
+      query: TOGGLE_PIN_COMMENT,
+      variables: {
+        input: {
+          id: toGlobalId({
+            type: NODE_TYPES.Comment,
+            id: ownedCommentUnderOwnedArticle2,
+          }),
+          enabled: true,
+        },
+      },
+    })
+    expect(errors3?.[0].extensions.code).toBe('ACTION_LIMIT_EXCEEDED')
   })
 
   test('unpin a comment ', async () => {

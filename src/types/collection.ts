@@ -15,6 +15,9 @@ export default /* GraphQL */ `
     deleteCollectionArticles(input: DeleteCollectionArticlesInput!): Collection! @complexity(value: 10, multipliers: ["input.articles"]) @auth(mode: "${AUTH_MODE.oauth}")
     "Reorder articles in the collection."
     reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+
+    likeCollection(input: LikeCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
+    unlikeCollection(input: UnlikeCollectionInput!): Collection! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.Collection}")
   }
 
   type Collection implements Node & PinnableWork  {
@@ -26,6 +29,10 @@ export default /* GraphQL */ `
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
+
+     likeCount: Int!
+     """whether current user has liked it"""
+     liked: Boolean! @privateCache
 
      "Check if the collection contains the article"
      contains(input: NodeInput!): Boolean!
@@ -40,6 +47,21 @@ export default /* GraphQL */ `
      totalCount: Int!
      pageInfo: PageInfo!
      edges: [CollectionEdge!]
+  }
+
+  type CollectionNotice implements Notice {
+    """Unique ID of this notice."""
+    id: ID!
+
+    """The value determines if the notice is unread or not."""
+    unread: Boolean!
+
+    """Time of this notice was created."""
+    createdAt: DateTime!
+
+    """List of notice actors."""
+    actors: [User!]
+    target: Collection!
   }
 
   input CollectionArticlesInput {
@@ -79,5 +101,11 @@ export default /* GraphQL */ `
   input  ReorderCollectionArticlesInput {
     collection: ID!
     moves: [ReorderMoveInput!]!
+  }
+  input LikeCollectionInput {
+    id: ID!
+  }
+  input UnlikeCollectionInput {
+    id: ID!
   }
 `

@@ -1,13 +1,12 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections, Article } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
-import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
 
 import {
   ARTICLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -17,7 +16,7 @@ import {
 import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+import { extractMentionIds } from 'common/utils'
 import {
   AtomService,
   NotificationService,
@@ -25,7 +24,7 @@ import {
   UserService,
 } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-revision')
 
@@ -36,10 +35,17 @@ interface RevisedArticleData {
   iscnPublish?: boolean
 }
 
-export class RevisionQueue extends BaseQueue {
+export class RevisionQueue {
+  private connections: Connections
+  private q: Queue
+
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.revision, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.revision)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   public publishRevisedArticle = (data: RevisedArticleData) =>
@@ -62,7 +68,7 @@ export class RevisionQueue extends BaseQueue {
   /**
    * Publish revised article
    */
-  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> =
+  private handlePublishRevisedArticle: ProcessCallbackFunction<unknown> =
     async (job, done) => {
       const {
         articleId,
@@ -142,7 +148,7 @@ export class RevisionQueue extends BaseQueue {
 
       // Step 3: trigger notifications
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.revised_article_published,
+        event: NOTICE_TYPE.revised_article_published,
         recipientId: article.authorId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
@@ -274,32 +280,19 @@ export class RevisionQueue extends BaseQueue {
     },
     notificationService: NotificationService
   ) => {
-    // gather pre-draft ids
-    let $ = cheerio.load(preContent)
-    const filter = (index: number, node: any) => {
-      const id = $(node).attr('data-id')
-      if (id) {
-        return id
-      }
-    }
-    const preIds = $('a.mention').map(filter).get()
-
-    // gather curr-draft ids
-    $ = cheerio.load(content)
-    const currIds = $('a.mention').map(filter).get()
+    const preIds = extractMentionIds(preContent)
+    const currIds = extractMentionIds(content)
 
     const diffs = _difference(currIds, preIds)
     diffs.forEach((id: string) => {
-      const { id: recipientId } = fromGlobalId(id)
-
-      if (!recipientId) {
+      if (!id) {
         return false
       }
 
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_mentioned_you,
+        event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
-        recipientId,
+        recipientId: id,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })

@@ -19,6 +19,8 @@ directive @complexity(value: Int!, multipliers: [String!]) on FIELD_DEFINITION
 
 type Query {
   article(input: ArticleInput!): Article
+  campaign(input: CampaignInput!): Campaign
+  campaigns(input: CampaignsInput!): CampaignConnection!
   circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
@@ -31,6 +33,7 @@ type Query {
   oauthRequestToken: String
   exchangeRates(input: ExchangeRatesInput): [ExchangeRate!]
   oauthClient(input: OAuthClientInput!): OAuthClient
+  moment(input: MomentInput!): Moment
 }
 
 type Mutation {
@@ -73,6 +76,9 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
+  putWritingChallenge(input: PutWritingChallengeInput!): WritingChallenge!
+  applyCampaign(input: ApplyCampaignInput!): Campaign!
+  updateCampaignApplicationState(input: UpdateCampaignApplicationStateInput!): Campaign!
 
   """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
@@ -283,6 +289,12 @@ type Mutation {
 
   """Reorder articles in the collection."""
   reorderCollectionArticles(input: ReorderCollectionArticlesInput!): Collection!
+  likeCollection(input: LikeCollectionInput!): Collection!
+  unlikeCollection(input: UnlikeCollectionInput!): Collection!
+  putMoment(input: PutMomentInput!): Moment!
+  deleteMoment(input: DeleteMomentInput!): Moment!
+  likeMoment(input: LikeMomentInput!): Moment!
+  unlikeMoment(input: UnlikeMomentInput!): Moment!
 }
 
 """
@@ -456,6 +468,9 @@ type Article implements Node & PinnableWork {
 
   """history versions"""
   versions(input: ArticleVersionsInput!): ArticleVersionsConnection!
+
+  """associated campaigns"""
+  campaigns: [ArticleCampaign!]!
   oss: ArticleOSS!
   remark: String
 
@@ -482,6 +497,11 @@ type Article implements Node & PinnableWork {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+type ArticleCampaign {
+  campaign: Campaign!
+  stage: CampaignStage!
 }
 
 input ArticleVersionsInput {
@@ -681,6 +701,14 @@ input EditArticleInput {
 
   """whether readers can comment"""
   canComment: Boolean
+
+  """which campaigns to attach"""
+  campaigns: [ArticleCampaignInput!]
+}
+
+input ArticleCampaignInput {
+  campaign: ID!
+  stage: ID!
 }
 
 input AppreciateArticleInput {
@@ -834,6 +862,154 @@ enum UpdateTagSettingType {
   leave_editor
 }
 
+input CampaignInput {
+  shortHash: String!
+}
+
+input CampaignsInput {
+  after: String
+  first: Int
+
+  """return pending and archived campaigns"""
+  oss: Boolean = false
+}
+
+input PutWritingChallengeInput {
+  id: ID
+  name: [TranslationInput!]
+  description: [TranslationInput!]
+  cover: ID
+  link: String
+  applicationPeriod: DatetimeRangeInput
+  writingPeriod: DatetimeRangeInput
+  stages: [CampaignStageInput!]
+  state: CampaignState
+}
+
+input ApplyCampaignInput {
+  id: ID!
+}
+
+input UpdateCampaignApplicationStateInput {
+  campaign: ID!
+  user: ID!
+  state: CampaignApplicationState!
+}
+
+input CampaignStageInput {
+  name: [TranslationInput!]!
+  period: DatetimeRangeInput
+}
+
+input TranslationInput {
+  language: UserLanguage!
+  text: String!
+}
+
+input DatetimeRangeInput {
+  start: DateTime!
+  end: DateTime
+}
+
+interface Campaign {
+  id: ID!
+  shortHash: String!
+  name: String!
+  description: String!
+  state: CampaignState!
+}
+
+enum CampaignState {
+  pending
+  active
+  finished
+  archived
+}
+
+type WritingChallenge implements Node & Campaign {
+  id: ID!
+  shortHash: String!
+  name(input: TranslationArgs): String!
+  description(input: TranslationArgs): String!
+  cover: String
+  link: String!
+  applicationPeriod: DatetimeRange
+  writingPeriod: DatetimeRange
+  stages: [CampaignStage!]!
+  state: CampaignState!
+  participants(input: CampaignParticipantsInput!): CampaignParticipantConnection!
+  articles(input: CampaignArticlesInput!): ArticleConnection!
+  application: CampaignApplication
+  oss: CampaignOSS!
+}
+
+type CampaignOSS {
+  boost: Float!
+}
+
+type CampaignApplication {
+  state: CampaignApplicationState!
+  createdAt: DateTime!
+}
+
+type CampaignParticipantConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignParticipantEdge!]
+}
+
+type CampaignParticipantEdge {
+  cursor: String!
+  application: CampaignApplication
+  node: User!
+}
+
+input CampaignParticipantsInput {
+  after: String
+  first: Int
+
+  """return all state participants"""
+  oss: Boolean = false
+}
+
+type DatetimeRange {
+  start: DateTime!
+  end: DateTime
+}
+
+enum CampaignApplicationState {
+  pending
+  succeeded
+  rejected
+}
+
+type CampaignStage {
+  id: ID!
+  name(input: TranslationArgs): String!
+  period: DatetimeRange
+}
+
+input CampaignArticlesInput {
+  after: String
+  first: Int
+  filter: CampaignArticlesFilter
+}
+
+input CampaignArticlesFilter {
+  stage: ID!
+}
+
+type CampaignConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CampaignEdge!]
+}
+
+type CampaignEdge {
+  cursor: String!
+  node: Campaign!
+}
+
 type Circle implements Node {
   """Unique ID."""
   id: ID!
@@ -940,11 +1116,14 @@ type User implements Node {
   """User settings."""
   settings: UserSettings!
 
-  """Article recommendations for current user."""
+  """Recommendations for current user."""
   recommendation: Recommendation!
 
   """Articles authored by current user."""
   articles(input: UserArticlesInput!): ArticleConnection!
+
+  """Articles and moments authored by current user."""
+  writings(input: WritingInput!): WritingConnection!
 
   """collections authored by current user."""
   collections(input: ConnectionArgs!): CollectionConnection!
@@ -993,6 +1172,9 @@ type User implements Node {
 
   """user data analytics, only accessable by current user."""
   analytics: UserAnalytics!
+
+  """active applied campaigns"""
+  campaigns(input: ConnectionArgs!): CampaignConnection!
 
   """Status of current user."""
   status: UserStatus
@@ -1354,6 +1536,7 @@ input CommentInput {
   type: CommentType!
   articleId: ID
   circleId: ID
+  momentId: ID
 }
 
 input CommentCommentsInput {
@@ -1435,6 +1618,7 @@ enum CommentType {
   article
   circleDiscussion
   circleBroadcast
+  moment
 }
 
 """
@@ -1509,6 +1693,9 @@ type Draft implements Node {
 
   """whether readers can comment"""
   canComment: Boolean!
+
+  """associated campaigns"""
+  campaigns: [ArticleCampaign!]!
 }
 
 type DraftConnection implements Connection {
@@ -1547,6 +1734,9 @@ input PutDraftInput {
 
   """whether readers can comment"""
   canComment: Boolean
+
+  """which campaigns to attach"""
+  campaigns: [ArticleCampaignInput!]
 }
 
 input DeleteDraftInput {
@@ -1651,6 +1841,27 @@ enum ArticleArticleNoticeType {
   ArticleNewCollected
 }
 
+type MomentNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: MomentNoticeType!
+  target: Moment!
+}
+
+enum MomentNoticeType {
+  MomentMentionedYou
+  MomentLiked
+}
+
 type CommentNotice implements Notice {
   """Unique ID of this notice."""
   id: ID!
@@ -1672,6 +1883,7 @@ enum CommentNoticeType {
   CommentLiked
   CommentMentionedYou
   ArticleNewComment
+  MomentNewComment
   SubscribedArticleNewComment
   CircleNewBroadcast
 }
@@ -1941,7 +2153,7 @@ type UserRestriction {
 type Report implements Node {
   id: ID!
   reporter: User!
-  target: Response!
+  target: Node!
   reason: ReportReason!
   createdAt: DateTime!
 }
@@ -2123,6 +2335,7 @@ enum BoostTypes {
   Article
   User
   Tag
+  Campaign
 }
 
 enum RemarkTypes {
@@ -2160,6 +2373,8 @@ enum AssetType {
   circleCover
   collectionCover
   announcementCover
+  moment
+  campaignCover
 }
 
 enum EntityType {
@@ -2170,6 +2385,8 @@ enum EntityType {
   circle
   announcement
   collection
+  moment
+  campaign
 }
 
 """Enums for user roles."""
@@ -2270,7 +2487,7 @@ enum CacheControlScope {
 
 type Recommendation {
   """Activities based on user's following, sort by creation time."""
-  following(input: ConnectionArgs!): FollowingActivityConnection!
+  following(input: RecommendationFollowingInput!): FollowingActivityConnection!
 
   """Articles recommended based on recently read article tags."""
   readTagsArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into following")
@@ -2445,6 +2662,9 @@ type UserStatus {
   """Number of articles published by user"""
   articleCount: Int!
 
+  """Number of moments posted by user"""
+  momentCount: Int!
+
   """Number of comments posted by user."""
   commentCount: Int!
 
@@ -2521,6 +2741,8 @@ type Appreciation {
 type NotificationSetting {
   email: Boolean!
   mention: Boolean!
+  newComment: Boolean!
+  newLike: Boolean!
   userNewFollower: Boolean!
   articleNewComment: Boolean!
   articleNewAppreciation: Boolean!
@@ -2628,7 +2850,7 @@ type FollowingActivityEdge {
   node: FollowingActivity!
 }
 
-union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
+union FollowingActivity = UserPublishArticleActivity | UserAddArticleTagActivity | UserPostMomentActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserRecommendationActivity | ArticleRecommendationActivity | CircleRecommendationActivity
 
 type UserPublishArticleActivity {
   actor: User!
@@ -2647,6 +2869,17 @@ type UserAddArticleTagActivity {
 
   """Tag added by article"""
   target: Tag!
+}
+
+type UserPostMomentActivity {
+  actor: User!
+  createdAt: DateTime!
+
+  """Moment posted by actor"""
+  node: Moment!
+
+  """Another 3 moments posted by actor"""
+  more: [Moment!]!
 }
 
 type UserBroadcastCircleActivity {
@@ -2882,7 +3115,7 @@ input RefreshIPNSFeedInput {
 }
 
 input ToggleUsersBadgeInput {
-  ids: [ID!]
+  ids: [ID!]!
   type: BadgeType!
   enabled: Boolean!
 }
@@ -2928,6 +3161,7 @@ enum BadgeType {
   seed
   golden_motor
   architect
+  grand_slam
   nomad1
   nomad2
   nomad3
@@ -2966,6 +3200,8 @@ enum UserLanguage {
 enum NotificationSettingType {
   email
   mention
+  newComment
+  newLike
   userNewFollower
   articleNewComment
   articleNewAppreciation
@@ -3127,6 +3363,38 @@ enum UserArticlesSort {
 
 input UserArticlesFilter {
   state: ArticleState = active
+}
+
+input WritingInput {
+  after: String
+  first: Int
+}
+
+union Writing = Article | Moment
+
+type WritingConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [WritingEdge!]
+}
+
+type WritingEdge {
+  cursor: String!
+  node: Writing!
+}
+
+input RecommendationFollowingInput {
+  first: Int
+  after: String
+  filter: RecommendationFollowingFilterInput
+}
+
+input RecommendationFollowingFilterInput {
+  type: RecommendationFollowingFilterType
+}
+
+enum RecommendationFollowingFilterType {
+  article
 }
 
 union Response = Article | Comment
@@ -3447,6 +3715,10 @@ type Collection implements Node & PinnableWork {
   articles(input: CollectionArticlesInput!): ArticleConnection!
   pinned: Boolean!
   updatedAt: DateTime!
+  likeCount: Int!
+
+  """whether current user has liked it"""
+  liked: Boolean!
 
   """Check if the collection contains the article"""
   contains(input: NodeInput!): Boolean!
@@ -3461,6 +3733,21 @@ type CollectionConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [CollectionEdge!]
+}
+
+type CollectionNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  target: Collection!
 }
 
 input CollectionArticlesInput {
@@ -3503,4 +3790,55 @@ input ReorderMoveInput {
 input ReorderCollectionArticlesInput {
   collection: ID!
   moves: [ReorderMoveInput!]!
+}
+
+input LikeCollectionInput {
+  id: ID!
+}
+
+input UnlikeCollectionInput {
+  id: ID!
+}
+
+input MomentInput {
+  shortHash: String!
+}
+
+input PutMomentInput {
+  content: String!
+  assets: [ID!]!
+}
+
+input DeleteMomentInput {
+  id: ID!
+}
+
+input LikeMomentInput {
+  id: ID!
+}
+
+input UnlikeMomentInput {
+  id: ID!
+}
+
+type Moment implements Node {
+  id: ID!
+  shortHash: String!
+  content: String
+  assets: [Asset!]!
+  author: User!
+  state: MomentState!
+  commentCount: Int!
+  commentedFollowees: [User!]!
+  comments(input: CommentsInput!): CommentConnection!
+  likeCount: Int!
+
+  """whether current user has liked it"""
+  liked: Boolean!
+  createdAt: DateTime!
+}
+
+enum MomentState {
+  active
+  archived
 }

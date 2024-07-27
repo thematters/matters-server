@@ -1,263 +1,233 @@
-import type { Connections, UserNotifySetting } from 'definitions'
+import type {
+  Connections,
+  NotificationParams,
+  NoticeItem,
+  NoticeDetail,
+  NoticeEntitiesMap,
+  NoticeEntity,
+  User,
+} from 'definitions'
 
-import {
-  BUNDLED_NOTICE_TYPE,
-  DB_NOTICE_TYPE,
-  OFFICIAL_NOTICE_EXTEND_TYPE,
-} from 'common/enums'
+import { MONTH, NOTICE_TYPE, QUEUE_URL } from 'common/enums'
+import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { UserService, AtomService, ArticleService } from 'connectors'
-import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
+import { aws } from 'connectors'
 
 import { mail } from './mail'
-import { Notice } from './notice'
-import trans from './translations'
 
 const logger = getLogger('service-notification')
 
 export class NotificationService {
   public mail: typeof mail
-  public notice: Notice
   private connections: Connections
+  private aws: typeof aws
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.mail = mail
-    this.notice = new Notice(connections)
+    this.aws = aws
   }
 
-  public trigger = async (params: NotificationPrarms): Promise<void> => {
+  public trigger = async (params: NotificationParams) => {
+    if (isTest) {
+      return
+    }
+    logger.info(`triggered notification params: ${JSON.stringify(params)}`)
     try {
-      await this.__trigger(params)
-    } catch (e) {
-      logger.error(e)
+      await this.aws.sqsSendMessage({
+        messageBody: params,
+        queueUrl: QUEUE_URL.notification,
+      })
+    } catch (error) {
+      logger.error(error)
     }
   }
 
-  private getNoticeParams = async (
-    params: NotificationPrarms,
-    language: LANGUAGES
-  ): Promise<PutNoticeParams | undefined> => {
-    const articleService = new ArticleService(this.connections)
-    switch (params.event) {
-      // entity-free
-      case DB_NOTICE_TYPE.user_new_follower:
-        return {
-          type: params.event,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-        }
-      // system as the actor
-      case DB_NOTICE_TYPE.article_published:
-      case DB_NOTICE_TYPE.revised_article_published:
-      case DB_NOTICE_TYPE.revised_article_not_published:
-      case DB_NOTICE_TYPE.circle_new_article: // deprecated
-        return {
-          type: params.event,
-          recipientId: params.recipientId,
-          entities: params.entities,
-        }
-      // single actor with one or more entities
-      case DB_NOTICE_TYPE.article_new_collected:
-      case DB_NOTICE_TYPE.article_new_appreciation:
-      case DB_NOTICE_TYPE.article_new_subscriber:
-      case DB_NOTICE_TYPE.article_mentioned_you:
-      case DB_NOTICE_TYPE.comment_mentioned_you:
-      case DB_NOTICE_TYPE.comment_new_reply:
-      case DB_NOTICE_TYPE.payment_received_donation:
-      case DB_NOTICE_TYPE.circle_new_broadcast: // deprecated
-      case DB_NOTICE_TYPE.circle_new_subscriber:
-      case DB_NOTICE_TYPE.circle_new_follower:
-      case DB_NOTICE_TYPE.circle_new_unsubscriber:
-        return {
-          type: params.event,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-          entities: params.entities,
-        }
-      case DB_NOTICE_TYPE.article_new_comment:
-      case DB_NOTICE_TYPE.comment_liked:
-        return {
-          type: params.event,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-          entities: params.entities,
-          bundle: { disabled: true },
-        }
-      case DB_NOTICE_TYPE.circle_invitation:
-        return {
-          type: params.event,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-          entities: params.entities,
-          resend: true,
-        }
-      // bundled: circle_new_broadcast_comments
-      case BUNDLED_NOTICE_TYPE.circle_broadcast_mentioned_you:
-      case BUNDLED_NOTICE_TYPE.circle_member_new_broadcast_reply:
-      case BUNDLED_NOTICE_TYPE.in_circle_new_broadcast_reply:
-        return {
-          type: DB_NOTICE_TYPE.circle_new_broadcast_comments,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-          entities: params.entities,
-          data: params.data, // update latest comment to DB `data` field
-          bundle: { mergeData: true },
-        }
-      // bundled: circle_new_discussion_comments
-      case BUNDLED_NOTICE_TYPE.circle_discussion_mentioned_you:
-      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion:
-      case BUNDLED_NOTICE_TYPE.circle_member_new_discussion_reply:
-      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion:
-      case BUNDLED_NOTICE_TYPE.in_circle_new_discussion_reply:
-        return {
-          type: DB_NOTICE_TYPE.circle_new_discussion_comments,
-          recipientId: params.recipientId,
-          actorId: params.actorId,
-          entities: params.entities,
-          data: params.data, // update latest comment to DB `data` field
-          bundle: { mergeData: true },
-        }
-      // act as official announcement
-      case DB_NOTICE_TYPE.official_announcement:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: params.message,
-          data: params.data,
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_banned(language, {}),
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_banned_payment(language, {}),
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_frozen(language, {}),
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.user_unbanned(language, {}),
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.comment_banned(language, {
-            content: params.entities[0].entity.content,
-          }),
-          entities: params.entities,
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.article_banned:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.article_banned(language, {
-            title: (
-              await articleService.loadLatestArticleVersion(
-                params.entities[0].entity.id
-              )
-            ).title,
-          }),
-          entities: params.entities,
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.comment_reported(language, {
-            content: params.entities[0].entity.content,
-          }),
-          entities: params.entities,
-        }
-      case OFFICIAL_NOTICE_EXTEND_TYPE.article_reported:
-        return {
-          type: DB_NOTICE_TYPE.official_announcement,
-          recipientId: params.recipientId,
-          message: trans.article_reported(language, {
-            title: (
-              await articleService.loadLatestArticleVersion(
-                params.entities[0].entity.id
-              )
-            ).title,
-          }),
-          entities: params.entities,
-        }
-      default:
-        return
-    }
+  public markAllNoticesAsRead = async (userId: string) => {
+    const knex = this.connections.knex
+    return knex('notice')
+      .where({ recipientId: userId, unread: true })
+      .update({ unread: false })
   }
 
-  private async __trigger(params: NotificationPrarms) {
-    const atomService = new AtomService(this.connections)
-    const userService = new UserService(this.connections)
-    const recipient = await atomService.userIdLoader.load(params.recipientId)
-
-    if (!recipient) {
-      logger.warn(`recipient ${params.recipientId} not found, skipped`)
-      return
+  public findByUser = async ({
+    userId,
+    onlyRecent,
+    take,
+    skip,
+  }: {
+    userId: string
+    onlyRecent?: boolean
+    take?: number
+    skip?: number
+  }): Promise<NoticeItem[]> => {
+    const where = [[{ recipientId: userId, deleted: false }]] as any[][]
+    if (onlyRecent) {
+      where.push(['notice.updated_at', '>', new Date(Date.now() - 6 * MONTH)])
     }
 
-    const noticeParams = await this.getNoticeParams(params, recipient.language)
-
-    if (!noticeParams) {
-      return
-    }
-
-    // skip if actor === recipient
-    if ('actorId' in params && params.actorId === params.recipientId) {
-      logger.warn(
-        `Actor ${params.actorId} is same as recipient ${params.recipientId}, skipped`
-      )
-      return
-    }
-
-    // skip if user disable notify
-    const notifySetting = await userService.findNotifySetting(recipient.id)
-    const enable = await this.notice.checkUserNotifySetting({
-      event: params.event,
-      setting: notifySetting as UserNotifySetting,
+    const notices = await this.findDetail({
+      where,
+      skip,
+      take,
     })
 
-    if (!enable) {
-      logger.info(
-        `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
-      )
-      return
-    }
+    return Promise.all(
+      notices.map(async (n: NoticeDetail) => {
+        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
+        const actors = await this.findActors(n.id)
 
-    // skip if sender is blocked by recipient
-    if ('actorId' in params) {
-      const blocked = await userService.blocked({
-        userId: recipient.id,
-        targetId: params.actorId,
+        return {
+          ...n,
+          createdAt: n.updatedAt,
+          type: n.noticeType,
+          actors,
+          entities,
+        }
       })
+    )
+  }
 
-      if (blocked) {
-        logger.info(
-          `Actor ${params.actorId} is blocked by recipient ${params.recipientId}, skipped`
-        )
-        return
-      }
+  public countNotice = async ({
+    userId,
+    unread,
+    onlyRecent,
+  }: {
+    userId: string
+    unread?: boolean
+    onlyRecent?: boolean
+  }) => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO('notice')
+      .where({ recipientId: userId, deleted: false })
+      .count()
+      .first()
+
+    if (unread) {
+      query.where({ unread: true })
     }
 
-    // Put Notice to DB
-    const { created, bundled } = await this.notice.process(noticeParams)
-
-    if (!created && !bundled) {
-      logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)
-      return
+    if (onlyRecent) {
+      query.whereRaw(`updated_at > now() - interval '6 months'`)
     }
+
+    const result = await query
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find notices with detail
+   */
+  private findDetail = async ({
+    where,
+    whereIn,
+    skip,
+    take,
+  }: {
+    where?: any[][]
+    whereIn?: [string, any[]]
+    skip?: number
+    take?: number
+  }): Promise<NoticeDetail[]> => {
+    const knexRO = this.connections.knexRO
+    const query = knexRO
+      .select([
+        'notice.id',
+        'notice.unread',
+        'notice.deleted',
+        'notice.updated_at',
+        'notice_detail.notice_type',
+        'notice_detail.message',
+        'notice_detail.data',
+      ])
+      .from('notice')
+      .innerJoin(
+        'notice_detail',
+        'notice.notice_detail_id',
+        '=',
+        'notice_detail.id'
+      )
+      .orderBy('updated_at', 'desc')
+      .whereIn('notice_detail.notice_type', Object.values(NOTICE_TYPE))
+
+    if (where) {
+      where.forEach((w) => {
+        query.where(w[0], w[1], w[2])
+      })
+    }
+
+    if (whereIn) {
+      query.whereIn(...whereIn)
+    }
+
+    if (skip) {
+      query.offset(skip)
+    }
+
+    if (take || take === 0) {
+      query.limit(take)
+    }
+
+    const result = await query
+
+    return result
+  }
+
+  /**
+   * Find notice entities by a given notice id
+   */
+  private findEntities = async (
+    noticeId: string,
+    expand = true
+  ): Promise<NoticeEntity[] | NoticeEntitiesMap> => {
+    const knexRO = this.connections.knex
+    const entities = await knexRO
+      .select([
+        'notice_entity.type',
+        'notice_entity.entity_id',
+        'entity_type.table',
+      ])
+      .from('notice_entity')
+      .innerJoin(
+        'entity_type',
+        'entity_type.id',
+        '=',
+        'notice_entity.entity_type_id'
+      )
+      .where({ noticeId })
+
+    if (expand) {
+      const _entities = {} as any
+
+      await Promise.all(
+        entities.map(async ({ type, entityId, table }: any) => {
+          const entity = await knexRO
+            .select()
+            .from(table)
+            .where({ id: entityId })
+            .first()
+
+          _entities[type] = entity
+        })
+      )
+
+      return _entities
+    }
+    return entities
+  }
+
+  /**
+   * Find notice actors by a given notice id
+   */
+  private findActors = async (
+    noticeId: string
+  ): Promise<Array<User & { noticeActorCreatedAt: string }>> => {
+    const knexRO = this.connections.knexRO
+    const actors = await knexRO
+      .select('user.*', 'notice_actor.created_at as noticeActorCreatedAt')
+      .from('notice_actor')
+      .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
+      .where({ noticeId })
+    return actors
   }
 }

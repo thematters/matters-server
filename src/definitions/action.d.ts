@@ -41,3 +41,21 @@ export interface ActionUser {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface ActionMoment {
+  id: string
+  action: 'like'
+  userId: string
+  targetId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ActionCollection {
+  id: string
+  action: 'like'
+  userId: string
+  targetId: string
+  createdAt: Date
+  updatedAt: Date
+}

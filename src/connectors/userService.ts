@@ -65,7 +65,7 @@ import {
   USER_RESTRICTION_TYPE,
   VIEW,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   INVITATION_STATE,
   SIGNING_MESSAGE_PURPOSE,
   SOCIAL_LOGIN_TYPE,
@@ -76,7 +76,7 @@ import {
   METRICS_NAMES,
   BLOCKCHAIN_RPC,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import {
   EmailNotFoundError,
   CryptoWalletExistsError,
@@ -121,8 +121,6 @@ import { Twitter } from 'connectors/oauth'
 import { LikeCoin } from './likecoin'
 
 const logger = getLogger('service-user')
-
-// const SEARCH_DEFAULT_TEXT_RANK_THRESHOLD = 0.0001
 
 export class UserService extends BaseService<User> {
   private ipfs: typeof ipfsServers
@@ -200,24 +198,26 @@ export class UserService extends BaseService<User> {
     )
 
     // no await to put data async
-    this.aws.putMetricData({
-      MetricData: [
-        {
-          MetricName: METRICS_NAMES.UserRegistrationCount,
-          // Counts: [1],
-          Dimensions: [
-            {
-              Name: 'reg_type' /* required */,
-              Value: ethAddress ? 'wallet' : 'email' /* required */,
-            },
-            /* more items */
-          ],
-          Timestamp: new Date(),
-          Unit: 'Count',
-          Value: 1,
-        },
-      ],
-    })
+    if (isProd) {
+      this.aws.putMetricData({
+        MetricData: [
+          {
+            MetricName: METRICS_NAMES.UserRegistrationCount,
+            // Counts: [1],
+            Dimensions: [
+              {
+                Name: 'reg_type' /* required */,
+                Value: ethAddress ? 'wallet' : 'email' /* required */,
+              },
+              /* more items */
+            ],
+            Timestamp: new Date(),
+            Unit: 'Count',
+            Value: 1,
+          },
+        ],
+      })
+    }
 
     return user
   }
@@ -255,7 +255,7 @@ export class UserService extends BaseService<User> {
             },
           })
           notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_invitation,
+            event: NOTICE_TYPE.circle_invitation,
             actorId: invitation.inviter,
             recipientId: user.id,
             entities: [
@@ -1174,7 +1174,7 @@ export class UserService extends BaseService<User> {
     userId: string
     targetId: string
   }) => {
-    const result = await this.knex
+    const result = await this.knexRO
       .select()
       .from('action_user')
       .where({ userId, targetId, action: USER_ACTION.follow })
@@ -2153,7 +2153,9 @@ export class UserService extends BaseService<User> {
       remark,
       noticeType,
     }: {
-      noticeType?: OFFICIAL_NOTICE_EXTEND_TYPE
+      noticeType?:
+        | OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
+        | OFFICIAL_NOTICE_EXTEND_TYPE.user_banned_payment
       banDays?: number
       remark?: ValueOf<typeof USER_BAN_REMARK>
     } = {}
@@ -2505,7 +2507,8 @@ export class UserService extends BaseService<User> {
         // check if this user have social account already, if true, create new user
         const socialAccounts = await this.findSocialAccountsByUserId(
           user.id,
-          type
+          type,
+          trx
         )
         if (socialAccounts.length > 0) {
           user = await this.create({ language, referralCode }, trx)
@@ -2536,11 +2539,15 @@ export class UserService extends BaseService<User> {
 
   public findSocialAccountsByUserId = async (
     userId: string,
-    type?: keyof typeof SOCIAL_LOGIN_TYPE
+    type?: keyof typeof SOCIAL_LOGIN_TYPE,
+    trx?: Knex.Transaction
   ) => {
     const query = this.knex('social_account').select().where({ userId })
     if (type) {
       query.andWhere({ type })
+    }
+    if (trx) {
+      query.transacting(trx)
     }
     return query
   }
@@ -2943,18 +2950,6 @@ export class UserService extends BaseService<User> {
     if (delta > threshold) {
       await this.knex(this.table).update('last_seen', now).where({ id })
     }
-  }
-
-  public totalPinnedWorks = async (id: string): Promise<number> => {
-    const res1 = await this.knex('article')
-      .count()
-      .where({ authorId: id, pinned: true, state: ARTICLE_STATE.active })
-      .first()
-    const res2 = await this.knex('collection')
-      .count()
-      .where({ authorId: id, pinned: true })
-      .first()
-    return (Number(res1?.count) || 0) + (Number(res2?.count) || 0)
   }
 
   public isEmailinWhitelist = async (email: string) => {

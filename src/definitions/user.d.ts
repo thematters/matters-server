@@ -108,8 +108,8 @@ export interface UserNotifySetting {
   enable: boolean
   mention: boolean
   userNewFollower: boolean
-  articleNewComment: boolean
-  articleNewAppreciation: boolean
+  newComment: boolean
+  newLike: boolean
   articleNewSubscription: boolean
   articleSubscribedNewComment: boolean
   reportFeedback: boolean

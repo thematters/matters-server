@@ -1,22 +1,22 @@
 import type { GQLMutationResolvers } from 'definitions'
 
+import _uniq from 'lodash/uniq'
+
+import { OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
   _,
   { input: { ids, type, enabled } },
-  { dataSources: { atomService } }
+  { dataSources: { atomService, notificationService } }
 ) => {
-  if (!ids || ids.length === 0) {
+  if (ids.length === 0) {
     throw new UserInputError('"ids" is required')
-  }
-  if (typeof enabled !== 'boolean') {
-    throw new UserInputError('"enabled" is required')
   }
 
   const table = 'user_badge'
-  const userIds = ids.map((id) => fromGlobalId(id).id) // .filter(Boolean)
+  const userIds = _uniq(ids.map((id) => fromGlobalId(id).id))
 
   let level = 0
   switch (type) {
@@ -51,8 +51,14 @@ const resolver: GQLMutationResolvers['toggleUsersBadge'] = async (
       })
     })
   )
-
-  // notifications TODO for Nomad Campaign
+  if (enabled && type === 'grand_slam') {
+    for (const userId of userIds) {
+      notificationService.trigger({
+        event: OFFICIAL_NOTICE_EXTEND_TYPE.badge_grand_slam_awarded,
+        recipientId: userId,
+      })
+    }
+  }
 
   return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }

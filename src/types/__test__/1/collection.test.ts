@@ -2,12 +2,15 @@ import type { Connections } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
+import { CollectionService } from 'connectors'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
+let collectionService: CollectionService
 beforeAll(async () => {
   connections = await genConnections()
+  collectionService = new CollectionService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -850,4 +853,48 @@ test('get latest works', async () => {
       data?.viewer?.latestWorks[1].updatedAt.getTime()
     )
   }
+})
+
+describe('like/unlike moment', () => {
+  const LIKE_COLLECTION = /* GraphQL */ `
+    mutation ($input: LikeCollectionInput!) {
+      likeCollection(input: $input) {
+        id
+        liked
+      }
+    }
+  `
+  const UNLIKE_COLLECTION = /* GraphQL */ `
+    mutation ($input: UnlikeCollectionInput!) {
+      unlikeCollection(input: $input) {
+        id
+        liked
+      }
+    }
+  `
+  test('success', async () => {
+    const collection = await collectionService.createCollection({
+      authorId: '2',
+      title: 'test',
+      description: 'test',
+    })
+    const server = await testClient({ isAuth: true, connections })
+    const id = toGlobalId({ type: NODE_TYPES.Collection, id: collection.id })
+
+    const { errors: errorsLike, data: dataLike } =
+      await server.executeOperation({
+        query: LIKE_COLLECTION,
+        variables: { input: { id } },
+      })
+    expect(errorsLike).toBeUndefined()
+    expect(dataLike.likeCollection.liked).toBeTruthy()
+
+    const { errors: errorsUnlike, data: dataUnlike } =
+      await server.executeOperation({
+        query: UNLIKE_COLLECTION,
+        variables: { input: { id } },
+      })
+    expect(errorsUnlike).toBeUndefined()
+    expect(dataUnlike.unlikeCollection.liked).toBeFalsy()
+  })
 })

@@ -2,7 +2,7 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import {
   CACHE_KEYWORD,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -62,7 +62,7 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
 
     // trigger notificaiton
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.user_new_follower,
+      event: NOTICE_TYPE.user_new_follower,
       actorId: viewer.id,
       recipientId: user.id,
     })

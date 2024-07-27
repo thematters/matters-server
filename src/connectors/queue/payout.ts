@@ -1,6 +1,5 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections } from 'definitions'
-
-import Queue from 'bull'
 
 import {
   PAYMENT_CURRENCY,
@@ -21,7 +20,7 @@ import {
 } from 'connectors'
 import SlackService from 'connectors/slack'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-payout')
 
@@ -29,10 +28,16 @@ interface PaymentParams {
   txId: string
 }
 
-export class PayoutQueue extends BaseQueue {
+export class PayoutQueue {
+  private connections: Connections
+  private q: Queue
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.payout, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.payout)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**
@@ -82,7 +87,7 @@ export class PayoutQueue extends BaseQueue {
    * Payout handler.
    *
    */
-  private handlePayout: Queue.ProcessCallbackFunction<unknown> = async (
+  private handlePayout: ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {

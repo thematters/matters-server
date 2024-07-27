@@ -11,13 +11,14 @@ import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
+  CommentNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService, commentService } }
+  { viewer, dataSources: { atomService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -30,11 +31,9 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   const { id: dbId } = fromGlobalId(id)
   const comment = await atomService.commentIdLoader.load(dbId)
 
-  // check target
-  const node =
-    comment.type === COMMENT_TYPE.article
-      ? await atomService.articleIdLoader.load(comment.targetId)
-      : await atomService.circleIdLoader.load(comment.targetId)
+  if (!comment) {
+    throw new CommentNotFoundError('comment not found')
+  }
 
   // check permission
   if (comment.authorId !== viewer.id) {
@@ -42,17 +41,33 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
   }
 
   // archive comment
-  const newComment = await commentService.baseUpdate(dbId, {
-    state: COMMENT_STATE.archived,
+  const newComment = await atomService.update({
+    table: 'comment',
+    where: { id: dbId },
+    data: {
+      state: COMMENT_STATE.archived,
+    },
   })
 
   // invalidate extra nodes
-  ;(newComment as Comment & { [CACHE_KEYWORD]: any })[CACHE_KEYWORD] = [
+  const node =
+    comment.type === COMMENT_TYPE.article
+      ? await atomService.articleIdLoader.load(comment.targetId)
+      : comment.type === COMMENT_TYPE.moment
+      ? await atomService.momentIdLoader.load(comment.targetId)
+      : await atomService.circleIdLoader.load(comment.targetId)
+  ;(
+    newComment as Comment & {
+      [CACHE_KEYWORD]: [{ id: string; type: NODE_TYPES }]
+    }
+  )[CACHE_KEYWORD] = [
     {
       id: node.id,
       type:
         comment.type === COMMENT_TYPE.article
           ? NODE_TYPES.Article
+          : comment.type === COMMENT_TYPE.moment
+          ? NODE_TYPES.Moment
           : NODE_TYPES.Circle,
     },
   ]

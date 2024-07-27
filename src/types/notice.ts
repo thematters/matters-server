@@ -121,6 +121,33 @@ export default /* GraphQL */ `
     ArticleNewCollected
   }
 
+  #################################
+  #                               #
+  #           Moment              #
+  #                               #
+  #################################
+
+  type MomentNotice implements Notice {
+    """Unique ID of this notice."""
+    id: ID!
+
+    """The value determines if the notice is unread or not."""
+    unread: Boolean!
+
+    """Time of this notice was created."""
+    createdAt: DateTime!
+
+    """List of notice actors."""
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
+    type: MomentNoticeType!
+    target: Moment! @logCache(type: "${NODE_TYPES.Moment}")
+  }
+
+  enum MomentNoticeType {
+    MomentMentionedYou
+    MomentLiked
+  }
+
 
   #################################
   #                               #
@@ -148,8 +175,9 @@ export default /* GraphQL */ `
   enum CommentNoticeType {
     CommentPinned
     CommentLiked
-    CommentMentionedYou # article comment
+    CommentMentionedYou
     ArticleNewComment
+    MomentNewComment
     SubscribedArticleNewComment
     CircleNewBroadcast
   }

@@ -1,10 +1,12 @@
 import { merge } from 'lodash'
 
 import article from './article'
+import campaign from './campaign'
 import circle from './circle'
 import comment from './comment'
 import draft from './draft'
 import exchangeRates from './exchangeRates'
+import moment from './moment'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import oauthRequestToken from './oauthRequestToken'
@@ -27,5 +29,7 @@ export default merge(
   oauthClient,
   oauthRequestToken,
   exchangeRates,
-  recommendation
+  recommendation,
+  moment,
+  campaign
 )

@@ -54,6 +54,8 @@
           "ArticleNotice": "./notification#NoticeItem",
           "ArticleArticleNotice": "./notification#NoticeItem",
           "ArticleTagNotice": "./notification#NoticeItem",
+          "CollectionNotice": "./notification#NoticeItem",
+          "MomentNotice": "./notification#NoticeItem",
           "TagNotice": "./notification#NoticeItem",
           "CommentNotice": "./notification#NoticeItem",
           "CommentCommentNotice": "./notification#NoticeItem",
@@ -64,7 +66,13 @@
           "Appreciation": "./appreciation#Appreciation",
           "OAuthClient": "./user#OAuthClientDB",
           "Report": "./report#Report",
-          "IcymiTopic": "./misc#MattersChoiceTopic"
+          "IcymiTopic": "./misc#MattersChoiceTopic",
+          "Moment": "./moment#Moment",
+          "Writing": "./index#Writing",
+          "Campaign": "./campaign#Campaign",
+          "CampaignOSS": "./campaign#Campaign",
+          "WritingChallenge": "./campaign#Campaign",
+          "CampaignStage": "./campaign#CampaignStage"
         },
         "contextType": "./index#Context",
         "makeResolverTypeCallable": true,

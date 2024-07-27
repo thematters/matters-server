@@ -98,7 +98,6 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
 
   return {
     ...newAsset,
-    path: systemService.genAssetUrl(newAsset),
     uploadURL,
   }
 }

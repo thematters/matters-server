@@ -1,6 +1,6 @@
 import type { GQLMutationResolvers, Article, Circle } from 'definitions'
 
-import { COMMENT_TYPE, USER_STATE, VOTE, DB_NOTICE_TYPE } from 'common/enums'
+import { COMMENT_TYPE, USER_STATE, VOTE, NOTICE_TYPE } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
@@ -31,6 +31,9 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
   if (comment.type === COMMENT_TYPE.article) {
     article = await atomService.articleIdLoader.load(comment.targetId)
     targetAuthor = article.authorId
+  } else if (comment.type === COMMENT_TYPE.moment) {
+    const moment = await atomService.momentIdLoader.load(comment.targetId)
+    targetAuthor = moment.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
     targetAuthor = circle.owner
@@ -73,9 +76,17 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
 
-  if (vote === VOTE.up) {
+  if (
+    vote === VOTE.up &&
+    [COMMENT_TYPE.article as string, COMMENT_TYPE.moment as string].includes(
+      comment.type
+    )
+  ) {
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.comment_liked,
+      event:
+        comment.type === COMMENT_TYPE.moment
+          ? NOTICE_TYPE.moment_comment_liked
+          : NOTICE_TYPE.article_comment_liked,
       actorId: viewer.id,
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],

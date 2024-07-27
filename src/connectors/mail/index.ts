@@ -5,12 +5,12 @@ import { QUEUE_URL } from 'common/enums'
 import { aws } from 'connectors'
 
 class MailService {
-  aws: typeof aws
-  constructor() {
+  private aws: typeof aws
+  public constructor() {
     this.aws = aws
   }
 
-  send = async (params: MailDataRequired, express = false) => {
+  public send = async (params: MailDataRequired, express = false) => {
     this.aws.sqsSendMessage({
       messageBody: params,
       queueUrl: express ? QUEUE_URL.expressMail : QUEUE_URL.mail,

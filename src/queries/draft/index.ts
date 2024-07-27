@@ -11,6 +11,7 @@ import articleDrafts from './article/drafts'
 import articleNewestPublishedDraft from './article/newestPublishedDraft'
 import articleNewestUnpublishedDraft from './article/newestUnpublishedDraft'
 import assets from './assets'
+import campaigns from './campaigns'
 import collection from './collection'
 import draftContent from './content'
 import draftCover from './cover'
@@ -40,6 +41,7 @@ const schema: GQLResolvers = {
       root.articleId ? atomService.articleIdLoader.load(root.articleId) : null,
     access: (root) => root,
     license: ({ license }) => license,
+    campaigns,
   },
   DraftAccess: {
     type: ({ access }) => access,

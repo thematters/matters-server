@@ -31,6 +31,7 @@ export interface Draft {
   articleId: string | null
   sensitiveByAuthor: boolean
   archived: boolean
+  campaigns: any
   createdAt: Date
   updatedAt: Date
 }

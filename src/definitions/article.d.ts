@@ -4,8 +4,6 @@ import {
   ARTICLE_LICENSE_TYPE,
 } from 'common/enums'
 
-import { LANGUAGES } from './language'
-
 export interface Article {
   id: string
   authorId: string
@@ -132,4 +130,14 @@ export interface RecommendedArticlesFromReadTagsMaterialized {
   articleId: string
   tagsBased: string[]
   score: number
+}
+
+export interface ArticleHottestView {
+  id: string
+  score: number
+  scorePrev: number
+  link: string
+  tagBoostEff: number
+  campaignBoostEff: number
+  createdAt: Date
 }

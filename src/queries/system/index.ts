@@ -25,6 +25,8 @@ const system: GQLResolvers = {
   },
   Asset: {
     id: ({ uuid }: { uuid: string }) => uuid,
+    path: (asset, _, { dataSources: { systemService } }) =>
+      systemService.genAssetUrl(asset),
   },
   Official: {
     features,

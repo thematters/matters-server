@@ -1,3 +1,4 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   EmailableUser,
   Connections,
@@ -6,7 +7,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
 import _capitalize from 'lodash/capitalize'
 import { formatUnits, parseUnits } from 'viem'
 
@@ -29,8 +29,9 @@ import {
   TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
-import { contract, isProd } from 'common/environment'
+import { contract, isProd, isTest } from 'common/environment'
 import { PaymentQueueJobDataError } from 'common/errors'
+import { getLogger } from 'common/logger'
 import {
   PaymentService,
   UserService,
@@ -40,21 +41,63 @@ import {
 import { CurationContract, CurationEvent, Log } from 'connectors/blockchain'
 import SlackService from 'connectors/slack'
 
-import { BaseQueue } from '../baseQueue'
+import { getOrCreateQueue } from '../utils'
+
+const logger = getLogger('queue-payto-blockchain')
 
 interface PaymentParams {
   txId: string
 }
 
-export class PayToByBlockchainQueue extends BaseQueue {
+export class PayToByBlockchainQueue {
+  private connections: Connections
+  private q: Queue
   private slackService: InstanceType<typeof SlackService>
   private delay: number
+  private attempt: number
 
-  public constructor(connections: Connections, delay?: number) {
-    super(QUEUE_NAME.payToByBlockchain, connections)
+  public constructor(
+    connections: Connections,
+    options?: { delay?: number; attempt?: number }
+  ) {
+    this.connections = connections
     this.slackService = new SlackService()
-    this.addConsumers()
-    this.delay = delay ?? 5000 // 5s
+    this.delay = options?.delay ?? 5000 // 5s
+    this.attempt = options?.attempt ?? 8
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.payToByBlockchain)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+      this.startScheduledJobs()
+    }
+  }
+
+  /**
+   * Start scheduled jobs
+   */
+  private startScheduledJobs = async () => {
+    await this.clearDelayedJobs()
+    if (!isTest) {
+      this.addRepeatJobs()
+    }
+  }
+
+  /**
+   * Producers
+   */
+  private clearDelayedJobs = async () => {
+    try {
+      const jobs = await this.q.getDelayed()
+      jobs.forEach(async (job) => {
+        try {
+          await job.remove()
+        } catch (e) {
+          logger.error('failed to clear repeat jobs', e)
+        }
+      })
+    } catch (e) {
+      logger.error('failed to clear repeat jobs', e)
+    }
   }
 
   /**
@@ -67,7 +110,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       { txId },
       {
         delay: this.delay,
-        attempts: 8, // roughly total 20 min before giving up
+        attempts: this.attempt, // roughly total 20 min before giving up
         backoff: {
           type: 'exponential',
           delay: this.delay,
@@ -76,7 +119,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
       }
     )
 
-  public addRepeatJobs = async () => {
+  private addRepeatJobs = () => {
     this.q.add(
       QUEUE_JOB.syncCurationEvents,
       {},
@@ -111,7 +154,7 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * 2. Mark tx as failed if blockchain tx or tx is reverted;
    * 3. Skip to process if tx is not found or mined;
    */
-  private handlePayTo: Queue.ProcessCallbackFunction<unknown> = async (job) => {
+  private handlePayTo: ProcessCallbackFunction<unknown> = async (job) => {
     const data = job.data as PaymentParams
     const { txId } = data
 
@@ -243,33 +286,34 @@ export class PayToByBlockchainQueue extends BaseQueue {
    * 2. Upsert `blockchain_transaction` if needed;
    * 3. Upsert `transaction` if needed;
    */
-  private handleSyncCurationEvents: Queue.ProcessCallbackFunction<unknown> =
-    async (_) => {
-      let syncedBlockNum: { [key: string]: number } = {}
+  private handleSyncCurationEvents: ProcessCallbackFunction<unknown> = async (
+    _
+  ) => {
+    let syncedBlockNum: { [key: string]: number } = {}
 
-      ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
-        // FIXME: pause support for the Polygon testnet
-        // @see {src/common/enums/payment.ts:L59}
-        if (chain === BLOCKCHAIN.Polygon && !isProd) {
-          return
-        }
+    ;[BLOCKCHAIN.Polygon, BLOCKCHAIN.Optimism].forEach(async (chain) => {
+      // FIXME: pause support for the Polygon testnet
+      // @see {src/common/enums/payment.ts:L59}
+      if (chain === BLOCKCHAIN.Polygon && !isProd) {
+        return
+      }
 
-        try {
-          const blockNum = await this._handleSyncCurationEvents(chain)
-          syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
-        } catch (error) {
-          this.slackService.sendQueueMessage({
-            data: { error },
-            title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
-            message: `'Failed to sync ${chain} curation events`,
-            state: SLACK_MESSAGE_STATE.failed,
-          })
-          throw error
-        }
-      })
+      try {
+        const blockNum = await this._handleSyncCurationEvents(chain)
+        syncedBlockNum = { ...syncedBlockNum, [chain]: blockNum }
+      } catch (error) {
+        this.slackService.sendQueueMessage({
+          data: { error },
+          title: `${QUEUE_NAME.payToByBlockchain}:${QUEUE_JOB.syncCurationEvents}`,
+          message: `'Failed to sync ${chain} curation events`,
+          state: SLACK_MESSAGE_STATE.failed,
+        })
+        throw error
+      }
+    })
 
-      return syncedBlockNum
-    }
+    return syncedBlockNum
+  }
 
   private _handleSyncCurationEvents = async (chain: GQLChain) => {
     const atomService = new AtomService(this.connections)

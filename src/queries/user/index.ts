@@ -30,6 +30,7 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
+import campaigns from './campaigns'
 import changeEmailTimesLeft from './changeEmailTimesLeft'
 import Collection from './collection'
 import collections from './collections'
@@ -50,6 +51,7 @@ import isWalletAuth from './isWalletAuth'
 import latestWorks from './latestWorks'
 import Liker from './liker'
 import likerId from './liker/likerId'
+import momentCount from './momentCount'
 import { hasNFTs, nfts } from './nfts'
 import notification from './notification'
 import { boost, restrictions, score } from './oss'
@@ -71,6 +73,7 @@ import unreadNoticeCount from './unreadNoticeCount'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
+import writings from './writings'
 
 const user: {
   Query: GQLQueryResolvers
@@ -134,6 +137,8 @@ const user: {
     ownCircles,
     subscribedCircles,
     tags: tagsUsageRecommendation,
+    writings,
+    campaigns,
   },
   UserInfo: {
     ipnsKey,
@@ -157,6 +162,7 @@ const user: {
   UserAnalytics,
   UserStatus: {
     articleCount,
+    momentCount,
     commentCount,
     unreadNoticeCount,
     unreadFollowing,
@@ -208,6 +214,13 @@ const user: {
   },
 
   Collection,
+  Writing: {
+    __resolveType: ({
+      __type,
+    }: {
+      __type: NODE_TYPES.Article | NODE_TYPES.Moment
+    }) => __type,
+  },
 }
 
 export default user

@@ -5,6 +5,7 @@ export const COVER_ASSET_TYPE = {
   circleCover: 'circleCover',
   collectionCover: 'collectionCover',
   announcementCover: 'announcementCover',
+  campaignCover: 'campaignCover',
 } as const
 
 export const AVATAR_ASSET_TYPE = {
@@ -15,6 +16,7 @@ export const AVATAR_ASSET_TYPE = {
 
 export const IMAGE_ASSET_TYPE = {
   embed: 'embed',
+  moment: 'moment',
   ...COVER_ASSET_TYPE,
   ...AVATAR_ASSET_TYPE,
 } as const

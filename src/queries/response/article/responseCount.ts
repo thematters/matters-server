@@ -1,5 +1,7 @@
 import type { GQLArticleResolvers } from 'definitions'
 
+import { COMMENT_TYPE } from 'common/enums'
+
 const resolver: GQLArticleResolvers['responseCount'] = async (
   { id: articleId },
   _,
@@ -7,7 +9,7 @@ const resolver: GQLArticleResolvers['responseCount'] = async (
 ) => {
   const [articleCount, commentCount] = await Promise.all([
     articleService.countActiveConnectedBy(articleId),
-    commentService.countByArticle(articleId),
+    commentService.count(articleId, COMMENT_TYPE.article),
   ])
   return articleCount + commentCount
 }

@@ -14,7 +14,7 @@ import { v4 } from 'uuid'
 
 import {
   BLOCKCHAIN_TRANSACTION_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   INVITATION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -333,7 +333,7 @@ export class PaymentService extends BaseService<Transaction> {
       const providerTxId = blockchainTx.id
 
       let tx
-      tx = await this.knex
+      tx = await trx
         .select()
         .from(this.table)
         .where({ providerTxId, provider })
@@ -357,7 +357,7 @@ export class PaymentService extends BaseService<Transaction> {
           },
           trx
         )
-        await this.knex('blockchain_transaction')
+        await trx('blockchain_transaction')
           .where({ id: blockchainTx.id })
           .update({ transactionId: tx.id })
           .transacting(trx)
@@ -1143,9 +1143,9 @@ export class PaymentService extends BaseService<Transaction> {
       })
     }
 
-    // send email to recipient
+    // notify recipient
     await notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
+      event: NOTICE_TYPE.payment_received_donation,
       actorId: sender?.id || null,
       recipientId: recipient.id,
       entities: [{ type: 'target', entityTable: 'transaction', entity: tx }],

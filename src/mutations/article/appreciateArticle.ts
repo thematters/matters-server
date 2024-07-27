@@ -6,7 +6,7 @@ import {
   ARTICLE_STATE,
   USER_STATE,
   APPRECIATION_TYPES,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -118,7 +118,7 @@ const resolver: GQLMutationResolvers['appreciateArticle'] = async (
 
   // trigger notifications
   notificationService.trigger({
-    event: DB_NOTICE_TYPE.article_new_appreciation,
+    event: NOTICE_TYPE.article_new_appreciation,
     actorId: sender.id,
     recipientId: author.id,
     entities: [{ type: 'target', entityTable: 'article', entity: article }],

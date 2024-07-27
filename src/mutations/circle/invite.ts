@@ -5,7 +5,7 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
@@ -196,7 +196,7 @@ const resolver: GQLMutationResolvers['invite'] = async (
     // send notification to invitee
     if (recipient) {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_invitation,
+        event: NOTICE_TYPE.circle_invitation,
         actorId: viewer.id,
         recipientId: recipient.id,
         entities: [{ type: 'target', entityTable: 'circle', entity: circle }],

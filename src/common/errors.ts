@@ -168,6 +168,24 @@ export class CircleNotFoundError extends GraphQLError {
   }
 }
 
+export class MomentNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'MOMENT_NOT_FOUND' } })
+  }
+}
+
+export class CampaignNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'CAMPAIGN_NOT_FOUND' } })
+  }
+}
+
+export class CampaignStageNotFoundError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'CAMPAIGN_STAGE_NOT_FOUND' } })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

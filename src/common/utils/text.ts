@@ -50,3 +50,6 @@ export const normalizeSearchKey = async (content: string): Promise<string> =>
 
 export const genMD5 = (content: string) =>
   crypto.createHash('md5').update(content).digest('hex')
+
+export const genRandomString = () =>
+  Buffer.from(Math.random().toString()).toString('base64').substring(10, 15)

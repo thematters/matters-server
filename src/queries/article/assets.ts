@@ -16,17 +16,10 @@ const resolver: GQLArticleResolvers['assets'] = async (
   const { id: articleEntityTypeId } = await systemService.baseFindEntityTypeId(
     'article'
   )
-  const articleAssets = await systemService.findAssetAndAssetMap({
+  return systemService.findAssetAndAssetMap({
     entityTypeId: articleEntityTypeId,
     entityId: id,
   })
-
-  const assets = articleAssets.map((asset: any) => ({
-    ...asset,
-    path: systemService.genAssetUrl(asset),
-  }))
-
-  return assets
 }
 
 export default resolver

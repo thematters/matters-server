@@ -290,7 +290,8 @@ export class BaseService<T extends BaseDBSchema> {
     trx?: Knex.Transaction
   }): Promise<S> => {
     const tableName = table || this.table
-    const item = await this.knex(tableName).select(columns).where(where).first()
+    const builder = trx ?? this.knex
+    const item = await builder(tableName).select(columns).where(where).first()
 
     // create
     if (!item && !skipCreate) {

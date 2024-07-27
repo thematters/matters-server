@@ -3,7 +3,7 @@ import type { GQLMutationResolvers, Circle } from 'definitions'
 import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -146,7 +146,7 @@ const resolver: GQLMutationResolvers['unsubscribeCircle'] = async (
 
   // trigger notificaiton
   notificationService.trigger({
-    event: DB_NOTICE_TYPE.circle_new_unsubscriber,
+    event: NOTICE_TYPE.circle_new_unsubscriber,
     actorId: viewer.id,
     recipientId: circle.owner,
     entities: [{ type: 'target', entityTable: 'circle', entity: circle }],

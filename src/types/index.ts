@@ -1,8 +1,10 @@
 import article from './article'
+import campaign from './campaign'
 import circle from './circle'
 import collection from './collection'
 import comment from './comment'
 import draft from './draft'
+import moment from './moment'
 import notice from './notice'
 import oauthClient from './oauthClient'
 import payment from './payment'
@@ -24,6 +26,7 @@ const Root = /* GraphQL */ `
 export default [
   Root,
   article,
+  campaign,
   circle,
   comment,
   draft,
@@ -35,4 +38,5 @@ export default [
   payment,
   oauthClient,
   collection,
+  moment,
 ]

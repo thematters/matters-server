@@ -1,20 +1,29 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Connections } from 'definitions'
 
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE, USER_STATE } from 'common/enums'
 
-import { CommentService, AtomService } from 'connectors'
+import {
+  CommentService,
+  AtomService,
+  MomentService,
+  UserService,
+} from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let atomService: AtomService
 let commentService: CommentService
+let momentService: MomentService
+let userService: UserService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
   commentService = new CommentService(connections)
+  momentService = new MomentService(connections)
+  userService = new UserService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -241,7 +250,7 @@ test('count comments', async () => {
     where: { table: 'article' },
   })
 
-  const originalCount = await commentService.countByArticle('1')
+  const originalCount = await commentService.count('1', COMMENT_TYPE.article)
 
   // archived/banned comments should be filtered
   await atomService.create({
@@ -269,7 +278,7 @@ test('count comments', async () => {
     },
   })
 
-  const count1 = await commentService.countByArticle('1')
+  const count1 = await commentService.count('1', COMMENT_TYPE.article)
   expect(count1).toBe(originalCount)
 
   // active/collapsed comments should be included
@@ -297,6 +306,106 @@ test('count comments', async () => {
       authorId: '1',
     },
   })
-  const count2 = await commentService.countByArticle('1')
+  const count2 = await commentService.count('1', COMMENT_TYPE.article)
   expect(count2).toBe(originalCount + 2)
+})
+
+describe('find commented followees', () => {
+  const momentAuthorId = '1'
+  const commentAuthorId = '2'
+  const viewerId = '4'
+  const otherUserId = '5'
+  const targetTypeId = '42' // fake entity type id
+  test('found nothing', async () => {
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: momentAuthorId, state: USER_STATE.active, userName: 'test' }
+    )
+    const followees = await commentService.findCommentedFollowees(
+      {
+        id: moment.id,
+        type: COMMENT_TYPE.moment,
+        authorId: momentAuthorId,
+      },
+      viewerId
+    )
+    expect(followees.length).toBe(0)
+  })
+  test('found', async () => {
+    const moment = await momentService.create(
+      { content: 'test' },
+      { id: momentAuthorId, state: USER_STATE.active, userName: 'test' }
+    )
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: COMMENT_TYPE.moment,
+        targetId: moment.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: commentAuthorId,
+      },
+    })
+    // moment has comments but viewer has not followees
+    const followees1 = await commentService.findCommentedFollowees(
+      {
+        id: moment.id,
+        type: COMMENT_TYPE.moment,
+        authorId: momentAuthorId,
+      },
+      viewerId
+    )
+    expect(followees1.length).toBe(0)
+
+    // viewer has followees but they have not commented on this moment
+    await userService.follow(viewerId, otherUserId)
+    const followees2 = await commentService.findCommentedFollowees(
+      {
+        id: moment.id,
+        type: COMMENT_TYPE.moment,
+        authorId: momentAuthorId,
+      },
+      viewerId
+    )
+    expect(followees2.length).toBe(0)
+
+    // viewer has followees but they have not commented on this moment
+    await userService.follow(viewerId, commentAuthorId)
+    const followees3 = await commentService.findCommentedFollowees(
+      {
+        id: moment.id,
+        type: COMMENT_TYPE.moment,
+        authorId: momentAuthorId,
+      },
+      viewerId
+    )
+    expect(followees3.length).toBe(1)
+    expect(followees3[0].id).toBe(commentAuthorId)
+
+    // do not include moment author
+    await atomService.create({
+      table: 'comment',
+      data: {
+        type: COMMENT_TYPE.moment,
+        targetId: moment.id,
+        targetTypeId,
+        parentCommentId: null,
+        state: COMMENT_STATE.active,
+        uuid: uuidv4(),
+        authorId: momentAuthorId,
+      },
+    })
+    await userService.follow(viewerId, momentAuthorId)
+    const followees4 = await commentService.findCommentedFollowees(
+      {
+        id: moment.id,
+        type: COMMENT_TYPE.moment,
+        authorId: momentAuthorId,
+      },
+      viewerId
+    )
+    expect(followees4.length).toBe(1)
+  })
 })

@@ -1,4 +1,4 @@
-import type { GQLMutationResolvers, Article, Circle } from 'definitions'
+import type { GQLMutationResolvers, Circle } from 'definitions'
 
 import { CACHE_KEYWORD, COMMENT_TYPE, NODE_TYPES } from 'common/enums'
 import {
@@ -24,21 +24,23 @@ const resolver: Exclude<
   const comment = await atomService.commentIdLoader.load(dbId)
 
   // check target
-  let article: Article | undefined = undefined
   let circle: Circle | undefined = undefined
-  let targetAuthor: string
   if (comment.type === COMMENT_TYPE.article) {
-    article = await atomService.articleIdLoader.load(comment.targetId)
-    targetAuthor = article.authorId
+    // only article author can pin his/her comment
+    if (comment.authorId !== viewer.id) {
+      throw new ForbiddenError('viewer has no permission')
+    }
+    const article = await atomService.articleIdLoader.load(comment.targetId)
+    if (article.authorId !== viewer.id) {
+      throw new ForbiddenError('viewer has no permission')
+    }
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
-    targetAuthor = circle.owner
-  }
-
-  // check permission
-  const isTargetAuthor = targetAuthor === viewer.id
-  if (!isTargetAuthor) {
-    throw new ForbiddenError('viewer has no permission')
+    const targetAuthor = circle.owner
+    const isTargetAuthor = targetAuthor === viewer.id
+    if (!isTargetAuthor) {
+      throw new ForbiddenError('viewer has no permission')
+    }
   }
 
   // determine action
@@ -60,8 +62,8 @@ const resolver: Exclude<
   let pinnedComment
   if (action === 'pin') {
     // limits on article
-    if (article) {
-      const pinLeft = await commentService.pinLeftByArticle(article.id)
+    if (comment.type === COMMENT_TYPE.article) {
+      const pinLeft = await commentService.pinLeftByArticle(comment.targetId)
       if (pinLeft <= 0) {
         throw new ActionLimitExceededError('reach pin limit')
       }
@@ -108,8 +110,11 @@ const resolver: Exclude<
     CACHE_KEYWORD
   ] = [
     {
-      id: article ? article.id : circle?.id,
-      type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
+      id: comment.targetId,
+      type:
+        comment.type === COMMENT_TYPE.article
+          ? NODE_TYPES.Article
+          : NODE_TYPES.Circle,
     },
   ]
 

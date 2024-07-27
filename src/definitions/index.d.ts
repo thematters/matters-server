@@ -1,8 +1,10 @@
 import type {
   ActionArticle,
   ActionCircle,
+  ActionMoment,
   ActionTag,
   ActionUser,
+  ActionCollection,
 } from './action'
 import type { Announcement, AnnouncementTranslation } from './announcement'
 import type { Appreciation } from './appreciation'
@@ -18,11 +20,19 @@ import type {
   ArticleTag,
   ArticleTranslation,
   ArticleVersion,
+  ArticleHottestView,
   RecommendedArticlesFromReadTagsMaterialized,
 } from './article'
 import type { Asset, AssetMap } from './asset'
 import type { VerificationCode } from './auth'
 import type { EntityType } from './base'
+import type {
+  Campaign,
+  CampaignStage,
+  CampaignUser,
+  CampaignArticle,
+  CampaignBoost,
+} from './campaign'
 import type {
   Circle,
   CircleInvitation,
@@ -41,6 +51,7 @@ import type {
   PunishRecord,
   SearchHistory,
 } from './misc'
+import type { Moment, MomentAsset } from './moment'
 import type { UserOauthLikecoinDB } from './oauth'
 import type {
   BlockchainSyncRecord,
@@ -51,6 +62,7 @@ import type {
 } from './payment'
 import type { Report } from './report'
 import type { Tag, TagTranslation, UserTagsOrder } from './tag'
+import type { Translation } from './translation'
 import type {
   SeedingUser,
   User,
@@ -65,10 +77,12 @@ import type { BasedContext } from '@apollo/server'
 import type {
   ArticleService,
   AtomService,
+  CampaignService,
   CollectionService,
   CommentService,
   DraftService,
   ExchangeRate,
+  MomentService,
   LikeCoin,
   NotificationService,
   OAuthService,
@@ -78,6 +92,8 @@ import type {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
+  TranslationService,
 } from 'connectors'
 import type {
   PublicationQueue,
@@ -115,6 +131,9 @@ export * from './report'
 export * from './wallet'
 export * from './misc'
 export * from './schema'
+export * from './moment'
+export * from './campaign'
+export * from './translation'
 
 export interface Context extends BasedContext {
   viewer: Viewer
@@ -133,9 +152,11 @@ export interface Connections {
 export interface DataSources {
   atomService: AtomService
   articleService: ArticleService
+  momentService: MomentService
   commentService: CommentService
   draftService: DraftService
   userService: UserService
+  userWorkService: UserWorkService
   systemService: SystemService
   tagService: TagService
   notificationService: NotificationService
@@ -144,6 +165,8 @@ export interface DataSources {
   openseaService: OpenSeaService
   collectionService: CollectionService
   recommendationService: RecommendationService
+  campaignService: CampaignService
+  translationService: TranslationService
   likecoin: LikeCoin
   exchangeRate: ExchangeRate
   connections: Connections
@@ -162,6 +185,8 @@ export interface DataSources {
 export type TableTypeMap = {
   action_article: ActionArticle
   action_circle: ActionCircle
+  action_moment: ActionMoment
+  action_collection: ActionCollection
   action_tag: ActionTag
   action_user: ActionUser
   announcement: Announcement
@@ -178,12 +203,18 @@ export type TableTypeMap = {
   article_tag: ArticleTag
   article_translation: ArticleTranslation
   article_version: ArticleVersion
+  article_hottest_view: ArticleHottestView
   asset: Asset
   asset_map: AssetMap
   blockchain_sync_record: BlockchainSyncRecord
   blockchain_transaction: BlockchainTransaction
   blocked_search_keyword: BlockedSearchKeyword
   blocklist: Blocklist
+  campaign: Campaign
+  campaign_stage: CampaignStage
+  campaign_user: CampaignUser
+  campaign_article: CampaignArticle
+  campaign_boost: CampaignBoost
   circle: Circle
   circle_invitation: CircleInvitation
   circle_price: CirclePrice
@@ -198,6 +229,8 @@ export type TableTypeMap = {
   draft: Draft
   entity_type: EntityType
   featured_comment_materialized: FeaturedCommentMaterialized
+  moment: Moment
+  moment_asset: MomentAsset
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
   payout_account: PayoutAccount
@@ -208,6 +241,7 @@ export type TableTypeMap = {
   seeding_user: SeedingUser
   tag: Tag
   tag_translation: TagTranslation
+  translation: Translation
   transaction: Transaction
   user: User
   user_badge: UserBadge
@@ -288,3 +322,5 @@ export type TransactionTargetType = 'Article' | 'Transaction'
 export type Falsey = '' | 0 | false | null | undefined
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
+
+export type Writing = Article | Moment

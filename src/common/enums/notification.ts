@@ -1,4 +1,4 @@
-export enum DB_NOTICE_TYPE {
+export enum NOTICE_TYPE {
   // user
   user_new_follower = 'user_new_follower',
 
@@ -14,10 +14,20 @@ export enum DB_NOTICE_TYPE {
   // article-article
   article_new_collected = 'article_new_collected',
 
+  // collection
+  collection_liked = 'collection_liked',
+
+  // moment
+  moment_liked = 'moment_liked',
+  moment_mentioned_you = 'moment_mentioned_you',
+
   // comment
-  comment_liked = 'comment_liked',
-  comment_mentioned_you = 'comment_mentioned_you',
+  article_comment_liked = 'article_comment_liked',
+  moment_comment_liked = 'moment_comment_liked',
+  article_comment_mentioned_you = 'article_comment_mentioned_you',
+  moment_comment_mentioned_you = 'moment_comment_mentioned_you',
   article_new_comment = 'article_new_comment',
+  moment_new_comment = 'moment_new_comment',
   circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment
@@ -62,4 +72,7 @@ export enum OFFICIAL_NOTICE_EXTEND_TYPE {
   article_banned = 'article_banned',
   article_reported = 'article_reported',
   comment_reported = 'comment_reported',
+  // write challenge related
+  write_challenge_applied = 'write_challenge_applied',
+  badge_grand_slam_awarded = 'badge_grand_slam_awarded',
 }

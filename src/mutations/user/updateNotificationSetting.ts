@@ -14,10 +14,18 @@ const resolver: GQLMutationResolvers['updateNotificationSetting'] = async (
     throw new ForbiddenError('email is required to enable email notification')
   }
 
+  let _type: string = type
+  if (type === 'articleNewComment') {
+    _type = 'newComment'
+  }
+  if (type === 'articleNewAppreciation') {
+    _type = 'newLike'
+  }
+
   const notifySetting = await userService.findNotifySetting(viewer.id)
 
   await userService.updateNotifySetting(notifySetting.id, {
-    [type]: enabled,
+    [_type]: enabled,
   })
 
   return viewer

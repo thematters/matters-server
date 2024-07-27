@@ -41,6 +41,7 @@ export const environment = {
   awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
   awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
+  awsNotificationQueueUrl: process.env.MATTERS_AWS_NOTIFICATION_QUEUE_URL || '',
   awsMailQueueUrl: process.env.MATTERS_AWS_MAIL_QUEUE_URL || '',
   awsExpressMailQueueUrl: process.env.MATTERS_AWS_EXPRESS_MAIL_QUEUE_URL || '',
   awsArchiveUserQueueUrl: process.env.MATTERS_AWS_ARCHIVE_USER_QUEUE_URL || '',

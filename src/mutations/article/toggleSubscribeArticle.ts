@@ -2,7 +2,7 @@ import type { GQLMutationResolvers } from 'definitions'
 
 import {
   ARTICLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   USER_ACTION,
   USER_STATE,
   ARTICLE_ACTION,
@@ -86,7 +86,7 @@ const resolver: GQLMutationResolvers['toggleSubscribeArticle'] = async (
 
     // trigger notifications
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_new_subscriber,
+      event: NOTICE_TYPE.article_new_subscriber,
       actorId: viewer.id,
       recipientId: article.authorId,
       entities: [{ type: 'target', entityTable: 'article', entity: article }],

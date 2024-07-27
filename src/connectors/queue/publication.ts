@@ -1,5 +1,5 @@
 import type { CustomQueueOpts } from './utils'
-import type { BasicAcceptedElems } from 'cheerio'
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type {
   Connections,
   UserOAuthLikeCoin,
@@ -9,11 +9,9 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import Queue from 'bull'
-import * as cheerio from 'cheerio'
 
 import {
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   NODE_TYPES,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -25,7 +23,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { fromGlobalId, normalizeTagInput } from 'common/utils'
+import { normalizeTagInput, extractMentionIds } from 'common/utils'
 import {
   TagService,
   DraftService,
@@ -34,17 +32,25 @@ import {
   SystemService,
   NotificationService,
   AtomService,
+  CampaignService,
   aws,
 } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-publication')
 
-export class PublicationQueue extends BaseQueue {
+export class PublicationQueue {
+  private connections: Connections
+  private q: Queue
+
   public constructor(connections: Connections, customOpts?: CustomQueueOpts) {
-    super(QUEUE_NAME.publication, connections, customOpts)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.publication, customOpts)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   public publishArticle = ({
@@ -105,7 +111,7 @@ export class PublicationQueue extends BaseQueue {
   /**
    * Publish Article
    */
-  private handlePublishArticle: Queue.ProcessCallbackFunction<unknown> = async (
+  private handlePublishArticle: ProcessCallbackFunction<unknown> = async (
     job,
     done
   ) => {
@@ -166,6 +172,10 @@ export class PublicationQueue extends BaseQueue {
       await this.handleMentions({ article, content: draft.content })
       await job.progress(60)
 
+      if (draft.campaigns && draft.campaigns.length > 0) {
+        await this.handleCampaigns({ article, campaigns: draft.campaigns })
+      }
+
       /**
        * Step 5: Handle Assets
        *
@@ -200,12 +210,16 @@ export class PublicationQueue extends BaseQueue {
       await job.progress(75)
     } catch (err) {
       // ignore errors caused by these steps
-      logger.warn('optional step failed: %j', { err, job, draft })
+      logger.warn('optional step failed: %j', {
+        err,
+        draftId: draft.id,
+        jobId: job.id,
+      })
     }
 
     // Step 7: trigger notifications
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.article_published,
+      event: NOTICE_TYPE.article_published,
       recipientId: article.authorId,
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
     })
@@ -303,9 +317,7 @@ export class PublicationQueue extends BaseQueue {
       // ignore errors caused by these steps
       logger.warn(
         'job IPFS optional step failed (will retry async later in listener):',
-        err,
-        job,
-        draft
+        { err, jobId: job.id, draftId: draft.id }
       )
     }
     // invalidate article cache
@@ -370,12 +382,13 @@ export class PublicationQueue extends BaseQueue {
         return
       }
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_new_collected,
+        event: NOTICE_TYPE.article_new_collected,
         recipientId: connection.authorId,
         actorId: article.authorId,
         entities: [
           { type: 'target', entityTable: 'article', entity: connection },
           {
+            // TODO: rename to 'connection' and migrate notice_entity table
             type: 'collection',
             entityTable: 'article',
             entity: article,
@@ -427,7 +440,7 @@ export class PublicationQueue extends BaseQueue {
 
     recipients.forEach((recipientId: string) => {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.circle_new_article,
+        event: NOTICE_TYPE.circle_new_article,
         recipientId,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
@@ -495,31 +508,38 @@ export class PublicationQueue extends BaseQueue {
     article: Article
     content: string
   }) => {
-    const $ = cheerio.load(content)
-    const mentionIds = $('a.mention')
-      .map((index: number, node: BasicAcceptedElems<any>) => {
-        const id = $(node).attr('data-id')
-        if (id) {
-          return id
-        }
-      })
-      .get()
+    const mentionIds = extractMentionIds(content)
 
     const notificationService = new NotificationService(this.connections)
     mentionIds.forEach((id: string) => {
-      const { id: recipientId } = fromGlobalId(id)
-
-      if (!recipientId) {
+      if (!id) {
         return false
       }
 
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.article_mentioned_you,
+        event: NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
-        recipientId,
+        recipientId: id,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
       })
     })
+  }
+
+  private handleCampaigns = async ({
+    article,
+    campaigns,
+  }: {
+    article: Article
+    campaigns: Array<{ campaign: string; stage: string }>
+  }) => {
+    const campaignService = new CampaignService(this.connections)
+    for (const { campaign, stage } of campaigns) {
+      await campaignService.submitArticleToCampaign(article, campaign, stage)
+      invalidateFQC({
+        node: { type: NODE_TYPES.Campaign, id: campaign },
+        redis: this.connections.redis,
+      })
+    }
   }
 
   /**
@@ -561,17 +581,16 @@ export class PublicationQueue extends BaseQueue {
   //   }
   // }
 
-  private handleRefreshIPNSFeed: Queue.ProcessCallbackFunction<unknown> =
-    async (
-      job // use Promise based job processing instead of `done`
-    ) => {
-      const articleService = new ArticleService(this.connections)
-      return articleService.publishFeedToIPNS(
-        job.data as {
-          userName: string
-          numArticles: number
-          forceReplace?: boolean
-        }
-      )
-    }
+  private handleRefreshIPNSFeed: ProcessCallbackFunction<unknown> = async (
+    job // use Promise based job processing instead of `done`
+  ) => {
+    const articleService = new ArticleService(this.connections)
+    return articleService.publishFeedToIPNS(
+      job.data as {
+        userName: string
+        numArticles: number
+        forceReplace?: boolean
+      }
+    )
+  }
 }

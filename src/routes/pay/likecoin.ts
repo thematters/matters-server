@@ -59,6 +59,9 @@ likecoinRouter.get('/', async (req, res) => {
 
   try {
     const { tx_hash, state, success } = req.query
+    logger.info(
+      `likecoin GET webhook request: tx:${tx_hash}, state: ${state}, success: ${success}`
+    )
 
     if (!tx_hash) {
       throw new Error('callback has no "tx_hash"')
@@ -116,13 +119,14 @@ likecoinRouter.get('/', async (req, res) => {
       throw new Error('like pay failure')
     }
 
-    // manaully invalidate cache
+    // manually invalidate cache
     invalidateCache({
       id: updatedTx.targetId,
       typeId: updatedTx.targetType,
       userService,
     })
   } catch (error) {
+    logger.error(req.query)
     logger.error(error)
     return res.redirect(failureRedirect)
   }
@@ -159,6 +163,7 @@ likecoinRouter.post('/', async (req, res, next) => {
 
   try {
     const { tx, metadata } = req.body
+    logger.info(`likecoin POST webhook request: ${JSON.stringify(req.body)}`)
     if (!tx || !tx.txHash) {
       throw new LikeCoinWebhookError('callback has no "tx"')
     }
@@ -273,7 +278,7 @@ likecoinRouter.post('/', async (req, res, next) => {
       where: { id: resultTx.targetId },
     })
 
-    if (sender && recipient) {
+    if (sender && recipient && cosmosState === TRANSACTION_STATE.succeeded) {
       await paymentService.notifyDonation({
         tx: resultTx,
         sender: sender as EmailableUser,
@@ -282,7 +287,7 @@ likecoinRouter.post('/', async (req, res, next) => {
       })
     }
 
-    // manaully invalidate cache
+    // manually invalidate cache
     invalidateCache({
       id: resultTx.targetId,
       typeId: resultTx.targetType,

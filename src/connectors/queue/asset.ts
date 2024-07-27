@@ -1,12 +1,11 @@
+import type { Queue, ProcessCallbackFunction } from 'bull'
 import type { Connections } from 'definitions'
-
-import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { getLogger } from 'common/logger'
 import { AtomService, aws, cfsvc } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { getOrCreateQueue } from './utils'
 
 const logger = getLogger('queue-asset')
 
@@ -14,10 +13,16 @@ interface AssetParams {
   ids: string[]
 }
 
-export class AssetQueue extends BaseQueue {
+export class AssetQueue {
+  private connections: Connections
+  private q: Queue
   public constructor(connections: Connections) {
-    super(QUEUE_NAME.asset, connections)
-    this.addConsumers()
+    this.connections = connections
+    const [q, created] = getOrCreateQueue(QUEUE_NAME.asset)
+    this.q = q
+    if (created) {
+      this.addConsumers()
+    }
   }
 
   /**
@@ -40,10 +45,7 @@ export class AssetQueue extends BaseQueue {
     this.q.process(QUEUE_JOB.deleteAsset, this.deleteAsset)
   }
 
-  private deleteAsset: Queue.ProcessCallbackFunction<unknown> = async (
-    job,
-    done
-  ) => {
+  private deleteAsset: ProcessCallbackFunction<unknown> = async (job, done) => {
     try {
       const { ids } = job.data as AssetParams
 

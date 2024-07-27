@@ -61,10 +61,10 @@ export const getViewerFromUser = async (
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user, token }
 
-  // append uesr group
+  // append user group
   viewer.group = group ? group : getUserGroup(user)
 
-  // append hepler functions (keep it till we fully utilize scope)
+  // append helper functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
     roleAccess.findIndex((role) => role === viewer.role) >=
     roleAccess.findIndex((role) => role === requires)
@@ -154,7 +154,7 @@ export const getViewerFromReq = async (
   const userGroup = headers['x-user-group'] as string
   const userAgent = headers['user-agent'] as string
 
-  // user infomation from request
+  // user information from request
   let user = {
     ip: req?.clientIp,
     userAgent,

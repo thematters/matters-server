@@ -1,10 +1,5 @@
 import type { AtomService } from 'connectors'
-import type {
-  DataSources,
-  ItemData,
-  GQLMutationResolvers,
-  Draft,
-} from 'definitions'
+import type { DataSources, GQLMutationResolvers, Draft } from 'definitions'
 
 import { stripHtml } from '@matters/ipns-site-generator'
 import {
@@ -45,26 +40,31 @@ import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putDraft'] = async (
   _,
-  { input },
-  { viewer, dataSources: { atomService, draftService, systemService } }
+  {
+    input: {
+      id,
+      title,
+      summary,
+      content,
+      tags,
+      cover,
+      collection: collectionGlobalId,
+      circle: circleGlobalId,
+      accessType,
+      sensitive,
+      license,
+      requestForDonation,
+      replyToDonator,
+      iscnPublish,
+      canComment,
+      campaigns,
+    },
+  },
+  {
+    viewer,
+    dataSources: { atomService, draftService, systemService, campaignService },
+  }
 ) => {
-  const {
-    id,
-    title,
-    summary,
-    content,
-    tags,
-    cover,
-    collection: collectionGlobalId,
-    circle: circleGlobalId,
-    accessType,
-    sensitive,
-    license,
-    requestForDonation,
-    replyToDonator,
-    iscnPublish,
-    canComment,
-  } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -84,13 +84,6 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
       tags,
       dataSources: { atomService },
     })
-  }
-
-  // cc_by_nc_nd_2 license not longer in use
-  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
-    throw new UserInputError(
-      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
-    )
   }
 
   // check for asset existence
@@ -125,7 +118,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   }
 
   // check circle
-  let circleId // leave as undefined // = null
+  let circleId
   if (circleGlobalId) {
     const { id: cId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
@@ -150,48 +143,36 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     circleId = cId
   }
 
-  // assemble data
-  const resetCover = cover === null
-  const resetCircle = circleGlobalId === null
-
-  const data: ItemData = omitBy(
+  // validate and assemble data
+  // TODO: move all validations into functions and call in below data assemble
+  const isUpdate = !!id
+  const data: Partial<Draft> = omitBy(
     {
-      authorId: id ? undefined : viewer.id,
-      title: title?.trim(),
-      summary: summary === null ? null : summary?.trim(),
-      content:
-        content &&
-        normalizeArticleHTML(
-          sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
-        ),
+      authorId: isUpdate ? undefined : viewer.id,
+      title: title && normalizeAndValidateTitle(title),
+      summary: summary && normalizeAndValidateSummary(summary),
+      content: content && normalizeAndValidateContent(content),
+      license: license && validateLicense(license),
       tags: tags?.length === 0 ? null : tags,
       cover: coverId,
       collection: collection?.length === 0 ? null : collection,
       circleId,
       access: accessType,
       sensitiveByAuthor: sensitive,
-      license,
       requestForDonation,
       replyToDonator,
       iscnPublish,
       canComment,
+      campaigns:
+        campaigns &&
+        JSON.stringify(
+          await validateCampaigns(campaigns, viewer.id, { campaignService })
+        ),
     },
-    isUndefined // to drop only undefined // .isNil
+    isUndefined // to drop only undefined
   )
 
-  // check for title, summary and content length limit
-  if (data?.title?.length > MAX_ARTICLE_TITLE_LENGTH) {
-    throw new UserInputError('title reach length limit')
-  }
-  if (data?.summary?.length > MAX_ARTICLE_SUMMARY_LENGTH) {
-    throw new UserInputError('summary reach length limit')
-  }
-  if (stripHtml(data?.content || '').length > MAX_ARTICLE_CONTENT_LENGTH) {
-    throw new UserInputError('content reach length limit')
-  }
-
-  // Update
-  if (id) {
+  if (isUpdate) {
     const { id: dbId } = fromGlobalId(id)
     const draft = await atomService.draftIdLoader.load(dbId)
 
@@ -243,6 +224,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     }
 
     // handle candidate cover
+    const resetCover = cover === null
     const isUpdateContent = content || content === ''
     if (
       (resetCover && !isUpdateContent) ||
@@ -273,6 +255,7 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
     }
 
     // update
+    const resetCircle = circleGlobalId === null
     return draftService.baseUpdate(dbId, {
       ...data,
       // reset fields
@@ -306,6 +289,44 @@ const resolver: GQLMutationResolvers['putDraft'] = async (
   }
 }
 
+// validators
+
+const normalizeAndValidateTitle = (title: string) => {
+  const _title = title.trim()
+  if (_title.length > MAX_ARTICLE_TITLE_LENGTH) {
+    throw new UserInputError('title reach length limit')
+  }
+  return _title
+}
+
+const normalizeAndValidateSummary = (summary: string) => {
+  const _summary = summary.trim()
+  if (_summary.length > MAX_ARTICLE_SUMMARY_LENGTH) {
+    throw new UserInputError('summary reach length limit')
+  }
+  return _summary
+}
+
+const normalizeAndValidateContent = (content: string) => {
+  const _content = normalizeArticleHTML(
+    sanitizeHTML(content, { maxHardBreaks: -1, maxSoftBreaks: -1 })
+  )
+  if (stripHtml(_content).length > MAX_ARTICLE_CONTENT_LENGTH) {
+    throw new UserInputError('content reach length limit')
+  }
+  return _content
+}
+
+const validateLicense = (license: string) => {
+  // cc_by_nc_nd_2 license not longer in use
+  if (license === ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2) {
+    throw new UserInputError(
+      `${ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2} is not longer in use`
+    )
+  }
+  return license
+}
+
 const validateTags = async ({
   viewerId,
   tags,
@@ -327,6 +348,7 @@ const validateTags = async ({
       throw new ForbiddenError('not allow to add official tag')
     }
   }
+  return tags
 }
 
 const validateConnections = async ({
@@ -352,6 +374,36 @@ const validateConnections = async ({
       }
     })
   )
+}
+
+const validateCampaigns = async (
+  campaigns: Array<{ campaign: string; stage: string }>,
+  userId: string,
+  { campaignService }: Pick<DataSources, 'campaignService'>
+) => {
+  const _campaigns = campaigns.map(
+    ({ campaign: campaignGlobalId, stage: stageGlobalId }) => {
+      const { id: campaignId, type: campaignIdType } =
+        fromGlobalId(campaignGlobalId)
+      if (campaignIdType !== NODE_TYPES.Campaign) {
+        throw new UserInputError('invalid campaign id')
+      }
+      const { id: stageId, type: stageIdType } = fromGlobalId(stageGlobalId)
+      if (stageIdType !== NODE_TYPES.CampaignStage) {
+        throw new UserInputError('invalid stage id')
+      }
+
+      return { campaign: campaignId, stage: stageId }
+    }
+  )
+  for (const { campaign, stage } of _campaigns) {
+    await campaignService.validate({
+      userId,
+      campaignId: campaign,
+      campaignStageId: stage,
+    })
+  }
+  return _campaigns
 }
 
 export default resolver

@@ -217,7 +217,7 @@ export default /* GraphQL */ `
   type Report implements Node {
     id: ID!
     reporter: User!
-    target: Response!
+    target: Node!
     reason: ReportReason!
     createdAt: DateTime!
   }
@@ -395,6 +395,7 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+    Campaign
   }
 
   enum RemarkTypes {
@@ -432,6 +433,8 @@ export default /* GraphQL */ `
     circleCover
     collectionCover
     announcementCover
+    moment
+    campaignCover
   }
 
   enum EntityType {
@@ -442,6 +445,8 @@ export default /* GraphQL */ `
     circle
     announcement
     collection
+    moment
+    campaign
   }
 
   "Enums for user roles."

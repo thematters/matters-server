@@ -10,7 +10,9 @@ const resolver: GQLMutationResolvers['submitReport'] = async (
   { dataSources: { systemService }, viewer }
 ) => {
   const { type, id: targetId } = fromGlobalId(globalId)
-  if (![NODE_TYPES.Article, NODE_TYPES.Comment].includes(type)) {
+  if (
+    ![NODE_TYPES.Article, NODE_TYPES.Comment, NODE_TYPES.Moment].includes(type)
+  ) {
     throw new UserInputError('invalid type')
   }
   return systemService.submitReport({

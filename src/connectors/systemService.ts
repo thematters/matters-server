@@ -318,7 +318,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     source: { entityTypeId: string; entityId: string }
     target: { entityTypeId: string; entityId: string }
   }) => {
-    const maps = await this.knex
+    const maps = await this.knexRO
       .select()
       .from('asset_map')
       .where({ entityTypeId: source.entityTypeId, entityId: source.entityId })
@@ -501,6 +501,15 @@ export class SystemService extends BaseService<BaseDBSchema> {
       const ret = await this.knex('report')
         .insert({
           articleId: targetId,
+          reporterId,
+          reason,
+        })
+        .returning('*')
+      return ret[0]
+    } else if (targetType === NODE_TYPES.Moment) {
+      const ret = await this.knex('report')
+        .insert({
+          momentId: targetId,
           reporterId,
           reason,
         })

@@ -375,20 +375,6 @@ describe('restrictions CRUD', () => {
   })
 })
 
-describe('totalPinnedWorks', () => {
-  test('get 0 pinned works', async () => {
-    const res = await userService.totalPinnedWorks('1')
-    expect(res).toBe(0)
-  })
-  test('get 1 pinned works', async () => {
-    await connections
-      .knex('collection')
-      .insert({ authorId: '1', title: 'test', pinned: true })
-    const res = await userService.totalPinnedWorks('1')
-    expect(res).toBe(1)
-  })
-})
-
 describe('createUserSocialAccount', () => {
   const userId1 = '1'
   const userId2 = '2'

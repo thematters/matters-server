@@ -21,8 +21,12 @@ import {
   SystemService,
   TagService,
   UserService,
+  UserWorkService,
   CollectionService,
   RecommendationService,
+  MomentService,
+  CampaignService,
+  TranslationService,
 } from 'connectors'
 import {
   PublicationQueue,
@@ -35,53 +39,10 @@ import {
   UserQueue,
 } from 'connectors/queue'
 
-import {
-  genConnections,
-  closeConnections,
-} from '../../connectors/__test__/utils'
+import { genConnections, closeConnections } from 'connectors/__test__/utils'
 import schema from '../../schema'
 
 export { genConnections, closeConnections }
-
-// mock bull with naive class
-jest.mock('connectors/queue/utils', () => {
-  return {
-    createQueue: (name: string) => new MockQueue(name),
-  }
-})
-
-class MockQueue {
-  private name: string
-  private jobHandlers: { [key: string]: any }
-  public on: any
-  public constructor(name: string) {
-    this.name = name
-    this.jobHandlers = {}
-    this.on = jest.fn
-  }
-
-  public process = (jobName: string, handlerOrCocurrent: any, handler: any) => {
-    // console.log(`Registered function ${jobName} to queue ${this.name}`)
-    const jobfn =
-      typeof handlerOrCocurrent === 'number' ? handler : handlerOrCocurrent
-    this.jobHandlers[jobName] = jobfn
-  }
-
-  public add = (jobName: string, jobData: any) => {
-    return this.jobHandlers[jobName](
-      { data: jobData, progress: jest.fn },
-      jest.fn()
-    ).catch((error: any) => {
-      console.log(
-        `Job ${jobName} in queue ${this.name} in test ${
-          expect.getState().currentTestName
-        } failed with error:`
-      )
-      console.log(error)
-    })
-  }
-  public getDelayed = () => []
-}
 
 interface BaseInput {
   isAdmin?: boolean
@@ -118,28 +79,33 @@ export const delay = (ms: number) =>
 
 export const testClient = async ({
   connections,
+  userId,
+  context,
   isAuth,
   isAdmin,
   isMatty,
   isFrozen,
   isBanned,
   noUserName,
-  context,
   dataSources,
 }: {
   connections: Connections
+  userId?: string
+  context?: any
   isAuth?: boolean
   isAdmin?: boolean
   isMatty?: boolean
   isFrozen?: boolean
   isBanned?: boolean
-  context?: any
   noUserName?: boolean
   dataSources?: any
 }) => {
   let _context: any = {}
   if (context) {
     _context = context
+  } else if (userId) {
+    const atomService = new AtomService(connections)
+    _context = { viewer: await atomService.userIdLoader.load(userId) }
   } else if (isAuth) {
     _context = await getUserContext(
       {
@@ -209,22 +175,26 @@ export const testClient = async ({
     payoutQueue,
     userQueue,
   }
-
+  const notificationService = new NotificationService(connections)
   const genContext = () => ({
     ..._context,
     dataSources: {
       atomService: new AtomService(connections),
       userService: new UserService(connections),
+      userWorkService: new UserWorkService(connections),
       articleService: new ArticleService(connections),
       commentService: new CommentService(connections),
       draftService: new DraftService(connections),
       systemService: new SystemService(connections),
       tagService: new TagService(connections),
-      notificationService: new NotificationService(connections),
       oauthService: new OAuthService(connections),
       paymentService: new PaymentService(connections),
       collectionService: new CollectionService(connections),
       recommendationService: new RecommendationService(connections),
+      momentService: new MomentService(connections),
+      campaignService: new CampaignService(connections),
+      translationService: new TranslationService(connections),
+      notificationService,
       connections,
       queues,
       ...dataSources,
@@ -286,6 +256,7 @@ export const publishArticle = async (
 interface PutDraftInput {
   client?: {
     isFrozen?: boolean
+    context?: { viewer: User }
   }
   draft: GQLPutDraftInput
 }
@@ -319,6 +290,16 @@ export const putDraft = async (
         replyToDonator
         iscnPublish
         canComment
+        campaigns {
+           campaign {
+              id
+              name
+           }
+           stage {
+              id
+              name
+           }
+        }
       }
     }
   `

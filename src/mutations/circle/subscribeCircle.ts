@@ -6,7 +6,7 @@ import { compare } from 'bcrypt'
 import {
   CIRCLE_ACTION,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
+  NOTICE_TYPE,
   METADATA_KEY,
   NODE_TYPES,
   PAYMENT_PROVIDER,
@@ -174,7 +174,7 @@ const resolver: GQLMutationResolvers['subscribeCircle'] = async (
 
     // trigger notificaiton
     notificationService.trigger({
-      event: DB_NOTICE_TYPE.circle_new_subscriber,
+      event: NOTICE_TYPE.circle_new_subscriber,
       actorId: viewer.id,
       recipientId: circle.owner,
       entities: [{ type: 'target', entityTable: 'circle', entity: circle }],

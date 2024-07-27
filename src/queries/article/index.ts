@@ -10,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import availableTranslations from './availableTranslations'
+import campaigns from './campaigns'
 import canComment from './canComment'
 import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
@@ -131,6 +132,7 @@ const schema: GQLResolvers = {
     donationCount,
     readerCount,
     versions,
+    campaigns,
   },
   Tag: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
