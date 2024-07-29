@@ -396,7 +396,10 @@ export class CampaignService {
 
     const notificationService = new NotificationService(this.connections)
 
-    const campaign = await this.models.campaignIdLoader.load(updated.campaignId)
+    const campaign = await this.models.findUnique({
+      table: 'campaign',
+      where: { id: updated.campaignId },
+    })
     notificationService.trigger({
       event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied,
       recipientId: updated.userId,
