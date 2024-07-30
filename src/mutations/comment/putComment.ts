@@ -22,6 +22,7 @@ import {
   BUNDLED_NOTICE_TYPE,
   CACHE_KEYWORD,
   COMMENT_TYPE,
+  COMMENT_STATE,
   NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
   MAX_MOMENT_COMMENT_LENGTH,
@@ -410,7 +411,8 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
     // article: notify parentComment's author
     const shouldNotifyParentCommentAuthor =
-      isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
+      (isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor) &&
+      parentComment?.state === COMMENT_STATE.active
     if (isArticleType && shouldNotifyParentCommentAuthor) {
       const isMentioned = !!data.mentionedUserIds?.includes(parentCommentAuthor)
 

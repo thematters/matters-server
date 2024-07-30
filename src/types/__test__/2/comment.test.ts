@@ -3,16 +3,18 @@ import type { Connections } from 'definitions'
 
 import _get from 'lodash/get'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, NOTICE_TYPE, COMMENT_STATE } from 'common/enums'
 import { AtomService, MomentService } from 'connectors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
+let atomService: AtomService
 
 beforeAll(async () => {
   connections = await genConnections()
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -26,8 +28,6 @@ const isDesc = (ints: number[]) =>
     .every((x) => x)
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
-const ARTICLE_2_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
-const COMMENT_ID = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
 
 const DELETE_COMMENT = /* GraphQL */ `
   mutation ($input: DeleteCommentInput!) {
@@ -127,7 +127,6 @@ describe('query comment list on article', () => {
   })
 
   test('pagination', async () => {
-    const atomService = new AtomService(connections)
     const { id: targetTypeId } = await atomService.findFirst({
       table: 'entity_type',
       where: { table: 'article' },
@@ -203,7 +202,12 @@ describe('put commment', () => {
       }
     }
   `
-
+  const commentId = '1'
+  const commentGlobalId = toGlobalId({
+    type: NODE_TYPES.Comment,
+    id: commentId,
+  })
+  const articleGlobalId2 = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
   test('user w/o username can not comment', async () => {
     const server = await testClient({ noUserName: true, connections })
     const { errors } = await server.executeOperation({
@@ -212,9 +216,9 @@ describe('put commment', () => {
         input: {
           comment: {
             content: 'test',
-            parentId: COMMENT_ID,
-            replyTo: COMMENT_ID,
-            articleId: ARTICLE_2_ID,
+            parentId: commentGlobalId,
+            replyTo: commentGlobalId,
+            articleId: articleGlobalId2,
             type: 'article',
           },
         },
@@ -223,7 +227,12 @@ describe('put commment', () => {
     expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
   })
   test('create a article comment', async () => {
-    const server = await testClient({ isAuth: true, connections })
+    const mockTrigger = jest.fn()
+    const server = await testClient({
+      isAuth: true,
+      connections,
+      dataSources: { notificationService: { trigger: mockTrigger } },
+    })
 
     const { errors, data } = await server.executeOperation({
       query: PUT_COMMENT,
@@ -231,23 +240,60 @@ describe('put commment', () => {
         input: {
           comment: {
             content: 'test',
-            parentId: COMMENT_ID,
-            replyTo: COMMENT_ID,
-            articleId: ARTICLE_2_ID,
+            parentId: commentGlobalId,
+            replyTo: commentGlobalId,
+            articleId: articleGlobalId2,
             type: 'article',
           },
         },
       },
     })
     expect(errors).toBeUndefined()
-    expect(data.putComment.replyTo.id).toBe(COMMENT_ID)
+    expect(data.putComment.replyTo.id).toBe(commentGlobalId)
     const id = fromGlobalId(data.putComment.id).id
-    const atomService = new AtomService(connections)
     const comment = await atomService.findUnique({
       table: 'comment',
       where: { id },
     })
     expect(comment.articleVersionId).not.toBeNull()
+
+    // check notification
+    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+      NOTICE_TYPE.article_new_comment,
+      NOTICE_TYPE.comment_new_reply,
+    ])
+  })
+  test('no comment_new_reply notice when parent commment is not active', async () => {
+    const mockTrigger = jest.fn()
+    const server = await testClient({
+      isAuth: true,
+      connections,
+      dataSources: { notificationService: { trigger: mockTrigger } },
+    })
+
+    await atomService.update({
+      table: 'comment',
+      where: { id: commentId },
+      data: { state: COMMENT_STATE.archived },
+    })
+
+    await server.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            parentId: commentGlobalId,
+            replyTo: commentGlobalId,
+            articleId: articleGlobalId2,
+            type: 'article',
+          },
+        },
+      },
+    })
+    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+      NOTICE_TYPE.article_new_comment,
+    ])
   })
 
   test('create a moment comment', async () => {
@@ -308,7 +354,6 @@ describe('vote/unvote commment', () => {
       }
     }
   `
-
   const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
   test('upvote a comment', async () => {
     const server = await testClient({ isAuth: true, connections })
@@ -376,7 +421,6 @@ describe('pin commment', () => {
   test('pin a comment', async () => {
     const user1Id = '1'
     const user2Id = '2'
-    const atomService = new AtomService(connections)
     const user1Article = await atomService.findFirst({
       table: 'article',
       where: { authorId: user1Id },
@@ -502,7 +546,7 @@ describe('pin commment', () => {
       query: TOGGLE_PIN_COMMENT,
       variables: {
         input: {
-          id: COMMENT_ID,
+          id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }),
           enabled: false,
         },
       },
