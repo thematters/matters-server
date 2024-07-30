@@ -403,6 +403,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'article', entity: article },
             { type: 'comment', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
@@ -422,6 +423,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'comment', entity: parentComment },
             { type: 'reply', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
@@ -441,6 +443,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'comment', entity: replyToComment },
             { type: 'reply', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
@@ -458,6 +461,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             entities: [
               { type: 'target', entityTable: 'comment', entity: newComment },
             ],
+            tag: `put-comment:${newComment.id}`,
           })
         })
       }
@@ -529,6 +533,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         { type: 'target', entityTable: 'moment', entity: moment },
         { type: 'comment', entityTable: 'comment', entity: newComment },
       ],
+      tag: `put-comment:${newComment.id}`,
     })
   }
 
@@ -545,6 +550,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
           entities: [
             { type: 'target', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       } else if (!(isCircleBroadcast && isLevel1Comment)) {
         const noticeType = isCircleBroadcast
@@ -569,7 +575,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
   // trigger bundleable notices
   Object.keys(bundledNotices).forEach((k) => {
-    notificationService.trigger(bundledNotices[k])
+    notificationService.trigger({
+      ...bundledNotices[k],
+      tag: `put-comment:${newComment.id}`,
+    })
   })
 
   // invalidate extra nodes

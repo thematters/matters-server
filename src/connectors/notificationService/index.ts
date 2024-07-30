@@ -8,7 +8,7 @@ import type {
   User,
 } from 'definitions'
 
-import { MONTH, NOTICE_TYPE, QUEUE_URL } from 'common/enums'
+import { MONTH, NOTICE_TYPE, QUEUE_URL, CACHE_TTL } from 'common/enums'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { aws } from 'connectors'
@@ -16,6 +16,8 @@ import { aws } from 'connectors'
 import { mail } from './mail'
 
 const logger = getLogger('service-notification')
+
+const SKIP_NOTICE_FLAG_PREFIX = 'skip-notice'
 
 export class NotificationService {
   public mail: typeof mail
@@ -33,6 +35,12 @@ export class NotificationService {
       return
     }
     logger.info(`triggered notification params: ${JSON.stringify(params)}`)
+
+    if ('tag' in params) {
+      params.tag = `${SKIP_NOTICE_FLAG_PREFIX}:${params.tag}`
+      // delete skip flag when sending this notice again
+      await this.connections.redis.del(params.tag)
+    }
     try {
       await this.aws.sqsSendMessage({
         messageBody: params,
@@ -42,6 +50,20 @@ export class NotificationService {
       logger.error(error)
     }
   }
+
+  /**
+   * Mark a notice tag to be skipped.
+   *
+   * In Lambda, we will check if a flag exists for a given tag,
+   * if so, we will skip processing this notice with the tag.
+   */
+  public cancel = async (tag: string) =>
+    this.connections.redis.set(
+      `${SKIP_NOTICE_FLAG_PREFIX}:${tag}`,
+      '1',
+      'EX',
+      CACHE_TTL.NOTICE
+    )
 
   public markAllNoticesAsRead = async (userId: string) => {
     const knex = this.connections.knex

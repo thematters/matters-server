@@ -26,6 +26,7 @@ export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
     actorId: viewer.id,
     recipientId: moment.authorId,
     entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
+    tag: `${NOTICE_TYPE.moment_liked}:${viewer.id}:${id}`,
   })
 
   return moment
@@ -34,7 +35,7 @@ export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
 export const unlikeMoment: GQLMutationResolvers['unlikeMoment'] = async (
   _,
   { input: { id: globalId } },
-  { viewer, dataSources: { momentService, atomService } }
+  { viewer, dataSources: { momentService, atomService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -45,6 +46,7 @@ export const unlikeMoment: GQLMutationResolvers['unlikeMoment'] = async (
     throw new UserInputError('invalid id')
   }
   await momentService.unlike(id, viewer)
+  notificationService.cancel(`${NOTICE_TYPE.moment_liked}:${viewer.id}:${id}`)
 
   return atomService.momentIdLoader.load(id)
 }
