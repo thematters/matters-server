@@ -18,7 +18,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['deleteComment'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -48,6 +48,7 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
       state: COMMENT_STATE.archived,
     },
   })
+  notificationService.cancel(`put-comment:${dbId}`)
 
   // invalidate extra nodes
   const node =

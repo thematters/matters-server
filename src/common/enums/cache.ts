@@ -10,6 +10,8 @@ export const CACHE_TTL = {
 
   ANALYTICS: 60 * 30, // 30 mins
 
+  NOTICE: 15, // 15 seconds
+
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
   MEDIUM: 60 * 60, // 1 hour
