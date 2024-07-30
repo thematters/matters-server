@@ -29,54 +29,6 @@ const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 const ARTICLE_2_ID = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
 const COMMENT_ID = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
 
-const GET_ARTILCE_COMMENTS = /* GraphQL */ `
-  query ($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
-    node(input: $nodeInput) {
-      ... on Article {
-        id
-        comments(input: $commentsInput) {
-          edges {
-            node {
-              upvotes
-              pinned
-              createdAt
-              author {
-                id
-              }
-            }
-            cursor
-          }
-          totalCount
-          pageInfo {
-            startCursor
-            endCursor
-            hasPreviousPage
-            hasNextPage
-          }
-        }
-      }
-    }
-  }
-`
-
-const VOTE_COMMENT = /* GraphQL */ `
-  mutation ($input: VoteCommentInput!) {
-    voteComment(input: $input) {
-      upvotes
-      downvotes
-    }
-  }
-`
-
-const UNVOTE_COMMENT = /* GraphQL */ `
-  mutation ($input: UnvoteCommentInput!) {
-    unvoteComment(input: $input) {
-      upvotes
-      downvotes
-    }
-  }
-`
-
 const DELETE_COMMENT = /* GraphQL */ `
   mutation ($input: DeleteCommentInput!) {
     deleteComment(input: $input) {
@@ -96,31 +48,6 @@ const GET_COMMENT = /* GraphQL */ `
   }
 `
 
-const PUT_COMMENT = /* GraphQL */ `
-  mutation ($input: PutCommentInput!) {
-    putComment(input: $input) {
-      id
-      replyTo {
-        id
-      }
-      node {
-        ... on Moment {
-          shortHash
-        }
-      }
-    }
-  }
-`
-
-const TOGGLE_PIN_COMMENT = /* GraphQL */ `
-  mutation ($input: ToggleItemInput!) {
-    togglePinComment(input: $input) {
-      id
-      pinned
-    }
-  }
-`
-
 const getCommentVotes = async (commentId: string) => {
   const server = await testClient({ connections })
   const { data } = await server.executeOperation({
@@ -133,6 +60,36 @@ const getCommentVotes = async (commentId: string) => {
 }
 
 describe('query comment list on article', () => {
+  const GET_ARTILCE_COMMENTS = /* GraphQL */ `
+    query ($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
+      node(input: $nodeInput) {
+        ... on Article {
+          id
+          comments(input: $commentsInput) {
+            edges {
+              node {
+                upvotes
+                pinned
+                createdAt
+                author {
+                  id
+                }
+              }
+              cursor
+            }
+            totalCount
+            pageInfo {
+              startCursor
+              endCursor
+              hasPreviousPage
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+  `
+
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
     const server = await testClient({ connections })
@@ -230,8 +187,22 @@ describe('query comment list on article', () => {
   })
 })
 
-describe('mutations on comment', () => {
-  const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
+describe('put commment', () => {
+  const PUT_COMMENT = /* GraphQL */ `
+    mutation ($input: PutCommentInput!) {
+      putComment(input: $input) {
+        id
+        replyTo {
+          id
+        }
+        node {
+          ... on Moment {
+            shortHash
+          }
+        }
+      }
+    }
+  `
 
   test('user w/o username can not comment', async () => {
     const server = await testClient({ noUserName: true, connections })
@@ -317,7 +288,28 @@ describe('mutations on comment', () => {
     expect(errors2).toBeUndefined()
     expect(data2.deleteComment.state).toBe('archived')
   })
+})
 
+describe('vote/unvote commment', () => {
+  const VOTE_COMMENT = /* GraphQL */ `
+    mutation ($input: VoteCommentInput!) {
+      voteComment(input: $input) {
+        upvotes
+        downvotes
+      }
+    }
+  `
+
+  const UNVOTE_COMMENT = /* GraphQL */ `
+    mutation ($input: UnvoteCommentInput!) {
+      unvoteComment(input: $input) {
+        upvotes
+        downvotes
+      }
+    }
+  `
+
+  const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
   test('upvote a comment', async () => {
     const server = await testClient({ isAuth: true, connections })
     const { upvotes } = await getCommentVotes(commentId)
@@ -357,7 +349,9 @@ describe('mutations on comment', () => {
     expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
     expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(0)
   })
+})
 
+describe('delete commment', () => {
   test('delete comment', async () => {
     const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
@@ -368,7 +362,17 @@ describe('mutations on comment', () => {
     })
     expect(_get(data, 'deleteComment.state')).toBe('archived')
   })
+})
 
+describe('pin commment', () => {
+  const TOGGLE_PIN_COMMENT = /* GraphQL */ `
+    mutation ($input: ToggleItemInput!) {
+      togglePinComment(input: $input) {
+        id
+        pinned
+      }
+    }
+  `
   test('pin a comment', async () => {
     const user1Id = '1'
     const user2Id = '2'
