@@ -53,7 +53,7 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   }
 
   // run action
-  const noticeTag = `${NOTICE_TYPE.user_new_follower}:${viewer.id}:${user.id}`
+  const noticeTag = `follow-user:${viewer.id}:${user.id}`
   if (action === 'follow') {
     if (user.state === USER_STATE.frozen) {
       throw new ForbiddenByTargetStateError(`cannot follow ${user.state} user`)
@@ -69,7 +69,7 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
     })
   } else {
     await userService.unfollow(viewer.id, user.id)
-    notificationService.cancel(noticeTag)
+    notificationService.withdraw(noticeTag)
   }
 
   // invalidate extra nodes

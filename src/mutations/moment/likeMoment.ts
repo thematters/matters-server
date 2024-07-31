@@ -26,7 +26,7 @@ export const likeMoment: GQLMutationResolvers['likeMoment'] = async (
     actorId: viewer.id,
     recipientId: moment.authorId,
     entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
-    tag: `${NOTICE_TYPE.moment_liked}:${viewer.id}:${id}`,
+    tag: `like-moment:${viewer.id}:${id}`,
   })
 
   return moment
@@ -46,7 +46,7 @@ export const unlikeMoment: GQLMutationResolvers['unlikeMoment'] = async (
     throw new UserInputError('invalid id')
   }
   await momentService.unlike(id, viewer)
-  notificationService.cancel(`${NOTICE_TYPE.moment_liked}:${viewer.id}:${id}`)
+  notificationService.withdraw(`like-moment:${viewer.id}:${id}`)
 
   return atomService.momentIdLoader.load(id)
 }

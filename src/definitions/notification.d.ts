@@ -80,6 +80,7 @@ interface NoticeArticleMentionedYouParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
+  tag: string
 }
 
 interface NoticeRevisedArticlePublishedParams
