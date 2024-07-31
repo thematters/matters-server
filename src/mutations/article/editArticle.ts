@@ -122,7 +122,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis,
     })
-    notificationService.cancel(`publication:${article.id}`)
+    notificationService.withdraw(`publication:${article.id}`)
     return articleService.archive(dbId)
   }
 

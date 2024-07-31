@@ -48,7 +48,7 @@ const resolver: GQLMutationResolvers['deleteComment'] = async (
       state: COMMENT_STATE.archived,
     },
   })
-  notificationService.cancel(`put-comment:${dbId}`)
+  notificationService.withdraw(`put-comment:${dbId}`)
 
   // invalidate extra nodes
   const node =

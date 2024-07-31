@@ -59,7 +59,7 @@ export class NotificationService {
    * Mark a notice tag for skipping processing in Lambda function;
    * And delete all recently sent notices recorded by Lambda
    */
-  public cancel = async (tag: string) => {
+  public withdraw = async (tag: string) => {
     const redis = this.connections.redis
     // set skip flag for this tag
     await redis.set(

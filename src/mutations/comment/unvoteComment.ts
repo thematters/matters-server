@@ -74,7 +74,7 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
       comment.type === COMMENT_TYPE.moment
         ? NOTICE_TYPE.moment_comment_liked
         : NOTICE_TYPE.article_comment_liked
-    notificationService.cancel(`${noticeType}:${viewer.id}:${dbId}`)
+    notificationService.withdraw(`${noticeType}:${viewer.id}:${dbId}`)
   }
 
   return comment

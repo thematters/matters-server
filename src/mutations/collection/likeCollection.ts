@@ -55,7 +55,7 @@ export const unlikeCollection: GQLMutationResolvers['unlikeCollection'] =
       throw new UserInputError('invalid id')
     }
     await collectionService.unlike(id, viewer)
-    notificationService.cancel(
+    notificationService.withdraw(
       `${NOTICE_TYPE.collection_liked}:${viewer.id}:${id}`
     )
 
