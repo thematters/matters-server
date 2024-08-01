@@ -401,13 +401,12 @@ export class CampaignService {
       where: { id: updated.campaignId },
     })
     const end =
-      fromDatetimeRangeString(
-        campaign.applicationPeriod as string
-      )[1]?.getTime() ?? new Date().getTime()
+      fromDatetimeRangeString(campaign.applicationPeriod as string)[1] ??
+      new Date()
 
     notificationService.trigger({
       event:
-        application.createdAt.getTime() < end
+        application.createdAt.getTime() < end.getTime()
           ? OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
           : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
       recipientId: updated.userId,
