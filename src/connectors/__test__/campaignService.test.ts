@@ -467,12 +467,6 @@ describe('find grand_slam users', () => {
       where: { id: application.id },
       data: { createdAt: new Date('2010-01-01 12:00') },
     })
-    console.log(
-      await atomService.findFirst({
-        table: 'campaign_user',
-        where: { id: application.id },
-      })
-    )
     const users4 = await campaignService.findGrandSlamUsers(campaign.id, [
       stages[0].id,
       stages[1].id,

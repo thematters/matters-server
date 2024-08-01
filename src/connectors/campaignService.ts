@@ -400,16 +400,17 @@ export class CampaignService {
       table: 'campaign',
       where: { id: updated.campaignId },
     })
+    const end =
+      fromDatetimeRangeString(
+        campaign.applicationPeriod as string
+      )[1]?.getTime() ?? new Date().getTime()
+
     notificationService.trigger({
-      event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied,
+      event:
+        application.createdAt.getTime() < end
+          ? OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
+          : OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird,
       recipientId: updated.userId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'campaign',
-          entity: campaign,
-        },
-      ],
       data: { link: campaign.link ?? '' },
     })
 
