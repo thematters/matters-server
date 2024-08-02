@@ -41,6 +41,8 @@ export const AUDIT_LOG_ACTION = {
   addArticleIntoCollection: 'add_article_into_collection',
   removeArticleFromCollection: 'remove_article_from_collection',
   addPublishArticleJob: 'add_publish_article_job',
+  uploadImage: 'upload_image',
+  uploadFile: 'upload_file',
 } as const
 
 export const AUDIT_LOG_STATUS = {

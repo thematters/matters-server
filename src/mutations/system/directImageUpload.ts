@@ -1,11 +1,15 @@
 import type { ItemData, GQLMutationResolvers } from 'definitions'
 
-// import { FileUpload } from 'graphql-upload'
 import { v4 } from 'uuid'
 
-import { IMAGE_ASSET_TYPE, ACCEPTED_UPLOAD_IMAGE_TYPES } from 'common/enums'
+import {
+  IMAGE_ASSET_TYPE,
+  ACCEPTED_UPLOAD_IMAGE_TYPES,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
+} from 'common/enums'
 import { AssetNotFoundError, UserInputError } from 'common/errors'
-import { getLogger } from 'common/logger'
+import { getLogger, auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { cfsvc } from 'connectors'
 
@@ -16,12 +20,17 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   { input: { type, mime, entityType, entityId, url, draft } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
+  const isImageType = (Object.values(IMAGE_ASSET_TYPE) as string[]).includes(
+    type
+  )
   if (!isImageType) {
     throw new UserInputError(`type:${type} doesn't support directImageUpload.`)
   }
 
-  if (mime && !ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mime as any)) {
+  if (
+    mime &&
+    !(ACCEPTED_UPLOAD_IMAGE_TYPES as readonly string[]).includes(mime)
+  ) {
     throw new UserInputError(`mime:${mime} is not supported.`)
   }
 
@@ -51,7 +60,6 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
   if (url && draft != null) {
     // if (isImageType) {
     // call cloudflare uploadFileByUrl, handle both direct upload, & any other url upload
-    // @ts-ignore
     key = await systemService.cfsvc.baseUploadFileByUrl(type, url)
 
     const ast = await systemService.findAssetByPath(key)
@@ -68,7 +76,6 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
       throw new UserInputError('mime needs to be specified.')
     }
     try {
-      // @ts-ignore
       const ext = mime.split('/')[1]
       const result = (await cfsvc.directUploadImage(type, uuid, ext))!
       logger.info('got cloudflare image uploadURL: %o', result)
@@ -84,17 +91,34 @@ const resolver: GQLMutationResolvers['directImageUpload'] = async (
     authorId: viewer.id,
     type,
     path: key,
-    draft: draft != null ? draft : true, // use pass-in draft value or default to true
+    draft: draft != null ? draft : true,
   }
 
   const newAsset = await systemService.findAssetOrCreateByPath(
-    // createAssetAndAssetMap(
     asset,
     entityTypeId,
     relatedEntityId
   )
 
   logger.info('return cloudflare image uploadURL: %o', { key, uploadURL })
+
+  if (draft === false) {
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.uploadImage,
+      status: AUDIT_LOG_STATUS.succeeded,
+      entity: 'asset',
+      entityId: newAsset.id,
+    })
+  } else {
+    auditLog({
+      actorId: viewer.id,
+      action: AUDIT_LOG_ACTION.uploadImage,
+      status: AUDIT_LOG_STATUS.pending,
+      entity: 'asset',
+      entityId: newAsset.id,
+    })
+  }
 
   return {
     ...newAsset,

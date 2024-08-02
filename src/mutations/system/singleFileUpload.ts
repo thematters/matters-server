@@ -13,9 +13,11 @@ import {
   COVER_ASSET_TYPE,
   UPLOAD_IMAGE_SIZE_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
+  AUDIT_LOG_ACTION,
+  AUDIT_LOG_STATUS,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { getLogger } from 'common/logger'
+import { getLogger, auditLog } from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 
 const logger = getLogger('mutation-upload')
@@ -41,9 +43,15 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
   { input: { type, file: fileUpload, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const isCoverType = Object.values(COVER_ASSET_TYPE).includes(type as any)
-  const isImageType = Object.values(IMAGE_ASSET_TYPE).includes(type as any)
-  const isAudioType = Object.values(AUDIO_ASSET_TYPE).includes(type as any)
+  const isCoverType = (Object.values(COVER_ASSET_TYPE) as string[]).includes(
+    type
+  )
+  const isImageType = (Object.values(IMAGE_ASSET_TYPE) as string[]).includes(
+    type
+  )
+  const isAudioType = (Object.values(AUDIO_ASSET_TYPE) as string[]).includes(
+    type
+  )
 
   if ((!fileUpload && !url) || (fileUpload && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
@@ -133,18 +141,28 @@ const resolver: GQLMutationResolvers['singleFileUpload'] = async (
 
   // assert both "fulfilled" ?
 
-  const asset: Partial<Asset> = {
+  const assetData: Partial<Asset> = {
     uuid,
     authorId: viewer.id,
     type,
     path: key,
   }
 
-  return systemService.createAssetAndAssetMap(
-    asset,
+  const asset = await systemService.createAssetAndAssetMap(
+    assetData,
     entityTypeId,
     relatedEntityId
   )
+
+  auditLog({
+    actorId: viewer.id,
+    action: AUDIT_LOG_ACTION.uploadFile,
+    status: AUDIT_LOG_STATUS.succeeded,
+    entity: 'asset',
+    entityId: asset.id,
+  })
+
+  return asset
 }
 
 export default resolver
