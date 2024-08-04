@@ -345,9 +345,10 @@ interface NoticeCommentReportedParams extends NotificationRequiredParams {
 }
 
 interface NoticeWriteChallengeAppliedParams extends NotificationRequiredParams {
-  event: OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
+  event:
+    | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied
+    | OFFICIAL_NOTICE_EXTEND_TYPE.write_challenge_applied_late_bird
   recipientId: string
-  entities: [NotificationEntity<'target', 'campaign'>]
   data: { link: string }
 }
 
