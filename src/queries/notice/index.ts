@@ -235,6 +235,7 @@ const notice: {
         case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
           return entities.target
         case INNER_NOTICE_TYPE.article_new_comment:
+        case INNER_NOTICE_TYPE.moment_new_comment:
           return entities.comment
       }
       throw new ServerError(`Unknown CommentNotice type: ${type}`)
