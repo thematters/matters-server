@@ -15,6 +15,7 @@ import type {
 
 import { NOTICE_TYPE as INNER_NOTICE_TYPE, NODE_TYPES } from 'common/enums'
 import { ServerError } from 'common/errors'
+import { toGlobalId } from 'common/utils'
 
 import notices from './notices'
 
@@ -105,6 +106,7 @@ const notice: {
     },
   },
   UserNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.user_new_follower:
@@ -120,6 +122,7 @@ const notice: {
     },
   },
   ArticleNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.article_published:
@@ -147,6 +150,7 @@ const notice: {
     },
   },
   ArticleArticleNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.article_new_collected:
@@ -172,6 +176,7 @@ const notice: {
   },
 
   CollectionNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     target: ({ entities, type }) => {
       if (!entities) {
         throw new ServerError('entities is empty')
@@ -185,6 +190,7 @@ const notice: {
   },
 
   MomentNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.moment_liked:
@@ -208,6 +214,7 @@ const notice: {
   },
 
   CommentNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.article_comment_liked:
@@ -242,6 +249,7 @@ const notice: {
     },
   },
   CommentCommentNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.comment_new_reply:
@@ -267,6 +275,7 @@ const notice: {
     },
   },
   TransactionNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.payment_received_donation:
@@ -282,6 +291,7 @@ const notice: {
     },
   },
   CircleNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     type: ({ type }) => {
       switch (type) {
         case INNER_NOTICE_TYPE.circle_invitation:
@@ -347,6 +357,7 @@ const notice: {
     },
   },
   OfficialAnnouncementNotice: {
+    id: ({ id }) => toGlobalId({ type: NODE_TYPES.Notice, id }),
     link: ({ data }) => (data && data.link) ?? null,
   },
 }
