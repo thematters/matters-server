@@ -1,11 +1,11 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 
-import { environment } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 
-const logger = getLogger('spam-detection')
+const logger = getLogger('spam-detector')
 
-export class SpamDetection {
+export class SpamDetector {
   private apiUrl: string
 
   public constructor() {
@@ -13,6 +13,10 @@ export class SpamDetection {
   }
 
   public detect = async (text: string): Promise<number | null> => {
+    if (isTest) {
+      return null
+    }
+
     const config: AxiosRequestConfig = {
       method: 'post',
       url: this.apiUrl,

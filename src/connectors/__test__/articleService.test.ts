@@ -586,3 +586,23 @@ describe('findArticleVersions', () => {
     expect(count8).toBe(count7)
   })
 })
+
+describe('spam detection', () => {
+  test('detect spam', async () => {
+    articleId = '1'
+
+    const score = 0.99
+    const mockSpamDetoctor = { detect: jest.fn(() => score) }
+    // @ts-ignore
+    await articleService.detectSpam(
+      { id: articleId, title: 'test', content: 'test' },
+      mockSpamDetoctor as any
+    )
+
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    expect(article?.spamScore).toBe(score)
+  })
+})

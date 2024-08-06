@@ -16,6 +16,8 @@ export interface Article {
   updatedAt: Date
   remark: string | null
   shortHash: string
+  spamScore: number | null
+  isSpam: boolean | null
 }
 
 export interface ArticleVersion {

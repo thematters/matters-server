@@ -72,6 +72,7 @@ import {
   NotificationService,
   PaymentService,
   GCP,
+  SpamDetector,
 } from 'connectors'
 
 const logger = getLogger('service-article')
@@ -436,8 +437,15 @@ export class ArticleService extends BaseService<Article> {
           sensitiveByAuthor: sensitiveByAuthor ?? false,
         })
         .returning('*')
-
       await trx.commit()
+
+      this.detectSpam({
+        id: article.id,
+        title,
+        content,
+        summary: summaryCustomized ? _summary : undefined,
+      })
+
       // copy asset_map from draft to article if there is a draft
       if (draftId) {
         const systemService = new SystemService(this.connections)
@@ -611,6 +619,16 @@ export class ArticleService extends BaseService<Article> {
       table: 'article_version',
       data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
+    if (newData.content) {
+      this.detectSpam({
+        id: articleId,
+        title: articleVersion.title,
+        content: newData.content,
+        summary: articleVersion.summaryCustomized
+          ? articleVersion.summary
+          : undefined,
+      })
+    }
     this.latestArticleVersionLoader.clear(articleId)
     return articleVersion
   }
@@ -2257,6 +2275,35 @@ export class ArticleService extends BaseService<Article> {
       }
     } else {
       return null
+    }
+  }
+
+  /*********************************
+   *                               *
+   *        Spam detection         *
+   *                               *
+   *********************************/
+
+  private detectSpam = async (
+    {
+      id,
+      title,
+      content,
+      summary,
+    }: { id: string; title: string; content: string; summary?: string },
+    spamDetector?: SpamDetector
+  ) => {
+    const detector = spamDetector ?? new SpamDetector()
+    const text = summary
+      ? title + '\n' + summary + '\n' + content
+      : title + '\n' + content
+    const score = await detector.detect(text)
+    if (score) {
+      await this.models.update({
+        table: 'article',
+        where: { id },
+        data: { spamScore: score },
+      })
     }
   }
 }
