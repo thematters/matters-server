@@ -40,7 +40,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, extractMentionIds } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,
@@ -74,7 +74,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     throw new ForbiddenError('user has no username')
   }
 
-  const data: Partial<Comment> & { mentionedUserIds?: any } = {
+  const data: Partial<Comment> & { mentionedUserIds?: string[] } = {
     content: normalizeCommentHTML(
       sanitizeHTML(content, {
         maxHardBreaks: 0,
@@ -284,11 +284,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check mentions
    */
-  if (mentions) {
-    data.mentionedUserIds = mentions.map(
-      (userId: string) => fromGlobalId(userId).id
-    )
-
+  data.mentionedUserIds =
+    mentions?.map((userId: string) => fromGlobalId(userId).id) ||
+    extractMentionIds(content)
+  if (data.mentionedUserIds.length > 0) {
     // check if mentioned user blocked viewer
     const anyBlocked = some(
       await Promise.all(
