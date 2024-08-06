@@ -324,6 +324,8 @@ export class ArticleService extends BaseService<Article> {
     maxTake: number
     oss: boolean
   }): Promise<Article[]> => {
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
     const query = this.knexRO
       .select('article_set.*')
       .from(
@@ -348,7 +350,21 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder: Knex.QueryBuilder) => {
         if (!oss) {
-          builder.whereRaw('in_newest IS NOT false')
+          builder
+            .whereRaw('in_newest IS NOT false')
+            .where((whereBuilder: Knex.QueryBuilder) => {
+              if (spamThreshold) {
+                if (spamThreshold) {
+                  whereBuilder
+                    .andWhere('article_set.is_spam', false)
+                    .orWhere((spamWhereBuilder) => {
+                      spamWhereBuilder
+                        .where('article_set.spam_score', '<', spamThreshold)
+                        .orWhereNull('article_set.spam_score')
+                    })
+                }
+              }
+            })
         }
       })
       .as('newest')

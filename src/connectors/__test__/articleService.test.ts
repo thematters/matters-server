@@ -7,6 +7,8 @@ import {
   NODE_TYPES,
   APPRECIATION_TYPES,
   ARTICLE_APPRECIATE_LIMIT,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { ArticleService, UserWorkService, AtomService } from 'connectors'
 
@@ -405,17 +407,58 @@ test('countReaders', async () => {
   expect(count0).toBe(0)
 })
 
-test('latestArticles', async () => {
-  const articles = await articleService.latestArticles({
-    maxTake: 500,
-    skip: 0,
-    take: 10,
-    oss: false,
+describe('latestArticles', () => {
+  test('base', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles.length).toBeGreaterThan(0)
+    expect(articles[0].id).toBeDefined()
+    expect(articles[0].authorId).toBeDefined()
+    expect(articles[0].state).toBeDefined()
   })
-  expect(articles.length).toBeGreaterThan(0)
-  expect(articles[0].id).toBeDefined()
-  expect(articles[0].authorId).toBeDefined()
-  expect(articles[0].state).toBeDefined()
+  test('spam are excluded', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    const spamThreshold = 0.5
+    await atomService.create({
+      table: 'feature_flag',
+      data: {
+        name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+    })
+    // spam flag is on but spam not detected
+    const articles1 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles1).toEqual(articles)
+
+    // spam detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const articles2 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
+  })
 })
 
 describe('findResponses', () => {

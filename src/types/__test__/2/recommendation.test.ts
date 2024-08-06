@@ -725,7 +725,7 @@ describe('hottest articles', () => {
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
   })
-  test('spam are filtered', async () => {
+  test('spam are excluded', async () => {
     const spamThreshold = 0.5
     await atomService.create({
       table: 'feature_flag',
@@ -736,7 +736,7 @@ describe('hottest articles', () => {
       },
     })
 
-    // both `is_spam` and `spam_score` are null, not filtered
+    // both `is_spam` and `spam_score` are null, not excluded
     const server = await testClient({ connections })
     const { data: data1 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_HOTTEST,
@@ -744,7 +744,7 @@ describe('hottest articles', () => {
     })
     expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
 
-    // `spam_score` = `spam_threshold`, filtered
+    // `spam_score` = `spam_threshold`, excluded
     await atomService.update({
       table: 'article',
       where: { id: article.id },
@@ -756,7 +756,7 @@ describe('hottest articles', () => {
     })
     expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
 
-    // `is_spam` = false, not filtered
+    // `is_spam` = false, not excluded
     await atomService.update({
       table: 'article',
       where: { id: article.id },
