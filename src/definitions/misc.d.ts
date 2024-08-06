@@ -3,7 +3,18 @@ import type { ValueOf } from './generic'
 import {
   SKIPPED_LIST_ITEM_TYPES,
   MATTERS_CHOICE_TOPIC_STATE,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
+
+export interface FeatureFlag {
+  id: string
+  name: ValueOf<typeof FEATURE_NAME>
+  flag: ValueOf<typeof FEATURE_FLAG>
+  value: string | null
+  createdAt: Date
+  updatedAt: Date
+}
 
 export interface PunishRecord {
   id: string

@@ -46,6 +46,7 @@ import type { Draft } from './draft'
 import type {
   BlockedSearchKeyword,
   Blocklist,
+  FeatureFlag,
   MattersChoice,
   MattersChoiceTopic,
   PunishRecord,
@@ -230,6 +231,7 @@ export type TableTypeMap = {
   draft: Draft
   entity_type: EntityType
   featured_comment_materialized: FeaturedCommentMaterialized
+  feature_flag: FeatureFlag
   moment: Moment
   moment_asset: MomentAsset
   matters_choice: MattersChoice

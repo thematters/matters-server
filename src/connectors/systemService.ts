@@ -91,10 +91,12 @@ export class SystemService extends BaseService<BaseDBSchema> {
    *********************************/
 
   public getFeatureFlags = () =>
-    this.knex(this.featureFlagTable).select('*').limit(50)
+    this.knexRO(this.featureFlagTable).select('*').limit(50)
 
   public getFeatureFlag = async (name: keyof typeof FEATURE_NAME) => {
-    const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
+    const [featureFlag] = await this.knexRO(this.featureFlagTable).where({
+      name,
+    })
     return featureFlag
   }
 
@@ -148,6 +150,21 @@ export class SystemService extends BaseService<BaseDBSchema> {
       }
     }
     return false
+  }
+
+  /**
+   * Get the spam threshold from `feature_flag` table
+   * Use to determine whether a article is spam by its spam score
+   */
+  public getSpamThreshold = async (): Promise<number | null> => {
+    const threshold = await this.models.findFirst({
+      table: 'feature_flag',
+      where: { name: FEATURE_NAME.spam_detection, flag: FEATURE_FLAG.on },
+    })
+    if (!threshold || !threshold.value) {
+      return null
+    }
+    return parseFloat(threshold.value)
   }
 
   /*********************************
