@@ -297,6 +297,7 @@ describe('put commment', () => {
   })
 
   test('create a moment comment', async () => {
+    const mockTrigger = jest.fn()
     const momentService = new MomentService(connections)
     const moment = await momentService.create(
       { content: 'test', assetIds: [] },
@@ -306,13 +307,21 @@ describe('put commment', () => {
       type: NODE_TYPES.Moment,
       id: moment.id,
     })
-    const server = await testClient({ isAuth: true, connections })
+    const server = await testClient({
+      isAuth: true,
+      connections,
+      dataSources: {
+        notificationService: { trigger: mockTrigger, withdraw: jest.fn() },
+      },
+    })
     const { errors, data } = await server.executeOperation({
       query: PUT_COMMENT,
       variables: {
         input: {
           comment: {
-            content: 'test',
+            content: `<p><a class="mention" href="/@test1" data-id="${toGlobalId(
+              { type: NODE_TYPES.User, id: '2' }
+            )}" data-user-name="testuser" data-display-name="testuser" rel="noopener noreferrer nofollow"><span>@testuser</span></a></p>`,
             momentId: momentGlobalId,
             type: 'moment',
           },
@@ -322,6 +331,11 @@ describe('put commment', () => {
     expect(errors).toBeUndefined()
     expect(data.putComment.id).toBeDefined()
     expect(data.putComment.node.shortHash).toBe(moment.shortHash)
+
+    expect(mockTrigger.mock.calls.map((call) => call[0].event)).toEqual([
+      NOTICE_TYPE.moment_new_comment,
+      NOTICE_TYPE.moment_comment_mentioned_you,
+    ])
 
     const { errors: errors2, data: data2 } = await server.executeOperation({
       query: DELETE_COMMENT,
