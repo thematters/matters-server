@@ -8,6 +8,7 @@ export * from './gcp'
 export * from './opensea'
 export * from './alchemy'
 export * from './passphrases'
+export * from './spamDetection'
 
 export * from './baseService'
 export * from './articleService'
