@@ -23,7 +23,6 @@ export class SpamDetection {
 
     try {
       const response = await axios(config)
-      console.log(response.data)
       return response.data.score
     } catch (error) {
       logger.error(error)
