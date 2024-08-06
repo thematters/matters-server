@@ -164,7 +164,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     if (!threshold || !threshold.value) {
       return null
     }
-    return parseFloat(threshold.value)
+    return threshold.value
   }
 
   /*********************************

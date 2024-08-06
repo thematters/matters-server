@@ -12,6 +12,8 @@ import {
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_RESTRICTION_TYPE,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import {
   RecommendationService,
@@ -328,12 +330,6 @@ describe('following UserFollowUserActivity', () => {
     const result = await makeUserFollowUserActivityQuery(
       { userId: viewerId },
       connections.knexRO
-    )
-    console.log(
-      makeUserFollowUserActivityQuery(
-        { userId: viewerId },
-        connections.knexRO
-      ).toString()
     )
     expect(result.length).toBe(3)
     // ordered by followers amount
@@ -728,5 +724,48 @@ describe('hottest articles', () => {
         _.clamp(tagBoostEff, 0.5, 2) *
         _.clamp(campaignBoostEff, 0.5, 2)
     ).toBe(score)
+  })
+  test('spam are filtered', async () => {
+    const spamThreshold = 0.5
+    await atomService.create({
+      table: 'feature_flag',
+      data: {
+        name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+    })
+
+    // both `is_spam` and `spam_score` are null, not filtered
+    const server = await testClient({ connections })
+    const { data: data1 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data1.viewer.recommendation.hottest.totalCount).toBe(1)
+
+    // `spam_score` = `spam_threshold`, filtered
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { spamScore: spamThreshold },
+    })
+    const { data: data2 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data2.viewer.recommendation.hottest.totalCount).toBe(0)
+
+    // `is_spam` = false, not filtered
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { isSpam: false },
+    })
+    const { data: data3 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_HOTTEST,
+      variables: { input: { first: 10 } },
+    })
+    expect(data3.viewer.recommendation.hottest.totalCount).toBe(1)
   })
 })

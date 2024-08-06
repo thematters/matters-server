@@ -17,6 +17,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
   {
     viewer,
     dataSources: {
+      systemService,
       connections: { knexRO },
     },
   }
@@ -31,10 +32,12 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
 
   const { take, skip } = fromConnectionArgs(input)
 
-  const donated_articles = knexRO('transaction').select('target_id').where({
+  const donatedArticles = knexRO('transaction').select('target_id').where({
     purpose: TRANSACTION_PURPOSE.donation,
     state: TRANSACTION_STATE.succeeded,
   })
+
+  const spamThreshold = await systemService.getSpamThreshold()
 
   const MAX_ITEM_COUNT = DEFAULT_TAKE_PER_PAGE * 50
   const makeHottestQuery = () => {
@@ -64,7 +67,18 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .select('user_id')
                 .where('type', 'articleHottest')
             )
-            .whereIn('article.id', donated_articles)
+            .whereIn('article.id', donatedArticles)
+            .where((whereBuilder) => {
+              if (spamThreshold) {
+                whereBuilder
+                  .andWhere('article.is_spam', false)
+                  .orWhere((spamWhereBuilder) => {
+                    spamWhereBuilder
+                      .where('article.spam_score', '<', spamThreshold)
+                      .orWhereNull('article.spam_score')
+                  })
+              }
+            })
         }
       })
       .as('hottest')

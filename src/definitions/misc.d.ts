@@ -11,7 +11,7 @@ export interface FeatureFlag {
   id: string
   name: ValueOf<typeof FEATURE_NAME>
   flag: ValueOf<typeof FEATURE_FLAG>
-  value: string | null
+  value: number | null
   createdAt: Date
   updatedAt: Date
 }
