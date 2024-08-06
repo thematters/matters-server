@@ -240,6 +240,8 @@ const notice: {
         case INNER_NOTICE_TYPE.article_comment_liked:
         case INNER_NOTICE_TYPE.article_comment_mentioned_you:
         case INNER_NOTICE_TYPE.circle_new_broadcast: // deprecated
+        case INNER_NOTICE_TYPE.moment_comment_liked:
+        case INNER_NOTICE_TYPE.moment_comment_mentioned_you:
           return entities.target
         case INNER_NOTICE_TYPE.article_new_comment:
         case INNER_NOTICE_TYPE.moment_new_comment:
