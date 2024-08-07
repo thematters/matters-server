@@ -436,7 +436,7 @@ describe('latestArticles', () => {
         value: spamThreshold,
       },
     })
-    // spam flag is on but spam not detected
+    // spam flag is on but no detected articles
     const articles1 = await articleService.latestArticles({
       maxTake: 500,
       skip: 0,
