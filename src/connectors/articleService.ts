@@ -1152,6 +1152,8 @@ export class ArticleService extends BaseService<Article> {
   }): Promise<{ nodes: Article[]; totalCount: number }> => {
     const keySimplified = await t2sConverter.convertPromise(key)
     const keyTraditional = await s2tConverter.convertPromise(key)
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
     const q = this.knexRO('article')
       .select('*', this.knexRO.raw('COUNT(1) OVER() ::int AS total_count'))
       .whereIn(
@@ -1175,6 +1177,17 @@ export class ArticleService extends BaseService<Article> {
           .from('article_version_newest')
       )
       .where({ state: ARTICLE_STATE.active })
+      .where((builder) => {
+        if (spamThreshold) {
+          builder
+            .andWhere('article.is_spam', false)
+            .orWhere((spamWhereBuilder) => {
+              spamWhereBuilder
+                .where('article.spam_score', '<', spamThreshold)
+                .orWhereNull('article.spam_score')
+            })
+        }
+      })
       .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {

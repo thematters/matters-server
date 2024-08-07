@@ -397,6 +397,44 @@ describe('quicksearch', () => {
     })
     expect(excluded.length).toBe(0)
   })
+  test('spam are excluded', async () => {
+    const [article] = await articleService.createArticle({
+      title: 'test spam',
+      content: '',
+      authorId: '1',
+    })
+    const { nodes: nodes } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes.length).toBe(1)
+    expect(nodes[0].id).toBe(article.id)
+
+    const spamThreshold = 0.5
+    await atomService.create({
+      table: 'feature_flag',
+      data: {
+        name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+    })
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const { nodes: excluded } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(excluded.length).toBe(0)
+  })
 })
 
 test('countReaders', async () => {
