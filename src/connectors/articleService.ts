@@ -61,6 +61,7 @@ import {
   shortHash,
   normalizeSearchKey,
   genMD5,
+  excludeSpam,
 } from 'common/utils'
 import {
   BaseService,
@@ -350,17 +351,9 @@ export class ArticleService extends BaseService<Article> {
       )
       .where((builder) => {
         if (!oss) {
-          builder.whereRaw('in_newest IS NOT false').where((whereBuilder) => {
-            if (spamThreshold) {
-              whereBuilder
-                .andWhere('article_set.is_spam', false)
-                .orWhere((spamWhereBuilder) => {
-                  spamWhereBuilder
-                    .where('article_set.spam_score', '<', spamThreshold)
-                    .orWhereNull('article_set.spam_score')
-                })
-            }
-          })
+          builder
+            .whereRaw('in_newest IS NOT false')
+            .modify(excludeSpam, spamThreshold, 'article_set')
         }
       })
       .as('newest')
@@ -1173,17 +1166,7 @@ export class ArticleService extends BaseService<Article> {
           .from('article_version_newest')
       )
       .where({ state: ARTICLE_STATE.active })
-      .where((builder) => {
-        if (spamThreshold) {
-          builder
-            .andWhere('article.is_spam', false)
-            .orWhere((spamWhereBuilder) => {
-              spamWhereBuilder
-                .where('article.spam_score', '<', spamThreshold)
-                .orWhereNull('article.spam_score')
-            })
-        }
-      })
+      .modify(excludeSpam, spamThreshold)
       .orderBy('id', 'desc')
       .modify((builder: Knex.QueryBuilder) => {
         if (filter && filter.authorId) {

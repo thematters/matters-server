@@ -85,7 +85,7 @@ describe('findArticleIds', () => {
     expect(excluded3).not.toContain(articleIds[0])
     expect(excluded3).toContain(articleIds[1])
   })
-  test('excludeRestricted', async () => {
+  test('exclude spam', async () => {
     const articleIds = await tagService.findArticleIds({
       id: '2',
       excludeSpam: true,

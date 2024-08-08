@@ -15,7 +15,11 @@ import {
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { normalizeSearchKey, normalizeTagInput } from 'common/utils'
+import {
+  normalizeSearchKey,
+  normalizeTagInput,
+  excludeSpam as excludeSpamModifier,
+} from 'common/utils'
 import { BaseService, CacheService, SystemService } from 'connectors'
 
 const logger = getLogger('service-tag')
@@ -996,16 +1000,8 @@ export class TagService extends BaseService<Tag> {
               this.knexRO.select('userId').from('user_restriction')
             )
         }
-        if (excludeSpam && spamThreshold) {
-          builder.where((whereBuilder) => {
-            whereBuilder
-              .andWhere('article.is_spam', false)
-              .orWhere((spamWhereBuilder) => {
-                spamWhereBuilder
-                  .where('article.spam_score', '<', spamThreshold)
-                  .orWhereNull('article.spam_score')
-              })
-          })
+        if (excludeSpam) {
+          builder.modify(excludeSpamModifier, spamThreshold)
         }
         if (sortBy === 'byHottestDesc') {
           builder

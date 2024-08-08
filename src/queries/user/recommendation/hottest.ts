@@ -9,7 +9,11 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { connectionFromPromisedArray, fromConnectionArgs } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  fromConnectionArgs,
+  excludeSpam,
+} from 'common/utils'
 
 export const hottest: GQLRecommendationResolvers['hottest'] = async (
   _,
@@ -68,17 +72,7 @@ export const hottest: GQLRecommendationResolvers['hottest'] = async (
                 .where('type', 'articleHottest')
             )
             .whereIn('article.id', donatedArticles)
-            .where((whereBuilder) => {
-              if (spamThreshold) {
-                whereBuilder
-                  .andWhere('article.is_spam', false)
-                  .orWhere((spamWhereBuilder) => {
-                    spamWhereBuilder
-                      .where('article.spam_score', '<', spamThreshold)
-                      .orWhereNull('article.spam_score')
-                  })
-              }
-            })
+            .modify(excludeSpam, spamThreshold)
         }
       })
       .as('hottest')
