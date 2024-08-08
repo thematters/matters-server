@@ -413,10 +413,15 @@ describe('quicksearch', () => {
     expect(nodes[0].id).toBe(article.id)
 
     const spamThreshold = 0.5
-    await atomService.create({
+    await atomService.upsert({
       table: 'feature_flag',
-      data: {
+      where: { name: FEATURE_NAME.spam_detection },
+      create: {
         name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+      update: {
         flag: FEATURE_FLAG.on,
         value: spamThreshold,
       },
@@ -466,10 +471,15 @@ describe('latestArticles', () => {
       oss: false,
     })
     const spamThreshold = 0.5
-    await atomService.create({
+    await atomService.upsert({
       table: 'feature_flag',
-      data: {
+      where: { name: FEATURE_NAME.spam_detection },
+      create: {
         name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+      update: {
         flag: FEATURE_FLAG.on,
         value: spamThreshold,
       },
