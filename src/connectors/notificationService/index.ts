@@ -62,7 +62,8 @@ export class NotificationService {
    */
   public withdraw = async (tag: string) => {
     const redis = this.connections.redis
-    while (redis.get(`${LOCK_NOTICE_PREFIX}:${tag}`)) {
+    // wait for lambda to finish state mutation
+    while (await redis.get(`${LOCK_NOTICE_PREFIX}:${tag}`)) {
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
     // set skip flag for this tag
