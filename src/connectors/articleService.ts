@@ -348,23 +348,19 @@ export class ArticleService extends BaseService<Article> {
         'article_set.id',
         'setting.article_id'
       )
-      .where((builder: Knex.QueryBuilder) => {
+      .where((builder) => {
         if (!oss) {
-          builder
-            .whereRaw('in_newest IS NOT false')
-            .where((whereBuilder: Knex.QueryBuilder) => {
-              if (spamThreshold) {
-                if (spamThreshold) {
-                  whereBuilder
-                    .andWhere('article_set.is_spam', false)
-                    .orWhere((spamWhereBuilder) => {
-                      spamWhereBuilder
-                        .where('article_set.spam_score', '<', spamThreshold)
-                        .orWhereNull('article_set.spam_score')
-                    })
-                }
-              }
-            })
+          builder.whereRaw('in_newest IS NOT false').where((whereBuilder) => {
+            if (spamThreshold) {
+              whereBuilder
+                .andWhere('article_set.is_spam', false)
+                .orWhere((spamWhereBuilder) => {
+                  spamWhereBuilder
+                    .where('article_set.spam_score', '<', spamThreshold)
+                    .orWhereNull('article_set.spam_score')
+                })
+            }
+          })
         }
       })
       .as('newest')
