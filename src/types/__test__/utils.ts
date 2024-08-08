@@ -5,6 +5,7 @@ import type {
   GQLUserRegisterInput,
   User,
   Connections,
+  DataSources,
 } from 'definitions'
 
 import { ApolloServer, GraphQLRequest, GraphQLResponse } from '@apollo/server'
@@ -98,7 +99,7 @@ export const testClient = async ({
   isFrozen?: boolean
   isBanned?: boolean
   noUserName?: boolean
-  dataSources?: any
+  dataSources?: Partial<Record<keyof DataSources, any>>
 }) => {
   let _context: any = {}
   if (context) {

@@ -82,14 +82,16 @@ const resolver: GQLMutationResolvers['voteComment'] = async (
       comment.type
     )
   ) {
+    const noticeType =
+      comment.type === COMMENT_TYPE.moment
+        ? NOTICE_TYPE.moment_comment_liked
+        : NOTICE_TYPE.article_comment_liked
     notificationService.trigger({
-      event:
-        comment.type === COMMENT_TYPE.moment
-          ? NOTICE_TYPE.moment_comment_liked
-          : NOTICE_TYPE.article_comment_liked,
+      event: noticeType,
       actorId: viewer.id,
       recipientId: comment.authorId,
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+      tag: `${noticeType}:${viewer.id}:${dbId}`,
     })
   }
 

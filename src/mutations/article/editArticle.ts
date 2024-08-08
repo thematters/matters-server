@@ -71,6 +71,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       atomService,
       systemService,
       campaignService,
+      notificationService,
       queues: { revisionQueue },
       connections: { redis },
     },
@@ -121,6 +122,7 @@ const resolver: GQLMutationResolvers['editArticle'] = async (
       node: { type: NODE_TYPES.User, id: article.authorId },
       redis,
     })
+    notificationService.withdraw(`publication:${article.id}`)
     return articleService.archive(dbId)
   }
 

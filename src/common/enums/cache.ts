@@ -10,6 +10,8 @@ export const CACHE_TTL = {
 
   ANALYTICS: 60 * 30, // 30 mins
 
+  NOTICE: 30, // 10 seconds notice delay + 20 seconds sqs/lambda delay see https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
+
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
   MEDIUM: 60 * 60, // 1 hour

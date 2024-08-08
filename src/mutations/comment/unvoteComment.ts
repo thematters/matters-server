@@ -1,13 +1,21 @@
-import type { GQLMutationResolvers, Article, Circle } from 'definitions'
+import type { GQLMutationResolvers, Article, Circle, Moment } from 'definitions'
 
-import { COMMENT_TYPE, USER_STATE } from 'common/enums'
+import { COMMENT_TYPE, USER_STATE, NOTICE_TYPE } from 'common/enums'
 import { ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: GQLMutationResolvers['unvoteComment'] = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { atomService, paymentService, commentService } }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      commentService,
+      notificationService,
+    },
+  }
 ) => {
   if (!viewer.userName) {
     throw new ForbiddenError('user has no username')
@@ -19,10 +27,14 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
   // check target
   let article: Article
   let circle: Circle | undefined = undefined
+  let moment: Moment
   let targetAuthor: string
   if (comment.type === COMMENT_TYPE.article) {
     article = await atomService.articleIdLoader.load(comment.targetId)
     targetAuthor = article.authorId
+  } else if (comment.type === COMMENT_TYPE.moment) {
+    moment = await atomService.momentIdLoader.load(comment.targetId)
+    targetAuthor = moment.authorId
   } else {
     circle = await atomService.circleIdLoader.load(comment.targetId)
     targetAuthor = circle.owner
@@ -52,6 +64,18 @@ const resolver: GQLMutationResolvers['unvoteComment'] = async (
   }
 
   await commentService.unvote({ commentId: dbId, userId: viewer.id })
+
+  if (
+    [COMMENT_TYPE.article as string, COMMENT_TYPE.moment as string].includes(
+      comment.type
+    )
+  ) {
+    const noticeType =
+      comment.type === COMMENT_TYPE.moment
+        ? NOTICE_TYPE.moment_comment_liked
+        : NOTICE_TYPE.article_comment_liked
+    notificationService.withdraw(`${noticeType}:${viewer.id}:${dbId}`)
+  }
 
   return comment
 }

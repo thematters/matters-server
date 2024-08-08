@@ -63,7 +63,7 @@ export default /* GraphQL */ `
   interface Campaign {
     id: ID!
     shortHash: String!
-    name:String!
+    name: String!
     description: String!
     state: CampaignState!
   }

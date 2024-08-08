@@ -1,11 +1,8 @@
 import type { GQLMutationResolvers } from 'definitions'
 
-import {
-  CACHE_KEYWORD,
-  NOTICE_TYPE,
-  NODE_TYPES,
-  USER_STATE,
-} from 'common/enums'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import { NOTICE_TYPE, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
   ActionFailedError,
   ForbiddenError,
@@ -18,7 +15,15 @@ import { fromGlobalId } from 'common/utils'
 const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { userService, notificationService, atomService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      notificationService,
+      atomService,
+      connections: { redis },
+    },
+  }
 ) => {
   // checks
   if (!viewer.userName) {
@@ -53,6 +58,7 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
   }
 
   // run action
+  const noticeTag = `follow-user:${viewer.id}:${user.id}`
   if (action === 'follow') {
     if (user.state === USER_STATE.frozen) {
       throw new ForbiddenByTargetStateError(`cannot follow ${user.state} user`)
@@ -60,24 +66,21 @@ const resolver: GQLMutationResolvers['toggleFollowUser'] = async (
 
     await userService.follow(viewer.id, user.id)
 
-    // trigger notificaiton
     notificationService.trigger({
       event: NOTICE_TYPE.user_new_follower,
       actorId: viewer.id,
       recipientId: user.id,
+      tag: noticeTag,
     })
   } else {
     await userService.unfollow(viewer.id, user.id)
+    notificationService.withdraw(noticeTag)
   }
 
-  // invalidate extra nodes
-  // @ts-ignore
-  user[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.User,
-    },
-  ]
+  await invalidateFQC({
+    node: { type: NODE_TYPES.User, id: viewer.id },
+    redis: redis,
+  })
 
   return user
 }

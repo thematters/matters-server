@@ -52,6 +52,7 @@ import type {
   SearchHistory,
 } from './misc'
 import type { Moment, MomentAsset } from './moment'
+import type { Notice } from './notification'
 import type { UserOauthLikecoinDB } from './oauth'
 import type {
   BlockchainSyncRecord,
@@ -233,6 +234,7 @@ export type TableTypeMap = {
   moment_asset: MomentAsset
   matters_choice: MattersChoice
   matters_choice_topic: MattersChoiceTopic
+  notice: Notice
   payout_account: PayoutAccount
   punish_record: PunishRecord
   recommended_articles_from_read_tags_materialized: RecommendedArticlesFromReadTagsMaterialized
@@ -263,7 +265,6 @@ type OtherTable =
   | 'feedback'
   | 'log_record'
   | 'matters_choice_tag'
-  | 'notice'
   | 'oauth_access_token'
   | 'oauth_authorization_code'
   | 'oauth_client'

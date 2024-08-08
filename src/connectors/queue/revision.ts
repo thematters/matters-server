@@ -294,6 +294,7 @@ export class RevisionQueue {
         actorId: article.authorId,
         recipientId: id,
         entities: [{ type: 'target', entityTable: 'article', entity: article }],
+        tag: `publication:${article.id}`,
       })
     })
   }

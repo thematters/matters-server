@@ -1,7 +1,7 @@
 import type { Connections } from 'definitions'
 
 import { NODE_TYPES } from 'common/enums'
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 import { testClient, genConnections, closeConnections } from '../utils'
 
@@ -59,4 +59,17 @@ test('query notices', async () => {
   expect(errors).toBeUndefined()
   const notices = data.node.notices.edges
   expect(notices.length).toBeGreaterThan(0)
+  for (const notice of notices) {
+    expect(fromGlobalId(notice.node.id).type).toBe(NODE_TYPES.Notice)
+    expect(notice.node.__typename).toBeDefined()
+    expect(notice.node.createdAt).toBeDefined()
+    expect(notice.node.unread).toBeDefined()
+    if (notice.node.__typename === 'CommentNotice') {
+      expect(notice.node.commentNoticeType).toBeDefined()
+      expect(notice.node.target.id).toBeDefined()
+    } else if (notice.node.__typename === 'MomentNotice') {
+      expect(notice.node.momentNoticeType).toBeDefined()
+      expect(notice.node.target.id).toBeDefined()
+    }
+  }
 })

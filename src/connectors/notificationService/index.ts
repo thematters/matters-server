@@ -8,24 +8,30 @@ import type {
   User,
 } from 'definitions'
 
-import { MONTH, NOTICE_TYPE, QUEUE_URL } from 'common/enums'
+import { MONTH, NOTICE_TYPE, QUEUE_URL, CACHE_TTL } from 'common/enums'
 import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
-import { aws } from 'connectors'
+import { aws, AtomService } from 'connectors'
 
 import { mail } from './mail'
 
 const logger = getLogger('service-notification')
 
+const SKIP_NOTICE_FLAG_PREFIX = 'skip-notice'
+const DELETE_NOTICE_KEY_PREFIX = 'delete-notice'
+const LOCK_NOTICE_PREFIX = 'lock-notice'
+
 export class NotificationService {
   public mail: typeof mail
   private connections: Connections
   private aws: typeof aws
+  private models: AtomService
 
   public constructor(connections: Connections) {
     this.connections = connections
     this.mail = mail
     this.aws = aws
+    this.models = new AtomService(this.connections)
   }
 
   public trigger = async (params: NotificationParams) => {
@@ -33,6 +39,13 @@ export class NotificationService {
       return
     }
     logger.info(`triggered notification params: ${JSON.stringify(params)}`)
+
+    if ('tag' in params) {
+      // delete skip flag when sending this notice again
+      await this.connections.redis.del(
+        `${SKIP_NOTICE_FLAG_PREFIX}:${params.tag}`
+      )
+    }
     try {
       await this.aws.sqsSendMessage({
         messageBody: params,
@@ -41,6 +54,30 @@ export class NotificationService {
     } catch (error) {
       logger.error(error)
     }
+  }
+
+  /**
+   * Mark a notice tag for skipping processing in Lambda function;
+   * And delete all recently sent notices recorded by Lambda
+   */
+  public withdraw = async (tag: string) => {
+    const redis = this.connections.redis
+    // wait for lambda to finish state mutation
+    while (await redis.get(`${LOCK_NOTICE_PREFIX}:${tag}`)) {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+    // set skip flag for this tag
+    await redis.set(
+      `${SKIP_NOTICE_FLAG_PREFIX}:${tag}`,
+      '1',
+      'EX',
+      CACHE_TTL.NOTICE
+    )
+    // delete all recently sent notices of this tag
+    const deleteKey = `${DELETE_NOTICE_KEY_PREFIX}:${tag}`
+    const noticeIds = await redis.smembers(deleteKey)
+    await Promise.all(noticeIds.map((id: string) => this.deleteNotice(id)))
+    await redis.del(deleteKey)
   }
 
   public markAllNoticesAsRead = async (userId: string) => {
@@ -230,4 +267,11 @@ export class NotificationService {
       .where({ noticeId })
     return actors
   }
+
+  private deleteNotice = async (id: string) =>
+    this.models.update({
+      table: 'notice',
+      where: { id },
+      data: { deleted: true },
+    })
 }

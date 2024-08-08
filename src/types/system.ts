@@ -1,5 +1,7 @@
 import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
+const UPLOAD_RATE_LIMIT = 40 // 20 pictures per 12 minutes, `directImageUpload` called twice for each picture
+
 const TranslatedAnnouncementFields = `
   language: UserLanguage!
   title: String
@@ -20,8 +22,8 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
-    directImageUpload(input: DirectImageUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit:${UPLOAD_RATE_LIMIT}, period:720)
+    directImageUpload(input: DirectImageUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @rateLimit(limit:${UPLOAD_RATE_LIMIT}, period:720)
 
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean

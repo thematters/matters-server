@@ -13,6 +13,7 @@ const resolver: GQLMutationResolvers['deleteMoment'] = async (
     viewer,
     dataSources: {
       momentService,
+      notificationService,
       connections: { redis },
     },
   }
@@ -28,6 +29,7 @@ const resolver: GQLMutationResolvers['deleteMoment'] = async (
   }
 
   const moment = await momentService.delete(id, viewer)
+  notificationService.withdraw(`put-moment:${id}`)
 
   invalidateFQC({
     node: { id: viewer.id, type: NODE_TYPES.User },

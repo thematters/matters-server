@@ -31,6 +31,7 @@ export const likeCollection: GQLMutationResolvers['likeCollection'] = async (
     entities: [
       { type: 'target', entityTable: 'collection', entity: collection },
     ],
+    tag: `${NOTICE_TYPE.collection_liked}:${viewer.id}:${id}`,
   })
 
   return collection
@@ -40,7 +41,10 @@ export const unlikeCollection: GQLMutationResolvers['unlikeCollection'] =
   async (
     _,
     { input: { id: globalId } },
-    { viewer, dataSources: { collectionService, atomService } }
+    {
+      viewer,
+      dataSources: { collectionService, atomService, notificationService },
+    }
   ) => {
     if (!viewer.id) {
       throw new AuthenticationError('visitor has no permission')
@@ -51,6 +55,9 @@ export const unlikeCollection: GQLMutationResolvers['unlikeCollection'] =
       throw new UserInputError('invalid id')
     }
     await collectionService.unlike(id, viewer)
+    notificationService.withdraw(
+      `${NOTICE_TYPE.collection_liked}:${viewer.id}:${id}`
+    )
 
     return atomService.collectionIdLoader.load(id)
   }

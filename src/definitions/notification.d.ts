@@ -48,6 +48,7 @@ interface NoticeUserNewFollowerParams extends NotificationRequiredParams {
   event: NOTICE_TYPE.user_new_follower
   recipientId: string
   actorId: string
+  tag: string
 }
 
 /**
@@ -79,6 +80,7 @@ interface NoticeArticleMentionedYouParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
+  tag: string
 }
 
 interface NoticeRevisedArticlePublishedParams
@@ -120,6 +122,7 @@ interface NoticeCollectionLikedParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'collection'>]
+  tag: string
 }
 
 /**
@@ -130,6 +133,7 @@ interface NoticeMomentLikedParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'moment'>]
+  tag: string
 }
 
 interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
@@ -137,6 +141,7 @@ interface NoticeMomentMentionedYouParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'moment'>]
+  tag: string
 }
 
 /**
@@ -150,6 +155,7 @@ interface NoticeArticleNewCommentParams extends NotificationRequiredParams {
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'comment', 'comment'>
   ]
+  tag: string
 }
 
 interface NoticeArticleCommentMentionedYouParams
@@ -158,6 +164,7 @@ interface NoticeArticleCommentMentionedYouParams
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
+  tag: string
 }
 
 interface NoticeArticleCommentLikedParams extends NotificationRequiredParams {
@@ -165,6 +172,7 @@ interface NoticeArticleCommentLikedParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
+  tag: string
 }
 
 interface NoticeMomentNewCommentParams extends NotificationRequiredParams {
@@ -175,6 +183,7 @@ interface NoticeMomentNewCommentParams extends NotificationRequiredParams {
     NotificationEntity<'target', 'moment'>,
     NotificationEntity<'comment', 'comment'>
   ]
+  tag: string
 }
 
 interface NoticeMomentCommentMentionedYouParams
@@ -183,6 +192,7 @@ interface NoticeMomentCommentMentionedYouParams
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
+  tag: string
 }
 
 interface NoticeMomentCommentLikedParams extends NotificationRequiredParams {
@@ -190,6 +200,7 @@ interface NoticeMomentCommentLikedParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
+  tag: string
 }
 
 interface NoticeCircleNewBroadcastParams extends NotificationRequiredParams {
@@ -197,6 +208,7 @@ interface NoticeCircleNewBroadcastParams extends NotificationRequiredParams {
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
+  tag: string
 }
 
 // Comment-Comment
@@ -208,6 +220,7 @@ interface NoticeCommentNewReplyParams extends NotificationRequiredParams {
     NotificationEntity<'target', 'comment'>,
     NotificationEntity<'reply', 'comment'>
   ]
+  tag: string
 }
 
 /**
@@ -278,6 +291,7 @@ interface NoticeCircleNewBroadcastCommentsParams
   actorId: string
   entities: [NotificationEntity<'target', 'circle'>]
   data: { comments?: string[]; replies?: string[]; mentions?: string[] }
+  tag: string
 }
 
 interface NoticeCircleNewDiscussionCommentsParams

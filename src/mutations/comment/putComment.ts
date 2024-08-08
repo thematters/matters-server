@@ -22,6 +22,7 @@ import {
   BUNDLED_NOTICE_TYPE,
   CACHE_KEYWORD,
   COMMENT_TYPE,
+  COMMENT_STATE,
   NOTICE_TYPE,
   MAX_ARTICLE_COMMENT_LENGTH,
   MAX_MOMENT_COMMENT_LENGTH,
@@ -39,7 +40,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, extractMentionIds } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putComment'] = async (
   _,
@@ -73,7 +74,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
     throw new ForbiddenError('user has no username')
   }
 
-  const data: Partial<Comment> & { mentionedUserIds?: any } = {
+  const data: Partial<Comment> & { mentionedUserIds?: string[] } = {
     content: normalizeCommentHTML(
       sanitizeHTML(content, {
         maxHardBreaks: 0,
@@ -283,11 +284,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
   /**
    * check mentions
    */
-  if (mentions) {
-    data.mentionedUserIds = mentions.map(
-      (userId: string) => fromGlobalId(userId).id
-    )
-
+  data.mentionedUserIds =
+    mentions?.map((userId: string) => fromGlobalId(userId).id) ||
+    extractMentionIds(content)
+  if (data.mentionedUserIds.length > 0) {
     // check if mentioned user blocked viewer
     const anyBlocked = some(
       await Promise.all(
@@ -403,13 +403,15 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'article', entity: article },
             { type: 'comment', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
 
     // article: notify parentComment's author
     const shouldNotifyParentCommentAuthor =
-      isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
+      (isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor) &&
+      parentComment?.state === COMMENT_STATE.active
     if (isArticleType && shouldNotifyParentCommentAuthor) {
       const isMentioned = !!data.mentionedUserIds?.includes(parentCommentAuthor)
 
@@ -422,6 +424,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'comment', entity: parentComment },
             { type: 'reply', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
@@ -441,6 +444,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             { type: 'target', entityTable: 'comment', entity: replyToComment },
             { type: 'reply', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       }
     }
@@ -458,6 +462,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
             entities: [
               { type: 'target', entityTable: 'comment', entity: newComment },
             ],
+            tag: `put-comment:${newComment.id}`,
           })
         })
       }
@@ -529,6 +534,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
         { type: 'target', entityTable: 'moment', entity: moment },
         { type: 'comment', entityTable: 'comment', entity: newComment },
       ],
+      tag: `put-comment:${newComment.id}`,
     })
   }
 
@@ -545,6 +551,7 @@ const resolver: GQLMutationResolvers['putComment'] = async (
           entities: [
             { type: 'target', entityTable: 'comment', entity: newComment },
           ],
+          tag: `put-comment:${newComment.id}`,
         })
       } else if (!(isCircleBroadcast && isLevel1Comment)) {
         const noticeType = isCircleBroadcast
@@ -569,7 +576,10 @@ const resolver: GQLMutationResolvers['putComment'] = async (
 
   // trigger bundleable notices
   Object.keys(bundledNotices).forEach((k) => {
-    notificationService.trigger(bundledNotices[k])
+    notificationService.trigger({
+      ...bundledNotices[k],
+      tag: `put-comment:${newComment.id}`,
+    })
   })
 
   // invalidate extra nodes
