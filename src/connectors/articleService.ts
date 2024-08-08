@@ -2306,7 +2306,7 @@ export class ArticleService extends BaseService<Article> {
       ? title + '\n' + summary + '\n' + content
       : title + '\n' + content
     const score = await detector.detect(text)
-    logger.log(`Spam detection for article ${id}: ${score}`)
+    logger.info(`Spam detection for article ${id}: ${score}`)
     if (score) {
       await this.models.update({
         table: 'article',
