@@ -6,16 +6,15 @@ export const excludeSpam = (
   table = 'article'
 ) => {
   if (spamThreshold) {
+    // if (`is_spam` is false) or (`spam_score` is less than the threshold or `spam_score` is null)
     builder.where((whereBuilder) => {
-      if (spamThreshold) {
-        whereBuilder
-          .andWhere(`${table}.is_spam`, false)
-          .orWhere((spamWhereBuilder) => {
-            spamWhereBuilder
-              .where(`${table}.spam_score`, '<', spamThreshold)
-              .orWhereNull(`${table}.spam_score`)
-          })
-      }
+      whereBuilder
+        .andWhere(`${table}.is_spam`, false)
+        .orWhere((spamScoreWhereBuilder) => {
+          spamScoreWhereBuilder
+            .where(`${table}.spam_score`, '<', spamThreshold)
+            .orWhereNull(`${table}.spam_score`)
+        })
     })
   }
 }
