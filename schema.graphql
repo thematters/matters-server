@@ -3573,6 +3573,7 @@ input PayToInput {
   """for ERC20/native token payment"""
   chain: Chain
   txHash: String
+  id: ID
 }
 
 input PayoutInput {

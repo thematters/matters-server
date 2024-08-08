@@ -185,7 +185,8 @@ export default /* GraphQL */ `
 
     "for ERC20/native token payment"
     chain: Chain
-    txHash: String
+    txHash: String # draft tx if not provided or settle tx if provided
+    id: ID # settle tx if provided
   }
 
   input PayoutInput {

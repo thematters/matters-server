@@ -2641,6 +2641,7 @@ export type GQLPayToInput = {
   /** for ERC20/native token payment */
   chain?: InputMaybe<GQLChain>
   currency: GQLTransactionCurrency
+  id?: InputMaybe<Scalars['ID']['input']>
   /** for HKD payment */
   password?: InputMaybe<Scalars['String']['input']>
   purpose: GQLTransactionPurpose
