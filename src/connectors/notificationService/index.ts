@@ -19,6 +19,7 @@ const logger = getLogger('service-notification')
 
 const SKIP_NOTICE_FLAG_PREFIX = 'skip-notice'
 const DELETE_NOTICE_KEY_PREFIX = 'delete-notice'
+const LOCK_NOTICE_PREFIX = 'lock-notice'
 
 export class NotificationService {
   public mail: typeof mail
@@ -61,6 +62,9 @@ export class NotificationService {
    */
   public withdraw = async (tag: string) => {
     const redis = this.connections.redis
+    while (redis.get(`${LOCK_NOTICE_PREFIX}:${tag}`)) {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
     // set skip flag for this tag
     await redis.set(
       `${SKIP_NOTICE_FLAG_PREFIX}:${tag}`,
