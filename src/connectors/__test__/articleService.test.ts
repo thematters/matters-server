@@ -7,6 +7,8 @@ import {
   NODE_TYPES,
   APPRECIATION_TYPES,
   ARTICLE_APPRECIATE_LIMIT,
+  FEATURE_NAME,
+  FEATURE_FLAG,
 } from 'common/enums'
 import { ArticleService, UserWorkService, AtomService } from 'connectors'
 
@@ -395,6 +397,49 @@ describe('quicksearch', () => {
     })
     expect(excluded.length).toBe(0)
   })
+  test('spam are excluded', async () => {
+    const [article] = await articleService.createArticle({
+      title: 'test spam',
+      content: '',
+      authorId: '1',
+    })
+    const { nodes: nodes } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(nodes.length).toBe(1)
+    expect(nodes[0].id).toBe(article.id)
+
+    const spamThreshold = 0.5
+    await atomService.upsert({
+      table: 'feature_flag',
+      where: { name: FEATURE_NAME.spam_detection },
+      create: {
+        name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+      update: {
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+    })
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const { nodes: excluded } = await articleService.searchV3({
+      key: 'spam',
+      take: 1,
+      skip: 0,
+      quicksearch: true,
+    })
+    expect(excluded.length).toBe(0)
+  })
 })
 
 test('countReaders', async () => {
@@ -405,17 +450,63 @@ test('countReaders', async () => {
   expect(count0).toBe(0)
 })
 
-test('latestArticles', async () => {
-  const articles = await articleService.latestArticles({
-    maxTake: 500,
-    skip: 0,
-    take: 10,
-    oss: false,
+describe('latestArticles', () => {
+  test('base', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles.length).toBeGreaterThan(0)
+    expect(articles[0].id).toBeDefined()
+    expect(articles[0].authorId).toBeDefined()
+    expect(articles[0].state).toBeDefined()
   })
-  expect(articles.length).toBeGreaterThan(0)
-  expect(articles[0].id).toBeDefined()
-  expect(articles[0].authorId).toBeDefined()
-  expect(articles[0].state).toBeDefined()
+  test('spam are excluded', async () => {
+    const articles = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    const spamThreshold = 0.5
+    await atomService.upsert({
+      table: 'feature_flag',
+      where: { name: FEATURE_NAME.spam_detection },
+      create: {
+        name: FEATURE_NAME.spam_detection,
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+      update: {
+        flag: FEATURE_FLAG.on,
+        value: spamThreshold,
+      },
+    })
+    // spam flag is on but no detected articles
+    const articles1 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles1).toEqual(articles)
+
+    // spam detected
+    await atomService.update({
+      table: 'article',
+      where: { id: articles[0].id },
+      data: { spamScore: spamThreshold + 0.1 },
+    })
+    const articles2 = await articleService.latestArticles({
+      maxTake: 500,
+      skip: 0,
+      take: 10,
+      oss: false,
+    })
+    expect(articles2.map(({ id }) => id)).not.toContain(articles[0].id)
+  })
 })
 
 describe('findResponses', () => {
@@ -584,5 +675,25 @@ describe('findArticleVersions', () => {
     })
     const [, count8] = await articleService.findArticleVersions('2')
     expect(count8).toBe(count7)
+  })
+})
+
+describe('spam detection', () => {
+  test('detect spam', async () => {
+    articleId = '1'
+
+    const score = 0.99
+    const mockSpamDetoctor = { detect: jest.fn(() => score) }
+    // @ts-ignore
+    await articleService.detectSpam(
+      { id: articleId, title: 'test', content: 'test' },
+      mockSpamDetoctor as any
+    )
+
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: articleId },
+    })
+    expect(article?.spamScore).toBe(score)
   })
 })

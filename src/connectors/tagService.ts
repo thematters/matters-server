@@ -15,8 +15,12 @@ import {
 import { environment } from 'common/environment'
 import { TooManyTagsForArticleError, ForbiddenError } from 'common/errors'
 import { getLogger } from 'common/logger'
-import { normalizeSearchKey, normalizeTagInput } from 'common/utils'
-import { BaseService, CacheService } from 'connectors'
+import {
+  normalizeSearchKey,
+  normalizeTagInput,
+  excludeSpam as excludeSpamModifier,
+} from 'common/utils'
+import { BaseService, CacheService, SystemService } from 'connectors'
 
 const logger = getLogger('service-tag')
 
@@ -945,6 +949,7 @@ export class TagService extends BaseService<Tag> {
     sortBy,
     withSynonyms,
     excludeRestricted,
+    excludeSpam,
     skip,
     take,
   }: {
@@ -953,9 +958,12 @@ export class TagService extends BaseService<Tag> {
     sortBy?: 'byHottestDesc' | 'byCreatedAtDesc'
     withSynonyms?: boolean
     excludeRestricted?: boolean
+    excludeSpam?: boolean
     skip?: number
     take?: number
   }) => {
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
     const results = await this.knexRO
       .select('article_id')
       .from('article_tag')
@@ -991,6 +999,9 @@ export class TagService extends BaseService<Tag> {
               'article.authorId',
               this.knexRO.select('userId').from('user_restriction')
             )
+        }
+        if (excludeSpam) {
+          builder.modify(excludeSpamModifier, spamThreshold)
         }
         if (sortBy === 'byHottestDesc') {
           builder

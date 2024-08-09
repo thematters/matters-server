@@ -7,6 +7,7 @@ export const FEATURE_NAME = {
   tag_adoption: 'tag_adoption',
   circle_management: 'circle_management',
   circle_interact: 'circle_interact',
+  spam_detection: 'spam_detection',
 } as const
 
 export const FEATURE_FLAG = {

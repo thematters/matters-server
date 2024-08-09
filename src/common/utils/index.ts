@@ -26,6 +26,7 @@ export * from './counter'
 export * from './verify'
 export * from './nanoid'
 export * from './mention'
+export * from './knex'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.

@@ -36,8 +36,9 @@ import {
   shortHash,
   toDatetimeRangeString,
   fromDatetimeRangeString,
+  excludeSpam,
 } from 'common/utils'
-import { AtomService, NotificationService } from 'connectors'
+import { AtomService, NotificationService, SystemService } from 'connectors'
 import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
@@ -248,6 +249,8 @@ export class CampaignService {
     { filterStageId }: { filterStageId?: string } = {}
   ): Promise<[Article[], number]> => {
     const knexRO = this.connections.knexRO
+    const systemService = new SystemService(this.connections)
+    const spamThreshold = await systemService.getSpamThreshold()
     const records = await knexRO('campaign_article')
       .join('article', 'article.id', 'campaign_article.article_id')
       .select('*', knexRO.raw('count(1) OVER() AS total_count'))
@@ -257,6 +260,7 @@ export class CampaignService {
           builder.where({ campaignStageId: filterStageId })
         }
       })
+      .modify(excludeSpam, spamThreshold)
       .orderBy('campaign_article.id', 'desc')
       .offset(skip)
       .limit(take)

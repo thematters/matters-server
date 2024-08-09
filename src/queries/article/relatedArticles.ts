@@ -41,6 +41,7 @@ const resolver: GQLArticleResolvers['relatedArticles'] = async (
     const articleIds = await tagService.findArticleIds({
       id: tagId,
       excludeRestricted: true,
+      excludeSpam: true,
       take,
       skip,
     })

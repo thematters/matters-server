@@ -1,6 +1,6 @@
 import type { UserOAuthLikeCoin, Connections } from 'definitions'
 
-import axios, { AxiosRequestConfig } from 'axios'
+import axios, { type AxiosRequestConfig } from 'axios'
 import Redis from 'ioredis'
 import { Knex } from 'knex'
 import _ from 'lodash'

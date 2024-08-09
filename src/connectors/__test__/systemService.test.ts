@@ -1,4 +1,4 @@
-import type { Connections, Asset } from 'definitions'
+import type { Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
@@ -38,7 +38,6 @@ test('findAssetUrl', async () => {
 
   // not-image assets return s3 url
   const notImageUrl = await systemService.findAssetUrl('7')
-  // @ts-ignore
   expect(notImageUrl).toContain(systemService.aws.s3Endpoint)
 })
 
@@ -49,11 +48,14 @@ test('create and delete asset', async () => {
     type: 'cover',
     path: 'path/to/file.txt',
   }
-  const asset = await systemService.baseCreate<Asset>(data, 'asset')
+  const asset = await atomService.create({ table: 'asset', data })
   expect(asset).toEqual(expect.objectContaining(assetValidation))
 
   await systemService.baseDelete(asset.id, 'asset')
-  const result = await systemService.baseFindById(asset.id, 'asset')
+  const result = await atomService.findUnique({
+    table: 'asset',
+    where: { id: asset.id },
+  })
   expect(result).toBeUndefined()
 })
 
@@ -197,4 +199,9 @@ describe('report', () => {
 
     expect(commentAfterReport.state).toBe(COMMENT_STATE.collapsed)
   })
+})
+
+test('get spam threshold', async () => {
+  const threshold = await systemService.getSpamThreshold()
+  expect(threshold).toBeNull()
 })

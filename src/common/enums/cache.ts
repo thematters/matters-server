@@ -32,6 +32,7 @@ export const CACHE_PREFIX = {
   USER_LAST_SEEN: 'cache-user-last-seen',
   EMAIL_DOMAIL_WHITELIST: 'cache-email-domain-whitelist',
   TAG_COVERS: 'cache-tag-covers',
+  SPAM_THRESHOLD: 'cache-spam-threshold',
 }
 
 export const DEFAULT_IPNS_LIFETIME = '7200h' // the maximum, is 300days, almost 1 year

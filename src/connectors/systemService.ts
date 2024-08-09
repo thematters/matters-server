@@ -27,9 +27,11 @@ import {
   COMMENT_STATE,
   COMMENT_TYPE,
   NODE_TYPES,
+  CACHE_PREFIX,
+  CACHE_TTL,
 } from 'common/enums'
 import { getLogger } from 'common/logger'
-import { BaseService } from 'connectors'
+import { BaseService, CacheService } from 'connectors'
 
 const logger = getLogger('service-system')
 
@@ -91,10 +93,12 @@ export class SystemService extends BaseService<BaseDBSchema> {
    *********************************/
 
   public getFeatureFlags = () =>
-    this.knex(this.featureFlagTable).select('*').limit(50)
+    this.knexRO(this.featureFlagTable).select('*').limit(50)
 
   public getFeatureFlag = async (name: keyof typeof FEATURE_NAME) => {
-    const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
+    const [featureFlag] = await this.knexRO(this.featureFlagTable).where({
+      name,
+    })
     return featureFlag
   }
 
@@ -148,6 +152,33 @@ export class SystemService extends BaseService<BaseDBSchema> {
       }
     }
     return false
+  }
+
+  /**
+   * Get the spam threshold from `feature_flag` table
+   * Use to determine whether a article is spam by its spam score
+   */
+  public getSpamThreshold = async (): Promise<number | null> => {
+    const cacheService = new CacheService(
+      CACHE_PREFIX.SPAM_THRESHOLD,
+      this.connections.redis
+    )
+    const value = (await cacheService.getObject({
+      keys: { id: 'spam_threshold' },
+      getter: this._getSpamThreshold,
+      expire: CACHE_TTL.SHORT,
+    })) as number | null
+    return value
+  }
+  private _getSpamThreshold = async (): Promise<number | null> => {
+    const threshold = await this.models.findFirst({
+      table: 'feature_flag',
+      where: { name: FEATURE_NAME.spam_detection, flag: FEATURE_FLAG.on },
+    })
+    if (!threshold || !threshold.value) {
+      return null
+    }
+    return threshold.value
   }
 
   /*********************************
