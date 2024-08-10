@@ -32,15 +32,20 @@ import {
 } from '../utils'
 
 let connections: Connections
+let userService: UserService
+let articleService: ArticleService
+let atomService: AtomService
+
 beforeAll(async () => {
   connections = await genConnections()
+  userService = new UserService(connections)
+  articleService = new ArticleService(connections)
+  atomService = new AtomService(connections)
 }, 30000)
 
 afterAll(async () => {
   await closeConnections(connections)
 })
-
-const mediaHash = 'someIpfsMediaHash1'
 
 const ARTICLE_DB_ID = '1'
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: ARTICLE_DB_ID })
@@ -176,8 +181,8 @@ describe('query article', () => {
   test('query articles', async () => {
     const server = await testClient({
       isAuth: true,
-      connections,
       isAdmin: true,
+      connections,
     })
     const { data } = await server.executeOperation({
       query: GET_ARTICLES,
@@ -187,6 +192,7 @@ describe('query article', () => {
   })
 
   test('query related articles', async () => {
+    const mediaHash = 'someIpfsMediaHash1'
     const server = await testClient({ connections })
     const { errors, data } = await server.executeOperation({
       query: GET_RELATED_ARTICLES,
@@ -309,7 +315,6 @@ describe('publish article', () => {
 
   test('publish published draft', async () => {
     const draftId = '4'
-    const atomService = new AtomService(connections)
     await atomService.update({
       table: 'draft',
       where: { id: draftId },
@@ -346,7 +351,6 @@ describe('toggle article state', () => {
     expect(errors).toBeUndefined()
     expect(data.toggleSubscribeArticle.subscribed).toBe(true)
 
-    const atomService = new AtomService(connections)
     const action = await atomService.findFirst({
       table: 'action_article',
       where: { targetId: ARTICLE_DB_ID },
@@ -477,7 +481,6 @@ describe('query article readerCount/donationCount', () => {
     expect(data.article.readerCount).toBe(0)
     expect(data.article.donationCount).toBe(0)
 
-    const atomService = new AtomService(connections)
     const author = await atomService.userIdLoader.load('1')
     const authorServer = await testClient({
       connections,
@@ -526,8 +529,6 @@ describe('query users articles', () => {
       }
     `
   test('only author can view not-active articles', async () => {
-    const userService = new UserService(connections)
-    const articleService = new ArticleService(connections)
     const author = await userService.findByUserName(userName)
     await articleService.archive('1')
 
@@ -672,7 +673,6 @@ describe('articles versions', () => {
 
     const articleId = fromGlobalId(data.article.id).id
 
-    const articleService = new ArticleService(connections)
     const article = await articleService.baseFindById(articleId)
 
     const content = 'test content'
@@ -703,7 +703,6 @@ describe('articles versions', () => {
 describe('query article campaigns', () => {
   let article: Article
   beforeAll(async () => {
-    const atomService = new AtomService(connections)
     const campaignService = new CampaignService(connections)
     article = await atomService.findUnique({
       table: 'article',
@@ -752,5 +751,63 @@ describe('query article campaigns', () => {
       },
     })
     expect(data.article.campaigns.length).toBe(1)
+  })
+})
+
+describe('query article oss', () => {
+  const GET_ARTICLE_OSS = /* GraphQL */ `
+    query ($input: ArticleInput!) {
+      article(input: $input) {
+        id
+        oss {
+          boost
+          score
+          inRecommendIcymi
+          inRecommendHottest
+          inRecommendNewest
+          inSearch
+          spamStatus {
+            score
+            isSpam
+          }
+        }
+      }
+    }
+  `
+  test('only admin can view oss info', async () => {
+    const article = await atomService.findUnique({
+      table: 'article',
+      where: { id: '1' },
+    })
+    const anonymousServer = await testClient({ connections })
+    const { errors } = await anonymousServer.executeOperation({
+      query: GET_ARTICLE_OSS,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+    expect(errors?.[0].extensions.code).toBe('FORBIDDEN')
+    const adminServer = await testClient({ connections, isAdmin: true })
+    const { errors: errorsAdmin, data } = await adminServer.executeOperation({
+      query: GET_ARTICLE_OSS,
+      variables: {
+        input: {
+          shortHash: article.shortHash,
+        },
+      },
+    })
+    expect(errorsAdmin).toBeUndefined()
+    expect(data.article.oss).toBeDefined()
+    expect(data.article.oss.boost).toBeDefined()
+    expect(data.article.oss.score).toBeDefined()
+    expect(data.article.oss.inRecommendIcymi).toBeDefined()
+    expect(data.article.oss.inRecommendHottest).toBeDefined()
+    expect(data.article.oss.inRecommendNewest).toBeDefined()
+    expect(data.article.oss.inSearch).toBeDefined()
+    expect(data.article.oss.spamStatus).toBeDefined()
+    expect(data.article.oss.spamStatus.score).toBeDefined()
+    expect(data.article.oss.spamStatus.isSpam).toBeDefined()
   })
 })

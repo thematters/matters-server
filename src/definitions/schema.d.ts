@@ -536,6 +536,7 @@ export type GQLArticleOss = {
   inRecommendNewest: Scalars['Boolean']['output']
   inSearch: Scalars['Boolean']['output']
   score: Scalars['Float']['output']
+  spamStatus: GQLSpamStatus
 }
 
 export type GQLArticleRecommendationActivity = {
@@ -3343,6 +3344,14 @@ export type GQLSocialLoginInput = {
   type: GQLSocialAccountType
 }
 
+export type GQLSpamStatus = {
+  __typename?: 'SpamStatus'
+  /** whether this article is labeled as spam by human, null for not labeled yet.  */
+  isSpam?: Maybe<Scalars['Boolean']['output']>
+  /** spam confident score by machine, null for not checked yet.  */
+  score?: Maybe<Scalars['Float']['output']>
+}
+
 export type GQLStripeAccount = {
   __typename?: 'StripeAccount'
   id: Scalars['ID']['output']
@@ -5041,6 +5050,7 @@ export type GQLResolversTypes = ResolversObject<{
   SocialAccount: ResolverTypeWrapper<GQLSocialAccount>
   SocialAccountType: GQLSocialAccountType
   SocialLoginInput: GQLSocialLoginInput
+  SpamStatus: ResolverTypeWrapper<GQLSpamStatus>
   String: ResolverTypeWrapper<Scalars['String']['output']>
   StripeAccount: ResolverTypeWrapper<PayoutAccountModel>
   StripeAccountCountry: GQLStripeAccountCountry
@@ -5569,6 +5579,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SkippedListItemsInput: GQLSkippedListItemsInput
   SocialAccount: GQLSocialAccount
   SocialLoginInput: GQLSocialLoginInput
+  SpamStatus: GQLSpamStatus
   String: Scalars['String']['output']
   StripeAccount: PayoutAccountModel
   SubmitReportInput: GQLSubmitReportInput
@@ -6289,6 +6300,11 @@ export type GQLArticleOssResolvers<
   >
   inSearch?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   score?: Resolver<GQLResolversTypes['Float'], ParentType, ContextType>
+  spamStatus?: Resolver<
+    GQLResolversTypes['SpamStatus'],
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
@@ -8983,6 +8999,19 @@ export type GQLSocialAccountResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 
+export type GQLSpamStatusResolvers<
+  ContextType = Context,
+  ParentType extends GQLResolversParentTypes['SpamStatus'] = GQLResolversParentTypes['SpamStatus']
+> = ResolversObject<{
+  isSpam?: Resolver<
+    Maybe<GQLResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >
+  score?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}>
+
 export type GQLStripeAccountResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['StripeAccount'] = GQLResolversParentTypes['StripeAccount']
@@ -9987,6 +10016,7 @@ export type GQLResolvers<ContextType = Context> = ResolversObject<{
   SkippedListItemEdge?: GQLSkippedListItemEdgeResolvers<ContextType>
   SkippedListItemsConnection?: GQLSkippedListItemsConnectionResolvers<ContextType>
   SocialAccount?: GQLSocialAccountResolvers<ContextType>
+  SpamStatus?: GQLSpamStatusResolvers<ContextType>
   StripeAccount?: GQLStripeAccountResolvers<ContextType>
   SubscribeCircleResult?: GQLSubscribeCircleResultResolvers<ContextType>
   Tag?: GQLTagResolvers<ContextType>
