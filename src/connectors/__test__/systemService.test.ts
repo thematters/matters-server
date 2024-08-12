@@ -2,7 +2,13 @@ import type { Connections } from 'definitions'
 
 import { v4 } from 'uuid'
 
-import { NODE_TYPES, COMMENT_TYPE, COMMENT_STATE } from 'common/enums'
+import {
+  NODE_TYPES,
+  COMMENT_TYPE,
+  COMMENT_STATE,
+  FEATURE_FLAG,
+  FEATURE_NAME,
+} from 'common/enums'
 import { SystemService, AtomService, MomentService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -201,7 +207,26 @@ describe('report', () => {
   })
 })
 
+test('setFeature', async () => {
+  const updated1 = await systemService.setFeatureFlag({
+    name: FEATURE_NAME.payment,
+    flag: FEATURE_FLAG.off,
+  })
+  expect(updated1.name).toBe(FEATURE_NAME.payment)
+  expect(updated1.flag).toBe(FEATURE_FLAG.off)
+  expect(updated1.value).toBeNull()
+
+  const updated2 = await systemService.setFeatureFlag({
+    name: FEATURE_NAME.spam_detection,
+    flag: FEATURE_FLAG.on,
+    value: 0.5,
+  })
+  expect(updated2.name).toBe(FEATURE_NAME.spam_detection)
+  expect(updated2.flag).toBe(FEATURE_FLAG.on)
+  expect(updated2.value).toBe(0.5)
+})
+
 test('get spam threshold', async () => {
   const threshold = await systemService.getSpamThreshold()
-  expect(threshold).toBeNull()
+  expect(threshold).toBe(0.5)
 })

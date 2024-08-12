@@ -358,6 +358,15 @@ export default /* GraphQL */ `
     inRecommendHottest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
     inSearch: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    spamStatus: SpamStatus! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type SpamStatus {
+    "spam confident score by machine, null for not checked yet. "
+    score: Float
+
+    "whether this article is labeled as spam by human, null for not labeled yet. "
+    isSpam: Boolean
   }
 
   type ArticleTranslation {

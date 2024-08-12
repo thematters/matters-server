@@ -23,6 +23,7 @@ import {
   UserService,
   PaymentService,
   CampaignService,
+  SystemService,
 } from 'connectors'
 import { toGlobalId } from 'common/utils'
 
@@ -42,6 +43,7 @@ let momentService: MomentService
 let userService: UserService
 let paymentService: PaymentService
 let campaignService: CampaignService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -52,6 +54,7 @@ beforeAll(async () => {
   userService = new UserService(connections)
   paymentService = new PaymentService(connections)
   campaignService = new CampaignService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -727,13 +730,10 @@ describe('hottest articles', () => {
   })
   test('spam are excluded', async () => {
     const spamThreshold = 0.5
-    await atomService.create({
-      table: 'feature_flag',
-      data: {
-        name: FEATURE_NAME.spam_detection,
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
     })
 
     // both `is_spam` and `spam_score` are null, not excluded

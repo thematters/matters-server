@@ -31,5 +31,10 @@ exports.seed = async (knex) => {
       name: 'verify_appreciate',
       flag: 'off',
     },
+    {
+      name: 'spam_detection',
+      flag: 'off',
+      value: 0.5,
+    },
   ])
 }

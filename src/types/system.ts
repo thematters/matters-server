@@ -49,6 +49,7 @@ export default /* GraphQL */ `
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input:PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
+    setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input KeywordsInput {
@@ -105,6 +106,7 @@ export default /* GraphQL */ `
   type Feature {
     name: FeatureName!
     enabled: Boolean!
+    value: Float
   }
 
   type Announcement {
@@ -129,7 +131,7 @@ export default /* GraphQL */ `
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     comments(input: ConnectionArgs!): CommentConnection!
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: OSSArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
@@ -339,6 +341,7 @@ export default /* GraphQL */ `
   input SetFeatureInput {
     name: FeatureName!
     flag: FeatureFlag!
+    value: Float
   }
 
   input ToggleSeedingUsersInput {
@@ -473,6 +476,7 @@ export default /* GraphQL */ `
     tag_adoption
     circle_management
     circle_interact
+    spam_detection
   }
 
   enum FeatureFlag {
@@ -542,6 +546,20 @@ export default /* GraphQL */ `
    state: IcymiTopicState
  }
 
+  input SetSpamStatusInput {
+    id: ID!
+    isSpam: Boolean!
+  }
+
+  input OSSArticlesInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: OSSArticlesFilterInput
+  }
+
+  input OSSArticlesFilterInput {
+    isSpam: Boolean
+  }
 
   ####################
   #    Directives    #

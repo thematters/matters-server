@@ -184,6 +184,7 @@ const SET_FEATURE = /* GraphQL */ `
     setFeature(input: $input) {
       name
       enabled
+      value
     }
   }
 `
@@ -514,6 +515,14 @@ describe('manage feature flag', () => {
       variables: { input: { name: 'circle_management', flag: 'on' } },
     })
     expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
+
+    // set value
+    const updateData6 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
+      variables: { input: { name: 'spam_detection', flag: 'on', value: 0.9 } },
+    })
+    expect(_get(updateData6, 'data.setFeature.enabled')).toBe(true)
+    expect(_get(updateData6, 'data.setFeature.value')).toBe(0.9)
   })
 
   test('manage seeding user', async () => {
@@ -1028,5 +1037,40 @@ describe('setBoost', () => {
     expect(errors2).toBeUndefined()
     expect(data2.setBoost.id).toBeDefined()
     expect(data2.setBoost.oss.boost).toBe(10)
+  })
+})
+
+describe('setSpamStatus', () => {
+  const SET_SPAM_STATUS = /* GraphQL */ `
+    mutation ($input: SetSpamStatusInput!) {
+      setSpamStatus(input: $input) {
+        id
+        ... on Article {
+          oss {
+            spamStatus {
+              isSpam
+            }
+          }
+        }
+      }
+    }
+  `
+  test('set spam status successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
   })
 })
