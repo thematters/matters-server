@@ -15,18 +15,20 @@ import {
   FEATURE_FLAG,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { CampaignService, AtomService } from 'connectors'
+import { CampaignService, AtomService, SystemService } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
 let connections: Connections
 let campaignService: CampaignService
 let atomService: AtomService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   campaignService = new CampaignService(connections)
   atomService = new AtomService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -251,19 +253,18 @@ describe('find and count articles', () => {
       { take: 10, skip: 0 }
     )
     const spamThreshold = 0.5
-    await atomService.create({
-      table: 'feature_flag',
-      data: {
-        name: FEATURE_NAME.spam_detection,
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
     })
+
     await atomService.update({
       table: 'article',
       where: { id: articles[0].id },
       data: { spamScore: spamThreshold + 0.1 },
     })
+
     const [, totalCount2] = await campaignService.findAndCountArticles(
       campaign.id,
       { take: 10, skip: 0 }

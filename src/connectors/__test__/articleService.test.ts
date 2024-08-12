@@ -10,7 +10,12 @@ import {
   FEATURE_NAME,
   FEATURE_FLAG,
 } from 'common/enums'
-import { ArticleService, UserWorkService, AtomService } from 'connectors'
+import {
+  ArticleService,
+  UserWorkService,
+  AtomService,
+  SystemService,
+} from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
 
@@ -18,11 +23,13 @@ let articleId: string
 let connections: Connections
 let articleService: ArticleService
 let atomService: AtomService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
   articleService = new ArticleService(connections)
   atomService = new AtomService(connections)
+  systemService = new SystemService(connections)
 }, 50000)
 
 afterAll(async () => {
@@ -413,18 +420,10 @@ describe('quicksearch', () => {
     expect(nodes[0].id).toBe(article.id)
 
     const spamThreshold = 0.5
-    await atomService.upsert({
-      table: 'feature_flag',
-      where: { name: FEATURE_NAME.spam_detection },
-      create: {
-        name: FEATURE_NAME.spam_detection,
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
-      update: {
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
     })
 
     await atomService.update({
@@ -471,18 +470,10 @@ describe('latestArticles', () => {
       oss: false,
     })
     const spamThreshold = 0.5
-    await atomService.upsert({
-      table: 'feature_flag',
-      where: { name: FEATURE_NAME.spam_detection },
-      create: {
-        name: FEATURE_NAME.spam_detection,
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
-      update: {
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
     })
     // spam flag is on but no detected articles
     const articles1 = await articleService.latestArticles({

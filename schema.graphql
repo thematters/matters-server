@@ -2050,6 +2050,7 @@ type Official {
 type Feature {
   name: FeatureName!
   enabled: Boolean!
+  value: Float
 }
 
 type Announcement {
@@ -2284,6 +2285,7 @@ input ToggleItemInput {
 input SetFeatureInput {
   name: FeatureName!
   flag: FeatureFlag!
+  value: Float
 }
 
 input ToggleSeedingUsersInput {
@@ -2422,6 +2424,7 @@ enum FeatureName {
   tag_adoption
   circle_management
   circle_interact
+  spam_detection
 }
 
 enum FeatureFlag {

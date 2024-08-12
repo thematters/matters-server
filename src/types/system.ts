@@ -105,6 +105,7 @@ export default /* GraphQL */ `
   type Feature {
     name: FeatureName!
     enabled: Boolean!
+    value: Float
   }
 
   type Announcement {
@@ -339,6 +340,7 @@ export default /* GraphQL */ `
   input SetFeatureInput {
     name: FeatureName!
     flag: FeatureFlag!
+    value: Float
   }
 
   input ToggleSeedingUsersInput {
@@ -473,6 +475,7 @@ export default /* GraphQL */ `
     tag_adoption
     circle_management
     circle_interact
+    spam_detection
   }
 
   enum FeatureFlag {

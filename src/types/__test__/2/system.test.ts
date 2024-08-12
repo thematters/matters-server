@@ -184,6 +184,7 @@ const SET_FEATURE = /* GraphQL */ `
     setFeature(input: $input) {
       name
       enabled
+      value
     }
   }
 `
@@ -514,6 +515,14 @@ describe('manage feature flag', () => {
       variables: { input: { name: 'circle_management', flag: 'on' } },
     })
     expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
+
+    // set value
+    const updateData6 = await serverAdmin.executeOperation({
+      query: SET_FEATURE,
+      variables: { input: { name: 'spam_detection', flag: 'on', value: 0.9 } },
+    })
+    expect(_get(updateData6, 'data.setFeature.enabled')).toBe(true)
+    expect(_get(updateData6, 'data.setFeature.value')).toBe(0.9)
   })
 
   test('manage seeding user', async () => {

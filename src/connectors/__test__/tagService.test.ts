@@ -6,6 +6,7 @@ import {
   AtomService,
   ArticleService,
   UserService,
+  SystemService,
 } from 'connectors'
 
 import { genConnections, closeConnections } from './utils'
@@ -15,6 +16,7 @@ let tagService: TagService
 let atomService: AtomService
 let articleService: ArticleService
 let userService: UserService
+let systemService: SystemService
 
 beforeAll(async () => {
   connections = await genConnections()
@@ -22,6 +24,7 @@ beforeAll(async () => {
   atomService = new AtomService(connections)
   articleService = new ArticleService(connections)
   userService = new UserService(connections)
+  systemService = new SystemService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -91,15 +94,14 @@ describe('findArticleIds', () => {
       excludeSpam: true,
     })
     expect(articleIds).toBeDefined()
+
     const spamThreshold = 0.5
-    await atomService.create({
-      table: 'feature_flag',
-      data: {
-        name: FEATURE_NAME.spam_detection,
-        flag: FEATURE_FLAG.on,
-        value: spamThreshold,
-      },
+    await systemService.setFeatureFlag({
+      name: FEATURE_NAME.spam_detection,
+      flag: FEATURE_FLAG.on,
+      value: spamThreshold,
     })
+
     // spam flag is on but no detected articles
     const excluded1 = await tagService.findArticleIds({
       id: '2',

@@ -1468,6 +1468,7 @@ export type GQLFeature = {
   __typename?: 'Feature'
   enabled: Scalars['Boolean']['output']
   name: GQLFeatureName
+  value?: Maybe<Scalars['Float']['output']>
 }
 
 export type GQLFeatureFlag = 'admin' | 'off' | 'on' | 'seeding'
@@ -1479,6 +1480,7 @@ export type GQLFeatureName =
   | 'fingerprint'
   | 'payment'
   | 'payout'
+  | 'spam_detection'
   | 'tag_adoption'
   | 'verify_appreciate'
 
@@ -3254,6 +3256,7 @@ export type GQLSetEmailInput = {
 export type GQLSetFeatureInput = {
   flag: GQLFeatureFlag
   name: GQLFeatureName
+  value?: InputMaybe<Scalars['Float']['input']>
 }
 
 export type GQLSetPasswordInput = {
@@ -7238,6 +7241,7 @@ export type GQLFeatureResolvers<
 > = ResolversObject<{
   enabled?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   name?: Resolver<GQLResolversTypes['FeatureName'], ParentType, ContextType>
+  value?: Resolver<Maybe<GQLResolversTypes['Float']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }>
 

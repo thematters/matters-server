@@ -30,6 +30,7 @@ import {
   CACHE_PREFIX,
   CACHE_TTL,
 } from 'common/enums'
+import { isTest } from 'common/environment'
 import { getLogger } from 'common/logger'
 import { BaseService, CacheService } from 'connectors'
 
@@ -105,15 +106,18 @@ export class SystemService extends BaseService<BaseDBSchema> {
   public setFeatureFlag = async ({
     name,
     flag,
+    value,
   }: {
     name: keyof typeof FEATURE_NAME
     flag: keyof typeof FEATURE_FLAG
+    value?: number
   }) => {
     const [featureFlag] = await this.knex
       .where({ name })
       .update({
         name,
         flag,
+        value: value || null,
         updatedAt: this.knex.fn.now(),
       })
       .into(this.featureFlagTable)
@@ -166,7 +170,7 @@ export class SystemService extends BaseService<BaseDBSchema> {
     const value = (await cacheService.getObject({
       keys: { id: 'spam_threshold' },
       getter: this._getSpamThreshold,
-      expire: CACHE_TTL.SHORT,
+      expire: isTest ? CACHE_TTL.INSTANT : CACHE_TTL.SHORT,
     })) as number | null
     return value
   }
