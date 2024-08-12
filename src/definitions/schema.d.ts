@@ -2559,7 +2559,7 @@ export type GQLOss = {
 }
 
 export type GQLOssArticlesArgs = {
-  input: GQLConnectionArgs
+  input: GQLOssArticlesInput
 }
 
 export type GQLOssBadgedUsersArgs = {
@@ -2600,6 +2600,16 @@ export type GQLOssTagsArgs = {
 
 export type GQLOssUsersArgs = {
   input: GQLConnectionArgs
+}
+
+export type GQLOssArticlesFilterInput = {
+  isSpam?: InputMaybe<Scalars['Boolean']['input']>
+}
+
+export type GQLOssArticlesInput = {
+  after?: InputMaybe<Scalars['String']['input']>
+  filter?: InputMaybe<GQLOssArticlesFilterInput>
+  first?: InputMaybe<Scalars['Int']['input']>
 }
 
 export type GQLOauth1CredentialInput = {
@@ -4948,6 +4958,8 @@ export type GQLResolversTypes = ResolversObject<{
       users: GQLResolversTypes['UserConnection']
     }
   >
+  OSSArticlesFilterInput: GQLOssArticlesFilterInput
+  OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: ResolverTypeWrapper<GQLOfficial>
   OfficialAnnouncementNotice: ResolverTypeWrapper<NoticeItemModel>
@@ -5507,6 +5519,8 @@ export type GQLResolversParentTypes = ResolversObject<{
     tags: GQLResolversParentTypes['TagConnection']
     users: GQLResolversParentTypes['UserConnection']
   }
+  OSSArticlesFilterInput: GQLOssArticlesFilterInput
+  OSSArticlesInput: GQLOssArticlesInput
   Oauth1CredentialInput: GQLOauth1CredentialInput
   Official: GQLOfficial
   OfficialAnnouncementNotice: NoticeItemModel

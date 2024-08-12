@@ -131,7 +131,7 @@ export default /* GraphQL */ `
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     comments(input: ConnectionArgs!): CommentConnection!
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: OSSArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
@@ -551,6 +551,15 @@ export default /* GraphQL */ `
     isSpam: Boolean!
   }
 
+  input OSSArticlesInput {
+    after: String
+    first: Int @constraint(min: 0)
+    filter: OSSArticlesFilterInput
+  }
+
+  input OSSArticlesFilterInput {
+    isSpam: Boolean
+  }
 
   ####################
   #    Directives    #

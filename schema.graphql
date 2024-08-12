@@ -2080,7 +2080,7 @@ type TranslatedAnnouncement {
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   comments(input: ConnectionArgs!): CommentConnection!
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
@@ -2498,6 +2498,16 @@ input PutIcymiTopicInput {
 input SetSpamStatusInput {
   id: ID!
   isSpam: Boolean!
+}
+
+input OSSArticlesInput {
+  after: String
+  first: Int
+  filter: OSSArticlesFilterInput
+}
+
+input OSSArticlesFilterInput {
+  isSpam: Boolean
 }
 
 enum CacheControlScope {
