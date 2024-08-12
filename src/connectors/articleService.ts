@@ -444,7 +444,7 @@ export class ArticleService extends BaseService<Article> {
         .returning('*')
       await trx.commit()
 
-      this.detectSpam({
+      this._detectSpam({
         id: article.id,
         title,
         content,
@@ -624,8 +624,9 @@ export class ArticleService extends BaseService<Article> {
       table: 'article_version',
       data: { ...data, ...newData, description } as Partial<ArticleVersion>,
     })
+
     if (newData.content) {
-      this.detectSpam({
+      this._detectSpam({
         id: articleId,
         title: articleVersion.title,
         content: newData.content,
@@ -2292,7 +2293,18 @@ export class ArticleService extends BaseService<Article> {
    *                               *
    *********************************/
 
-  private detectSpam = async (
+  public detectSpam = async (id: string, spamDetector?: SpamDetector) => {
+    const detector = spamDetector ?? new SpamDetector()
+    const { title, summary, summaryCustomized } =
+      await this.loadLatestArticleVersion(id)
+    const content = await this.loadLatestArticleContent(id)
+    await this._detectSpam(
+      { id, title, content, summary: summaryCustomized ? summary : undefined },
+      detector
+    )
+  }
+
+  private _detectSpam = async (
     {
       id,
       title,
