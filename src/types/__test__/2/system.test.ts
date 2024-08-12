@@ -1039,3 +1039,38 @@ describe('setBoost', () => {
     expect(data2.setBoost.oss.boost).toBe(10)
   })
 })
+
+describe('setSpamStatus', () => {
+  const SET_SPAM_STATUS = /* GraphQL */ `
+    mutation ($input: SetSpamStatusInput!) {
+      setSpamStatus(input: $input) {
+        id
+        ... on Article {
+          oss {
+            spamStatus {
+              isSpam
+            }
+          }
+        }
+      }
+    }
+  `
+  test('set spam status successfully', async () => {
+    const server = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: SET_SPAM_STATUS,
+      variables: {
+        input: {
+          id: toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+          isSpam: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setSpamStatus.oss.spamStatus.isSpam).toBe(true)
+  })
+})

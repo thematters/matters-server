@@ -10,6 +10,7 @@ import putRestrictedUsers from './putRestrictedUsers'
 import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
+import setSpamStatus from './setSpamStatus'
 import singleFileUpload from './singleFileUpload'
 import submitReport from './submitReport'
 import toggleSeedingUsers from './toggleSeedingUsers'
@@ -31,5 +32,6 @@ export default {
     putRestrictedUsers,
     submitReport,
     putIcymiTopic,
+    setSpamStatus,
   },
 }

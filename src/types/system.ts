@@ -49,6 +49,7 @@ export default /* GraphQL */ `
     deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
     putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]! @complexity(value: 1, multipliers: ["input.ids"]) @auth(mode: "${AUTH_MODE.admin}")
     putIcymiTopic(input:PutIcymiTopicInput!): IcymiTopic @auth(mode: "${AUTH_MODE.admin}")
+    setSpamStatus(input: SetSpamStatusInput!): Article! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   input KeywordsInput {
@@ -544,6 +545,11 @@ export default /* GraphQL */ `
    note: String
    state: IcymiTopicState
  }
+
+  input SetSpamStatusInput {
+    id: ID!
+    isSpam: Boolean!
+  }
 
 
   ####################

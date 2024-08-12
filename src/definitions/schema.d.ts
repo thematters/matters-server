@@ -1910,6 +1910,7 @@ export type GQLMutation = {
   setFeature: GQLFeature
   /** Set user email login password. */
   setPassword: GQLUser
+  setSpamStatus: GQLArticle
   /** Set user name. */
   setUserName: GQLUser
   /** Upload a single file. */
@@ -2245,6 +2246,10 @@ export type GQLMutationSetFeatureArgs = {
 
 export type GQLMutationSetPasswordArgs = {
   input: GQLSetPasswordInput
+}
+
+export type GQLMutationSetSpamStatusArgs = {
+  input: GQLSetSpamStatusInput
 }
 
 export type GQLMutationSetUserNameArgs = {
@@ -3261,6 +3266,11 @@ export type GQLSetFeatureInput = {
 
 export type GQLSetPasswordInput = {
   password: Scalars['String']['input']
+}
+
+export type GQLSetSpamStatusInput = {
+  id: Scalars['ID']['input']
+  isSpam: Scalars['Boolean']['input']
 }
 
 export type GQLSetUserNameInput = {
@@ -5041,6 +5051,7 @@ export type GQLResolversTypes = ResolversObject<{
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
   SetPasswordInput: GQLSetPasswordInput
+  SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
   SigningMessagePurpose: GQLSigningMessagePurpose
   SigningMessageResult: ResolverTypeWrapper<GQLSigningMessageResult>
@@ -5573,6 +5584,7 @@ export type GQLResolversParentTypes = ResolversObject<{
   SetEmailInput: GQLSetEmailInput
   SetFeatureInput: GQLSetFeatureInput
   SetPasswordInput: GQLSetPasswordInput
+  SetSpamStatusInput: GQLSetSpamStatusInput
   SetUserNameInput: GQLSetUserNameInput
   SigningMessageResult: GQLSigningMessageResult
   SingleFileUploadInput: GQLSingleFileUploadInput
@@ -7960,6 +7972,12 @@ export type GQLMutationResolvers<
     ParentType,
     ContextType,
     RequireFields<GQLMutationSetPasswordArgs, 'input'>
+  >
+  setSpamStatus?: Resolver<
+    GQLResolversTypes['Article'],
+    ParentType,
+    ContextType,
+    RequireFields<GQLMutationSetSpamStatusArgs, 'input'>
   >
   setUserName?: Resolver<
     GQLResolversTypes['User'],

@@ -155,6 +155,7 @@ type Mutation {
   deleteAnnouncements(input: DeleteAnnouncementsInput!): Boolean!
   putRestrictedUsers(input: PutRestrictedUsersInput!): [User!]!
   putIcymiTopic(input: PutIcymiTopicInput!): IcymiTopic
+  setSpamStatus(input: SetSpamStatusInput!): Article!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -2492,6 +2493,11 @@ input PutIcymiTopicInput {
   pinAmount: Int
   note: String
   state: IcymiTopicState
+}
+
+input SetSpamStatusInput {
+  id: ID!
+  isSpam: Boolean!
 }
 
 enum CacheControlScope {
