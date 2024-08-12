@@ -66,7 +66,7 @@ jobs:
           NODE_OPTIONS: "--no-experimental-fetch"
           CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
           MATTERS_ENV: test
-          MATTERS_LOGGING_LEVEL: warn
+          MATTERS_LOGGING_LEVEL: critical
           MATTERS_PG_HOST: localhost
           MATTERS_PG_USER: postgres
           MATTERS_PG_PASSWORD: postgres
