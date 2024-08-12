@@ -92,20 +92,6 @@ const GET_ARTICLE = /* GraphQL */ `
   }
 `
 
-const GET_ARTICLES = /* GraphQL */ `
-  query ($input: ConnectionArgs!) {
-    oss {
-      articles(input: $input) {
-        edges {
-          node {
-            id
-          }
-        }
-      }
-    }
-  }
-`
-
 const GET_ARTICLE_TAGS = /* GraphQL */ `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -178,6 +164,19 @@ const GET_RELATED_ARTICLES = /* GraphQL */ `
 `
 
 describe('query article', () => {
+  const GET_ARTICLES = /* GraphQL */ `
+    query ($input: OSSArticlesInput!) {
+      oss {
+        articles(input: $input) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  `
   test('query articles', async () => {
     const server = await testClient({
       isAuth: true,
