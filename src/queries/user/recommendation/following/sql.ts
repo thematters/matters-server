@@ -133,7 +133,7 @@ export const makeBaseActivityQuery = async (
       .with(
         'time_grouped',
         knexRO.raw(
-          'SELECT *, (extract(hour FROM created_at - first_value(created_at) OVER (PARTITION BY actor_id, type_group ORDER BY created_at))::integer)/4 AS time_group FROM type_grouped'
+          'SELECT *, ((extract(epoch FROM created_at - first_value(created_at) OVER (PARTITION BY actor_id, type_group ORDER BY created_at))/3600)::integer)/4 AS time_group FROM type_grouped'
         )
       )
       .with(
