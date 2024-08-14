@@ -10,6 +10,7 @@ import {
   NODE_TYPES,
   MOMENT_STATE,
 } from 'common/enums'
+import { selectWithTotalCount } from 'common/utils'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
 
@@ -149,7 +150,8 @@ export const makeBaseActivityQuery = async (
           WINDOW acty_group AS (PARTITION BY actor_id, type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)`
         )
       )
-      .select('*', knexRO.raw('count(1) OVER() ::integer AS total_count'))
+      .select('*')
+      .modify(selectWithTotalCount)
       .from('agged')
       .where((whereBuilder) => {
         whereBuilder
@@ -183,7 +185,8 @@ export const makeBaseActivityQuery = async (
     ]
   } else {
     const records = await knexRO
-      .select('*', knexRO.raw('count(1) OVER() ::integer AS total_count'))
+      .select('*')
+      .modify(selectWithTotalCount)
       .from(baseQuery.as('base'))
       .orderBy('created_at', 'desc')
       .offset(skip)
