@@ -8,6 +8,7 @@ import {
   TAG_ACTION,
   USER_ACTION,
   NODE_TYPES,
+  MOMENT_STATE,
 } from 'common/enums'
 
 const viewName = MATERIALIZED_VIEW.user_activity_materialized
@@ -91,7 +92,9 @@ export const makeBaseActivityQuery = async (
                   'acty.actor_id',
                   'excluded_users.user_id'
                 )
+                .join('moment', 'acty.node_id', 'moment.id')
                 .where({
+                  'moment.state': MOMENT_STATE.active,
                   'excluded_users.user_id': null,
                   'au.user_id': userId,
                   'au.action': USER_ACTION.follow,

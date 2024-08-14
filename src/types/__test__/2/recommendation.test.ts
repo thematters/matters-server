@@ -576,7 +576,7 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
-    // same actor other activities will  reset the combination time window
+    // same actor other activities will reset the combination time window
     const [article] = await articleService.createArticle({
       title: 'test',
       content: 'test',
@@ -608,14 +608,36 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
     )
 
-    // article only
+    // archived moment will not be included
+    await atomService.update({
+      table: 'moment',
+      where: { id: moment7.id },
+      data: { state: 'archived' },
+    })
     const { errors: errors6, data: data6 } = await server.executeOperation({
+      query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
+      variables: { input: { first: 10 } },
+    })
+    expect(errors6).toBeUndefined()
+    expect(data6.viewer.recommendation.following.totalCount).toBe(3)
+    expect(data6.viewer.recommendation.following.edges[0].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Article, id: article.id })
+    )
+    expect(data6.viewer.recommendation.following.edges[1].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment6.id })
+    )
+    expect(data6.viewer.recommendation.following.edges[2].node.node.id).toBe(
+      toGlobalId({ type: NODE_TYPES.Moment, id: moment5.id })
+    )
+
+    // article only
+    const { errors: errors7, data: data7 } = await server.executeOperation({
       query: GET_VIEWER_RECOMMENDATION_FOLLOWING,
       variables: { input: { first: 10, filter: { type: 'article' } } },
     })
-    expect(errors6).toBeUndefined()
-    expect(data6.viewer.recommendation.following.totalCount).toBe(1)
-    expect(data6.viewer.recommendation.following.edges[0].node.node.id).toBe(
+    expect(errors7).toBeUndefined()
+    expect(data7.viewer.recommendation.following.totalCount).toBe(1)
+    expect(data7.viewer.recommendation.following.edges[0].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Article, id: article.id })
     )
   })
