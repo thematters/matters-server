@@ -22,13 +22,17 @@ export const Transaction: GQLTransactionResolvers = {
     trx.senderId ? atomService.userIdLoader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { atomService } }) =>
     trx.recipientId ? atomService.userIdLoader.load(trx.recipientId) : null,
-  blockchainTx: async (trx, _, { dataSources: { paymentService } }) => {
+  blockchainTx: async (trx, _, { dataSources: { atomService } }) => {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
       return null
     }
-    const blockchainTx = await paymentService.findBlockchainTransactionById(
-      trx.providerTxId
-    )
+    if (!Number.isFinite(trx.providerTxId)) {
+      return null
+    }
+    const blockchainTx = await atomService.findUnique({
+      table: 'blockchain_transaction',
+      where: { id: trx.providerTxId },
+    })
     const chain = BLOCKCHAIN_CHAINNAME[blockchainTx.chainId]
     if (!chain) {
       throw new ServerError('chain is not supported')

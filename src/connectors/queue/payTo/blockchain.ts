@@ -174,9 +174,11 @@ export class PayToByBlockchainQueue {
     }
 
     // skip if blockchain tx is not found
-    const blockchainTx = await paymentService.findBlockchainTransactionById(
-      tx.providerTxId
-    )
+    const blockchainTx = await atomService.findUnique({
+      table: 'blockchain_transaction',
+      where: { id: tx.providerTxId },
+    })
+
     if (!blockchainTx) {
       job.discard()
       throw new PaymentQueueJobDataError('blockchain transaction not found')
