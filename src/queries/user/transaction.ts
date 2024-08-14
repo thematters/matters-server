@@ -26,7 +26,7 @@ export const Transaction: GQLTransactionResolvers = {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
       return null
     }
-    if (!Number.isFinite(trx.providerTxId)) {
+    if (Number.isNaN(trx.providerTxId)) {
       return null
     }
     const blockchainTx = await atomService.findUnique({
