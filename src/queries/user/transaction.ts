@@ -12,7 +12,7 @@ import {
   PAYMENT_PROVIDER,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { toGlobalId } from 'common/utils'
+import { isNumeric, toGlobalId } from 'common/utils'
 
 export const Transaction: GQLTransactionResolvers = {
   id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
@@ -26,7 +26,7 @@ export const Transaction: GQLTransactionResolvers = {
     if (trx.provider !== PAYMENT_PROVIDER.blockchain) {
       return null
     }
-    if (Number.isNaN(trx.providerTxId)) {
+    if (!isNumeric(trx.providerTxId)) {
       return null
     }
     const blockchainTx = await atomService.findUnique({
