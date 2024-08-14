@@ -104,7 +104,7 @@ export class MomentService {
           actorId: user.id,
           recipientId: mentionedUserId,
           entities: [{ type: 'target', entityTable: 'moment', entity: moment }],
-          tag: `put-momment:${moment.id}`,
+          tag: `put-moment:${moment.id}`,
         })
       }
     }
