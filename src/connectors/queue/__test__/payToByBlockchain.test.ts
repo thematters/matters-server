@@ -105,14 +105,14 @@ const validEvent = {
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: contract.Optimism.tokenAddress,
-  amount: '1000000',
+  amount: (amount * 1e6).toString(),
 }
 const nativeTokenEvent = {
   curatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
   creatorAddress: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e',
   uri: 'ipfs://someIpfsDataHash1',
   tokenAddress: null,
-  amount: '1000000000000000000',
+  amount: (amount * 1e18).toString(),
 }
 const txReceipt = {
   blockNumber: 1,
@@ -537,11 +537,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     expect(await knex(eventTable).count()).toEqual([{ count: '3' }])
   })
   test('valid logs will update tx', async () => {
-    await knex(eventTable).del()
-    await knex(blockchainTxTable).del()
-    await knex(txTable).del()
-
-    // no related tx, insert one
     const logs = [
       {
         txHash,
@@ -553,6 +548,38 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
         },
       },
     ]
+
+    // match a pending tx, update to succeeded
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
+    await paymentService.createTransaction({
+      amount,
+      state: TRANSACTION_STATE.pending,
+      purpose,
+      currency,
+      provider,
+      providerTxId: v4(),
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    // @ts-ignore
+    await queue._syncCurationEvents(logs, 'Optimism')
+    const updatedTx = await knex(txTable).first()
+    const updatedBlockchainTx = await knex(blockchainTxTable).first()
+    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx.state).toBe(
+      BLOCKCHAIN_TRANSACTION_STATE.succeeded
+    )
+    expect(updatedBlockchainTx.transactionId).toBe(updatedTx.id)
+    expect(updatedTx.providerTxId).toBe(updatedBlockchainTx.id)
+
+    // no related tx, create a anonymous tx
+    await knex(eventTable).del()
+    await knex(blockchainTxTable).del()
+    await knex(txTable).del()
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
@@ -560,6 +587,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     const blockchainTx = await knex(blockchainTxTable).first()
     expect(tx.state).toBe(TRANSACTION_STATE.succeeded)
     expect(blockchainTx.transactionId).toBe(tx.id)
+    expect(tx.senderId).toBeNull()
 
     // related tx state is not succeeded, update to succeeded
     await knex(eventTable).del()
@@ -567,17 +595,16 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
     await knex(txTable).update({ state: TRANSACTION_STATE.pending })
-
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
-    const updatedTx = await knex(txTable).where('id', tx.id).first()
-    const updatedBlockchainTx = await knex(blockchainTxTable)
+    const updatedTx1 = await knex(txTable).where('id', tx.id).first()
+    const updatedBlockchainTx1 = await knex(blockchainTxTable)
       .where('id', blockchainTx.id)
       .first()
 
-    expect(updatedTx.state).toBe(TRANSACTION_STATE.succeeded)
-    expect(updatedBlockchainTx.state).toBe(
+    expect(updatedTx1.state).toBe(TRANSACTION_STATE.succeeded)
+    expect(updatedBlockchainTx1.state).toBe(
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
 
@@ -589,7 +616,6 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
     await knex(blockchainTxTable).update({
       state: BLOCKCHAIN_TRANSACTION_STATE.pending,
     })
-
     // @ts-ignore
     await queue._syncCurationEvents(logs, 'Optimism')
     expect(await knex(txTable).count()).toEqual([{ count: '1' }])
@@ -604,6 +630,7 @@ describe('payToByBlockchainQueue._syncCurationEvents', () => {
       BLOCKCHAIN_TRANSACTION_STATE.succeeded
     )
   })
+
   test.skip('blockchain_transaction forgeting adding transaction_id will be update and not send notification', async () => {
     // mock notify failed below as we have no direct access to paymentService in queue now
     const mockNotify = jest.fn()

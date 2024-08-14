@@ -425,7 +425,7 @@ export class PayToByBlockchainQueue {
       })
     }
 
-    // can find via `blockchainTx.id`, correct `blockchainTx.transactionId`
+    // can find via `blockchainTx.id`
     // for tx that is created by `payTo` mutation previously
     // but linked to the wrong blockchainTx
     if (!tx) {
@@ -437,6 +437,7 @@ export class PayToByBlockchainQueue {
         },
       })
 
+      // correct `blockchainTx.transactionId`
       if (tx) {
         await atomService.update({
           table: 'blockchain_transaction',
@@ -470,6 +471,22 @@ export class PayToByBlockchainQueue {
           targetId: article.id,
         },
       })
+
+      // correct `blockchainTx.transactionId` and `tx.providerId`
+      if (tx) {
+        await Promise.all([
+          atomService.update({
+            table: 'blockchain_transaction',
+            where: { id: blockchainTx.id },
+            data: { transactionId: tx.id },
+          }),
+          atomService.update({
+            table: 'transaction',
+            where: { id: tx.id },
+            data: { providerTxId: blockchainTx.id },
+          }),
+        ])
+      }
     }
 
     if (tx) {
