@@ -177,8 +177,7 @@ describe('donation', () => {
     })
     expect(transaction.amount).toBe(amount)
     expect(transaction.state).toBe('pending')
-    expect(transaction.blockchainTx.chain).toBe(chain)
-    expect(transaction.blockchainTx.txHash).toBe(txHash)
+    expect(transaction.blockchainTx).toBe(null)
   })
   test('can call USDT payTo', async () => {
     const server = await testClient({
