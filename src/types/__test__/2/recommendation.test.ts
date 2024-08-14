@@ -505,7 +505,7 @@ describe('following UserPostMomentActivity', () => {
       toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
 
-    // two same actor moment activities in series
+    // two same actor moment activities in series will not be combined
     const moment2 = await momentService.create({ content: 'test' }, followee1)
     await refreshView(
       MATERIALIZED_VIEW.user_activity_materialized,
@@ -522,9 +522,15 @@ describe('following UserPostMomentActivity', () => {
     expect(data2.viewer.recommendation.following.edges[0].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Moment, id: moment2.id })
     )
+    expect(
+      data2.viewer.recommendation.following.edges[0].node.more.length
+    ).toBe(0)
     expect(data2.viewer.recommendation.following.edges[1].node.node.id).toBe(
       toGlobalId({ type: NODE_TYPES.Moment, id: moment1.id })
     )
+    expect(
+      data2.viewer.recommendation.following.edges[1].node.more.length
+    ).toBe(0)
 
     // three same actor moment activities in series will be combined into one activity
     const moment3 = await momentService.create({ content: 'test' }, followee1)
