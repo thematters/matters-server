@@ -106,9 +106,10 @@ export const makeBaseActivityQuery = async (
     )
 
   if (articleOnly !== true) {
+    const momentCollapseThreshold = 2
     // First group records with same activity type (what lagged, diffed, type_grouped CTE is for),
     // then subgroup records according time window (4 hours as a group, and start from first record in outer group)
-    const records = await knexRO
+    const query = knexRO
       .with('base', baseQuery)
       .with(
         'lagged',
@@ -140,7 +141,7 @@ export const makeBaseActivityQuery = async (
           `SELECT
               *,
               row_number() OVER acty_group AS rank,
-              count(1) OVER (PARTITION BY actor_id, type_group, time_group ) AS group_size,
+              count(1) OVER (PARTITION BY actor_id, type_group, time_group ) ::integer AS group_size,
               nth_value(node_id, 2) OVER acty_group AS acty_node_2,
               nth_value(node_id, 3) OVER acty_group AS acty_node_3,
               nth_value(node_id, 4) OVER acty_group AS acty_node_4
@@ -148,32 +149,46 @@ export const makeBaseActivityQuery = async (
           WINDOW acty_group AS (PARTITION BY actor_id, type_group, time_group ORDER BY created_at DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)`
         )
       )
-      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('*', knexRO.raw('count(1) OVER() ::integer AS total_count'))
       .from('agged')
       .where((whereBuilder) => {
         whereBuilder
           .where('type', '=', ActivityType.UserPostMomentActivity)
-          .andWhere('group_size', '<=', 2)
+          .andWhere('group_size', '<=', momentCollapseThreshold)
       })
       .orWhere((orWhereBuilder) => {
         orWhereBuilder
           .where('type', '=', ActivityType.UserPostMomentActivity)
-          .andWhere('group_size', '>', 2)
+          .andWhere('group_size', '>', momentCollapseThreshold)
           .andWhere('rank', '=', 1)
       })
       .orWhere('type', '!=', ActivityType.UserPostMomentActivity)
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)
-    return [records, +(records[0]?.totalCount ?? 0)]
+
+    const records = await query
+
+    return [
+      records.map((record: Activity & { groupSize: number }) => ({
+        ...record,
+        actyNode2:
+          record.groupSize <= momentCollapseThreshold ? null : record.actyNode2,
+        actyNode3:
+          record.groupSize <= momentCollapseThreshold ? null : record.actyNode3,
+        actyNode4:
+          record.groupSize <= momentCollapseThreshold ? null : record.actyNode4,
+      })),
+      records[0]?.totalCount ?? 0,
+    ]
   } else {
     const records = await knexRO
-      .select('*', knexRO.raw('count(1) OVER() AS total_count'))
+      .select('*', knexRO.raw('count(1) OVER() ::integer AS total_count'))
       .from(baseQuery.as('base'))
       .orderBy('created_at', 'desc')
       .offset(skip)
       .limit(take)
-    return [records, +(records[0]?.totalCount ?? 0)]
+    return [records, records[0]?.totalCount ?? 0]
   }
 }
 
