@@ -1,4 +1,4 @@
-import { optimism, optimismSepolia, polygon } from 'viem/chains'
+import { optimism, optimismSepolia, polygon, polygonMumbai } from 'viem/chains'
 
 import { environment, isProd } from 'common/environment'
 import { GQLChain } from 'definitions'
@@ -51,6 +51,7 @@ export const BLOCKCHAIN: { [key in GQLChain]: GQLChain } = {
 
 export const BLOCKCHAIN_CHAINNAME: { [chainId: string]: GQLChain } = {
   [polygon.id]: BLOCKCHAIN.Polygon,
+  [polygonMumbai.id]: BLOCKCHAIN.Polygon,
   [optimism.id]: BLOCKCHAIN.Optimism,
   [optimismSepolia.id]: BLOCKCHAIN.Optimism,
 } as const
