@@ -113,3 +113,7 @@ export const extractRootDomain = (url: string) => {
 
   return parts[2].split('.').slice(-2).join('.')
 }
+
+export const isNumeric = (n: string) => {
+  return /^\d+$/.test(n)
+}

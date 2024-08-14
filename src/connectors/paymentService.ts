@@ -255,9 +255,6 @@ export class PaymentService extends BaseService<Transaction> {
     )
   }
 
-  public findBlockchainTransactionById = async (id: string) =>
-    this.models.findUnique({ table: 'blockchain_transaction', where: { id } })
-
   public findOrCreateBlockchainTransaction = async (
     { chainId, txHash }: { chainId: string | number; txHash: string },
     data?: {
