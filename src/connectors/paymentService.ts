@@ -345,6 +345,12 @@ export class PaymentService extends BaseService<Transaction> {
           .into(this.table)
           .returning('*')
           .transacting(trx)
+      } else {
+        tx = await trx
+          .select()
+          .from(this.table)
+          .where({ providerTxId, provider })
+          .first()
       }
 
       // or create a new transaction with the blockchainTx

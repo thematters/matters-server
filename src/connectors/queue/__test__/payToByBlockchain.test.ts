@@ -74,6 +74,8 @@ const invalidTxhash =
 const failedTxhash =
   '0xbad52ae6172aa85e1f883967215cbdc5e70ddc479c7ee22da3c23d06820ee29e'
 const txHash =
+  '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215b'
+const txHash1 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215c'
 const txHash2 =
   '0x649cf52a3c7b6ba16e1d52d4fc409c9ca1307329e691147990abe59c8c16215d'
@@ -120,6 +122,14 @@ const txReceipt = {
   reverted: false,
   events: [validEvent],
 }
+const txReceipt1 = {
+  blockNumber: 1,
+  from: '0x999999cf1046e68e36e1aa2e0e07105eddd1f08f',
+  to: contract.Optimism.curationAddress,
+  txHash: txHash1,
+  reverted: false,
+  events: [validEvent],
+}
 
 // tests
 
@@ -135,6 +145,8 @@ describe('payToByBlockchainQueue.payTo', () => {
         return failedTxReceipt
       } else if (hash === txHash) {
         return txReceipt
+      } else if (hash === txHash1) {
+        return txReceipt1
       } else {
         return null
       }
@@ -306,7 +318,7 @@ describe('payToByBlockchainQueue.payTo', () => {
     const tx1 = await paymentService.findOrCreateTransactionByBlockchainTxHash({
       chainId,
       txId: tx.id,
-      txHash,
+      txHash: txHash1,
       amount,
       state,
       purpose,
@@ -317,18 +329,16 @@ describe('payToByBlockchainQueue.payTo', () => {
       targetType,
     })
     expect(tx.id).toBe(tx1.id)
+    expect(tx1.providerTxId).not.toBe(draftProviderTxId)
     const job = await queue.payTo({ txId: tx.id })
     expect(await job.finished()).toStrictEqual({ txId: tx.id })
     const ret = await paymentService.baseFindById(tx.id)
-    // draft tx was settled
     expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
     const blockchainTx = await paymentService.baseFindById(
-      tx.providerTxId,
+      tx1.providerTxId,
       'blockchain_transaction'
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
-    // draft tx was corrected
-    expect(ret.providerTxId).not.toBe(draftProviderTxId)
   })
 
   test('no matched sender address will mark transaction as anonymous', async () => {
