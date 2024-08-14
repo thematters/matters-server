@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/ban-ts-comment: 0 */
 import type { Connections } from 'definitions'
+import { v4 } from 'uuid'
 
 import { Knex } from 'knex'
 
@@ -283,6 +284,51 @@ describe('payToByBlockchainQueue.payTo', () => {
       'blockchain_transaction'
     )
     expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
+  })
+
+  test('settle pending tx with succeeded valid blockchain transaction will mark both as succeeded', async () => {
+    // create pending tx
+    const draftProviderTxId = v4()
+    const tx = await paymentService.createTransaction({
+      amount,
+      state,
+      purpose,
+      currency,
+      provider,
+      providerTxId: draftProviderTxId,
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+
+    // settle tx
+    const tx1 = await paymentService.findOrCreateTransactionByBlockchainTxHash({
+      chainId,
+      txId: tx.id,
+      txHash,
+      amount,
+      state,
+      purpose,
+      currency,
+      recipientId,
+      senderId: '10',
+      targetId,
+      targetType,
+    })
+    expect(tx.id).toBe(tx1.id)
+    const job = await queue.payTo({ txId: tx.id })
+    expect(await job.finished()).toStrictEqual({ txId: tx.id })
+    const ret = await paymentService.baseFindById(tx.id)
+    // draft tx was settled
+    expect(ret.state).toBe(TRANSACTION_STATE.succeeded)
+    const blockchainTx = await paymentService.baseFindById(
+      tx.providerTxId,
+      'blockchain_transaction'
+    )
+    expect(blockchainTx.state).toBe(BLOCKCHAIN_TRANSACTION_STATE.succeeded)
+    // draft tx was corrected
+    expect(ret.providerTxId).not.toBe(draftProviderTxId)
   })
 
   test('no matched sender address will mark transaction as anonymous', async () => {

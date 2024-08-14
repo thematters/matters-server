@@ -110,28 +110,6 @@ describe('donation', () => {
       '`chain` is required if `currency` is `USDT`'
     )
   })
-  test('cannot call USDT payTo without `txHash`', async () => {
-    const server = await testClient({
-      isAuth: true,
-      connections,
-    })
-    const { errors } = await server.executeOperation({
-      query: PAYTO_USDT,
-      variables: {
-        input: {
-          amount,
-          currency,
-          purpose,
-          recipientId,
-          targetId,
-          chain,
-        },
-      },
-    })
-    expect(errors[0]?.message).toBe(
-      '`txHash` is required if `currency` is `USDT`'
-    )
-  })
   test('cannot call USDT payTo with bad `txHash`', async () => {
     const server = await testClient({
       isAuth: true,
@@ -174,6 +152,33 @@ describe('donation', () => {
       },
     })
     expect(errors[0]?.message).toBe('banned user has no permission')
+  })
+  test('can call USDT payTo without `txHash`', async () => {
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const {
+      data: {
+        payTo: { transaction },
+      },
+    } = await server.executeOperation({
+      query: PAYTO_USDT,
+      variables: {
+        input: {
+          amount,
+          currency,
+          purpose,
+          recipientId,
+          targetId,
+          chain,
+        },
+      },
+    })
+    expect(transaction.amount).toBe(amount)
+    expect(transaction.state).toBe('pending')
+    expect(transaction.blockchainTx.chain).toBe(chain)
+    expect(transaction.blockchainTx.txHash).toBe(txHash)
   })
   test('can call USDT payTo', async () => {
     const server = await testClient({

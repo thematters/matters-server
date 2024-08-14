@@ -413,9 +413,11 @@ export class PayToByBlockchainQueue {
     const amount = parseFloat(
       formatUnits(BigInt(event.amount), contract[chain].tokenDecimals)
     )
-
     let tx
-    // can find by `blockchainTx.transactionId`
+
+    // can find via `blockchainTx.transactionId`
+    // for tx that is created by `payTo` mutation previously
+    // but haven't resolved by `handlePayTo`
     if (blockchainTx.transactionId) {
       tx = await atomService.findFirst({
         table: 'transaction',
@@ -423,7 +425,9 @@ export class PayToByBlockchainQueue {
       })
     }
 
-    // can find by `blockchainTx.id`, correct `blockchainTx.transactionId`
+    // can find via `blockchainTx.id`, correct `blockchainTx.transactionId`
+    // for tx that is created by `payTo` mutation previously
+    // but linked to the wrong blockchainTx
     if (!tx) {
       tx = await atomService.findFirst({
         table: 'transaction',
@@ -447,7 +451,7 @@ export class PayToByBlockchainQueue {
       }
     }
 
-    // can find by matching tx data (amount, sender, recipient, etc.)
+    // can find via matching the tx data (amount, sender, recipient, etc.)
     // for sender who fails to request the settlement `payTo` mutation
     if (!tx) {
       const senderUser = await userService.findByEthAddress(
@@ -456,7 +460,7 @@ export class PayToByBlockchainQueue {
       tx = await atomService.findFirst({
         table: 'transaction',
         where: {
-          amount,
+          amount: amount.toString(),
           state: TRANSACTION_STATE.pending,
           purpose: TRANSACTION_PURPOSE.donation,
           currency: PAYMENT_CURRENCY.USDT,
@@ -475,6 +479,7 @@ export class PayToByBlockchainQueue {
         tx.targetId === article.id &&
         parseUnits(tx.amount, contract[chain].tokenDecimals).toString() ===
           event.amount
+
       if (!isValidTx) {
         await atomService.update({
           table: 'transaction',

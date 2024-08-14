@@ -336,8 +336,9 @@ export class PaymentService extends BaseService<Transaction> {
       const providerTxId = blockchainTx.id
 
       let tx
+
+      // correct an existing transaction with the blockchainTx
       if (txId) {
-        // correct the providerTxId
         ;[tx] = await trx
           .where({ id: txId })
           .update({ providerTxId })
@@ -346,6 +347,7 @@ export class PaymentService extends BaseService<Transaction> {
           .transacting(trx)
       }
 
+      // or create a new transaction with the blockchainTx
       if (!tx) {
         tx = await this.createTransaction(
           {
