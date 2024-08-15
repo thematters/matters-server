@@ -231,6 +231,8 @@ export type GQLArticle = GQLNode &
     hasAppreciate: Scalars['Boolean']['output']
     /** Unique ID of this article */
     id: Scalars['ID']['output']
+    /** whether the first line of paragraph should be indented */
+    indentFirstLine: Scalars['Boolean']['output']
     /** the iscnId if published to ISCN */
     iscnId?: Maybe<Scalars['String']['output']>
     /** Original language of content */
@@ -1354,6 +1356,8 @@ export type GQLDraft = GQLNode & {
   createdAt: Scalars['DateTime']['output']
   /** Unique ID of this draft. */
   id: Scalars['ID']['output']
+  /** whether the first line of paragraph should be indented */
+  indentFirstLine: Scalars['Boolean']['output']
   /** whether publish to ISCN */
   iscnPublish?: Maybe<Scalars['Boolean']['output']>
   /** License Type */
@@ -1421,6 +1425,7 @@ export type GQLEditArticleInput = {
   /** revision description */
   description?: InputMaybe<Scalars['String']['input']>
   id: Scalars['ID']['input']
+  indentFirstLine?: InputMaybe<Scalars['Boolean']['input']>
   /** whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
   license?: InputMaybe<GQLArticleLicenseType>
@@ -2804,6 +2809,7 @@ export type GQLPutDraftInput = {
   content?: InputMaybe<Scalars['String']['input']>
   cover?: InputMaybe<Scalars['ID']['input']>
   id?: InputMaybe<Scalars['ID']['input']>
+  indentFirstLine?: InputMaybe<Scalars['Boolean']['input']>
   /** whether publish to ISCN */
   iscnPublish?: InputMaybe<Scalars['Boolean']['input']>
   license?: InputMaybe<GQLArticleLicenseType>
@@ -6055,6 +6061,11 @@ export type GQLArticleResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  indentFirstLine?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   iscnId?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   language?: Resolver<
     Maybe<GQLResolversTypes['String']>,
@@ -7170,6 +7181,11 @@ export type GQLDraftResolvers<
   cover?: Resolver<Maybe<GQLResolversTypes['String']>, ParentType, ContextType>
   createdAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+  indentFirstLine?: Resolver<
+    GQLResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >
   iscnPublish?: Resolver<
     Maybe<GQLResolversTypes['Boolean']>,
     ParentType,
