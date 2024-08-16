@@ -11,10 +11,12 @@ import { testClient, genConnections, closeConnections } from '../utils'
 
 let connections: Connections
 let atomService: AtomService
+let momentService: MomentService
 
 beforeAll(async () => {
   connections = await genConnections()
   atomService = new AtomService(connections)
+  momentService = new MomentService(connections)
 }, 30000)
 
 afterAll(async () => {
@@ -28,6 +30,22 @@ const isDesc = (ints: number[]) =>
     .every((x) => x)
 
 const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+
+const PUT_COMMENT = /* GraphQL */ `
+  mutation ($input: PutCommentInput!) {
+    putComment(input: $input) {
+      id
+      replyTo {
+        id
+      }
+      node {
+        ... on Moment {
+          shortHash
+        }
+      }
+    }
+  }
+`
 
 const DELETE_COMMENT = /* GraphQL */ `
   mutation ($input: DeleteCommentInput!) {
@@ -187,21 +205,6 @@ describe('query comment list on article', () => {
 })
 
 describe('put commment', () => {
-  const PUT_COMMENT = /* GraphQL */ `
-    mutation ($input: PutCommentInput!) {
-      putComment(input: $input) {
-        id
-        replyTo {
-          id
-        }
-        node {
-          ... on Moment {
-            shortHash
-          }
-        }
-      }
-    }
-  `
   const commentId = '1'
   const commentGlobalId = toGlobalId({
     type: NODE_TYPES.Comment,
@@ -298,7 +301,6 @@ describe('put commment', () => {
 
   test('create a moment comment', async () => {
     const mockTrigger = jest.fn()
-    const momentService = new MomentService(connections)
     const moment = await momentService.create(
       { content: 'test', assetIds: [] },
       { id: '1', state: 'active', userName: 'test' }
@@ -411,7 +413,7 @@ describe('vote/unvote commment', () => {
 })
 
 describe('delete commment', () => {
-  test('delete comment', async () => {
+  test('delete comment by commment author', async () => {
     const server = await testClient({ isAuth: true, connections })
     const { data } = await server.executeOperation({
       query: DELETE_COMMENT,
@@ -419,7 +421,50 @@ describe('delete commment', () => {
         input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
       },
     })
-    expect(_get(data, 'deleteComment.state')).toBe('archived')
+    expect(data.deleteComment.state).toBe('archived')
+  })
+  test('delete comment by target moment author', async () => {
+    const momentAuthorId = '1'
+    const commentAuthorId = '2'
+
+    const moment = await momentService.create(
+      { content: 'test', assetIds: [] },
+      { id: momentAuthorId, state: 'active', userName: 'test' }
+    )
+
+    const serverCommentAuthor = await testClient({
+      userId: commentAuthorId,
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await serverCommentAuthor.executeOperation({
+      query: PUT_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'test moment comment',
+            momentId: toGlobalId({ type: NODE_TYPES.Moment, id: moment.id }),
+            type: 'moment',
+          },
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.putComment.id).toBeDefined()
+    expect(data.putComment.node.shortHash).toBe(moment.shortHash)
+
+    const serverMomentAuthor = await testClient({
+      userId: momentAuthorId,
+      isAuth: true,
+      connections,
+    })
+    const { data: dataDeleted } = await serverMomentAuthor.executeOperation({
+      query: DELETE_COMMENT,
+      variables: {
+        input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
+      },
+    })
+    expect(dataDeleted.deleteComment.state).toBe('archived')
   })
 })
 
