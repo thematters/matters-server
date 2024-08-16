@@ -3,6 +3,7 @@ import type { GQLResolvers } from 'definitions'
 import { NODE_TYPES } from 'common/enums'
 import { toGlobalId, fromDatetimeRangeString } from 'common/utils'
 
+import announcements from './announcements'
 import application from './application'
 import articles from './articles'
 import boost from './boost'
@@ -27,6 +28,7 @@ const schema: GQLResolvers = {
     shortHash: ({ shortHash }) => shortHash,
     name,
     description,
+    announcements,
     cover: ({ cover }, _, { dataSources: { systemService } }) =>
       cover ? systemService.findAssetUrl(cover) : null,
     link: ({ link }) => link ?? '',

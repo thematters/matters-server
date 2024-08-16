@@ -502,7 +502,7 @@ type Article implements Node & PinnableWork {
 
 type ArticleCampaign {
   campaign: Campaign!
-  stage: CampaignStage!
+  stage: CampaignStage
 }
 
 input ArticleVersionsInput {
@@ -889,9 +889,8 @@ input CampaignsInput {
 input PutWritingChallengeInput {
   id: ID
   name: [TranslationInput!]
-  description: [TranslationInput!]
   cover: ID
-  link: String
+  announcements: [ID!]
   applicationPeriod: DatetimeRangeInput
   writingPeriod: DatetimeRangeInput
   stages: [CampaignStageInput!]
@@ -927,7 +926,6 @@ interface Campaign {
   id: ID!
   shortHash: String!
   name: String!
-  description: String!
   state: CampaignState!
 }
 
@@ -942,9 +940,10 @@ type WritingChallenge implements Node & Campaign {
   id: ID!
   shortHash: String!
   name(input: TranslationArgs): String!
-  description(input: TranslationArgs): String!
+  description(input: TranslationArgs): String
   cover: String
   link: String!
+  announcements: [Article!]!
   applicationPeriod: DatetimeRange
   writingPeriod: DatetimeRange
   stages: [CampaignStage!]!

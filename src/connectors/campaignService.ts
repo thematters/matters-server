@@ -67,8 +67,6 @@ export class CampaignService {
 
   public createWritingChallenge = async ({
     name,
-    description,
-    link,
     coverId,
     applicationPeriod,
     writingPeriod,
@@ -76,8 +74,6 @@ export class CampaignService {
     creatorId,
   }: {
     name: string
-    description: string
-    link: string
     coverId?: string
     applicationPeriod?: readonly [Date, Date]
     writingPeriod?: readonly [Date, Date]
@@ -90,8 +86,6 @@ export class CampaignService {
         shortHash: shortHash(),
         type: CAMPAIGN_TYPE.writingChallenge,
         name,
-        description,
-        link,
         cover: coverId,
         applicationPeriod: applicationPeriod
           ? toDatetimeRangeString(applicationPeriod[0], applicationPeriod[1])
@@ -123,6 +117,46 @@ export class CampaignService {
         .returning('*')
     }
     return []
+  }
+
+  public updateAnnouncements = async (
+    campaignId: string,
+    articleIds: string[]
+  ) => {
+    const original = await this.models.findMany({
+      table: 'campaign_article',
+      where: { campaignId, campaignStageId: null },
+      orderBy: [{ column: 'id', order: 'asc' }],
+    })
+    const originalIds = original.map(({ articleId }) => articleId)
+    // delete removed
+    await this.models.deleteMany({
+      table: 'campaign_article',
+      where: {
+        campaignId,
+      },
+      whereIn: [
+        'articleId',
+        originalIds.filter((id) => !articleIds.includes(id)),
+      ],
+    })
+    // insert new
+    for (const newId of articleIds.filter((id) => !originalIds.includes(id))) {
+      await this.models.create({
+        table: 'campaign_article',
+        data: { campaignId, articleId: newId },
+      })
+    }
+  }
+
+  public findAnnouncements = async (campaignId: string) => {
+    const records = await this.models.findMany({
+      table: 'campaign_article',
+      where: { campaignId, campaignStageId: null },
+    })
+    return this.models.articleIdLoader.loadMany(
+      records.map(({ articleId }) => articleId)
+    )
   }
 
   public apply = async (

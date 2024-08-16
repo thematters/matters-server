@@ -5,10 +5,6 @@ import type {
 } from 'definitions'
 
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import {
-  normalizeCampaignHTML,
-  sanitizeHTML,
-} from '@matters/matters-editor/transformers'
 
 import { CAMPAIGN_STATE, NODE_TYPES } from 'common/enums'
 import {
@@ -16,8 +12,9 @@ import {
   CampaignNotFoundError,
   AuthenticationError,
   ActionFailedError,
+  ArticleNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, isUrl, toDatetimeRangeString } from 'common/utils'
+import { fromGlobalId, toDatetimeRangeString } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   _,
@@ -25,9 +22,8 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     input: {
       id: globalId,
       name,
-      description,
-      link,
       cover,
+      announcements: announcementGlobalIds,
       applicationPeriod,
       writingPeriod,
       state,
@@ -59,9 +55,6 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
   }
 
-  if (link) {
-    validateUrl(link)
-  }
   if (applicationPeriod) {
     validateRange(applicationPeriod)
   }
@@ -72,16 +65,25 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     validateStages(stages)
   }
 
+  let announcementIds: string[] = []
+  if (announcementGlobalIds && announcementGlobalIds.length > 0) {
+    announcementIds = announcementGlobalIds.map((id) => fromGlobalId(id).id)
+    for (const announcementId of announcementIds) {
+      const announcement = await atomService.articleIdLoader.load(
+        announcementId
+      )
+      if (!announcement) {
+        throw new ArticleNotFoundError('Announcement article not found')
+      }
+    }
+  }
+
   let campaign: Campaign
   if (!globalId) {
     // create new campaign
     campaign = await campaignService.createWritingChallenge({
       name: name ? name[0].text : '',
-      description: description
-        ? normalizeCampaignHTML(sanitizeHTML(description[0].text))
-        : '',
       coverId: _cover?.id,
-      link: link ? link : '',
       applicationPeriod: applicationPeriod && [
         applicationPeriod.start,
         applicationPeriod.end,
@@ -124,9 +126,6 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
 
     const data = {
       name: name && name[0].text,
-      description:
-        description && normalizeCampaignHTML(sanitizeHTML(description[0].text)),
-      link,
       cover: _cover?.id,
       applicationPeriod:
         applicationPeriod &&
@@ -144,6 +143,13 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     })
   }
 
+  if (announcementGlobalIds !== undefined) {
+    await campaignService.updateAnnouncements(
+      campaign.id,
+      announcementIds ?? []
+    )
+  }
+
   // create or update translations
   if (name) {
     for (const trans of name) {
@@ -153,17 +159,6 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
         id: campaign.id,
         language: trans.language,
         text: trans.text,
-      })
-    }
-  }
-  if (description) {
-    for (const trans of description) {
-      await translationService.updateOrCreateTranslation({
-        table: 'campaign',
-        field: 'description',
-        id: campaign.id,
-        language: trans.language,
-        text: normalizeCampaignHTML(sanitizeHTML(trans.text)),
       })
     }
   }
@@ -208,12 +203,6 @@ const validateStages = (stages: GQLCampaignStageInput[]) => {
     if (stage.period) {
       validateRange(stage.period)
     }
-  }
-}
-
-const validateUrl = (url: string) => {
-  if (!isUrl(url)) {
-    throw new UserInputError('invalid url')
   }
 }
 

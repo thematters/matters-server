@@ -140,8 +140,6 @@ export const createCampaign = async (
 ) => {
   const campaign = await campaignService.createWritingChallenge({
     name: 'test',
-    description: 'test',
-    link: 'https://test.com',
     applicationPeriod: [
       new Date('2024-01-01'),
       new Date('2024-01-02'),

@@ -36,8 +36,6 @@ afterAll(async () => {
 })
 const campaignData = {
   name: 'test',
-  description: 'test',
-  link: 'https://test.com',
   applicationPeriod: [
     new Date('2010-01-01 11:30'),
     new Date('2010-01-01 15:00'),
@@ -54,6 +52,20 @@ describe('create writing_challenge campaign', () => {
     const campaign = await campaignService.createWritingChallenge(campaignData)
     expect(campaign).toBeDefined()
     expect(campaign.state).toBe(CAMPAIGN_STATE.pending)
+
+    // zero announcements
+    const noAnnouncements = await campaignService.findAnnouncements(campaign.id)
+    expect(noAnnouncements.length).toBe(0)
+
+    // add announcements
+    await campaignService.updateAnnouncements(campaign.id, ['1', '2'])
+    const announcements1 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements1.length).toBe(2)
+
+    // add more announcements
+    await campaignService.updateAnnouncements(campaign.id, ['1', '2', '3'])
+    const announcements2 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements2.length).toBe(3)
 
     // add stages
 
