@@ -9,7 +9,7 @@ export interface ConnectionArguments {
   before?: ConnectionCursor
   after?: ConnectionCursor
   first?: number
-  last?: number
+  // last?: number
 }
 
 export interface Connection<T> {
@@ -118,10 +118,8 @@ export const cursorToKeys = (
  * `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
  *
  */
-export const keysToCursor = (
-  offset: number,
-  idCursor: number
-): ConnectionCursor => Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
+const keysToCursor = (offset: number, idCursor: number): ConnectionCursor =>
+  Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
 
 /**
  * Construct a GQL connection using query keys mechanism. Query keys are
