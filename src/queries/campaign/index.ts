@@ -12,6 +12,7 @@ import campaigns from './campaigns'
 import description from './description'
 import name from './name'
 import participants from './participants'
+import stageDescription from './stage/description'
 import stageName from './stage/name'
 import stages from './stages'
 
@@ -61,6 +62,7 @@ const schema: GQLResolvers = {
   CampaignStage: {
     id: ({ id }) => toGlobalId({ type: NODE_TYPES.CampaignStage, id }),
     name: stageName,
+    description: stageDescription,
     period: ({ period }) => {
       if (!period) {
         return null

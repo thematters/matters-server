@@ -756,9 +756,14 @@ export type GQLCampaignParticipantsInput = {
 
 export type GQLCampaignStage = {
   __typename?: 'CampaignStage'
+  description: Scalars['String']['output']
   id: Scalars['ID']['output']
   name: Scalars['String']['output']
   period?: Maybe<GQLDatetimeRange>
+}
+
+export type GQLCampaignStageDescriptionArgs = {
+  input?: InputMaybe<GQLTranslationArgs>
 }
 
 export type GQLCampaignStageNameArgs = {
@@ -766,6 +771,7 @@ export type GQLCampaignStageNameArgs = {
 }
 
 export type GQLCampaignStageInput = {
+  description?: InputMaybe<Array<GQLTranslationInput>>
   name: Array<GQLTranslationInput>
   period?: InputMaybe<GQLDatetimeRangeInput>
 }
@@ -6588,6 +6594,12 @@ export type GQLCampaignStageResolvers<
   ContextType = Context,
   ParentType extends GQLResolversParentTypes['CampaignStage'] = GQLResolversParentTypes['CampaignStage']
 > = ResolversObject<{
+  description?: Resolver<
+    GQLResolversTypes['String'],
+    ParentType,
+    ContextType,
+    Partial<GQLCampaignStageDescriptionArgs>
+  >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
   name?: Resolver<
     GQLResolversTypes['String'],

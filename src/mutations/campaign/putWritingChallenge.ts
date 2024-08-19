@@ -174,22 +174,36 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       campaign.id,
       stages.map((stage) => ({
         name: stage.name[0].text,
+        description: stage.description ? stage.description[0].text : '',
         period: stage.period
           ? [stage.period.start, stage.period.end]
           : undefined,
       }))
     )
-    stages.forEach(async (stage, index) => {
-      for (const trans of stage.name) {
-        await translationService.updateOrCreateTranslation({
-          table: 'campaign_stage',
-          field: 'name',
-          id: campaiginStages[index].id,
-          language: trans.language,
-          text: trans.text,
-        })
-      }
-    })
+    await Promise.all(
+      stages.map(async (stage, index) => {
+        for (const trans of stage.name) {
+          await translationService.updateOrCreateTranslation({
+            table: 'campaign_stage',
+            field: 'name',
+            id: campaiginStages[index].id,
+            language: trans.language,
+            text: trans.text,
+          })
+        }
+        if (stage.description) {
+          for (const trans of stage.description) {
+            await translationService.updateOrCreateTranslation({
+              table: 'campaign_stage',
+              field: 'description',
+              id: campaiginStages[index].id,
+              language: trans.language,
+              text: trans.text,
+            })
+          }
+        }
+      })
+    )
   }
 
   return campaign

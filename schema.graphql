@@ -910,6 +910,7 @@ input UpdateCampaignApplicationStateInput {
 
 input CampaignStageInput {
   name: [TranslationInput!]!
+  description: [TranslationInput!]
   period: DatetimeRangeInput
 }
 
@@ -998,6 +999,7 @@ enum CampaignApplicationState {
 type CampaignStage {
   id: ID!
   name(input: TranslationArgs): String!
+  description(input: TranslationArgs): String!
   period: DatetimeRange
 }
 
