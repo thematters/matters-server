@@ -3,7 +3,7 @@ const column = 'description'
 
 exports.up = async (knex) => {
   await knex.schema.table(table, (t) => {
-    t.text(column).notNullable()
+    t.text(column).notNullable().defaultTo('')
   })
 }
 
