@@ -1,30 +1,38 @@
 import type { GQLWritingChallengeResolvers, DataSources } from 'definitions'
 
-import { NODE_TYPES } from 'common/enums'
+import { NODE_TYPES, DEFAULT_TAKE_PER_PAGE } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import {
-  connectionFromArray,
-  fromConnectionArgs,
+  connectionFromArrayWithKeys,
+  cursorToKeys,
   fromGlobalId,
 } from 'common/utils'
 
 const resolver: GQLWritingChallengeResolvers['articles'] = async (
-  { id },
-  { input },
+  { id: campaignId },
+  { input: { first, after, filter } },
   { dataSources: { campaignService, atomService } }
 ) => {
-  const { take, skip } = fromConnectionArgs(input)
-  const { filter } = input
   const stageId = filter?.stage
     ? await validateStage(filter.stage, { atomService })
     : undefined
 
-  const [participants, totalCount] = await campaignService.findAndCountArticles(
-    id,
-    { take, skip },
-    { filterStageId: stageId }
+  const [campaignArticles, totalCount] =
+    await campaignService.findAndCountArticles(
+      campaignId,
+      {
+        take: first ?? DEFAULT_TAKE_PER_PAGE,
+        skip: after ? cursorToKeys(after).idCursor : undefined,
+      },
+      { filterStageId: stageId }
+    )
+  const nodes = await Promise.all(
+    campaignArticles.map(async ({ articleId, id }) => {
+      const article = await atomService.articleIdLoader.load(articleId)
+      return { ...article, __cursor: id }
+    })
   )
-  return connectionFromArray(participants, input, totalCount)
+  return connectionFromArrayWithKeys(nodes, { after }, totalCount)
 }
 
 const validateStage = async (

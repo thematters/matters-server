@@ -60,7 +60,6 @@ const resolver: GQLArticleResolvers['comments'] = async (
   }
 
   const [comments, totalCount] = await commentService.find({
-    sort,
     before,
     after,
     first,
