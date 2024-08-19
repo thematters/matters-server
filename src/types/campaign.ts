@@ -47,6 +47,7 @@ export default /* GraphQL */ `
 
   input CampaignStageInput {
     name: [TranslationInput!]!
+    description: [TranslationInput!]
     period: DatetimeRangeInput
   }
 
@@ -139,6 +140,7 @@ export default /* GraphQL */ `
   type CampaignStage {
     id: ID!
     name(input: TranslationArgs): String!
+    description(input: TranslationArgs): String!
     period: DatetimeRange
   }
 

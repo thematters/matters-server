@@ -69,6 +69,7 @@ describe('create or update wrting challenges', () => {
         stages {
           id
           name
+          description
           period {
             start
             end
@@ -86,13 +87,32 @@ describe('create or update wrting challenges', () => {
     { text: 'test campaign ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
     { text: 'test campaign ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
-  const translationsStage = [
+  const translationsStageName1 = [
     {
-      text: 'test stage ' + LANGUAGE.zh_hant,
+      text: 'test stage 1 ' + LANGUAGE.zh_hant,
       language: LANGUAGE.zh_hant,
     },
-    { text: 'test stage ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
-    { text: 'test stage ' + LANGUAGE.en, language: LANGUAGE.en },
+    { text: 'test stage 1 ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
+    { text: 'test stage 1 ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+  const translationsStageName2 = [
+    {
+      text: 'test stage 2 ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    { text: 'test stage 2 ' + LANGUAGE.zh_hans, language: LANGUAGE.zh_hans },
+    { text: 'test stage 2 ' + LANGUAGE.en, language: LANGUAGE.en },
+  ]
+  const translationsStageDescription = [
+    {
+      text: 'test stage description ' + LANGUAGE.zh_hant,
+      language: LANGUAGE.zh_hant,
+    },
+    {
+      text: 'test stage description ' + LANGUAGE.zh_hans,
+      language: LANGUAGE.zh_hans,
+    },
+    { text: 'test stage description ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
   const name = translationsCampaign
   let admin: User
@@ -108,7 +128,15 @@ describe('create or update wrting challenges', () => {
   }
   const stages = [
     {
-      name: translationsStage,
+      name: translationsStageName1,
+      period: {
+        start: new Date('2024-01-03'),
+        end: new Date('2024-01-04'),
+      },
+    },
+    {
+      name: translationsStageName2,
+      description: translationsStageDescription,
       period: {
         start: new Date('2024-01-03'),
         end: new Date('2024-01-04'),
@@ -183,6 +211,10 @@ describe('create or update wrting challenges', () => {
     expect(data.putWritingChallenge.shortHash).toBeDefined()
     expect(data.putWritingChallenge.announcements[0].id).toBe(
       announcementGlobalId
+    )
+    expect(data.putWritingChallenge.stages[0].description).toBe('')
+    expect(data.putWritingChallenge.stages[1].description).toContain(
+      'test stage description'
     )
 
     // create with only name

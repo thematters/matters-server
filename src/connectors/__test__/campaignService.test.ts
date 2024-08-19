@@ -69,12 +69,20 @@ describe('create writing_challenge campaign', () => {
 
     // add stages
 
-    const stages1 = [{ name: 'stage1' }, { name: 'stage2' }]
+    const stageDescription = 'stage description'
+    const stages1 = [
+      { name: 'stage1' },
+      { name: 'stage2', description: stageDescription },
+    ]
     const stages1Result = await campaignService.updateStages(
       campaign.id,
       stages1
     )
     expect(stages1Result.map((s) => s.name)).toEqual(stages1.map((s) => s.name))
+    expect(stages1Result.map((s) => s.description)).toEqual([
+      '',
+      stageDescription,
+    ])
     expect(stages1Result.map((s) => s.period)).toEqual([null, null])
 
     // update stages

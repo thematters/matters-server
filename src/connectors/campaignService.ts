@@ -45,6 +45,7 @@ import { getOrCreateQueue } from 'connectors/queue'
 
 interface Stage {
   name: string
+  description?: string
   period?: readonly [Date, Date | undefined]
 }
 
@@ -113,9 +114,10 @@ export class CampaignService {
       const knex = this.connections.knex
       return knex<CampaignStage>('campaign_stage')
         .insert(
-          stages.map(({ name, period }) => ({
+          stages.map(({ name, description, period }) => ({
             campaignId,
             name,
+            description: description || '',
             period: period ? toDatetimeRangeString(period[0], period[1]) : null,
           }))
         )

@@ -26,6 +26,7 @@ export interface CampaignStage {
   id: string
   campaignId: string
   name: string
+  description: string
   period: string | null
   createdAt: Date
   updatedAt: Date
