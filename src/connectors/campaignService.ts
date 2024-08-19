@@ -161,9 +161,10 @@ export class CampaignService {
       table: 'campaign_article',
       where: { campaignId, campaignStageId: null },
     })
-    return this.models.articleIdLoader.loadMany(
+    const articles = await this.models.articleIdLoader.loadMany(
       records.map(({ articleId }) => articleId)
     )
+    return articles.filter((article) => article.state === ARTICLE_STATE.active)
   }
 
   public apply = async (
