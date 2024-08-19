@@ -67,6 +67,22 @@ describe('create writing_challenge campaign', () => {
     const announcements2 = await campaignService.findAnnouncements(campaign.id)
     expect(announcements2.length).toBe(3)
 
+    // archived articles are excluded
+    const archivedArticleId = '4'
+    await atomService.update({
+      table: 'article',
+      where: { id: archivedArticleId },
+      data: { state: USER_STATE.archived },
+    })
+    await campaignService.updateAnnouncements(campaign.id, [
+      '1',
+      '2',
+      '3',
+      archivedArticleId,
+    ])
+    const announcements3 = await campaignService.findAnnouncements(campaign.id)
+    expect(announcements3.length).toBe(3)
+
     // add stages
 
     const stageDescription = 'stage description'
