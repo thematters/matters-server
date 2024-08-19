@@ -211,7 +211,7 @@ describe('find and count articles', () => {
   test('find all', async () => {
     const [_articles, totalCount] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     expect(_articles.length).toBe(2)
     expect(totalCount).toBe(2)
@@ -219,17 +219,17 @@ describe('find and count articles', () => {
   test('find with filterStageId', async () => {
     const [_articles, totalCount] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 },
+      { take: 10 },
       { filterStageId: stages[0].id }
     )
     expect(_articles.length).toBe(1)
-    expect(_articles[0].id).toBe(articles[0].id)
+    expect(_articles[0].articleId).toBe(articles[0].id)
     expect(totalCount).toBe(1)
   })
   test('inactive articles are excluded', async () => {
     const [, totalCount1] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     await atomService.update({
       table: 'article',
@@ -238,7 +238,7 @@ describe('find and count articles', () => {
     })
     const [, totalCount2] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     expect(totalCount2).toBe(totalCount1 - 1)
     await atomService.update({
@@ -250,7 +250,7 @@ describe('find and count articles', () => {
   test('spam are excluded', async () => {
     const [, totalCount1] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     const spamThreshold = 0.5
     await systemService.setFeatureFlag({
@@ -267,7 +267,7 @@ describe('find and count articles', () => {
 
     const [, totalCount2] = await campaignService.findAndCountArticles(
       campaign.id,
-      { take: 10, skip: 0 }
+      { take: 10 }
     )
     expect(totalCount2).toBe(totalCount1 - 1)
   })

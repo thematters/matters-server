@@ -414,7 +414,7 @@ export class TagService extends BaseService<Tag> {
     take,
   }: {
     targetId: string
-    skip?: number
+    skip?: string
     take?: number
   }) => {
     const query = this.knex

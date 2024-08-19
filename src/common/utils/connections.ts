@@ -105,12 +105,12 @@ export const loadManyFilterError = <T>(items: Array<T | Error>) =>
  */
 export const cursorToKeys = (
   cursor: ConnectionCursor | undefined
-): { offset: number; idCursor?: number } => {
+): { offset: number; idCursor?: string } => {
   if (!cursor) {
     return { offset: -1 }
   }
   const keys = Base64.decode(cursor).split(':')
-  return { offset: parseInt(keys[1], 10), idCursor: parseInt(keys[2], 10) }
+  return { offset: parseInt(keys[1], 10), idCursor: keys[2] }
 }
 
 /**
@@ -130,7 +130,7 @@ const keysToCursor = (offset: number, idCursor: number): ConnectionCursor =>
  */
 export const connectionFromArrayWithKeys = <T extends { id: string }>(
   data: T[],
-  args: ConnectionArguments,
+  args: Pick<ConnectionArguments, 'after'>,
   totalCount: number
 ): Connection<T> => {
   const { after } = args

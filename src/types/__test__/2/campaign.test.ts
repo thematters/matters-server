@@ -618,6 +618,11 @@ describe('query campaign articles', () => {
               node {
                 id
               }
+              cursor
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
             }
           }
         }
@@ -688,5 +693,39 @@ describe('query campaign articles', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.campaign.articles.totalCount).toBe(1)
+  })
+  test('pagination', async () => {
+    const server = await testClient({
+      connections,
+    })
+    const { data, errors } = await server.executeOperation({
+      query: QUERY_CAMPAIGN_ARTICLES,
+      variables: {
+        campaignInput: { shortHash: campaign.shortHash },
+        articlesInput: { first: 1 },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.campaign.articles.totalCount).toBe(2)
+    expect(data.campaign.articles.edges.length).toBe(1)
+    expect(data.campaign.articles.pageInfo.hasNextPage).toBe(true)
+
+    const { data: data2, errors: errors2 } = await server.executeOperation({
+      query: QUERY_CAMPAIGN_ARTICLES,
+      variables: {
+        campaignInput: { shortHash: campaign.shortHash },
+        articlesInput: {
+          first: 1,
+          after: data.campaign.articles.edges[0].cursor,
+        },
+      },
+    })
+    expect(errors2).toBeUndefined()
+    expect(data2.campaign.articles.totalCount).toBe(2)
+    expect(data2.campaign.articles.edges.length).toBe(1)
+    expect(data2.campaign.articles.edges[0].node.id).not.toBe(
+      data.campaign.articles.edges[0].node.id
+    )
+    expect(data2.campaign.articles.pageInfo.hasNextPage).toBe(false)
   })
 })

@@ -1118,7 +1118,7 @@ export class UserService extends BaseService<User> {
   }: {
     targetId: string
     take?: number
-    skip?: number
+    skip?: string
   }) => {
     const query = this.knex
       .select()
