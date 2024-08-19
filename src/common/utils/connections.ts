@@ -118,7 +118,7 @@ export const cursorToKeys = (
  * `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
  *
  */
-const keysToCursor = (offset: number, idCursor: number): ConnectionCursor =>
+const keysToCursor = (offset: number, idCursor: string): ConnectionCursor =>
   Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
 
 /**
@@ -128,7 +128,9 @@ const keysToCursor = (offset: number, idCursor: number): ConnectionCursor =>
  * and `idCursor` is for SQL querying.
  * (for detail explain see https://github.com/thematters/matters-server/pull/922#discussion_r409256544)
  */
-export const connectionFromArrayWithKeys = <T extends { id: string }>(
+export const connectionFromArrayWithKeys = <
+  T extends { id: string; __cursor?: string }
+>(
   data: T[],
   args: Pick<ConnectionArguments, 'after'>,
   totalCount: number
@@ -137,10 +139,7 @@ export const connectionFromArrayWithKeys = <T extends { id: string }>(
   const keys = cursorToKeys(after)
 
   const edges = data.map((value, index) => ({
-    cursor: keysToCursor(
-      index + keys.offset + 1,
-      (value as any).__cursor || value.id
-    ),
+    cursor: keysToCursor(index + keys.offset + 1, value.__cursor || value.id),
     node: value,
   }))
 
