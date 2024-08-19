@@ -39,8 +39,6 @@ afterAll(async () => {
 const userId = '1'
 const campaignData = {
   name: 'test',
-  description: 'test',
-  link: 'https://test.com',
   applicationPeriod: [new Date('2024-01-01'), new Date('2024-01-02')] as const,
   writingPeriod: [new Date('2024-01-03'), new Date('2024-01-04')] as const,
   creatorId: '1',
@@ -56,6 +54,10 @@ describe('create or update wrting challenges', () => {
         description
         cover
         link
+        announcements {
+          id
+          title
+        }
         applicationPeriod {
           start
           end
@@ -93,11 +95,9 @@ describe('create or update wrting challenges', () => {
     { text: 'test stage ' + LANGUAGE.en, language: LANGUAGE.en },
   ]
   const name = translationsCampaign
-  const description = translationsCampaign
   let admin: User
   let normalUser: User
   let cover: string
-  const link = 'https://test.com'
   const applicationPeriod = {
     start: new Date('2024-01-01'),
     end: new Date('2024-01-02'),
@@ -148,9 +148,7 @@ describe('create or update wrting challenges', () => {
       variables: {
         input: {
           name,
-          description,
           cover,
-          link,
           applicationPeriod: { start: time, end: time },
           writingPeriod,
           stages,
@@ -165,15 +163,17 @@ describe('create or update wrting challenges', () => {
       isAuth: true,
       context: { viewer: admin },
     })
+    const announcementGlobalId = toGlobalId({
+      type: NODE_TYPES.Article,
+      id: '1',
+    })
     const { data, errors } = await server.executeOperation({
       query: PUT_WRITING_CHALLENGE,
       variables: {
         input: {
           name,
-          description,
           cover,
-          link,
-          applicationPeriod,
+          announcements: [announcementGlobalId],
           writingPeriod,
           stages,
         },
@@ -181,6 +181,9 @@ describe('create or update wrting challenges', () => {
     })
     expect(errors).toBeUndefined()
     expect(data.putWritingChallenge.shortHash).toBeDefined()
+    expect(data.putWritingChallenge.announcements[0].id).toBe(
+      announcementGlobalId
+    )
 
     // create with only name
     const { data: data2, errors: errors2 } = await server.executeOperation({
@@ -213,9 +216,7 @@ describe('create or update wrting challenges', () => {
       variables: {
         input: {
           name,
-          description,
           cover,
-          link,
           applicationPeriod,
           writingPeriod,
           stages: stagesUnbounded,
@@ -237,9 +238,7 @@ describe('create or update wrting challenges', () => {
       variables: {
         input: {
           name,
-          description,
           cover,
-          link,
           applicationPeriod,
           writingPeriod,
           stages,
@@ -301,9 +300,7 @@ describe('create or update wrting challenges', () => {
       variables: {
         input: {
           name,
-          description,
           cover,
-          link,
           applicationPeriod,
           writingPeriod,
           stages,

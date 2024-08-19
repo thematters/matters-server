@@ -243,7 +243,7 @@ export default /* GraphQL */ `
 
   type ArticleCampaign {
     campaign: Campaign!
-    stage: CampaignStage!
+    stage: CampaignStage
   }
 
   input ArticleVersionsInput {

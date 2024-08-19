@@ -11,7 +11,7 @@ export interface Campaign {
   shortHash: string
   type: ValueOf<typeof CAMPAIGN_TYPE>
   name: string
-  description: string
+  description: string | null
   link: string | null
   cover: string | null
   applicationPeriod: string | null
@@ -43,7 +43,7 @@ export interface CampaignUser {
 export interface CampaignArticle {
   id: string
   campaignId: string
-  campaignStageId: string
+  campaignStageId: string | null
   articleId: string
   createdAt: Date
 }

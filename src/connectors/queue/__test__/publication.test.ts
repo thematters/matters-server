@@ -98,8 +98,6 @@ const createPendingDraft = async () => {
 
   const campaign = await campaignService.createWritingChallenge({
     name: 'test',
-    description: 'test',
-    link: 'https://test.com',
     applicationPeriod: [
       new Date('2010-01-01 11:30'),
       new Date('2010-01-01 15:00'),
