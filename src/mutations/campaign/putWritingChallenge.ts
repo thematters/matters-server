@@ -14,7 +14,7 @@ import {
   ActionFailedError,
   ArticleNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, toDatetimeRangeString } from 'common/utils'
+import { fromGlobalId, toDatetimeRangeString, isUrl } from 'common/utils'
 
 const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
   _,
@@ -23,6 +23,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       id: globalId,
       name,
       cover,
+      link,
       announcements: announcementGlobalIds,
       applicationPeriod,
       writingPeriod,
@@ -55,6 +56,9 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     }
   }
 
+  if (link) {
+    validateUrl(link)
+  }
   if (applicationPeriod) {
     validateRange(applicationPeriod)
   }
@@ -84,6 +88,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     campaign = await campaignService.createWritingChallenge({
       name: name ? name[0].text : '',
       coverId: _cover?.id,
+      link,
       applicationPeriod: applicationPeriod && [
         applicationPeriod.start,
         applicationPeriod.end,
@@ -127,6 +132,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
     const data = {
       name: name && name[0].text,
       cover: _cover?.id,
+      link,
       applicationPeriod:
         applicationPeriod &&
         toDatetimeRangeString(applicationPeriod.start, applicationPeriod.end),
@@ -203,6 +209,12 @@ const validateStages = (stages: GQLCampaignStageInput[]) => {
     if (stage.period) {
       validateRange(stage.period)
     }
+  }
+}
+
+const validateUrl = (url: string) => {
+  if (!isUrl(url)) {
+    throw new UserInputError('invalid url')
   }
 }
 

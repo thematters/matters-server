@@ -116,8 +116,10 @@ describe('find and count campaigns', () => {
   beforeAll(async () => {
     pendingCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
+      link: 'https://test.com',
       state: CAMPAIGN_STATE.pending,
     })
+    expect(pendingCampaign.link).toBe('https://test.com')
     activeCampaign = await campaignService.createWritingChallenge({
       ...campaignData,
       state: CAMPAIGN_STATE.active,

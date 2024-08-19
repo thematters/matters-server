@@ -68,6 +68,7 @@ export class CampaignService {
   public createWritingChallenge = async ({
     name,
     coverId,
+    link,
     applicationPeriod,
     writingPeriod,
     state,
@@ -75,6 +76,7 @@ export class CampaignService {
   }: {
     name: string
     coverId?: string
+    link?: string
     applicationPeriod?: readonly [Date, Date]
     writingPeriod?: readonly [Date, Date]
     state?: ValueOf<typeof CAMPAIGN_STATE>
@@ -86,6 +88,7 @@ export class CampaignService {
         shortHash: shortHash(),
         type: CAMPAIGN_TYPE.writingChallenge,
         name,
+        link,
         cover: coverId,
         applicationPeriod: applicationPeriod
           ? toDatetimeRangeString(applicationPeriod[0], applicationPeriod[1])

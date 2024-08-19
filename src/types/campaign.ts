@@ -27,6 +27,7 @@ export default /* GraphQL */ `
     id: ID
     name: [TranslationInput!]
     cover: ID
+    link: String
     announcements: [ID!]
     applicationPeriod: DatetimeRangeInput
     writingPeriod: DatetimeRangeInput
