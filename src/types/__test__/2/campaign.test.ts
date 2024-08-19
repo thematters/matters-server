@@ -68,8 +68,8 @@ describe('create or update wrting challenges', () => {
         }
         stages {
           id
-          name
-          description
+          name(input: { language: en })
+          description(input: { language: en })
           period {
             start
             end
@@ -213,8 +213,8 @@ describe('create or update wrting challenges', () => {
       announcementGlobalId
     )
     expect(data.putWritingChallenge.stages[0].description).toBe('')
-    expect(data.putWritingChallenge.stages[1].description).toContain(
-      'test stage description'
+    expect(data.putWritingChallenge.stages[1].description).toBe(
+      'test stage description en'
     )
 
     // create with only name
