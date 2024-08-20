@@ -174,7 +174,10 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
       campaign.id,
       stages.map((stage) => ({
         name: stage.name[0].text,
-        description: stage.description ? stage.description[0].text : '',
+        description:
+          stage.description && stage.description.length > 0
+            ? stage.description[0].text
+            : '',
         period: stage.period
           ? [stage.period.start, stage.period.end]
           : undefined,
@@ -191,7 +194,7 @@ const resolver: GQLMutationResolvers['putWritingChallenge'] = async (
             text: trans.text,
           })
         }
-        if (stage.description) {
+        if (stage.description && stage.description.length > 0) {
           for (const trans of stage.description) {
             await translationService.updateOrCreateTranslation({
               table: 'campaign_stage',

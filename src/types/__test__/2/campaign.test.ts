@@ -129,6 +129,7 @@ describe('create or update wrting challenges', () => {
   const stages = [
     {
       name: translationsStageName1,
+      description: [],
       period: {
         start: new Date('2024-01-03'),
         end: new Date('2024-01-04'),
