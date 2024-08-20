@@ -44,8 +44,8 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   }
 
   // retrieve data from draft
-  const { id: draftId } = fromGlobalId(globalId)
-  const draft = await atomService.draftIdLoader.load(draftId)
+  const { id } = fromGlobalId(globalId)
+  const draft = await atomService.draftIdLoader.load(id)
   const isPublished = draft.publishState === PUBLISH_STATE.published
 
   if (draft.authorId !== viewer.id || (draft.archived && !isPublished)) {
@@ -86,7 +86,7 @@ const resolver: GQLMutationResolvers['publishArticle'] = async (
   })
 
   // add job to queue
-  publicationQueue.publishArticle({ draftId, iscnPublish })
+  publicationQueue.publishArticle({ draftId: draft.id, iscnPublish })
   auditLog({
     actorId: viewer.id,
     action: AUDIT_LOG_ACTION.addPublishArticleJob,
