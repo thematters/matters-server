@@ -62,6 +62,7 @@ const GET_ARTICLE = /* GraphQL */ `
       requestForDonation
       replyToDonator
       canComment
+      indentFirstLine
       sensitiveByAuthor
       sensitiveByAdmin
       readerCount
@@ -328,6 +329,7 @@ describe('publish article', () => {
     )
     expect(publishState).toBe(PUBLISH_STATE.published)
     expect(article.content).not.toBeNull()
+    expect(article.indentFirstLine).toBe(false)
   })
 })
 
