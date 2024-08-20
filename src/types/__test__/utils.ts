@@ -235,7 +235,8 @@ export const publishArticle = async (
         content
         createdAt
         iscnPublish
-        article { id iscnId content }
+        indentFirstLine
+        article { id iscnId content indentFirstLine }
       }
     }
   `

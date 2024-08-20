@@ -205,26 +205,30 @@ describe('query article', () => {
   test('query article by mediaHash & shortHash', async () => {
     const anonymousServer = await testClient({ connections })
 
-    const result1 = await anonymousServer.executeOperation({
-      query: GET_ARTICLE,
-      variables: {
-        input: {
-          mediaHash: 'someIpfsMediaHash1',
+    const { data: data1, errors: errors1 } =
+      await anonymousServer.executeOperation({
+        query: GET_ARTICLE,
+        variables: {
+          input: {
+            mediaHash: 'someIpfsMediaHash1',
+          },
         },
-      },
-    })
-    expect(_get(result1, 'data.article.shortHash')).toBe('short-hash-1')
+      })
+    expect(errors1).toBeUndefined()
+    expect(data1.article.shortHash).toBe('short-hash-1')
 
-    const result2 = await anonymousServer.executeOperation({
-      query: GET_ARTICLE,
-      variables: {
-        input: {
-          shortHash: 'short-hash-1',
+    const { data: data2, errors: errors2 } =
+      await anonymousServer.executeOperation({
+        query: GET_ARTICLE,
+        variables: {
+          input: {
+            shortHash: 'short-hash-1',
+          },
         },
-      },
-    })
+      })
 
-    expect(_get(result2, 'data.article.mediaHash')).toBe('someIpfsMediaHash1')
+    expect(errors2).toBeUndefined()
+    expect(data2.article.mediaHash).toBe('someIpfsMediaHash1')
   })
 })
 
