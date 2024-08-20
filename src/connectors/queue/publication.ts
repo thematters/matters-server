@@ -26,7 +26,6 @@ import { getLogger } from 'common/logger'
 import { normalizeTagInput, extractMentionIds } from 'common/utils'
 import {
   TagService,
-  DraftService,
   ArticleService,
   UserService,
   SystemService,
@@ -115,7 +114,6 @@ export class PublicationQueue {
     job,
     done
   ) => {
-    const draftService = new DraftService(this.connections)
     const articleService = new ArticleService(this.connections)
     const userService = new UserService(this.connections)
     const systemService = new SystemService(this.connections)
@@ -144,9 +142,13 @@ export class PublicationQueue {
 
     await job.progress(20)
 
-    await draftService.baseUpdate(draft.id, {
-      publishState: PUBLISH_STATE.published,
-      articleId: article.id,
+    await atomService.update({
+      table: 'draft',
+      where: { id: draft.id },
+      data: {
+        publishState: PUBLISH_STATE.published,
+        articleId: article.id,
+      },
     })
 
     await job.progress(30)
@@ -360,6 +362,7 @@ export class PublicationQueue {
     }
 
     const articleService = new ArticleService(this.connections)
+    const atomService = new AtomService(this.connections)
     const notificationService = new NotificationService(this.connections)
 
     const items = articleVersion.connections.map(
@@ -376,7 +379,10 @@ export class PublicationQueue {
 
     // trigger notifications
     articleVersion.connections.forEach(async (id: string) => {
-      const connection = await articleService.baseFindById(id)
+      const connection = await atomService.findUnique({
+        table: 'article',
+        where: { id },
+      })
       if (!connection) {
         logger.warn(`article connection not found: ${id}`)
         return
