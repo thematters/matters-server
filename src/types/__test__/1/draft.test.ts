@@ -526,7 +526,7 @@ describe('put draft', () => {
     )
     expect(indentFirstLine).toBeFalsy()
 
-    const {indentFirstLine: indentFirstLineUpdated} = await putDraft(
+    const { indentFirstLine: indentFirstLineUpdated } = await putDraft(
       { draft: { id, indentFirstLine: true } },
       connections
     )
