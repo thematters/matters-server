@@ -291,6 +291,7 @@ export const putDraft = async (
         replyToDonator
         iscnPublish
         canComment
+        indentFirstLine
         campaigns {
            campaign {
               id

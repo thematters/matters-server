@@ -41,6 +41,7 @@ const schema: GQLResolvers = {
       root.articleId ? atomService.articleIdLoader.load(root.articleId) : null,
     access: (root) => root,
     license: ({ license }) => license,
+    indentFirstLine: ({ indentFirstLine }) => indentFirstLine,
     campaigns,
   },
   DraftAccess: {

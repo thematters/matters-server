@@ -67,8 +67,6 @@ describe('query draft', () => {
 })
 
 describe('put draft', () => {
-  let draftId: null
-
   test('edit draft summary', async () => {
     const { id, errors } = await putDraft(
       {
@@ -472,7 +470,6 @@ describe('put draft', () => {
     expect(canComment).toBeTruthy()
 
     // turn off canComment
-    draftId = id
     const result = await putDraft(
       { draft: { id, canComment: false } },
       connections
@@ -516,6 +513,24 @@ describe('put draft', () => {
       connections
     )
     expect(_get(result2, 'sensitiveByAuthor')).toBeFalsy()
+  })
+  test('edit indent', async () => {
+    const { id, indentFirstLine } = await putDraft(
+      {
+        draft: {
+          title: Math.random().toString(),
+          content: Math.random().toString(),
+        },
+      },
+      connections
+    )
+    expect(indentFirstLine).toBeFalsy()
+
+    const {indentFirstLine: indentFirstLineUpdated} = await putDraft(
+      { draft: { id, indentFirstLine: true } },
+      connections
+    )
+    expect(indentFirstLineUpdated).toBeTruthy()
   })
   test('edit campaigns', async () => {
     const campaignData = {
