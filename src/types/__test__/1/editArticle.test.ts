@@ -58,6 +58,7 @@ const GET_ARTICLE = /* GraphQL */ `
         requestForDonation
         replyToDonator
         canComment
+        indentFirstLine
         sensitiveByAuthor
         sensitiveByAdmin
         readerCount
@@ -133,6 +134,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
       requestForDonation
       replyToDonator
       canComment
+      indentFirstLine
       sensitiveByAuthor
       sensitiveByAdmin
       revisionCount
@@ -1066,5 +1068,22 @@ describe('edit article', () => {
     expect(data.editArticle.versions.edges[0].node.description).toBe(
       description
     )
+  })
+  test('edit indent setting', async () => {
+    const server = await testClient({
+      isAuth: true,
+      connections,
+    })
+    const { errors, data } = await server.executeOperation({
+      query: EDIT_ARTICLE,
+      variables: {
+        input: {
+          id: articleGlobalId,
+          indentFirstLine: true,
+        },
+      },
+    })
+    expect(errors).toBeUndefined()
+    expect(data.editArticle.indentFirstLine).toBe(true)
   })
 })
