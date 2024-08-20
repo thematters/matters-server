@@ -415,6 +415,7 @@ export class ArticleService extends BaseService<Article> {
     requestForDonation,
     replyToDonator,
     canComment,
+    indentFirstLine,
     sensitiveByAuthor,
   }: Partial<Draft> & {
     authorId: string
@@ -469,6 +470,7 @@ export class ArticleService extends BaseService<Article> {
           requestForDonation,
           replyToDonator,
           canComment: canComment ?? true,
+          indentFirstLine: indentFirstLine ?? false,
           sensitiveByAuthor: sensitiveByAuthor ?? false,
         })
         .returning('*')

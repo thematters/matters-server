@@ -35,19 +35,27 @@ afterAll(async () => {
   await closeConnections(connections)
 })
 
-test('publish', async () => {
-  const [article] = await articleService.createArticle({
-    authorId: '1',
-    title: 'test',
-    cover: '1',
-    content: '<div>test-html-string</div>',
+describe('create', () => {
+  test('default values', async () => {
+    const [article, articleVersion] = await articleService.createArticle({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      content: '<div>test-html-string</div>',
+    })
+    expect(article.state).toBe('active')
+    expect(articleVersion.indentFirstLine).toBe(false)
   })
-  expect(article.state).toBe('active')
-})
-
-test('sumAppreciation', async () => {
-  const appreciation = await articleService.sumAppreciation('1')
-  expect(appreciation).toBeDefined()
+  test('indent', async () => {
+    const [, articleVersion] = await articleService.createArticle({
+      authorId: '1',
+      title: 'test',
+      cover: '1',
+      content: '<div>test-html-string</div>',
+      indentFirstLine: true,
+    })
+    expect(articleVersion.indentFirstLine).toBe(true)
+  })
 })
 
 describe('appreciation', () => {
@@ -111,6 +119,10 @@ describe('appreciation', () => {
     expect(appreciation1[0]?.amount ?? appreciation2[0]?.ammount).toBe(
       ARTICLE_APPRECIATE_LIMIT
     )
+  })
+  test('sumAppreciation', async () => {
+    const appreciation = await articleService.sumAppreciation('1')
+    expect(appreciation).toBeDefined()
   })
 })
 
