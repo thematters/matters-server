@@ -53,6 +53,45 @@ const GET_VIEWER_COLLECTIONS = /* GraphQL */ `
     }
   }
 `
+
+// const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
+//   query ($input: NodeInput!) {
+//     node(input: $input) {
+//       ... on Collection {
+//         id
+//         title
+//         articles(input: { first: null, articleId: '1' }) {
+//           totalCount
+//           edges {
+//             node {
+//               id
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// `
+
+// const GET_COLLECTION_PREV = /* GraphQL */ `
+//   query ($input: NodeInput!) {
+//     node(input: $input) {
+//       ... on Collection {
+//         id
+//         title
+//         articles(input: { first: 1, before: "MQ==" }) {
+//           totalCount
+//           edges {
+//             node {
+//               id
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// `
+
 const GET_COLLECTION_ARTICLE_CONTAINS = /* GraphQL */ `
   query ($input: NodeInput!) {
     viewer {
@@ -789,8 +828,7 @@ describe('update pinned', () => {
 })
 
 describe('check article if in collections', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let server: any
+  let server: Awaited<ReturnType<typeof testClient>>
   let collectionId: string
   beforeAll(async () => {
     server = await testClient({ isAuth: true, connections })

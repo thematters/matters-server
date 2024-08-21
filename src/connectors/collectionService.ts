@@ -16,10 +16,8 @@ import {
   ActionLimitExceededError,
   ForbiddenByStateError,
 } from 'common/errors'
-import { getLogger } from 'common/logger'
 import { BaseService, UserWorkService, UserService } from 'connectors'
 
-const logger = getLogger('service-collection')
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {
     super('collection', connections)
@@ -129,11 +127,7 @@ export class CollectionService extends BaseService<Collection> {
       .where('ap.article_id', articleId)
 
     if (positionMeta.length === 0) {
-      logger.error(`Article not found in collection: ${articleId}`)
-      return this.findAndCountArticlesInCollection(collectionId, {
-        take,
-        reversed,
-      })
+      throw Error(`Article not found in collection: ${articleId}`)
     }
     const { pageNumber } = positionMeta[0]
 

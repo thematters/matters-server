@@ -109,7 +109,7 @@ test('findAndCountCollectionsByUser', async () => {
   expect(records3[1].id).toBe(id1)
 })
 
-test('findArticleInCollection', async () => {
+test('findArticleInCollection with the id', async () => {
   const { id: collectionId } = await collectionService.createCollection({
     authorId: '1',
     title: 'test',
@@ -129,22 +129,16 @@ test('findArticleInCollection', async () => {
 })
 
 test('findArticleInCollectionNotFound', async () => {
+  const articleId = '5'
   const { id: collectionId } = await collectionService.createCollection({
     authorId: '1',
     title: 'test',
   })
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
-
-  const [articles, totalCount] =
-    await collectionService.findArticleInCollection(collectionId, '5', {
-      take: 2, // its this line that causes the error
-      reversed: false,
-    })
-
-  expect(articles.length).toBe(2)
-  expect(totalCount).toBe(4)
-  expect(articles[0].articleId).toBe('1')
-  expect(articles[1].articleId).toBe('2')
+  await expect(collectionService.findArticleInCollection(collectionId, articleId, {
+    take: 2,
+    reversed: false,
+  })).rejects.toThrowError(`Article not found in collection: ${articleId}`)
 })
 
 test('deleteCollections', async () => {
