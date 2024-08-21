@@ -1047,6 +1047,7 @@ export type GQLCollection = GQLNode &
     likeCount: Scalars['Int']['output']
     /** whether current user has liked it */
     liked: Scalars['Boolean']['output']
+    pageNumber?: Maybe<Scalars['Int']['output']>
     pinned: Scalars['Boolean']['output']
     title: Scalars['String']['output']
     updatedAt: Scalars['DateTime']['output']
@@ -6914,8 +6915,16 @@ export type GQLCollectionResolvers<
     ContextType
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
+<<<<<<< HEAD
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
+=======
+  pageNumber?: Resolver<
+    Maybe<GQLResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >
+>>>>>>> b8e99fa0 (feat(types): align types for gql return types)
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>

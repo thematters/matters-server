@@ -29,6 +29,7 @@ export default /* GraphQL */ `
      articles(input: CollectionArticlesInput!): ArticleConnection!
      pinned: Boolean!
      updatedAt: DateTime!
+     pageNumber: Int
 
      likeCount: Int!
      """whether current user has liked it"""

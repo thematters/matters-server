@@ -617,7 +617,7 @@ type SpamStatus {
   score: Float
 
   """
-  whether this article is labeled as spam by human, null for not labeled yet. 
+  whether this article is labeled as spam by human, null for not labeled yet.
   """
   isSpam: Boolean
 }
@@ -2980,7 +2980,7 @@ type CryptoWallet {
   id: ID!
   address: String!
 
-  """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query 
+  """ does this address own any Travelogger NFTs? this value is cached at most 1day, and refreshed at next `nfts` query
   """
   hasNFTs: Boolean!
 
@@ -3752,6 +3752,7 @@ type Collection implements Node & PinnableWork {
 
   """whether current user has liked it"""
   liked: Boolean!
+  pageNumber: Int
 
   """Check if the collection contains the article"""
   contains(input: NodeInput!): Boolean!
