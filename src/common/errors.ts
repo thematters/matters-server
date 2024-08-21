@@ -210,6 +210,12 @@ export class ArticleCollectionReachLimitError extends GraphQLError {
   }
 }
 
+export class ArticleNotFoundInCollectionError extends GraphQLError {
+  public constructor(message: string) {
+    super(message, { extensions: { code: 'ARTICLE_NOT_FOUND_IN_COLLECTION' } })
+  }
+}
+
 /*********************************
  *                               *
  *              Tag              *

@@ -18,6 +18,8 @@ afterAll(async () => {
 })
 
 const articleGlobalId1 = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+// const articleGlobalId2 = toGlobalId({ type: NODE_TYPES.Article, id: 2 })
+const articleGlobalId3 = toGlobalId({ type: NODE_TYPES.Article, id: 3 })
 const articleGlobalId4 = toGlobalId({ type: NODE_TYPES.Article, id: 4 })
 
 const GET_COLLECTION = /* GraphQL */ `
@@ -65,25 +67,6 @@ const GET_COLLECTION_BY_ARTICLES = /* GraphQL */ `
             endCursor
             hasNextPage
           }
-          totalCount
-          edges {
-            node {
-              id
-            }
-          }
-        }
-      }
-    }
-  }
-`
-
-const GET_COLLECTION_PREV = /* GraphQL */ `
-  query ($input1: NodeInput!, $input2: CollectionArticlesInput!) {
-    node(input: $input1) {
-      ... on Collection {
-        id
-        title
-        articles(input: $input2) {
           totalCount
           edges {
             node {
@@ -847,7 +830,7 @@ describe('get collection by article id', () => {
       variables: {
         input: {
           collections: [collectionId],
-          articles: [articleGlobalId1, articleGlobalId4],
+          articles: [articleGlobalId1, articleGlobalId2, articleGlobalId4],
         },
       },
     })
@@ -869,10 +852,16 @@ describe('get collection by article id', () => {
       query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
-        input2: { articleId: 'invalid' },
+  test('get collection by article id with non exist article id', async () => {
+    const { data, errors } = await server.executeOperation({
+      query: GET_COLLECTION_BY_ARTICLES,
+      variables: {
+        input1: { id: collectionId },
+        input2: { articleId: toGlobalId({ type: NODE_TYPES.Article, id: 999 }) },
       },
     })
     expect(data?.node).toBeNull()
+    expect(errors?.[0].extensions.code).toBe('ARTICLE_NOT_FOUND')
   })
   test('get collection by article id and paginate it to the previous page', async () => {
     const { data } = await server.executeOperation({
@@ -886,7 +875,7 @@ describe('get collection by article id', () => {
     expect(data?.node?.articles?.edges?.[0]?.node?.id).toBe(articleGlobalId1)
 
     const { data: data2 } = await server.executeOperation({
-      query: GET_COLLECTION_PREV,
+      query: GET_COLLECTION_BY_ARTICLES,
       variables: {
         input1: { id: collectionId },
         input2: { before: data?.node?.articles?.pageInfo?.endCursor },
