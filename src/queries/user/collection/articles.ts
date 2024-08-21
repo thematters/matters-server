@@ -1,4 +1,4 @@
-import type { CollectionArticle, GQLCollectionResolvers } from 'definitions'
+import type { GQLCollectionResolvers } from 'definitions'
 
 import {
   connectionFromArray,
@@ -8,16 +8,17 @@ import {
 
 const resolver: GQLCollectionResolvers['articles'] = async (
   { id: collectionId },
-  { input: { first, after, reversed, articleId } },
+  { input: { before, first, after, reversed, articleId } },
   { dataSources: { atomService, collectionService } }
 ) => {
   if (!collectionId) {
     return connectionFromArray([], { first, after })
   }
 
-  const { skip, take } = fromConnectionArgs({ first, after })
+  const { skip, take } = fromConnectionArgs({ before, first, after })
 
   if (take === 0) {
+    // we are only looking for the count here
     const [, count] = await collectionService.findAndCountArticlesInCollection(
       collectionId,
       {
@@ -29,40 +30,24 @@ const resolver: GQLCollectionResolvers['articles'] = async (
     return connectionFromArray([], { first, after }, count)
   }
 
-  const loadArticles = async (
-    articles: CollectionArticle[],
-    totalCount: number,
-    pageNumber: number | null = 1
-  ) => {
-    const connection = await connectionFromPromisedArray(
-      atomService.articleIdLoader.loadMany(
-        articles.map(({ articleId: aid }) => aid)
-      ),
-      { first, after },
-      totalCount
-    )
+  const [articles, totalCount] = articleId ?
+    // if articleId is provided, we need to use that as the cursor
+    await collectionService.findArticleInCollection(collectionId, articleId, {
+      take,
+      reversed,
+    }) : await collectionService.findAndCountArticlesInCollection(collectionId, {
+      skip,
+      take,
+      reversed,
+    })
 
-    return pageNumber ? { ...connection, pageNumber } : connection
-  }
-
-  if (articleId) {
-    const [articles, totalCount, pageNumber] =
-      await collectionService.findArticleInCollection(collectionId, articleId, {
-        take,
-        reversed,
-      })
-
-    return loadArticles(articles, totalCount, pageNumber)
-  } else {
-    const [articles, totalCount] =
-      await collectionService.findAndCountArticlesInCollection(collectionId, {
-        skip,
-        take,
-        reversed,
-      })
-
-    return loadArticles(articles, totalCount)
-  }
+  return connectionFromPromisedArray(
+    atomService.articleIdLoader.loadMany(
+      articles.map(({ articleId: aid }) => aid)
+    ),
+    { first, after },
+    totalCount
+  )
 }
 
 export default resolver

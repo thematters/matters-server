@@ -114,18 +114,20 @@ test('findArticleInCollection', async () => {
     authorId: '1',
     title: 'test',
   })
-  await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
+  // generate 50 articles
+  const articleIds = Array.from({ length: 50 }, (_, i) => (i + 1).toString());
+  await collectionService.addArticles(collectionId, articleIds)
 
-  const [articles, totalCount, pageNumber] =
-    await collectionService.findArticleInCollection(collectionId, '3', {
-      take: 2,
+  const [articles, totalCount] =
+    await collectionService.findArticleInCollection(collectionId, '30', {
+      take: 4,
     })
 
-  expect(articles.length).toBe(2)
-  expect(totalCount).toBe(4)
-  expect(pageNumber).toBe(2)
-  expect(articles[0].articleId).toBe('3')
-  expect(articles[1].articleId).toBe('2')
+  expect(articles.length).toBe(4)
+  expect(totalCount).toBe(50)
+  // should be [28, 29, 30, 31]
+  expect(articles[0].articleId).toBe('28')
+  expect(articles[2].articleId).toBe('30')
 })
 
 test('findArticleInCollectionNotFound', async () => {
@@ -135,7 +137,7 @@ test('findArticleInCollectionNotFound', async () => {
   })
   await collectionService.addArticles(collectionId, ['1', '2', '3', '4'])
 
-  const [articles, totalCount, pageNumber] =
+  const [articles, totalCount] =
     await collectionService.findArticleInCollection(collectionId, '5', {
       take: 2, // its this line that causes the error
       reversed: false,
@@ -143,7 +145,6 @@ test('findArticleInCollectionNotFound', async () => {
 
   expect(articles.length).toBe(2)
   expect(totalCount).toBe(4)
-  expect(pageNumber).toBe(1)
   expect(articles[0].articleId).toBe('1')
   expect(articles[1].articleId).toBe('2')
 })

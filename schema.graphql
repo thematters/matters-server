@@ -3752,7 +3752,6 @@ type Collection implements Node & PinnableWork {
 
   """whether current user has liked it"""
   liked: Boolean!
-  pageNumber: Int
 
   """Check if the collection contains the article"""
   contains(input: NodeInput!): Boolean!
@@ -3785,9 +3784,13 @@ type CollectionNotice implements Notice {
 }
 
 input CollectionArticlesInput {
+  """To enable pagination to the query before this article."""
+  before: String
   after: String
   first: Int
   reversed: Boolean
+
+  """In order to query where the article is at in the collection"""
   articleId: ID
 }
 

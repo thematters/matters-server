@@ -1047,7 +1047,6 @@ export type GQLCollection = GQLNode &
     likeCount: Scalars['Int']['output']
     /** whether current user has liked it */
     liked: Scalars['Boolean']['output']
-    pageNumber?: Maybe<Scalars['Int']['output']>
     pinned: Scalars['Boolean']['output']
     title: Scalars['String']['output']
     updatedAt: Scalars['DateTime']['output']
@@ -1063,7 +1062,10 @@ export type GQLCollectionContainsArgs = {
 
 export type GQLCollectionArticlesInput = {
   after?: InputMaybe<Scalars['String']['input']>
+  /** In order to query where the article is at in the collection */
   articleId?: InputMaybe<Scalars['ID']['input']>
+  /** To enable pagination to the query before this article. */
+  before?: InputMaybe<Scalars['String']['input']>
   first?: InputMaybe<Scalars['Int']['input']>
   reversed?: InputMaybe<Scalars['Boolean']['input']>
 }
@@ -6916,6 +6918,7 @@ export type GQLCollectionResolvers<
   >
   id?: Resolver<GQLResolversTypes['ID'], ParentType, ContextType>
 <<<<<<< HEAD
+<<<<<<< HEAD
   likeCount?: Resolver<GQLResolversTypes['Int'], ParentType, ContextType>
   liked?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
 =======
@@ -6925,6 +6928,8 @@ export type GQLCollectionResolvers<
     ContextType
   >
 >>>>>>> b8e99fa0 (feat(types): align types for gql return types)
+=======
+>>>>>>> 698af6e3 (fix(collection): use the expected types for input and add ability to visit prev)
   pinned?: Resolver<GQLResolversTypes['Boolean'], ParentType, ContextType>
   title?: Resolver<GQLResolversTypes['String'], ParentType, ContextType>
   updatedAt?: Resolver<GQLResolversTypes['DateTime'], ParentType, ContextType>
