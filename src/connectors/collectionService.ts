@@ -16,8 +16,10 @@ import {
   ActionLimitExceededError,
   ForbiddenByStateError,
 } from 'common/errors'
+import { getLogger } from 'common/logger'
 import { BaseService, UserWorkService, UserService } from 'connectors'
 
+const logger = getLogger('service-collection')
 export class CollectionService extends BaseService<Collection> {
   public constructor(connections: Connections) {
     super('collection', connections)
@@ -94,32 +96,6 @@ export class CollectionService extends BaseService<Collection> {
     const totalCount = records.length === 0 ? 0 : +records[0].totalCount
     return [records, totalCount]
   }
-  /**
-   * Private function to get the position of an article in a collection
-   *
-   * @param collectionId
-   * @param articleId
-   * @returns
-   */
-  private getArticlePosition = async (
-    collectionId: string,
-    articleId: string
-  ): Promise<number> => {
-    const articlePosition = await this.knex('collection_article')
-      .count('* as position')
-      .where({
-        collectionId,
-        article_id: articleId,
-        state: ARTICLE_STATE.active,
-      })
-      .first()
-
-    if (articlePosition === undefined) {
-      throw new Error('Article not found in the collection')
-    }
-
-    return Number(articlePosition.position)
-  }
 
   /**
    * find articles in collection with its position
@@ -134,25 +110,28 @@ export class CollectionService extends BaseService<Collection> {
     articleId: string,
     { take, reversed = true }: { take: number; reversed?: boolean }
   ): Promise<[CollectionArticle[], number, number]> => {
-    // Find the position of the specified article in the collection
-    let pageNumber = 1
-    try {
-      const articlePosition = await this.getArticlePosition(
-        collectionId,
-        articleId
-      )
-      // Calculate the page number the article belongs to
-      pageNumber = Math.ceil(Number(articlePosition) / take)
-    } catch (error) {
-      console.error(error)
-    }
+    const articlePositions = this.knex('collection_article as ca')
+      .select('ca.article_id', this.knex.raw('ROW_NUMBER() OVER (ORDER BY ca."order") AS position'))
+      .where('ca.collection_id', collectionId)
+      .orderBy('ca.order', reversed ? 'desc' : 'asc')
+      .as('ap');
 
-    // Calculate the new skip value to get the articles on the page
-    const newSkip = (pageNumber - 1) * take
+    const positionMeta = await this.knex
+      .select(
+        this.knex.raw(`CEIL(ap.position::float / ${take}::float) AS pageNumber`)
+      )
+      .from(articlePositions)
+      .where('ap.article_id', articleId);
+
+    if (positionMeta.length === 0) {
+      logger.error(`Article not found in collection: ${articleId}`)
+      return [...await this.findAndCountArticlesInCollection(collectionId, { take, reversed }), 1]
+    }
+    const { pageNumber } = positionMeta[0]
 
     const [records, totalCount] = await this.findAndCountArticlesInCollection(
       collectionId,
-      { skip: newSkip, take, reversed }
+      { skip: (pageNumber - 1) * take, take, reversed }
     )
 
     return [records, totalCount, pageNumber]
